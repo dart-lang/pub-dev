@@ -329,6 +329,302 @@ void main() {
       });
     });
 
+    group('Uploading with GitHub Actions', () {
+      testWithProfile('GitHub Actions cannot upload new package', fn: () async {
+        final token = createFakeGithubActionToken(
+          repository: 'x/y',
+          ref: 'refs/tag/1',
+        );
+        final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        // TODO: refactor upload to return better error message
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'Insufficient permissions to perform administrative actions on package `new_package`.',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload new version to existing package',
+          fn: () async {
+        final token = createFakeGithubActionToken(
+          repository: 'x/y',
+          ref: 'refs/tag/1',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message: 'publishing from github is not enabled',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload because repository not matching',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'x/y',
+          ref: 'refs/tag/1',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'publishing is not enabled for the \"x/y\" repository, it may be enabled for another repository',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload because ref type not matching',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/unknown-ref-type/1',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'publishing is only allowed from \"tag\" refType, this token has \"unknown-ref-type\" refType',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload because version pattern not matching',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/1',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'publishing is configured to only be allowed from actions with specific '
+              'ref pattern, this token has \"refs/tags/1\" ref for which publishing is not allowed',
+        );
+      });
+
+      testWithProfile(
+          'successful upload with GitHub Actions (without environment)',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message:
+              'GitHub Action recognized successful, but publishing is not enabled yet.',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload because environment is missing',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                  requireEnvironment: true,
+                  environment: 'prod',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'publishing is configured to only be allowed from actions with an environment, '
+              'this token originates from an action running in environment \"null\" for which publishing is not allowed',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload because environment not matching',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                  requireEnvironment: true,
+                  environment: 'prod',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+          environment: 'staging',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'publishing is configured to only be allowed from actions with an environment, '
+              'this token originates from an action running in environment \"staging\" for which publishing is not allowed',
+        );
+      });
+
+      testWithProfile(
+          'successful upload with GitHub Actions (with environment)',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: 'v{{version}}',
+                  requireEnvironment: true,
+                  environment: 'prod',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/v2.2.0',
+          environment: 'prod',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message:
+              'GitHub Action recognized successful, but publishing is not enabled yet.',
+        );
+      });
+    });
+
     group('packageBackend.upload', () {
       testWithProfile('not logged in', fn: () async {
         final tarball = await packageArchiveBytes(pubspecContent: '');

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
@@ -78,7 +80,6 @@ Future<void> importProfile({
       bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
           audience: activeConfiguration.pubClientAudience),
       pubHostedUrl: pubHostedUrl,
-      // ignore: invalid_use_of_visible_for_testing_member
       fn: (client) => client.uploadPackageBytes(bytes),
     );
   }
