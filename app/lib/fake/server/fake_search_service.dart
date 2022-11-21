@@ -15,6 +15,7 @@ import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -23,8 +24,9 @@ final _logger = Logger('fake_search_service');
 class FakeSearchService {
   final MemDatastore _datastore;
   final MemStorage _storage;
+  final FakeCloudCompute _cloudCompute;
 
-  FakeSearchService(this._datastore, this._storage);
+  FakeSearchService(this._datastore, this._storage, this._cloudCompute);
 
   Future<void> run({
     int port = 8082,
@@ -34,6 +36,7 @@ class FakeSearchService {
         configuration: configuration,
         datastore: _datastore,
         storage: _storage,
+        cloudCompute: _cloudCompute,
         fn: () async {
           final handler = wrapHandler(_logger, searchServiceHandler);
           final server = await IOServer.bind('localhost', port);

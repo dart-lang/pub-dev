@@ -318,11 +318,8 @@ class TaskBackend {
       // be relevant to the next iteration.
       seen.removeWhere((_, updated) => updated.isBefore(since));
 
-      // Wait 10 minutes before scanning again!
-      await Future.any([
-        Future.delayed(Duration(minutes: 10)),
-        abort.future,
-      ]);
+      // Wait until aborted or 10 minutes before scanning again!
+      await abort.future.timeout(Duration(minutes: 10), onTimeout: () => null);
     }
   }
 
