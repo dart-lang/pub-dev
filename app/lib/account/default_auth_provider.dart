@@ -9,7 +9,6 @@ import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:retry/retry.dart' show retry;
 
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
@@ -32,7 +31,7 @@ class DefaultAuthProvider extends AuthProvider {
   late oauth2_v2.Oauth2Api _oauthApi;
 
   DefaultAuthProvider() {
-    _httpClient = http.Client();
+    _httpClient = httpRetryClient(retries: 2);
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
   }
 
@@ -173,10 +172,8 @@ class DefaultAuthProvider extends AuthProvider {
     // Note: ideally, we would verify these JWTs locally, but unfortunately
     //       we don't have a solid RSA implementation available in Dart.
     final u = _tokenInfoEndPoint.replace(queryParameters: {'id_token': jwt});
-    final response = await retry(
-      () => _httpClient.get(u, headers: {'accept': 'application/json'}),
-      maxAttempts: 2, // two attempts is enough, we don't want delays here
-    );
+    final response =
+        await _httpClient.get(u, headers: {'accept': 'application/json'});
     // Expect a 200 response
     if (response.statusCode != 200) {
       return null;
@@ -249,9 +246,8 @@ class DefaultAuthProvider extends AuthProvider {
   @override
   Future<AccountProfile?> getAccountProfile(String? accessToken) async {
     if (accessToken == null) return null;
-    final client = httpRetryClient(innerClient: http.Client());
     final authClient = auth.authenticatedClient(
-        client,
+        _httpClient,
         auth.AccessCredentials(
           auth.AccessToken(
             'Bearer',
@@ -264,7 +260,6 @@ class DefaultAuthProvider extends AuthProvider {
 
     final oauth2 = oauth2_v2.Oauth2Api(authClient);
     final info = await oauth2.userinfo.get();
-    client.close();
     return AccountProfile(
       name: info.name ?? info.givenName,
       imageUrl: info.picture,

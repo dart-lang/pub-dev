@@ -15,7 +15,7 @@ import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
-import '../account/google_oauth2.dart';
+import '../account/default_auth_provider.dart';
 import '../account/like_backend.dart';
 import '../admin/backend.dart';
 import '../audit/backend.dart';
