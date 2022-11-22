@@ -995,7 +995,7 @@ class PackageBackend {
     }
     if (uploaderEmails.isEmpty) {
       // should not happen
-      throw StateError(
+      throw AssertionError(
           'Package "${newVersion.package}" has no admin email to notify.');
     }
 
