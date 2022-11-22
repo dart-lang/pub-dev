@@ -9,6 +9,7 @@ import 'dart:io' show Directory, File, Platform, exit;
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 
@@ -103,8 +104,43 @@ Future<void> main(List<String> args) async {
     },
   );
 
+  // Load doc/pub-data.json created by dartdoc
+  ReportSection docSection;
+  try {
+    final docData = PubDartdocData.fromJson(json.decode(
+      await File(p.join(outputFolder, 'doc', 'pub-data.json')).readAsString(),
+    ) as Map<String, dynamic>);
+    docSection = documentationCoverageSection(
+      documented: docData.coverage?.documented ?? 0,
+      total: docData.coverage?.total ?? 0,
+    );
+  } catch (e) {
+    // ignore the error
+    // TODO: handle errors more gracefully, or just run dartdoc as part of pana.
+    // TODO: make a proper link to the task-log, which isn't exposed yet.
+    docSection = dartdocFailedSection('`dartdoc` failed, see task-log.');
+  }
+
+  final updatedReport = summary.report?.joinSection(docSection);
+  // TODO: Patch Summary.change, so that we don't have to do this hack.
+  final updatedSummary = Summary(
+    runtimeInfo: summary.runtimeInfo,
+    packageName: summary.packageName,
+    packageVersion: summary.packageVersion,
+    pubspec: summary.pubspec,
+    allDependencies: summary.allDependencies,
+    licenseFile: summary.licenseFile,
+    licenses: summary.licenses,
+    tags: summary.tags,
+    report: updatedReport,
+    result: summary.result,
+    urlProblems: summary.urlProblems,
+    errorMessage: summary.errorMessage,
+    screenshots: summary.screenshots,
+  );
+
   _log.info('Writing summary.json');
   await File(
     p.join(outputFolder, 'summary.json'),
-  ).writeAsString(json.encode(summary));
+  ).writeAsString(json.encode(updatedSummary));
 }

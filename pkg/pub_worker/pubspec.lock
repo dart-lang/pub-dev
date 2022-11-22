@@ -373,7 +373,7 @@ packages:
     source: path
     version: "0.0.0"
   pub_dartdoc_data:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../pub_dartdoc_data"
       relative: true
