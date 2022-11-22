@@ -1281,8 +1281,6 @@ class PackageBackend {
   /// - Returns either the uploader emails of the publisher's admin member emails.
   ///   Throws exception if the list is empty, we should be able to notify somebody.
   ///
-  /// - Throws exception if the [package] is blocked.
-  ///
   /// - If the [package] does not exists yet, and [agent] is [AuthenticatedUser],
   ///   it will return the email of that user. For other type of agents, it will
   ///   throw an exception for non-existing packages.
