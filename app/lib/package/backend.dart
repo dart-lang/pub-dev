@@ -376,17 +376,11 @@ class PackageBackend {
           'Package specified by "replaceBy" must not be discontinued.');
     }
 
-    final pkgKey = db.emptyKey.append(Package, id: package);
+    final pkg = await _requirePackageAdmin(package, user.userId);
     String? latestVersion;
     await withRetryTransaction(db, (tx) async {
-      final p = await tx.lookupOrNull<Package>(pkgKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
+      final p = await tx.lookupValue<Package>(pkg.key);
       latestVersion = p.latestVersion;
-
-      // Check that the user is admin for this package.
-      await checkPackageAdmin(p, user.userId);
 
       final optionsChanges = <String>[];
       if (options.isDiscontinued != null &&
@@ -437,16 +431,10 @@ class PackageBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
 
-    final pkgKey = db.emptyKey.append(Package, id: package);
-    final versionKey = pkgKey.append(PackageVersion, id: version);
+    final pkg = await _requirePackageAdmin(package, user.userId);
+    final versionKey = pkg.key.append(PackageVersion, id: version);
     await withRetryTransaction(db, (tx) async {
-      final p = await tx.lookupOrNull<Package>(pkgKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-      // Check that the user is admin for this package.
-      await checkPackageAdmin(p, user.userId);
-
+      final p = await tx.lookupValue<Package>(pkg.key);
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
       if (pv == null) {
         throw NotFoundException.resource(version);
@@ -474,15 +462,9 @@ class PackageBackend {
       String package, api.AutomatedPublishing body) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
+    final pkg = await _requirePackageAdmin(package, user.userId);
     return await withRetryTransaction(db, (tx) async {
-      final p = await tx
-          .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-      // Check that the user is admin for this package.
-      await checkPackageAdmin(p, user.userId);
-
+      final p = await tx.lookupValue<Package>(pkg.key);
       final github = body.github;
       final googleCloud = body.gcp;
       if (github != null) {
@@ -607,8 +589,9 @@ class PackageBackend {
   /// publisher admin).
   ///
   /// Returns false if the user is not an admin.
-  Future<bool> isPackageAdmin(Package p, String? userId) async {
-    if (userId == null) {
+  /// Returns false if the package is not visible e.g. blocked.
+  Future<bool> isPackageAdmin(Package p, String userId) async {
+    if (p.isBlocked) {
       return false;
     }
     if (p.publisherId == null) {
@@ -620,20 +603,6 @@ class PackageBackend {
         return false;
       }
       return await publisherBackend.isMemberAdmin(publisher, userId);
-    }
-  }
-
-  /// Whether the [userId] is a package admin (through direct uploaders list or
-  /// publisher admin).
-  ///
-  /// Throws AuthenticationException if the user is provided.
-  /// Throws AuthorizationException if the user is not an admin for the package.
-  Future<void> checkPackageAdmin(Package package, String? userId) async {
-    if (userId == null) {
-      throw AuthenticationException.authenticationRequired();
-    }
-    if (!await isPackageAdmin(package, userId)) {
-      throw AuthorizationException.userIsNotAdminForPackage(package.name!);
     }
   }
 
@@ -669,7 +638,7 @@ class PackageBackend {
     final user = authenticatedUser.user;
 
     final key = db.emptyKey.append(Package, id: packageName);
-    final preTxPackage = await requirePackageAdmin(packageName, user.userId);
+    final preTxPackage = await _requirePackageAdmin(packageName, user.userId);
     await requirePublisherAdmin(request.publisherId, user.userId);
     if (preTxPackage.publisherId == request.publisherId) {
       // If desired publisherId is already the current publisherId, then we're already done.
@@ -737,7 +706,7 @@ class PackageBackend {
   /// Moves the package out of its current publisher.
   Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
     final user = await requireAuthenticatedWebUser();
-    final package = await requirePackageAdmin(packageName, user.userId);
+    final package = await _requirePackageAdmin(packageName, user.userId);
     if (package.publisherId == null) {
       return _asPackagePublisherInfo(package);
     }
@@ -1046,6 +1015,11 @@ class PackageBackend {
             version.package, version.version!);
       }
 
+      // reject if package is blocked
+      if (package != null && package!.isBlocked) {
+        throw PackageRejectedException.isBlocked();
+      }
+
       // If the package exists, check for authorization
       if (package != null) {
         await _checkUploadAuthorization(agent, package!, newVersion.version!);
@@ -1307,8 +1281,6 @@ class PackageBackend {
   /// - Returns either the uploader emails of the publisher's admin member emails.
   ///   Throws exception if the list is empty, we should be able to notify somebody.
   ///
-  /// - Throws exception if the [package] is blocked.
-  ///
   /// - If the [package] does not exists yet, and [agent] is [AuthenticatedUser],
   ///   it will return the email of that user. For other type of agents, it will
   ///   throw an exception for non-existing packages.
@@ -1320,9 +1292,6 @@ class PackageBackend {
     }
     if (p == null) {
       throw AuthorizationException.userIsNotAdminForPackage(package);
-    }
-    if (p.isBlocked) {
-      throw PackageRejectedException.isBlocked();
     }
     final emails = p.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(p.uploaders!)
@@ -1583,17 +1552,15 @@ enum UploadRestrictionStatus {
 /// Loads [package], returns its [Package] instance, and also checks if
 /// [userId] is an admin of the package.
 ///
-/// Throws AuthenticationException if the user is provided.
-/// Throws AuthorizationException if the user is not an admin for the package.
-Future<Package> requirePackageAdmin(String package, String? userId) async {
-  if (userId == null) {
-    throw AuthenticationException.authenticationRequired();
-  }
+/// Throws [AuthorizationException] if the user is not an admin for the package.
+Future<Package> _requirePackageAdmin(String package, String userId) async {
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     throw NotFoundException.resource('package "$package"');
   }
-  await packageBackend.checkPackageAdmin(p, userId);
+  if (!await packageBackend.isPackageAdmin(p, userId)) {
+    throw AuthorizationException.userIsNotAdminForPackage(package);
+  }
   return p;
 }
 

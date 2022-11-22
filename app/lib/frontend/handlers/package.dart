@@ -361,8 +361,10 @@ Future<PackagePageData> loadPackagePageData(
   final scoreCard = await scoreCardBackend.getScoreCardData(
       selectedVersion.package, selectedVersion.version!);
 
-  final isAdmin =
-      await packageBackend.isPackageAdmin(package, userSessionData?.userId);
+  final sessionUserId = userSessionData?.userId;
+  final isAdmin = sessionUserId == null
+      ? false
+      : await packageBackend.isPackageAdmin(package, sessionUserId);
 
   return PackagePageData(
     package: package,
