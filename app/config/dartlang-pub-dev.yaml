@@ -51,3 +51,5 @@ tools:
   stableFlutterSdkPath: '/tool/stable/flutter'
   previewDartSdkPath: '/tool/preview/dart-sdk'
   previewFlutterSdkPath: '/tool/preview/flutter'
+  futureDartSdkPath: '/tool/future/dart-sdk'
+  futureFlutterSdkPath: '/tool/future/flutter'

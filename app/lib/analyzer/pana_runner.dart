@@ -91,6 +91,7 @@ class _PanaRunner implements PanaRunner {
                   ? null
                   : await getDefaultAnalysisOptionsYaml(),
               checkRemoteRepository: isInternal,
+              futureSdkTag: 'is:future-sdk-compatible',
             ),
             logger: Logger.detached('pana/$package/$version'),
             storeResource: store,
