@@ -1304,7 +1304,7 @@ class PackageBackend {
     final existingEmails = emails.whereType<String>().toList();
     if (existingEmails.isEmpty) {
       // should not happen
-      throw StateError(
+      throw AssertionError(
           'Package "${package.name}" has no admin email to notify.');
     }
     return existingEmails;
