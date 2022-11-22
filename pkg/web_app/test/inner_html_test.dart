@@ -27,6 +27,7 @@ void main() {
 
   test('no innerHtml use in app', () async {
     await _checkFiles('../../app/lib/');
+    await _checkFiles('../../pkg/_pub_shared/lib');
   });
 
   test('no innerHtml use in pkg/web_app', () async {

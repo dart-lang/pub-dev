@@ -79,8 +79,14 @@ class DartDocPage {
   final String title;
   final String description;
   final List<Breadcrumb> breadcrumbs;
+
+  /// Sanitized HTML for the [left] pane.
   final String left;
+
+  /// Sanitized HTML for the [right] pane.
   final String right;
+
+  /// Sanitized HTML for the [content] pane.
   final String content;
 
   DartDocPage({
@@ -148,23 +154,24 @@ class DartDocPage {
         }).toList() ??
         <Breadcrumb>[];
 
-    final L = document.querySelector('#dartdoc-sidebar-left');
-    L?.querySelector('header')?.remove();
-    L?.querySelector('.breadcrumbs')?.remove();
-    final left = L?.innerHtml;
+    final rawLeft = document.querySelector('#dartdoc-sidebar-left');
+    rawLeft?.querySelector('header')?.remove();
+    rawLeft?.querySelector('.breadcrumbs')?.remove();
+    final left = rawLeft?.innerHtml;
 
-    final R = document.querySelector('#dartdoc-sidebar-right');
-    final right = R?.innerHtml;
+    final rawRight = document.querySelector('#dartdoc-sidebar-right');
+    final right = rawRight?.innerHtml;
 
-    final C = document.querySelector('#dartdoc-main-content');
+    final rawContent = document.querySelector('#dartdoc-main-content');
     // HACK: Replace <section> with <div> to make sanitizeHtml happy
-    for (final section in C?.querySelectorAll('section') ?? <Element>[]) {
+    for (final section
+        in rawContent?.querySelectorAll('section') ?? <Element>[]) {
       final div = Element.tag('div');
       div.attributes = section.attributes;
       section.reparentChildren(div);
       section.replaceWith(div);
     }
-    final content = C?.innerHtml;
+    final content = rawContent?.innerHtml;
 
     return DartDocPage(
       title: document.querySelector('head > title')?.text ?? '',
