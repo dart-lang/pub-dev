@@ -239,13 +239,11 @@ void main() {
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
         final rs =
             createPubApiClient(authToken: token).uploadPackageBytes(bytes);
-        // TODO: refactor upload to return better error message
         await expectApiException(
           rs,
-          status: 403,
-          code: 'InsufficientPermissions',
-          message:
-              'Insufficient permissions to perform administrative actions on package `new_package`.',
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Only users are allowed to upload new packages.',
         );
       });
 
@@ -342,10 +340,9 @@ void main() {
         // TODO: refactor upload to return better error message
         await expectApiException(
           rs,
-          status: 403,
-          code: 'InsufficientPermissions',
-          message:
-              'Insufficient permissions to perform administrative actions on package `new_package`.',
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Only users are allowed to upload new packages.',
         );
       });
 

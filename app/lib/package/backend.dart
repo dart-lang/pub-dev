@@ -645,8 +645,8 @@ class PackageBackend {
       return _asPackagePublisherInfo(preTxPackage);
     }
 
-    final preTxUploaderEmails = await _listAdminNotificationEmailsForPackage(
-        preTxPackage.name!, authenticatedUser);
+    final preTxUploaderEmails =
+        await _listAdminNotificationEmailsForPackage(preTxPackage);
     preTxPackage.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(preTxPackage.uploaders!)
         : await publisherBackend
@@ -981,8 +981,24 @@ class PackageBackend {
     final currentDartSdk = await getDartSdkVersion();
 
     // query admin notification emails before the transaction starts
-    final uploaderEmails =
-        await _listAdminNotificationEmailsForPackage(newVersion.package, agent);
+    final existingPackage = await lookupPackage(newVersion.package);
+    List<String> uploaderEmails;
+    if (existingPackage == null) {
+      if (agent is AuthenticatedUser) {
+        uploaderEmails = [agent.email!];
+      } else {
+        throw PackageRejectedException.onlyUsersAreAllowedToUploadNewPackages();
+      }
+    } else {
+      uploaderEmails =
+          await _listAdminNotificationEmailsForPackage(existingPackage);
+    }
+    if (uploaderEmails.isEmpty) {
+      // should not happen
+      throw StateError(
+          'Package "${newVersion.package}" has no admin email to notify.');
+    }
+
     final email = createPackageUploadedEmail(
       packageName: newVersion.package,
       packageVersion: newVersion.version!,
@@ -1280,26 +1296,16 @@ class PackageBackend {
   ///
   /// - Returns either the uploader emails of the publisher's admin member emails.
   ///   Throws exception if the list is empty, we should be able to notify somebody.
-  ///
-  /// - If the [package] does not exists yet, and [agent] is [AuthenticatedUser],
-  ///   it will return the email of that user. For other type of agents, it will
-  ///   throw an exception for non-existing packages.
   Future<List<String>> _listAdminNotificationEmailsForPackage(
-      String package, AuthenticatedAgent agent) async {
-    final p = await lookupPackage(package);
-    if (p == null && agent is AuthenticatedUser) {
-      return <String>[agent.user.email!];
-    }
-    if (p == null) {
-      throw AuthorizationException.userIsNotAdminForPackage(package);
-    }
-    final emails = p.publisherId == null
-        ? await accountBackend.getEmailsOfUserIds(p.uploaders!)
-        : await publisherBackend.getAdminMemberEmails(p.publisherId!);
+      Package package) async {
+    final emails = package.publisherId == null
+        ? await accountBackend.getEmailsOfUserIds(package.uploaders!)
+        : await publisherBackend.getAdminMemberEmails(package.publisherId!);
     final existingEmails = emails.whereType<String>().toList();
     if (existingEmails.isEmpty) {
-      _logger.shout('Package "$package" has no admin email to notify.');
-      throw AuthorizationException.userIsNotAdminForPackage(package);
+      // should not happen
+      throw StateError(
+          'Package "${package.name}" has no admin email to notify.');
     }
     return existingEmails;
   }

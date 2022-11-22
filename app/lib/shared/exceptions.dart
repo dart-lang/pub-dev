@@ -262,6 +262,12 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Uploads are restricted. Please try again later.');
 
+  /// The upload would create a new package, but the authenticated agent is an automated
+  /// account, not a user.
+  PackageRejectedException.onlyUsersAreAllowedToUploadNewPackages()
+      : super._(400, 'PackageRejected',
+            'Only users are allowed to upload new packages.');
+
   /// Check [condition] and throw [PackageRejectedException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {
