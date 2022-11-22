@@ -507,6 +507,73 @@ void main() {
       });
 
       testWithProfile(
+          'successful upload with GitHub Actions (exempted package)',
+          testProfile: TestProfile(
+            packages: [TestPackage(name: '_dummy_pkg')],
+            defaultUser: 'admin@pub.dev',
+          ), fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              '_dummy_pkg',
+              AutomatedPublishing(
+                github: GithubPublishing(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+        );
+        final pubspecContent = generatePubspecYaml('_dummy_pkg', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs = await createPubApiClient(authToken: token)
+            .uploadPackageBytes(bytes);
+        expect(rs.success.message,
+            'Successfully uploaded https://pub.dev/packages/_dummy_pkg version 2.2.0.');
+
+        expect(fakeEmailSender.sentMessages, hasLength(1));
+        final email = fakeEmailSender.sentMessages.single;
+        expect(email.recipients.single.email, 'admin@pub.dev');
+        expect(email.subject, 'Package uploaded: _dummy_pkg 2.2.0');
+        expect(
+            email.bodyText,
+            contains(
+                'service:github-actions has published a new version (2.2.0)'));
+
+        final audits = await auditBackend.listRecordsForPackageVersion(
+            '_dummy_pkg', '2.2.0');
+        final publishedAudit = audits.records.first;
+        expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
+        expect(publishedAudit.created, isNotNull);
+        expect(publishedAudit.expires!.year, greaterThan(9998));
+        expect(publishedAudit.agent, 'service:github-actions');
+        expect(publishedAudit.users, []);
+        expect(publishedAudit.packages, ['_dummy_pkg']);
+        expect(publishedAudit.packageVersions, ['_dummy_pkg/2.2.0']);
+        expect(publishedAudit.publishers, []);
+        expect(
+          publishedAudit.summary,
+          startsWith(
+              'Package `_dummy_pkg` version `2.2.0` was published from GitHub Actions (`run_id`: [`'),
+        );
+        expect(publishedAudit.summary,
+            contains('triggered by pushing to the `a/b` repository.'));
+        expect(publishedAudit.data, {
+          'package': '_dummy_pkg',
+          'version': '2.2.0',
+          'repository': 'a/b',
+          'run_id': isNotEmpty,
+        });
+      });
+
+      testWithProfile(
           'GitHub Actions cannot upload because environment is missing',
           fn: () async {
         await withHttpPubApiClient(
