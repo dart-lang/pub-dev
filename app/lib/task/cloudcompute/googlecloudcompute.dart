@@ -12,7 +12,6 @@ import 'package:googleapis/compute/v1.dart' hide Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
-import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/utils.dart' show createUuid;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:retry/retry.dart';
@@ -85,6 +84,9 @@ CloudCompute createGoogleCloudCompute({
   required String project,
   required String network,
   required String poolLabel,
+  required String taskWorkerServiceAccount,
+  required String cosImage,
+  required Duration maxRunDuration,
 }) {
   if (poolLabel.isEmpty) {
     throw ArgumentError.value(poolLabel, 'poolLabel', 'must not be empty');
@@ -103,6 +105,13 @@ CloudCompute createGoogleCloudCompute({
       'must only contain [a-z0-9_-]',
     );
   }
+  if (maxRunDuration.isNegative) {
+    throw ArgumentError.value(
+      maxRunDuration,
+      'maxRunDuration',
+      'must be positive',
+    );
+  }
 
   return _GoogleCloudCompute(
     ComputeApi(cloudComputeClient),
@@ -111,6 +120,9 @@ CloudCompute createGoogleCloudCompute({
     _googleCloudZones,
     _googleCloudMachineType,
     poolLabel,
+    taskWorkerServiceAccount,
+    cosImage,
+    maxRunDuration,
   );
 }
 
@@ -290,6 +302,17 @@ class _GoogleCloudCompute extends CloudCompute {
   /// listed (luckily we can filter in labels in the API).
   final String _poolLabel;
 
+  /// Service account granted to task VMs.
+  ///
+  /// This needs to have permission to read docker images.
+  final String _taskWorkerServiceAccount;
+
+  /// Container-Optimized-OS image to be used.
+  final String _cosImage;
+
+  /// Maximum time instances are allowed to run.
+  final Duration _maxRunDuration;
+
   /// Instances where a [Future] from the [createInstance] operation is still
   /// waiting to be resolved.
   ///
@@ -304,6 +327,9 @@ class _GoogleCloudCompute extends CloudCompute {
     this._zones,
     this._machineType,
     this._poolLabel,
+    this._taskWorkerServiceAccount,
+    this._cosImage,
+    this._maxRunDuration,
   );
 
   @override
@@ -402,66 +428,68 @@ runcmd:
 - systemctl start worker.service
 ''';
 
-    final instance = Instance()
-      ..name = instanceName
-      ..description = description
-      ..machineType = 'zones/$zone/machineTypes/$_machineType'
-      ..scheduling = (Scheduling()
-        ..preemptible = true
-        ..automaticRestart = false
-        ..onHostMaintenance = 'TERMINATE'
-        ..instanceTerminationAction = 'DELETE'
-        ..provisioningModel = 'SPOT')
-      ..labels = {
+    final instance = Instance(
+      name: instanceName,
+      description: description,
+      machineType: 'zones/$zone/machineTypes/$_machineType',
+      scheduling: _Scheduling(
+        preemptible: true,
+        automaticRestart: false,
+        onHostMaintenance: 'TERMINATE',
+        instanceTerminationAction: 'DELETE',
+        provisioningModel: 'SPOT',
+        maxRunDuration: _maxRunDuration,
+      ),
+      labels: {
         // Labels that allows us to filter instances when listing instances.
         'owner': 'pub-dev',
         'pool': _poolLabel,
-      }
-      ..metadata = (Metadata()
-        ..items = [
-          MetadataItems()
-            ..key = 'user-data'
-            ..value = cloudConfig,
+      },
+      metadata: Metadata(
+        items: [
+          MetadataItems(key: 'user-data', value: cloudConfig),
           // Enable logging with Google Cloud Logging, see:
           // https://cloud.google.com/container-optimized-os/docs/how-to/logging
-          MetadataItems()
-            ..key = 'google-logging-enabled'
-            ..value = 'true',
+          MetadataItems(key: 'google-logging-enabled', value: 'true'),
           // These VMs are intended to be short-lived, we should update the
           // image, hence, automatic updates shouldn't be necessary.
           // https://cloud.google.com/container-optimized-os/docs/concepts/auto-update#disabling_automatic_updates
-          MetadataItems()
-            ..key = 'cos-update-strategy'
-            ..value = 'update_disabled',
-        ])
-      ..serviceAccounts = [
-        ServiceAccount()
-          ..email = activeConfiguration.taskWorkerServiceAccount
-          ..scopes = [ComputeApi.cloudPlatformScope]
-      ]
-      ..networkInterfaces = [
+          MetadataItems(key: 'cos-update-strategy', value: 'update_disabled'),
+        ],
+      ),
+      serviceAccounts: [
+        ServiceAccount(
+          email: _taskWorkerServiceAccount,
+          scopes: [ComputeApi.cloudPlatformScope],
+        ),
+      ],
+      networkInterfaces: [
         // This attaches the VM to the given network, but doesn't assign any
         // public IP address. So the ability to make outbound connections depend
         // on Cloud Nat configuration for the network.
-        NetworkInterface()
-          ..network = 'projects/$_project/global/networks/$_network',
-      ]
-      ..disks = [
-        AttachedDisk()
-          ..type = 'PERSISTENT'
-          ..boot = true
-          ..autoDelete = true
-          ..initializeParams = (AttachedDiskInitializeParams()
-            ..diskSizeGb = '10'
-            ..labels = {
+        NetworkInterface(
+          network: 'projects/$_project/global/networks/$_network',
+        ),
+      ],
+      disks: [
+        AttachedDisk(
+          type: 'PERSISTENT',
+          boot: true,
+          autoDelete: true,
+          initializeParams: AttachedDiskInitializeParams(
+            diskSizeGb: '15',
+            labels: {
               // Labels allows to track disks, in practice they should always
               // be auto-deleted with instance, but if this fails it's nice to
               // have a label.
               'owner': 'pub-dev',
               'pool': _poolLabel,
-            }
-            ..sourceImage = activeConfiguration.cosImage),
-      ];
+            },
+            sourceImage: _cosImage,
+          ),
+        ),
+      ],
+    );
 
     _log.info('Creating instance: ${instance.name}');
     final pendingInstancePlaceHolder =
@@ -689,5 +717,51 @@ DateTime _parseInstanceCreationTimestamp(String? timestamp) {
     );
     // Fallback to year zero that way instances will be killed.
     return DateTime(0);
+  }
+}
+
+/// Extend [Scheduling] with support for [maxRunDuration].
+///
+/// This is only available in the Compute Beta API, but extremely useful for
+/// our use case, because GCE will then automatically delete instances.
+///
+/// The [maxRunDuration] property is encoded as:
+/// ```
+/// "maxRunDuration": {
+///   "seconds": string,
+///   "nanos": integer
+/// },
+/// ```
+/// For details, see reference documentation:
+/// https://cloud.google.com/compute/docs/reference/rest/beta/instances/insert
+class _Scheduling extends Scheduling {
+  /// Specifies the max run duration for the given instance.
+  ///
+  /// If specified, the instance termination action will be performed at the
+  /// end of the run duration.
+  Duration? maxRunDuration;
+
+  _Scheduling({
+    super.automaticRestart,
+    super.instanceTerminationAction,
+    super.locationHint, // ignore: unused_element
+    super.minNodeCpus, // ignore: unused_element
+    super.nodeAffinities, // ignore: unused_element
+    super.onHostMaintenance,
+    super.preemptible,
+    super.provisioningModel,
+    this.maxRunDuration,
+  });
+
+  @override
+  Map<String, dynamic> toJson() {
+    final maxRunDuration_ = maxRunDuration;
+    return <String, dynamic>{
+      ...super.toJson(),
+      if (maxRunDuration_ != null)
+        'maxRunDuration': <String, dynamic>{
+          'seconds': '${maxRunDuration_.inSeconds}',
+        },
+    };
   }
 }

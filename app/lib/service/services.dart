@@ -119,6 +119,9 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
         network: activeConfiguration.taskWorkerNetwork!,
         poolLabel:
             '${activeConfiguration.projectId}_${runtimeVersion.replaceAll('.', '-')}_worker',
+        taskWorkerServiceAccount: activeConfiguration.taskWorkerServiceAccount!,
+        cosImage: activeConfiguration.cosImage!,
+        maxRunDuration: Duration(hours: activeConfiguration.maxTaskRunHours),
       ));
 
       return await _withPubServices(fn);

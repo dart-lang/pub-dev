@@ -26,8 +26,14 @@ void main() {
       // Create CloudCompute instance
       final gce = createGoogleCloudCompute(
         project: envConfig.googleCloudProject!,
+        // NOTE: It's important to have a Cloud NAT for the default network.
+        //       This is probably only reasonable to do in a test project.
         network: 'default',
         poolLabel: 'manual-testing',
+        cosImage: 'projects/cos-cloud/global/images/family/cos-97-lts',
+        taskWorkerServiceAccount:
+            '${envConfig.googleCloudProject}@appspot.gserviceaccount.com',
+        maxRunDuration: Duration(hours: 1),
       );
 
       // Fail if any instances exist
@@ -40,6 +46,11 @@ void main() {
         final instance = await gce.createInstance(
           instanceName: gce.generateInstanceName(),
           zone: gce.zones.first,
+          // HACK: Remove '-u worker:2000' from googlecloudcompute.dart when
+          //       running this test, or find a public docker image that
+          //       contains this user+uid.
+          // We could also make the user configurable, but for now we just this
+          // limitation, and hack around it when we do manual testing.
           dockerImage: 'busybox:1.31.1',
           arguments: [
             'sh',

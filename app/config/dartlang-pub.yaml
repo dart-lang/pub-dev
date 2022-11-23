@@ -13,6 +13,7 @@ dartdocStorageBucketName: dartlang-pub--dartdoc-storage
 popularityDumpBucketName: dartlang-pub--popularity
 searchSnapshotBucketName: dartlang-pub--search-snapshot
 maxTaskInstances: 700
+maxTaskRunHours: 2
 taskResultBucketName: dartlang-pub-task-output
 taskWorkerImage: gcr.io/dartlang-pub-tasks/{{GOOGLE_CLOUD_PROJECT}}-{{GAE_VERSION}}-worker
 taskWorkerProject: dartlang-pub-tasks

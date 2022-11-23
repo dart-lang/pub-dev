@@ -107,6 +107,9 @@ class Configuration {
   /// created.
   final int maxTaskInstances;
 
+  /// Maximum number of hours a task VM is allowed to run.
+  final int maxTaskRunHours;
+
   /// The name of the Cloud Storage bucket to use for task results.
   final String? taskResultBucketName;
 
@@ -257,6 +260,7 @@ class Configuration {
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
     required this.maxTaskInstances,
+    required this.maxTaskRunHours,
     required this.taskResultBucketName,
     required this.taskWorkerImage,
     required this.taskWorkerProject,
@@ -318,6 +322,7 @@ class Configuration {
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       maxTaskInstances: 10,
+      maxTaskRunHours: 2,
       taskResultBucketName: 'fake-bucket-task-result',
       taskWorkerImage: '-',
       taskWorkerProject: '-',
@@ -365,6 +370,7 @@ class Configuration {
       searchSnapshotBucketName: 'fake-bucket-search',
       taskResultBucketName: 'fake-bucket-task-result',
       maxTaskInstances: 10,
+      maxTaskRunHours: 2,
       taskWorkerImage: '-',
       taskWorkerProject: '-',
       taskWorkerNetwork: '-',
