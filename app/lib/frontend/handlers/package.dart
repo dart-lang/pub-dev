@@ -5,8 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/scorecard/models.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -358,8 +361,47 @@ Future<PackagePageData> loadPackagePageData(
       : await packageBackend.lookupPackageVersionAsset(
           packageName, versionName, assetKind);
 
-  final scoreCard = await scoreCardBackend.getScoreCardData(
-      selectedVersion.package, selectedVersion.version!);
+  final ScoreCardData? scoreCard;
+  if (!requestContext.experimentalFlags.showSandboxedOutput) {
+    scoreCard = await scoreCardBackend.getScoreCardData(
+        selectedVersion.package, selectedVersion.version!);
+  } else {
+    final status = PackageStatus.fromModels(package, selectedVersion);
+    final summary = await taskBackend.panaSummary(packageName, versionName);
+    scoreCard = ScoreCardData(
+      packageName: packageName,
+      packageVersion: versionName,
+      runtimeVersion: null, // this is unused outside scorecard backend
+      updated: null,
+      packageCreated: package.created,
+      packageVersionCreated: selectedVersion.created,
+      dartdocReport: DartdocReport(
+        timestamp: null, // TODO: https://github.com/dart-lang/pana/issues/1162
+        // TODO: Embed dartdoc success status in summary, unclear if we need it
+        reportStatus: ReportStatus.success, // assume success
+        dartdocEntry: null, // unused
+        documentationSection: null, // already embedded in summary
+      ),
+      panaReport: PanaReport(
+        timestamp: null, // TODO: https://github.com/dart-lang/pana/issues/1162
+        panaRuntimeInfo: summary?.runtimeInfo,
+        reportStatus:
+            summary == null ? ReportStatus.aborted : ReportStatus.success,
+        derivedTags: <String>{
+          ...?summary?.tags,
+          if (status.isLegacy) PackageVersionTags.isLegacy,
+          if (status.isObsolete) PackageVersionTags.isObsolete,
+          if (status.isDiscontinued) PackageTags.isDiscontinued,
+        }.toList(),
+        allDependencies: summary?.allDependencies,
+        licenses: summary?.licenses,
+        report: summary?.report,
+        result: summary?.result,
+        urlProblems: summary?.urlProblems,
+        screenshots: summary?.screenshots,
+      ),
+    );
+  }
 
   final sessionUserId = userSessionData?.userId;
   final isAdmin = sessionUserId == null
