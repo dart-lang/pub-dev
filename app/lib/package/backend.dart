@@ -5,7 +5,6 @@
 library pub_dartlang_org.backend;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -1251,14 +1250,12 @@ class PackageBackend {
       }
     }
 
-    // TODO: remove once we are happy with the current checks
-    // NOTE: we log and also return the payload map to verify the token info GitHub sends
-    final debugInfo = json.encode(agent.idToken.payload);
-    _logger.info('Recognized GitHub action: $debugInfo');
+    // Disable publishing for all packages, but exempt one for live testing.
+    if (package.name == '_dummy_pkg') {
+      return;
+    }
     throw PackageRejectedException(
-      'GitHub Action recognized successful, but publishing is not enabled yet.'
-      ' $debugInfo',
-    );
+        'GitHub Action recognized successful, but publishing is not enabled yet.');
   }
 
   Future<void> _checkServiceAccountAllowed(
@@ -1281,14 +1278,8 @@ class PackageBackend {
           'publishing is not enabled for the "${agent.payload.email}" service account');
     }
 
-    // TODO: remove once we are happy with the current checks
-    // NOTE: we log and also return the payload map to verify the token info Google Cloud sends
-    final debugInfo = json.encode(agent.idToken.payload);
-    _logger.info('Recognized Google Cloud service account: $debugInfo');
     throw PackageRejectedException(
-      'Google Cloud Service account recognized successful, but publishing is not enabled yet.'
-      ' $debugInfo',
-    );
+        'Google Cloud Service account recognized successful, but publishing is not enabled yet.');
   }
 
   /// List the admin emails that need to be notified when a [package] has a
