@@ -70,6 +70,7 @@ final _allowListedPackages = [
   'pem',
   'http',
   'collection',
+  'meta',
 ];
 
 class TaskBackend {
