@@ -974,15 +974,20 @@ class PackageBackend {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
     final currentDartSdk = await getDartSdkVersion();
-
-    // query admin notification emails before the transaction starts
     final existingPackage = await lookupPackage(newVersion.package);
+
+    // check authorizations before the transaction
+    await _checkUploadAuthorization(
+        agent, existingPackage, newVersion.version!);
+
+    // query admin notification emails before the transaction
     List<String> uploaderEmails;
     if (existingPackage == null) {
       if (agent is AuthenticatedUser) {
         uploaderEmails = [agent.email!];
       } else {
-        throw PackageRejectedException.onlyUsersAreAllowedToUploadNewPackages();
+        // won't happen as upload authorization check throws earlier
+        uploaderEmails = [];
       }
     } else {
       uploaderEmails =
@@ -1026,24 +1031,10 @@ class PackageBackend {
             version.package, version.version!);
       }
 
-      // reject if package is blocked
-      if (package != null && package!.isBlocked) {
-        throw PackageRejectedException.isBlocked();
-      }
-
-      // If the package exists, check for authorization
-      if (package != null) {
-        await _checkUploadAuthorization(agent, package!, newVersion.version!);
-      }
-
       // If the package does not exist, then we create a new package.
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = Package.fromVersion(newVersion);
-      }
-
-      if (package!.isNotVisible) {
-        throw PackageRejectedException.isBlocked();
       }
 
       if (package!.versionCount >= maxVersionsPerPackage) {
@@ -1168,7 +1159,19 @@ class PackageBackend {
   }
 
   Future<void> _checkUploadAuthorization(
-      AuthenticatedAgent agent, Package package, String newVersion) async {
+      AuthenticatedAgent agent, Package? package, String newVersion) async {
+    // new package
+    if (package == null) {
+      if (agent is AuthenticatedUser) {
+        return;
+      }
+      throw PackageRejectedException.onlyUsersAreAllowedToUploadNewPackages();
+    }
+
+    // existing package
+    if (package.isNotVisible) {
+      throw PackageRejectedException.isBlocked();
+    }
     if (agent is AuthenticatedUser &&
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
       return;
@@ -1181,6 +1184,7 @@ class PackageBackend {
       await _checkServiceAccountAllowed(agent, package, newVersion);
       return;
     }
+
     _logger.info('User ${agent.agentId} (${agent.displayId}) '
         'is not an uploader for package ${package.name}, rolling transaction back.');
     throw AuthorizationException.userCannotUploadNewVersion(
