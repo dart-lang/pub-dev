@@ -1219,6 +1219,11 @@ class PackageBackend {
       throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "tag" refType, this token has "${agent.payload.refType}" refType');
     }
+    final expectedRefStart = 'refs/tags/';
+    if (!agent.payload.ref.startsWith(expectedRefStart)) {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is only allowed from "refs/tags/*" ref, this token has "${agent.payload.ref}" ref');
+    }
     final tagPattern = githubPublishing.tagPattern ?? '{{version}}';
     if (!tagPattern.contains('{{version}}')) {
       throw ArgumentError(
