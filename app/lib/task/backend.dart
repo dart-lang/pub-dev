@@ -72,6 +72,8 @@ final _allowListedPackages = [
   'collection',
   'meta',
   'path',
+  'canonical_json',
+  'slugid',
 ];
 
 class TaskBackend {
