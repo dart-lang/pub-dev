@@ -646,10 +646,6 @@ class PackageBackend {
 
     final preTxUploaderEmails =
         await _listAdminNotificationEmailsForPackage(preTxPackage);
-    preTxPackage.publisherId == null
-        ? await accountBackend.getEmailsOfUserIds(preTxPackage.uploaders!)
-        : await publisherBackend
-            .getAdminMemberEmails(preTxPackage.publisherId!);
     final newPublisherAdminEmails =
         await publisherBackend.getAdminMemberEmails(request.publisherId!);
     final allAdminEmails = <String>{
