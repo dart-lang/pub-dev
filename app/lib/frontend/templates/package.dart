@@ -83,6 +83,8 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   addLink(packageLinks.repositoryUrl, 'Repository',
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
+  addLink(data.contributingUrl, 'Contributing');
+
   addLink(documentationUrl, 'Documentation', documentation: true);
   if (data.scoreCard?.hasApiDocs ?? false) {
     addLink(dartdocsUrl, 'API reference', documentation: true);

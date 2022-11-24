@@ -84,6 +84,9 @@ class FakePanaRunner implements PanaRunner {
       );
     }
 
+    final contributingUrl = fakeUrlCheck(
+        'contributingUrl', repository?.tryResolveUrl('CONTRIBUTING.md'));
+
     final result = AnalysisResult(
       homepageUrl: homepageUrl,
       repositoryUrl: repositoryUrl,
@@ -92,8 +95,7 @@ class FakePanaRunner implements PanaRunner {
       repository: repository,
       // TODO: add funding URLs
       fundingUrls: null,
-      // TODO: add contributing URL
-      contributingUrl: null,
+      contributingUrl: contributingUrl,
     );
     return Summary(
       packageName: package,

@@ -1037,6 +1037,8 @@ class PackagePageData {
     );
   }();
 
+  late final contributingUrl = scoreCard?.panaReport?.result?.contributingUrl;
+
   /// The inferred base URL that can be used to link files from.
   late final repositoryBaseUrl = () {
     // TODO: use pana's verified repository instead
