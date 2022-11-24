@@ -977,7 +977,7 @@ class PackageBackend {
     final existingPackage = await lookupPackage(newVersion.package);
 
     // check authorizations before the transaction
-    await _checkUploadAuthorization(
+    await _requireUploadAuthorization(
         agent, existingPackage, newVersion.version!);
 
     // query admin notification emails before the transaction
