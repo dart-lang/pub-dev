@@ -380,29 +380,29 @@ class DartDocPage {
         ),
       ]);
 
-  d.Node _renderBody(DartDocPageOptions options) =>
-      d.element('body', attributes: {
-        'data-base-href': p.relative('', from: p.dirname(options.path)) == '.'
-            ? ''
-            : p.relative('', from: p.dirname(options.path)) + '/',
-        'data-using-base-href': 'false',
-        'class': 'light-theme',
-      }, children: [
-        d.element('noscript',
-            child: d.element('iframe', attributes: {
-              'src': 'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
-              'height': '0',
-              'width': '0',
-              'style': 'display:none;visibility:hidden',
-            })),
-        d.div(id: 'overlay-under-drawer'),
-        _renderHeader(options),
-        _renderMain(options),
-        _renderFooter(options),
-        // TODO: Consider using highlightjs we also use on pub.dev
-        d.script(src: staticUrls.dartdochighlightJs),
-        d.script(src: staticUrls.dartdocScriptJs),
-      ]);
+  d.Node _renderBody(DartDocPageOptions options) {
+    final dataBaseHref = p.relative('', from: p.dirname(options.path));
+    return d.element('body', attributes: {
+      'data-base-href': dataBaseHref == '.' ? '' : '$dataBaseHref/',
+      'data-using-base-href': 'false',
+      'class': 'light-theme',
+    }, children: [
+      d.element('noscript',
+          child: d.element('iframe', attributes: {
+            'src': 'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
+            'height': '0',
+            'width': '0',
+            'style': 'display:none;visibility:hidden',
+          })),
+      d.div(id: 'overlay-under-drawer'),
+      _renderHeader(options),
+      _renderMain(options),
+      _renderFooter(options),
+      // TODO: Consider using highlightjs we also use on pub.dev
+      d.script(src: staticUrls.dartdochighlightJs),
+      d.script(src: staticUrls.dartdocScriptJs),
+    ]);
+  }
 
   d.Node render(DartDocPageOptions options) => d.fragment([
         d.unsafeRawHtml('<!DOCTYPE html>\n'),
