@@ -15,8 +15,6 @@ import 'package:pub_dev/task/models.dart';
 
 final _log = Logger('pub.task.schedule');
 
-const _maxInstanceAge = Duration(hours: 2);
-
 const _maxInstancesPerIteration = 50; // Later consider something like: 50;
 
 /// Schedule tasks from [PackageState] while [claim] is valid, and [abort] have
@@ -67,7 +65,9 @@ Future<void> schedule(
 
       // If terminated or older than maxInstanceAge, delete the instance...
       final isTerminated = instance.state == InstanceState.terminated;
-      final isTooOld = instance.created.isBefore(clock.agoBy(_maxInstanceAge));
+      final isTooOld = instance.created
+          .add(Duration(hours: activeConfiguration.maxTaskRunHours))
+          .isBefore(clock.now());
       // Also check deletionInProgress to prevent multiple calls to delete the
       // same instance
       final isBeingDeleted = deletionInProgress.contains(instance.instanceName);

@@ -24,6 +24,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
             'maxTaskInstances',
+            'maxTaskRunHours',
             'taskResultBucketName',
             'taskWorkerImage',
             'taskWorkerProject',
@@ -63,6 +64,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('searchSnapshotBucketName', (v) => v as String?),
           maxTaskInstances:
               $checkedConvert('maxTaskInstances', (v) => v as int),
+          maxTaskRunHours: $checkedConvert('maxTaskRunHours', (v) => v as int),
           taskResultBucketName:
               $checkedConvert('taskResultBucketName', (v) => v as String?),
           taskWorkerImage:
@@ -129,6 +131,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'maxTaskInstances': instance.maxTaskInstances,
+      'maxTaskRunHours': instance.maxTaskRunHours,
       'taskResultBucketName': instance.taskResultBucketName,
       'taskWorkerImage': instance.taskWorkerImage,
       'taskWorkerProject': instance.taskWorkerProject,
