@@ -5,6 +5,7 @@ popularityDumpBucketName: foo
 searchSnapshotBucketName: foo
 canonicalPackagesBucketName: foo
 maxTaskInstances: 0
+maxTaskRunHours: 2
 searchServicePrefix: 'https://search-dot-dartlang-pub-dev.appspot.com'
 defaultServiceBaseUrl: http://localhost:8080
 storageBaseUrl: 'https://storage.googleapis.com/'
