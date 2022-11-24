@@ -1158,7 +1158,11 @@ class PackageBackend {
     ]);
   }
 
-  Future<void> _checkUploadAuthorization(
+  /// Throws a [ResponseException] if [agent] is **not** authorized to upload package.
+  ///
+  /// If [package] is null, this is an attempt to publish a new package, not a new version to an existing package.
+  /// If [package] is not null, this is an attempt to publish [newVersion] of existing package.
+  Future<void> _requireUploadAuthorization(
       AuthenticatedAgent agent, Package? package, String newVersion) async {
     // new package
     if (package == null) {
