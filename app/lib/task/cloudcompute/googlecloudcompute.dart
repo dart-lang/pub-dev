@@ -112,6 +112,27 @@ CloudCompute createGoogleCloudCompute({
       'must be positive',
     );
   }
+  if (maxRunDuration == Duration.zero) {
+    throw ArgumentError.value(
+      maxRunDuration,
+      'maxRunDuration',
+      'must be non-zero',
+    );
+  }
+  if (taskWorkerServiceAccount.isEmpty) {
+    throw ArgumentError.value(
+      taskWorkerServiceAccount,
+      'taskWorkerServiceAccount',
+      'must be non-empty',
+    );
+  }
+  if (cosImage.isEmpty) {
+    throw ArgumentError.value(
+      cosImage,
+      'cosImage',
+      'must be non-empty',
+    );
+  }
 
   return _GoogleCloudCompute(
     ComputeApi(cloudComputeClient),
