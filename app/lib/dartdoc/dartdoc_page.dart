@@ -5,6 +5,7 @@
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart' show Element;
 import 'package:html/parser.dart' as html_parser;
+import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:sanitize_html/sanitize_html.dart';
@@ -381,7 +382,9 @@ class DartDocPage {
 
   d.Node _renderBody(DartDocPageOptions options) =>
       d.element('body', attributes: {
-        'data-base-href': '../',
+        'data-base-href': p.relative('', from: p.dirname(options.path)) == '.'
+            ? ''
+            : p.relative('', from: p.dirname(options.path)) + '/',
         'data-using-base-href': 'false',
         'class': 'light-theme',
       }, children: [
