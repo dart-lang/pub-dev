@@ -65,10 +65,9 @@ Future<void> schedule(
 
       // If terminated or older than maxInstanceAge, delete the instance...
       final isTerminated = instance.state == InstanceState.terminated;
-      final maxInstanceAge = Duration(
-        hours: activeConfiguration.maxTaskRunHours,
-      );
-      final isTooOld = instance.created.isBefore(clock.agoBy(maxInstanceAge));
+      final isTooOld = instance.created
+          .add(Duration(hours: activeConfiguration.maxTaskRunHours))
+          .isBefore(clock.now());
       // Also check deletionInProgress to prevent multiple calls to delete the
       // same instance
       final isBeingDeleted = deletionInProgress.contains(instance.instanceName);

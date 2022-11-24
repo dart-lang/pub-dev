@@ -26,8 +26,10 @@ void main() {
       // Create CloudCompute instance
       final gce = createGoogleCloudCompute(
         project: envConfig.googleCloudProject!,
-        // NOTE: It's important to have a Cloud NAT for the default network.
+        // NOTE: It's important to have a Cloud NAT for the 'default' network.
         //       This is probably only reasonable to do in a test project.
+        //       In production we use a non-default network, we could also do
+        //       that when testing this. It's merely a matter of setup.
         network: 'default',
         poolLabel: 'manual-testing',
         cosImage: 'projects/cos-cloud/global/images/family/cos-97-lts',
