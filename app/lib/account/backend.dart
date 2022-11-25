@@ -15,7 +15,6 @@ import 'package:neat_cache/neat_cache.dart';
 
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
-import '../service/openid/jwt.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
@@ -174,31 +173,31 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
   if (idToken == null) {
     return null;
   }
-
-  Future<A> parseTokenPayload<A>(
-    A? Function(JwtPayload payload) payloadTryParse,
-  ) async {
-    final payload = payloadTryParse(idToken.payload);
-    if (payload == null) {
-      throw AuthenticationException.tokenInvalid('unable to parse payload');
-    }
-    return payload;
+  final audiences = idToken.payload.aud;
+  if (audiences.length != 1 ||
+      audiences.single != activeConfiguration.externalServiceAudience) {
+    return null;
   }
 
   if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
+    final payload = GitHubJwtPayload.tryParse(idToken.payload);
+    if (payload == null) {
+      throw AuthenticationException.tokenInvalid('unable to parse payload');
+    }
     return AuthenticatedGithubAction(
       idToken: idToken,
-      payload: await parseTokenPayload(GitHubJwtPayload.tryParse),
+      payload: payload,
     );
   }
 
-  if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
-      idToken.payload.aud.length == 1 &&
-      idToken.payload.aud.single ==
-          activeConfiguration.externalServiceAudience) {
+  if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl) {
+    final payload = GcpServiceAccountJwtPayload.tryParse(idToken.payload);
+    if (payload == null) {
+      throw AuthenticationException.tokenInvalid('unable to parse payload');
+    }
     return AuthenticatedGcpServiceAccount(
       idToken: idToken,
-      payload: await parseTokenPayload(GcpServiceAccountJwtPayload.tryParse),
+      payload: payload,
     );
   }
 
