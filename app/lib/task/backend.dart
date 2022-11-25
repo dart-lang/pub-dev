@@ -20,7 +20,6 @@ import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
 import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
@@ -62,133 +61,6 @@ void registerTaskBackend(TaskBackend backend) =>
 
 /// The active task backend service.
 TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
-
-/// Packages that are allow listed for initial testing of task backend.
-final _allowListedPackages = [
-  // Few small packages
-  'retry',
-  'pem',
-  'http',
-  'collection',
-  'meta',
-  'path',
-  'canonical_json',
-  'slugid',
-  // Packages owned by the Dart team
-  '_fe_analyzer_shared',
-  'analyzer',
-  'analyzer_plugin',
-  'appengine',
-  'args',
-  'async',
-  'bazel_worker',
-  'benchmark_harness',
-  'boolean_selector',
-  'browser_launcher',
-  'build',
-  'build_config',
-  'build_daemon',
-  'build_modules',
-  'build_resolvers',
-  'build_runner',
-  'build_runner_core',
-  'build_test',
-  'build_vm_compilers',
-  'build_web_compilers',
-  'characters',
-  'cli_util',
-  'clock',
-  'code_builder',
-  'collection',
-  'convert',
-  'coverage',
-  'cronet_http',
-  'crypto',
-  'csslib',
-  'cupertino_http',
-  'dart_flutter_team_lints',
-  'dart_internal',
-  'dart_style',
-  'dartdoc',
-  'dds',
-  'dds_service_extensions',
-  'dwds',
-  'fake_async',
-  'ffi',
-  'ffigen',
-  'fixnum',
-  'frontend_server_client',
-  'gcloud',
-  'glob',
-  'graphs',
-  'grpc_cronet',
-  'html',
-  'http',
-  'http2',
-  'http_multi_server',
-  'http_parser',
-  'intl',
-  'intl_translation',
-  'io',
-  'jni',
-  'jnigen',
-  'js',
-  'json_rpc_2',
-  'leak_tracker',
-  'linter',
-  'lints',
-  'logging',
-  'markdown',
-  'matcher',
-  'meta',
-  'mime',
-  'mockito',
-  'native_stack_traces',
-  'oauth2',
-  'os_detect',
-  'package_config',
-  'pana',
-  'path',
-  'pool',
-  'pub_semver',
-  'pubspec_parse',
-  'scratch_space',
-  'shelf',
-  'shelf_packages_handler',
-  'shelf_proxy',
-  'shelf_router',
-  'shelf_router_generator',
-  'shelf_static',
-  'shelf_test_handler',
-  'shelf_web_socket',
-  'source_gen',
-  'source_map_stack_trace',
-  'source_maps',
-  'source_span',
-  'sse',
-  'stack_trace',
-  'stream_channel',
-  'stream_transform',
-  'string_scanner',
-  'term_glyph',
-  'test',
-  'test_api',
-  'test_core',
-  'test_descriptor',
-  'test_process',
-  'test_reflective_loader',
-  'timing',
-  'typed_data',
-  'usage',
-  'vm_service',
-  'vm_snapshot_analysis',
-  'wasm',
-  'watcher',
-  'web_socket_channel',
-  'webdev',
-  'yaml',
-  'yaml_edit',
-];
 
 class TaskBackend {
   final DatastoreDB _db;
@@ -449,13 +321,6 @@ class TaskBackend {
     String packageName, {
     bool updateDependants = false,
   }) async {
-    // Limit the number of packages we track during initial testing.
-    // TODO: Remove this before going into production
-    if (envConfig.isRunningInAppengine &&
-        !_allowListedPackages.contains(packageName)) {
-      return;
-    }
-
     var lastVersionCreated = initialTimestamp;
     await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
