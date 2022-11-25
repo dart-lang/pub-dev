@@ -381,7 +381,8 @@ class SearchForm {
       parsedQuery.tagsPredicate.hasTag(PackageTags.isFlutterFavorite) ||
       parsedQuery.tagsPredicate.hasTag(PackageTags.showUnlisted) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isNullSafe) ||
-      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot);
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot) ||
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isDart3Ready);
 
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
