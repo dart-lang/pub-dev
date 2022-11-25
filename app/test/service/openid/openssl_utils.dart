@@ -25,9 +25,10 @@ class RsaKeyPair {
 Future<RsaKeyPair> generateRsaKeyPair({
   int keySize = 2048,
 }) async {
+  final uuid = createUuid();
   return withTempDirectory((dir) async {
-    final privateKeyPath = p.join(dir.path, 'private.pem');
-    final publicKeyPath = p.join(dir.path, 'public.pem');
+    final privateKeyPath = p.join(dir.path, 'private-$uuid.pem');
+    final publicKeyPath = p.join(dir.path, 'public-$uuid.pem');
     final pr1 = await runProc(
       [
         'openssl',
@@ -76,11 +77,12 @@ Future<Uint8List> signTextWithRsa({
   required String input,
   required List<int> privateKey,
 }) async {
+  final uuid = createUuid();
   return await withTempDirectory((dir) async {
-    final outputFile = File(p.join(dir.path, 'output.sign'));
-    final inputFile = File(p.join(dir.path, 'input.txt'));
+    final outputFile = File(p.join(dir.path, 'output-$uuid.sign'));
+    final inputFile = File(p.join(dir.path, 'input-$uuid.txt'));
     await inputFile.writeAsString(input);
-    final privateKeyFile = File(p.join(dir.path, 'private.pem'));
+    final privateKeyFile = File(p.join(dir.path, 'private-$uuid.pem'));
     await privateKeyFile.writeAsString(
         encodePemBlock(PemLabel.privateKey, privateKey)
             .replaceAll(' PRIVATE KEY', ' RSA PRIVATE KEY'));
