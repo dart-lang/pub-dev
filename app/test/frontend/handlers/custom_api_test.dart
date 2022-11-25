@@ -36,6 +36,7 @@ void main() {
                   'version': '1.2.0',
                   'description': 'oxygen is awesome',
                   'homepage': 'https://oxygen.example.dev/',
+                  'repository': 'https://github.com/example/oxygen',
                   'environment': {'sdk': '>=2.6.0 <3.0.0'},
                   'dependencies': {},
                   'screenshots': [
@@ -63,6 +64,7 @@ void main() {
                   'version': '1.10.0',
                   'description': 'flutter_titanium is awesome',
                   'homepage': 'https://flutter_titanium.example.dev/',
+                  'repository': 'https://github.com/example/flutter_titanium',
                   'environment': {'sdk': '>=2.6.0 <3.0.0'},
                   'dependencies': {
                     'flutter': {'sdk': 'flutter'}
@@ -92,6 +94,7 @@ void main() {
                   'version': '1.0.0',
                   'description': 'neon is awesome',
                   'homepage': 'https://neon.example.dev/',
+                  'repository': 'https://github.com/example/neon',
                   'environment': {'sdk': '>=2.6.0 <3.0.0'},
                   'dependencies': {},
                   'screenshots': [
