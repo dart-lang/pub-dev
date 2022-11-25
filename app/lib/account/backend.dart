@@ -173,10 +173,11 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
   if (idToken == null) {
     return null;
   }
-  final audiences = idToken.payload.aud;
-  if (audiences.length != 1 ||
-      audiences.single != activeConfiguration.externalServiceAudience) {
-    return null;
+  if (idToken.payload.aud.length != 1 ||
+      idToken.payload.aud.single !=
+          activeConfiguration.externalServiceAudience) {
+    throw AssertionError(
+        'authProvider.tryAuthenticateAsServiceToken should not return a parsed token with audience missmatch.');
   }
 
   if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
