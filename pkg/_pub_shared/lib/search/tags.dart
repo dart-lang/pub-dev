@@ -70,6 +70,9 @@ abstract class PackageVersionTags {
 
   /// Package version has a screenshot that we can display.
   static const String hasScreenshot = 'has:screenshot';
+
+  /// Package version is compatible with Dart 3.
+  static const String isDart3Ready = 'is:dart3-ready';
 }
 
 /// Collection of SDK tags (with prefix and value).

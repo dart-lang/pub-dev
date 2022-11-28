@@ -10,6 +10,7 @@ const _publicFlags = <String>{
 
 const _allFlags = <String>{
   ..._publicFlags,
+  'dart3',
   'publishing',
   'signin',
   'sandbox',
@@ -42,6 +43,9 @@ class ExperimentalFlags {
   factory ExperimentalFlags.all() {
     return ExperimentalFlags._(_allFlags);
   }
+
+  /// Whether to show the "Dart 3 ready" badge or the search checkbox.
+  bool get showDart3ReadyOnUI => _enabled.contains('dart3');
 
   /// Whether to show the admin UI for automated publishing admin UI.
   bool get showAdminUIForAutomatedPublishing => _enabled.contains('publishing');
