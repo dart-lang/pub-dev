@@ -107,22 +107,31 @@ class DefaultAuthProvider extends AuthProvider {
     //       for now. Notice that the cost of the second check is small
     //       assuming we rarely receive invalid access_tokens or id_tokens.
     if (_isLikelyAccessToken(token)) {
-      // If this is most likely an access_token, we try access_token first
-      result = await _tryAuthenticateAccessToken(token);
-      if (result != null) {
-        return result;
-      }
-      // If not a valid access_token we try it as a JWT
-      return await _tryAuthenticateJwt(token);
+      // If this is most likely an access_token, we try access_token first,
+      // and if not a valid access_token we try it as a JWT:
+      result = await _tryAuthenticateAccessToken(token) ??
+          await _tryAuthenticateJwt(token);
     } else {
-      // If this is not likely to be an access_token, we try JWT first
-      result = await _tryAuthenticateJwt(token);
-      if (result != null) {
-        return result;
-      }
-      // If not valid JWT we try it as access_token
-      return await _tryAuthenticateAccessToken(token);
+      // If this is not likely to be an access_token, we try JWT first,
+      // and if not valid JWT we try it as access_token:
+      result = await _tryAuthenticateJwt(token) ??
+          await _tryAuthenticateAccessToken(token);
     }
+
+    // check that audience is one the allowed audiences for users
+    final audience = result?.audience;
+    if (audience == null) {
+      return null;
+    }
+    final allowedAudiences = <String>[
+      activeConfiguration.pubClientAudience!,
+      activeConfiguration.pubSiteAudience!,
+    ];
+    if (!allowedAudiences.contains(audience)) {
+      return null;
+    }
+
+    return result;
   }
 
   /// Authenticate with oauth2 [accessToken].

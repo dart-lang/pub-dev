@@ -85,6 +85,16 @@ class FakeAuthProvider implements AuthProvider {
       return null;
     }
 
+    // check audience
+    final audience = uri.queryParameters['aud'] ?? '';
+    final allowedAudiences = <String>[
+      activeConfiguration.pubClientAudience!,
+      activeConfiguration.pubSiteAudience!,
+    ];
+    if (!allowedAudiences.contains(audience)) {
+      return null;
+    }
+
     final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
     final oauthUserId = _oauthUserIdFromEmail(email);
     return AuthResult(
