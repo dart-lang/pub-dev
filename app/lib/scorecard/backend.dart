@@ -215,11 +215,11 @@ class ScoreCardBackend {
         final size = bytes.length;
         if (size > _reportSizeDropThreshold) {
           _logger.reportError(
-              '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+              '$reportType report exceeded size threshold ($packageName $packageVersion - $size > $_reportSizeWarnThreshold)');
           return true;
         } else if (size > _reportSizeWarnThreshold) {
           _logger.warning(
-              '$reportType report exceeded size threshold ($size > $_reportSizeWarnThreshold)');
+              '$reportType report exceeded size threshold ($packageName $packageVersion - $size > $_reportSizeWarnThreshold)');
         }
         return false;
       }
@@ -230,7 +230,9 @@ class ScoreCardBackend {
           timestamp: clock.now().toUtc(),
           panaRuntimeInfo: null,
           reportStatus: ReportStatus.aborted,
-          derivedTags: <String>[],
+          derivedTags: <String>[
+            'has:pana-report-exceeds-size-threshold',
+          ],
           allDependencies: <String>[],
           licenses: null,
           report: pana.Report(

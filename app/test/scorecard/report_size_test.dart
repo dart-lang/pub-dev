@@ -58,7 +58,9 @@ void main() {
           'panaReport': {
             'timestamp': isNotEmpty,
             'reportStatus': 'aborted',
-            'derivedTags': isEmpty,
+            'derivedTags': [
+              'has:pana-report-exceeds-size-threshold',
+            ],
             'allDependencies': isEmpty,
             'report': {
               'sections': [
