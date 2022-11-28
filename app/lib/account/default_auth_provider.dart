@@ -64,7 +64,11 @@ class DefaultAuthProvider extends AuthProvider {
       // without any fallback (e.g. authenticating the token as a User).
 
       // TODO: use the tokeninfo endpoint instead
-      await _verifyToken(idToken, openIdDataFetch: fetchGoogleCloudOpenIdData);
+      await _verifyToken(
+        idToken,
+        openIdDataFetch: fetchGoogleCloudOpenIdData,
+        maySkipNbfCheck: true,
+      );
     }
     return null;
   }
@@ -72,8 +76,13 @@ class DefaultAuthProvider extends AuthProvider {
   Future<void> _verifyToken(
     JsonWebToken idToken, {
     required Future<OpenIdData> Function() openIdDataFetch,
+    bool maySkipNbfCheck = false,
   }) async {
-    if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
+    final isValidTimestamp = idToken.payload.isTimely(
+      threshold: Duration(minutes: 2),
+      maySkipNbfCheck: maySkipNbfCheck,
+    );
+    if (!isValidTimestamp) {
       throw AuthenticationException.tokenInvalid('invalid timestamps');
     }
     final aud =

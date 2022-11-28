@@ -218,7 +218,11 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   ///
   /// Returns `false` if the current timestamp is outside of the allowed range.
   /// If the timestamp is missing, we treat it as if it were expired/invalid.
-  bool isTimely({DateTime? now, Duration threshold = Duration.zero}) {
+  bool isTimely({
+    DateTime? now,
+    Duration threshold = Duration.zero,
+    bool maySkipNbfCheck = false,
+  }) {
     now ??= clock.now();
 
     bool isABeforeB(String name, DateTime? a, DateTime? b) {
@@ -229,8 +233,11 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
       return a.isBefore(b.add(threshold)) || a == b;
     }
 
+    final hasNbf = nbf != null;
+    final skipNbfCheck = !hasNbf && maySkipNbfCheck;
+
     return isABeforeB('iat', iat, now) &&
-        isABeforeB('nbf', nbf, now) &&
+        (skipNbfCheck || isABeforeB('nbf', nbf, now)) &&
         isABeforeB('exp', now, exp);
   }
 }
