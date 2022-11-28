@@ -532,6 +532,12 @@ runcmd:
         final warnings = op.warnings;
         if (warnings != null) {
           for (final w in warnings) {
+            if (w.code == 'DISK_SIZE_LARGER_THAN_IMAGE_SIZE') {
+              // For Container-Optimized-OS this works fine.
+              // TODO: Find a solution that doesn't involve this hack, either
+              //       reduce size of container image, or create a separate disk
+              continue;
+            }
             _log.warning(
               'Warning while creating instance, '
               'api.instances.insert(name=${instance.name}) '
