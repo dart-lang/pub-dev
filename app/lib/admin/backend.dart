@@ -627,6 +627,7 @@ class AdminBackend {
       throw AuthenticationException.failed();
     }
     await consentBackend.invitePackageUploader(
+      agent: authenticatedUser,
       activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
