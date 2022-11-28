@@ -1206,17 +1206,17 @@ class PackageBackend {
     // verify that fields are configured
     final repository = githubPublishing!.repository;
     if (repository == null || repository.isEmpty) {
-      throw ArgumentError('Missing or empty repository.');
+      throw AssertionError('Missing or empty repository.');
     }
     final tagPattern = githubPublishing.tagPattern ?? '';
     if (!tagPattern.contains('{{version}}')) {
-      throw ArgumentError(
+      throw AssertionError(
           'Configured tag pattern does not include `{{version}}`');
     }
     final requireEnvironment = githubPublishing.requireEnvironment ?? false;
     final environment = githubPublishing.environment;
     if (requireEnvironment && (environment == null || environment.isEmpty)) {
-      throw ArgumentError('Missing or empty environment.');
+      throw AssertionError('Missing or empty environment.');
     }
 
     // Repository must match the action's repository.
@@ -1278,7 +1278,7 @@ class PackageBackend {
     // verify that fields are configured
     final serviceAccountEmail = googleCloudPublishing!.serviceAccountEmail;
     if (serviceAccountEmail == null || serviceAccountEmail.isEmpty) {
-      throw ArgumentError('Missing or empty serviceAccountEmail.');
+      throw AssertionError('Missing or empty serviceAccountEmail.');
     }
 
     // the service account email must be set and matching the agent's email.
