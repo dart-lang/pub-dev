@@ -44,6 +44,11 @@ class DefaultAuthProvider extends AuthProvider {
     if (idToken == null) {
       return null;
     }
+    final audiences = idToken.payload.aud;
+    if (audiences.length != 1 ||
+        audiences.single != activeConfiguration.externalServiceAudience) {
+      return null;
+    }
 
     if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
       // At this point we have confirmed that the token is a JWT token
@@ -52,15 +57,11 @@ class DefaultAuthProvider extends AuthProvider {
       await _verifyToken(idToken, openIdDataFetch: fetchGithubOpenIdData);
     }
 
-    if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl &&
-        idToken.payload.aud.length == 1 &&
-        idToken.payload.aud.single ==
-            activeConfiguration.externalServiceAudience) {
-      // As the uploader token's audience and the admin token's issuer and also
-      // their audience is the same, we only parse it as a non-user token, when
-      // the authentication source is from the pub client app (e.g. uploading a
-      // new package).
-      // At this point we don't fall back to authenticating the token as a user.
+    if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl) {
+      // At this point we have confirmed that the token is a JWT token
+      // issued by GCP with the target audience of external services.
+      // If there is an issue with the token, the authentication should fail
+      // without any fallback (e.g. authenticating the token as a User).
 
       // TODO: use the tokeninfo endpoint instead
       await _verifyToken(idToken, openIdDataFetch: fetchGoogleCloudOpenIdData);

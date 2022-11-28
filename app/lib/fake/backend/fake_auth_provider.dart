@@ -34,6 +34,11 @@ class FakeAuthProvider implements AuthProvider {
       if (parsed == null) {
         return null;
       }
+      final audiences = parsed.payload.aud;
+      if (audiences.length != 1 ||
+          audiences.single != activeConfiguration.externalServiceAudience) {
+        return null;
+      }
       // reject if signature is not 'valid'.
       if (base64.encode(parsed.signature) !=
           base64.encode(utf8.encode('valid'))) {
