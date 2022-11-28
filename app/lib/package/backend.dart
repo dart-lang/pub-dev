@@ -1203,11 +1203,24 @@ class PackageBackend {
           'publishing from github is not enabled');
     }
 
-    // Repository must be set and matching the action's repository.
+    // verify that fields are configured
     final repository = githubPublishing!.repository;
-    if (repository == null ||
-        repository.isEmpty ||
-        repository != agent.payload.repository) {
+    if (repository == null || repository.isEmpty) {
+      throw AssertionError('Missing or empty repository.');
+    }
+    final tagPattern = githubPublishing.tagPattern ?? '';
+    if (!tagPattern.contains('{{version}}')) {
+      throw AssertionError(
+          'Configured tag pattern does not include `{{version}}`');
+    }
+    final requireEnvironment = githubPublishing.requireEnvironment ?? false;
+    final environment = githubPublishing.environment;
+    if (requireEnvironment && (environment == null || environment.isEmpty)) {
+      throw AssertionError('Missing or empty environment.');
+    }
+
+    // Repository must match the action's repository.
+    if (repository != agent.payload.repository) {
       throw AuthorizationException.githubActionIssue(
           'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository');
     }
@@ -1228,11 +1241,6 @@ class PackageBackend {
       throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "refs/tags/*" ref, this token has "${agent.payload.ref}" ref');
     }
-    final tagPattern = githubPublishing.tagPattern ?? '{{version}}';
-    if (!tagPattern.contains('{{version}}')) {
-      throw ArgumentError(
-          'Configured tag pattern does not include `{{version}}`');
-    }
     final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
     if (agent.payload.ref != 'refs/tags/$expectedTagValue') {
       throw AuthorizationException.githubActionIssue(
@@ -1241,16 +1249,11 @@ class PackageBackend {
     }
 
     // When environment is configured, it must match the action's environment.
-    if (githubPublishing.requireEnvironment ?? false) {
-      final environment = githubPublishing.environment;
-      if (environment == null ||
-          environment.isEmpty ||
-          environment != agent.payload.environment) {
-        throw AuthorizationException.githubActionIssue(
-            'publishing is configured to only be allowed from actions with an environment, '
-            'this token originates from an action running in environment "${agent.payload.environment}" '
-            'for which publishing is not allowed');
-      }
+    if (requireEnvironment && environment != agent.payload.environment) {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is configured to only be allowed from actions with an environment, '
+          'this token originates from an action running in environment "${agent.payload.environment}" '
+          'for which publishing is not allowed');
     }
 
     // Disable publishing for all packages, but exempt one for live testing.
@@ -1272,11 +1275,14 @@ class PackageBackend {
           'publishing with service account is not enabled');
     }
 
-    // the service account email must be set and matching the agent's email.
+    // verify that fields are configured
     final serviceAccountEmail = googleCloudPublishing!.serviceAccountEmail;
-    if (serviceAccountEmail == null ||
-        serviceAccountEmail.isEmpty ||
-        serviceAccountEmail != agent.payload.email) {
+    if (serviceAccountEmail == null || serviceAccountEmail.isEmpty) {
+      throw AssertionError('Missing or empty serviceAccountEmail.');
+    }
+
+    // the service account email must be set and matching the agent's email.
+    if (serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing is not enabled for the "${agent.payload.email}" service account');
     }
