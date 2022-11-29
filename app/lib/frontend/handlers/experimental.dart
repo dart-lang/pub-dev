@@ -51,7 +51,7 @@ class ExperimentalFlags {
   bool get showAdminUIForAutomatedPublishing => _enabled.contains('publishing');
 
   /// Whether to show package screenshots in search listings.
-  bool get showScreenshots => _enabled.contains('screenshots');
+  bool get showScreenshots => true;
 
   /// Whether to return dartdoc from sandboxing output.
   bool get showSandboxedOutput => _enabled.contains('sandbox');
