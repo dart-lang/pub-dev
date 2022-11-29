@@ -221,7 +221,6 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   bool isTimely({
     DateTime? now,
     Duration threshold = Duration.zero,
-    bool maySkipNbfCheck = false,
   }) {
     now ??= clock.now();
 
@@ -233,11 +232,9 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
       return a.isBefore(b.add(threshold)) || a == b;
     }
 
-    final hasNbf = nbf != null;
-    final skipNbfCheck = !hasNbf && maySkipNbfCheck;
-
     return isABeforeB('iat', iat, now) &&
-        (skipNbfCheck || isABeforeB('nbf', nbf, now)) &&
+        // allows `nbf` to be null
+        (nbf == null || isABeforeB('nbf', nbf, now)) &&
         isABeforeB('exp', now, exp);
   }
 }
