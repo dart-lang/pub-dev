@@ -73,7 +73,9 @@ class DefaultAuthProvider extends AuthProvider {
     JsonWebToken idToken, {
     required Future<OpenIdData> Function() openIdDataFetch,
   }) async {
-    if (!idToken.payload.isTimely(threshold: Duration(minutes: 2))) {
+    final isValidTimestamp =
+        idToken.payload.isTimely(threshold: Duration(minutes: 2));
+    if (!isValidTimestamp) {
       throw AuthenticationException.tokenInvalid('invalid timestamps');
     }
     final aud =
