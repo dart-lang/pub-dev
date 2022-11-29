@@ -55,6 +55,7 @@ class DefaultAuthProvider extends AuthProvider {
       // issued by GitHub. If there is an issue with the token, the
       // authentication should fail without any fallback.
       await _verifyToken(idToken, openIdDataFetch: fetchGithubOpenIdData);
+      return idToken;
     }
 
     if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl) {
@@ -65,6 +66,7 @@ class DefaultAuthProvider extends AuthProvider {
 
       // TODO: use the tokeninfo endpoint instead
       await _verifyToken(idToken, openIdDataFetch: fetchGoogleCloudOpenIdData);
+      return idToken;
     }
     return null;
   }
