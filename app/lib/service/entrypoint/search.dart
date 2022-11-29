@@ -37,7 +37,7 @@ class SearchCommand extends Command {
     await startIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
-      frontendCount: 1,
+      frontendCount: envConfig.isRunningInAppengine ? 2 : 1,
       workerCount: 0,
     );
   }
