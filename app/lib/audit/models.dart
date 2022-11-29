@@ -566,23 +566,25 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.uploaderInvited({
-    required User user,
+    required AuthenticatedAgent agent,
     required String package,
     required String uploaderEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInvited
-      ..agent = user.userId
+      ..agent = agent.agentId
       ..summary = [
-        '`${user.email}` invited `$uploaderEmail` ',
+        '`${agent.displayId}` invited `$uploaderEmail` ',
         'to be an uploader for package `$package`.',
       ].join()
       ..data = {
         'package': package,
         'uploaderEmail': uploaderEmail,
-        'user': user.email,
+        if (agent.email != null) 'email': agent.email,
       }
-      ..users = [user.userId]
+      ..users = [
+        if (agent is AuthenticatedUser) agent.userId,
+      ]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [];

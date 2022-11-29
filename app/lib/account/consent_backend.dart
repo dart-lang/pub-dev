@@ -6,13 +6,14 @@ import 'package:_pub_shared/data/account_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pub_dev/service/email/backend.dart';
 import 'package:retry/retry.dart';
 
+import '../account/agent.dart';
 import '../audit/models.dart';
 import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
+import '../service/email/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart' show createInviteEmail;
 import '../shared/exceptions.dart';
@@ -145,6 +146,7 @@ class ConsentBackend {
 
   /// Invites a new uploader to the package.
   Future<api.InviteStatus> invitePackageUploader({
+    required AuthenticatedAgent agent,
     required User activeUser,
     required String packageName,
     required String uploaderEmail,
@@ -159,7 +161,7 @@ class ConsentBackend {
         if (isFromAdminUser) 'is-from-admin-user',
       ],
       auditLogRecord: AuditLogRecord.uploaderInvited(
-        user: activeUser,
+        agent: agent,
         package: packageName,
         uploaderEmail: uploaderEmail,
       ),
