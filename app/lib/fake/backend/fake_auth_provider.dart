@@ -8,13 +8,16 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
+import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
+import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/account/default_auth_provider.dart';
 import 'package:pub_dev/service/openid/gcp_openid.dart';
+import 'package:pub_dev/service/openid/openid_models.dart';
 
 import '../../account/auth_provider.dart';
 import '../../service/openid/github_openid.dart';
 import '../../service/openid/jwt.dart';
-import '../../shared/configuration.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.
@@ -23,27 +26,69 @@ import '../../shared/configuration.dart';
 /// to user-name@example.com as email and user-name-example-com as userId.
 ///
 /// Access tokens without '-at-' are not resolving to any user.
-class FakeAuthProvider implements AuthProvider {
+class FakeAuthProvider extends BaseAuthProvider {
   @override
   Future<void> close() async {}
 
   @override
-  Future<JsonWebToken?> tryAuthenticateAsServiceToken(String token) async {
-    final parsed = JsonWebToken.tryParse(token);
-    if (parsed == null) {
-      return null;
+  Future<oauth2_v2.Userinfo> callGetUserinfo({
+    required String accessToken,
+  }) {
+    // Since we don't use getAccountProfile from the base class, this method
+    // won't get called.
+    throw AssertionError();
+  }
+
+  @override
+  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken({
+    required String accessToken,
+  }) async {
+    final token = JsonWebToken.tryParse(accessToken);
+    if (token == null) {
+      throw oauth2_v2.ApiRequestError(null);
     }
-    final audiences = parsed.payload.aud;
-    if (audiences.length != 1 ||
-        audiences.single != activeConfiguration.externalServiceAudience) {
-      return null;
+    final goodSignature = await verifyTokenSignature(
+        token: token, openIdDataFetch: () async => throw AssertionError());
+    if (!goodSignature) {
+      throw oauth2_v2.ApiRequestError(null);
     }
-    // reject if signature is not 'valid'.
-    if (base64.encode(parsed.signature) !=
-        base64.encode(utf8.encode('valid'))) {
-      return null;
+    return oauth2_v2.Tokeninfo(
+      audience: token.payload.aud.single,
+      email: token.payload['email'] as String?,
+      scope: token.payload['scope'] as String?,
+      userId: token.payload['sub'] as String?,
+    );
+  }
+
+  @override
+  Future<http.Response> callTokenInfoWithIdToken({
+    required String idToken,
+  }) async {
+    final token = JsonWebToken.tryParse(idToken);
+    if (token == null) {
+      return http.Response(json.encode({}), 400);
     }
-    return parsed;
+    final goodSignature = await verifyTokenSignature(
+        token: token, openIdDataFetch: () async => throw AssertionError());
+    if (!goodSignature) {
+      return http.Response(json.encode({}), 400);
+    }
+    return http.Response(
+        json.encode({
+          ...token.header,
+          ...token.payload,
+          'email_verified': true,
+        }),
+        200);
+  }
+
+  @override
+  Future<bool> verifyTokenSignature({
+    required JsonWebToken token,
+    required Future<OpenIdData> Function() openIdDataFetch,
+  }) async {
+    return base64.encode(token.signature) ==
+        base64.encode(utf8.encode('valid'));
   }
 
   @override
@@ -65,33 +110,7 @@ class FakeAuthProvider implements AuthProvider {
     } else {
       jwtTokenValue = accessToken;
     }
-
-    final parsed = JsonWebToken.tryParse(jwtTokenValue);
-    if (parsed == null) {
-      return null;
-    }
-    // check audience
-    final audiences = parsed.payload.aud;
-    final allowedAudiences = <String>[
-      activeConfiguration.pubClientAudience!,
-      activeConfiguration.pubSiteAudience!,
-    ];
-    if (audiences.length != 1 || !allowedAudiences.contains(audiences.single)) {
-      return null;
-    }
-    // reject if signature is not 'valid'.
-    if (base64.encode(parsed.signature) !=
-        base64.encode(utf8.encode('valid'))) {
-      return null;
-    }
-
-    final email = parsed.payload['email'] as String;
-    final oauthUserId = _oauthUserIdFromEmail(email);
-    return AuthResult(
-      oauthUserId: oauthUserId,
-      email: email,
-      audience: audiences.single,
-    );
+    return super.tryAuthenticateAsUser(jwtTokenValue);
   }
 
   @override
@@ -151,7 +170,10 @@ String _createGcpToken({
   required List<int>? signature,
 }) {
   final token = JsonWebToken(
-    header: {},
+    header: {
+      'alg': 'RS256',
+      'typ': 'JWT',
+    },
     payload: {
       'email': email,
       'sub': _oauthUserIdFromEmail(email),
@@ -185,7 +207,10 @@ String createFakeGithubActionToken({
     refType = refType.substring(0, refType.length - 1);
   }
   final token = JsonWebToken(
-    header: {},
+    header: {
+      'alg': 'RS256',
+      'typ': 'JWT',
+    },
     payload: {
       'aud': audience ?? 'https://pub.dev',
       'repository': repository,
