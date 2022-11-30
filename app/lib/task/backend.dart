@@ -31,6 +31,7 @@ import 'package:pub_dev/shared/versions.dart'
         acceptedRuntimeVersions;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
+import 'package:pub_dev/task/handlers.dart';
 import 'package:pub_dev/task/models.dart'
     show
         PackageState,
@@ -884,6 +885,14 @@ class TaskBackend {
       return null;
     }
   }
+
+  /// Create a URL for getting a resource created in pana.
+  ///
+  /// This is used for screenshot images.
+  ///
+  /// This is handled by [handleTaskResource].
+  String resourceUrl(String package, String version, String path) =>
+      '/packages/$package/versions/$version/gen-res/$path';
 }
 
 final _blobIdPattern = RegExp(r'^[0-9a-fA-F]+\.blob$');

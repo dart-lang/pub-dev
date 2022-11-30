@@ -44,6 +44,11 @@ class ExperimentalFlags {
     return ExperimentalFlags._(_allFlags);
   }
 
+  @visibleForTesting
+  factory ExperimentalFlags.enable(Set<String> enabled) {
+    return ExperimentalFlags._(enabled);
+  }
+
   /// Whether to show the "Dart 3 ready" badge or the search checkbox.
   bool get showDart3ReadyOnUI => _enabled.contains('dart3');
 

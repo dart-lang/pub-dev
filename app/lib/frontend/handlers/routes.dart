@@ -166,6 +166,15 @@ class PubSiteService {
   Future<Response> package(Request request, String package) =>
       packageVersionHandlerHtml(request, package);
 
+  @Route.get('/packages/<package>/versions/<version>/gen-res/<path|[^]*>')
+  Future<Response> packageVersionGeneratedResources(
+    Request request,
+    String package,
+    String version,
+    String path,
+  ) =>
+      handleTaskResource(request, package, version, path);
+
   // ****
   // **** Documentation
   // ****
