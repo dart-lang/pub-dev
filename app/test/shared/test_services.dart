@@ -267,8 +267,8 @@ void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
   });
 
   testWithProfile('Non-admin service agent token', fn: () async {
-    final token =
-        'gcp-service-account?email=unauthorized@pub.dev&aud=https://pub.dev';
+    final token = createFakeServiceAccountToken(
+        email: 'unauthorized@pub.dev', audience: 'https://pub.dev');
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });

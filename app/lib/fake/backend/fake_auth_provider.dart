@@ -9,9 +9,9 @@ import 'dart:convert';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/service/openid/gcp_openid.dart';
 
 import '../../account/auth_provider.dart';
-import '../../service/openid/gcp_openid.dart';
 import '../../service/openid/github_openid.dart';
 import '../../service/openid/jwt.dart';
 import '../../shared/configuration.dart';
@@ -29,85 +29,81 @@ class FakeAuthProvider implements AuthProvider {
 
   @override
   Future<JsonWebToken?> tryAuthenticateAsServiceToken(String token) async {
-    if (JsonWebToken.looksLikeJWT(token)) {
-      final parsed = JsonWebToken.tryParse(token);
-      if (parsed == null) {
-        return null;
-      }
-      final audiences = parsed.payload.aud;
-      if (audiences.length != 1 ||
-          audiences.single != activeConfiguration.externalServiceAudience) {
-        return null;
-      }
-      // reject if signature is not 'valid'.
-      if (base64.encode(parsed.signature) !=
-          base64.encode(utf8.encode('valid'))) {
-        return null;
-      }
-      return parsed;
-    }
-
-    final uri = Uri.tryParse(token);
-    if (uri == null) {
+    final parsed = JsonWebToken.tryParse(token);
+    if (parsed == null) {
       return null;
     }
-    if (uri.path == 'gcp-service-account') {
-      final audience = uri.queryParameters['aud'];
-      if (audience != activeConfiguration.externalServiceAudience) {
-        return null;
-      }
-
-      final email = uri.queryParameters['email']!;
-      final idToken = JsonWebToken(
-        header: {},
-        payload: {
-          'email': email,
-          'sub': _oauthUserIdFromEmail(email),
-          'aud': audience,
-          'iss': GcpServiceAccountJwtPayload.issuerUrl,
-          ..._jwtPayloadTimestamps(),
-        },
-        signature: [],
-      );
-      return idToken;
+    final audiences = parsed.payload.aud;
+    if (audiences.length != 1 ||
+        audiences.single != activeConfiguration.externalServiceAudience) {
+      return null;
     }
-
-    return null;
+    // reject if signature is not 'valid'.
+    if (base64.encode(parsed.signature) !=
+        base64.encode(utf8.encode('valid'))) {
+      return null;
+    }
+    return parsed;
   }
 
   @override
   Future<AuthResult?> tryAuthenticateAsUser(String accessToken) async {
-    if (!accessToken.contains('-at-')) {
-      return null;
-    }
-    final uri = Uri.tryParse(accessToken);
-    if (uri == null) {
-      return null;
+    late String jwtTokenValue;
+    if (accessToken.contains('-at-') &&
+        !JsonWebToken.looksLikeJWT(accessToken)) {
+      final uri = Uri.tryParse(accessToken);
+      if (uri == null) {
+        return null;
+      }
+      final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
+      final audience = uri.queryParameters['aud'] ?? 'fake-site-audience';
+      jwtTokenValue = _createGcpToken(
+        email: email,
+        audience: audience,
+        signature: null,
+      );
+    } else {
+      jwtTokenValue = accessToken;
     }
 
+    final parsed = JsonWebToken.tryParse(jwtTokenValue);
+    if (parsed == null) {
+      return null;
+    }
     // check audience
-    final audience = uri.queryParameters['aud'] ?? '';
+    final audiences = parsed.payload.aud;
     final allowedAudiences = <String>[
       activeConfiguration.pubClientAudience!,
       activeConfiguration.pubSiteAudience!,
     ];
-    if (!allowedAudiences.contains(audience)) {
+    if (audiences.length != 1 || !allowedAudiences.contains(audiences.single)) {
+      return null;
+    }
+    // reject if signature is not 'valid'.
+    if (base64.encode(parsed.signature) !=
+        base64.encode(utf8.encode('valid'))) {
       return null;
     }
 
-    final email = uri.path.replaceAll('-at-', '@').replaceAll('-dot-', '.');
+    final email = parsed.payload['email'] as String;
     final oauthUserId = _oauthUserIdFromEmail(email);
     return AuthResult(
       oauthUserId: oauthUserId,
       email: email,
-      audience: uri.queryParameters['aud'] ?? '',
+      audience: audiences.single,
     );
   }
 
   @override
   Future<AccountProfile?> getAccountProfile(String? accessToken) async {
-    if (accessToken == null || !accessToken.contains('-at-')) return null;
-    final email = accessToken.replaceAll('-dot-', '.').replaceAll('-at-', '@');
+    if (accessToken == null) {
+      return null;
+    }
+    final authResult = await tryAuthenticateAsUser(accessToken);
+    if (authResult == null) {
+      return null;
+    }
+    final email = authResult.email;
 
     // using the user part as name
     final name =
@@ -139,11 +135,33 @@ String createFakeServiceAccountToken({
   required String email,
   // `https://pub.dev` unless specified otherwise
   String? audience,
+  // utf8-encoded `valid` unless specified otherwise
+  List<int>? signature,
 }) {
-  return Uri(path: 'gcp-service-account', queryParameters: {
-    'email': email,
-    'aud': audience ?? 'https://pub.dev',
-  }).toString();
+  return _createGcpToken(
+    email: email,
+    audience: audience ?? 'https://pub.dev',
+    signature: signature,
+  );
+}
+
+String _createGcpToken({
+  required String email,
+  required String audience,
+  required List<int>? signature,
+}) {
+  final token = JsonWebToken(
+    header: {},
+    payload: {
+      'email': email,
+      'sub': _oauthUserIdFromEmail(email),
+      'aud': audience,
+      'iss': GcpServiceAccountJwtPayload.issuerUrl,
+      ..._jwtPayloadTimestamps(),
+    },
+    signature: signature ?? utf8.encode('valid'),
+  );
+  return token.asEncodedString();
 }
 
 @visibleForTesting
