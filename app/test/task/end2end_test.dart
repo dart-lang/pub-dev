@@ -30,7 +30,7 @@ FakeCloudCompute get cloud => taskWorkerCloudCompute as FakeCloudCompute;
 //
 // Using flutter packages will require us to have all packages that flutter
 // depends on, so that would be huge set and that want to avoid.
-final _dartdocTestProfile = TestProfile(
+final _testProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
   packages: [
     TestPackage(
@@ -45,8 +45,7 @@ final _dartdocTestProfile = TestProfile(
 );
 
 void main() {
-  testWithProfile('dartdoc for oxygen', testProfile: _dartdocTestProfile,
-      fn: () async {
+  testWithProfile('output of oxygen', testProfile: _testProfile, fn: () async {
     // Backfill tracking state
     await taskBackend.backfillTrackingState();
 
@@ -83,10 +82,18 @@ void main() {
       isEmpty,
     );
 
-    // Travese all generated documentation and create golden files
+    // Travese all package pages and generated documentation,
+    // create golden files and check for dead links and assets
     await _traveseLinksUnderPath(
-      seed: ['/documentation/oxygen/latest/', '/documentation/oxygen/1.0.0/'],
-      path: '/documentation/',
+      seed: [
+        '/packages/oxygen',
+        '/documentation/oxygen/latest/',
+        '/documentation/oxygen/1.0.0/'
+      ],
+      roots: {
+        '/packages/oxygen',
+        '/documentation/',
+      },
     );
 
     // Stop the task backend, and instance execution
@@ -97,23 +104,22 @@ void main() {
   }, timeout: Timeout(Duration(minutes: 15)));
 }
 
-Future<String> _fetchHtml(String requestPath) async {
-  // Cookie for enable experiments, remove this when not needed anymore
-  final headers = {
-    'Cookie': Cookie(
-      'experimental',
-      ExperimentalFlags.all().encodedAsCookie(),
-    ).toString(),
-  };
+// Cookie for enable experiments, remove this when not needed anymore
+final _headers = {
+  'Cookie': Cookie(
+    'experimental',
+    ExperimentalFlags.enable({'sandbox'}).encodedAsCookie(),
+  ).toString(),
+};
 
+Future<String> _fetchHtml(String requestPath) async {
   // TODO: Would be really nice if we knew the URL to which the request was
   //       redirected, so we could test redirects here too.
   //       Probably we should make a real HTTP request, rather than going
   //       through [issueGet], which is a fake request.
-
   return await expectHtmlResponse(await issueGet(
     requestPath,
-    headers: headers,
+    headers: _headers,
   ));
 }
 
@@ -129,18 +135,44 @@ Future<dom.Document> _fetchHtmlDocument(String requestPath) async {
 
 Future<void> _traveseLinksUnderPath({
   required Iterable<String> seed,
-  required String path,
+  required Set<String> roots,
 }) async {
-  final visited = <String>{};
-  final queue = <String>[...seed];
+  // Normalize href, returns null if doesn't parse as link to same host
+  final normalize = (String? href, Uri relativeTo) {
+    if (href == null) return null;
+    final u = Uri.tryParse(href);
+    if (u == null || u.hasAuthority) return null;
+    final r = relativeTo.resolveUri(u);
+    return r.path;
+  };
+  final isUnderRoots =
+      (String path) => roots.any((root) => path.startsWith(root));
 
-  while (queue.isNotEmpty) {
-    final next = queue.removeLast();
+  final visited = <String>{};
+  // HTML pages to visit
+  final htmlQueue = <String>[...seed];
+  // Non-HTML pages to visit, we just assert that these provide a response.
+  // Thus, checking that embedded resources are not dead-links.
+  final assetQueue = <String>[];
+
+  while (htmlQueue.isNotEmpty) {
+    final next = htmlQueue.removeLast();
     visited.add(next);
     final target = Uri.parse(next);
 
-    final html = await _fetchHtml(target.toString());
-    expectGoldenFile(html, path + target.toString().substring(path.length));
+    // TODO: Consider making a real HTTP request
+    final res = await issueGet(target.toString(), headers: _headers);
+    if (res.statusCode == 303) {
+      htmlQueue.addAll([normalize(res.headers['location']!, target)]
+          .whereNotNull()
+          .whereNot(visited.contains)
+          .whereNot(htmlQueue.contains)
+          .whereNot(assetQueue.contains));
+      continue;
+    }
+
+    final html = await expectHtmlResponse(res);
+    expectGoldenFile(html, target.toString());
 
     final document = HtmlParser(
       html,
@@ -149,28 +181,48 @@ Future<void> _traveseLinksUnderPath({
       sourceUrl: target.toString(),
     ).parse();
 
-    queue.addAll(
-      document
+    final links = [
+      ...document
           .querySelectorAll('a')
-          .map((a) {
-            final href = a.attributes['href'];
-            if (href == null) {
-              return null;
-            }
-            var u = Uri.tryParse(href);
-            if (u == null || u.hasAuthority || u.hasAbsolutePath) {
-              return null;
-            }
-            u = target.resolveUri(u);
-            if (!u.path.startsWith(path)) {
-              return null;
-            }
-            return u.path;
-          })
+          .map((a) => normalize(a.attributes['href'], target))
           .whereNotNull()
-          .whereNot(visited.contains)
-          .whereNot(queue.contains),
-    );
+          .where(isUnderRoots) // only look at html under root
+    ];
+
+    final assets = [
+      ...document
+          .querySelectorAll('link')
+          .map((e) => normalize(e.attributes['href'], target))
+          .whereNotNull(),
+      ...document
+          .querySelectorAll('script')
+          .map((e) => normalize(e.attributes['src'], target))
+          .whereNotNull(),
+      ...document
+          .querySelectorAll('img')
+          .map((e) => normalize(e.attributes['src'], target))
+          .whereNotNull()
+    ];
+
+    htmlQueue.addAll(links
+        .whereNot((l) => l.endsWith('.tar.gz'))
+        .whereNot(visited.contains)
+        .whereNot(htmlQueue.contains)
+        .whereNot(assetQueue.contains));
+
+    assetQueue.addAll(assets
+        .whereNot(visited.contains)
+        .whereNot(htmlQueue.contains)
+        .whereNot(assetQueue.contains));
+  }
+
+  // Check that we don't link to dead assets
+  while (assetQueue.isNotEmpty) {
+    final next = assetQueue.removeLast();
+    visited.add(next);
+    final target = Uri.parse(next);
+    final res = await issueGet(target.toString(), headers: _headers);
+    expect(res.statusCode, 200);
   }
 }
 
@@ -207,6 +259,9 @@ void expectGoldenFile(
 
   if (fileName.endsWith('/')) {
     fileName += 'index.html';
+  }
+  if (!fileName.endsWith('.html')) {
+    fileName += '.html';
   }
 
   final file = File('$goldenDir/$fileName');
