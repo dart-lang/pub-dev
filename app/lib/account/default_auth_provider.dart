@@ -26,7 +26,7 @@ final _logger = Logger('pub.account.google_auth2');
 final _tokenInfoEndPoint = Uri.parse('https://oauth2.googleapis.com/tokeninfo');
 
 /// Provides OAuth2-based authentication through JWKS and Google account APIs.
-class DefaultAuthProvider extends AuthProvider {
+class DefaultAuthProvider extends BaseAuthProvider {
   late http.Client _httpClient;
   late oauth2_v2.Oauth2Api _oauthApi;
 
@@ -34,6 +34,78 @@ class DefaultAuthProvider extends AuthProvider {
     _httpClient = httpRetryClient(retries: 2);
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
   }
+
+  @override
+  Future<void> close() async {
+    _httpClient.close();
+  }
+
+  @override
+  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken({
+    required String accessToken,
+  }) async {
+    return _oauthApi.tokeninfo(accessToken: accessToken);
+  }
+
+  @override
+  Future<http.Response> callTokenInfoWithIdToken(
+      {required String idToken}) async {
+    // Hit the token-info end-point documented at:
+    // https://developers.google.com/identity/sign-in/web/backend-auth
+    // Note: ideally, we would verify these JWTs locally, but unfortunately
+    //       we don't have a solid RSA implementation available in Dart.
+    final u =
+        _tokenInfoEndPoint.replace(queryParameters: {'id_token': idToken});
+    return await _httpClient.get(u, headers: {'accept': 'application/json'});
+  }
+
+  @override
+  Future<oauth2_v2.Userinfo> callGetUserinfo(
+      {required String accessToken}) async {
+    final authClient = auth.authenticatedClient(
+        _httpClient,
+        auth.AccessCredentials(
+          auth.AccessToken(
+            'Bearer',
+            accessToken,
+            clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+          ),
+          null,
+          [],
+        ));
+
+    final oauth2 = oauth2_v2.Oauth2Api(authClient);
+    return await oauth2.userinfo.get();
+  }
+
+  @override
+  Future<bool> verifyTokenSignature({
+    required JsonWebToken token,
+    required Future<OpenIdData> Function() openIdDataFetch,
+  }) async {
+    final openIdData = await openIdDataFetch();
+    return await token.verifySignature(openIdData.jwks);
+  }
+}
+
+/// Provides base methods and checks for OAuth2-based authentication.
+abstract class BaseAuthProvider extends AuthProvider {
+  /// Calls the Google tokeninfo POST endpoint with [accessToken].
+  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken(
+      {required String accessToken});
+
+  /// Calls the Google tokeninfo GET endpoint with [idToken].
+  Future<http.Response> callTokenInfoWithIdToken({required String idToken});
+
+  /// Calls the Google userinfo endpoint with [accessToken].
+  Future<oauth2_v2.Userinfo> callGetUserinfo({required String accessToken});
+
+  /// Verifies if [token] has the correct signature, using the potentially cached
+  /// [openIdDataFetch] function to get the required [OpenIdData] for the verification.
+  Future<bool> verifyTokenSignature({
+    required JsonWebToken token,
+    required Future<OpenIdData> Function() openIdDataFetch,
+  });
 
   @override
   Future<JsonWebToken?> tryAuthenticateAsServiceToken(String token) async {
@@ -86,8 +158,10 @@ class DefaultAuthProvider extends AuthProvider {
       throw AuthenticationException.tokenInvalid(
           'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"');
     }
-    final openIdData = await openIdDataFetch();
-    final signatureMatches = await idToken.verifySignature(openIdData.jwks);
+    final signatureMatches = await verifyTokenSignature(
+      token: idToken,
+      openIdDataFetch: openIdDataFetch,
+    );
     if (!signatureMatches) {
       throw AuthenticationException.tokenInvalid('invalid signature');
     }
@@ -142,7 +216,7 @@ class DefaultAuthProvider extends AuthProvider {
   Future<AuthResult?> _tryAuthenticateAccessToken(String accessToken) async {
     oauth2_v2.Tokeninfo info;
     try {
-      info = await _oauthApi.tokeninfo(accessToken: accessToken);
+      info = await callTokenInfoWithAccessToken(accessToken: accessToken);
       if (info.userId == null) {
         return null;
       }
@@ -181,13 +255,7 @@ class DefaultAuthProvider extends AuthProvider {
 
   /// Authenticate with openid-connect `id_token`.
   Future<AuthResult?> _tryAuthenticateJwt(String jwt) async {
-    // Hit the token-info end-point documented at:
-    // https://developers.google.com/identity/sign-in/web/backend-auth
-    // Note: ideally, we would verify these JWTs locally, but unfortunately
-    //       we don't have a solid RSA implementation available in Dart.
-    final u = _tokenInfoEndPoint.replace(queryParameters: {'id_token': jwt});
-    final response =
-        await _httpClient.get(u, headers: {'accept': 'application/json'});
+    final response = await callTokenInfoWithIdToken(idToken: jwt);
     // Expect a 200 response
     if (response.statusCode != 200) {
       return null;
@@ -259,30 +327,14 @@ class DefaultAuthProvider extends AuthProvider {
 
   @override
   Future<AccountProfile?> getAccountProfile(String? accessToken) async {
-    if (accessToken == null) return null;
-    final authClient = auth.authenticatedClient(
-        _httpClient,
-        auth.AccessCredentials(
-          auth.AccessToken(
-            'Bearer',
-            accessToken,
-            clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
-          ),
-          null,
-          [],
-        ));
-
-    final oauth2 = oauth2_v2.Oauth2Api(authClient);
-    final info = await oauth2.userinfo.get();
+    if (accessToken == null) {
+      return null;
+    }
+    final info = await callGetUserinfo(accessToken: accessToken);
     return AccountProfile(
       name: info.name ?? info.givenName,
       imageUrl: info.picture,
     );
-  }
-
-  @override
-  Future<void> close() async {
-    _httpClient.close();
   }
 }
 
