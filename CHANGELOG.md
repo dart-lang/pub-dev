@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20221130t094900-all`
  * Increased frontend maximum instance count: 16 -> 18.
  * Increased search instance isolates: 1 -> 2.
 
