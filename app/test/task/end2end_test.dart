@@ -237,13 +237,9 @@ void expectGoldenFile(
   validateHtml(root);
 
   var replacedContent = content;
-  replacedContent = replacedContent
-      .replaceAll('Pana <code>$panaVersion</code>,',
-          'Pana <code>%%pana-version%%</code>,')
-      .replaceAll('Dart <code>$toolStableDartSdkVersion</code>',
-          'Dart <code>%%stable-dart-version%%</code>')
-      .replaceAll(
-          '/static/hash-${staticFileCache.etag}/', '/static/hash-%%etag%%/');
+  _goldenReplacements.forEach((key, value) {
+    replacedContent = replacedContent.replaceAll(key, value);
+  });
 
   // Pretty printing output using XML parser and formatter.
   final xmlDoc = xml.XmlDocument.parse(
@@ -273,3 +269,21 @@ void expectGoldenFile(
   final golden = file.readAsStringSync();
   expect(xmlContent.split('\n'), golden.split('\n'));
 }
+
+final _goldenReplacements = <Pattern, String>{
+  'Pana <code>$panaVersion</code>,': 'Pana <code>%%pana-version%%</code>,',
+  'Dart <code>$toolStableDartSdkVersion</code>':
+      'Dart <code>%%stable-dart-version%%</code>',
+  '/static/hash-${staticFileCache.etag}/': '/static/hash-%%etag%%/',
+  _timestampPattern: '%%timestamp%%',
+  _escapedTimestampPattern: '%%escaped-timestamp%%',
+  _timeAgoPattern: '%%time-ago%%',
+};
+
+final _timestampPattern =
+    RegExp(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z');
+final _escapedTimestampPattern =
+    RegExp(_timestampPattern.pattern.replaceAll(':', r'\\u003a'));
+final _timeAgoPattern = RegExp(
+  r'(?:\d+ (?:years|months|days|hours|hour) ago)|(?:in the last hour)',
+);
