@@ -23,11 +23,12 @@ const _allFlags = <String>{
 class ExperimentalFlags {
   final Set<String> _enabled;
 
-  ExperimentalFlags._(Set<String> enabled)
+  @visibleForTesting
+  ExperimentalFlags(Set<String> enabled)
       : _enabled = enabled.intersection(_allFlags);
 
   static final List<String> publicFlags = _publicFlags.toList()..sort();
-  static final ExperimentalFlags empty = ExperimentalFlags._(const {});
+  static final ExperimentalFlags empty = ExperimentalFlags(const {});
 
   factory ExperimentalFlags.parseFromCookie(String? value) {
     final enabled = <String>{};
@@ -36,17 +37,12 @@ class ExperimentalFlags {
       if (value.isEmpty) continue;
       enabled.add(value);
     }
-    return ExperimentalFlags._(enabled);
+    return ExperimentalFlags(enabled);
   }
 
   @visibleForTesting
   factory ExperimentalFlags.all() {
-    return ExperimentalFlags._(_allFlags);
-  }
-
-  @visibleForTesting
-  factory ExperimentalFlags.enable(Set<String> enabled) {
-    return ExperimentalFlags._(enabled);
+    return ExperimentalFlags(_allFlags);
   }
 
   /// Whether to show the "Dart 3 ready" badge or the search checkbox.

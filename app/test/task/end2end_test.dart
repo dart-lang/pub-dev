@@ -81,6 +81,7 @@ void main() {
           m.attributes['content'] == 'noindex'),
       isEmpty,
     );
+    print(await _fetchHtml('/packages/oxygen/1.0.0/score'));
 
     // Travese all package pages and generated documentation,
     // create golden files and check for dead links and assets
@@ -108,7 +109,7 @@ void main() {
 final _headers = {
   'Cookie': Cookie(
     'experimental',
-    ExperimentalFlags.enable({'sandbox'}).encodedAsCookie(),
+    ExperimentalFlags({'sandbox'}).encodedAsCookie(),
   ).toString(),
 };
 
@@ -267,7 +268,7 @@ void expectGoldenFile(
     markTestSkipped('Set `_regenerateGoldens` to `false` to run tests.');
   }
   final golden = file.readAsStringSync();
-  expect(xmlContent.split('\n'), golden.split('\n'));
+  expect(xmlContent.split('\n'), golden.split('\n'), reason: 'in $fileName');
 }
 
 final _goldenReplacements = <Pattern, String>{
