@@ -80,7 +80,7 @@ class ExperimentalFlags {
         newEnabled.remove(name);
       }
     }
-    return ExperimentalFlags._(newEnabled);
+    return ExperimentalFlags(newEnabled);
   }
 
   Map<String, String> urlParametersForToggle() {
