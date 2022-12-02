@@ -270,6 +270,39 @@ $dependencies
     });
   });
 
+  group('forbid invalid dependency names', () {
+    final names = [
+      'a.',
+      'a-b',
+      'a/',
+      '0a',
+    ];
+
+    test('normal dependencies are restricted', () {
+      for (final name in names) {
+        final pubspec = Pubspec.parse('''
+name: test_pkg
+version: 1.0.0
+dependencies:
+  $name: any
+''');
+        expect(validateDependencies(pubspec), isNotEmpty);
+      }
+    });
+
+    test('dev dependencies are allowed', () {
+      for (final name in names) {
+        final pubspec = Pubspec.parse('''
+name: test_pkg
+version: 1.0.0
+dev_dependencies:
+  $name: any
+''');
+        expect(validateDependencies(pubspec), isEmpty);
+      }
+    });
+  });
+
   group('forbid git dependencies', () {
     test('normal dependencies are fine', () {
       final pubspec = Pubspec.parse('''

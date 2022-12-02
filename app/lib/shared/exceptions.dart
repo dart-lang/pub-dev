@@ -268,6 +268,10 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Only users are allowed to upload new packages.');
 
+  /// The package has a dependency that does not exist (or not visible).
+  PackageRejectedException.dependencyDoesNotExists(String name)
+      : super._(400, 'PackageRejected', 'Dependency `$name` does not exist.');
+
   /// Check [condition] and throw [PackageRejectedException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {

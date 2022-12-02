@@ -519,13 +519,25 @@ Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
 }
 
 /// Validate that the package does not have too many dependencies.
-///
 /// It ignores `dev_dependencies` as these are for development only.
+///
+/// Validates that the dependencies (`dev_dependencies` included) have valid
+/// package names (does not checks existence).
 Iterable<ArchiveIssue> validateDependencies(Pubspec pubspec) sync* {
   // This is not an inherently hard limit, it's merely a sanity limitation.
   if (pubspec.dependencies.length > 100) {
-    yield ArchiveIssue('Package must not exceed 128 direct dependencies. '
+    yield ArchiveIssue('Package must not exceed 100 direct dependencies. '
         '(Please file an issue if you think you have a good reason for more dependencies.)');
+  }
+
+  final names = <String>{
+    ...pubspec.dependencies.keys,
+  };
+  for (final name in names) {
+    final issues = validatePackageName(name).toList();
+    if (issues.isNotEmpty) {
+      yield ArchiveIssue('Dependency `$name` is not a valid package name.');
+    }
   }
 }
 
