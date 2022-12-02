@@ -81,7 +81,6 @@ void main() {
           m.attributes['content'] == 'noindex'),
       isEmpty,
     );
-    print(await _fetchHtml('/packages/oxygen/versions/1.0.0/score'));
 
     // Travese all package pages and generated documentation,
     // create golden files and check for dead links and assets
