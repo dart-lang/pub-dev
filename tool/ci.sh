@@ -91,7 +91,11 @@ for PKG in ${PKGS}; do
         echo 'dart analyze --fatal-infos --fatal-warnings bin/ lib/'
         dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
         ;;
-      command)
+      command_0)
+        echo 'sudo apt-get install webp'
+        sudo apt-get install webp || EXIT_CODE=$?
+        ;;
+      command_1)
         echo './build.sh'
         ./build.sh || EXIT_CODE=$?
         ;;
