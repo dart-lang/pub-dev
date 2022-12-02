@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Check valid (well-formatted) dependency names at upload.
+ * Check that dependencies exist at upload.
 
 ## `20221130t094900-all`
  * Increased frontend maximum instance count: 16 -> 18.

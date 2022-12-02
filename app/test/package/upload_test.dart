@@ -509,7 +509,10 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (exempted package)',
           testProfile: TestProfile(
-            packages: [TestPackage(name: '_dummy_pkg')],
+            packages: [
+              TestPackage(name: '_dummy_pkg'),
+              TestPackage(name: 'oxygen'),
+            ],
             defaultUser: 'admin@pub.dev',
           ), fn: () async {
         await withHttpPubApiClient(
@@ -982,6 +985,7 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         packages: <TestPackage>[
+          TestPackage(name: 'oxygen'),
           TestPackage(
               name: 'busy_pkg',
               versions:
