@@ -279,6 +279,7 @@ final _goldenReplacements = <Pattern, String>{
   _timestampPattern: '%%timestamp%%',
   _escapedTimestampPattern: '%%escaped-timestamp%%',
   _timeAgoPattern: '%%time-ago%%',
+  _shortDatePattern: '%%short-dateformat%%',
 };
 
 final _timestampPattern =
@@ -287,4 +288,8 @@ final _escapedTimestampPattern =
     RegExp(_timestampPattern.pattern.replaceAll(':', r'\\u003a'));
 final _timeAgoPattern = RegExp(
   r'(?:\d+ (?:years|months|days|hours|hour) ago)|(?:in the last hour)',
+);
+
+final _shortDatePattern = RegExp(
+  r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}',
 );
