@@ -909,6 +909,11 @@ class PackageBackend {
         if (isSoftRemoved(name)) {
           continue;
         }
+        if (nameTracker.hasPackage(name)) {
+          continue;
+        }
+        // Note: When the name tracker has not yet updated its in-memory cache
+        //       with recent packages, this check would cause a datastore lookup.
         if (await isPackageVisible(name)) {
           continue;
         }

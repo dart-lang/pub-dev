@@ -146,6 +146,9 @@ class NameTracker {
   List<TrackedPackage> get visiblePackagesOrderedByLastPublished =>
       _data.visiblePackagesOrderedByLastPublished;
 
+  /// Whether the name tracker has a record of the package.
+  bool hasPackage(String name) => _data._hasPackage(name);
+
   /// Scans the Datastore and populates the tracker.
   @visibleForTesting
   Future<void> reloadFromDatastore() async {
