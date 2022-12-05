@@ -67,22 +67,43 @@ Future<void> importProfile({
   // last active uploader
   final lastActiveUploaderEmails = <String, String>{};
 
-  // create versions
-  for (final rv in resolvedVersions) {
-    // figure out the active user
-    final uploaderEmails = _potentialActiveEmails(profile, rv.package);
-    final uploaderEmail =
-        uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
-    lastActiveUploaderEmails[rv.package] = uploaderEmail;
+  // create versions in multiple rounds, as they may depend on each other
+  var published = true;
+  var pending = <ResolvedVersion>[...resolvedVersions];
+  final pendingBytes = <String, List<int>>{};
+  while (published && pending.isNotEmpty) {
+    published = false;
+    final nextPending = <ResolvedVersion>[];
 
-    final bytes = await source.getArchiveBytes(rv.package, rv.version);
-    await withHttpPubApiClient(
-      bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
-          audience: activeConfiguration.pubClientAudience),
-      pubHostedUrl: pubHostedUrl,
-      fn: (client) => client.uploadPackageBytes(bytes),
-    );
+    for (final rv in pending) {
+      // figure out the active user
+      final uploaderEmails = _potentialActiveEmails(profile, rv.package);
+      final uploaderEmail =
+          uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
+      lastActiveUploaderEmails[rv.package] = uploaderEmail;
+
+      final bytes = pendingBytes['${rv.package}/${rv.version}'] ??
+          await source.getArchiveBytes(rv.package, rv.version);
+      try {
+        await withHttpPubApiClient(
+          bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
+              audience: activeConfiguration.pubClientAudience),
+          pubHostedUrl: pubHostedUrl,
+          fn: (client) => client.uploadPackageBytes(bytes),
+        );
+        published = true;
+      } catch (_) {
+        nextPending.add(rv);
+        pendingBytes['${rv.package}/${rv.version}'] = bytes;
+      }
+    }
+    pending = nextPending;
   }
+  if (pending.isNotEmpty) {
+    throw Exception(
+        'Unable to publish ${pending.length} packages (first: ${pending.first.toJson()}).');
+  }
+
   for (final testPackage in profile.packages) {
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];

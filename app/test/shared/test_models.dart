@@ -74,7 +74,12 @@ Changelog
 
 ''';
 
-String generatePubspecYaml(String name, String version) => '''
+String generatePubspecYaml(
+  String name,
+  String version, {
+  String dependsOn = 'oxygen',
+}) =>
+    '''
 name: $name
 version: $version
 author: Hans Juergen <hans@juergen.com>
@@ -84,7 +89,7 @@ environment:
   sdk: '>=2.10.0 <3.0.0'
 
 dependencies:
-  gcloud: any
+  $dependsOn: any
 ''';
 
 PublisherMember publisherMember(

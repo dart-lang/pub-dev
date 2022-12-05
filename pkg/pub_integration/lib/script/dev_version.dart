@@ -37,6 +37,7 @@ class DevVersionScript {
       await File(p.join(_pubCacheDir.path, 'credentials.json'))
           .writeAsString(credentialsFileContent);
 
+      await _createFakeRetryPkg();
       if (stableFirst) {
         await _publishVersion('0.9.0');
         _expectContent(
@@ -184,5 +185,12 @@ class DevVersionScript {
         throw Exception('$p is present in the content.');
       }
     }
+  }
+
+  Future<void> _createFakeRetryPkg() async {
+    final dir = await _temp.createTemp();
+    await createFakeRetryPkg(dir.path);
+    await _pubToolClient!.publish(dir.path);
+    await dir.delete(recursive: true);
   }
 }

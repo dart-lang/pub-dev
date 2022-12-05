@@ -41,6 +41,8 @@ class PublisherScript {
           pubHostedUrl: pubHostedUrl,
           credentialsFileContent: credentialsFileContent);
 
+      await _createFakeRetryPkg();
+
       await _publishDummyPkg('1.0.0');
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg(
@@ -177,5 +179,12 @@ class PublisherScript {
             'Map value differs for key: $key ${actual[key]} != ${expected[key]}');
       }
     }
+  }
+
+  Future<void> _createFakeRetryPkg() async {
+    final dir = await _temp.createTemp();
+    await createFakeRetryPkg(dir.path);
+    await _pubToolClient!.publish(dir.path);
+    await dir.delete(recursive: true);
   }
 }
