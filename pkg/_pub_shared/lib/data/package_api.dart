@@ -67,7 +67,7 @@ class AutomatedPublishing {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GithubPublishing {
-  final bool? isEnabled;
+  bool? isEnabled;
 
   /// The `owner/repository` path of the project on github.com.
   String? repository;
@@ -106,7 +106,7 @@ class GithubPublishing {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GcpPublishing {
-  final bool? isEnabled;
+  bool? isEnabled;
   String? serviceAccountEmail;
 
   GcpPublishing({

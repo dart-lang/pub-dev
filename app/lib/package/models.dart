@@ -152,6 +152,10 @@ class Package extends db.ExpandoModel<String> {
   @db.StringProperty(indexed: false)
   String? automatedPublishingJson;
 
+  /// The JSON-serialized format of the [AutomatedPublishingLock].
+  @db.StringProperty(indexed: false)
+  String? automatedPublishingLockJson;
+
   Package();
 
   /// Creates a new [Package] and populates all of it's fields from [version].
@@ -400,6 +404,22 @@ class Package extends db.ExpandoModel<String> {
     }
   }
 
+  AutomatedPublishingLock get automatedPublishingLock {
+    if (automatedPublishingLockJson == null) {
+      return AutomatedPublishingLock();
+    }
+    return AutomatedPublishingLock.fromJson(
+        json.decode(automatedPublishingLockJson!) as Map<String, dynamic>);
+  }
+
+  set automatedPublishingLock(AutomatedPublishingLock? value) {
+    if (value == null) {
+      automatedPublishingLockJson = null;
+    } else {
+      automatedPublishingLockJson = json.encode(value.toJson());
+    }
+  }
+
   void updateIsBlocked({
     required bool isBlocked,
     String? reason,
@@ -448,6 +468,52 @@ class Release {
       _$ReleaseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReleaseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class AutomatedPublishingLock {
+  GithubPublishingLock? github;
+  GcpPublishingLock? gcp;
+
+  AutomatedPublishingLock({
+    this.github,
+    this.gcp,
+  });
+
+  factory AutomatedPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingLockFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AutomatedPublishingLockToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class GithubPublishingLock {
+  final String repositoryOwnerId;
+  final String repositoryId;
+
+  GithubPublishingLock({
+    required this.repositoryOwnerId,
+    required this.repositoryId,
+  });
+
+  factory GithubPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$GithubPublishingLockFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GithubPublishingLockToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class GcpPublishingLock {
+  final String oauthUserId;
+
+  GcpPublishingLock({
+    required this.oauthUserId,
+  });
+
+  factory GcpPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$GcpPublishingLockFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GcpPublishingLockToJson(this);
 }
 
 /// Pub package metadata for a specific uploaded version.

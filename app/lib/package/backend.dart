@@ -5,6 +5,7 @@
 library pub_dartlang_org.backend;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -535,8 +536,24 @@ class PackageBackend {
         }
       }
 
+      // update lock
+      final current = p.automatedPublishing;
+      final currentLock = p.automatedPublishingLock;
+      final githubChanged = json.encode(body.github?.toJson()) !=
+          json.encode(current.github?.toJson());
+      if (githubChanged) {
+        currentLock.github = null;
+      }
+      final gcpChanged =
+          json.encode(body.gcp?.toJson()) != json.encode(current.gcp?.toJson());
+      if (gcpChanged) {
+        currentLock.gcp = null;
+      }
+      p.automatedPublishingLock = currentLock;
+
       // finalize changes
       p.automatedPublishing = body;
+
       p.updated = clock.now().toUtc();
       tx.insert(p);
       tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
@@ -1079,6 +1096,9 @@ class PackageBackend {
       package!.updated = clock.now().toUtc();
       package!.versionCount++;
 
+      // update automated publisher identifiers if this is the first time they have been used
+      _updatePackageAutomatedPublishingLock(package!, agent);
+
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
@@ -1220,6 +1240,8 @@ class PackageBackend {
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing.github;
+    final githubLock = package.automatedPublishingLock.github;
+
     if (githubPublishing?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
@@ -1278,6 +1300,23 @@ class PackageBackend {
           'for which publishing is not allowed');
     }
 
+    if (githubLock != null) {
+      final lockMatches =
+          githubLock.repositoryId == agent.payload.repositoryId &&
+              githubLock.repositoryOwnerId == agent.payload.repositoryOwnerId;
+      if (!lockMatches) {
+        await withRetryTransaction(db, (tx) async {
+          final p = await tx.lookupValue<Package>(package.key);
+          final publishing = p.automatedPublishing;
+          publishing.github!.isEnabled = false;
+          p.automatedPublishing = publishing;
+          tx.insert(p);
+        });
+        throw AuthorizationException.githubActionIssue(
+            'GitHub repository identifiers changed, disabling automated publishing');
+      }
+    }
+
     // Disable publishing for all packages, but exempt one for live testing.
     if (package.name == '_dummy_pkg') {
       return;
@@ -1291,14 +1330,15 @@ class PackageBackend {
     Package package,
     String newVersion,
   ) async {
-    final googleCloudPublishing = package.automatedPublishing.gcp;
-    if (googleCloudPublishing?.isEnabled != true) {
+    final gcpPublishing = package.automatedPublishing.gcp;
+    final gcpLock = package.automatedPublishingLock.gcp;
+    if (gcpPublishing?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing with service account is not enabled');
     }
 
     // verify that fields are configured
-    final serviceAccountEmail = googleCloudPublishing!.serviceAccountEmail;
+    final serviceAccountEmail = gcpPublishing!.serviceAccountEmail;
     if (serviceAccountEmail == null || serviceAccountEmail.isEmpty) {
       throw AssertionError('Missing or empty serviceAccountEmail.');
     }
@@ -1307,6 +1347,21 @@ class PackageBackend {
     if (serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing is not enabled for the "${agent.payload.email}" service account');
+    }
+
+    if (gcpLock != null) {
+      final lockMatches = gcpLock.oauthUserId == agent.payload.sub;
+      if (!lockMatches) {
+        await withRetryTransaction(db, (tx) async {
+          final p = await tx.lookupValue<Package>(package.key);
+          final publishing = p.automatedPublishing;
+          publishing.gcp!.isEnabled = false;
+          p.automatedPublishing = publishing;
+          tx.insert(p);
+        });
+        throw AuthorizationException.githubActionIssue(
+            'Google Cloud Service account identifiers changed, disabling automated publishing');
+      }
     }
 
     throw PackageRejectedException(
@@ -1541,6 +1596,21 @@ class PackageBackend {
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> packageTarballinfo(String package, String version) async {
     return await _publicBucket.tryInfo(tarballObjectName(package, version));
+  }
+
+  void _updatePackageAutomatedPublishingLock(
+      Package package, AuthenticatedAgent agent) {
+    final current = package.automatedPublishingLock;
+    if (agent is AuthenticatedGithubAction && current.github == null) {
+      current.github = GithubPublishingLock(
+        repositoryOwnerId: agent.payload.repositoryOwnerId,
+        repositoryId: agent.payload.repositoryId,
+      );
+      package.automatedPublishingLock = current;
+    } else if (agent is AuthenticatedGcpServiceAccount && current.gcp == null) {
+      current.gcp = GcpPublishingLock(oauthUserId: agent.payload.sub);
+      package.automatedPublishingLock = current;
+    }
   }
 }
 
