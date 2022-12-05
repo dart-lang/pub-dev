@@ -44,14 +44,16 @@ final defaultTestProfile = TestProfile(
   ],
 );
 
-final adminAtPubDevAuthToken = createFakeAuthTokenForEmail('admin@pub.dev');
-final userAtPubDevAuthToken = createFakeAuthTokenForEmail('user@pub.dev');
-final unauthorizedAtPubDevAuthToken =
+String get adminAtPubDevAuthToken =>
+    createFakeAuthTokenForEmail('admin@pub.dev');
+String get userAtPubDevAuthToken => createFakeAuthTokenForEmail('user@pub.dev');
+String get unauthorizedAtPubDevAuthToken =>
     createFakeAuthTokenForEmail('unauthorized@pub.dev');
-final adminClientToken = createFakeAuthTokenForEmail('admin@pub.dev',
+String get adminClientToken => createFakeAuthTokenForEmail('admin@pub.dev',
     audience: 'fake-client-audience');
-final siteAdminToken = createFakeServiceAccountToken(email: 'admin@pub.dev');
-final userClientToken = createFakeAuthTokenForEmail('user@pub.dev',
+String get siteAdminToken =>
+    createFakeServiceAccountToken(email: 'admin@pub.dev');
+String get userClientToken => createFakeAuthTokenForEmail('user@pub.dev',
     audience: 'fake-client-audience');
 
 final String foobarReadmeContent = '''
