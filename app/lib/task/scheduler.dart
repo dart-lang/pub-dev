@@ -44,6 +44,20 @@ Future<void> schedule(
   final zoneBannedUntil = <String, DateTime>{
     for (final zone in compute.zones) zone: DateTime(0),
   };
+  void banZone(String zone, {int minutes = 0, int hours = 0, int days = 0}) {
+    if (!zoneBannedUntil.containsKey(zone)) {
+      throw ArgumentError.value(zone, 'zone');
+    }
+
+    final until = clock.now().add(Duration(
+          minutes: minutes,
+          hours: hours,
+          days: days,
+        ));
+    if (zoneBannedUntil[zone]!.isBefore(until)) {
+      zoneBannedUntil[zone] = until;
+    }
+  }
 
   // Set of `CloudInstance.instanceName`s currently being deleted.
   // This to avoid deleting instances where the deletion process is still
@@ -194,7 +208,7 @@ Future<void> schedule(
       assert(description != null);
 
       scheduleMicrotask(() async {
-        var rollbackPackageState = false;
+        var rollbackPackageState = true;
         try {
           _log.info(
             'creating instance $instanceName in $zone for '
@@ -207,6 +221,7 @@ Future<void> schedule(
             arguments: [payload!],
             description: description!,
           );
+          rollbackPackageState = false;
         } on ZoneExhaustedException catch (e, st) {
           // A zone being exhausted is normal operations, we just use another
           // zone for 15 minutes.
@@ -216,9 +231,7 @@ Future<void> schedule(
             st,
           );
           // Ban usage of zone for 30 minutes
-          zoneBannedUntil[e.zone] = clock.now().add(Duration(minutes: 30));
-
-          rollbackPackageState = true;
+          banZone(e.zone, minutes: 30);
         } on QuotaExhaustedException catch (e, st) {
           // Quota exhausted, this can happen, but it shouldn't. We'll just stop
           // doing anything for 10 minutes. Hopefully that'll resolve the issue.
@@ -233,10 +246,8 @@ Future<void> schedule(
 
           // Ban all zones for 10 minutes
           for (final zone in compute.zones) {
-            zoneBannedUntil[zone] = clock.now().add(Duration(minutes: 10));
+            banZone(zone, minutes: 10);
           }
-
-          rollbackPackageState = true;
         } on Exception catch (e, st) {
           // No idea what happened, but for robustness we'll stop using the zone
           // and shout into the logs
@@ -247,30 +258,28 @@ Future<void> schedule(
             st,
           );
           // Ban usage of zone for 15 minutes
-          zoneBannedUntil[zone] = clock.now().add(Duration(minutes: 15));
+          banZone(zone, minutes: 15);
+        } finally {
+          if (rollbackPackageState) {
+            // Restore the state of the PackageState for versions that were
+            // suppose to run on the instance we just failed to create.
+            // If this doesn't work, we'll eventually retry. Hence, correctness
+            // does not hinge on this transaction being successful.
+            await withRetryTransaction(db, (tx) async {
+              final s = await tx.lookupOrNull<PackageState>(state.key);
+              if (s == null) {
+                return; // Presumably, the package was deleted.
+              }
 
-          rollbackPackageState = true;
-        }
-
-        if (rollbackPackageState) {
-          // Restore the state of the PackageState for versions that were
-          // suppose to run on the instance we just failed to create.
-          // If this doesn't work, we'll eventually retry. Hence, correctness
-          // does not hinge on this transaction being successful.
-          await withRetryTransaction(db, (tx) async {
-            final s = await tx.lookupOrNull<PackageState>(state.key);
-            if (s == null) {
-              return; // Presumably, the package was deleted.
-            }
-
-            s.versions!.addEntries(
-              s.versions!.entries
-                  .where((e) => e.value.instance == instanceName)
-                  .map((e) => MapEntry(e.key, state.versions![e.key]!)),
-            );
-            s.derivePendingAt();
-            tx.insert(s);
-          });
+              s.versions!.addEntries(
+                s.versions!.entries
+                    .where((e) => e.value.instance == instanceName)
+                    .map((e) => MapEntry(e.key, state.versions![e.key]!)),
+              );
+              s.derivePendingAt();
+              tx.insert(s);
+            });
+          }
         }
       });
     }).toList());
