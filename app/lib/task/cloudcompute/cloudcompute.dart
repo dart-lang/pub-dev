@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 /// Interface describing an instance.
 abstract class CloudInstance {
   /// Unique instance name.
@@ -72,8 +74,13 @@ abstract class CloudCompute {
   /// Cloud Console and intended to assist humans inspecting the system.
   ///
   /// The [Future] returned may take a long time to resolve (several minutes).
+  /// Throws [ZoneExhaustedException] if resources in the given zone are
+  /// exhausted, and usage of [zone] should be avoided for a while.
+  /// Throws [QuotaExhaustedException] if quota allocated with the cloud vendor
+  /// have been exhausted, and creation of VMs should be backoff for a while.
   /// Any [Exception] thrown by this method should be considered a reason to
   /// reduce the request rate on the given zone [zone].
+  // TODO: Consider changing the contract around "any exception"!
   Future<CloudInstance> createInstance({
     required String zone,
     required String instanceName,
@@ -91,4 +98,34 @@ abstract class CloudCompute {
   /// Systems should assume deletion is best-effort and periodically list
   /// instances to delete instances that are no longer needed.
   Future<void> delete(String zone, String instanceName);
+}
+
+/// Exception thrown by [CloudCompute.createInstance] if resources in a cloud
+/// zone have been exhausted.
+///
+/// The caller is expected to back-off using the zone for a while before trying
+/// to create new VMs in the zone again.
+@sealed
+class ZoneExhaustedException implements Exception {
+  final String zone;
+
+  final String message;
+  ZoneExhaustedException(this.zone, this.message);
+
+  @override
+  String toString() => 'ZoneExhaustedException: $message';
+}
+
+/// Exception thrown by [CloudCompute.createInstance] if allocated quota
+/// allocated with the cloud vendor has been exhausted.
+///
+/// The caller is expected to back-off for a while before trying to create
+/// new VMs.
+@sealed
+class QuotaExhaustedException implements Exception {
+  final String message;
+  QuotaExhaustedException(this.message);
+
+  @override
+  String toString() => 'QuotaExhaustedException: $message';
 }

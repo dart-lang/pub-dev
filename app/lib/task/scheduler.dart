@@ -194,6 +194,7 @@ Future<void> schedule(
       assert(description != null);
 
       scheduleMicrotask(() async {
+        var rollbackPackageState = false;
         try {
           _log.info(
             'creating instance $instanceName in $zone for '
@@ -206,8 +207,40 @@ Future<void> schedule(
             arguments: [payload!],
             description: description!,
           );
+        } on ZoneExhaustedException catch (e, st) {
+          // A zone being exhausted is normal operations, we just use another
+          // zone for 15 minutes.
+          _log.info(
+            'zone resources exhausted, banning ${e.zone} for 30 minutes',
+            e,
+            st,
+          );
+          // Ban usage of zone for 30 minutes
+          zoneBannedUntil[e.zone] = clock.now().add(Duration(minutes: 30));
+
+          rollbackPackageState = true;
+        } on QuotaExhaustedException catch (e, st) {
+          // Quota exhausted, this can happen, but it shouldn't. We'll just stop
+          // doing anything for 10 minutes. Hopefully that'll resolve the issue.
+          // We log severe, because this is a reason to adjust the quota or
+          // instance limits.
+          _log.severe(
+            'Quota exhausted trying to create $instanceName, banning all zones '
+            'for 10 minutes',
+            e,
+            st,
+          );
+
+          // Ban all zones for 10 minutes
+          for (final zone in compute.zones) {
+            zoneBannedUntil[zone] = clock.now().add(Duration(minutes: 10));
+          }
+
+          rollbackPackageState = true;
         } on Exception catch (e, st) {
-          _log.warning(
+          // No idea what happened, but for robustness we'll stop using the zone
+          // and shout into the logs
+          _log.shout(
             'Failed to create instance $instanceName, banning zone "$zone" for '
             '15 minutes',
             e,
@@ -216,6 +249,10 @@ Future<void> schedule(
           // Ban usage of zone for 15 minutes
           zoneBannedUntil[zone] = clock.now().add(Duration(minutes: 15));
 
+          rollbackPackageState = true;
+        }
+
+        if (rollbackPackageState) {
           // Restore the state of the PackageState for versions that were
           // suppose to run on the instance we just failed to create.
           // If this doesn't work, we'll eventually retry. Hence, correctness
