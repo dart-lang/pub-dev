@@ -155,6 +155,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/packages/<package>/versions/<version>/gen-res/<path|[^]*>',
+    service.packageVersionGeneratedResources,
+  );
+  router.add(
+    'GET',
     r'/documentation/<package>/<version>/<path|[^]*>',
     service.documentation,
   );

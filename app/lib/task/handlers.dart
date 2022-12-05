@@ -106,3 +106,46 @@ Future<shelf.Response> handleDartDoc(
     },
   );
 }
+
+/// Handles GET `/packages/<package>/versions/<version>/gen-res/<path|[^]*>`
+Future<shelf.Response> handleTaskResource(
+  shelf.Request request,
+  String package,
+  String version,
+  String path,
+) async {
+  InvalidInputException.checkPackageName(package);
+  version = InvalidInputException.checkSemanticVersion(version);
+
+  final ext = path.split('.').last;
+
+  // Handle any non-HTML request
+  final mime = _safeMimeTypes[ext];
+  if (mime == null) {
+    // TODO: Communicate that this file type is not allowed!
+    // Probably we should just do this in pub_worker and write something in the log
+    return notFoundHandler(request);
+  }
+
+  final dataGz = await taskBackend.gzippedTaskResult(
+    package,
+    version,
+    'resources/$path',
+  );
+  if (dataGz == null) {
+    return notFoundHandler(request);
+  }
+
+  if (request.method.toUpperCase() == 'HEAD') {
+    return htmlResponse('');
+  }
+
+  final acceptsGzip = request.acceptsGzipEncoding();
+  return shelf.Response.ok(
+    acceptsGzip ? dataGz : gzip.decode(dataGz),
+    headers: {
+      'Content-Type': mime,
+      if (acceptsGzip) 'Content-Encoding': 'gzip',
+    },
+  );
+}

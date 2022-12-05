@@ -94,7 +94,8 @@ Future<void> main(List<String> args) async {
       //TODO: Add analysisOptionsYaml, or move the logic into pana
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
       //TODO: Run dartdoc as part of pana
-      checkRemoteRepository: true,
+      // TODO: Enable checkRemoteRepository, when it doesn't break tests
+      checkRemoteRepository: false,
     ),
     logger: _log,
     storeResource: (filename, data) async {
