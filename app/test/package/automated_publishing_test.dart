@@ -45,7 +45,7 @@ void main() {
       final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
-            github: GithubPublishing(
+            github: GithubPublishingConfig(
               isEnabled: true,
               repository: 'dart-lang/pub-dev',
               tagPattern: '{{version}}',
@@ -59,7 +59,9 @@ void main() {
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.automatedPublishing!.config!.toJson(), rs.toJson());
+      expect(
+          p!.automatedPublishing!.githubConfig!.toJson(), rs.github!.toJson());
+      expect(p.automatedPublishing!.gcpConfig, isNull);
       final audits = await auditBackend.listRecordsForPackage('oxygen');
       // check audit log record exists
       final record = audits.records.firstWhere((e) =>
@@ -75,7 +77,7 @@ void main() {
       final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
-            gcp: GcpPublishing(
+            gcp: GcpPublishingConfig(
               isEnabled: true,
               serviceAccountEmail: 'project-id@cloudbuild.gserviceaccount.com',
             ),
@@ -87,7 +89,8 @@ void main() {
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.automatedPublishing!.config!.toJson(), rs.toJson());
+      expect(p!.automatedPublishing!.gcpConfig!.toJson(), rs.gcp!.toJson());
+      expect(p.automatedPublishing!.githubConfig, isNull);
       final audits = await auditBackend.listRecordsForPackage('oxygen');
       // check audit log record exists
       final record = audits.records.firstWhere((e) =>
@@ -113,7 +116,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
-              github: GithubPublishing(
+              github: GithubPublishingConfig(
                 isEnabled: repository.isEmpty,
                 repository: repository,
                 tagPattern: '{{version}}',
@@ -140,7 +143,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
-              github: GithubPublishing(
+              github: GithubPublishingConfig(
                 isEnabled: false,
                 repository: 'abcd/efgh',
                 tagPattern: pattern,
@@ -165,7 +168,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
-              github: GithubPublishing(
+              github: GithubPublishingConfig(
                 isEnabled: false,
                 repository: 'abcd/efgh',
                 tagPattern: '{{version}}',
@@ -194,7 +197,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
-            gcp: GcpPublishing(
+            gcp: GcpPublishingConfig(
               isEnabled: value.isEmpty,
               serviceAccountEmail: value,
             ),
@@ -216,7 +219,7 @@ void main() {
       final rs = client.setAutomatedPublishing(
         'oxygen',
         AutomatedPublishingConfig(
-          gcp: GcpPublishing(
+          gcp: GcpPublishingConfig(
             isEnabled: true,
             serviceAccountEmail: 'user@pub.dev',
           ),

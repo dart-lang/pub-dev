@@ -394,7 +394,8 @@ class Package extends db.ExpandoModel<String> {
         (automatedPublishingJson == null
             ? null
             : AutomatedPublishing(
-                config: _automatedPublishing,
+                githubConfig: _automatedPublishing.github,
+                gcpConfig: _automatedPublishing.gcp,
               ));
     automatedPublishingField = field;
     return field;
@@ -465,13 +466,15 @@ class Release {
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class AutomatedPublishing {
-  AutomatedPublishingConfig? config;
+  GithubPublishingConfig? githubConfig;
   GithubPublishingLock? githubLock;
+  GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
 
   AutomatedPublishing({
-    this.config,
+    this.githubConfig,
     this.githubLock,
+    this.gcpConfig,
     this.gcpLock,
   });
 

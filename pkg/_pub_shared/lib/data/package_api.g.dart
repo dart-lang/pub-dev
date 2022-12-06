@@ -37,10 +37,11 @@ AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
     AutomatedPublishingConfig(
       github: json['github'] == null
           ? null
-          : GithubPublishing.fromJson(json['github'] as Map<String, dynamic>),
+          : GithubPublishingConfig.fromJson(
+              json['github'] as Map<String, dynamic>),
       gcp: json['gcp'] == null
           ? null
-          : GcpPublishing.fromJson(json['gcp'] as Map<String, dynamic>),
+          : GcpPublishingConfig.fromJson(json['gcp'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AutomatedPublishingConfigToJson(
@@ -58,8 +59,9 @@ Map<String, dynamic> _$AutomatedPublishingConfigToJson(
   return val;
 }
 
-GithubPublishing _$GithubPublishingFromJson(Map<String, dynamic> json) =>
-    GithubPublishing(
+GithubPublishingConfig _$GithubPublishingConfigFromJson(
+        Map<String, dynamic> json) =>
+    GithubPublishingConfig(
       isEnabled: json['isEnabled'] as bool?,
       repository: json['repository'] as String?,
       tagPattern: json['tagPattern'] as String?,
@@ -67,7 +69,8 @@ GithubPublishing _$GithubPublishingFromJson(Map<String, dynamic> json) =>
       environment: json['environment'] as String?,
     );
 
-Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
+Map<String, dynamic> _$GithubPublishingConfigToJson(
+    GithubPublishingConfig instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
@@ -84,13 +87,13 @@ Map<String, dynamic> _$GithubPublishingToJson(GithubPublishing instance) {
   return val;
 }
 
-GcpPublishing _$GcpPublishingFromJson(Map<String, dynamic> json) =>
-    GcpPublishing(
+GcpPublishingConfig _$GcpPublishingConfigFromJson(Map<String, dynamic> json) =>
+    GcpPublishingConfig(
       isEnabled: json['isEnabled'] as bool?,
       serviceAccountEmail: json['serviceAccountEmail'] as String?,
     );
 
-Map<String, dynamic> _$GcpPublishingToJson(GcpPublishing instance) {
+Map<String, dynamic> _$GcpPublishingConfigToJson(GcpPublishingConfig instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {

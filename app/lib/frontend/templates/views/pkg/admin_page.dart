@@ -232,8 +232,8 @@ d.Node packageAdminPageNode({
 }
 
 d.Node _automatedPublishing(Package package) {
-  final github = package.automatedPublishing?.config?.github;
-  final gcp = package.automatedPublishing?.config?.gcp;
+  final github = package.automatedPublishing?.githubConfig;
+  final gcp = package.automatedPublishing?.gcpConfig;
   return d.fragment([
     d.h2(text: 'Automated publishing'),
     d.h3(text: 'Publishing from GitHub Actions'),

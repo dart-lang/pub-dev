@@ -51,8 +51,8 @@ class PkgOptions {
 /// The configuration for a package's credential-less publishing.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AutomatedPublishingConfig {
-  final GithubPublishing? github;
-  final GcpPublishing? gcp;
+  final GithubPublishingConfig? github;
+  final GcpPublishingConfig? gcp;
 
   AutomatedPublishingConfig({
     this.github,
@@ -66,7 +66,7 @@ class AutomatedPublishingConfig {
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class GithubPublishing {
+class GithubPublishingConfig {
   bool? isEnabled;
 
   /// The `owner/repository` path of the project on github.com.
@@ -90,7 +90,7 @@ class GithubPublishing {
   /// The GitHub environment where the publishing is required from.
   String? environment;
 
-  GithubPublishing({
+  GithubPublishingConfig({
     this.isEnabled,
     this.repository,
     this.tagPattern,
@@ -98,26 +98,26 @@ class GithubPublishing {
     this.environment,
   });
 
-  factory GithubPublishing.fromJson(Map<String, dynamic> json) =>
-      _$GithubPublishingFromJson(json);
+  factory GithubPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$GithubPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GithubPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$GithubPublishingConfigToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class GcpPublishing {
+class GcpPublishingConfig {
   bool? isEnabled;
   String? serviceAccountEmail;
 
-  GcpPublishing({
+  GcpPublishingConfig({
     this.isEnabled,
     this.serviceAccountEmail,
   });
 
-  factory GcpPublishing.fromJson(Map<String, dynamic> json) =>
-      _$GcpPublishingFromJson(json);
+  factory GcpPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$GcpPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GcpPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$GcpPublishingConfigToJson(this);
 }
 
 @JsonSerializable()

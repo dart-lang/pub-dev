@@ -273,7 +273,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                gcp: GcpPublishing(
+                gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
                 ),
@@ -305,7 +305,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                gcp: GcpPublishing(
+                gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
                 ),
@@ -333,7 +333,7 @@ void main() {
         );
 
         final pkgAfter = await packageBackend.lookupPackage('oxygen');
-        expect(pkgAfter!.automatedPublishing!.config!.gcp!.toJson(), {
+        expect(pkgAfter!.automatedPublishing!.gcpConfig!.toJson(), {
           'isEnabled': false,
           'serviceAccountEmail': 'admin@x.gserviceaccount.com',
         });
@@ -346,7 +346,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                gcp: GcpPublishing(
+                gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
                 ),
@@ -419,7 +419,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -454,7 +454,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -489,7 +489,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -526,7 +526,7 @@ void main() {
               await client.setAutomatedPublishing(
                 'oxygen',
                 AutomatedPublishingConfig(
-                  github: GithubPublishing(
+                  github: GithubPublishingConfig(
                     isEnabled: true,
                     repository: 'a/b',
                     tagPattern: '{{version}}',
@@ -572,7 +572,7 @@ void main() {
                 'GitHub repository identifiers changed, disabling automated publishing',
           );
           final pkg = await packageBackend.lookupPackage('oxygen');
-          expect(pkg!.automatedPublishing!.config!.github!.toJson(), {
+          expect(pkg!.automatedPublishing!.githubConfig!.toJson(), {
             'isEnabled': false,
             'repository': 'a/b',
             'tagPattern': '{{version}}',
@@ -589,7 +589,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -630,7 +630,7 @@ void main() {
             await client.setAutomatedPublishing(
               '_dummy_pkg',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -702,7 +702,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -740,7 +740,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -779,7 +779,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                github: GithubPublishing(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: 'v{{version}}',

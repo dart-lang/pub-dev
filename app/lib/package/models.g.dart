@@ -36,14 +36,18 @@ Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
 
 AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
     AutomatedPublishing(
-      config: json['config'] == null
+      githubConfig: json['githubConfig'] == null
           ? null
-          : AutomatedPublishingConfig.fromJson(
-              json['config'] as Map<String, dynamic>),
+          : GithubPublishingConfig.fromJson(
+              json['githubConfig'] as Map<String, dynamic>),
       githubLock: json['githubLock'] == null
           ? null
           : GithubPublishingLock.fromJson(
               json['githubLock'] as Map<String, dynamic>),
+      gcpConfig: json['gcpConfig'] == null
+          ? null
+          : GcpPublishingConfig.fromJson(
+              json['gcpConfig'] as Map<String, dynamic>),
       gcpLock: json['gcpLock'] == null
           ? null
           : GcpPublishingLock.fromJson(json['gcpLock'] as Map<String, dynamic>),
@@ -58,8 +62,9 @@ Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
     }
   }
 
-  writeNotNull('config', instance.config?.toJson());
+  writeNotNull('githubConfig', instance.githubConfig?.toJson());
   writeNotNull('githubLock', instance.githubLock?.toJson());
+  writeNotNull('gcpConfig', instance.gcpConfig?.toJson());
   writeNotNull('gcpLock', instance.gcpLock?.toJson());
   return val;
 }

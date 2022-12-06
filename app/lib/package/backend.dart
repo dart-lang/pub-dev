@@ -466,19 +466,19 @@ class PackageBackend {
     final pkg = await _requirePackageAdmin(package, user.userId);
     return await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
-      final github = body.github;
-      final googleCloud = body.gcp;
-      if (github != null) {
-        final isEnabled = github.isEnabled ?? false;
+      final githubConfig = body.github;
+      final gcpConfig = body.gcp;
+      if (githubConfig != null) {
+        final isEnabled = githubConfig.isEnabled ?? false;
         // normalize input values
-        final repository = github.repository?.trim() ?? '';
-        github.repository = repository.isEmpty ? null : repository;
-        final tagPattern = github.tagPattern?.trim() ?? '';
-        github.tagPattern = tagPattern.isEmpty ? null : tagPattern;
-        final requireEnvironment = github.requireEnvironment ?? false;
-        github.requireEnvironment = requireEnvironment ? true : null;
-        final environment = github.environment?.trim() ?? '';
-        github.environment = environment.isEmpty ? null : environment;
+        final repository = githubConfig.repository?.trim() ?? '';
+        githubConfig.repository = repository.isEmpty ? null : repository;
+        final tagPattern = githubConfig.tagPattern?.trim() ?? '';
+        githubConfig.tagPattern = tagPattern.isEmpty ? null : tagPattern;
+        final requireEnvironment = githubConfig.requireEnvironment ?? false;
+        githubConfig.requireEnvironment = requireEnvironment ? true : null;
+        final environment = githubConfig.environment?.trim() ?? '';
+        githubConfig.environment = environment.isEmpty ? null : environment;
 
         InvalidInputException.check(!isEnabled || repository.isNotEmpty,
             'The `repository` field must not be empty when enabled.');
@@ -512,12 +512,11 @@ class PackageBackend {
               'The `environment` field has invalid characters.');
         }
       }
-      if (googleCloud != null) {
-        final isEnabled = googleCloud.isEnabled ?? false;
+      if (gcpConfig != null) {
+        final isEnabled = gcpConfig.isEnabled ?? false;
         // normalize input values
-        final serviceAccountEmail =
-            googleCloud.serviceAccountEmail?.trim() ?? '';
-        googleCloud.serviceAccountEmail = serviceAccountEmail;
+        final serviceAccountEmail = gcpConfig.serviceAccountEmail?.trim() ?? '';
+        gcpConfig.serviceAccountEmail = serviceAccountEmail;
 
         InvalidInputException.check(
             !isEnabled || serviceAccountEmail.isNotEmpty,
@@ -537,21 +536,22 @@ class PackageBackend {
       }
 
       // update lock
-      final current = p.automatedPublishing?.config;
-      final githubChanged = json.encode(body.github?.toJson()) !=
-          json.encode(current?.github?.toJson());
+      final current = p.automatedPublishing;
+      final githubChanged = json.encode(githubConfig?.toJson()) !=
+          json.encode(current?.githubConfig?.toJson());
       if (githubChanged) {
         p.automatedPublishing?.githubLock = null;
       }
-      final gcpChanged = json.encode(body.gcp?.toJson()) !=
-          json.encode(current?.gcp?.toJson());
+      final gcpChanged = json.encode(gcpConfig?.toJson()) !=
+          json.encode(current?.gcpConfig?.toJson());
       if (gcpChanged) {
         p.automatedPublishing?.gcpLock = null;
       }
 
       // finalize changes
       p.automatedPublishing ??= AutomatedPublishing();
-      p.automatedPublishing!.config = body;
+      p.automatedPublishing!.githubConfig = githubConfig;
+      p.automatedPublishing!.gcpConfig = gcpConfig;
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
@@ -560,7 +560,10 @@ class PackageBackend {
         publisherId: p.publisherId,
         user: user,
       ));
-      return p.automatedPublishing!.config!;
+      return api.AutomatedPublishingConfig(
+        github: p.automatedPublishing!.githubConfig,
+        gcp: p.automatedPublishing!.gcpConfig,
+      );
     });
   }
 
@@ -1238,26 +1241,26 @@ class PackageBackend {
 
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
-    final githubPublishing = package.automatedPublishing?.config?.github;
+    final githubConfig = package.automatedPublishing?.githubConfig;
     final githubLock = package.automatedPublishing?.githubLock;
 
-    if (githubPublishing?.isEnabled != true) {
+    if (githubConfig?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
 
     // verify that fields are configured
-    final repository = githubPublishing!.repository;
+    final repository = githubConfig!.repository;
     if (repository == null || repository.isEmpty) {
       throw AssertionError('Missing or empty repository.');
     }
-    final tagPattern = githubPublishing.tagPattern ?? '';
+    final tagPattern = githubConfig.tagPattern ?? '';
     if (!tagPattern.contains('{{version}}')) {
       throw AssertionError(
           'Configured tag pattern does not include `{{version}}`');
     }
-    final requireEnvironment = githubPublishing.requireEnvironment ?? false;
-    final environment = githubPublishing.environment;
+    final requireEnvironment = githubConfig.requireEnvironment ?? false;
+    final environment = githubConfig.environment;
     if (requireEnvironment && (environment == null || environment.isEmpty)) {
       throw AssertionError('Missing or empty environment.');
     }
@@ -1306,7 +1309,7 @@ class PackageBackend {
       if (!lockMatches) {
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
-          p.automatedPublishing!.config!.github!.isEnabled = false;
+          p.automatedPublishing!.githubConfig!.isEnabled = false;
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
@@ -1327,15 +1330,15 @@ class PackageBackend {
     Package package,
     String newVersion,
   ) async {
-    final gcpPublishing = package.automatedPublishing?.config?.gcp;
+    final gcpConfig = package.automatedPublishing?.gcpConfig;
     final gcpLock = package.automatedPublishing?.gcpLock;
-    if (gcpPublishing?.isEnabled != true) {
+    if (gcpConfig?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing with service account is not enabled');
     }
 
     // verify that fields are configured
-    final serviceAccountEmail = gcpPublishing!.serviceAccountEmail;
+    final serviceAccountEmail = gcpConfig!.serviceAccountEmail;
     if (serviceAccountEmail == null || serviceAccountEmail.isEmpty) {
       throw AssertionError('Missing or empty serviceAccountEmail.');
     }
@@ -1351,7 +1354,7 @@ class PackageBackend {
       if (!lockMatches) {
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
-          p.automatedPublishing!.config!.gcp!.isEnabled = false;
+          p.automatedPublishing!.gcpConfig!.isEnabled = false;
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
