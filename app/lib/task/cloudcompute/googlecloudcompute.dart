@@ -546,16 +546,40 @@ runcmd:
           }
         }
 
-        // Throw first error.
-        final opError = op.error;
-        if (opError != null) {
-          final opErrors = opError.errors;
-          if (opErrors != null && opErrors.isNotEmpty) {
-            throw ApiRequestError(
-              'Error creating instance, '
-              'api.instances.insert(name=${instance.name}), '
-              '${opErrors.first.code}: ${opErrors.first.message}',
-            );
+        // Throw errors.
+        final opErrors = op.error?.errors ?? [];
+        if (opErrors.isNotEmpty) {
+          if (opErrors.length > 1) {
+            throw ApiRequestError('Multiple errors creating instance, '
+                    'api.instances.insert(name=${instance.name}), '
+                    'errors: \n' +
+                opErrors.map((e) => '${e.code}: ${e.message}').join('\n'));
+          }
+
+          final error = opErrors.first;
+          switch (error.code) {
+            case 'ZONE_RESOURCE_POOL_EXHAUSTED':
+            case 'ZONE_RESOURCE_POOL_EXHAUSTED_WITH_DETAILS':
+              throw ZoneExhaustedException(
+                zone,
+                'Zone resources exhausted while creating instance, '
+                'api.instances.insert(name=${instance.name}), '
+                'error: ${error.code}: ${error.message}',
+              );
+
+            case 'QUOTA_EXCEEDED':
+              throw QuotaExhaustedException(
+                'Quota exceeded creating instance, '
+                'api.instances.insert(name=${instance.name}), '
+                'error: ${error.code}: ${error.message}',
+              );
+
+            default:
+              throw ApiRequestError(
+                'Error creating instance, '
+                'api.instances.insert(name=${instance.name}), '
+                'error: ${error.code}: ${error.message}',
+              );
           }
         }
       }
@@ -638,6 +662,7 @@ runcmd:
                 zone,
                 maxResults: 500,
                 filter: filter,
+                // TODO: Specify $fields, to avoid fetching unnecessary information
               ));
 
           final wrap = (Instance item) => _wrapInstance(item, zone);
