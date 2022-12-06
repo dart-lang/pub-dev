@@ -152,10 +152,6 @@ class Package extends db.ExpandoModel<String> {
   @db.StringProperty(indexed: false)
   String? automatedPublishingJson;
 
-  /// The JSON-serialized format of the [AutomatedPublishingLock].
-  @db.StringProperty(indexed: false)
-  String? automatedPublishingLockJson;
-
   /// Scheduling state for all versions of this package.
   @AutomatedPublishingProperty(propertyName: 'automatedPublishing')
   AutomatedPublishing? automatedPublishingField;
@@ -417,22 +413,6 @@ class Package extends db.ExpandoModel<String> {
         json.decode(automatedPublishingJson!) as Map<String, dynamic>);
   }
 
-  AutomatedPublishingLock get automatedPublishingLock {
-    if (automatedPublishingLockJson == null) {
-      return AutomatedPublishingLock();
-    }
-    return AutomatedPublishingLock.fromJson(
-        json.decode(automatedPublishingLockJson!) as Map<String, dynamic>);
-  }
-
-  set automatedPublishingLock(AutomatedPublishingLock? value) {
-    if (value == null) {
-      automatedPublishingLockJson = null;
-    } else {
-      automatedPublishingLockJson = json.encode(value.toJson());
-    }
-  }
-
   void updateIsBlocked({
     required bool isBlocked,
     String? reason,
@@ -486,9 +466,13 @@ class Release {
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class AutomatedPublishing {
   AutomatedPublishingConfig? config;
+  GithubPublishingLock? githubLock;
+  GcpPublishingLock? gcpLock;
 
   AutomatedPublishing({
     this.config,
+    this.githubLock,
+    this.gcpLock,
   });
 
   factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
@@ -527,22 +511,6 @@ class AutomatedPublishingProperty extends db.Property {
   bool validate(db.ModelDB mdb, Object? value) =>
       super.validate(mdb, value) &&
       (value == null || value is AutomatedPublishing);
-}
-
-@JsonSerializable(explicitToJson: true, includeIfNull: false)
-class AutomatedPublishingLock {
-  GithubPublishingLock? github;
-  GcpPublishingLock? gcp;
-
-  AutomatedPublishingLock({
-    this.github,
-    this.gcp,
-  });
-
-  factory AutomatedPublishingLock.fromJson(Map<String, dynamic> json) =>
-      _$AutomatedPublishingLockFromJson(json);
-
-  Map<String, dynamic> toJson() => _$AutomatedPublishingLockToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

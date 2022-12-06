@@ -538,18 +538,16 @@ class PackageBackend {
 
       // update lock
       final current = p.automatedPublishing?.config;
-      final currentLock = p.automatedPublishingLock;
       final githubChanged = json.encode(body.github?.toJson()) !=
           json.encode(current?.github?.toJson());
       if (githubChanged) {
-        currentLock.github = null;
+        p.automatedPublishing?.githubLock = null;
       }
       final gcpChanged = json.encode(body.gcp?.toJson()) !=
           json.encode(current?.gcp?.toJson());
       if (gcpChanged) {
-        currentLock.gcp = null;
+        p.automatedPublishing?.gcpLock = null;
       }
-      p.automatedPublishingLock = currentLock;
 
       // finalize changes
       p.automatedPublishing ??= AutomatedPublishing();
@@ -1241,7 +1239,7 @@ class PackageBackend {
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
     final githubPublishing = package.automatedPublishing?.config?.github;
-    final githubLock = package.automatedPublishingLock.github;
+    final githubLock = package.automatedPublishing?.githubLock;
 
     if (githubPublishing?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
@@ -1330,7 +1328,7 @@ class PackageBackend {
     String newVersion,
   ) async {
     final gcpPublishing = package.automatedPublishing?.config?.gcp;
-    final gcpLock = package.automatedPublishingLock.gcp;
+    final gcpLock = package.automatedPublishing?.gcpLock;
     if (gcpPublishing?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing with service account is not enabled');
@@ -1597,16 +1595,15 @@ class PackageBackend {
 
   void _updatePackageAutomatedPublishingLock(
       Package package, AuthenticatedAgent agent) {
-    final current = package.automatedPublishingLock;
-    if (agent is AuthenticatedGithubAction && current.github == null) {
-      current.github = GithubPublishingLock(
+    final current = package.automatedPublishing;
+    if (agent is AuthenticatedGithubAction && current!.githubLock == null) {
+      current.githubLock = GithubPublishingLock(
         repositoryOwnerId: agent.payload.repositoryOwnerId,
         repositoryId: agent.payload.repositoryId,
       );
-      package.automatedPublishingLock = current;
-    } else if (agent is AuthenticatedGcpServiceAccount && current.gcp == null) {
-      current.gcp = GcpPublishingLock(oauthUserId: agent.payload.sub);
-      package.automatedPublishingLock = current;
+    } else if (agent is AuthenticatedGcpServiceAccount &&
+        current!.gcpLock == null) {
+      current.gcpLock = GcpPublishingLock(oauthUserId: agent.payload.sub);
     }
   }
 }

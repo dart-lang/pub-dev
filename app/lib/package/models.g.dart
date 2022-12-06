@@ -40,6 +40,13 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
           ? null
           : AutomatedPublishingConfig.fromJson(
               json['config'] as Map<String, dynamic>),
+      githubLock: json['githubLock'] == null
+          ? null
+          : GithubPublishingLock.fromJson(
+              json['githubLock'] as Map<String, dynamic>),
+      gcpLock: json['gcpLock'] == null
+          ? null
+          : GcpPublishingLock.fromJson(json['gcpLock'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
@@ -52,33 +59,8 @@ Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
   }
 
   writeNotNull('config', instance.config?.toJson());
-  return val;
-}
-
-AutomatedPublishingLock _$AutomatedPublishingLockFromJson(
-        Map<String, dynamic> json) =>
-    AutomatedPublishingLock(
-      github: json['github'] == null
-          ? null
-          : GithubPublishingLock.fromJson(
-              json['github'] as Map<String, dynamic>),
-      gcp: json['gcp'] == null
-          ? null
-          : GcpPublishingLock.fromJson(json['gcp'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$AutomatedPublishingLockToJson(
-    AutomatedPublishingLock instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('github', instance.github?.toJson());
-  writeNotNull('gcp', instance.gcp?.toJson());
+  writeNotNull('githubLock', instance.githubLock?.toJson());
+  writeNotNull('gcpLock', instance.gcpLock?.toJson());
   return val;
 }
 

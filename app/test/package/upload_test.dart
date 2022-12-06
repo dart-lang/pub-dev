@@ -314,10 +314,8 @@ void main() {
           },
         );
         final pkg = await packageBackend.lookupPackage('oxygen');
-        pkg!.automatedPublishingLock = AutomatedPublishingLock(
-          gcp: GcpPublishingLock(
-            oauthUserId: 'other-user-id',
-          ),
+        pkg!.automatedPublishing!.gcpLock = GcpPublishingLock(
+          oauthUserId: 'other-user-id',
         );
         await dbService.commit(inserts: [pkg]);
         final token =
@@ -538,11 +536,9 @@ void main() {
             },
           );
           final pkg = await packageBackend.lookupPackage('oxygen');
-          pkg!.automatedPublishingLock = AutomatedPublishingLock(
-            github: GithubPublishingLock(
-              repositoryOwnerId: 'x',
-              repositoryId: 'y',
-            ),
+          pkg!.automatedPublishing!.githubLock = GithubPublishingLock(
+            repositoryOwnerId: 'x',
+            repositoryId: 'y',
           );
           await dbService.commit(inserts: [pkg]);
         }
@@ -657,11 +653,9 @@ void main() {
             'Successfully uploaded https://pub.dev/packages/_dummy_pkg version 2.2.0.');
 
         final pkg = await packageBackend.lookupPackage('_dummy_pkg');
-        expect(pkg!.automatedPublishingLock.toJson(), {
-          'github': {
-            'repositoryId': 'repo-id-1',
-            'repositoryOwnerId': 'owner-id-234',
-          },
+        expect(pkg!.automatedPublishing!.githubLock!.toJson(), {
+          'repositoryId': 'repo-id-1',
+          'repositoryOwnerId': 'owner-id-234',
         });
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
