@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/compute/v1.dart' hide Duration;
-import 'package:googleapis_auth/auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
