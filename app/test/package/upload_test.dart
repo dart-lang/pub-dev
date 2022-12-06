@@ -272,7 +272,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 gcp: GcpPublishing(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
@@ -304,7 +304,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 gcp: GcpPublishing(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
@@ -335,7 +335,7 @@ void main() {
         );
 
         final pkgAfter = await packageBackend.lookupPackage('oxygen');
-        expect(pkgAfter!.automatedPublishing.gcp!.toJson(), {
+        expect(pkgAfter!.automatedPublishing!.config!.gcp!.toJson(), {
           'isEnabled': false,
           'serviceAccountEmail': 'admin@x.gserviceaccount.com',
         });
@@ -347,7 +347,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 gcp: GcpPublishing(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
@@ -420,7 +420,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -455,7 +455,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -490,7 +490,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -527,7 +527,7 @@ void main() {
             fn: (client) async {
               await client.setAutomatedPublishing(
                 'oxygen',
-                AutomatedPublishing(
+                AutomatedPublishingConfig(
                   github: GithubPublishing(
                     isEnabled: true,
                     repository: 'a/b',
@@ -576,7 +576,7 @@ void main() {
                 'GitHub repository identifiers changed, disabling automated publishing',
           );
           final pkg = await packageBackend.lookupPackage('oxygen');
-          expect(pkg!.automatedPublishing.github!.toJson(), {
+          expect(pkg!.automatedPublishing!.config!.github!.toJson(), {
             'isEnabled': false,
             'repository': 'a/b',
             'tagPattern': '{{version}}',
@@ -592,7 +592,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -633,7 +633,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               '_dummy_pkg',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -707,7 +707,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -745,7 +745,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',
@@ -784,7 +784,7 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
+              AutomatedPublishingConfig(
                 github: GithubPublishing(
                   isEnabled: true,
                   repository: 'a/b',

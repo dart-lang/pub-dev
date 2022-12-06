@@ -32,8 +32,9 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
-AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
-    AutomatedPublishing(
+AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
+        Map<String, dynamic> json) =>
+    AutomatedPublishingConfig(
       github: json['github'] == null
           ? null
           : GithubPublishing.fromJson(json['github'] as Map<String, dynamic>),
@@ -42,7 +43,8 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
           : GcpPublishing.fromJson(json['gcp'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
+Map<String, dynamic> _$AutomatedPublishingConfigToJson(
+    AutomatedPublishingConfig instance) {
   final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {

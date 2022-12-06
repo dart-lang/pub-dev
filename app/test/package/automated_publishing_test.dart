@@ -16,13 +16,14 @@ void main() {
   group('Update value through API', () {
     setupTestsWithCallerAuthorizationIssues(
       (client) =>
-          client.setAutomatedPublishing('oxygen', AutomatedPublishing()),
+          client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
     );
 
     testWithProfile('no package', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       await expectApiException(
-        client.setAutomatedPublishing('no_such_package', AutomatedPublishing()),
+        client.setAutomatedPublishing(
+            'no_such_package', AutomatedPublishingConfig()),
         status: 404,
         code: 'NotFound',
       );
@@ -31,7 +32,7 @@ void main() {
     testWithProfile('not admin', fn: () async {
       final client = createPubApiClient(authToken: userAtPubDevAuthToken);
       await expectApiException(
-        client.setAutomatedPublishing('oxygen', AutomatedPublishing()),
+        client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
         status: 403,
         code: 'InsufficientPermissions',
         message:
@@ -43,7 +44,7 @@ void main() {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishing(
+          AutomatedPublishingConfig(
             github: GithubPublishing(
               isEnabled: true,
               repository: 'dart-lang/pub-dev',
@@ -58,7 +59,7 @@ void main() {
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.automatedPublishing.toJson(), rs.toJson());
+      expect(p!.automatedPublishing!.config!.toJson(), rs.toJson());
       final audits = await auditBackend.listRecordsForPackage('oxygen');
       // check audit log record exists
       final record = audits.records.firstWhere((e) =>
@@ -73,7 +74,7 @@ void main() {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = await client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishing(
+          AutomatedPublishingConfig(
             gcp: GcpPublishing(
               isEnabled: true,
               serviceAccountEmail: 'project-id@cloudbuild.gserviceaccount.com',
@@ -86,7 +87,7 @@ void main() {
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.automatedPublishing.toJson(), rs.toJson());
+      expect(p!.automatedPublishing!.config!.toJson(), rs.toJson());
       final audits = await auditBackend.listRecordsForPackage('oxygen');
       // check audit log record exists
       final record = audits.records.firstWhere((e) =>
@@ -111,7 +112,7 @@ void main() {
       for (final repository in badPaths) {
         final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishing(
+            AutomatedPublishingConfig(
               github: GithubPublishing(
                 isEnabled: repository.isEmpty,
                 repository: repository,
@@ -138,7 +139,7 @@ void main() {
       for (final pattern in badPatterns) {
         final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishing(
+            AutomatedPublishingConfig(
               github: GithubPublishing(
                 isEnabled: false,
                 repository: 'abcd/efgh',
@@ -163,7 +164,7 @@ void main() {
       for (final pattern in badPatterns) {
         final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishing(
+            AutomatedPublishingConfig(
               github: GithubPublishing(
                 isEnabled: false,
                 repository: 'abcd/efgh',
@@ -192,7 +193,7 @@ void main() {
       for (final value in badValues) {
         final rs = client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishing(
+          AutomatedPublishingConfig(
             gcp: GcpPublishing(
               isEnabled: value.isEmpty,
               serviceAccountEmail: value,
@@ -214,7 +215,7 @@ void main() {
       final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
       final rs = client.setAutomatedPublishing(
         'oxygen',
-        AutomatedPublishing(
+        AutomatedPublishingConfig(
           gcp: GcpPublishing(
             isEnabled: true,
             serviceAccountEmail: 'user@pub.dev',

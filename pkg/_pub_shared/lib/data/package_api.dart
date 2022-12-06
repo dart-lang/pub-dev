@@ -50,19 +50,19 @@ class PkgOptions {
 
 /// The configuration for a package's credential-less publishing.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class AutomatedPublishing {
+class AutomatedPublishingConfig {
   final GithubPublishing? github;
   final GcpPublishing? gcp;
 
-  AutomatedPublishing({
+  AutomatedPublishingConfig({
     this.github,
     this.gcp,
   });
 
-  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
-      _$AutomatedPublishingFromJson(json);
+  factory AutomatedPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$AutomatedPublishingConfigToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

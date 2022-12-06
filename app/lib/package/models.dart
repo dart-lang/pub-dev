@@ -148,13 +148,17 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// The JSON-serialized format of the [AutomatedPublishing].
+  /// The JSON-serialized format of the [AutomatedPublishingConfig].
   @db.StringProperty(indexed: false)
   String? automatedPublishingJson;
 
   /// The JSON-serialized format of the [AutomatedPublishingLock].
   @db.StringProperty(indexed: false)
   String? automatedPublishingLockJson;
+
+  /// Scheduling state for all versions of this package.
+  @AutomatedPublishingProperty(propertyName: 'automatedPublishing')
+  AutomatedPublishing? automatedPublishingField;
 
   Package();
 
@@ -388,20 +392,29 @@ class Package extends db.ExpandoModel<String> {
     );
   }
 
-  AutomatedPublishing get automatedPublishing {
-    if (automatedPublishingJson == null) {
-      return AutomatedPublishing();
-    }
-    return AutomatedPublishing.fromJson(
-        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
+  // TODO: remove after the values are migrated.
+  AutomatedPublishing? get automatedPublishing {
+    final field = automatedPublishingField ??
+        (automatedPublishingJson == null
+            ? null
+            : AutomatedPublishing(
+                config: _automatedPublishing,
+              ));
+    automatedPublishingField = field;
+    return field;
   }
 
   set automatedPublishing(AutomatedPublishing? value) {
-    if (value == null) {
-      automatedPublishingJson = null;
-    } else {
-      automatedPublishingJson = json.encode(value.toJson());
+    automatedPublishingField = value;
+    automatedPublishingJson = null;
+  }
+
+  AutomatedPublishingConfig get _automatedPublishing {
+    if (automatedPublishingJson == null) {
+      return AutomatedPublishingConfig();
     }
+    return AutomatedPublishingConfig.fromJson(
+        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
   }
 
   AutomatedPublishingLock get automatedPublishingLock {
@@ -468,6 +481,52 @@ class Release {
       _$ReleaseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReleaseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class AutomatedPublishing {
+  AutomatedPublishingConfig? config;
+
+  AutomatedPublishing({
+    this.config,
+  });
+
+  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
+}
+
+/// A [db.Property] encoding [AutomatedPublishing] as JSON.
+class AutomatedPublishingProperty extends db.Property {
+  const AutomatedPublishingProperty(
+      {String? propertyName, bool required = false})
+      : super(propertyName: propertyName, required: required, indexed: false);
+
+  @override
+  Object? encodeValue(
+    db.ModelDB mdb,
+    Object? value, {
+    bool forComparison = false,
+  }) {
+    if (value == null) return null;
+    return json.encode(value as AutomatedPublishing);
+  }
+
+  @override
+  Object? decodePrimitiveValue(
+    db.ModelDB mdb,
+    Object? value,
+  ) {
+    if (value == null) return null;
+    return AutomatedPublishing.fromJson(
+        json.decode(value as String) as Map<String, dynamic>);
+  }
+
+  @override
+  bool validate(db.ModelDB mdb, Object? value) =>
+      super.validate(mdb, value) &&
+      (value == null || value is AutomatedPublishing);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

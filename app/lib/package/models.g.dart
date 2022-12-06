@@ -34,6 +34,27 @@ Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
       'published': instance.published.toIso8601String(),
     };
 
+AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
+    AutomatedPublishing(
+      config: json['config'] == null
+          ? null
+          : AutomatedPublishingConfig.fromJson(
+              json['config'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('config', instance.config?.toJson());
+  return val;
+}
+
 AutomatedPublishingLock _$AutomatedPublishingLockFromJson(
         Map<String, dynamic> json) =>
     AutomatedPublishingLock(

@@ -739,8 +739,8 @@ Router _$PubApiRouter(PubApi service) {
         final _$result = await service.setAutomatedPublishing(
           request,
           package,
-          await $utilities.decodeJson<AutomatedPublishing>(
-              request, (o) => AutomatedPublishing.fromJson(o)),
+          await $utilities.decodeJson<AutomatedPublishingConfig>(
+              request, (o) => AutomatedPublishingConfig.fromJson(o)),
         );
         return $utilities.jsonResponse(_$result.toJson());
       } on ApiResponseException catch (e) {

@@ -459,8 +459,8 @@ class PackageBackend {
 
   /// Verifies an update to the credential-less publishing settings and
   /// updates the Datastore entity if everything is valid.
-  Future<api.AutomatedPublishing> setAutomatedPublishing(
-      String package, api.AutomatedPublishing body) async {
+  Future<api.AutomatedPublishingConfig> setAutomatedPublishing(
+      String package, api.AutomatedPublishingConfig body) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     final pkg = await _requirePackageAdmin(package, user.userId);
@@ -537,22 +537,23 @@ class PackageBackend {
       }
 
       // update lock
-      final current = p.automatedPublishing;
+      final current = p.automatedPublishing?.config;
       final currentLock = p.automatedPublishingLock;
       final githubChanged = json.encode(body.github?.toJson()) !=
-          json.encode(current.github?.toJson());
+          json.encode(current?.github?.toJson());
       if (githubChanged) {
         currentLock.github = null;
       }
-      final gcpChanged =
-          json.encode(body.gcp?.toJson()) != json.encode(current.gcp?.toJson());
+      final gcpChanged = json.encode(body.gcp?.toJson()) !=
+          json.encode(current?.gcp?.toJson());
       if (gcpChanged) {
         currentLock.gcp = null;
       }
       p.automatedPublishingLock = currentLock;
 
       // finalize changes
-      p.automatedPublishing = body;
+      p.automatedPublishing ??= AutomatedPublishing();
+      p.automatedPublishing!.config = body;
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
@@ -561,7 +562,7 @@ class PackageBackend {
         publisherId: p.publisherId,
         user: user,
       ));
-      return p.automatedPublishing;
+      return p.automatedPublishing!.config!;
     });
   }
 
@@ -1239,7 +1240,7 @@ class PackageBackend {
 
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
-    final githubPublishing = package.automatedPublishing.github;
+    final githubPublishing = package.automatedPublishing?.config?.github;
     final githubLock = package.automatedPublishingLock.github;
 
     if (githubPublishing?.isEnabled != true) {
@@ -1307,9 +1308,7 @@ class PackageBackend {
       if (!lockMatches) {
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
-          final publishing = p.automatedPublishing;
-          publishing.github!.isEnabled = false;
-          p.automatedPublishing = publishing;
+          p.automatedPublishing!.config!.github!.isEnabled = false;
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
@@ -1330,7 +1329,7 @@ class PackageBackend {
     Package package,
     String newVersion,
   ) async {
-    final gcpPublishing = package.automatedPublishing.gcp;
+    final gcpPublishing = package.automatedPublishing?.config?.gcp;
     final gcpLock = package.automatedPublishingLock.gcp;
     if (gcpPublishing?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
@@ -1354,9 +1353,7 @@ class PackageBackend {
       if (!lockMatches) {
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
-          final publishing = p.automatedPublishing;
-          publishing.gcp!.isEnabled = false;
-          p.automatedPublishing = publishing;
+          p.automatedPublishing!.config!.gcp!.isEnabled = false;
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
