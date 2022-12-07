@@ -140,10 +140,8 @@ Future<void> _dartdoc({
     '--no-validate-links',
     '--sanitize-html',
     if (pubspec.usesFlutter) ...[
-      '--flutter-root',
-      flutterSdk!.path,
       '--sdk-dir',
-      p.join(flutterSdk.path, 'bin', 'cache', 'dart-sdk')
+      p.join(flutterSdk!.path, 'bin', 'cache', 'dart-sdk')
     ] else ...[
       '--sdk-dir',
       dartSdk!.path,
