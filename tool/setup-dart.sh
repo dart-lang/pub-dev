@@ -21,6 +21,9 @@ then
 elif [[ "$2" == *dev ]]
 then
   CHANNEL="dev"
+elif [[ "$2" == "latest" ]]
+then
+  CHANNEL="be"
 fi
 
 mkdir -p "$1"
