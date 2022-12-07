@@ -2,7 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVerison to `2022.12.05`.
+ * Bumped runtimeVersion to `2022.12.05`.
  * Check valid (well-formatted) dependency names at upload.
  * Check that dependencies exist at upload.
 
