@@ -7,8 +7,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_pub_shared/search/tags.dart';
-import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
@@ -192,32 +190,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     await scoreCardBackend.updateReportOnCard(
       job.packageName!,
       job.packageVersion!,
-      panaReport: _panaReportFromSummary(summary, packageStatus: packageStatus),
+      panaReport: PanaReport.fromSummary(summary, packageStatus: packageStatus),
     );
   }
-}
-
-PanaReport _panaReportFromSummary(
-  Summary? summary, {
-  required PackageStatus packageStatus,
-}) {
-  final reportStatus =
-      summary == null ? ReportStatus.aborted : ReportStatus.success;
-  return PanaReport(
-    timestamp: clock.now().toUtc(),
-    panaRuntimeInfo: summary?.runtimeInfo,
-    reportStatus: reportStatus,
-    derivedTags: <String>{
-      ...?summary?.tags,
-      if (packageStatus.isLegacy) PackageVersionTags.isLegacy,
-      if (packageStatus.isObsolete) PackageVersionTags.isObsolete,
-      if (packageStatus.isDiscontinued) PackageTags.isDiscontinued,
-    }.toList(),
-    allDependencies: summary?.allDependencies,
-    licenses: summary?.licenses,
-    report: summary?.report,
-    result: summary?.result,
-    urlProblems: summary?.urlProblems,
-    screenshots: summary?.screenshots,
-  );
 }

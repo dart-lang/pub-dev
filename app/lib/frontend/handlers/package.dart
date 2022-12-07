@@ -5,11 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/scorecard/models.dart';
-import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -20,10 +17,12 @@ import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../scorecard/models.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
+import '../../task/backend.dart';
 import '../../tool/utils/dart_sdk_version.dart';
 
 import '../request_context.dart';
@@ -382,24 +381,7 @@ Future<PackagePageData> loadPackagePageData(
         dartdocEntry: null, // unused
         documentationSection: null, // already embedded in summary
       ),
-      panaReport: PanaReport(
-        timestamp: null, // TODO: https://github.com/dart-lang/pana/issues/1162
-        panaRuntimeInfo: summary?.runtimeInfo,
-        reportStatus:
-            summary == null ? ReportStatus.aborted : ReportStatus.success,
-        derivedTags: <String>{
-          ...?summary?.tags,
-          if (status.isLegacy) PackageVersionTags.isLegacy,
-          if (status.isObsolete) PackageVersionTags.isObsolete,
-          if (status.isDiscontinued) PackageTags.isDiscontinued,
-        }.toList(),
-        allDependencies: summary?.allDependencies,
-        licenses: summary?.licenses,
-        report: summary?.report,
-        result: summary?.result,
-        urlProblems: summary?.urlProblems,
-        screenshots: summary?.screenshots,
-      ),
+      panaReport: PanaReport.fromSummary(summary, packageStatus: status),
     );
   }
 

@@ -9,11 +9,12 @@ import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
+import '../scorecard/backend.dart';
 import '../shared/datastore.dart' as db;
+import '../shared/popularity_storage.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 
@@ -243,6 +244,32 @@ class PanaReport {
     final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
         as Map<String, dynamic>;
     return PanaReport.fromJson(map);
+  }
+
+  static PanaReport fromSummary(
+    Summary? summary, {
+    required PackageStatus packageStatus,
+  }) {
+    final reportStatus =
+        summary == null ? ReportStatus.aborted : ReportStatus.success;
+    return PanaReport(
+      // TODO: use summary.createdAt once it lands
+      timestamp: clock.now().toUtc(),
+      panaRuntimeInfo: summary?.runtimeInfo,
+      reportStatus: reportStatus,
+      derivedTags: <String>{
+        ...?summary?.tags,
+        if (packageStatus.isLegacy) PackageVersionTags.isLegacy,
+        if (packageStatus.isObsolete) PackageVersionTags.isObsolete,
+        if (packageStatus.isDiscontinued) PackageTags.isDiscontinued,
+      }.toList(),
+      allDependencies: summary?.allDependencies,
+      licenses: summary?.licenses,
+      report: summary?.report,
+      result: summary?.result,
+      urlProblems: summary?.urlProblems,
+      screenshots: summary?.screenshots,
+    );
   }
 
   Map<String, dynamic> toJson() => _$PanaReportToJson(this);
