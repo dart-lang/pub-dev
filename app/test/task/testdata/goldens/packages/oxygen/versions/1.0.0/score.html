@@ -291,6 +291,53 @@
                                 requests.
                               </p>
                             </details>
+                            <details>
+                              <summary>
+                                <p>Failed to verify repository URL.</p>
+                              </summary>
+                              <p>
+                                Please provide a valid
+                                <a href="https://dart.dev/tools/pub/pubspec#repository">
+                                  <code>repository</code>
+                                </a>
+                                URL in
+                                <code>pubspec.yaml</code>
+                                , such that:
+                              </p>
+                              <ul>
+                                <li>
+                                  <code>repository</code>
+                                  can be cloned,
+                                </li>
+                                <li>
+                                  a clone of the repository contains a
+                                  <code>pubspec.yaml</code>
+                                  , which:,
+                                  <ul>
+                                    <li>
+                                      contains
+                                      <code>name: oxygen</code>
+                                      ,
+                                    </li>
+                                    <li>
+                                      contains a
+                                      <code>version</code>
+                                      property, and,
+                                    </li>
+                                    <li>
+                                      does not contain a
+                                      <code>publish_to</code>
+                                      property.
+                                    </li>
+                                  </ul>
+                                </li>
+                              </ul>
+                              <p>
+                                Unable to access git repository: Failed to run
+                                <code>remote show origin</code>
+                                .
+                              </p>
+                            </details>
                             <h3>
                               <img class="report-summary-icon" src="/static/hash-%%etag%%/img/report-ok-icon-green.svg"/>
                               5/5 points: Provide a valid
