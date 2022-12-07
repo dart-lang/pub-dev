@@ -20,7 +20,7 @@ class BlobIndexPair {
   /// Index pointing into [blob].
   final BlobIndex index;
 
-  BlobIndexPair._(this.blob, this.index);
+  BlobIndexPair(this.blob, this.index);
 
   /// Create a blob and [BlobIndex] with [blobId] containing all files and
   /// folders within [folder], encoded with paths relative to [folder].
@@ -35,7 +35,7 @@ class BlobIndexPair {
 
     await Future.wait([blobF, indexF]);
 
-    return BlobIndexPair._(await blobF, await indexF);
+    return BlobIndexPair(await blobF, await indexF);
   }
 
   static Future<BlobIndexPair> build(
@@ -58,10 +58,21 @@ class BlobIndexPair {
 
       final indexF = b.buildIndex(blobId);
       await Future.wait([blobF, indexF]);
-      return BlobIndexPair._(await blobF, await indexF);
+      return BlobIndexPair(await blobF, await indexF);
     } finally {
       await c.close();
     }
+  }
+
+  /// Lookup [path] in [index] and return the range from [blob].
+  ///
+  /// Returns `null`, if [path] is not in the index.
+  Uint8List? lookup(String path) {
+    final range = index.lookup(path);
+    if (range == null) {
+      return null;
+    }
+    return Uint8List.sublistView(blob, range.start, range.end);
   }
 }
 

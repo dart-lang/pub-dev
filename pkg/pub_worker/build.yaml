@@ -5,3 +5,4 @@ targets:
     sources:
       - 'lib/payload.dart'
       - 'lib/pana_report.dart'
+      - 'lib/src/testing/server.dart'

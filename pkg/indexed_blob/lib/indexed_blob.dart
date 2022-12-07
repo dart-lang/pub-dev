@@ -290,10 +290,50 @@ class BlobIndex {
     }
 
     if (_skipUntilKey(r, segments.last) && r.checkString()) {
-      return FileRange._fromJson(r.expectString(), blobId);
+      return FileRange._fromJson(path, r.expectString(), blobId);
     }
 
     return null;
+  }
+
+  /// Iterate through all indexed files.
+  Iterable<FileRange> get files sync* {
+    final r = JsonReader.fromUtf8(_indexFile);
+    r.expectObject();
+
+    // Expect a version key
+    if (!_skipUntilKey(r, 'version')) {
+      throw const FormatException('expected "version" key');
+    }
+    if (r.expectInt() != 1) {
+      throw const FormatException('future index format not supported');
+    }
+
+    // Expect a blobId key
+    if (!_skipUntilKey(r, 'blobId')) {
+      throw const FormatException('expected "blobId" key');
+    }
+    final blobId = r.expectString();
+
+    // Expect a index key
+    if (!_skipUntilKey(r, 'index')) {
+      throw const FormatException('expected "index" key');
+    }
+
+    // Travese object
+    Iterable<FileRange> travese(String parent) sync* {
+      r.expectObject();
+      while (r.hasNextKey()) {
+        final name = parent + r.nextKey()!;
+        if (r.checkString()) {
+          yield FileRange._fromJson(name, r.expectString(), blobId);
+        } else {
+          yield* travese('$name/');
+        }
+      }
+    }
+
+    yield* travese('');
   }
 
   Uint8List asBytes() => _indexFile;
@@ -351,7 +391,6 @@ class BlobIndex {
 
     w.endObject();
 
-    print(out.toString());
     final bytes = utf8.encoder.convert(out.toString());
 
     return BlobIndex.fromBytes(bytes);
@@ -361,6 +400,9 @@ class BlobIndex {
 /// Range of a file in an indexed-blob.
 @sealed
 class FileRange {
+  /// Path that was looked up in [BlobIndex].
+  final String path;
+
   /// Start offset of file in blob.
   final int start;
 
@@ -370,13 +412,14 @@ class FileRange {
   /// Identifier for the blob file associated this [FileRange] is pointing into.
   final String blobId;
 
-  FileRange._(this.start, this.end, this.blobId);
-  static FileRange _fromJson(String range, String blobId) {
+  FileRange._(this.path, this.start, this.end, this.blobId);
+  static FileRange _fromJson(String path, String range, String blobId) {
     final parts = range.split(':');
     if (parts.length != 2) {
       throw FormatException('invalid range "$range"');
     }
     return FileRange._(
+      path,
       int.parse(parts[0]),
       int.parse(parts[1]),
       blobId,
@@ -385,4 +428,14 @@ class FileRange {
 
   /// The length of the range in blob.
   int get length => end - start;
+
+  /// Slice [start] to [end] from [blob].
+  ///
+  /// This returns a view of [blob] if it is a [Uint8List].
+  List<int> slice(List<int> blob) {
+    if (blob is Uint8List) {
+      return Uint8List.sublistView(blob, start, end);
+    }
+    return blob.sublist(start, end);
+  }
 }
