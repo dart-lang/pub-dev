@@ -40,7 +40,7 @@ RUN /project/tool/setup-dart.sh /tool/future latest
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 3.3.9
 RUN /project/tool/setup-flutter.sh /tool/preview 3.6.0-0.1.pre
-RUN /project/tool/setup-flutter.sh /tool/future 3.6.0-0.1.pre
+RUN /project/tool/setup-flutter.sh /tool/future master
 
 # Clear out any arguments the base images might have set
 CMD []
