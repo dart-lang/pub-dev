@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -98,6 +99,7 @@ class FakePanaRunner implements PanaRunner {
       contributingUrl: contributingUrl,
     );
     return Summary(
+      createdAt: clock.now().toUtc(),
       packageName: package,
       packageVersion: Version.parse(version),
       runtimeInfo: PanaRuntimeInfo(

@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
 import 'package:_pub_shared/data/task_payload.dart';
+import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:indexed_blob/indexed_blob.dart';
@@ -549,6 +550,7 @@ void main() {
           await addFile(
             'summary.json',
             Stream.value(json.encode(Summary(
+              createdAt: clock.now().toUtc(),
               runtimeInfo: PanaRuntimeInfo(
                 panaVersion: '0.0.0',
                 sdkVersion: '0.0.0',
