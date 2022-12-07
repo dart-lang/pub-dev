@@ -253,8 +253,7 @@ class PanaReport {
     final reportStatus =
         summary == null ? ReportStatus.aborted : ReportStatus.success;
     return PanaReport(
-      // TODO: use summary.createdAt once it lands
-      timestamp: clock.now().toUtc(),
+      timestamp: summary?.createdAt,
       panaRuntimeInfo: summary?.runtimeInfo,
       reportStatus: reportStatus,
       derivedTags: <String>{
