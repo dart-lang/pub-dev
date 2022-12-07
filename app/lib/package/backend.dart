@@ -412,6 +412,7 @@ class PackageBackend {
       tx.insert(AuditLogRecord.packageOptionsUpdated(
         agent: authenticatedUser,
         package: p.name!,
+        publisherId: p.publisherId,
         options: optionsChanges,
       ));
     });
@@ -540,6 +541,7 @@ class PackageBackend {
       tx.insert(p);
       tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
         package: p.name!,
+        publisherId: p.publisherId,
         user: user,
       ));
       return p.automatedPublishing;
@@ -580,6 +582,7 @@ class PackageBackend {
       agent: agent,
       package: p.name!,
       version: pv.version!,
+      publisherId: p.publisherId,
       options: ['retracted'],
     ));
   }
