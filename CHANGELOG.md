@@ -2,9 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVerison to `2022.12.05`.
  * Check valid (well-formatted) dependency names at upload.
  * Check that dependencies exist at upload.
- * Bumped runtimeVerison to `2022.12.05`.
 
 ## `20221130t094900-all`
  * Increased frontend maximum instance count: 16 -> 18.
