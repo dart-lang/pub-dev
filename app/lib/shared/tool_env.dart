@@ -104,8 +104,6 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      if (activeConfiguration.tools?.stableFlutterSdkPath != null)
-        'FLUTTER_ROOT': activeConfiguration.tools!.stableFlutterSdkPath!,
       'PUB_HOSTED_URL': 'https://pub.dartlang.org',
     },
     futureDartSdkDir: activeConfiguration.tools?.futureDartSdkPath,
@@ -117,8 +115,6 @@ Future<_ToolEnvRef> _createToolEnvRef() async {
     pubCacheDir: resolvedDirName,
     environment: {
       'CI': 'true',
-      if (activeConfiguration.tools?.previewFlutterSdkPath != null)
-        'FLUTTER_ROOT': activeConfiguration.tools!.previewFlutterSdkPath!,
       'PUB_HOSTED_URL': 'https://pub.dartlang.org',
     },
     futureDartSdkDir: activeConfiguration.tools?.futureDartSdkPath,

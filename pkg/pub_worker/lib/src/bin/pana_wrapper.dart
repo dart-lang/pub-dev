@@ -122,22 +122,7 @@ Future<void> main(List<String> args) async {
   }
 
   final updatedReport = summary.report?.joinSection(docSection);
-  // TODO: Patch Summary.change, so that we don't have to do this hack.
-  final updatedSummary = Summary(
-    runtimeInfo: summary.runtimeInfo,
-    packageName: summary.packageName,
-    packageVersion: summary.packageVersion,
-    pubspec: summary.pubspec,
-    allDependencies: summary.allDependencies,
-    licenseFile: summary.licenseFile,
-    licenses: summary.licenses,
-    tags: summary.tags,
-    report: updatedReport,
-    result: summary.result,
-    urlProblems: summary.urlProblems,
-    errorMessage: summary.errorMessage,
-    screenshots: summary.screenshots,
-  );
+  final updatedSummary = summary.change(report: updatedReport);
 
   _log.info('Writing summary.json');
   await File(
