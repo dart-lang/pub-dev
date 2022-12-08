@@ -141,6 +141,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   factory AuditLogRecord.packageOptionsUpdated({
     required AuthenticatedAgent agent,
     required String package,
+    required String? publisherId,
     required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
@@ -152,6 +153,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..data = {
         'package': package,
         if (agent.email != null) 'email': agent.email,
+        if (publisherId != null) 'publisherId': publisherId,
         'options': options,
       }
       ..users = [
@@ -159,11 +161,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = [if (publisherId != null) publisherId];
   }
 
   factory AuditLogRecord.packagePublicationAutomationUpdated({
     required String package,
+    required String? publisherId,
     required User user,
   }) {
     return AuditLogRecord._init()
@@ -174,17 +177,19 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..data = {
         'package': package,
         'user': user.email,
+        if (publisherId != null) 'publisherId': publisherId,
       }
       ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = [if (publisherId != null) publisherId];
   }
 
   factory AuditLogRecord.packageVersionOptionsUpdated({
     required AuthenticatedAgent agent,
     required String package,
     required String version,
+    required String? publisherId,
     required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
@@ -197,6 +202,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'package': package,
         'version': version,
         if (agent.email != null) 'email': agent.email,
+        if (publisherId != null) 'publisherId': publisherId,
         'options': options,
       }
       ..users = [
@@ -204,7 +210,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
-      ..publishers = [];
+      ..publishers = [if (publisherId != null) publisherId];
   }
 
   factory AuditLogRecord.packagePublished({

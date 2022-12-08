@@ -679,6 +679,7 @@ class AdminBackend {
           tx.insert(AuditLogRecord.packageOptionsUpdated(
             agent: authenticatedUser,
             package: packageName,
+            publisherId: p.publisherId,
             options: ['discontinued'],
           ));
         }
