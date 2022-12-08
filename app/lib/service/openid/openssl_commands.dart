@@ -71,7 +71,12 @@ Future<bool> verifyTextWithRsaSignature({
       timeout: Duration(seconds: 10),
     );
     final output = pr.stdout.toString().trim();
-    if (pr.exitCode != 0) {
+    if (pr.exitCode == 0) {
+      if (output == 'Verified OK') {
+        return true;
+      }
+      throw AssertionError('Unable to run openssl:\n${pr.stdout.toString()}');
+    } else {
       // OpenSSL 1.1
       if (output == 'Verification Failure') {
         return false;
@@ -80,8 +85,7 @@ Future<bool> verifyTextWithRsaSignature({
       if (output.split('\n').first.trim() == 'Verification failure') {
         return false;
       }
-      throw Exception('Unable to run openssl:\n${pr.asJoinedOutput}');
+      throw AssertionError('Unable to run openssl:\n${pr.asJoinedOutput}');
     }
-    return output == 'Verified OK';
   });
 }

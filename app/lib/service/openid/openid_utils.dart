@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:pub_dev/shared/env_config.dart';
+
 import '../../tool/utils/http.dart';
 
 import 'openid_models.dart';
@@ -15,6 +17,10 @@ Future<OpenIdData> fetchOpenIdData({
   final client = httpRetryClient();
   try {
     final configUri = Uri.parse(configurationUrl);
+    if (!envConfig.isRunningLocally && configUri.scheme != 'https') {
+      throw AssertionError(
+          'OpenID configuration URL must use `https` protocol, was: `$configurationUrl`.');
+    }
     final providerRs = await client.get(configUri);
     if (providerRs.statusCode != 200) {
       throw Exception(
@@ -23,6 +29,10 @@ Future<OpenIdData> fetchOpenIdData({
     final providerData = json.decode(providerRs.body) as Map<String, dynamic>;
     final provider = OpenIdProvider.fromJson(providerData);
     final jwksUri = Uri.parse(provider.jwksUri);
+    if (!envConfig.isRunningLocally && jwksUri.scheme != 'https') {
+      throw AssertionError(
+          'JWKS URL must use `https` protocol, was: `$jwksUri`.');
+    }
     final jwksRs = await client.get(jwksUri);
     if (jwksRs.statusCode != 200) {
       throw Exception(
