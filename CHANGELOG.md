@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20221208t112900-all`
  * Bumped runtimeVersion to `2022.12.07`.
  * Upgraded pana to `0.21.22`.
  * Check valid (well-formatted) dependency names at upload.
