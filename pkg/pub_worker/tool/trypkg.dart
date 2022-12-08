@@ -1,12 +1,10 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_worker/payload.dart';
 import 'package:pub_worker/src/testing/server.dart';
-import 'package:path/path.dart' as p;
 
 final _argParser = ArgParser()
   ..addFlag('observe',
