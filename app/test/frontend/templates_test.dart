@@ -463,17 +463,21 @@ void main() {
       'package activity log page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data = await accountBackend.withBearerToken(
-          adminAtPubDevAuthToken,
-          () => loadPackagePageData('oxygen', '1.2.0', null),
-        );
-        final activities = await auditBackend.listRecordsForPackage('oxygen');
-        expect(activities.records, isNotEmpty);
-        final html = renderPkgActivityLogPage(data, activities);
-        expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
-          ..._activityLogTimestamps(activities),
+        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+          final session = await accountBackend.createNewSession(
+            name: 'Pub User',
+            imageUrl: 'pub.dev/user-img-url.png',
+          );
+          registerUserSessionData(session);
+          final data = await loadPackagePageData('oxygen', '1.2.0', null);
+          final activities = await auditBackend.listRecordsForPackage('oxygen');
+          expect(activities.records, isNotEmpty);
+          final html = renderPkgActivityLogPage(data, activities);
+          expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
+            'published': data.package!.created,
+            'updated': data.version!.created,
+            ..._activityLogTimestamps(activities),
+          });
         });
       },
     );

@@ -48,8 +48,17 @@
         </form>
       </div>
       <div class="site-header-nav scroll-container">
-        <div class="nav-login-container">
-          <button id="-account-login" class="nav-main-button link">Sign in</button>
+        <div id="-account-profile" class="nav-container nav-my-container hoverable">
+          <button class="nav-main-button">My pub.dev</button>
+          <div class="nav-hover-popup">
+            <div class="nav-table-column">
+              <a class="nav-link" href="/my-publishers">Publishers</a>
+              <a class="nav-link" href="/my-packages">Packages</a>
+              <a class="nav-link" href="/my-liked-packages">Likes</a>
+              <a class="nav-link" href="/my-activity-log">Activity log</a>
+              <a class="nav-link" href="/create-publisher">Create publisher</a>
+            </div>
+          </div>
         </div>
         <div class="nav-container nav-help-container hoverable">
           <button class="nav-main-button">Help</button>
@@ -103,6 +112,22 @@
           <div class="foldable-content">
             <a class="nav-link" href="https://dart.dev/guides/packages" rel="noopener" target="_blank">Using packages</a>
             <a class="nav-link" href="https://dart.dev/tools/pub/publishing" rel="noopener" target="_blank">Publishing a package</a>
+          </div>
+        </div>
+        <div class="nav-container nav-profile-container hoverable">
+          <input class="nav-profile-img nav-profile-image-desktop" type="image" src="pub.dev/user-img-url.png" alt="Profile Image"/>
+          <div class="nav-hover-popup">
+            <div class="nav-table-column">
+              <div class="nav-account-title-mobile">
+                <img class="nav-profile-img nav-profile-img-mobile" src="pub.dev/user-img-url.png" alt="Profile Image" width="30" height="30"/>
+                <div class="nav-account-title">
+                  <div class="nav-account-name">Pub User</div>
+                  <div class="nav-account-email">admin@pub.dev</div>
+                </div>
+              </div>
+              <div class="nav-separator"></div>
+              <a id="-account-logout" class="nav-link" href="" aria-role="button">Sign out</a>
+            </div>
           </div>
         </div>
       </div>
@@ -205,11 +230,87 @@
                   <li class="detail-tab tab-link detail-tab-analysis-title" role="button">
                     <a href="/packages/oxygen/score">Scores</a>
                   </li>
+                  <li class="detail-tab tab-link detail-tab-admin-title -private" role="button">
+                    <a href="/packages/oxygen/admin">Admin</a>
+                  </li>
+                  <li class="detail-tab tab-button detail-tab-activity-log-title -active -private" role="button">Activity Log</li>
                 </ul>
               </div>
             </div>
             <div class="detail-container detail-body-main">
-              <div class="detail-tabs-content"></div>
+              <div class="detail-tabs-content">
+                <section class="tab-content detail-tab-activity-log-content -active">
+                  <p>
+                    List of activities relevant to package
+                    <code>oxygen</code>
+                    . Events other than package publication expire after 2 months.
+                  </p>
+                  <table class="activity-log-table">
+                    <thead>
+                      <tr>
+                        <th class="acdate"></th>
+                        <th class="summary">Summary</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="date">
+                          <a class="-x-ago" href="" title="%%published-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
+                        </td>
+                        <td class="summary">
+                          <div class="markdown-body">
+                            <p>
+                              Package
+                              <code>oxygen</code>
+                              version
+                              <code>2.0.0-dev</code>
+                              was published by
+                              <code>admin@pub.dev</code>
+                              .
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="date">
+                          <a class="-x-ago" href="" title="%%published-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
+                        </td>
+                        <td class="summary">
+                          <div class="markdown-body">
+                            <p>
+                              Package
+                              <code>oxygen</code>
+                              version
+                              <code>1.2.0</code>
+                              was published by
+                              <code>admin@pub.dev</code>
+                              .
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="date">
+                          <a class="-x-ago" href="" title="%%published-date%%" aria-label="Switch between date and elapsed time." aria-role="button">%%x-ago%%</a>
+                        </td>
+                        <td class="summary">
+                          <div class="markdown-body">
+                            <p>
+                              Package
+                              <code>oxygen</code>
+                              version
+                              <code>1.0.0</code>
+                              was published by
+                              <code>admin@pub.dev</code>
+                              .
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+              </div>
             </div>
           </div>
           <aside class="detail-info-box">
