@@ -116,6 +116,9 @@ abstract class BaseAuthProvider extends AuthProvider {
     if (idToken == null) {
       return null;
     }
+    // The audience check here is necessary, to ensure that we don't accidentally
+    // handle `id_token` from our user-account OAuth flow the same way as service
+    // agent tokens.
     final audiences = idToken.payload.aud;
     if (audiences.length != 1 ||
         audiences.single != activeConfiguration.externalServiceAudience) {
@@ -123,18 +126,17 @@ abstract class BaseAuthProvider extends AuthProvider {
     }
 
     if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
-      // At this point we have confirmed that the token is a JWT token
-      // issued by GitHub. If there is an issue with the token, the
-      // authentication should fail without any fallback.
+      // The token claims to be issued by GitHub. If there is any problem
+      // with the token, the authentication should fail without any fallback.
       await _verifyToken(idToken, openIdDataFetch: fetchGithubOpenIdData);
       return idToken;
     }
 
     if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl) {
-      // At this point we have confirmed that the token is a JWT token
-      // issued by GCP with the target audience of external services.
-      // If there is an issue with the token, the authentication should fail
-      // without any fallback (e.g. authenticating the token as a User).
+      // The token claims to be issued by GCP with the target audience of
+      // external services. If there is any problem with the token, the
+      // authentication should fail without any fallback (e.g. authenticating
+      // the token as a User).
 
       // TODO: use the tokeninfo endpoint instead
       await _verifyToken(idToken, openIdDataFetch: fetchGoogleCloudOpenIdData);
