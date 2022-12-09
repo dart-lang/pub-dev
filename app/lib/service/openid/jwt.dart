@@ -114,15 +114,13 @@ class JsonWebToken {
   /// Verifies the token with the provided JSON Web Keys and
   /// returns `true` if the signature is valid.
   Future<bool> verifySignature(JsonWebKeyList jwks) async {
-    // At this point we only reject the token if there is no `alg` specified
-    // in the header. If the key is not RS256 (the only one supported right now),
-    // it will get rejected later.
-    if (header.alg == null) {
+    // We only support RS256.
+    if (header.alg != 'RS256') {
       return false;
     }
     final candidates = jwks.selectKeyForSignature(
       kid: header.kid,
-      alg: header.alg,
+      alg: header.alg!, // alg must be set
     );
     for (final key in candidates) {
       final isValid = await key.verifySignature(
