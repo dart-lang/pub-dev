@@ -25,6 +25,21 @@ d.Node activityLogNode({
 }
 
 d.Node _activityLogTableNode(AuditLogRecordPage activities) {
+  final lastShortTermIndex =
+      activities.records.lastIndexWhere((r) => r.isKeptShortTerm);
+  final shortTermRecords =
+      activities.records.take(lastShortTermIndex + 1).toList();
+  final longTermRecords =
+      activities.records.skip(lastShortTermIndex + 1).toList();
+  final displaySeparator =
+      shortTermRecords.isNotEmpty && longTermRecords.isNotEmpty;
+  print([
+    shortTermRecords.length,
+    longTermRecords.length,
+    activities.records.length,
+    displaySeparator,
+  ]);
+
   return d.table(
     classes: ['activity-log-table'],
     head: [
@@ -33,22 +48,38 @@ d.Node _activityLogTableNode(AuditLogRecordPage activities) {
         d.th(classes: ['summary'], text: 'Summary'),
       ]),
     ],
-    body: activities.records.map(
-      (a) => d.tr(
+    body: [
+      ...shortTermRecords.map(_recordNode),
+      if (displaySeparator)
+        d.tr(
+          children: [
+            d.td(classes: ['date'], text: ''),
+            d.td(
+              classes: ['summary'],
+              text:
+                  'Only package publication events are retained past 2 months.',
+            ),
+          ],
+        ),
+      ...longTermRecords.map(_recordNode),
+    ],
+  );
+}
+
+d.Node _recordNode(AuditLogRecord a) {
+  return d.tr(
+    children: [
+      d.td(classes: ['date'], child: d.xAgoTimestamp(a.created!)),
+      d.td(
+        classes: ['summary'],
         children: [
-          d.td(classes: ['date'], child: d.xAgoTimestamp(a.created!)),
-          d.td(
-            classes: ['summary'],
-            children: [
-              d.div(
-                classes: ['markdown-body'],
-                child: d.markdown(a.summary!),
-              ),
-            ],
+          d.div(
+            classes: ['markdown-body'],
+            child: d.markdown(a.summary!),
           ),
         ],
       ),
-    ),
+    ],
   );
 }
 
