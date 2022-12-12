@@ -388,7 +388,7 @@ class _PackageUploaderAction extends ConsentAction {
     required List<String> args,
   }) {
     final packageName = args[0];
-    return '`$fromEmail` has invited you to be an uploader of the package $packageName.';
+    return '$fromEmail has invited you to be an uploader of the package $packageName.';
   }
 
   @override
@@ -462,7 +462,7 @@ class _PublisherContactAction extends ConsentAction {
   }) {
     final publisherId = args[0];
     final contactEmail = args[1];
-    return '`$fromEmail` has requested to use `$contactEmail` as the '
+    return '$fromEmail has requested to use `$contactEmail` as the '
         'contact email of the verified publisher $publisherId.';
   }
 
@@ -532,7 +532,7 @@ class _PublisherMemberAction extends ConsentAction {
     required List<String> args,
   }) {
     final publisherId = args[0];
-    return '`$fromEmail` has invited you to be a member of the verified publisher $publisherId.';
+    return '$fromEmail has invited you to be a member of the verified publisher $publisherId.';
   }
 
   @override
