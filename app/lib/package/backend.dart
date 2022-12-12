@@ -1307,6 +1307,8 @@ class PackageBackend {
           githubLock.repositoryId == agent.payload.repositoryId &&
               githubLock.repositoryOwnerId == agent.payload.repositoryOwnerId;
       if (!lockMatches) {
+        _logger.info(
+            'Disabled automated publishing using GitHub Actions for package:${package.name} because account identifier changed.');
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.automatedPublishing!.githubConfig!.isEnabled = false;
@@ -1352,6 +1354,8 @@ class PackageBackend {
     if (gcpLock != null) {
       final lockMatches = gcpLock.oauthUserId == agent.payload.sub;
       if (!lockMatches) {
+        _logger.info(
+            'Disabled automated publishing using GCP service account for package:${package.name} because account identifier changed.');
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.automatedPublishing!.gcpConfig!.isEnabled = false;
