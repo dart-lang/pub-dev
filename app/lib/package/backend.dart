@@ -5,7 +5,6 @@
 library pub_dartlang_org.backend;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -537,13 +536,16 @@ class PackageBackend {
 
       // update lock
       final current = p.automatedPublishing;
-      final githubChanged = json.encode(githubConfig?.toJson()) !=
-          json.encode(current?.githubConfig?.toJson());
+      final githubChanged =
+          (githubConfig?.isEnabled != current?.githubConfig?.isEnabled) ||
+              (githubConfig?.repository != current?.githubConfig?.repository);
       if (githubChanged) {
         p.automatedPublishing?.githubLock = null;
       }
-      final gcpChanged = json.encode(gcpConfig?.toJson()) !=
-          json.encode(current?.gcpConfig?.toJson());
+      final gcpChanged =
+          (gcpConfig?.isEnabled != current?.gcpConfig?.isEnabled) ||
+              (gcpConfig?.serviceAccountEmail !=
+                  current?.gcpConfig?.serviceAccountEmail);
       if (gcpChanged) {
         p.automatedPublishing?.gcpLock = null;
       }
