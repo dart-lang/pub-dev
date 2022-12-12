@@ -1603,13 +1603,21 @@ class PackageBackend {
   void _updatePackageAutomatedPublishingLock(
       Package package, AuthenticatedAgent agent) {
     final current = package.automatedPublishing;
-    if (agent is AuthenticatedGithubAction && current!.githubLock == null) {
+    if (current == null) {
+      if (agent is AuthenticatedGithubAction ||
+          agent is AuthenticatedGcpServiceAccount) {
+        // This should be unreachable
+        throw AssertionError('Authentication should never have been possible');
+      }
+      return;
+    }
+    if (agent is AuthenticatedGithubAction && current.githubLock == null) {
       current.githubLock = GithubPublishingLock(
         repositoryOwnerId: agent.payload.repositoryOwnerId,
         repositoryId: agent.payload.repositoryId,
       );
     } else if (agent is AuthenticatedGcpServiceAccount &&
-        current!.gcpLock == null) {
+        current.gcpLock == null) {
       current.gcpLock = GcpPublishingLock(oauthUserId: agent.payload.sub);
     }
   }
