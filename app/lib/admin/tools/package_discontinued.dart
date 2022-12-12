@@ -28,7 +28,7 @@ Future<String> executeSetPackageDiscontinued(List<String> args) async {
         '${_argParser.usage}';
   }
 
-  final package = (await packageBackend.lookupPackage(packageName));
+  final package = await packageBackend.lookupPackage(packageName);
   if (package == null) {
     return 'Package $packageName not found';
   }
