@@ -439,8 +439,8 @@ Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
           'Version value `$v` does not follow strict version pattern.'));
 }
 
-final _preDart3 = VersionConstraint.parse('<3.0.0');
-final _firstDart3Pre = Version.parse('3.0.0').firstPreRelease;
+final _preDart4 = VersionConstraint.parse('<4.0.0');
+final _firstDart4Pre = Version.parse('4.0.0').firstPreRelease;
 
 /// Checks if the version range is acceptable by current SDKs.
 Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
@@ -458,14 +458,14 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
   }
 
   // No known version exists.
-  if (sdk.intersect(_preDart3).isEmpty) {
+  if (sdk.intersect(_preDart4).isEmpty) {
     yield ArchiveIssue('SDK constraint does not allow any known Dart SDK.');
   }
 
   // Dart 3 version accepted with valid upper constraint.
-  if (sdk.allows(_firstDart3Pre)) {
+  if (sdk.allows(_firstDart4Pre)) {
     yield ArchiveIssue(
-        'The SDK constraint allows Dart 3.0.0, this is not allowed because Dart 3 does not exist.');
+        'The SDK constraint allows Dart 4.0.0, this is not allowed because Dart 4 does not exist.');
   }
 }
 

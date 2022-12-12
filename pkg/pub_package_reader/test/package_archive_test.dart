@@ -143,6 +143,8 @@ void main() {
       isAccepted('>=2.0.0 <3.0.0');
       isAccepted('>=2.0.0 <3.0.0-0');
       isAccepted('>=2.2.0 <2.11.0');
+      isAccepted('>=2.12.0 <4.0.0');
+      isAccepted('>=3.0.0 <4.0.0');
     });
 
     test('rejected ranges', () {
@@ -162,14 +164,15 @@ void main() {
       isRejected('>=0.0.0');
       isRejected('>=1.0.0');
       isRejected('>=2.0.0');
-      isRejected('<3.0.0');
-      isRejected('<3.0.0-0');
-      isRejected('>=2.12.0 <3.0.1');
-      isRejected('>=3.0.0');
-      isRejected('>=3.0.0-0');
-      isRejected('>=3.0.0 <4.0.0');
+      isRejected('<4.0.0');
+      isRejected('<4.0.0-0');
+      isRejected('>=2.12.0 <4.0.1');
+      isRejected('>=3.0.0 <4.0.1');
       isRejected('>=4.0.0');
+      isRejected('>=4.0.0-0');
       isRejected('>=4.0.0 <5.0.0');
+      isRejected('>=5.0.0');
+      isRejected('>=5.0.0 <6.0.0');
     });
   });
 
