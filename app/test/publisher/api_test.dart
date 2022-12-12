@@ -393,6 +393,8 @@ void main() {
         );
         final consent = Consent.init(
           fromUserId: adminUser.userId,
+          fromOAuthUserId: adminUser.oauthUserId,
+          fromEmail: adminUser.email,
           email: 'other@pub.dev',
           kind: 'PublisherMember',
           args: ['example.com'],

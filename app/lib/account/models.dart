@@ -270,6 +270,12 @@ class Consent extends db.Model {
   @db.StringProperty()
   String? fromUserId;
 
+  @db.StringProperty()
+  String? fromOAuthUserId;
+
+  @db.StringProperty()
+  String? fromEmail;
+
   @db.DateTimeProperty()
   DateTime? created;
 
@@ -286,6 +292,8 @@ class Consent extends db.Model {
 
   Consent.init({
     required this.fromUserId,
+    required this.fromOAuthUserId,
+    required this.fromEmail,
     required this.email,
     required this.kind,
     required this.args,

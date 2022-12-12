@@ -94,14 +94,29 @@ void main() {
     );
 
     final target1 = Consent.init(
-        email: admin.email, kind: 'k1', args: ['1'], fromUserId: user.userId);
+      email: admin.email,
+      kind: 'k1',
+      args: ['1'],
+      fromUserId: user.userId,
+      fromOAuthUserId: user.oauthUserId,
+      fromEmail: user.email,
+    );
     final target2 = Consent.init(
-        email: user.email, kind: 'k2', args: ['2'], fromUserId: admin.userId);
+      email: user.email,
+      kind: 'k2',
+      args: ['2'],
+      fromUserId: admin.userId,
+      fromOAuthUserId: admin.oauthUserId,
+      fromEmail: admin.email,
+    );
     final controlConsent = Consent.init(
-        email: control.email,
-        kind: 'k3',
-        args: ['3'],
-        fromUserId: control.userId);
+      email: control.email,
+      kind: 'k3',
+      args: ['3'],
+      fromUserId: control.userId,
+      fromOAuthUserId: control.oauthUserId,
+      fromEmail: control.email,
+    );
     await dbService.commit(inserts: [target1, target2, controlConsent]);
 
     await _corruptAndFix();

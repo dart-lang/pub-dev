@@ -61,9 +61,9 @@ class ConsentBackend {
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind]!;
     final invitingUserEmail =
-        (await accountBackend.getEmailOfUserId(c.fromUserId!))!;
+        c.fromEmail ?? (await accountBackend.getEmailOfUserId(c.fromUserId!))!;
     return api.Consent(
-      titleText: action.renderInviteTitleText(invitingUserEmail, c.args!),
+      titleText: action.renderInviteTitleText(c.args!),
       descriptionHtml: action.renderInviteHtml(
         invitingUserEmail: invitingUserEmail,
         args: c.args!,
@@ -101,6 +101,7 @@ class ConsentBackend {
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> _invite({
     required User activeUser,
+    required String fromEmail,
     required String email,
     required String kind,
     required List<String> args,
@@ -123,7 +124,10 @@ class ConsentBackend {
           await _delete(old, (a) => a.onExpire(old));
         } else if (old.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(activeUser.email!, old);
+          return await _sendNotification(
+            fromEmail: fromEmail,
+            consent: old,
+          );
         } else {
           return api.InviteStatus(
               emailSent: false, nextNotification: old.nextNotification);
@@ -132,6 +136,8 @@ class ConsentBackend {
       // Create a new entry.
       final consent = Consent.init(
         fromUserId: activeUser.userId,
+        fromOAuthUserId: activeUser.oauthUserId,
+        fromEmail: activeUser.email,
         email: email,
         kind: kind,
         args: args,
@@ -140,7 +146,10 @@ class ConsentBackend {
         consent,
         auditLogRecord,
       ]);
-      return await _sendNotification(activeUser.email!, consent);
+      return await _sendNotification(
+        fromEmail: fromEmail,
+        consent: consent,
+      );
     });
   }
 
@@ -154,6 +163,7 @@ class ConsentBackend {
   }) async {
     return await _invite(
       activeUser: activeUser,
+      fromEmail: agent.email!,
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
       args: [
@@ -177,6 +187,7 @@ class ConsentBackend {
     final user = authenticatedUser.user;
     return await _invite(
         activeUser: user,
+        fromEmail: user.email!,
         email: contactEmail,
         kind: ConsentKind.publisherContact,
         args: [publisherId, contactEmail],
@@ -193,6 +204,7 @@ class ConsentBackend {
     final user = authenticatedUser.user;
     return await _invite(
       activeUser: user,
+      fromEmail: user.email!,
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,
       args: [publisherId],
@@ -201,14 +213,19 @@ class ConsentBackend {
     );
   }
 
-  Future<api.InviteStatus> _sendNotification(
-      String activeUserEmail, Consent consent) async {
+  Future<api.InviteStatus> _sendNotification({
+    required String fromEmail,
+    required Consent consent,
+  }) async {
     final invitedEmail = consent.email!;
     final action = _actions[consent.kind]!;
     final email = emailBackend.prepareEntity(createInviteEmail(
       invitedEmail: invitedEmail,
       subject: action.renderEmailSubject(consent.args!),
-      inviteText: action.renderInviteText(activeUserEmail, consent.args!),
+      inviteText: action.renderInviteText(
+        fromEmail: fromEmail,
+        args: consent.args!,
+      ),
       consentUrl: consentUrl(consent.consentId),
     ));
     final status = await withRetryTransaction(_db, (tx) async {
@@ -292,11 +309,14 @@ abstract class ConsentAction {
       'You have a new invitation to confirm on $primaryHost';
 
   /// The body of the notification email sent.
-  String renderInviteText(String invitingUserEmail, List<String> args);
+  String renderInviteText({
+    required String fromEmail,
+    required List<String> args,
+  });
 
   /// The title of the invite for use in list of invites, and headline when
   /// viewing a specific invite.
-  String renderInviteTitleText(String invitingUserEmail, List<String> args);
+  String renderInviteTitleText(List<String> args);
 
   /// The HTML-formatted invitation message.
   ///
@@ -320,7 +340,8 @@ class _PackageUploaderAction extends ConsentAction {
     final isFromAdminUser =
         consent.args!.skip(1).contains('is-from-admin-user');
     final fromUserId = consent.fromUserId!;
-    final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
+    final fromUserEmail = consent.fromEmail ??
+        (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
@@ -362,13 +383,16 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  String renderInviteText(String invitingUserEmail, List<String> args) {
+  String renderInviteText({
+    required String fromEmail,
+    required List<String> args,
+  }) {
     final packageName = args[0];
-    return '$invitingUserEmail has invited you to be an uploader of the package $packageName.';
+    return '`$fromEmail` has invited you to be an uploader of the package $packageName.';
   }
 
   @override
-  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
+  String renderInviteTitleText(List<String> args) {
     final packageName = args[0];
     return 'Invitation for package: $packageName';
   }
@@ -432,15 +456,18 @@ class _PublisherContactAction extends ConsentAction {
       'You have a new request to confirm on $primaryHost';
 
   @override
-  String renderInviteText(String invitingUserEmail, List<String> args) {
+  String renderInviteText({
+    required String fromEmail,
+    required List<String> args,
+  }) {
     final publisherId = args[0];
     final contactEmail = args[1];
-    return '$invitingUserEmail has requested to use `$contactEmail` as the '
+    return '`$fromEmail` has requested to use `$contactEmail` as the '
         'contact email of the verified publisher $publisherId.';
   }
 
   @override
-  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
+  String renderInviteTitleText(List<String> args) {
     final publisherId = args[0];
     return 'Request for publisher: $publisherId';
   }
@@ -500,13 +527,16 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  String renderInviteText(String invitingUserEmail, List<String> args) {
+  String renderInviteText({
+    required String fromEmail,
+    required List<String> args,
+  }) {
     final publisherId = args[0];
-    return '$invitingUserEmail has invited you to be a member of the verified publisher $publisherId.';
+    return '`$fromEmail` has invited you to be a member of the verified publisher $publisherId.';
   }
 
   @override
-  String renderInviteTitleText(String invitingUserEmail, List<String> args) {
+  String renderInviteTitleText(List<String> args) {
     final publisherId = args[0];
     return 'Invitation for publisher: $publisherId';
   }
