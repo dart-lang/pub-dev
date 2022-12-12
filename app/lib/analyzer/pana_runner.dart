@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/screenshots/backend.dart';
 
 import '../job/job.dart';
@@ -164,6 +165,9 @@ class AnalyzerJobProcessor extends JobProcessor {
     Summary? summary = await analyze();
     if (summary?.report == null) {
       _logger.info('Retrying $job...');
+      // Purge package cache in case the latest version hasn't been included in the versions API.
+      await purgePackageCache(job.packageName!);
+      // A short pause to make sure the transient issues go away.
       await Future.delayed(Duration(seconds: 15));
       summary = await analyze();
     }
