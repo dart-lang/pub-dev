@@ -33,12 +33,6 @@ d.Node _activityLogTableNode(AuditLogRecordPage activities) {
       activities.records.skip(lastShortTermIndex + 1).toList();
   final displaySeparator =
       shortTermRecords.isNotEmpty && longTermRecords.isNotEmpty;
-  print([
-    shortTermRecords.length,
-    longTermRecords.length,
-    activities.records.length,
-    displaySeparator,
-  ]);
 
   return d.table(
     classes: ['activity-log-table'],
