@@ -122,15 +122,15 @@ class _PkgAdminWidget {
         fn: () async {
           await api_client.client.setAutomatedPublishing(
             pageData.pkgData!.package,
-            AutomatedPublishing(
-              github: GithubPublishing(
+            AutomatedPublishingConfig(
+              github: GithubPublishingConfig(
                 isEnabled: githubEnabledCheckbox!.checked,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
                 requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
                 environment: githubEnvironmentInput!.value,
               ),
-              gcp: GcpPublishing(
+              gcp: GcpPublishingConfig(
                 isEnabled: gcpEnabledCheckbox!.checked,
                 serviceAccountEmail: gcpServiceAccountEmailInput!.value,
               ),

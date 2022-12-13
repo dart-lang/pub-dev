@@ -28,8 +28,14 @@ class GitHubJwtPayload {
   /// repository for which the action is running
   final String repository;
 
+  /// the unique identifier of [repository]
+  final String repositoryId;
+
   /// owner of the repository
   final String repositoryOwner;
+
+  /// the unique identifier of [repositoryOwner]
+  final String repositoryOwnerId;
 
   /// name of the event that triggered the workflow
   final String eventName;
@@ -65,7 +71,9 @@ class GitHubJwtPayload {
     'aud',
     // github-specific claims
     'repository',
+    'repository_id',
     'repository_owner',
+    'repository_owner_id',
     'event_name',
     'ref',
     'ref_type',
@@ -75,6 +83,8 @@ class GitHubJwtPayload {
   GitHubJwtPayload._(Map<String, dynamic> map)
       : repository = parseAsString(map, 'repository'),
         repositoryOwner = parseAsString(map, 'repository_owner'),
+        repositoryId = parseAsString(map, 'repository_id'),
+        repositoryOwnerId = parseAsString(map, 'repository_owner_id'),
         eventName = parseAsString(map, 'event_name'),
         ref = parseAsString(map, 'ref'),
         refType = parseAsString(map, 'ref_type'),

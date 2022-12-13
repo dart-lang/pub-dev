@@ -50,24 +50,24 @@ class PkgOptions {
 
 /// The configuration for a package's credential-less publishing.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class AutomatedPublishing {
-  final GithubPublishing? github;
-  final GcpPublishing? gcp;
+class AutomatedPublishingConfig {
+  final GithubPublishingConfig? github;
+  final GcpPublishingConfig? gcp;
 
-  AutomatedPublishing({
+  AutomatedPublishingConfig({
     this.github,
     this.gcp,
   });
 
-  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
-      _$AutomatedPublishingFromJson(json);
+  factory AutomatedPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$AutomatedPublishingConfigToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class GithubPublishing {
-  final bool? isEnabled;
+class GithubPublishingConfig {
+  bool? isEnabled;
 
   /// The `owner/repository` path of the project on github.com.
   String? repository;
@@ -90,7 +90,7 @@ class GithubPublishing {
   /// The GitHub environment where the publishing is required from.
   String? environment;
 
-  GithubPublishing({
+  GithubPublishingConfig({
     this.isEnabled,
     this.repository,
     this.tagPattern,
@@ -98,26 +98,26 @@ class GithubPublishing {
     this.environment,
   });
 
-  factory GithubPublishing.fromJson(Map<String, dynamic> json) =>
-      _$GithubPublishingFromJson(json);
+  factory GithubPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$GithubPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GithubPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$GithubPublishingConfigToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class GcpPublishing {
-  final bool? isEnabled;
+class GcpPublishingConfig {
+  bool? isEnabled;
   String? serviceAccountEmail;
 
-  GcpPublishing({
+  GcpPublishingConfig({
     this.isEnabled,
     this.serviceAccountEmail,
   });
 
-  factory GcpPublishing.fromJson(Map<String, dynamic> json) =>
-      _$GcpPublishingFromJson(json);
+  factory GcpPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$GcpPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GcpPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$GcpPublishingConfigToJson(this);
 }
 
 @JsonSerializable()

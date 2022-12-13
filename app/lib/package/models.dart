@@ -148,9 +148,14 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// The JSON-serialized format of the [AutomatedPublishing].
+  /// The JSON-serialized format of the [AutomatedPublishingConfig].
   @db.StringProperty(indexed: false)
+  @Deprecated('Use automatedPublishingField instead.')
   String? automatedPublishingJson;
+
+  /// Scheduling state for all versions of this package.
+  @AutomatedPublishingProperty(propertyName: 'automatedPublishing')
+  AutomatedPublishing? automatedPublishingField;
 
   Package();
 
@@ -384,20 +389,34 @@ class Package extends db.ExpandoModel<String> {
     );
   }
 
-  AutomatedPublishing get automatedPublishing {
-    if (automatedPublishingJson == null) {
-      return AutomatedPublishing();
-    }
-    return AutomatedPublishing.fromJson(
-        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
+  AutomatedPublishing? get automatedPublishing {
+    // TODO: remove after the values are migrated.
+    final field = automatedPublishingField ??
+        // ignore: deprecated_member_use_from_same_package
+        (automatedPublishingJson == null
+            ? null
+            : AutomatedPublishing(
+                githubConfig: _automatedPublishing.github,
+                gcpConfig: _automatedPublishing.gcp,
+              ));
+    automatedPublishingField = field;
+    return field;
   }
 
   set automatedPublishing(AutomatedPublishing? value) {
-    if (value == null) {
-      automatedPublishingJson = null;
-    } else {
-      automatedPublishingJson = json.encode(value.toJson());
+    automatedPublishingField = value;
+    // ignore: deprecated_member_use_from_same_package
+    automatedPublishingJson = null;
+  }
+
+  AutomatedPublishingConfig get _automatedPublishing {
+    // ignore: deprecated_member_use_from_same_package
+    if (automatedPublishingJson == null) {
+      return AutomatedPublishingConfig();
     }
+    return AutomatedPublishingConfig.fromJson(
+        // ignore: deprecated_member_use_from_same_package
+        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
   }
 
   void updateIsBlocked({
@@ -448,6 +467,88 @@ class Release {
       _$ReleaseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReleaseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class AutomatedPublishing {
+  GithubPublishingConfig? githubConfig;
+  GithubPublishingLock? githubLock;
+  GcpPublishingConfig? gcpConfig;
+  GcpPublishingLock? gcpLock;
+
+  AutomatedPublishing({
+    this.githubConfig,
+    this.githubLock,
+    this.gcpConfig,
+    this.gcpLock,
+  });
+
+  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
+}
+
+/// A [db.Property] encoding [AutomatedPublishing] as JSON.
+class AutomatedPublishingProperty extends db.Property {
+  const AutomatedPublishingProperty(
+      {String? propertyName, bool required = false})
+      : super(propertyName: propertyName, required: required, indexed: false);
+
+  @override
+  Object? encodeValue(
+    db.ModelDB mdb,
+    Object? value, {
+    bool forComparison = false,
+  }) {
+    if (value == null) return null;
+    return json.encode(value as AutomatedPublishing);
+  }
+
+  @override
+  Object? decodePrimitiveValue(
+    db.ModelDB mdb,
+    Object? value,
+  ) {
+    if (value == null) return null;
+    return AutomatedPublishing.fromJson(
+        json.decode(value as String) as Map<String, dynamic>);
+  }
+
+  @override
+  bool validate(db.ModelDB mdb, Object? value) =>
+      super.validate(mdb, value) &&
+      (value == null || value is AutomatedPublishing);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class GithubPublishingLock {
+  final String repositoryOwnerId;
+  final String repositoryId;
+
+  GithubPublishingLock({
+    required this.repositoryOwnerId,
+    required this.repositoryId,
+  });
+
+  factory GithubPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$GithubPublishingLockFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GithubPublishingLockToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class GcpPublishingLock {
+  final String oauthUserId;
+
+  GcpPublishingLock({
+    required this.oauthUserId,
+  });
+
+  factory GcpPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$GcpPublishingLockFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GcpPublishingLockToJson(this);
 }
 
 /// Pub package metadata for a specific uploaded version.

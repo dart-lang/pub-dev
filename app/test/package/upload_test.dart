@@ -272,8 +272,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                gcp: GcpPublishing(
+              AutomatedPublishingConfig(
+                gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
                 ),
@@ -296,14 +296,57 @@ void main() {
         );
       });
 
+      testWithProfile(
+          'service account cannot upload because id lock prevents it',
+          fn: () async {
+        await withHttpPubApiClient(
+          bearerToken: adminAtPubDevAuthToken,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                gcp: GcpPublishingConfig(
+                  isEnabled: true,
+                  serviceAccountEmail: 'admin@x.gserviceaccount.com',
+                ),
+              ),
+            );
+          },
+        );
+        final pkg = await packageBackend.lookupPackage('oxygen');
+        pkg!.automatedPublishing!.gcpLock = GcpPublishingLock(
+          oauthUserId: 'other-user-id',
+        );
+        await dbService.commit(inserts: [pkg]);
+        final token =
+            createFakeServiceAccountToken(email: 'admin@x.gserviceaccount.com');
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'Google Cloud Service account identifiers changed, disabling automated publishing',
+        );
+
+        final pkgAfter = await packageBackend.lookupPackage('oxygen');
+        expect(pkgAfter!.automatedPublishing!.gcpConfig!.toJson(), {
+          'isEnabled': false,
+          'serviceAccountEmail': 'admin@x.gserviceaccount.com',
+        });
+      });
+
       testWithProfile('successful upload with service account', fn: () async {
         await withHttpPubApiClient(
           bearerToken: adminAtPubDevAuthToken,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                gcp: GcpPublishing(
+              AutomatedPublishingConfig(
+                gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
                 ),
@@ -324,6 +367,8 @@ void main() {
           message:
               'Google Cloud Service account recognized successful, but publishing is not enabled yet',
         );
+
+        // TODO: once it is enabled, check for automatedPublishingLock
       });
     });
 
@@ -373,8 +418,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -408,8 +453,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -443,8 +488,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -472,6 +517,70 @@ void main() {
       });
 
       testWithProfile(
+          'GitHub Actions cannot upload because id lock prevents it',
+          fn: () async {
+        Future<void> setupPublishingAndLock() async {
+          await withHttpPubApiClient(
+            bearerToken: adminAtPubDevAuthToken,
+            fn: (client) async {
+              await client.setAutomatedPublishing(
+                'oxygen',
+                AutomatedPublishingConfig(
+                  github: GithubPublishingConfig(
+                    isEnabled: true,
+                    repository: 'a/b',
+                    tagPattern: '{{version}}',
+                  ),
+                ),
+              );
+            },
+          );
+          final pkg = await packageBackend.lookupPackage('oxygen');
+          pkg!.automatedPublishing!.githubLock = GithubPublishingLock(
+            repositoryOwnerId: 'x',
+            repositoryId: 'y',
+          );
+          await dbService.commit(inserts: [pkg]);
+        }
+
+        final badTokens = [
+          createFakeGithubActionToken(
+            repository: 'a/b',
+            ref: 'refs/tags/2.2.0',
+            repositoryId: 'x2',
+            repositoryOwnerId: 'y',
+          ),
+          createFakeGithubActionToken(
+            repository: 'a/b',
+            ref: 'refs/tags/2.2.0',
+            repositoryId: 'x',
+            repositoryOwnerId: 'y2',
+          ),
+        ];
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+
+        for (final token in badTokens) {
+          await setupPublishingAndLock();
+          final rs =
+              createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+          await expectApiException(
+            rs,
+            status: 403,
+            code: 'InsufficientPermissions',
+            message:
+                'GitHub repository identifiers changed, disabling automated publishing',
+          );
+          final pkg = await packageBackend.lookupPackage('oxygen');
+          expect(pkg!.automatedPublishing!.githubConfig!.toJson(), {
+            'isEnabled': false,
+            'repository': 'a/b',
+            'tagPattern': '{{version}}',
+          });
+        }
+      });
+
+      testWithProfile(
           'successful upload with GitHub Actions (without environment)',
           fn: () async {
         await withHttpPubApiClient(
@@ -479,8 +588,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -520,8 +629,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               '_dummy_pkg',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -533,6 +642,8 @@ void main() {
         final token = createFakeGithubActionToken(
           repository: 'a/b',
           ref: 'refs/tags/2.2.0',
+          repositoryId: 'repo-id-1',
+          repositoryOwnerId: 'owner-id-234',
         );
         final pubspecContent = generatePubspecYaml('_dummy_pkg', '2.2.0');
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
@@ -540,6 +651,12 @@ void main() {
             .uploadPackageBytes(bytes);
         expect(rs.success.message,
             'Successfully uploaded https://pub.dev/packages/_dummy_pkg version 2.2.0.');
+
+        final pkg = await packageBackend.lookupPackage('_dummy_pkg');
+        expect(pkg!.automatedPublishing!.githubLock!.toJson(), {
+          'repositoryId': 'repo-id-1',
+          'repositoryOwnerId': 'owner-id-234',
+        });
 
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
@@ -584,8 +701,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -622,8 +739,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: '{{version}}',
@@ -661,8 +778,8 @@ void main() {
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishing(
-                github: GithubPublishing(
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
                   tagPattern: 'v{{version}}',

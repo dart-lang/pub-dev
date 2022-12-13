@@ -201,6 +201,8 @@ String createFakeGithubActionToken({
   // utf8-encoded `valid` unless specified otherwise
   List<int>? signature,
   String? runId,
+  String? repositoryId,
+  String? repositoryOwnerId,
 }) {
   var refType = ref.split('/')[1];
   if (refType.endsWith('s')) {
@@ -214,7 +216,10 @@ String createFakeGithubActionToken({
     payload: {
       'aud': audience ?? 'https://pub.dev',
       'repository': repository,
+      'repository_id': repositoryId ?? repository.hashCode.abs().toString(),
       'repository_owner': repository.split('/').first,
+      'repository_owner_id': repositoryOwnerId ??
+          repository.split('/').first.hashCode.abs().toString(),
       'event_name': eventName ?? 'push',
       'ref': ref,
       'ref_type': refType,

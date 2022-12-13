@@ -458,26 +458,26 @@ class PackageBackend {
 
   /// Verifies an update to the credential-less publishing settings and
   /// updates the Datastore entity if everything is valid.
-  Future<api.AutomatedPublishing> setAutomatedPublishing(
-      String package, api.AutomatedPublishing body) async {
+  Future<api.AutomatedPublishingConfig> setAutomatedPublishing(
+      String package, api.AutomatedPublishingConfig body) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     final pkg = await _requirePackageAdmin(package, user.userId);
     return await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
-      final github = body.github;
-      final googleCloud = body.gcp;
-      if (github != null) {
-        final isEnabled = github.isEnabled ?? false;
+      final githubConfig = body.github;
+      final gcpConfig = body.gcp;
+      if (githubConfig != null) {
+        final isEnabled = githubConfig.isEnabled ?? false;
         // normalize input values
-        final repository = github.repository?.trim() ?? '';
-        github.repository = repository.isEmpty ? null : repository;
-        final tagPattern = github.tagPattern?.trim() ?? '';
-        github.tagPattern = tagPattern.isEmpty ? null : tagPattern;
-        final requireEnvironment = github.requireEnvironment ?? false;
-        github.requireEnvironment = requireEnvironment ? true : null;
-        final environment = github.environment?.trim() ?? '';
-        github.environment = environment.isEmpty ? null : environment;
+        final repository = githubConfig.repository?.trim() ?? '';
+        githubConfig.repository = repository.isEmpty ? null : repository;
+        final tagPattern = githubConfig.tagPattern?.trim() ?? '';
+        githubConfig.tagPattern = tagPattern.isEmpty ? null : tagPattern;
+        final requireEnvironment = githubConfig.requireEnvironment ?? false;
+        githubConfig.requireEnvironment = requireEnvironment ? true : null;
+        final environment = githubConfig.environment?.trim() ?? '';
+        githubConfig.environment = environment.isEmpty ? null : environment;
 
         InvalidInputException.check(!isEnabled || repository.isNotEmpty,
             'The `repository` field must not be empty when enabled.');
@@ -511,12 +511,11 @@ class PackageBackend {
               'The `environment` field has invalid characters.');
         }
       }
-      if (googleCloud != null) {
-        final isEnabled = googleCloud.isEnabled ?? false;
+      if (gcpConfig != null) {
+        final isEnabled = gcpConfig.isEnabled ?? false;
         // normalize input values
-        final serviceAccountEmail =
-            googleCloud.serviceAccountEmail?.trim() ?? '';
-        googleCloud.serviceAccountEmail = serviceAccountEmail;
+        final serviceAccountEmail = gcpConfig.serviceAccountEmail?.trim() ?? '';
+        gcpConfig.serviceAccountEmail = serviceAccountEmail;
 
         InvalidInputException.check(
             !isEnabled || serviceAccountEmail.isNotEmpty,
@@ -535,8 +534,27 @@ class PackageBackend {
         }
       }
 
+      // update lock
+      final current = p.automatedPublishing;
+      final githubChanged =
+          (githubConfig?.isEnabled != current?.githubConfig?.isEnabled) ||
+              (githubConfig?.repository != current?.githubConfig?.repository);
+      if (githubChanged) {
+        p.automatedPublishing?.githubLock = null;
+      }
+      final gcpChanged =
+          (gcpConfig?.isEnabled != current?.gcpConfig?.isEnabled) ||
+              (gcpConfig?.serviceAccountEmail !=
+                  current?.gcpConfig?.serviceAccountEmail);
+      if (gcpChanged) {
+        p.automatedPublishing?.gcpLock = null;
+      }
+
       // finalize changes
-      p.automatedPublishing = body;
+      p.automatedPublishing ??= AutomatedPublishing();
+      p.automatedPublishing!.githubConfig = githubConfig;
+      p.automatedPublishing!.gcpConfig = gcpConfig;
+
       p.updated = clock.now().toUtc();
       tx.insert(p);
       tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
@@ -544,7 +562,10 @@ class PackageBackend {
         publisherId: p.publisherId,
         user: user,
       ));
-      return p.automatedPublishing;
+      return api.AutomatedPublishingConfig(
+        github: p.automatedPublishing!.githubConfig,
+        gcp: p.automatedPublishing!.gcpConfig,
+      );
     });
   }
 
@@ -1079,6 +1100,9 @@ class PackageBackend {
       package!.updated = clock.now().toUtc();
       package!.versionCount++;
 
+      // update automated publisher identifiers if this is the first time they have been used
+      _updatePackageAutomatedPublishingLock(package!, agent);
+
       _logger.info(
         'Trying to upload tarball for ${package!.name} version ${newVersion.version} to cloud storage.',
       );
@@ -1219,24 +1243,26 @@ class PackageBackend {
 
   Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
       Package package, String newVersion) async {
-    final githubPublishing = package.automatedPublishing.github;
-    if (githubPublishing?.isEnabled != true) {
+    final githubConfig = package.automatedPublishing?.githubConfig;
+    final githubLock = package.automatedPublishing?.githubLock;
+
+    if (githubConfig?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
           'publishing from github is not enabled');
     }
 
     // verify that fields are configured
-    final repository = githubPublishing!.repository;
+    final repository = githubConfig!.repository;
     if (repository == null || repository.isEmpty) {
       throw AssertionError('Missing or empty repository.');
     }
-    final tagPattern = githubPublishing.tagPattern ?? '';
+    final tagPattern = githubConfig.tagPattern ?? '';
     if (!tagPattern.contains('{{version}}')) {
       throw AssertionError(
           'Configured tag pattern does not include `{{version}}`');
     }
-    final requireEnvironment = githubPublishing.requireEnvironment ?? false;
-    final environment = githubPublishing.environment;
+    final requireEnvironment = githubConfig.requireEnvironment ?? false;
+    final environment = githubConfig.environment;
     if (requireEnvironment && (environment == null || environment.isEmpty)) {
       throw AssertionError('Missing or empty environment.');
     }
@@ -1278,6 +1304,23 @@ class PackageBackend {
           'for which publishing is not allowed');
     }
 
+    if (githubLock != null) {
+      final lockMatches =
+          githubLock.repositoryId == agent.payload.repositoryId &&
+              githubLock.repositoryOwnerId == agent.payload.repositoryOwnerId;
+      if (!lockMatches) {
+        _logger.info(
+            'Disabled automated publishing using GitHub Actions for package:${package.name} because account identifier changed.');
+        await withRetryTransaction(db, (tx) async {
+          final p = await tx.lookupValue<Package>(package.key);
+          p.automatedPublishing!.githubConfig!.isEnabled = false;
+          tx.insert(p);
+        });
+        throw AuthorizationException.githubActionIssue(
+            'GitHub repository identifiers changed, disabling automated publishing');
+      }
+    }
+
     // Disable publishing for all packages, but exempt one for live testing.
     if (package.name == '_dummy_pkg') {
       return;
@@ -1291,14 +1334,15 @@ class PackageBackend {
     Package package,
     String newVersion,
   ) async {
-    final googleCloudPublishing = package.automatedPublishing.gcp;
-    if (googleCloudPublishing?.isEnabled != true) {
+    final gcpConfig = package.automatedPublishing?.gcpConfig;
+    final gcpLock = package.automatedPublishing?.gcpLock;
+    if (gcpConfig?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing with service account is not enabled');
     }
 
     // verify that fields are configured
-    final serviceAccountEmail = googleCloudPublishing!.serviceAccountEmail;
+    final serviceAccountEmail = gcpConfig!.serviceAccountEmail;
     if (serviceAccountEmail == null || serviceAccountEmail.isEmpty) {
       throw AssertionError('Missing or empty serviceAccountEmail.');
     }
@@ -1307,6 +1351,21 @@ class PackageBackend {
     if (serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
           'publishing is not enabled for the "${agent.payload.email}" service account');
+    }
+
+    if (gcpLock != null) {
+      final lockMatches = gcpLock.oauthUserId == agent.payload.sub;
+      if (!lockMatches) {
+        _logger.info(
+            'Disabled automated publishing using GCP service account for package:${package.name} because account identifier changed.');
+        await withRetryTransaction(db, (tx) async {
+          final p = await tx.lookupValue<Package>(package.key);
+          p.automatedPublishing!.gcpConfig!.isEnabled = false;
+          tx.insert(p);
+        });
+        throw AuthorizationException.githubActionIssue(
+            'Google Cloud Service account identifiers changed, disabling automated publishing');
+      }
     }
 
     throw PackageRejectedException(
@@ -1541,6 +1600,28 @@ class PackageBackend {
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> packageTarballinfo(String package, String version) async {
     return await _publicBucket.tryInfo(tarballObjectName(package, version));
+  }
+
+  void _updatePackageAutomatedPublishingLock(
+      Package package, AuthenticatedAgent agent) {
+    final current = package.automatedPublishing;
+    if (current == null) {
+      if (agent is AuthenticatedGithubAction ||
+          agent is AuthenticatedGcpServiceAccount) {
+        // This should be unreachable
+        throw AssertionError('Authentication should never have been possible');
+      }
+      return;
+    }
+    if (agent is AuthenticatedGithubAction && current.githubLock == null) {
+      current.githubLock = GithubPublishingLock(
+        repositoryOwnerId: agent.payload.repositoryOwnerId,
+        repositoryId: agent.payload.repositoryId,
+      );
+    } else if (agent is AuthenticatedGcpServiceAccount &&
+        current.gcpLock == null) {
+      current.gcpLock = GcpPublishingLock(oauthUserId: agent.payload.sub);
+    }
   }
 }
 

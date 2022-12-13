@@ -34,6 +34,65 @@ Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
       'published': instance.published.toIso8601String(),
     };
 
+AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
+    AutomatedPublishing(
+      githubConfig: json['githubConfig'] == null
+          ? null
+          : GithubPublishingConfig.fromJson(
+              json['githubConfig'] as Map<String, dynamic>),
+      githubLock: json['githubLock'] == null
+          ? null
+          : GithubPublishingLock.fromJson(
+              json['githubLock'] as Map<String, dynamic>),
+      gcpConfig: json['gcpConfig'] == null
+          ? null
+          : GcpPublishingConfig.fromJson(
+              json['gcpConfig'] as Map<String, dynamic>),
+      gcpLock: json['gcpLock'] == null
+          ? null
+          : GcpPublishingLock.fromJson(json['gcpLock'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('githubConfig', instance.githubConfig?.toJson());
+  writeNotNull('githubLock', instance.githubLock?.toJson());
+  writeNotNull('gcpConfig', instance.gcpConfig?.toJson());
+  writeNotNull('gcpLock', instance.gcpLock?.toJson());
+  return val;
+}
+
+GithubPublishingLock _$GithubPublishingLockFromJson(
+        Map<String, dynamic> json) =>
+    GithubPublishingLock(
+      repositoryOwnerId: json['repositoryOwnerId'] as String,
+      repositoryId: json['repositoryId'] as String,
+    );
+
+Map<String, dynamic> _$GithubPublishingLockToJson(
+        GithubPublishingLock instance) =>
+    <String, dynamic>{
+      'repositoryOwnerId': instance.repositoryOwnerId,
+      'repositoryId': instance.repositoryId,
+    };
+
+GcpPublishingLock _$GcpPublishingLockFromJson(Map<String, dynamic> json) =>
+    GcpPublishingLock(
+      oauthUserId: json['oauthUserId'] as String,
+    );
+
+Map<String, dynamic> _$GcpPublishingLockToJson(GcpPublishingLock instance) =>
+    <String, dynamic>{
+      'oauthUserId': instance.oauthUserId,
+    };
+
 PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       screenshots: (json['screenshots'] as List<dynamic>?)
           ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
