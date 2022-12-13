@@ -61,10 +61,6 @@ void main() {
       expect(parsed.signature, hasLength(256));
     });
 
-    test('iat missing', () {
-      expect(JwtPayload({'iat': '1', 'exp': '2'}).isTimely(), isFalse);
-    });
-
     test('verify signature', () async {
       final headerAndPayloadEncoded = jwtIoToken.split('.').take(2).join('.');
       final parsed = JsonWebToken.parse(jwtIoToken);
