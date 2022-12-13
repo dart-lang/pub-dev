@@ -87,6 +87,8 @@ Future<void> main(List<String> args) async {
   final resourcesOutputDir =
       await Directory(p.join(outputFolder, 'resources')).create();
   final pana = PackageAnalyzer(toolEnv);
+  // TODO: add a cache purge + retry if the download would fail
+  //       (e.g. the package version cache wasn't invalidated).
   final summary = await pana.inspectPackage(
     package,
     version: version,
