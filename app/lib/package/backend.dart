@@ -1321,8 +1321,9 @@ class PackageBackend {
       }
     }
 
-    // Disable publishing for all packages, but exempt one for live testing.
-    if (package.name == '_dummy_pkg') {
+    // Disable publishing for all packages, but exempt the test + internal ones for live testing.
+    if (package.name == '_dummy_pkg' ||
+        isDartDevPublisher(package.publisherId)) {
       return;
     }
     throw PackageRejectedException(
@@ -1368,6 +1369,11 @@ class PackageBackend {
       }
     }
 
+    // Disable publishing for all packages, but exempt the test + internal ones for live testing.
+    if (package.name == '_dummy_pkg' ||
+        isDartDevPublisher(package.publisherId)) {
+      return;
+    }
     throw PackageRejectedException(
         'Google Cloud Service account recognized successful, but publishing is not enabled yet.');
   }
