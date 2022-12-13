@@ -17,12 +17,10 @@ import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../scorecard/backend.dart';
-import '../../scorecard/models.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
-import '../../task/backend.dart';
 import '../../tool/utils/dart_sdk_version.dart';
 
 import '../request_context.dart';
@@ -360,30 +358,11 @@ Future<PackagePageData> loadPackagePageData(
       : await packageBackend.lookupPackageVersionAsset(
           packageName, versionName, assetKind);
 
-  final ScoreCardData? scoreCard;
-  if (!requestContext.experimentalFlags.showSandboxedOutput) {
-    scoreCard = await scoreCardBackend.getScoreCardData(
-        selectedVersion.package, selectedVersion.version!);
-  } else {
-    final status = PackageStatus.fromModels(package, selectedVersion);
-    final summary = await taskBackend.panaSummary(packageName, versionName);
-    scoreCard = ScoreCardData(
-      packageName: packageName,
-      packageVersion: versionName,
-      runtimeVersion: null, // this is unused outside scorecard backend
-      updated: null,
-      packageCreated: package.created,
-      packageVersionCreated: selectedVersion.created,
-      dartdocReport: DartdocReport(
-        timestamp: null, // TODO: https://github.com/dart-lang/pana/issues/1162
-        // TODO: Embed dartdoc success status in summary, unclear if we need it
-        reportStatus: ReportStatus.success, // assume success
-        dartdocEntry: null, // unused
-        documentationSection: null, // already embedded in summary
-      ),
-      panaReport: PanaReport.fromSummary(summary, packageStatus: status),
-    );
-  }
+  final scoreCard = await scoreCardBackend.getScoreCardData(
+    selectedVersion.package,
+    selectedVersion.version!,
+    showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
+  );
 
   final sessionUserId = userSessionData?.userId;
   final isAdmin = sessionUserId == null
