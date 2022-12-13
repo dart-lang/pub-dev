@@ -69,37 +69,31 @@ class _PanaRunner implements PanaRunner {
     return await withToolEnv(
       usesPreviewSdk: packageStatus.usesPreviewAnalysisSdk,
       fn: (toolEnv) async {
-        try {
-          final PackageAnalyzer analyzer =
-              PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
-          final isInternal = internalPackageNames.contains(package) ||
-              packageStatus.isPublishedByDartDev;
+        final PackageAnalyzer analyzer =
+            PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
+        final isInternal = internalPackageNames.contains(package) ||
+            packageStatus.isPublishedByDartDev;
 
-          Future<void> store(String fileName, Uint8List data) async {
-            final stream = () => Stream.value(data);
-            await imageStorage.upload(
-                package, version, stream, fileName, data.length);
-          }
-
-          return await analyzer.inspectPackage(
-            package,
-            version: version,
-            options: InspectOptions(
-              pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-              analysisOptionsYaml: packageStatus.usesFlutter
-                  ? null
-                  : await getDefaultAnalysisOptionsYaml(),
-              checkRemoteRepository: isInternal,
-              futureSdkTag: 'is:future-sdk-compatible',
-            ),
-            logger: Logger.detached('pana/$package/$version'),
-            storeResource: store,
-          );
-        } catch (e, st) {
-          _logger.severe(
-              'Failed (v$packageVersion) - $package/$version', e, st);
+        Future<void> store(String fileName, Uint8List data) async {
+          final stream = () => Stream.value(data);
+          await imageStorage.upload(
+              package, version, stream, fileName, data.length);
         }
-        return null;
+
+        return await analyzer.inspectPackage(
+          package,
+          version: version,
+          options: InspectOptions(
+            pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
+            analysisOptionsYaml: packageStatus.usesFlutter
+                ? null
+                : await getDefaultAnalysisOptionsYaml(),
+            checkRemoteRepository: isInternal,
+            futureSdkTag: 'is:future-sdk-compatible',
+          ),
+          logger: Logger.detached('pana/$package/$version'),
+          storeResource: store,
+        );
       },
     );
   }
@@ -157,11 +151,24 @@ class AnalyzerJobProcessor extends JobProcessor {
       return JobStatus.skipped;
     }
 
-    Future<Summary?> analyze() => _runner.analyze(
+    Future<Summary?> analyze({bool logSevere = false}) async {
+      try {
+        return await _runner.analyze(
           package: job.packageName!,
           version: job.packageVersion!,
           packageStatus: packageStatus,
         );
+      } catch (e, st) {
+        final level = logSevere ? Level.SEVERE : Level.INFO;
+        _logger.log(
+            level,
+            'Failed (v$packageVersion) - ${job.packageName}/${job.packageVersion}',
+            e,
+            st);
+      }
+      return null;
+    }
+
     Summary? summary = await analyze();
     if (summary?.report == null) {
       _logger.info('Retrying $job...');
@@ -169,7 +176,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       await purgePackageCache(job.packageName!);
       // A short pause to make sure the transient issues go away.
       await Future.delayed(Duration(seconds: 15));
-      summary = await analyze();
+      summary = await analyze(logSevere: true);
     }
 
     JobStatus status = JobStatus.failed;
