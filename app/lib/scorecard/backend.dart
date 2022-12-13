@@ -115,26 +115,23 @@ class ScoreCardBackend {
     bool onlyCurrent = false,
   }) async {
     if (packageVersion == null || packageVersion == 'latest') {
-      final key = _db.emptyKey.append(Package, id: packageName);
-      final p = await _db.lookupOrNull<Package>(key);
-      if (p == null) {
-        return null;
-      }
-      packageVersion = p.latestVersion;
+      packageVersion = await packageBackend.getLatestVersion(packageName);
     }
-    final cached = onlyCurrent
-        ? null
-        : await cache.scoreCardData(packageName, packageVersion!).get();
-    if (cached != null && cached.hasAllReports) {
-      return cached;
+    final cacheEntry =
+        onlyCurrent ? null : cache.scoreCardData(packageName, packageVersion!);
+    if (cacheEntry != null) {
+      final cached = await cacheEntry.get();
+      if (cached != null && cached.hasAllReports) {
+        return cached;
+      }
     }
 
     final key = scoreCardKey(packageName, packageVersion!);
     final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
     if (current != null) {
       // only full cards will be stored in cache
-      if (current.isCurrent && current.hasAllReports) {
-        await cache.scoreCardData(packageName, packageVersion).set(current);
+      if (cacheEntry != null && current.isCurrent && current.hasAllReports) {
+        await cacheEntry.set(current);
       }
       if (onlyCurrent || current.hasAllReports) {
         return current;
