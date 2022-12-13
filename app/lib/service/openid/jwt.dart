@@ -248,15 +248,9 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
       return false;
     }
 
-    // JWT may have nbf field, and if it has:
-    // - it must be in the past,
-    // - it must be on or after the iat timestamp.
+    // JWT may have nbf field, and if it has, it must be in the past.
     if (nbf != null && now.add(threshold).isBefore(nbf!)) {
       _logger.info('JWT "nbf" field is in the future.');
-      return false;
-    }
-    if (nbf != null && iat!.isAfter(nbf!)) {
-      _logger.info('JWT "nbf" field is before "iat".');
       return false;
     }
 

@@ -145,17 +145,6 @@ void main() {
       );
     });
 
-    test('nbf before iat', () {
-      expect(
-        createPayload(
-          iat: clock.now().subtract(Duration(hours: 2)),
-          nbf: clock.now().subtract(Duration(hours: 3)),
-          exp: clock.now().add(Duration(hours: 2)),
-        ).isTimely(),
-        false,
-      );
-    });
-
     test('valid (with nbf)', () {
       expect(
         createPayload(
