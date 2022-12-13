@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/service/openid/openid_models.dart';
@@ -60,6 +61,10 @@ void main() {
       expect(parsed.signature, hasLength(256));
     });
 
+    test('iat missing', () {
+      expect(JwtPayload({'iat': '1', 'exp': '2'}).isTimely(), isFalse);
+    });
+
     test('verify signature', () async {
       final headerAndPayloadEncoded = jwtIoToken.split('.').take(2).join('.');
       final parsed = JsonWebToken.parse(jwtIoToken);
@@ -69,6 +74,101 @@ void main() {
         publicKey: Asn1RsaPublicKey.parsePemString(jwtIoPublicKeyPem),
       );
       expect(isValid, isTrue);
+    });
+  });
+
+  group('timestamps', () {
+    JwtPayload createPayload({
+      DateTime? exp,
+      DateTime? iat,
+      DateTime? nbf,
+    }) {
+      return JwtPayload({
+        if (iat != null) 'iat': iat.millisecondsSinceEpoch ~/ 1000,
+        if (nbf != null) 'nbf': nbf.millisecondsSinceEpoch ~/ 1000,
+        if (exp != null) 'exp': exp.millisecondsSinceEpoch ~/ 1000,
+      });
+    }
+
+    test('iat missing', () {
+      expect(
+        createPayload(
+          exp: clock.now().add(Duration(hours: 2)),
+        ).isTimely(),
+        false,
+      );
+    });
+
+    test('iat in the future', () {
+      expect(
+        createPayload(
+          iat: clock.now().add(Duration(hours: 2)),
+          exp: clock.now().add(Duration(hours: 2)),
+        ).isTimely(),
+        false,
+      );
+    });
+
+    test('exp missing', () {
+      expect(
+        createPayload(
+          iat: clock.now().subtract(Duration(hours: 2)),
+        ).isTimely(),
+        false,
+      );
+    });
+
+    test('exp in the past', () {
+      expect(
+        createPayload(
+          iat: clock.now().subtract(Duration(hours: 2)),
+          exp: clock.now().subtract(Duration(hours: 2)),
+        ).isTimely(),
+        false,
+      );
+    });
+
+    test('nbf in the future', () {
+      expect(
+        createPayload(
+          iat: clock.now().subtract(Duration(hours: 2)),
+          nbf: clock.now().add(Duration(hours: 2)),
+          exp: clock.now().add(Duration(hours: 2)),
+        ).isTimely(),
+        false,
+      );
+    });
+
+    test('valid (without nbf)', () {
+      expect(
+        createPayload(
+          iat: clock.now().subtract(Duration(hours: 2)),
+          exp: clock.now().add(Duration(hours: 2)),
+        ).isTimely(),
+        true,
+      );
+    });
+
+    test('nbf before iat', () {
+      expect(
+        createPayload(
+          iat: clock.now().subtract(Duration(hours: 2)),
+          nbf: clock.now().subtract(Duration(hours: 3)),
+          exp: clock.now().add(Duration(hours: 2)),
+        ).isTimely(),
+        false,
+      );
+    });
+
+    test('valid (with nbf)', () {
+      expect(
+        createPayload(
+          iat: clock.now().subtract(Duration(hours: 2)),
+          nbf: clock.now().subtract(Duration(hours: 1)),
+          exp: clock.now().add(Duration(hours: 2)),
+        ).isTimely(),
+        true,
+      );
     });
   });
 
