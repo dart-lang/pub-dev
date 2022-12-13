@@ -14,7 +14,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "47.0.0"
+    version: "51.0.0"
   _popularity:
     dependency: "direct main"
     description:
@@ -35,7 +35,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.7.0"
+    version: "5.3.1"
   api_builder:
     dependency: "direct main"
     description:
@@ -602,7 +602,7 @@ packages:
       name: shelf_router_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   shelf_static:
     dependency: transitive
     description:
