@@ -126,7 +126,7 @@ class ScoreCardBackend {
     }
     final cacheEntry = onlyCurrent || showSandboxedOutput
         ? null
-        : cache.scoreCardData(packageName, packageVersion!);
+        : cache.scoreCardData(packageName, packageVersion);
     if (cacheEntry != null) {
       final cached = await cacheEntry.get();
       if (cached != null && cached.hasAllReports) {
@@ -140,7 +140,7 @@ class ScoreCardBackend {
         throw NotFoundException('Package "$packageName" does not exist.');
       }
       final version = await packageBackend.lookupPackageVersion(
-          packageName, packageVersion!);
+          packageName, packageVersion);
       if (version == null) {
         throw NotFoundException(
             'Package version "$packageName $packageVersion" does not exist.');
@@ -167,7 +167,7 @@ class ScoreCardBackend {
       );
     }
 
-    final key = scoreCardKey(packageName, packageVersion!);
+    final key = scoreCardKey(packageName, packageVersion);
     final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
     if (current != null) {
       // only full cards will be stored in cache
