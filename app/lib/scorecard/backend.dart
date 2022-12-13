@@ -119,6 +119,10 @@ class ScoreCardBackend {
   }) async {
     if (packageVersion == null || packageVersion == 'latest') {
       packageVersion = await packageBackend.getLatestVersion(packageName);
+      if (packageVersion == null) {
+        // package does not exists
+        return null;
+      }
     }
     final cacheEntry = onlyCurrent || showSandboxedOutput
         ? null
