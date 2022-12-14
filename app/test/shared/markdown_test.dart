@@ -255,6 +255,56 @@ void main() {
     });
   });
 
+  group('<summary>', () {
+    test('FIXME: <summary> must not exists in a list item', () {
+      expect(
+        markdownToHtml('- a<summary>b\n- c'),
+        '<ul>\n'
+        '<li>a<summary>b</summary></li>\n'
+        '<li>c</li>\n'
+        '</ul>\n',
+      );
+    });
+
+    test('FIXME: <summary> must not exists without <details>', () {
+      expect(
+        markdownToHtml('A <summary>b</summary>.'),
+        '<p>A </p><summary>b</summary>.<p></p>\n',
+      );
+    });
+
+    test('FIXME: <summary> should be the first child of details', () {
+      expect(
+        markdownToHtml('A <details> <b>bold</b> <summary>b</summary>.'),
+        '<p>A </p><details> <b>bold</b> <summary>b</summary>.<p></p></details>\n',
+      );
+    });
+
+    test('FIXME: <summary> should render <code> blocks inside', () {
+      expect(
+        '<details>\n'
+            '<summary>\n'
+            'Package language version (indicated by the sdk constraint `>=2.0.0-dev.48.0 <3.0.0`) is less than 2.12.\n'
+            '</summary>\n\n'
+            'Consider [migrating](https://dart.dev/null-safety/migration-guide).\n'
+            '</details>',
+        '<details>\n'
+            '<summary>\n'
+            'Package language version (indicated by the sdk constraint `>=2.0.0-dev.48.0 <3.0.0`) is less than 2.12.\n'
+            '</summary>\n\n'
+            'Consider [migrating](https://dart.dev/null-safety/migration-guide).\n'
+            '</details>',
+      );
+    });
+
+    test('<details> and <summary>', () {
+      expect(
+        markdownToHtml('<details><summary>A</summary>B</details>'),
+        '<details><summary>A</summary>B</details>\n',
+      );
+    });
+  });
+
   group('GitHub rewrites', () {
     test('absolute url: http://[..]/blob/master/[path].gif', () {
       expect(
