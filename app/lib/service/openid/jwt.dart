@@ -228,17 +228,32 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   }) {
     now ??= clock.now();
 
-    bool isABeforeB(String name, DateTime? a, DateTime? b) {
-      if (a == null || b == null) {
-        _logger.info('JWT does not have "$name" field.');
-        return false;
-      }
-      return a.isBefore(b.add(threshold)) || a == b;
+    // JWT must have iat field, and it must be in the past.
+    if (iat == null) {
+      _logger.info('JWT does not have "iat" field.');
+      return false;
+    }
+    if (now.add(threshold).isBefore(iat!)) {
+      _logger.info('JWT "iat" field is in the future.');
+      return false;
     }
 
-    return isABeforeB('iat', iat, now) &&
-        // allows `nbf` to be null
-        (nbf == null || isABeforeB('nbf', nbf, now)) &&
-        isABeforeB('exp', now, exp);
+    // JWT must have and exp field, and it must be in the future.
+    if (exp == null) {
+      _logger.info('JWT does not have "exp" field.');
+      return false;
+    }
+    if (exp!.add(threshold).isBefore(now)) {
+      _logger.info('JWT "exp" field is in the past.');
+      return false;
+    }
+
+    // JWT may have nbf field, and if it has, it must be in the past.
+    if (nbf != null && now.add(threshold).isBefore(nbf!)) {
+      _logger.info('JWT "nbf" field is in the future.');
+      return false;
+    }
+
+    return true;
   }
 }
