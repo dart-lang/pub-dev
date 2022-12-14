@@ -32,11 +32,11 @@ class Score {
     if (scores.isEmpty) {
       return Score.empty();
     }
-    if (scores.any((score) => score.isEmpty)) {
-      return Score.empty();
-    }
     if (scores.length == 1) {
       return scores.single;
+    }
+    if (scores.any((score) => score.isEmpty)) {
+      return Score.empty();
     }
     var keys = scores.first.getValues().keys.toSet();
     for (var i = 1; i < scores.length; i++) {

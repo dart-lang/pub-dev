@@ -22,7 +22,7 @@ void main() {
         index.search('fluent').getValues(),
         {
           'fluent': 1.0,
-          'fluent_ui': closeTo(0.95, 0.01),
+          'fluent_ui': 1.0,
         },
       );
     });
@@ -32,14 +32,13 @@ void main() {
         index.search('get').getValues(),
         {
           'get': 1.0,
-          'get_it': closeTo(0.90, 0.01),
+          'get_it': 1.0,
         },
       );
     });
 
     test('get_it', () {
       expect(index.search('get_it').getValues(), {
-        'get': closeTo(0.78, 0.01),
         'get_it': 1.0,
       });
     });
@@ -49,7 +48,7 @@ void main() {
         index.search('modular').getValues(),
         {
           'modular': 1.0,
-          'modular_flutter': closeTo(0.86, 0.01),
+          'modular_flutter': 1.0,
         },
       );
     });
@@ -57,21 +56,14 @@ void main() {
     test('mixed parts: fluent it', () {
       expect(
         index.search('fluent it').getValues(),
-        {
-          'fluent': closeTo(0.88, 0.01),
-          'fluent_ui': closeTo(0.84, 0.01),
-        },
+        {},
       );
     });
 
     test('mixed parts: fluent flutter', () {
       expect(
         index.search('fluent flutter').getValues(),
-        {
-          'fluent': closeTo(0.67, 0.01),
-          'fluent_ui': closeTo(0.65, 0.01),
-          'modular_flutter': closeTo(0.68, 0.01),
-        },
+        {},
       );
     });
 
@@ -79,7 +71,9 @@ void main() {
       expect(
         index.search('f').getValues(),
         {
-          'fluent': closeTo(0.55, 0.01),
+          'fluent': 1.0,
+          'fluent_ui': 1.0,
+          'modular_flutter': 1.0,
         },
       );
     });
@@ -88,8 +82,9 @@ void main() {
       expect(
         index.search('fl').getValues(),
         {
-          'fluent': closeTo(0.75, 0.01),
-          'fluent_ui': closeTo(0.67, 0.01),
+          'fluent': 1.0,
+          'fluent_ui': 1.0,
+          'modular_flutter': 1.0,
         },
       );
     });
@@ -98,9 +93,9 @@ void main() {
       expect(
         index.search('flu').getValues(),
         {
-          'fluent': closeTo(0.86, 0.01),
-          'fluent_ui': closeTo(0.78, 0.01),
-          'modular_flutter': closeTo(0.62, 0.01),
+          'fluent': 1.0,
+          'fluent_ui': 1.0,
+          'modular_flutter': 1.0,
         },
       );
     });
@@ -108,9 +103,7 @@ void main() {
     test('prefix: fluf', () {
       expect(
         index.search('fluf').getValues(),
-        {
-          'fluent': closeTo(0.50, 0.01),
-        },
+        {'fluent': 0.5, 'fluent_ui': 0.5, 'modular_flutter': 0.5},
       );
     });
 

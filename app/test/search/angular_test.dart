@@ -38,10 +38,7 @@ void main() {
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'angular', 'score': 1.0},
-          {
-            'package': 'angular_ui',
-            'score': closeTo(0.95, 0.01),
-          },
+          {'package': 'angular_ui', 'score': 1.0},
         ],
       });
     });
