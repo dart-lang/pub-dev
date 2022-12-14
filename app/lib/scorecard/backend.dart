@@ -10,6 +10,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/task/backend.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion, PackageView;
@@ -113,28 +115,64 @@ class ScoreCardBackend {
     String packageName,
     String? packageVersion, {
     bool onlyCurrent = false,
+    bool showSandboxedOutput = false,
   }) async {
     if (packageVersion == null || packageVersion == 'latest') {
-      final key = _db.emptyKey.append(Package, id: packageName);
-      final p = await _db.lookupOrNull<Package>(key);
-      if (p == null) {
+      packageVersion = await packageBackend.getLatestVersion(packageName);
+      if (packageVersion == null) {
+        // package does not exists
         return null;
       }
-      packageVersion = p.latestVersion;
     }
-    final cached = onlyCurrent
+    final cacheEntry = onlyCurrent || showSandboxedOutput
         ? null
-        : await cache.scoreCardData(packageName, packageVersion!).get();
-    if (cached != null && cached.hasAllReports) {
-      return cached;
+        : cache.scoreCardData(packageName, packageVersion);
+    if (cacheEntry != null) {
+      final cached = await cacheEntry.get();
+      if (cached != null && cached.hasAllReports) {
+        return cached;
+      }
     }
 
-    final key = scoreCardKey(packageName, packageVersion!);
+    if (showSandboxedOutput) {
+      final package = await packageBackend.lookupPackage(packageName);
+      if (package == null) {
+        throw NotFoundException('Package "$packageName" does not exist.');
+      }
+      final version = await packageBackend.lookupPackageVersion(
+          packageName, packageVersion);
+      if (version == null) {
+        throw NotFoundException(
+            'Package version "$packageName $packageVersion" does not exist.');
+      }
+      final status = PackageStatus.fromModels(package, version);
+      final summary =
+          await taskBackend.panaSummary(packageName, packageVersion);
+      return ScoreCardData(
+        packageName: packageName,
+        packageVersion: packageVersion,
+        runtimeVersion: null, // this is unused outside scorecard backend
+        updated: null,
+        packageCreated: package.created,
+        packageVersionCreated: version.created,
+        dartdocReport: DartdocReport(
+          timestamp:
+              null, // TODO: https://github.com/dart-lang/pana/issues/1162
+          // TODO: Embed dartdoc success status in summary, unclear if we need it
+          reportStatus: ReportStatus.success, // assume success
+          dartdocEntry: null, // unused
+          documentationSection: null, // already embedded in summary
+        ),
+        panaReport: PanaReport.fromSummary(summary, packageStatus: status),
+      );
+    }
+
+    final key = scoreCardKey(packageName, packageVersion);
     final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
     if (current != null) {
       // only full cards will be stored in cache
-      if (current.isCurrent && current.hasAllReports) {
-        await cache.scoreCardData(packageName, packageVersion).set(current);
+      if (cacheEntry != null && current.isCurrent && current.hasAllReports) {
+        await cacheEntry.set(current);
       }
       if (onlyCurrent || current.hasAllReports) {
         return current;

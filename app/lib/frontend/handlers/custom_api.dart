@@ -233,8 +233,12 @@ Future<shelf.Response> apiPackageMetricsHandler(
   final packageVersion = request.requestedUri.queryParameters['version'];
   checkPackageVersionParams(packageName, packageVersion);
   final current = request.requestedUri.queryParameters.containsKey('current');
-  final data = await scoreCardBackend
-      .getScoreCardData(packageName, packageVersion, onlyCurrent: current);
+  final data = await scoreCardBackend.getScoreCardData(
+    packageName,
+    packageVersion,
+    onlyCurrent: current,
+    showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
+  );
   if (data == null) {
     return jsonResponse({}, status: 404);
   }
