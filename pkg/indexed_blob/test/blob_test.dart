@@ -85,4 +85,20 @@ void main() {
     expectFile('lib/src/test-a.dart', [100]);
     expectFile('lib/src/test-b.dart', [101]);
   });
+
+  test('BlobIndex.files', () async {
+    final blobFile = File('${tmp.path}/test.blob');
+
+    final b = IndexedBlobBuilder(blobFile.openWrite());
+    await b.addFile('README.md', Stream.value([0, 0]));
+    await b.addFile('hello.txt', Stream.value([1, 2, 3, 4, 5]));
+    await b.addFile('lib/src/test-a.dart', Stream.value([100]));
+    await b.addFile('lib/src/test-b.dart', Stream.value([101]));
+    await b.addFile('log.txt', Stream.value([0, 0]));
+
+    final index = await b.buildIndex('42');
+
+    final files = index.files.toList();
+    expect(files, hasLength(5));
+  });
 }
