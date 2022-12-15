@@ -1323,6 +1323,7 @@ class PackageBackend {
 
     // Disable publishing for all packages, but exempt the test + internal ones for live testing.
     if (package.name == '_dummy_pkg' ||
+        package.publisherId == 'miksen.dk' ||
         isDartDevPublisher(package.publisherId)) {
       return;
     }
@@ -1371,6 +1372,7 @@ class PackageBackend {
 
     // Disable publishing for all packages, but exempt the test + internal ones for live testing.
     if (package.name == '_dummy_pkg' ||
+        package.publisherId == 'miksen.dk' ||
         isDartDevPublisher(package.publisherId)) {
       return;
     }
