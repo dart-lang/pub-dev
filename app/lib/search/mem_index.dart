@@ -315,15 +315,18 @@ class InMemoryPackageIndex implements PackageIndex {
         return aborted;
       }
 
-      final nameScore =
-          _packageNameIndex.searchWords(words, packages: packages);
+      final coreScores = <Score>[];
+      for (final word in words) {
+        final nameScore =
+            _packageNameIndex.searchWord(word, packages: packages);
+        final descr =
+            _descrIndex.searchWords([word], weight: 0.90, limitToIds: packages);
+        final readme = _readmeIndex
+            .searchWords([word], weight: 0.75, limitToIds: packages);
+        coreScores.add(Score.max([nameScore, descr, readme]));
+      }
 
-      final descr =
-          _descrIndex.searchWords(words, weight: 0.90, limitToIds: packages);
-      final readme =
-          _readmeIndex.searchWords(words, weight: 0.75, limitToIds: packages);
-
-      final core = Score.max([nameScore, descr, readme]);
+      final core = Score.multiply(coreScores);
 
       var symbolPages = Score.empty();
       if (!checkAborted()) {
@@ -467,94 +470,36 @@ class PackageNameIndex {
 
   /// Search [text] and return the matching packages with scores.
   Score search(String text) {
-    return searchWords(splitForQuery(text));
+    return Score.multiply(splitForQuery(text).map(searchWord).toList());
   }
 
-  /// Search using the parsed [words] and return the match packages with scores.
-  Score searchWords(List<String> words, {Set<String>? packages}) {
+  /// Search using the parsed [word] and return the match packages with scores.
+  Score searchWord(String word, {Set<String>? packages}) {
     final pkgNamesToCheck = packages ?? _namesWithoutGaps.keys;
     final values = <String, double>{};
-    // Prefilter package names based on the total length of the search query.
-    // The threshold sets the minimum package name length at (query length ~/ 4),
-    // filtering out most of the impossible matches before going into the N-GRAM
-    // matching calculations.
-    final wordsTotalLength =
-        words.map((e) => e.length).fold<int>(0, (a, b) => a + b);
-    final minimumLength = wordsTotalLength ~/ 4;
+    final singularWord = word.length <= 3 || !word.endsWith('s')
+        ? word
+        : word.substring(0, word.length - 1);
     for (final pkg in pkgNamesToCheck) {
-      if (pkg.length < minimumLength) {
+      final withoutGaps = _namesWithoutGaps[pkg] ?? pkg;
+      if (withoutGaps.contains(singularWord)) {
+        values[pkg] = 1.0;
         continue;
       }
-      // Calculate the collapsed format of the package name based on the cache.
-      // Fallback value is used in cases where concurrent updates of the index
-      // would cause inconsistencies and empty value in the cache.
-      final nameWithoutGaps = _namesWithoutGaps[pkg] ?? _collapseName(pkg);
-      final matchedChars = List<bool>.filled(nameWithoutGaps.length, false);
-      // Extra weight to compensate partial overlaps between a word and the package name.
-      var matchedExtraWeight = 0;
-      var unmatchedExtraWeight = 0;
-
-      bool matchPattern(Pattern pattern) {
-        var matched = false;
-        pattern.allMatches(nameWithoutGaps).forEach((m) {
-          matched = true;
-          for (var i = m.start; i < m.end; i++) {
-            matchedChars[i] = true;
-          }
-        });
-        return matched;
-      }
-
-      for (final word in words) {
-        if (matchPattern(_pluralizePattern(word))) {
-          // shortcut calculations, this is a full-length prefix match
-          matchedExtraWeight += word.length;
-          continue;
+      final parts = singularWord.length <= 3
+          ? [singularWord]
+          : ngrams(singularWord, 3, 3).toList();
+      var matched = 0;
+      for (final part in parts) {
+        if (withoutGaps.contains(part)) {
+          matched++;
         }
-        final parts = word.length <= 3 ? [word] : ngrams(word, 3, 3).toList();
-        var firstUnmatchedIndex = parts.length;
-        var lastUnmatchedIndex = -1;
-        for (var i = 0; i < parts.length; i++) {
-          final part = parts[i];
-          if (!matchPattern(part)) {
-            // increase the unmatched weight
-            unmatchedExtraWeight++;
-            // mark the index for prefix and postfix match calculation
-            firstUnmatchedIndex = math.min(i, firstUnmatchedIndex);
-            lastUnmatchedIndex = i;
-          }
-        }
-        // Add the largest of prefix or postfix match as extra weight.
-        final prefixWeight = firstUnmatchedIndex;
-        final postfixWeight = lastUnmatchedIndex == -1
-            ? parts.length
-            : (parts.length - lastUnmatchedIndex - 1);
-        matchedExtraWeight += math.max(prefixWeight, postfixWeight);
       }
-
-      final matchedCharCount = matchedChars.where((c) => c).length;
-      final totalNgramCount = matchedExtraWeight + unmatchedExtraWeight;
-      // The composite score combines:
-      // - matched ngrams (for increasing the positive match score)
-      // - (un)matched character counts (for decresing the score on missed characters)
-      // As the first part is more important, the missed char weight is greatly reduced.
-      const matchCharWeight = 0.2;
-      final score =
-          (matchedExtraWeight + (matchCharWeight * matchedCharCount)) /
-              (totalNgramCount + (matchCharWeight * matchedChars.length));
-      values[pkg] = score;
+      if (matched > 0) {
+        values[pkg] = matched / parts.length;
+      }
     }
     return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
-  }
-
-  Pattern _pluralizePattern(String word) {
-    if (word.length < 3) return word;
-    if (word.endsWith('s')) {
-      final singularEscaped = RegExp.escape(word.substring(0, word.length - 1));
-      return RegExp('${singularEscaped}s?');
-    }
-    final wordEscaped = RegExp.escape(word);
-    return RegExp('${wordEscaped}s?');
   }
 }
 

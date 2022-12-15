@@ -57,11 +57,11 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
         'packageHits': [
           {
             'package': 'currency_cloud',
-            'score': closeTo(0.79, 0.01),
+            'score': closeTo(0.77, 0.01),
           },
           {
             'package': 'cloud_firestore', // finds `rest` in name
-            'score': closeTo(0.62, 0.01),
+            'score': closeTo(0.72, 0.01),
           },
         ],
       });

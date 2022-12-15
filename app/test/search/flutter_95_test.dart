@@ -22,6 +22,7 @@ void main() {
         description: compactDescription(
             'Windows95 UI components for Flutter apps. Bring back the nostalgic look and feel of old operating systems with this set of UI components ready to use.'),
       ));
+      await index.addPackage(PackageDocument(package: 'flutter_charts'));
       await index.markReady();
     });
 
@@ -38,6 +39,7 @@ void main() {
             'package': 'flutter95',
             'score': 1.0,
           },
+          // flutter_charts must not show up here
         ],
       });
     });
