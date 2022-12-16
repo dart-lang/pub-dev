@@ -90,10 +90,14 @@ void _initWidgets() {
       .getElementById('-account-login')
       ?.onClick
       .listen((_) => authenticationProxy.trySignIn());
-  document
-      .getElementById('-account-logout')
-      ?.onClick
-      .listen((_) => authenticationProxy.signOut());
+  document.getElementById('-account-logout')?.onClick.listen((_) async {
+    await authenticationProxy.signOut();
+    // force-reload page if it was not reloaded after signing out
+    await Future.delayed(Duration(seconds: 3));
+    if (document.getElementById('-account-logout') != null) {
+      window.location.reload();
+    }
+  });
   admin_pages.loadLibrary().then((_) => admin_pages.initAdminPages());
 }
 
