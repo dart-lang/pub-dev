@@ -42,8 +42,8 @@ admins:
   - manageRetraction
   - removePackage
   - removeUsers
-- oauthUserId: '108693445730271975989'
-  email: pub-moderation-admin@dartlang-pub.iam.gserviceaccount.com
+- oauthUserId: '109830288482976007810'
+  email: pub-moderation-admin@dartlang-pub-dev.iam.gserviceaccount.com
   permissions:
   - executeTool
   - listUsers
