@@ -4,14 +4,31 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
+
+const _monthNames = {
+  1: 'January',
+  2: 'February',
+  3: 'March',
+  4: 'April',
+  5: 'May',
+  6: 'June',
+  7: 'July',
+  8: 'August',
+  9: 'September',
+  10: 'October',
+  11: 'November',
+  12: 'December',
+};
 
 Future<String> executeCountUploaderReport(List<String> args) async {
   final buckets = <DateTime, Set<String>>{};
-  final now = DateTime.now();
+  final now = clock.now();
 
   await for (final record in accountBackend.getUploadEvents(
-      DateTime(now.year, now.month - 12), now)) {
+    begin: DateTime(now.year, now.month - 12),
+  )) {
     final created = record.created;
     final users = record.users;
     if (created == null) continue;
@@ -23,26 +40,13 @@ Future<String> executeCountUploaderReport(List<String> args) async {
     }
   }
   final buffer = StringBuffer();
-  buffer.writeln('Monthly unique uploading users');
-  const monthNames = {
-    1: 'January',
-    2: 'February',
-    3: 'March',
-    4: 'April',
-    5: 'May',
-    6: 'June',
-    7: 'July',
-    8: 'August',
-    9: 'September',
-    10: 'October',
-    11: 'November',
-    12: 'December',
-  };
-  for (int i = 12; i > 0; i++) {
+  buffer.writeln('Monthly unique uploading users:');
+
+  for (int i = 11; i >= 0; i--) {
     final month = DateTime(now.year, now.month - i);
     final bucket = buckets[month] ?? {};
     buffer
-        .writeln('${monthNames[month.month]} ${month.year}: ${bucket.length}');
+        .writeln('${_monthNames[month.month]} ${month.year}: ${bucket.length}');
   }
   return buffer.toString();
 }

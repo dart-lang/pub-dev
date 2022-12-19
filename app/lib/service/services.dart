@@ -5,12 +5,14 @@
 import 'dart:async' show FutureOr, Zone;
 
 import 'package:appengine/appengine.dart';
+import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
 import '../account/backend.dart';
@@ -188,8 +190,9 @@ Future<R> withFakeServices<R>({
       await topPackages.start();
       await youtubeBackend.start();
       if (frontendServer != null) {
-        final handler =
-            wrapHandler(_logger, createAppHandler(), sanitize: true);
+        final handler = wrapHandler(
+            _logger, _fakeClockWrapper(createAppHandler()),
+            sanitize: true);
         final fsSubscription = frontendServer.server.listen((rq) async {
           await fork(() => handleRequest(rq, handler));
         });
@@ -198,6 +201,21 @@ Future<R> withFakeServices<R>({
       return await fn();
     });
   }) as R;
+}
+
+const fakeClockHeaderName = '_fake_clock';
+
+/// In the fake server a request can send a '_fake_clock' header to specify at
+/// what timestamp the request should be handled.
+shelf.Handler _fakeClockWrapper(shelf.Handler handler) {
+  return (shelf.Request request) {
+    final t = request.headers[fakeClockHeaderName];
+    if (t == null) {
+      return handler(request);
+    } else {
+      return withClock(Clock.fixed(DateTime.parse(t)), () => handler(request));
+    }
+  };
 }
 
 /// Run [fn] with pub services that are shared between server instances, CLI

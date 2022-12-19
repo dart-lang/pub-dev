@@ -565,11 +565,15 @@ class AccountBackend {
 
   /// Retrieves a list of all uploader events that happened between [begin] and
   /// [end].
-  Stream<AuditLogRecord> getUploadEvents(DateTime begin, DateTime end) {
+  Stream<AuditLogRecord> getUploadEvents({DateTime? begin, DateTime? end}) {
     final query = _db.query<AuditLogRecord>();
     query.filter('kind =', AuditLogRecordKind.packagePublished);
-    query.filter('created >=', begin.toIso8601String());
-    query.filter('created <', end.toIso8601String());
+    if (begin != null) {
+      query.filter('created >=', begin);
+    }
+    if (end != null) {
+      query.filter('created <', end);
+    }
     return query.run();
   }
 
