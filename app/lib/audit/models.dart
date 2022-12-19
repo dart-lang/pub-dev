@@ -512,6 +512,29 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId];
   }
 
+  factory AuditLogRecord.publisherMemberAdded({
+    required User activeUser,
+    required String publisherId,
+    required User memberToAdd,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.publisherMemberRemoved
+      ..agent = activeUser.userId
+      ..summary = [
+        '`${activeUser.email}` added `${memberToAdd.email}` ',
+        'to publisher `$publisherId`.',
+      ].join()
+      ..data = {
+        'publisherId': publisherId,
+        'memberEmail': memberToAdd.email,
+        'user': activeUser.email,
+      }
+      ..users = [activeUser.userId, memberToAdd.userId]
+      ..packages = []
+      ..packageVersions = []
+      ..publishers = [publisherId];
+  }
+
   factory AuditLogRecord.publisherMemberRemoved({
     required User activeUser,
     required String publisherId,
@@ -744,6 +767,9 @@ abstract class AuditLogRecordKind {
   /// Event that a user has rejected the invite to become member of a publisher.
   static const publisherMemberInviteRejected =
       'publisher-member-invite-rejected';
+
+  /// Event that a publisher member was removed.
+  static const publisherMemberAdded = 'publisher-member-added';
 
   /// Event that a publisher member was removed.
   static const publisherMemberRemoved = 'publisher-member-removed';

@@ -32,6 +32,7 @@ import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../tool/utils/dart_sdk_version.dart';
+import 'tools/add_user_to_publisher.dart';
 import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
 import 'tools/list_package_blocked.dart';
@@ -72,6 +73,7 @@ final Map<String, Tool> availableTools = {
   'set-user-blocked': executeSetUserBlocked,
   'user-merger': executeUserMergerTool,
   'list-tools': executeListTools,
+  'add-user-to-publisher': executeAddUserToPublisher,
 };
 
 /// Represents the backend for the admin handling and authentication.
