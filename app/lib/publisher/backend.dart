@@ -10,8 +10,10 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
+import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../account/models.dart';
 import '../audit/models.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
@@ -343,10 +345,26 @@ class PublisherBackend {
 
   /// Invites a user to become a publisher admin.
   Future<account_api.InviteStatus> invitePublisherMember(
-      String publisherId, api.InviteMemberRequest invite) async {
+    String publisherId,
+    api.InviteMemberRequest invite,
+  ) async {
     checkPublisherIdParam(publisherId);
-    final activeUser = await requireAuthenticatedWebUser();
-    final p = await requirePublisherAdmin(publisherId, activeUser.userId);
+    final authenticatedAgent = await requireAuthenticatedWebUser();
+    await requirePublisherAdmin(publisherId, authenticatedAgent.userId);
+    return await doInvitePublisherMember(
+      authenticatedAgent,
+      authenticatedAgent.user,
+      publisherId,
+      invite,
+    );
+  }
+
+  Future<account_api.InviteStatus> doInvitePublisherMember(
+    AuthenticatedAgent authenticatedAgent,
+    User activeUser,
+    String publisherId,
+    api.InviteMemberRequest invite,
+  ) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     InvalidInputException.checkStringLength(invite.email, 'email',
         maximum: 4096);
@@ -356,7 +374,9 @@ class PublisherBackend {
     final usersByEmail = await accountBackend.lookupUsersByEmail(invite.email);
     if (usersByEmail.isNotEmpty) {
       final maybeMembers = await _db.lookup<PublisherMember>(usersByEmail
-          .map((u) => p.key.append(PublisherMember, id: u.userId))
+          .map((u) => _db.emptyKey
+              .append(Publisher, id: publisherId)
+              .append(PublisherMember, id: u.userId))
           .toList());
       for (final m in maybeMembers) {
         if (m == null) continue;
@@ -367,7 +387,9 @@ class PublisherBackend {
     }
 
     return await consentBackend.invitePublisherMember(
-      publisherId: p.publisherId,
+      authenticatedAgent: authenticatedAgent,
+      activeUser: activeUser,
+      publisherId: publisherId,
       invitedUserEmail: invite.email,
     );
   }

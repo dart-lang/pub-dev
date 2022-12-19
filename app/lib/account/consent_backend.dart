@@ -186,18 +186,21 @@ class ConsentBackend {
 
   /// Invites a new member for the publisher.
   Future<api.InviteStatus> invitePublisherMember({
+    required AuthenticatedAgent authenticatedAgent,
+    required User activeUser,
     required String publisherId,
     required String invitedUserEmail,
   }) async {
-    final authenticatedUser = await requireAuthenticatedWebUser();
-    final user = authenticatedUser.user;
     return await _invite(
-      activeUser: user,
+      activeUser: activeUser,
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,
       args: [publisherId],
       auditLogRecord: AuditLogRecord.publisherMemberInvited(
-          user: user, publisherId: publisherId, memberEmail: invitedUserEmail),
+        agent: authenticatedAgent,
+        publisherId: publisherId,
+        memberEmail: invitedUserEmail,
+      ),
     );
   }
 

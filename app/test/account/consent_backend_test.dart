@@ -162,7 +162,10 @@ void main() {
   group('Publisher member', () {
     Future<String?> inviteMember() async {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        final agent = await requireAuthenticatedWebUser();
         final status = await consentBackend.invitePublisherMember(
+          authenticatedAgent: agent,
+          activeUser: agent.user,
           publisherId: 'example.com',
           invitedUserEmail: 'user@pub.dev',
         );
