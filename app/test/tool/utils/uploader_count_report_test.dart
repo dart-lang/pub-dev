@@ -45,10 +45,10 @@ environment:
       var i = 0;
       for (final t in [
         UserAndTime('user1@pub.dev',
-            DateTime(2021, 1, 2)), // Before range, should not be counted.
-        UserAndTime('user1@pub.dev', DateTime(2021, 11, 5)),
+            DateTime(2021, 12, 2)), // Before range, should not be counted.
+        UserAndTime('user1@pub.dev', DateTime(2022, 1, 5)),
         UserAndTime('user1@pub.dev',
-            DateTime(2021, 11, 6)), // Same user, should not be counted.
+            DateTime(2022, 1, 6)), // Same user, should not be counted.
         UserAndTime('user1@pub.dev', DateTime(2022, 2, 26)),
         UserAndTime('user2@pub.dev', DateTime(2022, 2, 21)),
         UserAndTime('user3@pub.dev', DateTime(2022, 2, 22)),
@@ -62,7 +62,7 @@ environment:
 
       expect(s, '''
 Monthly unique uploading users:
-January 2022: 0
+January 2022: 1
 February 2022: 3
 March 2022: 0
 April 2022: 0
