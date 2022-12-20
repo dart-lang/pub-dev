@@ -48,6 +48,7 @@ Future<String> executeCreatePublisher(List<String> args) async {
   if (admins.length > 1) {
     return 'ERROR: more than one user: $adminEmail';
   }
+  final admin = admins.single;
 
   // Create the publisher
   final now = clock.now().toUtc();
@@ -83,7 +84,7 @@ Future<String> executeCreatePublisher(List<String> args) async {
         ..updated = now
         ..role = PublisherMemberRole.admin,
       AuditLogRecord.publisherCreated(
-        user: user,
+        user: admin,
         publisherId: publisherId,
       ),
     ]);
