@@ -19,6 +19,7 @@ import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
@@ -322,6 +323,10 @@ class TaskBackend {
     String packageName, {
     bool updateDependants = false,
   }) async {
+    if (activeConfiguration.isProduction) {
+      return; // HACK: Disable analysis for now
+    }
+
     var lastVersionCreated = initialTimestamp;
     await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
