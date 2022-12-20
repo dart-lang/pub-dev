@@ -105,6 +105,7 @@ class ConsentBackend {
     required String kind,
     required List<String> args,
     required AuditLogRecord auditLogRecord,
+    required bool createdBySiteAdmin,
   }) async {
     return retry(() async {
       // First check for existing consents with identical dedupId.
@@ -135,6 +136,7 @@ class ConsentBackend {
         email: email,
         kind: kind,
         args: args,
+        createdBySiteAdmin: createdBySiteAdmin,
       );
       await _db.commit(inserts: [
         consent,
@@ -150,21 +152,19 @@ class ConsentBackend {
     required User activeUser,
     required String packageName,
     required String uploaderEmail,
-    bool isFromAdminUser = false,
+    bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
       activeUser: activeUser,
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
-      args: [
-        packageName,
-        if (isFromAdminUser) 'is-from-admin-user',
-      ],
+      args: [packageName],
       auditLogRecord: AuditLogRecord.uploaderInvited(
         agent: agent,
         package: packageName,
         uploaderEmail: uploaderEmail,
       ),
+      createdBySiteAdmin: createdBySiteAdmin,
     );
   }
 
@@ -176,12 +176,14 @@ class ConsentBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     return await _invite(
-        activeUser: user,
-        email: contactEmail,
-        kind: ConsentKind.publisherContact,
-        args: [publisherId, contactEmail],
-        auditLogRecord: AuditLogRecord.publisherContactInvited(
-            user: user, publisherId: publisherId, contactEmail: contactEmail));
+      activeUser: user,
+      email: contactEmail,
+      kind: ConsentKind.publisherContact,
+      args: [publisherId, contactEmail],
+      auditLogRecord: AuditLogRecord.publisherContactInvited(
+          user: user, publisherId: publisherId, contactEmail: contactEmail),
+      createdBySiteAdmin: false,
+    );
   }
 
   /// Invites a new member for the publisher.
@@ -201,6 +203,7 @@ class ConsentBackend {
         publisherId: publisherId,
         memberEmail: invitedUserEmail,
       ),
+      createdBySiteAdmin: false,
     );
   }
 
@@ -320,8 +323,7 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
-    final isFromAdminUser =
-        consent.args!.skip(1).contains('is-from-admin-user');
+    final createdBySiteAdmin = consent.createdBySiteAdmin;
     final fromUserId = consent.fromUserId!;
     final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedWebUser();
@@ -335,7 +337,7 @@ class _PackageUploaderAction extends ConsentAction {
       fromUserEmail,
       packageName,
       currentUser.user,
-      isFromAdminUser: isFromAdminUser,
+      consentRequestCreatedBySiteAdmin: createdBySiteAdmin,
     );
   }
 

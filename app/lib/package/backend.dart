@@ -1451,18 +1451,19 @@ class PackageBackend {
     String fromUserEmail,
     String packageName,
     User uploader, {
-    required bool isFromAdminUser,
+    required bool consentRequestCreatedBySiteAdmin,
   }) async {
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      await _validatePackageUploader(
-        packageName,
-        package,
-        fromUserId,
-        isFromAdminUser: isFromAdminUser,
-      );
+      if (!consentRequestCreatedBySiteAdmin) {
+        await _validatePackageUploader(
+          packageName,
+          package,
+          fromUserId,
+        );
+      }
       if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
@@ -1484,30 +1485,11 @@ class PackageBackend {
   Future<void> _validatePackageUploader(
     String packageName,
     Package? package,
-    String userId, {
-    bool isFromAdminUser = false,
-  }) async {
+    String userId,
+  ) async {
     // Fail if package doesn't exist.
     if (package == null) {
       throw NotFoundException.resource(packageName);
-    }
-
-    if (isFromAdminUser) {
-      // Fail if calling user doesn't have admin permissions anymore.
-      final user = await accountBackend.lookupUserById(userId);
-      if (user == null) {
-        throw AuthorizationException.userCannotChangeUploaders(package.name!);
-      }
-      final isAuthorizedAdmin = await accountBackend.hasAdminPermission(
-        oauthUserId: user.oauthUserId,
-        email: user.email,
-        permission: AdminPermission.managePackageOwnership,
-      );
-      if (isAuthorizedAdmin) {
-        return;
-      } else {
-        throw AuthorizationException.userCannotChangeUploaders(package.name!);
-      }
     }
 
     // Fail if calling user doesn't have permission to change uploaders.

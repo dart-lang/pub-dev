@@ -628,7 +628,7 @@ class AdminBackend {
       activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
-      isFromAdminUser: true,
+      createdBySiteAdmin: true,
     );
     return await handleGetPackageUploaders(packageName);
   }

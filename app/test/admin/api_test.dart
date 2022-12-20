@@ -509,7 +509,8 @@ void main() {
               '`admin@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.');
 
           final consentRow = await dbService.query<Consent>().run().single;
-          expect(consentRow.args, ['oxygen', 'is-from-admin-user']);
+          expect(consentRow.args, ['oxygen']);
+          expect(consentRow.createdBySiteAdmin, isTrue);
 
           await createPubApiClient(
             authToken: createFakeAuthTokenForEmail('someuser@pub.dev'),

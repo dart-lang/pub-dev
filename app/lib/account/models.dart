@@ -282,6 +282,9 @@ class Consent extends db.Model {
   @db.IntProperty()
   int notificationCount = 0;
 
+  @db.BoolProperty()
+  bool createdBySiteAdmin = false;
+
   Consent();
 
   Consent.init({
@@ -289,6 +292,7 @@ class Consent extends db.Model {
     required this.email,
     required this.kind,
     required this.args,
+    this.createdBySiteAdmin = false,
     Duration timeout = const Duration(days: 7),
   }) {
     id = Ulid().toString();
