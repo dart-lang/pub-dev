@@ -14,7 +14,6 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../account/auth_provider.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
@@ -67,6 +66,7 @@ final Map<String, Tool> availableTools = {
   'recent-uploaders': executeRecentUploaders,
   'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
   'publisher-member': executePublisherMember,
+  'publisher-invite-member': executePublisherInviteMember,
   'set-package-blocked': executeSetPackageBlocked,
   'set-secret': executeSetSecret,
   'set-user-blocked': executeSetUserBlocked,
@@ -617,12 +617,7 @@ class AdminBackend {
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
     // TODO: refactor consent backend to accept non-User agents
-    final user =
-        await accountBackend.lookupOrCreateUserByOauthUserId(AuthResult(
-      oauthUserId: authenticatedUser.oauthUserId,
-      email: authenticatedUser.email,
-      audience: authenticatedUser.audience,
-    ));
+    final user = await accountBackend.userForServiceAccount(authenticatedUser);
     if (user == null) {
       throw AuthenticationException.failed();
     }

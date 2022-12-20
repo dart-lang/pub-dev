@@ -149,7 +149,7 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
     throw AuthenticationException.failed();
   }
 
-  final user = await accountBackend.lookupOrCreateUserByOauthUserId(auth);
+  final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
   if (user == null) {
     throw AuthenticationException.failed();
   }
@@ -351,6 +351,17 @@ class AccountBackend {
     });
   }
 
+  // TODO: refactor consent backend to accept non-User agents
+  // TODO: remove this after consent backend refactor
+  Future<User?> userForServiceAccount(
+      AuthenticatedGcpServiceAccount authenticatedAgent) async {
+    return await _lookupOrCreateUserByOauthUserId(AuthResult(
+      oauthUserId: authenticatedAgent.oauthUserId,
+      email: authenticatedAgent.email,
+      audience: authenticatedAgent.audience,
+    ));
+  }
+
   /// Returns a [User] entity that matches the [auth] results:
   /// - If there is an entity with the OauthUserID, it will be returned.
   /// - If there is an entity with the email but not OAuthUserID (old account
@@ -358,9 +369,7 @@ class AccountBackend {
   ///   field and return the entity.
   /// Otherwise (e.g. multiple entities with the same email, or data inconsistency)
   /// the method will return `null`.
-  ///
-  /// TODO: make this private once the consent backend rewrite is done.
-  Future<User?> lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+  Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     ArgumentError.checkNotNull(auth, 'auth');
     final emptyKey = _db.emptyKey;
 

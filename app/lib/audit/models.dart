@@ -425,23 +425,23 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   }
 
   factory AuditLogRecord.publisherMemberInvited({
-    required User user,
+    required AuthenticatedAgent agent,
     required String publisherId,
     required String memberEmail,
   }) {
     return AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInvited
-      ..agent = user.userId
+      ..agent = agent.agentId
       ..summary = [
-        '`${user.email}` invited `$memberEmail` ',
+        '`${agent.displayId}` invited `$memberEmail` ',
         'to be a member for publisher `$publisherId`.',
       ].join()
       ..data = {
         'publisherId': publisherId,
         'memberEmail': memberEmail,
-        'user': user.email,
+        if (agent.email != null) 'email': agent.email,
       }
-      ..users = [user.userId]
+      ..users = [if (agent is AuthenticatedUser) agent.userId]
       ..packages = []
       ..packageVersions = []
       ..publishers = [publisherId];

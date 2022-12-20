@@ -4,7 +4,10 @@
 
 import 'dart:async';
 
+import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
 Future<String> executePublisherMember(List<String> args) async {
   if (args.length != 1) {
@@ -15,4 +18,25 @@ Future<String> executePublisherMember(List<String> args) async {
 
   final members = await publisherBackend.listPublisherMembers(publisherId);
   return members.map((e) => '${e.userId} ${e.email} ${e.role}\n').join();
+}
+
+Future<String> executePublisherInviteMember(List<String> args) async {
+  if (args.length != 2) {
+    print(args);
+    return 'Tool to invite publisher member as new admin.\n'
+        '  <tools-command> <publisherId> <email> - send invite to new admin\n';
+  }
+  final publisherId = args[0].toLowerCase();
+  final invitedEmail = args[1].toLowerCase();
+
+  final authenticatedAgent =
+      await requireAuthenticatedAdmin(AdminPermission.executeTool);
+  await publisherBackend.doInvitePublisherMember(
+    authenticatedAgent,
+    (await accountBackend.userForServiceAccount(authenticatedAgent))!,
+    publisherId,
+    InviteMemberRequest(email: invitedEmail),
+  );
+
+  return '$invitedEmail has been invited.';
 }
