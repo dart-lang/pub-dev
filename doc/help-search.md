@@ -19,16 +19,27 @@
 
 ## Filters
 
-The search UI also supports filters:
+The search UI also supports filters.
+On a wide screen, 
+the filter options will appear to the left of the search results.
+On a non-wide screen, to open the filter options,
+click the filter icon to the right of the search bar.
 
-  - On the left of the search bar, select 'Dart' or 'Flutter' depending on the
-    SDK you are developing with.
+  - To filter by Dart or Flutter support, 
+    expand the **SDKs** section,
+    then select the SDK you are developing with.
 
-  - On the right of the search bar, click the platform filter buttons to filter
-    results to packages supporting the platforms you need support for.
+  - To filter by platform, under the **Platforms** section,
+    select all platforms you intend to support.
 
-  - To use platform filters for alpha platforms (e.g. Flutter Desktop), use
-    the Advanced option on the far right of the search bar.
+  - To filter for only packages with [OSI approved licenses][],
+    expand the **License** section,
+    then select **OSI approved**.
+
+  - For other filters, such as including unlisted packages,
+    expand the **Advanced** section.
+
+[OSI approved licenses]: https://opensource.org/licenses
 
 ## Ranking
 
