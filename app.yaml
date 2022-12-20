@@ -9,6 +9,7 @@ service: default
 resources:
   cpu: 4
   memory_gb: 6
+  disk_size_gb: 25
 
 #manual_scaling:
 #  instances: 1
