@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
 
+import '../audit/models.dart';
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../shared/configuration.dart';
@@ -569,6 +570,20 @@ class AccountBackend {
     if (expireSessions) {
       await _expireAllSessions(userId);
     }
+  }
+
+  /// Retrieves a list of all uploader events that happened between [begin] and
+  /// [end].
+  Stream<AuditLogRecord> getUploadEvents({DateTime? begin, DateTime? end}) {
+    final query = _db.query<AuditLogRecord>();
+    query.filter('kind =', AuditLogRecordKind.packagePublished);
+    if (begin != null) {
+      query.filter('created >=', begin);
+    }
+    if (end != null) {
+      query.filter('created <', end);
+    }
+    return query.run();
   }
 
   // expire all sessions of a given user from datastore and cache

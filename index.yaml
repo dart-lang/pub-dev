@@ -20,6 +20,11 @@ indexes:
 
 - kind: AuditLogRecord
   properties:
+  - name: kind
+  - name: created
+
+- kind: AuditLogRecord
+  properties:
   - name: publishers
   - name: created
     direction: desc
