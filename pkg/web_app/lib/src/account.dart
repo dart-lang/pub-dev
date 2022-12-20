@@ -93,7 +93,6 @@ void _initWidgets() {
   document.getElementById('-account-logout')?.onClick.listen((_) async {
     await authenticationProxy.signOut();
     // force-reload page if it was not reloaded after signing out
-    await Future.delayed(Duration(seconds: 3));
     if (document.getElementById('-account-logout') != null) {
       window.location.reload();
     }
