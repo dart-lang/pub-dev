@@ -1,4 +1,5 @@
 name: Dart CI
+on:
   schedule:
     - cron: "0 0 * * 0" # runs on every Sunday
 defaults:
