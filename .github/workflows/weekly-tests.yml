@@ -1,0 +1,23 @@
+name: Dart CI
+  schedule:
+    - cron: "0 0 * * 0" # runs on every Sunday
+defaults:
+  run:
+    shell: bash
+env:
+  PUB_ENVIRONMENT: bot.github
+permissions: read-all
+
+jobs:
+  weekly-tests:
+    # These tests are run as a sanity-check, usually involving external data or systems.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout
+      - uses: dart-lang/setup-dart
+      - name: Install dependencies
+        run: dart pub get
+        working-directory: app
+      - name: Run test
+        run: dart test -P sanity
+        working-directory: app

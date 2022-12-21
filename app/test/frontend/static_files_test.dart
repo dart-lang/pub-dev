@@ -49,16 +49,20 @@ void main() {
     }
 
     test(
-        'github.css',
-        () => checkAsset(
-            'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/github.css',
-            '/static/highlight/github.css'));
+      'github.css',
+      () => checkAsset(
+          'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/github.css',
+          '/static/highlight/github.css'),
+      tags: ['sanity'],
+    );
 
     test(
-        'highlight.pack.js',
-        () => checkAsset(
-            'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/highlight.pack.js',
-            '/static/highlight/highlight.pack.js'));
+      'highlight.pack.js',
+      () => checkAsset(
+          'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/highlight.pack.js',
+          '/static/highlight/highlight.pack.js'),
+      tags: ['sanity'],
+    );
   });
 
   group('Manual copy of files', () {
@@ -205,7 +209,7 @@ void main() {
     test('script.dart.js and parts size check', () {
       final file = cache.getFile('/static/js/script.dart.js');
       expect(file, isNotNull);
-      expect((file!.bytes.length / 1024).round(), closeTo(273, 1));
+      expect((file!.bytes.length / 1024).round(), closeTo(275, 1));
 
       final parts = cache.paths
           .where((path) =>

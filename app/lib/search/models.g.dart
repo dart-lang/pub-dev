@@ -30,6 +30,7 @@ DartdocIndexEntry _$DartdocIndexEntryFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String?,
       overriddenDepth: json['overriddenDepth'] as int?,
       packageName: json['packageName'] as String?,
+      desc: json['desc'] as String?,
       enclosedBy: json['enclosedBy'] == null
           ? null
           : DartdocIndexEntryEnclosedBy.fromJson(
@@ -52,6 +53,7 @@ Map<String, dynamic> _$DartdocIndexEntryToJson(DartdocIndexEntry instance) {
   writeNotNull('type', instance.type);
   writeNotNull('overriddenDepth', instance.overriddenDepth);
   writeNotNull('packageName', instance.packageName);
+  writeNotNull('desc', instance.desc);
   writeNotNull('enclosedBy', instance.enclosedBy);
   return val;
 }
@@ -61,6 +63,7 @@ DartdocIndexEntryEnclosedBy _$DartdocIndexEntryEnclosedByFromJson(
     DartdocIndexEntryEnclosedBy(
       name: json['name'] as String?,
       type: json['type'] as String?,
+      href: json['href'] as String?,
     );
 
 Map<String, dynamic> _$DartdocIndexEntryEnclosedByToJson(
@@ -75,5 +78,6 @@ Map<String, dynamic> _$DartdocIndexEntryEnclosedByToJson(
 
   writeNotNull('name', instance.name);
   writeNotNull('type', instance.type);
+  writeNotNull('href', instance.href);
   return val;
 }

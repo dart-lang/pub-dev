@@ -73,6 +73,7 @@ class DartdocIndexEntry {
   final String? type;
   final int? overriddenDepth;
   final String? packageName;
+  final String? desc;
   final DartdocIndexEntryEnclosedBy? enclosedBy;
 
   DartdocIndexEntry({
@@ -82,6 +83,7 @@ class DartdocIndexEntry {
     this.type,
     this.overriddenDepth,
     this.packageName,
+    this.desc,
     this.enclosedBy,
   });
 
@@ -95,10 +97,12 @@ class DartdocIndexEntry {
 class DartdocIndexEntryEnclosedBy {
   final String? name;
   final String? type;
+  final String? href;
 
   DartdocIndexEntryEnclosedBy({
     this.name,
     this.type,
+    this.href,
   });
 
   factory DartdocIndexEntryEnclosedBy.fromJson(Map<String, dynamic> json) =>
