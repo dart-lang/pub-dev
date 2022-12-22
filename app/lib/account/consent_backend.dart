@@ -323,7 +323,7 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
-    final createdBySiteAdmin = consent.createdBySiteAdmin;
+    final createdBySiteAdmin = consent.createdBySiteAdmin ?? false;
     final fromUserId = consent.fromUserId!;
     final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedWebUser();
