@@ -283,7 +283,7 @@ class Consent extends db.Model {
   int notificationCount = 0;
 
   @db.BoolProperty()
-  bool createdBySiteAdmin = false;
+  bool? createdBySiteAdmin = false;
 
   Consent();
 
