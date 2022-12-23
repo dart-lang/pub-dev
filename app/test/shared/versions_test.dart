@@ -145,8 +145,7 @@ Please update flutterVersion in app/lib/shared/versions.dart
 and do not format to also bump the runtimeVersion.''',
       );
     },
-    // TODO: investigate why skip was not working on CI
-    skip: false, // Note: this test is easily skipped.
+    tags: ['sanity'],
   );
 
   test('dartdoc version should match pkg/pub_dartdoc', () async {

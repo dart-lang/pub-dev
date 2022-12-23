@@ -40,7 +40,7 @@ void main() {
         }
       });
     },
-    tags: ['presubmit-only'],
+    tags: ['sanity'],
   );
 }
 

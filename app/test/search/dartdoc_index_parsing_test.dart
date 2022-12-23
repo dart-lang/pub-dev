@@ -31,7 +31,7 @@ final _indexTypes = <String>{
 };
 
 void main() {
-  group('dartdoc index.json parsing', () {
+  group('dartdoc index.json parsing', tags: ['sanity'], () {
     /// Downloads [url and creates a cached file in the .dart_tool/pub-search-data directory.
     ///
     /// Reuses the same file up to a week.
@@ -81,7 +81,7 @@ void main() {
       }
 
       // making sure we don't miss any new attribute
-      expect(index.toJsonText(), textContent.trim());
+      expect(json.decode(index.toJsonText()), json.decode(textContent));
     });
 
     test('parse Flutter SDK index.json', () async {
@@ -115,7 +115,7 @@ void main() {
       }
 
       // making sure we don't miss any new attribute
-      expect(index.toJsonText(), textContent.trim());
+      expect(json.decode(index.toJsonText()), json.decode(textContent));
 
       // parsing into SDK index
       final sdkMemIndex = SdkMemIndex.flutter();
