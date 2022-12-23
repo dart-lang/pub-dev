@@ -144,7 +144,8 @@ class _GmailSmtpRelay implements EmailSender {
         retryIf: (e) =>
             e is TimeoutException ||
             e is IOException ||
-            e is SmtpClientCommunicationException,
+            e is SmtpClientCommunicationException ||
+            e is SmtpNoGreetingException,
         delayFactor: Duration(seconds: 2),
         maxAttempts: 2,
       );
@@ -157,7 +158,11 @@ class _GmailSmtpRelay implements EmailSender {
       _accessToken = null;
       throw EmailSenderException.failed();
     } on MailerException catch (e, st) {
-      _logger.severe('Sending email failed: $debugHeader.', e, st);
+      var level = Level.SEVERE;
+      if (e is SmtpNoGreetingException) {
+        level = Level.WARNING;
+      }
+      _logger.log(level, 'Sending email failed: $debugHeader.', e, st);
       throw EmailSenderException.failed();
     }
   }
