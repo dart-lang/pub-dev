@@ -158,11 +158,7 @@ class _GmailSmtpRelay implements EmailSender {
       _accessToken = null;
       throw EmailSenderException.failed();
     } on MailerException catch (e, st) {
-      var level = Level.SEVERE;
-      if (e is SmtpNoGreetingException) {
-        level = Level.WARNING;
-      }
-      _logger.log(level, 'Sending email failed: $debugHeader.', e, st);
+      _logger.warning('Sending email failed: $debugHeader.', e, st);
       throw EmailSenderException.failed();
     }
   }
