@@ -92,7 +92,9 @@ void _initWidgets() {
       .listen((_) => authenticationProxy.trySignIn());
   document.getElementById('-account-logout')?.onClick.listen((_) async {
     await authenticationProxy.signOut();
-    // force-reload page if it was not reloaded after signing out
+    // Force session invalidation in case the signOut() wouldn't trigger it at this point.
+    await api_client.unauthenticatedClient.invalidateSession();
+    // Force page reload if it was not done after signing out.
     if (document.getElementById('-account-logout') != null) {
       window.location.reload();
     }
