@@ -12,5 +12,5 @@ tags:
   sanity:
     skip: 'Run sanity-check tests manually with `pub test -P sanity`.'
     presets:
-      fragile:
+      sanity:
         skip: false # Don't skip these tests.
