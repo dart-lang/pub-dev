@@ -20,5 +20,5 @@ jobs:
         run: dart pub get
         working-directory: app
       - name: Run test
-        run: dart test -P sanity
+        run: dart test -P sanity -t sanity
         working-directory: app
