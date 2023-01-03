@@ -258,7 +258,7 @@ d.Node _automatedPublishing(Package package) {
           classes: ['-pub-form-textfield-row'],
           child: material.textField(
             id: '-pkg-admin-automated-github-repository',
-            label: 'Repository',
+            label: 'Repository (<owner>/<repository>)',
             value: github?.repository,
           ),
         ),
