@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io' show Directory, File, Platform, exit;
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
@@ -97,6 +98,7 @@ Future<void> main(List<String> args) async {
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
       //TODO: Run dartdoc as part of pana
       checkRemoteRepository: true,
+      futureSdkTag: PackageVersionTags.isDart3Ready,
     ),
     logger: _log,
     storeResource: (filename, data) async {
