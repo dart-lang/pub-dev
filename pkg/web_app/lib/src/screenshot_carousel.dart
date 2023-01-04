@@ -57,7 +57,8 @@ void _setEventForScreenshot() {
   for (final thumbnail in thumbnails) {
     thumbnail.parent!.onClick.listen((event) {
       showElement(carousel);
-      document.body!.style.overflow = 'hidden';
+      document.body!.classes.remove('overflow-auto');
+      document.body!.classes.add('overflow-hidden');
       images = thumbnail.dataset['thumbnail']!.split(',');
       showImage(screenshotIndex, event);
     });
@@ -68,7 +69,8 @@ void _setEventForScreenshot() {
     hideElement(carousel);
     hideElement(next);
     hideElement(prev);
-    document.body!.style.overflow = 'auto';
+    document.body!.classes.remove('overflow-hidden');
+    document.body!.classes.add('overflow-auto');
     screenshotIndex = 0;
   }
 
