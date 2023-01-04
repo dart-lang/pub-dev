@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
@@ -89,7 +90,7 @@ class _PanaRunner implements PanaRunner {
                 ? null
                 : await getDefaultAnalysisOptionsYaml(),
             checkRemoteRepository: isInternal,
-            futureSdkTag: 'is:future-sdk-compatible',
+            futureSdkTag: PackageVersionTags.isDart3Ready,
           ),
           logger: Logger.detached('pana/$package/$version'),
           storeResource: store,
