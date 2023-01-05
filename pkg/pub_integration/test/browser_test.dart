@@ -84,7 +84,7 @@ void main() {
           // check header with name and version
           Future<void> checkHeaderTitle() async {
             final headerTitle = await page.$('h1.title');
-            expect(await headerTitle.textContent(), contains('retry 2.0.1'));
+            expect(await headerTitle.textContent(), contains('retry 3.1.0'));
           }
 
           await checkHeaderTitle();
