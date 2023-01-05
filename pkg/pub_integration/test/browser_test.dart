@@ -90,10 +90,10 @@ void main() {
           await checkHeaderTitle();
           await _checkCopyToClipboard(page);
 
-          await page.gotoOrigin('/packages/retry/versions/2.0.1');
+          await page.gotoOrigin('/packages/retry/versions/3.1.0');
           await checkHeaderTitle();
 
-          await page.gotoOrigin('/packages/retry/versions/2.0.01');
+          await page.gotoOrigin('/packages/retry/versions/3.1.01');
           await checkHeaderTitle();
 
           await page.gotoOrigin('/packages/retry/license');
@@ -122,7 +122,7 @@ Future _checkCopyToClipboard(Page page) async {
   // clipboard has the content
   expect(
     await page.evaluate('() => navigator.clipboard.readText()'),
-    'retry: ^2.0.1',
+    'retry: ^3.1.0',
   );
 
   // feedback should not be visible after 2.5 seconds
