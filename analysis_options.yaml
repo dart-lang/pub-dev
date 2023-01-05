@@ -1,9 +1,9 @@
-# https://www.dartlang.org/guides/language/analysis-options
+# https://dart.dev/guides/language/analysis-options
 analyzer:
   exclude:
     - pkg/pub_integration/test_data/
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
 
 # http://dart-lang.github.io/linter/lints/options/options.html
 linter:
@@ -33,7 +33,6 @@ linter:
   - empty_statements
   - hash_and_equals
   - implementation_imports
-  - invariant_booleans
   - iterable_contains_unrelated_type
   - library_names
   - library_prefixes
