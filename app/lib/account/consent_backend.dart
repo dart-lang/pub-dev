@@ -192,6 +192,7 @@ class ConsentBackend {
     required User activeUser,
     required String publisherId,
     required String invitedUserEmail,
+    bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
       activeUser: activeUser,
@@ -203,7 +204,7 @@ class ConsentBackend {
         publisherId: publisherId,
         memberEmail: invitedUserEmail,
       ),
-      createdBySiteAdmin: false,
+      createdBySiteAdmin: createdBySiteAdmin,
     );
   }
 
@@ -400,7 +401,11 @@ class _PublisherContactAction extends ConsentAction {
     final publisherId = consent.args![0];
     final contactEmail = consent.args![1];
     await publisherBackend.updateContactWithVerifiedEmail(
-        publisherId, contactEmail);
+      publisherId,
+      contactEmail,
+      consentRequestFromUserId: consent.fromUserId!,
+      consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
+    );
   }
 
   @override
@@ -476,7 +481,11 @@ class _PublisherMemberAction extends ConsentAction {
       throw NotAcceptableException('Consent is not for the current user.');
     }
     await publisherBackend.inviteConsentGranted(
-        publisherId, currentUser.userId);
+      publisherId,
+      currentUser.userId,
+      consentRequestFromUserId: consent.fromUserId!,
+      consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
+    );
   }
 
   @override

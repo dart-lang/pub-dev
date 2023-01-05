@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
@@ -31,11 +32,15 @@ Future<String> executePublisherInviteMember(List<String> args) async {
 
   final authenticatedAgent =
       await requireAuthenticatedAdmin(AdminPermission.executeTool);
-  await publisherBackend.doInvitePublisherMember(
-    authenticatedAgent,
-    (await accountBackend.userForServiceAccount(authenticatedAgent))!,
-    publisherId,
-    InviteMemberRequest(email: invitedEmail),
+  await publisherBackend.verifyPublisherMemberInvite(
+      publisherId, InviteMemberRequest(email: invitedEmail));
+  await consentBackend.invitePublisherMember(
+    authenticatedAgent: authenticatedAgent,
+    activeUser:
+        (await accountBackend.userForServiceAccount(authenticatedAgent))!,
+    publisherId: publisherId,
+    invitedUserEmail: invitedEmail,
+    createdBySiteAdmin: true,
   );
 
   return '$invitedEmail has been invited.';

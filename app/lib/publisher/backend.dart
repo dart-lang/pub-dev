@@ -10,10 +10,8 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
-import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
-import '../account/models.dart';
 import '../audit/models.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
@@ -322,8 +320,15 @@ class PublisherBackend {
 
   /// Updates the contact email field of the publisher using a verified e-mail.
   Future updateContactWithVerifiedEmail(
-      String publisherId, String contactEmail) async {
+    String publisherId,
+    String contactEmail, {
+    required String consentRequestFromUserId,
+    required bool consentRequestCreatedBySiteAdmin,
+  }) async {
     checkPublisherIdParam(publisherId);
+    if (!consentRequestCreatedBySiteAdmin) {
+      await requirePublisherAdmin(publisherId, consentRequestFromUserId);
+    }
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     InvalidInputException.check(
@@ -351,20 +356,20 @@ class PublisherBackend {
     checkPublisherIdParam(publisherId);
     final authenticatedAgent = await requireAuthenticatedWebUser();
     await requirePublisherAdmin(publisherId, authenticatedAgent.userId);
-    return await doInvitePublisherMember(
-      authenticatedAgent,
-      authenticatedAgent.user,
-      publisherId,
-      invite,
+
+    await verifyPublisherMemberInvite(publisherId, invite);
+    return await consentBackend.invitePublisherMember(
+      authenticatedAgent: authenticatedAgent,
+      activeUser: authenticatedAgent.user,
+      publisherId: publisherId,
+      invitedUserEmail: invite.email,
     );
   }
 
-  Future<account_api.InviteStatus> doInvitePublisherMember(
-    AuthenticatedAgent authenticatedAgent,
-    User activeUser,
-    String publisherId,
-    api.InviteMemberRequest invite,
-  ) async {
+  /// Verifies if the publisher member invite is valid and throws if the invited
+  /// email is already a member.
+  Future<void> verifyPublisherMemberInvite(
+      String publisherId, api.InviteMemberRequest invite) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     InvalidInputException.checkStringLength(invite.email, 'email',
         maximum: 4096);
@@ -385,13 +390,6 @@ class PublisherBackend {
             email != invite.email, 'User is already a member.');
       }
     }
-
-    return await consentBackend.invitePublisherMember(
-      authenticatedAgent: authenticatedAgent,
-      activeUser: activeUser,
-      publisherId: publisherId,
-      invitedUserEmail: invite.email,
-    );
   }
 
   /// List the members of a publishers.
@@ -510,8 +508,16 @@ class PublisherBackend {
 
   /// A callback from consent backend, when a consent is granted.
   /// Note: this will be retried when transaction fails due race conditions.
-  Future<void> inviteConsentGranted(String publisherId, String userId) async {
+  Future<void> inviteConsentGranted(
+    String publisherId,
+    String userId, {
+    required String consentRequestFromUserId,
+    required bool consentRequestCreatedBySiteAdmin,
+  }) async {
     checkPublisherIdParam(publisherId);
+    if (!consentRequestCreatedBySiteAdmin) {
+      await requirePublisherAdmin(publisherId, consentRequestFromUserId);
+    }
     final user = await accountBackend.lookupUserById(userId);
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey

@@ -3,26 +3,34 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
+import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
   group('Uploader invite', () {
-    Future<String?> inviteUploader() async {
+    Future<String?> inviteUploader(
+        {String adminEmail = 'admin@pub.dev'}) async {
       await withHttpPubApiClient(
-        bearerToken: siteAdminToken,
+        bearerToken: createFakeAuthTokenForEmail(adminEmail),
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
         fn: (client) async {
-          await client.adminAddPackageUploader('oxygen', 'user@pub.dev');
+          await client.invitePackageUploader(
+              'oxygen', InviteUploaderRequest(email: 'user@pub.dev'));
         },
       );
 
@@ -42,10 +50,16 @@ void main() {
       final r = page.records
           .firstWhere((e) => e.kind == AuditLogRecordKind.uploaderInvited);
       expect(r.summary,
-          '`admin@pub.dev` invited `user@pub.dev` to be an uploader for package `oxygen`.');
+          '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.');
 
       return consentId;
     }
+
+    testWithProfile('Non-admin cannot invite', fn: () async {
+      final rs = inviteUploader(adminEmail: 'other@pub.dev');
+      await expectApiException(rs,
+          status: 403, code: 'InsufficientPermissions');
+    });
 
     testWithProfile('Uploader invite accepted', fn: () async {
       final consentId = await inviteUploader();
@@ -85,17 +99,38 @@ void main() {
       expect(r.summary,
           'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.');
     });
+
+    testWithProfile(
+      'Uploader invite denied - original user is no longer admin',
+      fn: () async {
+        final consentId = await inviteUploader();
+
+        // remove original admin
+        final package = await packageBackend.lookupPackage('oxygen');
+        await accountBackend.withBearerToken(
+            createFakeAuthTokenForEmail('other@pub.dev'), () async {
+          final agent = await requireAuthenticatedWebUser();
+          package!.uploaders = [agent.userId];
+        });
+        await dbService.commit(inserts: [package!]);
+
+        final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final rs = client.resolveConsent(
+            consentId!, account_api.ConsentResult(granted: true));
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
+      },
+    );
   });
 
   group('Publisher contact', () {
-    Future<String?> inviteContact() async {
-      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-        final status = await consentBackend.invitePublisherContact(
-          publisherId: 'example.com',
-          contactEmail: 'info@example.com',
-        );
-        expect(status.emailSent, isTrue);
-      });
+    Future<String?> inviteContact({
+      String adminEmail = 'admin@pub.dev',
+    }) async {
+      final adminClient = createPubApiClient(
+          authToken: createFakeAuthTokenForEmail(adminEmail));
+      await adminClient.updatePublisher('example.com',
+          UpdatePublisherRequest(contactEmail: 'info@example.com'));
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
@@ -113,9 +148,15 @@ void main() {
       final r = page.records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherContactInvited);
       expect(r.summary,
-          '`admin@pub.dev` invited `info@example.com` to be contact email for publisher `example.com`.');
+          '`$adminEmail` invited `info@example.com` to be contact email for publisher `example.com`.');
       return consentId;
     }
+
+    testWithProfile('Non-admin cannot invite', fn: () async {
+      final rs = inviteContact(adminEmail: 'other@pub.dev');
+      await expectApiException(rs,
+          status: 403, code: 'InsufficientPermissions');
+    });
 
     testWithProfile('Publisher contact accepted', fn: () async {
       final consentId = await inviteContact();
@@ -157,20 +198,30 @@ void main() {
       expect(r.summary,
           'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.');
     });
+
+    testWithProfile(
+      'Publisher contact denied - original user is no longer admin',
+      fn: () async {
+        final consentId = await inviteContact();
+        await _removeAdminRole('example.com', 'admin@pub.dev');
+
+        final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final rs = client.resolveConsent(
+            consentId!, account_api.ConsentResult(granted: true));
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
+      },
+    );
   });
 
   group('Publisher member', () {
-    Future<String?> inviteMember() async {
-      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-        final agent = await requireAuthenticatedWebUser();
-        final status = await consentBackend.invitePublisherMember(
-          authenticatedAgent: agent,
-          activeUser: agent.user,
-          publisherId: 'example.com',
-          invitedUserEmail: 'user@pub.dev',
-        );
-        expect(status.emailSent, isTrue);
-      });
+    Future<String?> inviteMember({
+      String adminEmail = 'admin@pub.dev',
+    }) async {
+      final adminClient = createPubApiClient(
+          authToken: createFakeAuthTokenForEmail(adminEmail));
+      await adminClient.invitePublisherMember(
+          'example.com', InviteMemberRequest(email: 'user@pub.dev'));
 
       String? consentId;
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
@@ -189,10 +240,16 @@ void main() {
       final r = page.records.firstWhere(
           (e) => e.kind == AuditLogRecordKind.publisherMemberInvited);
       expect(r.summary,
-          '`admin@pub.dev` invited `user@pub.dev` to be a member for publisher `example.com`.');
+          '`$adminEmail` invited `user@pub.dev` to be a member for publisher `example.com`.');
 
       return consentId;
     }
+
+    testWithProfile('Non-admin cannot invite', fn: () async {
+      final rs = inviteMember(adminEmail: 'other@pub.dev');
+      await expectApiException(rs,
+          status: 403, code: 'InsufficientPermissions');
+    });
 
     testWithProfile('Publisher member accepted', fn: () async {
       final consentId = await inviteMember();
@@ -234,6 +291,20 @@ void main() {
       expect(r.summary,
           'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.');
     });
+
+    testWithProfile(
+      'Publisher member denied - original user is no longer admin',
+      fn: () async {
+        final consentId = await inviteMember();
+        await _removeAdminRole('example.com', 'admin@pub.dev');
+
+        final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final rs = client.resolveConsent(
+            consentId!, account_api.ConsentResult(granted: true));
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
+      },
+    );
   });
 }
 
@@ -243,4 +314,16 @@ Future<void> _expireConsent(String? consentId) async {
   consent.expires = consent.created;
   await dbService.commit(inserts: [consent]);
   await consentBackend.deleteObsoleteConsents();
+}
+
+Future<void> _removeAdminRole(String publisherId, String email) async {
+  await accountBackend.withBearerToken(createFakeAuthTokenForEmail(email),
+      () async {
+    final agent = await requireAuthenticatedWebUser();
+    final publisher = await publisherBackend.getPublisher(publisherId);
+    final member =
+        await publisherBackend.getPublisherMember(publisher!, agent.userId);
+    member!.role = 'non-admin';
+    await dbService.commit(inserts: [member]);
+  });
 }
