@@ -138,13 +138,13 @@ Future<void> _analyzePackage(
       );
       await proc.stdin.close();
 
-      await Future.wait([
+      await Future.wait<void>([
         proc.stderr.forEach(log.add),
         proc.stdout.forEach(log.add),
         proc.exitOrTimeout(_analysisTimeout, () {
           log.writeln('TIMEOUT: dartdoc sending SIGTERM/SIGKILL');
         }),
-      ]).catchError((e) {/* ignore */});
+      ]).catchError((e) => const [/* ignore */]);
       final exitCode = await proc.exitCode;
 
       log.writeln('### Execution of dartdoc exited $exitCode');
@@ -175,13 +175,13 @@ Future<void> _analyzePackage(
       );
       await pana.stdin.close();
 
-      await Future.wait([
+      await Future.wait<void>([
         pana.stderr.forEach(log.add),
         pana.stdout.forEach(log.add),
         pana.exitOrTimeout(_analysisTimeout, () {
           log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
         }),
-      ]).catchError((e) {/* ignore */});
+      ]).catchError((e) => const [/* ignore */]);
       final exitCode = await pana.exitCode;
 
       log.writeln('### Execution of pana exited $exitCode');

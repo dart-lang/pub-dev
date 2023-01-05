@@ -99,7 +99,9 @@ VersionConstraint parsePossiblyBrokenVersionConstraint(String text) {
       case '>':
         return VersionRange(min: version, includeMin: false);
     }
-    throw FallThroughError();
+
+    throw FormatException('Expected one of "<=", "<", ">=", or ">" '
+        'as the operator in "$originalText", got "$op".');
   }
 
   // Try to parse the "^" operator followed by a version.
