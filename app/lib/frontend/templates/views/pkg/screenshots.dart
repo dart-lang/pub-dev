@@ -18,8 +18,14 @@ d.Node imageCarousel() {
           height: 24,
           width: 24,
           alt: 'next'),
-      classes: ['carousel-next', 'carousel-nav'],
-      attributes: {'title': 'Next'});
+      classes: [
+        'carousel-next',
+        'carousel-nav'
+      ],
+      attributes: {
+        'title': 'Next',
+        'data-ga-click-event': 'screenshot-carousel-next-click',
+      });
 
   final prev = material.floatingActionButton(
       id: '-carousel-prev',
@@ -28,8 +34,14 @@ d.Node imageCarousel() {
           height: 24,
           width: 24,
           alt: 'previous'),
-      classes: ['carousel-prev', 'carousel-nav'],
-      attributes: {'title': 'Previous'});
+      classes: [
+        'carousel-prev',
+        'carousel-nav'
+      ],
+      attributes: {
+        'title': 'Previous',
+        'data-ga-click-event': 'screenshot-carousel-prev-click',
+      });
 
   return d.div(
     id: '-screenshot-carousel',
@@ -53,6 +65,7 @@ d.Node screenshotThumbnailNode(
     'thumbnail-container'
   ], attributes: {
     'data-thumbnail': screenshotUrls!.join(','),
+    'data-ga-click-event': 'screenshot-thumbnail-click',
   }, children: [
     d.img(
         classes: ['thumbnail-image'],
