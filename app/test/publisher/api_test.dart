@@ -196,11 +196,11 @@ void main() {
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(
-              websiteUrl: 'http://other-domain.com:2222/about'),
+              websiteUrl: 'https://other-domain.com:2222/about'),
         );
         expect(rs.toJson(), {
           'description': '',
-          'websiteUrl': 'http://other-domain.com:2222/about',
+          'websiteUrl': 'https://other-domain.com:2222/about',
           'contactEmail': 'admin@pub.dev',
         });
         // Info request should return with the same content.
