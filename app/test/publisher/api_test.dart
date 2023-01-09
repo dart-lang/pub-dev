@@ -170,10 +170,9 @@ void main() {
         final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
         final rs = client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(websiteUrl: 'ftp://example.com/'),
+          UpdatePublisherRequest(websiteUrl: 'http://example.com/'),
         );
-        await expectApiException(rs,
-            status: 400, message: 'must be any of http, https');
+        await expectApiException(rs, status: 400, message: 'must be `https`');
       });
 
       testWithProfile('OK: normal URL', fn: () async {

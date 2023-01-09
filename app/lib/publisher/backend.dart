@@ -264,8 +264,8 @@ class PublisherBackend {
         final parsedUrl = Uri.tryParse(update.websiteUrl!);
         final isValid = parsedUrl != null && parsedUrl.isAbsolute;
         InvalidInputException.check(isValid, 'Not a valid URL.');
-        InvalidInputException.checkAnyOf(
-            parsedUrl!.scheme, 'scheme', ['http', 'https']);
+        InvalidInputException.check(
+            parsedUrl!.scheme == 'https', '"scheme" must be `https`');
 
         InvalidInputException.check(parsedUrl.toString() == update.websiteUrl,
             'The parsed URL does not match its original form.');
