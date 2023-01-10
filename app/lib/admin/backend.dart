@@ -618,11 +618,7 @@ class AdminBackend {
     InvalidInputException.check(
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
-    // TODO: refactor consent backend to accept non-User agents
     final user = await accountBackend.userForServiceAccount(authenticatedUser);
-    if (user == null) {
-      throw AuthenticationException.failed();
-    }
     await consentBackend.invitePackageUploader(
       agent: authenticatedUser,
       activeUser: user,

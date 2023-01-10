@@ -36,8 +36,7 @@ Future<String> executePublisherInviteMember(List<String> args) async {
       publisherId, InviteMemberRequest(email: invitedEmail));
   await consentBackend.invitePublisherMember(
     authenticatedAgent: authenticatedAgent,
-    activeUser:
-        (await accountBackend.userForServiceAccount(authenticatedAgent))!,
+    activeUser: await accountBackend.userForServiceAccount(authenticatedAgent),
     publisherId: publisherId,
     invitedUserEmail: invitedEmail,
     createdBySiteAdmin: true,
