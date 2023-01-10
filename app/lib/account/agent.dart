@@ -135,7 +135,6 @@ class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
 
   @override
   String get email => payload.email;
-  // TODO: remove from the interface after the consent backend has been migrated
   String get oauthUserId => payload.sub;
   String get audience => idToken.payload.aud.single;
 }

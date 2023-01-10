@@ -106,11 +106,9 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
     AdminPermission permission) async {
   final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedGcpServiceAccount) {
-    final isAdmin = await accountBackend.hasAdminPermission(
-      oauthUserId: agent.oauthUserId,
-      email: agent.email,
-      permission: permission,
-    );
+    final admin = activeConfiguration.admins!.firstWhereOrNull(
+        (a) => a.oauthUserId == agent.oauthUserId && a.email == agent.email);
+    final isAdmin = admin != null && admin.permissions.contains(permission);
     if (!isAdmin) {
       _logger.warning(
           'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
@@ -214,20 +212,6 @@ class AccountBackend {
       .withCodec(utf8);
 
   AccountBackend(this._db);
-
-  /// Returns `true` if the user is authorized by an administrator with the given [permission].
-  Future<bool> hasAdminPermission({
-    required String? oauthUserId,
-    required String? email,
-    required AdminPermission permission,
-  }) async {
-    if (oauthUserId == null || email == null) {
-      return false;
-    }
-    final admin = activeConfiguration.admins!.firstWhereOrNull(
-        (a) => a.oauthUserId == oauthUserId && a.email == email);
-    return admin != null && admin.permissions.contains(permission);
-  }
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User?> lookupUserById(String userId) async {
@@ -352,15 +336,19 @@ class AccountBackend {
     });
   }
 
-  // TODO: refactor consent backend to accept non-User agents
-  // TODO: remove this after consent backend refactor
-  Future<User?> userForServiceAccount(
+  /// Returns an [User] entity for the authenticated service account.
+  /// This method should be used only by admin agents.
+  Future<User> userForServiceAccount(
       AuthenticatedGcpServiceAccount authenticatedAgent) async {
-    return await _lookupOrCreateUserByOauthUserId(AuthResult(
+    final user = await _lookupOrCreateUserByOauthUserId(AuthResult(
       oauthUserId: authenticatedAgent.oauthUserId,
       email: authenticatedAgent.email,
       audience: authenticatedAgent.audience,
     ));
+    if (user == null) {
+      throw AuthenticationException.failed();
+    }
+    return user;
   }
 
   /// Returns a [User] entity that matches the [auth] results:
