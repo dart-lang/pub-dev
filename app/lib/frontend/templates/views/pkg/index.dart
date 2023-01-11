@@ -146,16 +146,13 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title: 'Show only null-safe packages.',
               ),
-              if (requestContext.experimentalFlags.showScreenshots ||
-                  searchForm.parsedQuery.tagsPredicate
-                      .hasTag(PackageVersionTags.hasScreenshot))
-                _tagBasedCheckbox(
-                  tagPrefix: 'has',
-                  tagValue: 'screenshot',
-                  label: 'Has screenshot',
-                  searchForm: searchForm,
-                  title: 'Show only packages with screenshots.',
-                ),
+              _tagBasedCheckbox(
+                tagPrefix: 'has',
+                tagValue: 'screenshot',
+                label: 'Has screenshot',
+                searchForm: searchForm,
+                title: 'Show only packages with screenshots.',
+              ),
               if (requestContext.experimentalFlags.showDart3ReadyOnUI ||
                   searchForm.parsedQuery.tagsPredicate
                       .hasTag(PackageVersionTags.isDart3Ready))

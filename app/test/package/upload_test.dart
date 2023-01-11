@@ -358,17 +358,15 @@ void main() {
             createFakeServiceAccountToken(email: 'admin@x.gserviceaccount.com');
         final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
-        final rs =
-            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'PackageRejected',
-          message:
-              'Google Cloud Service account recognized successful, but publishing is not enabled yet',
-        );
+        final rs = await createPubApiClient(authToken: token)
+            .uploadPackageBytes(bytes);
+        expect(rs.success.message,
+            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
 
-        // TODO: once it is enabled, check for automatedPublishingLock
+        final pkg = await packageBackend.lookupPackage('oxygen');
+        expect(pkg!.automatedPublishing!.gcpLock!.toJson(), {
+          'oauthUserId': 'admin-x-gserviceaccount-com',
+        });
       });
     });
 
@@ -604,15 +602,10 @@ void main() {
         );
         final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
-        final rs =
-            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'PackageRejected',
-          message:
-              'GitHub Action recognized successful, but publishing is not enabled yet.',
-        );
+        final rs = await createPubApiClient(authToken: token)
+            .uploadPackageBytes(bytes);
+        expect(rs.success.message,
+            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
       });
 
       testWithProfile(
@@ -797,15 +790,10 @@ void main() {
         );
         final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
-        final rs =
-            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'PackageRejected',
-          message:
-              'GitHub Action recognized successful, but publishing is not enabled yet.',
-        );
+        final rs = await createPubApiClient(authToken: token)
+            .uploadPackageBytes(bytes);
+        expect(rs.success.message,
+            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
       });
     });
 
