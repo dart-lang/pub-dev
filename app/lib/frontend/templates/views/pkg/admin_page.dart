@@ -377,15 +377,21 @@ d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
     classes: ['markdown-body'],
     children: [
       d.br(),
-      d.h3(text: 'Example workflow'),
-      d.p(children: [
-        d.text('In repository '),
-        d.code(text: '${github.repository}'),
-        d.text(' create a file '),
-        d.code(text: '.github/workflows/publish.yml'),
-        d.text(' with:'),
-      ]),
-      d.codeSnippet(language: 'yaml', text: code),
+      d.details(
+        summary: [
+          d.b(text: 'Example workflow'),
+        ],
+        children: [
+          d.p(children: [
+            d.text('In repository '),
+            d.code(text: '${github.repository}'),
+            d.text(' create a file '),
+            d.code(text: '.github/workflows/publish.yml'),
+            d.text(' with:'),
+          ]),
+          d.codeSnippet(language: 'yaml', text: code),
+        ],
+      ),
     ],
   );
 }
