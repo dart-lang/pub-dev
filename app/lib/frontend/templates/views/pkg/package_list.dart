@@ -233,8 +233,7 @@ d.Node _item({
               d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
           ],
         ),
-        if (thumbnailUrl != null &&
-            requestContext.experimentalFlags.showScreenshots)
+        if (thumbnailUrl != null)
           d.div(classes: [
             'packages-screenshot-thumbnail'
           ], children: [

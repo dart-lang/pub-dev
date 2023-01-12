@@ -1320,15 +1320,6 @@ class PackageBackend {
             'GitHub repository identifiers changed, disabling automated publishing');
       }
     }
-
-    // Disable publishing for all packages, but exempt the test + internal ones for live testing.
-    if (package.name == '_dummy_pkg' ||
-        package.publisherId == 'miksen.dk' ||
-        isDartDevPublisher(package.publisherId)) {
-      return;
-    }
-    throw PackageRejectedException(
-        'GitHub Action recognized successful, but publishing is not enabled yet.');
   }
 
   Future<void> _checkServiceAccountAllowed(
@@ -1369,15 +1360,6 @@ class PackageBackend {
             'Google Cloud Service account identifiers changed, disabling automated publishing');
       }
     }
-
-    // Disable publishing for all packages, but exempt the test + internal ones for live testing.
-    if (package.name == '_dummy_pkg' ||
-        package.publisherId == 'miksen.dk' ||
-        isDartDevPublisher(package.publisherId)) {
-      return;
-    }
-    throw PackageRejectedException(
-        'Google Cloud Service account recognized successful, but publishing is not enabled yet.');
   }
 
   /// List the admin emails that need to be notified when a [package] has a

@@ -5,13 +5,12 @@
 import 'package:meta/meta.dart';
 
 const _publicFlags = <String>{
-  'screenshots',
+  'publishing',
 };
 
 const _allFlags = <String>{
   ..._publicFlags,
   'dart3',
-  'publishing',
   'signin',
   'sandbox',
 };
@@ -50,9 +49,6 @@ class ExperimentalFlags {
 
   /// Whether to show the admin UI for automated publishing admin UI.
   bool get showAdminUIForAutomatedPublishing => _enabled.contains('publishing');
-
-  /// Whether to show package screenshots in search listings.
-  bool get showScreenshots => true;
 
   /// Whether to return dartdoc from sandboxing output.
   bool get showSandboxedOutput => _enabled.contains('sandbox');
