@@ -367,10 +367,11 @@ d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
     if (hasWithParameter) ...[
       '    with:',
       '      environment: \'${github.environment}\'',
+      '      # working-directory: path/to/package/within/repository',
     ] else ...[
       '    # with:',
+      '    #   working-directory: path/to/package/within/repository',
     ],
-    '    #   working-directory: path/to/package/within/repository',
   ].join('\n');
   return d.div(
     classes: ['markdown-body'],
