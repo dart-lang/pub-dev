@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/frontend/request_context.dart';
+import 'package:_pub_shared/data/package_api.dart';
 
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
+import '../../../request_context.dart';
 
 /// Creates the package admin page content.
 d.Node packageAdminPageNode({
@@ -234,6 +235,7 @@ d.Node packageAdminPageNode({
 d.Node _automatedPublishing(Package package) {
   final github = package.automatedPublishing?.githubConfig;
   final gcp = package.automatedPublishing?.gcpConfig;
+  final isGithubEnabled = github?.isEnabled ?? false;
   return d.fragment([
     d.h2(text: 'Automated publishing'),
     d.h3(text: 'Publishing from GitHub Actions'),
@@ -245,13 +247,13 @@ d.Node _automatedPublishing(Package package) {
       child: material.checkbox(
         id: '-pkg-admin-automated-github-enabled',
         label: 'Enable publishing from GitHub Actions',
-        checked: github?.isEnabled ?? false,
+        checked: isGithubEnabled,
       ),
     ),
     d.div(
       classes: [
         '-pub-form-checkbox-indent',
-        if (!(github?.isEnabled ?? false)) '-pub-form-block-hidden',
+        if (!isGithubEnabled) '-pub-form-block-hidden',
       ],
       children: [
         d.div(
@@ -300,6 +302,7 @@ d.Node _automatedPublishing(Package package) {
             value: github?.environment,
           ),
         ),
+        if (isGithubEnabled) _exampleGithubWorkflow(github!),
       ],
     ),
     d.h3(text: 'Publishing with Google Cloud Service account'),
@@ -343,4 +346,45 @@ d.Node _automatedPublishing(Package package) {
       ),
     ),
   ]);
+}
+
+d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
+  final expandedTagPattern = (github.tagPattern ?? '{{version}}')
+      .replaceAll('{{version}}', '[0-9]+.[0-9]+.[0-9]+*');
+  final requireEnvironment = github.requireEnvironment ?? false;
+  final hasWithParameter = requireEnvironment;
+  final code = [
+    'name: Publish to pub.dev',
+    '',
+    'on:',
+    '  push:',
+    '    tags:',
+    '      - \'$expandedTagPattern\'',
+    '',
+    'jobs:',
+    '  publish:',
+    '    uses: dart-lang/setup-dart/.github/workflows/publish.yml',
+    if (hasWithParameter) ...[
+      '    with:',
+      '      environment: \'${github.environment}\'',
+    ] else ...[
+      '    # with:',
+    ],
+    '    #   working-directory: path/to/package/within/repository',
+  ].join('\n');
+  return d.div(
+    classes: ['markdown-body'],
+    children: [
+      d.br(),
+      d.h3(text: 'Example workflow'),
+      d.p(children: [
+        d.text('In repository '),
+        d.code(text: '${github.repository}'),
+        d.text(' create a file '),
+        d.code(text: '.github/workflows/publish.yml'),
+        d.text(' with:'),
+      ]),
+      d.codeSnippet(language: 'yaml', text: code),
+    ],
+  );
 }
