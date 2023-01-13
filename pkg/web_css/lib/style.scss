@@ -17,3 +17,6 @@
 @import 'src/_scores';
 @import 'src/_search';
 @import 'src/_tags';
+
+// Include shared CSS (that dartdoc also uses).
+@import '../../../static/css/cookie-notice.css';
