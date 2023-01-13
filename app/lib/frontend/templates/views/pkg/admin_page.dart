@@ -270,7 +270,7 @@ d.Node _automatedPublishing(Package package) {
             material.textField(
               id: '-pkg-admin-automated-github-tagpattern',
               label: 'Tag pattern',
-              value: github?.tagPattern ?? '{{version}}',
+              value: github?.tagPattern ?? 'v{{version}}',
             ),
             d.markdown(
                 '`{{version}}` will be substituted for the version number of the package. '
