@@ -37,8 +37,8 @@ void _setEventForScreenshot() {
   }
 
   void showImage(int index, UIEvent event) {
-    hideElement(imageElement!);
     event.stopPropagation();
+    hideElement(imageElement!);
     imageElement.src = images[index];
 
     if (index == images.length - 1) {
