@@ -34,12 +34,12 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
 RUN /project/tool/setup-dart.sh /tool/stable 2.18.6
-RUN /project/tool/setup-dart.sh /tool/preview 2.19.0-444.1.beta
-RUN /project/tool/setup-dart.sh /tool/future 3.0.0-109.0.dev
+RUN /project/tool/setup-dart.sh /tool/preview 2.19.0-444.4.beta
+RUN /project/tool/setup-dart.sh /tool/future 3.0.0-114.0.dev
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 3.3.10
-RUN /project/tool/setup-flutter.sh /tool/preview 3.7.0-1.1.pre
+RUN /project/tool/setup-flutter.sh /tool/preview 3.7.0-1.4.pre
 RUN /project/tool/setup-flutter.sh /tool/future master
 
 # Clear out any arguments the base images might have set
