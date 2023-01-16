@@ -37,8 +37,10 @@ void _setEventForScreenshot() {
   }
 
   void showImage(int index, UIEvent event) {
+    hideElement(imageElement!);
     event.stopPropagation();
-    imageElement!.src = images[index];
+    imageElement.src = images[index];
+
     if (index == images.length - 1) {
       hideElement(next);
     }
@@ -51,6 +53,10 @@ void _setEventForScreenshot() {
     if (index < images.length - 1) {
       showElement(next);
     }
+
+    imageElement.onLoad.listen((event) {
+      showElement(imageElement!);
+    });
   }
 
   int screenshotIndex = 0;
