@@ -2,6 +2,8 @@
 // to reduce the number of HTTP requests.
 @use '../../../third_party/highlight/github.css';
 @use '../../../third_party/css/github-markdown.css';
+// Include shared CSS (that dartdoc also uses).
+@use '../../../static/css/cookie-notice.css';
 
 // Local styles and rules.
 @import 'src/_variables';
@@ -17,6 +19,3 @@
 @import 'src/_scores';
 @import 'src/_search';
 @import 'src/_tags';
-
-// Include shared CSS (that dartdoc also uses).
-@import '../../../static/css/cookie-notice.css';
