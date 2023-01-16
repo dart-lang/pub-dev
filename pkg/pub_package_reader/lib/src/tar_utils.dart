@@ -13,9 +13,6 @@ import 'package:tar/tar.dart';
 class TarArchive {
   final String _path;
 
-  /// The list of normalized file names.
-  final List<String> fileNames;
-
   /// Maps the normalized names to their original value;
   final Map<String, String> _normalizedNames;
 
@@ -27,7 +24,7 @@ class TarArchive {
     this._path,
     this._normalizedNames,
     this._symlinks,
-  ) : fileNames = _normalizedNames.keys.toList()..sort();
+  );
 
   TarArchive._normalize(
       String path, List<String> names, Map<String, String> symlinks)
@@ -38,8 +35,8 @@ class TarArchive {
               MapEntry<String, String>(_normalize(key), _normalize(value))),
         );
 
-  late final _lowerCaseFileNames = Map<String, String>.fromEntries(
-      fileNames.map((e) => MapEntry(e.toLowerCase(), e)));
+  /// The list of normalized file names.
+  late final fileNames = (_normalizedNames.keys.toList()..sort()).toSet();
 
   /// Scans the tar archive and reads the content of the files identified by [names].
   ///
@@ -93,14 +90,13 @@ class TarArchive {
     return content;
   }
 
-  /// Returns the first matching file name from [names], ignoring the case.
+  /// Returns the first matching file name from [names], preserving the case.
   ///
   /// Returns `null` if there was no matching file.
   String? firstMatchingFileNameOrNull(Iterable<String> names) {
     for (final name in names) {
-      final originalName = _lowerCaseFileNames[name.toLowerCase()];
-      if (originalName != null) {
-        return originalName;
+      if (fileNames.contains(name)) {
+        return name;
       }
     }
     return null;

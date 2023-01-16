@@ -203,7 +203,7 @@ Future<PackageSummary> summarizePackageArchive(
   String? changelogPath = tar.firstMatchingFileNameOrNull(changelogFileNames);
   String? examplePath =
       tar.firstMatchingFileNameOrNull(exampleFileCandidates(pubspec.name));
-  String? licensePath = tar.firstMatchingFileNameOrNull(['LICENSE']);
+  String? licensePath = tar.firstMatchingFileNameOrNull(licenseFileNames);
 
   final contentBytes = await tar.scanAndReadFiles(
     [readmePath, changelogPath, examplePath, licensePath]
@@ -653,7 +653,7 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
 /// `flutter.plugin.{androidPackage,iosPrefix,pluginClass}`.
 Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
   Pubspec pubspec,
-  List<String> files,
+  Iterable<String> files,
 ) sync* {
   if (pubspec.flutter is! Map || pubspec.flutter!['plugin'] is! Map) {
     return;
@@ -700,7 +700,7 @@ Iterable<ArchiveIssue> requireNonEmptyLicense(
 }
 
 Iterable<ArchiveIssue> checkScreenshots(
-    Pubspec pubspec, List<String> files) sync* {
+    Pubspec pubspec, Iterable<String> files) sync* {
   if (pubspec.screenshots == null) return;
   for (final s in pubspec.screenshots!) {
     // check path
