@@ -1301,7 +1301,7 @@ class PackageBackend {
       throw AuthorizationException.githubActionIssue(
           'publishing is configured to only be allowed from actions with specific ref pattern, '
           'this token has "${agent.payload.ref}" ref for which publishing is not allowed. '
-          'Expected tag "$expectedTagValue"');
+          'Expected tag "$expectedTagValue". Check that the version in the tag matches the version in "pubspec.yaml"');
     }
 
     // When environment is configured, it must match the action's environment.
