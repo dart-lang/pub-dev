@@ -23,10 +23,6 @@
       } catch (e) {
         // do nothing - local storage may be disabled
       }
-      // Fallback: check if the cookie is set.
-      if (document.cookie.split('; ').includes('notice=1')) {
-        return;
-      }
 
       var widget = document.createElement('div');
       widget.id = 'cookie-notice';
@@ -48,8 +44,7 @@
           var expiresAt = Date.now() + (maxAgeSeconds * 1000);
           localStorage.setItem('cookieNoticeExpiresAt', expiresAt.toString());
         } catch (e) {
-          // fallback: set a cookie
-          document.cookie = 'notice=1;max-age=' + maxAgeSeconds.toString() + ';path=/';
+          // do nothing - local storage may be disabled
         }
       };
 
