@@ -16,6 +16,8 @@ class DartdocCustomizerConfig {
   final String docRootUrl;
   final String latestStableDocumentationUrl;
   final String pubPackagePageUrl;
+  final String cookieNoticeCssUrl;
+  final String cookieNoticeJsUrl;
   final String dartLogoSvgUrl;
   final String githubMarkdownCssUrl;
   final String gtmJsUrl;
@@ -28,6 +30,8 @@ class DartdocCustomizerConfig {
     required this.isLatestStable,
     required this.docRootUrl,
     required this.latestStableDocumentationUrl,
+    required this.cookieNoticeCssUrl,
+    required this.cookieNoticeJsUrl,
     required this.pubPackagePageUrl,
     required this.dartLogoSvgUrl,
     required this.githubMarkdownCssUrl,
@@ -74,6 +78,7 @@ class DartdocCustomizer {
     _stripCanonicalUrl(canonical);
     _addAlternateUrl(head, canonical);
     _addAnalyticsTracker(head, body);
+    _addCookieNotice(head);
     _addGithubMarkdownStyle(head, body);
     final breadcrumbs = body.querySelector('.breadcrumbs');
     final breadcrumbsDepth = breadcrumbs?.children.length ?? 0;
@@ -198,6 +203,20 @@ class DartdocCustomizer {
             ..text = '',
         ),
       body.firstChild,
+    );
+  }
+
+  void _addCookieNotice(Element head) {
+    head.append(Element.tag('link')
+      ..attributes['rel'] = 'stylesheet'
+      ..attributes['type'] = 'text/css'
+      ..attributes['href'] = config.cookieNoticeCssUrl);
+
+    head.append(
+      Element.tag('script')
+        ..attributes['defer'] = 'defer'
+        ..attributes['src'] = config.cookieNoticeJsUrl
+        ..text = '',
     );
   }
 

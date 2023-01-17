@@ -119,6 +119,10 @@ d.Node pageLayoutNode({
               src: staticUrls.getAssetUrl('/static/js/script.dart.js'),
               defer: true,
             ),
+            d.script(
+              src: staticUrls.getAssetUrl('/static/js/cookie-notice.js'),
+              defer: true,
+            ),
             d.meta(
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
             if (requestContext.experimentalFlags.useGisSignIn)
