@@ -1291,9 +1291,17 @@ class PackageBackend {
     }
     final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
     if (agent.payload.ref != 'refs/tags/$expectedTagValue') {
+      // At this point we have concluded that the agent has push rights to the repository,
+      // however, the tag pattern they have used is not the one we expect.
+      //
+      // By revealing the expected tag pattern, we are serving the users with better
+      // error message, while not exposing much information to an assumed attacker.
+      // With the current access level, an attacker would have access to past tags, and
+      // figuring out the tag pattern from those should be straightforward anyway.
       throw AuthorizationException.githubActionIssue(
           'publishing is configured to only be allowed from actions with specific ref pattern, '
-          'this token has "${agent.payload.ref}" ref for which publishing is not allowed');
+          'this token has "${agent.payload.ref}" ref for which publishing is not allowed. '
+          'Expected tag "$expectedTagValue"');
     }
 
     // When environment is configured, it must match the action's environment.
