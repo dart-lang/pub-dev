@@ -48,7 +48,7 @@ class ExperimentalFlags {
   bool get showDart3ReadyOnUI => _enabled.contains('dart3');
 
   /// Whether to show the admin UI for automated publishing admin UI.
-  bool get showAdminUIForAutomatedPublishing => _enabled.contains('publishing');
+  bool get showAdminUIForAutomatedPublishing => true;
 
   /// Whether to return dartdoc from sandboxing output.
   bool get showSandboxedOutput => _enabled.contains('sandbox');
