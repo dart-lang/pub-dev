@@ -340,6 +340,129 @@
                       <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
                     </div>
                   </div>
+                  <h2>Automated publishing</h2>
+                  <h3>Publishing from GitHub Actions</h3>
+                  <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
+                    <div class="mdc-form-field">
+                      <div class="mdc-checkbox">
+                        <input id="-pkg-admin-automated-github-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
+                        <div class="mdc-checkbox__background">
+                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                          </svg>
+                          <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
+                      </div>
+                      <label for="-pkg-admin-automated-github-enabled">Enable publishing from GitHub Actions</label>
+                    </div>
+                  </div>
+                  <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
+                    <div class="-pub-form-textfield-row">
+                      <div class="mdc-form-field">
+                        <label for="-pkg-admin-automated-github-repository">Repository (&lt;owner>/&lt;repository>)</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input id="-pkg-admin-automated-github-repository" class="mdc-text-field__input" type="text"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="-pub-form-textfield-row">
+                      <div class="mdc-form-field">
+                        <label for="-pkg-admin-automated-github-tagpattern">Tag pattern</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input id="-pkg-admin-automated-github-tagpattern" class="mdc-text-field__input" type="text" value="v{{version}}"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <p>
+                        <code>{{version}}</code>
+                        will be substituted for the version number of the package. For example, for tags like
+                        <code>v1.2.3</code>
+                        use
+                        <code>v{{version}}</code>
+                        , and for
+                        <code>mypackage-1.2.3</code>
+                        use
+                        <code>mypackage-{{version}}</code>
+                        .
+                      </p>
+                    </div>
+                    <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
+                      <div class="mdc-form-field">
+                        <div class="mdc-checkbox">
+                          <input id="-pkg-admin-automated-github-requireenv" class="mdc-checkbox__native-control" type="checkbox"/>
+                          <div class="mdc-checkbox__background">
+                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                            </svg>
+                            <div class="mdc-checkbox__mixedmark"></div>
+                          </div>
+                          <div class="mdc-checkbox__ripple"></div>
+                        </div>
+                        <label for="-pkg-admin-automated-github-requireenv">Require GitHub Actions environment</label>
+                      </div>
+                    </div>
+                    <div class="-pub-form-checkbox-indent -pub-form-textfield-row -pub-form-block-hidden">
+                      <div class="mdc-form-field">
+                        <label for="-pkg-admin-automated-github-environment">Environment</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input id="-pkg-admin-automated-github-environment" class="mdc-text-field__input" type="text"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <h3>Publishing with Google Cloud Service account</h3>
+                  <p>
+                    When publishing with a GCP
+                    <em>service account</em>
+                    is enabled, the service account configured here will be able to create temporary tokens that allows publishing of this package. To learn more about publishing using a
+                    <em>service account</em>
+                    , see
+                    <a href="https://dart.dev/go/automated-publishing">dart.dev/go/automated-publishing</a>
+                  </p>
+                  <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
+                    <div class="mdc-form-field">
+                      <div class="mdc-checkbox">
+                        <input id="-pkg-admin-automated-gcp-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
+                        <div class="mdc-checkbox__background">
+                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                          </svg>
+                          <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
+                      </div>
+                      <label for="-pkg-admin-automated-gcp-enabled">Enable publishing with Google Cloud Service account</label>
+                    </div>
+                  </div>
+                  <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
+                    <div class="-pub-form-textfield-row">
+                      <div class="mdc-form-field">
+                        <label for="-pkg-admin-automated-gcp-serviceaccountemail">Service account email</label>
+                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                          <input id="-pkg-admin-automated-gcp-serviceaccountemail" class="mdc-text-field__input" type="text"/>
+                          <div class="mdc-notched-outline">
+                            <div class="mdc-notched-outline__leading"></div>
+                            <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p>
+                    <button id="-pkg-admin-automated-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Update</button>
+                  </p>
                   <h2>Package Version Retraction</h2>
                   <div>
                     <p>
