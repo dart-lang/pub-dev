@@ -30,11 +30,10 @@
       container.className = 'cookie-notice-container';
       widget.append(container);
 
-      container.innerHTML = '<div>Google uses cookies to deliver its services, to personalize ads, and to analyze traffic. ' +
-        'You can adjust your privacy controls anytime in your <a href="https://myaccount.google.com/data-and-personalization" target="_blank" rel="noopener">Google settings</a>. ' +
-        '<a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener">Learn more</a>.</div>';
+      container.innerHTML = '<div><a href="https://pub.dev/">Pub.dev</a> uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic. ' +
+        '<a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener">Learn more.</a>';
       var button = document.createElement('button');
-      button.innerText = 'Okay';
+      button.innerText = 'Ok, Got it.';
       button.className = 'cookie-notice-button';
       button.onclick = function (e) {
         widget.remove();
