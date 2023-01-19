@@ -113,6 +113,43 @@ version: 1.0.9
       expect(p.canonicalVersion, '1.0.9');
     });
 
+    group('legacy sdk', () {
+      Pubspec pubspecWithEnv(Map<String, String> env) {
+        return Pubspec.fromJson({
+          'name': 'test',
+          'environment': env,
+        });
+      }
+
+      test('no environment', () {
+        expect(pubspecWithEnv({}).supportsOnlyLegacySdk, true);
+      });
+
+      test('only Flutter', () {
+        expect(pubspecWithEnv({'flutter': 'any'}).supportsOnlyLegacySdk, false);
+      });
+
+      test('only Dart 1', () {
+        expect(pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).supportsOnlyLegacySdk,
+            true);
+      });
+
+      test('Dart 1 and 2', () {
+        expect(pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).supportsOnlyLegacySdk,
+            false);
+      });
+
+      test('Dart 2 and 3', () {
+        expect(pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).supportsOnlyLegacySdk,
+            false);
+      });
+
+      test('Dart 3', () {
+        expect(pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).supportsOnlyLegacySdk,
+            false);
+      });
+    });
+
     group('Flutter', () {
       test('basic package', () {
         final Pubspec p = Pubspec(pubspecBase);

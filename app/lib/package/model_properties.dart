@@ -117,17 +117,21 @@ class Pubspec {
     return false;
   }
 
-  String? get sdkConstraint {
-    _load();
-    final environment = _json!['environment'];
-    if (environment == null || environment is! Map) return null;
-    return _asString(environment['sdk']);
-  }
+  late final _dartSdkConstraint = _inner.environment?['sdk'];
+  late final _flutterSdkConstraint = _inner.environment?['flutter'];
+  late final _hasDartSdkConstraint = _dartSdkConstraint != null &&
+      !_dartSdkConstraint!.isAny &&
+      !_dartSdkConstraint!.isEmpty;
 
   SdkConstraintStatus get _sdkConstraintStatus =>
-      SdkConstraintStatus.fromSdkVersion(_inner.environment?['sdk'], name);
+      SdkConstraintStatus.fromSdkVersion(_dartSdkConstraint, name);
 
-  bool get supportsOnlyLegacySdk => !_sdkConstraintStatus.isDart2Compatible;
+  bool get supportsOnlyLegacySdk =>
+      _flutterSdkConstraint == null &&
+      (!_hasDartSdkConstraint ||
+          _dartSdkConstraint!
+              .intersect(VersionConstraint.parse('>=2.0.0'))
+              .isEmpty);
 
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
@@ -164,14 +168,6 @@ class Pubspec {
 
   void _load() {
     _json ??= _loadYaml(jsonString);
-  }
-
-  String? _asString(obj) {
-    if (obj == null) return null;
-    if (obj is! String) {
-      throw Exception('Expected a String value in pubspec.yaml.');
-    }
-    return obj;
   }
 
   late final List<Uri> funding = _inner.funding ?? const <Uri>[];
