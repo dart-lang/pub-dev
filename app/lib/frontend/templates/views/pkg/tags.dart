@@ -50,8 +50,8 @@ class SimpleTag {
   factory SimpleTag.legacy() {
     return SimpleTag(
       status: 'legacy',
-      text: 'Dart 2 incompatible',
-      title: 'Package does not support Dart 2.',
+      text: 'Dart 1 only',
+      title: 'Package does not support Dart 2 or 3.',
     );
   }
 
