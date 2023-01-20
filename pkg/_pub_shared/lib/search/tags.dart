@@ -56,6 +56,9 @@ abstract class PackageVersionTags {
   /// PackageVersion is older than 2 years old and Package has a newer version.
   static const String isObsolete = 'is:obsolete';
 
+  /// PackageVersion is a Flutter plugin.
+  static const String isPlugin = 'is:plugin';
+
   /// The PackageVersion is null-safe.
   ///
   /// See definition at `_NullSafetyViolationFinder` in
@@ -73,12 +76,27 @@ abstract class PackageVersionTags {
 
   /// Package version is compatible with Dart 3.
   static const String isDart3Ready = 'is:dart3-ready';
+
+  /// Version tags that provide a positive, forward-looking property
+  /// of a prerelease or preview version.
+  static const _futurePackageVersionTags = {
+    PackageVersionTags.isNullSafe,
+    PackageVersionTags.isPlugin,
+    PackageVersionTags.hasFundingLink,
+    PackageVersionTags.hasScreenshot,
+    PackageVersionTags.isDart3Ready,
+  };
 }
 
 /// Collection of SDK tags (with prefix and value).
 abstract class SdkTag {
   static const String sdkDart = 'sdk:${SdkTagValue.dart}';
   static const String sdkFlutter = 'sdk:${SdkTagValue.flutter}';
+
+  static const _allSdkTags = {
+    sdkDart,
+    sdkFlutter,
+  };
 }
 
 /// Collection of SDK tag values.
@@ -97,6 +115,15 @@ abstract class PlatformTag {
   static const String platformLinux = 'platform:${PlatformTagValue.linux}';
   static const String platformWeb = 'platform:${PlatformTagValue.web}';
   static const String platformWindows = 'platform:${PlatformTagValue.windows}';
+
+  static const _allPlatformTags = {
+    platformAndroid,
+    platformIos,
+    platformMacos,
+    platformLinux,
+    platformWeb,
+    platformWindows,
+  };
 }
 
 /// Collection of platform tag values.
@@ -107,4 +134,18 @@ abstract class PlatformTagValue {
   static const String macos = 'macos';
   static const String web = 'web';
   static const String windows = 'windows';
+}
+
+/// Tags that may be relevant in search for packages that have preview or
+/// prerelease version published.
+const _futureVersionTags = <String>{
+  ...SdkTag._allSdkTags,
+  ...PlatformTag._allPlatformTags,
+  ...PackageVersionTags._futurePackageVersionTags,
+};
+
+/// Returns whether a [tag] is relevant to the package search,
+/// if it is a value from a preview or prerelease version.
+bool isFutureVersionTag(String tag) {
+  return _futureVersionTags.contains(tag) || tag.startsWith('runtime:');
 }

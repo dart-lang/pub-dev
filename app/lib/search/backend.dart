@@ -87,26 +87,24 @@ class SearchBackend {
     final scoreCard =
         await scoreCardBackend.getScoreCardData(packageName, pv.version!);
 
-    // Find tags from latest prerelease and/or preview (if there one)
-    // This allows searching for tags with `<tag>-in-prerelease`.
-    // Example: `is:null-safe-in-prerelease`, or `platform:android-in-prerelease`
-    Future<List<String>> loadTags(String version) async {
-      final tags = <String>[];
+    // Find tags from latest prerelease and/or preview (if there one).
+    Future<Iterable<String>> loadTags(String version) async {
+      final tags = <String>{};
       final prv =
           await packageBackend.lookupPackageVersion(packageName, version);
       prv?.getTags().forEach(tags.add);
 
       final pra = await scoreCardBackend.getScoreCardData(packageName, version);
       pra?.panaReport?.derivedTags?.forEach(tags.add);
-      return tags;
+      return tags.where(isFutureVersionTag);
     }
 
     final prereleaseTags = releases.showPrerelease
         ? await loadTags(releases.prerelease!.version)
-        : <String>[];
+        : const <String>{};
     final previewTags = releases.showPreview
         ? await loadTags(releases.preview!.version)
-        : <String>[];
+        : const <String>{};
 
     final tags = <String>{
       // Every package gets the show:* tags, so they can be used as override in
