@@ -9,7 +9,6 @@ import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
-import '../../../request_context.dart';
 
 /// Creates the package admin page content.
 d.Node packageAdminPageNode({
@@ -168,8 +167,7 @@ d.Node packageAdminPageNode({
         ),
       ),
     ],
-    if (requestContext.experimentalFlags.showAdminUIForAutomatedPublishing)
-      _automatedPublishing(package),
+    _automatedPublishing(package),
     d.h2(text: 'Package Version Retraction'),
     d.div(children: [
       d.markdown(
