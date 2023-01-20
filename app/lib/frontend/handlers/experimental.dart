@@ -4,9 +4,7 @@
 
 import 'package:meta/meta.dart';
 
-const _publicFlags = <String>{
-  'publishing',
-};
+const _publicFlags = <String>{};
 
 const _allFlags = <String>{
   ..._publicFlags,
@@ -46,9 +44,6 @@ class ExperimentalFlags {
 
   /// Whether to show the "Dart 3 ready" badge or the search checkbox.
   bool get showDart3ReadyOnUI => _enabled.contains('dart3');
-
-  /// Whether to show the admin UI for automated publishing admin UI.
-  bool get showAdminUIForAutomatedPublishing => true;
 
   /// Whether to return dartdoc from sandboxing output.
   bool get showSandboxedOutput => _enabled.contains('sandbox');
