@@ -79,7 +79,7 @@ abstract class PackageVersionTags {
 
   /// Version tags that provide a positive, forward-looking property
   /// of a prerelease or preview version.
-  /// 
+  ///
   /// Other version-specific tags are not included to prevent search
   /// regressions where we would downrank and/or hide the package in
   /// search results (e.g. a version may have compatibilty errors or
