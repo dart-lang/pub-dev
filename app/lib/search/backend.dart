@@ -119,6 +119,9 @@ class SearchBackend {
       ...p.getTags(),
       ...pv.getTags(),
       ...?scoreCard?.panaReport?.derivedTags,
+      if (scoreCard?.runtimeVersion != null)
+        PackageVersionTags.hasAnalysisOnRuntime(scoreCard!.runtimeVersion!),
+      // prerelease/preview tags
       ...prereleaseTags,
       ...previewTags,
     };

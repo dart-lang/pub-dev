@@ -91,6 +91,10 @@ abstract class PackageVersionTags {
     PackageVersionTags.hasScreenshot,
     PackageVersionTags.isDart3Ready,
   };
+
+  /// The package analysis is on the given runtime version.
+  static String hasAnalysisOnRuntime(String runtimeVersion) =>
+      'has:analysis-on-${runtimeVersion.replaceAll('.', '')}';
 }
 
 /// Collection of SDK tags (with prefix and value).
