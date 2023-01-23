@@ -2,7 +2,10 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2023.01.19`
+ * Bumped runtimeVersion to `2023.01.20`
+ * Upgraded Dart 3 SDK to `3.0.0-128.0.dev`.
+ * Upgraded pana to `0.21.25`.
+ * `pkg/pub_worker` uses new `PANA_CACHE` directory to cache intermediate analysis results between versions of the same package.
 
 ## `20230117t133900-all`
  * Bumped runtimeVersion to `2023.01.16`

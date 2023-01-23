@@ -38,9 +38,15 @@ bool _retryIf(Exception e) =>
 Future<void> analyze(Payload payload) async {
   _log.info('Running analyze for payload with package:${payload.package}');
 
-  // Create a single PUB_CACHE that can be reused for analysis of each package
-  // version. Re-using the same PUB_CACHE avoids downloading packages again.
-  final pubCacheDir = await Directory.systemTemp.createTemp('pub-cache');
+  // Create a single PUB_CACHE and PANA_CACHE that can be reused for analysis
+  // of each package version:
+  // - re-using the same PUB_CACHE avoids downloading packages again,
+  // - re-using the same PANA_CACHE avoids analyzing the same external URLs again.
+  final tempDir = await Directory.systemTemp.createTemp('analyzer');
+  final pubCacheDir = Directory(p.join(tempDir.path, 'pub-cache'));
+  await pubCacheDir.create(recursive: true);
+  final panaCacheDir = Directory(p.join(tempDir.path, 'pana-cache'));
+  await panaCacheDir.create(recursive: true);
 
   final workerDeadline = clock.now().add(_workerTimeout);
   final client = Client();
@@ -64,6 +70,7 @@ Future<void> analyze(Payload payload) async {
             version: p.version,
             pubHostedUrl: payload.pubHostedUrl,
             pubCache: pubCacheDir.path,
+            panaCache: panaCacheDir.path,
           );
         } else {
           await _reportPackageSkipped(
@@ -88,7 +95,7 @@ Future<void> analyze(Payload payload) async {
     }
   } finally {
     client.close();
-    await pubCacheDir.delete(recursive: true);
+    await tempDir.delete(recursive: true);
   }
   _log.info('Finished analysis of package:${payload.package}');
 }
@@ -100,6 +107,7 @@ Future<void> _analyzePackage(
   required String version,
   required String pubHostedUrl,
   required String pubCache,
+  required String panaCache,
 }) async {
   _log.info('Running analyze for $package / $version');
 
@@ -171,6 +179,7 @@ Future<void> _analyzePackage(
           'CI': 'true',
           'PUB_HOSTED_URL': pubHostedUrl,
           'PUB_CACHE': pubCache,
+          'PANA_CACHE': panaCache,
         },
       );
       await pana.stdin.close();

@@ -350,7 +350,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.21.24"
+    version: "0.21.25"
   path:
     dependency: transitive
     description:

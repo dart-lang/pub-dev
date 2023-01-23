@@ -79,6 +79,7 @@ Future<void> main(List<String> args) async {
     dartSdkDir: dartSdk?.path,
     flutterSdkDir: flutterSdk?.path,
     pubCacheDir: pubCache,
+    panaCacheDir: Platform.environment['PANA_CACHE'],
     environment: {'CI': 'true'},
     useGlobalDartdoc: false,
   );
