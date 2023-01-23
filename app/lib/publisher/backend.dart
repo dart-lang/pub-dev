@@ -51,7 +51,7 @@ class PublisherBackend {
     checkPublisherIdParam(publisherId);
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
     final p = await _db.lookupOrNull<Publisher>(pKey);
-    if (p != null && p.isNotVisible) {
+    if (p != null && p.isBlocked) {
       return null;
     }
     return p;
@@ -65,7 +65,7 @@ class PublisherBackend {
       final query = _db.query<Publisher>();
       final publishers = await query
           .run()
-          .where((p) => p.isVisible)
+          .where((p) => !p.isUnlisted)
           .map((p) => PublisherSummary(
                 publisherId: p.publisherId,
                 created: p.created!,
@@ -103,7 +103,7 @@ class PublisherBackend {
       publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
         publishers: publishers
-            .where((p) => p.isVisible)
+            .where((p) => !p.isBlocked)
             .map((p) => PublisherSummary(
                   publisherId: p.publisherId,
                   created: p.created!,
@@ -123,7 +123,7 @@ class PublisherBackend {
 
   /// Whether the User [userId] has admin permissions on the publisher.
   Future<bool> isMemberAdmin(Publisher publisher, String? userId) async {
-    if (publisher.isNotVisible) return false;
+    if (publisher.isBlocked) return false;
     if (userId == null) return false;
     final member = await getPublisherMember(publisher, userId);
     if (member == null) return false;
