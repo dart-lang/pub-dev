@@ -120,7 +120,8 @@ String renderPublisherPackagesPage({
     searchForm: searchForm,
     canonicalUrl: canonicalUrl,
     // index only the first listed page, if it has packages displayed without search query
-    noIndex: kind == PublisherPackagesPageKind.unlisted ||
+    noIndex: publisher.isUnlisted ||
+        kind == PublisherPackagesPageKind.unlisted ||
         searchResultPage.hasNoHit ||
         pageLinks.currentPage! > 1,
     mainClasses: [wideHeaderDetailPageClassName],

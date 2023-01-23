@@ -97,8 +97,8 @@ class Publisher extends db.ExpandoModel<String> {
   /// Whether the publisher has a displayable contact email.
   bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
 
-  bool get isNotVisible => isBlocked;
-  bool get isVisible => !isNotVisible;
+  /// Whether we should not list the publisher page in sitemap or promote it in search engines.
+  bool get isUnlisted => isBlocked || isAbandoned;
 }
 
 /// Derived publisher data.
