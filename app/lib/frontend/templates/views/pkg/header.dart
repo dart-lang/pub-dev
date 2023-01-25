@@ -13,6 +13,7 @@ d.Node packageHeaderNode({
   required String? publisherId,
   required DateTime published,
   required bool isNullSafe,
+  required bool isDart3Ready,
   required LatestReleases? releases,
 }) {
   return d.fragment([
@@ -20,7 +21,8 @@ d.Node packageHeaderNode({
     d.span(child: d.xAgoTimestamp(published)),
     d.text(' '),
     if (publisherId != null) ..._publisher(publisherId),
-    if (isNullSafe) nullSafeBadgeNode(),
+    if (isNullSafe && !isDart3Ready) nullSafeBadgeNode(),
+    if (isDart3Ready) dart3ReadyNode,
     if (releases != null) ..._releases(packageName, releases),
   ]);
 }
