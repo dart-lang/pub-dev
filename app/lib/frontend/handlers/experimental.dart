@@ -43,7 +43,7 @@ class ExperimentalFlags {
   }
 
   /// Whether to show the "Dart 3 ready" badge or the search checkbox.
-  bool get showDart3ReadyOnUI => _enabled.contains('dart3');
+  bool get showDart3ReadyOnUI => true;
 
   /// Whether to return dartdoc from sandboxing output.
   bool get showSandboxedOutput => _enabled.contains('sandbox');
