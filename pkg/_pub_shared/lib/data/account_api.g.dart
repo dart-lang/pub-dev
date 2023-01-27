@@ -26,12 +26,19 @@ ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['expires'] as String),
     );
 
-Map<String, dynamic> _$ClientSessionStatusToJson(
-        ClientSessionStatus instance) =>
-    <String, dynamic>{
-      'changed': instance.changed,
-      'expires': instance.expires?.toIso8601String(),
-    };
+Map<String, dynamic> _$ClientSessionStatusToJson(ClientSessionStatus instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('changed', instance.changed);
+  writeNotNull('expires', instance.expires?.toIso8601String());
+  return val;
+}
 
 LikedPackagesRepsonse _$LikedPackagesRepsonseFromJson(
         Map<String, dynamic> json) =>

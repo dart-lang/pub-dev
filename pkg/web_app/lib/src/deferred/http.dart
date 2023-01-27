@@ -5,7 +5,7 @@
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
-export 'package:http/http.dart' show Client;
+export 'package:http/http.dart' show Client, get;
 
 /// Creates an authenticated [Client] that calls [getToken] to obtain an
 /// bearer-token to use in the `Authorization: Bearer <token>` header.

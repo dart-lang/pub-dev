@@ -150,6 +150,35 @@ class UserSession extends db.ExpandoModel<String> {
   bool isExpired() => clock.now().isAfter(expires!);
 }
 
+/// Maps the token id (from JWT) to User.id, (cookie) sessionId and signature secret.
+@db.Kind(name: 'UserToken', idType: db.IdType.String)
+class UserToken extends db.ExpandoModel<String> {
+  /// Same as [id].
+  /// This is a v4 (random) UUID String.
+  String get tokenId => id as String;
+
+  @db.StringProperty(required: true)
+  String? userId;
+
+  @db.StringProperty(required: true)
+  String? sessionId;
+
+  @db.DateTimeProperty(required: true, indexed: false)
+  DateTime? created;
+
+  /// The expiry in the Datastore should be more into the future than in the JWT,
+  /// as deleting the entry here invalidates the JWT, regardless of the expiry
+  /// there.
+  @db.DateTimeProperty(required: true)
+  DateTime? expires;
+
+  /// The Base64-encoded secret that we use for signing the JWT signature.
+  @db.StringProperty(indexed: false)
+  String? tokenHmacSecretBase64;
+
+  bool isExpired() => clock.now().isAfter(expires!);
+}
+
 /// Pattern for detecting profile image parameters as specified in [1].
 ///
 /// [1]: https://developers.google.com/people/image-sizing

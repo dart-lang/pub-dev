@@ -265,6 +265,10 @@ class PubApi {
           Request request, String consentId, ConsentResult result) =>
       consentBackend.resolveConsent(consentId, result);
 
+  /// Gets the current session information as [ClientSessionStatus].
+  @EndPoint.get('/api/account/session')
+  Future<Response> getSession(Request request) => getSessionHandler(request);
+
   /// Registers (or extends) a user session.
   ///
   /// This endpoint should be called after an explicit login action or when the

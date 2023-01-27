@@ -27,6 +27,21 @@ PubApiClient get unauthenticatedClient =>
 PubApiClient get client {
   return PubApiClient(_baseUrl,
       client: http.createAuthenticatedClient(() async {
+    // Try new pub.dev token first.
+    final rs = await http.get(
+      Uri.parse('/api/account/session'),
+      headers: {
+        'content-type': 'application/json; charset="utf-8"',
+        'x-pub-dev-token-request': '1',
+      },
+    );
+    if (rs.statusCode == 200) {
+      final tokenRs = rs.headers['x-pub-dev-token'];
+      if (tokenRs != null) {
+        return tokenRs;
+      }
+    }
+
     // Wait until we're initialized
     await authProxyReady;
 

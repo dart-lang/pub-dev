@@ -45,7 +45,7 @@ class ExperimentalFlags {
   bool get showSandboxedOutput => _enabled.contains('sandbox');
 
   /// Whether to use the new Google Identity Services library.
-  bool get useGisSignIn => _enabled.contains('signin');
+  bool get useNewSignIn => _enabled.contains('signin');
 
   bool get isEmpty => _enabled.isEmpty;
 

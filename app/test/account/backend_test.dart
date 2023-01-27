@@ -2,14 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/service/openid/jwt.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
+import '../frontend/handlers/_utils.dart';
+import '../shared/handlers_test_utils.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -115,5 +123,116 @@ void main() {
           .toSet();
       expect(ids2, {'admin-pub-dev', 'c-example-com', 'user-pub-dev'});
     });
+  });
+
+  group('session and token', () {
+    Future<String?> _getToken({
+      required String? email,
+      bool useExperimental = true,
+      bool useRequestHeader = true,
+    }) async {
+      final sessionCookie = email == null
+          ? ''
+          : await acquireSessionCookie(createFakeAuthTokenForEmail(email));
+      final rs = await issueGet(
+        '/api/account/session',
+        headers: {
+          'cookie': [
+            if (sessionCookie.isNotEmpty) sessionCookie,
+            if (useExperimental) 'experimental=signin',
+          ].join('; '),
+          if (useRequestHeader) 'x-pub-dev-token-request': '1',
+        },
+        host: activeConfiguration.primaryApiUri!.host,
+      );
+      expect(rs.statusCode, 200);
+      final body = await rs.readAsString();
+      expect(json.decode(body), {
+        if (email != null) 'expires': isNotEmpty,
+      });
+      return rs.headers['x-pub-dev-token'];
+    }
+
+    testWithProfile(
+      'GET /api/account/session - without any session',
+      fn: () async {
+        expect(
+            await _getToken(
+              email: null,
+              useExperimental: true,
+            ),
+            isNull);
+      },
+    );
+
+    testWithProfile(
+      'GET /api/account/session - without experimental flag',
+      fn: () async {
+        expect(
+            await _getToken(
+              email: 'user@pub.dev',
+              useExperimental: false,
+            ),
+            isNull);
+      },
+    );
+
+    testWithProfile(
+      'GET /api/account/session - active session, without token request header',
+      fn: () async {
+        expect(
+            await _getToken(
+              email: 'user@pub.dev',
+              useRequestHeader: false,
+            ),
+            isNull);
+      },
+    );
+
+    testWithProfile(
+      'getting the token + verification',
+      fn: () async {
+        final token = await _getToken(email: 'admin@pub.dev');
+        final jwt = JsonWebToken.parse(token!);
+        expect(jwt.header, {
+          'typ': 'JWT',
+          'alg': 'HS256',
+        });
+        final now = clock.now().toUtc();
+        expect(jwt.payload, {
+          'iss': 'https://pub.dev',
+          'iat': isNot(greaterThan(now.millisecondsSinceEpoch ~/ 1000)),
+          'exp': isNot(greaterThan(
+              now.add(Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000)),
+          'tokenId': isNotEmpty,
+        });
+        expect(jwt.payload.isTimely(), isTrue);
+
+        final user = await accountBackend.tryParseAndVerifyPubDevToken(token);
+        expect(user, isNotNull);
+        expect(user!.email, 'admin@pub.dev');
+      },
+    );
+
+    testWithProfile(
+      'using token on unauthorized resource',
+      fn: () async {
+        final token = await _getToken(email: 'user@pub.dev');
+        final rs = createPubApiClient(authToken: token)
+            .setPackageOptions('oxygen', PkgOptions(isDiscontinued: true));
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
+      },
+    );
+
+    testWithProfile(
+      'using token on authorized resource',
+      fn: () async {
+        final token = await _getToken(email: 'admin@pub.dev');
+        final rs = await createPubApiClient(authToken: token)
+            .setPackageOptions('oxygen', PkgOptions(isDiscontinued: true));
+        expect(rs.isDiscontinued, true);
+      },
+    );
   });
 }

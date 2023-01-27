@@ -4,9 +4,11 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -16,6 +18,7 @@ import 'package:neat_cache/neat_cache.dart';
 import '../audit/models.dart';
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
+import '../service/openid/jwt.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
@@ -26,6 +29,8 @@ import 'agent.dart';
 import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
+
+final _random = Random.secure();
 
 /// The name of the session cookie.
 ///
@@ -143,12 +148,20 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
     return authenticatedServiceAgent;
   }
 
-  final auth = await authProvider.tryAuthenticateAsUser(token);
-  if (auth == null) {
-    throw AuthenticationException.failed();
+  var user = await accountBackend.tryParseAndVerifyPubDevToken(token);
+  String? audience;
+
+  if (user == null) {
+    final auth = await authProvider.tryAuthenticateAsUser(token);
+    if (auth == null) {
+      throw AuthenticationException.failed();
+    }
+    user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
+    audience = auth.audience;
+  } else {
+    audience = activeConfiguration.pubSiteAudience;
   }
 
-  final user = await accountBackend._lookupOrCreateUserByOauthUserId(auth);
   if (user == null) {
     throw AuthenticationException.failed();
   }
@@ -164,7 +177,7 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
     );
     throw AuthorizationException.blocked();
   }
-  return AuthenticatedUser(user, audience: auth.audience);
+  return AuthenticatedUser(user, audience: audience!);
 }
 
 Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
@@ -452,6 +465,73 @@ class AccountBackend {
     });
   }
 
+  /// Creates and signs a JWT token using HMAC-SHA256 signature.
+  Future<String> createPubDevToken({
+    required String userId,
+    required String sessionId,
+  }) async {
+    final secret = List<int>.generate(32, (i) => _random.nextInt(256));
+    final now = clock.now().toUtc();
+    final tokenEntry = UserToken()
+      ..id = createUuid()
+      ..created = now
+      ..expires = now.add(const Duration(minutes: 60))
+      ..userId = userId
+      ..sessionId = sessionId
+      ..tokenHmacSecretBase64 = base64.encode(secret);
+    await _db.commit(inserts: [tokenEntry]);
+    final exp = now.add(const Duration(minutes: 15));
+    final header = {
+      'typ': 'JWT',
+      'alg': 'HS256',
+    };
+    final payload = {
+      'iss': 'https://pub.dev',
+      'iat': now.millisecondsSinceEpoch ~/ 1000,
+      'exp': exp.millisecondsSinceEpoch ~/ 1000,
+      'tokenId': tokenEntry.tokenId,
+    };
+    final jsonHeader = json.encode(header);
+    final jsonPayload = json.encode(payload);
+    final hmac = Hmac(sha256, secret);
+    final signature =
+        hmac.convert(utf8.encode('$jsonHeader.$jsonPayload')).bytes;
+    return '${base64Url.encode(utf8.encode(jsonHeader))}.'
+        '${base64Url.encode(utf8.encode(jsonPayload))}.'
+        '${base64Url.encode(signature)}';
+  }
+
+  /// Parses [input], verifies JWT token validity and checks signature.
+  ///
+  /// Returns null when token is invalid or expired.
+  Future<User?> tryParseAndVerifyPubDevToken(String input) async {
+    final jwt = JsonWebToken.tryParse(input);
+    if (jwt == null) {
+      return null;
+    }
+    if (jwt.payload.iss != 'https://pub.dev') {
+      return null;
+    }
+    if (!jwt.payload.isTimely(threshold: const Duration(minutes: 2))) {
+      return null;
+    }
+    final tokenId = jwt.payload['tokenId'];
+    if (tokenId == null || tokenId is! String || tokenId.isEmpty) {
+      return null;
+    }
+    final tokenEntry = await _db
+        .lookupOrNull<UserToken>(_db.emptyKey.append(UserToken, id: tokenId));
+    if (tokenEntry == null || tokenEntry.isExpired()) {
+      return null;
+    }
+    final session = await _db.lookupOrNull<UserSession>(
+        _db.emptyKey.append(UserSession, id: tokenEntry.sessionId!));
+    if (session == null || session.isExpired()) {
+      return null;
+    }
+    return await lookupUserById(tokenEntry.userId!);
+  }
+
   /// Creates a new session for the current authenticated user and returns the
   /// new session data.
   ///
@@ -539,6 +619,16 @@ class AccountBackend {
     final query = _db.query<UserSession>()..filter('expires <', ts);
     final count = await _db.deleteWithQuery(query);
     _logger.info('Deleted ${count.deleted} UserSession entries.');
+  }
+
+  /// Removes the expired tokens from Datastore.
+  Future<void> deleteObsoleteTokens() async {
+    final now = clock.now().toUtc();
+    // account for possible clock skew
+    final ts = now.subtract(Duration(minutes: 15));
+    final query = _db.query<UserToken>()..filter('expires <', ts);
+    final count = await _db.deleteWithQuery(query);
+    _logger.info('Deleted ${count.deleted} UserToken entries.');
   }
 
   /// Updates the blocked status of a user.

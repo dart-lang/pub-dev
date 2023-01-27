@@ -96,6 +96,13 @@ void _setupGenericPeriodicTasks() {
     task: () async => await accountBackend.deleteObsoleteSessions(),
   );
 
+  // Deletes expired tokens.
+  _daily(
+    name: 'delete-expired-tokens',
+    isRuntimeVersioned: false,
+    task: () async => await accountBackend.deleteObsoleteTokens(),
+  );
+
   // Updates Package's stable, prerelease and preview version fields in case a
   // new Dart SDK got released.
   _daily(

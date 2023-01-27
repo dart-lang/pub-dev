@@ -22,6 +22,7 @@ import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
+import '../request_context.dart';
 import '../templates/admin.dart';
 import '../templates/consent.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
@@ -30,6 +31,33 @@ final _logger = Logger('account_handler');
 
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
+
+/// Handles GET /api/account/session
+Future<shelf.Response> getSessionHandler(shelf.Request request) async {
+  final current = userSessionData;
+  final tokenRequest = request.headers['x-pub-dev-token-request'];
+  String? tokenResponse;
+  // TODO: use another challenge or secret in the request, maybe
+  //       store sha256(sessionId) in the HTML page.
+  if (requestContext.experimentalFlags.useNewSignIn &&
+      current != null &&
+      !current.isExpired &&
+      tokenRequest == '1') {
+    tokenResponse = await accountBackend.createPubDevToken(
+      userId: current.userId!,
+      sessionId: current.sessionId,
+    );
+  }
+  return jsonResponse(
+    ClientSessionStatus(
+      changed: null,
+      expires: current?.expires,
+    ).toJson(),
+    headers: {
+      if (tokenResponse != null) 'x-pub-dev-token': tokenResponse,
+    },
+  );
+}
 
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(

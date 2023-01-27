@@ -30,7 +30,7 @@ class ClientSessionRequest {
 }
 
 /// The server-provided status of the current session.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ClientSessionStatus {
   /// True, if the user session has been updated and the current page should be
   /// reloaded.

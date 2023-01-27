@@ -59,7 +59,6 @@ class JsonWebToken {
     this.signature,
   );
 
-  @visibleForTesting
   factory JsonWebToken({
     required Map<String, dynamic> header,
     required Map<String, dynamic> payload,
