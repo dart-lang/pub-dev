@@ -161,7 +161,7 @@ class DartToolClient {
   }
 
   Future<void> create(String pkgDir) async {
-    await runDart(['create', '--force', pkgDir]);
+    await runDart(['create', '--force', '--no-pub', pkgDir]);
   }
 
   Future<void> publish(
