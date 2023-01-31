@@ -37,6 +37,28 @@ void main() {
     test('uses a template', () async {
       final tempDir = await Directory.systemTemp.createTemp();
       try {
+        final dependentPackages = {
+          'lints': '2.0.1',
+          'test': '1.22.2',
+        };
+        for (final d in dependentPackages.keys) {
+          final pkgDir = p.join(tempDir.path, d);
+          await Directory(pkgDir).create(recursive: true);
+          await File(p.join(pkgDir, 'pubspec.yaml')).writeAsString('name: $d\n'
+              'version: ${dependentPackages[d]}\n'
+              'description: simple package placeholder\n'
+              'environment:\n  sdk: ">=2.19.0 <4.0.0"\n');
+          await File(p.join(pkgDir, 'LICENSE'))
+              .writeAsString('No real license.');
+          if (d == 'test') {
+            final file = File(p.join(pkgDir, 'lib/test.dart'));
+            await file.parent.create(recursive: true);
+            await file.writeAsString('void test(String name, Function fn) {}\n'
+                'void expect(dynamic a, dynamic b) {}\n');
+          }
+          await localDartTool.publish(pkgDir);
+        }
+
         final pkgName = 'pkg';
         final pkgDir = p.join(tempDir.path, pkgName);
         // create templated package
