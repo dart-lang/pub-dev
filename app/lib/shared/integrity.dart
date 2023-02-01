@@ -65,7 +65,10 @@ class IntegrityChecker {
       count++;
       _logger.warning('[pub-integrity-problem] $problem');
     }
-    _logger.info('Integrity check completed with $count issue(s).');
+    _logger.info([
+      'Integrity check completed with $count issue(s).',
+      if (count == 0) '[pub-integrity-no-problems-found]',
+    ].join(' '));
   }
 
   /// Runs integrity checks, and returns the list of problems.
