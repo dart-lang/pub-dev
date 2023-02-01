@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded runtime Dart SDK to `2.19.0`.
  * Upgraded dartdoc to `6.1.5`.
  * Upgraded dependencies.
+ * Updated `osd.xml`: using inlined URL parameter.
 
 ## `20230125t151100-all`
  * Enabled `dart3` experiment, displaying "Dart-3 ready" badges.
