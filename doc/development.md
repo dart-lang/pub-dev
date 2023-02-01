@@ -9,6 +9,9 @@ instructions how to work with the local, in-memory server (`fake_server`).
 
 - If you want to setup the project on Google AppEngine, follow [this guide](appengine.md). 
 
+- Development and runtime support is best on Linux, compatible system may work,
+  Windows isn't supported yet (e.g. bash scripts are not compatible).
+
 ## Project structure
 
 The main directories that one would be looking at:
