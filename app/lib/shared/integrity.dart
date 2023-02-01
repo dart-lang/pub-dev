@@ -67,7 +67,7 @@ class IntegrityChecker {
     }
     _logger.info([
       'Integrity check completed with $count issue(s).',
-      if (count == 0) '[pub-integrity-no-problem]',
+      if (count == 0) '[pub-integrity-no-problems-found]',
     ].join(' '));
   }
 
