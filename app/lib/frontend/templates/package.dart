@@ -5,7 +5,6 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
@@ -123,8 +122,7 @@ d.Node renderPkgHeader(PackagePageData data) {
     publisherId: package.publisherId,
     published: data.version!.created!,
     isNullSafe: isNullSafe,
-    isDart3Ready: requestContext.experimentalFlags.showDart3ReadyOnUI &&
-        pkgView.tags.contains(PackageVersionTags.isDart3Ready),
+    isDart3Ready: pkgView.tags.contains(PackageVersionTags.isDart3Ready),
     releases: showReleases ? data.latestReleases : null,
   );
 
