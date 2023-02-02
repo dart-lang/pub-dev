@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dartdoc to `6.1.5`.
  * Upgraded dependencies.
  * Updated `osd.xml`: using inlined URL parameter.
+ * Higher limit on dart-doc total output size (2.3G).
 
 ## `20230125t151100-all`
  * Enabled `dart3` experiment, displaying "Dart-3 ready" badges.
