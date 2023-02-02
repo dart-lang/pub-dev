@@ -7,7 +7,6 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pana/pana.dart';
 
-import '../../../../frontend/request_context.dart';
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
@@ -74,8 +73,7 @@ d.Node _packageItem(
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
-  final isDart3Ready = requestContext.experimentalFlags.showDart3ReadyOnUI &&
-      view.tags.contains(PackageVersionTags.isDart3Ready);
+  final isDart3Ready = view.tags.contains(PackageVersionTags.isDart3Ready);
 
   Iterable<d.Node> versionAndTimestamp(
     Release release, {

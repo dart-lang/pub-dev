@@ -7,7 +7,6 @@ import 'package:_pub_shared/search/tags.dart';
 
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
-import '../../../request_context.dart';
 import '../../../static_files.dart';
 
 /// Renders the package listing.
@@ -153,16 +152,13 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title: 'Show only packages with screenshots.',
               ),
-              if (requestContext.experimentalFlags.showDart3ReadyOnUI ||
-                  searchForm.parsedQuery.tagsPredicate
-                      .hasTag(PackageVersionTags.isDart3Ready))
-                _tagBasedCheckbox(
-                  tagPrefix: 'is',
-                  tagValue: 'dart3-ready',
-                  label: 'Dart 3 ready',
-                  searchForm: searchForm,
-                  title: 'Show only packages compatible with Dart 3.',
-                ),
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'dart3-ready',
+                label: 'Dart 3 ready',
+                searchForm: searchForm,
+                title: 'Show only packages compatible with Dart 3.',
+              ),
             ],
           ),
         ],

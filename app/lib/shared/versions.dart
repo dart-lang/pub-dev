@@ -22,11 +22,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.01.25',
+  '2023.02.01',
   // Fallback runtime versions.
+  '2023.01.25',
   '2023.01.24',
-  '2023.01.20',
-  '2023.01.16',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -54,10 +53,10 @@ bool shouldGCVersion(String version) =>
     version.compareTo(gcBeforeRuntimeVersion) < 0;
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
-final String runtimeSdkVersion = '2.18.0';
-final String toolStableDartSdkVersion = '2.19.0';
+final String runtimeSdkVersion = '2.19.0';
+final String toolStableDartSdkVersion = '2.19.1';
 final String toolStableFlutterSdkVersion = '3.7.0';
-final String toolPreviewDartSdkVersion = '3.0.0-151.0.dev';
+final String toolPreviewDartSdkVersion = '3.0.0-179.0.dev';
 final String toolPreviewFlutterSdkVersion = '3.7.0';
 
 final semanticToolStableDartSdkVersion =
@@ -69,7 +68,7 @@ final semanticToolStableFlutterSdkVersion =
 final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '6.1.1';
+final String dartdocVersion = '6.1.5';
 
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).

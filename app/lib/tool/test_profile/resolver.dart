@@ -61,7 +61,7 @@ Future<List<ResolvedVersion>> resolveVersions(
       }
     }
     final pubHostedDir =
-        Directory(p.join(pubCacheDir.path, 'hosted', 'pub.dartlang.org'));
+        Directory(p.join(pubCacheDir.path, 'hosted', 'pub.dev'));
     final dirs = await pubHostedDir.list().toList();
     final versions = <ResolvedVersion>[];
     for (final dir in dirs.whereType<Directory>()) {

@@ -35,7 +35,6 @@ class DatastoreHeadTaskSource implements TaskSource {
   DatastoreHeadTaskSource(
     this._db,
     this._model, {
-
     /// Whether to scan the entire datastore in the first run or skip old ones.
     bool skipHistory = false,
 
