@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 final _client = HttpClient();
@@ -41,10 +42,10 @@ Future<void> main(List<String> args) async {
   }
   _client.close();
 
-  print('Running `dart pub get --offline --no-precompile`');
+  print('Running `dart pub get --offline --no-precompile --enforce-lockfile`');
   final pr = Process.runSync(
     'dart',
-    ['pub', 'get', '--offline', '--no-precompile'],
+    ['pub', 'get', '--offline', '--no-precompile', '--enforce-lockfile'],
     environment: {'PUB_CACHE': pubCacheDir.path},
     workingDirectory: pkgDir,
   );
@@ -91,11 +92,11 @@ Map<String, String> _parsePubspecLockSync(File file) {
 }
 
 /// Downloads the archive and extracts it into
-/// [pubCacheDir]/hosted/pub.dartlang.org/[package]-[version]/
+/// [pubCacheDir]/hosted/pub.dev/[package]-[version]/
 Future<void> _downloadInto(
     String package, String version, Directory pubCacheDir) async {
-  final targetDir = Directory(
-      '${pubCacheDir.path}/hosted/pub.dartlang.org/$package-$version');
+  final targetDir =
+      Directory('${pubCacheDir.path}/hosted/pub.dev/$package-$version');
   if (targetDir.existsSync()) {
     targetDir.deleteSync(recursive: true);
   }
@@ -106,11 +107,38 @@ Future<void> _downloadInto(
   if (rs.statusCode != 200) {
     throw Exception('Unable to access archive of $package-$version.');
   }
-  final process =
+  final bytes = await rs
+      .fold<List<int>>(<int>[], (buffer, chunk) => buffer..addAll(chunk));
+
+  final tarProcess =
       await Process.start('tar', ['-zxf', '-', '-C', targetDir.path]);
-  await rs.pipe(process.stdin);
-  final exitCode = await process.exitCode;
-  if (exitCode != 0) {
+  tarProcess.stdin.add(bytes);
+  await tarProcess.stdin.flush();
+  await tarProcess.stdin.close();
+  final tarExitCode = await tarProcess.exitCode;
+  if (tarExitCode != 0) {
     throw Exception('Unable to extract archive of $package-$version.');
   }
+
+  final shaProcess = await Process.start('sha256sum', ['-b']);
+  shaProcess.stdin.add(bytes);
+  await shaProcess.stdin.flush();
+  await shaProcess.stdin.close();
+  final shaOutput = await shaProcess.stdout
+      .transform(utf8.decoder)
+      .transform(LineSplitter())
+      .first;
+  final shaExitCode = await shaProcess.exitCode;
+  if (shaExitCode != 0) {
+    throw Exception('Unable to hash archive of $package-$version.');
+  }
+  final hash = shaOutput.split(' ').first;
+  if (hash.length != 64) {
+    throw Exception(
+        'Unable to hash archive of $package-$version. Output: $shaOutput');
+  }
+  final targetHashFile = File(
+      '${pubCacheDir.path}/hosted-hashes/pub.dev/$package-$version.sha256');
+  await targetHashFile.parent.create(recursive: true);
+  await targetHashFile.writeAsString(hash);
 }
