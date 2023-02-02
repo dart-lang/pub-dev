@@ -91,11 +91,11 @@ Map<String, String> _parsePubspecLockSync(File file) {
 }
 
 /// Downloads the archive and extracts it into
-/// [pubCacheDir]/hosted/pub.dartlang.org/[package]-[version]/
+/// [pubCacheDir]/hosted/pub.dev/[package]-[version]/
 Future<void> _downloadInto(
     String package, String version, Directory pubCacheDir) async {
-  final targetDir = Directory(
-      '${pubCacheDir.path}/hosted/pub.dartlang.org/$package-$version');
+  final targetDir =
+      Directory('${pubCacheDir.path}/hosted/pub.dev/$package-$version');
   if (targetDir.existsSync()) {
     targetDir.deleteSync(recursive: true);
   }
