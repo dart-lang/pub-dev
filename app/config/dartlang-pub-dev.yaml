@@ -62,5 +62,5 @@ tools:
   stableFlutterSdkPath: '/tool/stable/flutter'
   previewDartSdkPath: '/tool/preview/dart-sdk'
   previewFlutterSdkPath: '/tool/preview/flutter'
-  futureDartSdkPath: '/tool/future/dart-sdk'
+  futureDartSdkPath: '/tool/preview/dart-sdk' # same as preview
   futureFlutterSdkPath: '/tool/future/flutter'
