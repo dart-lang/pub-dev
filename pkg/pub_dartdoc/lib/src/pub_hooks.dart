@@ -16,7 +16,11 @@ import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
 const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
-const _defaultMaxTotalLengthBytes = 2 * 1024 * 1024 * 1024; // 2 GiB
+
+// TODO (sigurdm): reduce this back to 2 GiB when
+// https://github.com/dart-lang/dartdoc/issues/3311 is resolved.
+const _defaultMaxTotalLengthBytes =
+    2 * 1024 * 1024 * 1024 + 300 * 1024 * 1024; // 2 GiB + 300 MiB
 
 /// Thrown when current output exceeds limits.
 class DocumentationTooBigException implements Exception {
