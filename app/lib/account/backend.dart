@@ -27,15 +27,6 @@ import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
 
-/// The name of the session cookie.
-///
-/// Cookies prefixed '__Host-' must:
-///  * be set by a HTTPS response,
-///  * not feature a 'Domain' directive, and,
-///  * have 'Path=/' directive.
-/// Hence, such a cookie cannot have been set by another website or an
-/// HTTP proxy for this website.
-const pubSessionCookieName = '__Host-pub-sid';
 final _logger = Logger('account.backend');
 
 /// Sets the auth provider service.
@@ -474,7 +465,8 @@ class AccountBackend {
       ..name = name
       ..imageUrl = imageUrl
       ..created = now
-      ..expires = now.add(Duration(days: 14));
+      ..updated = now
+      ..expires = now.add(Duration(days: 180));
     await _db.commit(inserts: [session]);
     return UserSessionData.fromModel(session);
   }
@@ -518,7 +510,8 @@ class AccountBackend {
       await cacheEntry.purge();
       return null;
     }
-
+    // TODO: Update session if it hasn't been updated for more than a day.
+    //       Also emit a new cookie with the updated expiry.
     final data = UserSessionData.fromModel(session);
     await cacheEntry.set(data);
     return data;

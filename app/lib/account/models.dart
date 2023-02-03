@@ -144,10 +144,29 @@ class UserSession extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true, indexed: false)
   DateTime? created;
 
+  @db.DateTimeProperty(required: false, indexed: false)
+  DateTime? updated;
+
   @db.DateTimeProperty(required: true)
   DateTime? expires;
 
-  bool isExpired() => clock.now().isAfter(expires!);
+  bool isExpired() => _isSessionExpired(expires: expires!, updated: updated);
+}
+
+bool _isSessionExpired({
+  required DateTime expires,
+  required DateTime? updated,
+}) {
+  final now = clock.now();
+  // Regular expiry.
+  if (now.isAfter(expires)) {
+    return true;
+  }
+  // Session was not updated for more than a month, it is considered expired.
+  if (updated != null && updated.add(const Duration(days: 33)).isBefore(now)) {
+    return true;
+  }
+  return false;
 }
 
 /// Pattern for detecting profile image parameters as specified in [1].
@@ -178,6 +197,9 @@ class UserSessionData {
   /// The time when the session was created.
   final DateTime created;
 
+  /// The time when the session was created.
+  final DateTime? updated;
+
   /// The time when the session will expire.
   final DateTime expires;
 
@@ -188,6 +210,7 @@ class UserSessionData {
     this.name,
     this.imageUrl,
     required this.created,
+    this.updated,
     required this.expires,
   });
 
@@ -199,6 +222,7 @@ class UserSessionData {
       name: session.name,
       imageUrl: session.imageUrl,
       created: session.created!,
+      updated: session.updated,
       expires: session.expires!,
     );
   }
@@ -208,7 +232,7 @@ class UserSessionData {
 
   Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
 
-  bool get isExpired => clock.now().isAfter(expires);
+  bool get isExpired => _isSessionExpired(expires: expires, updated: updated);
 
   bool get hasName => name != null && name!.isNotEmpty;
 

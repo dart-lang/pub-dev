@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -79,13 +80,27 @@ Future<shelf.Response> updateSessionHandler(
   _logger.info(
       '[pub-session-handler-debug] Session was created: $t1 / ${t2 - t1} / ${t3 - t2} / ${t4 - t3}.');
 
+  // Always create a cookie that expires 25 minutes before the session.
+  // This way clock skew on the client is less likely to cause us to receive
+  // an invalid cookie. Not that getting an expired cookie should be a problem.
+  var maxAge =
+      newSession.expires.difference(clock.now()) - const Duration(minutes: 25);
+  // The session may live long, but we set the cookie expiry to a month maximum.
+  // On repeated visits the cookie will be updated with a new maximum age.
+  if (maxAge.inDays > 30) {
+    maxAge = const Duration(days: 30);
+  }
+  final cookieHeaders = session_cookie.updateSessionCookies(
+    newSession.sessionId,
+    maxAge: maxAge > Duration.zero ? maxAge : Duration.zero,
+  );
+
   return jsonResponse(
     ClientSessionStatus(
       changed: true,
       expires: newSession.expires,
     ).toJson(),
-    headers: session_cookie.createSessionCookie(
-        newSession.sessionId, newSession.expires),
+    headers: cookieHeaders,
   );
 }
 

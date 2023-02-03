@@ -11,7 +11,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 // ignore: implementation_imports
@@ -273,7 +272,8 @@ Future<R> retryAsync<R>(
 String buildSetCookieValue({
   required String name,
   required String value,
-  required DateTime expires,
+  required Duration maxAge,
+  required bool sameSiteStrict,
 }) {
   if (value.isEmpty) {
     value = '""';
@@ -284,13 +284,19 @@ String buildSetCookieValue({
     'Path=/',
     // Max-Age takes precedence over 'Expires', this also has the benefit of
     // not being corrupted by client-side clock skew.
-    'Max-Age=${expires.difference(clock.now()).inSeconds}',
-    // Cookie expires when the session expires.
-    'Expires=${HttpDate.format(expires)}',
+    'Max-Age=${maxAge.inSeconds}',
     // Do not include the cookie in CORS requests, unless the request is a
     // top-level navigation to the site, as recommended in:
     // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
-    'SameSite=Lax',
+    if (sameSiteStrict)
+      // Cookies will only be sent in a first-party context and not be sent along
+      // with requests initiated by third party websites.
+      'SameSite=Strict'
+    else
+      // Cookies are not sent on normal cross-site subrequests (for example to load
+      // images or frames into a third party site), but are sent when a user is
+      // navigating to the origin site (i.e., when following a link).
+      'SameSite=Lax',
     if (!envConfig.isRunningLocally)
       'Secure', // Only allow this cookie to be sent when making HTTPS requests.
     'HttpOnly', // Do not allow Javascript access to this cookie.

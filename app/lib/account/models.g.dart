@@ -28,6 +28,9 @@ UserSessionData _$UserSessionDataFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String?,
       imageUrl: json['imageUrl'] as String?,
       created: DateTime.parse(json['created'] as String),
+      updated: json['updated'] == null
+          ? null
+          : DateTime.parse(json['updated'] as String),
       expires: DateTime.parse(json['expires'] as String),
     );
 
@@ -39,5 +42,6 @@ Map<String, dynamic> _$UserSessionDataToJson(UserSessionData instance) =>
       'name': instance.name,
       'imageUrl': instance.imageUrl,
       'created': instance.created.toIso8601String(),
+      'updated': instance.updated?.toIso8601String(),
       'expires': instance.expires.toIso8601String(),
     };
