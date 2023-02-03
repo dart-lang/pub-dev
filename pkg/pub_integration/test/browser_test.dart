@@ -93,7 +93,8 @@ void main() {
           await page.gotoOrigin('/packages/retry/versions/3.1.0');
           await checkHeaderTitle();
 
-          await page.gotoOrigin('/packages/retry/versions/3.1.01');
+          // TODO: non-canonical version should redirect and we should test for it
+          await page.gotoOrigin('/packages/retry/versions/3.01.00');
           await checkHeaderTitle();
 
           await page.gotoOrigin('/packages/retry/license');
