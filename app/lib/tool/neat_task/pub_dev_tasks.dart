@@ -156,6 +156,8 @@ void _setupGenericPeriodicTasks() {
       project: activeConfiguration.taskWorkerProject!,
     ),
   );
+
+  // TODO: setup tasks to remove known obsolete (but now unmapped) fields from entities
 }
 
 /// Setup the tasks that we are running in the analyzer service.

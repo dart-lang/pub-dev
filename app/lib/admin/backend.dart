@@ -43,6 +43,7 @@ import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
 import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
+import 'tools/update_package_versions.dart';
 import 'tools/uploader_count_report.dart';
 import 'tools/user_merger.dart';
 
@@ -64,6 +65,7 @@ final Map<String, Tool> availableTools = {
   'notify-service': executeNotifyService,
   'package-discontinued': executeSetPackageDiscontinued,
   'package-publisher': executeSetPackagePublisher,
+  'update-package-versions': executeUpdatePackageVersions,
   'recent-uploaders': executeRecentUploaders,
   'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
   'publisher-member': executePublisherMember,

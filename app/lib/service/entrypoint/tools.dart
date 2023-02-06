@@ -5,27 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
-
-import '../services.dart';
-
-/// Setup the tool's runtime environment, including Datastore access and logging.
-Future<void> withToolRuntime(Future<void> Function() fn) async {
-  final subs = Logger.root.onRecord.listen((r) {
-    print([
-      r.time.toIso8601String().replaceFirst('T', ' '),
-      r.toString(),
-      r.error,
-      r.stackTrace?.toString(),
-    ].where((e) => e != null).join(' '));
-  });
-  try {
-    await withServices(fn);
-  } finally {
-    await subs.cancel();
-  }
-}
-
 /// Waits for any of the listed signals and returns the first that occurs.
 Future<ProcessSignal> waitForProcessSignalTermination() {
   // Track subscriptions to event streams, so we can cancel them all.
