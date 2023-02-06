@@ -13,12 +13,13 @@ import '../shared/utils.dart' show buildSetCookieValue, parseCookieHeader;
 /// The name of the session cookie.
 ///
 /// Depends on whether we're running locally.
-final _pubLaxSessionCookieName = _cookieName('sid');
-final _pubStrictSessionCookieName = _cookieName('ssid');
+final _pubLegacySessionCookieName = '__Host-pub-sid';
+final _pubLaxSessionCookieName = _cookieName('SID');
+final _pubStrictSessionCookieName = _cookieName('SSID');
 
 String _cookieName(String base) {
   if (envConfig.isRunningLocally) {
-    return 'pub-$base-insecure'; // Note. this should only happen on localhost.
+    return 'PUB_${base}_INSECURE'; // Note. this should only happen on localhost.
   }
 
   // Cookies prefixed '__Host-' must:
@@ -27,7 +28,7 @@ String _cookieName(String base) {
   //  * have 'Path=/' directive.
   // Hence, such a cookie cannot have been set by another website or an
   // HTTP proxy for this website.
-  return '__Host-pub-$base';
+  return '__HOST_PUB_$base';
 }
 
 /// Create a set of HTTP headers that store a session cookie.
@@ -58,7 +59,10 @@ Map<String, List<String>> updateSessionCookies(
 ///
 /// The [cookieString] is the value of the `cookie:` request header.
 String? parseSessionCookie(String? cookieString) {
-  final sessionId = parseCookieHeader(cookieString)[_pubLaxSessionCookieName];
+  final cookies = parseCookieHeader(cookieString);
+  final sessionId =
+      // TODO: remove legacy cookie name support two weeks after launching this
+      cookies[_pubLegacySessionCookieName] ?? cookies[_pubLaxSessionCookieName];
   // An empty sessionId cookie is the result of reseting the cookie.
   // Browser usually won't send this, but let's make sure we handle the case.
   if (sessionId != null && sessionId.isEmpty) {

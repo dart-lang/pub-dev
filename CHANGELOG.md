@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: Changed cookies to uppercase, legacy name is supported for existing sessions.
+   TODO: Remove legacy name support after two weeks.
 
 ## `20230202t153800-all`
  * Bumped runtimeVersion to `2023.02.01`
