@@ -2,6 +2,6 @@ name: _dummy_pkg
 homepage: 'https://github.com/dart-lang/pub-dev'
 description: 'Dummy packages published from pub integration tests.'
 dependencies:
-  retry: ^2.0.0
+  retry: ^3.1.0
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"

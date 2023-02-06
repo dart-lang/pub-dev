@@ -1,5 +1,5 @@
 name: retry
-version: 2.0.01
+version: 3.1.0
 homepage: 'https://github.com/dart-lang/pub-dev'
 description: 'Dummy packages published from pub integration tests.'
 environment:
