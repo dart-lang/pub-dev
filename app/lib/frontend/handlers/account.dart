@@ -83,13 +83,8 @@ Future<shelf.Response> updateSessionHandler(
   // Always create a cookie that expires 25 minutes before the session.
   // This way clock skew on the client is less likely to cause us to receive
   // an invalid cookie. Not that getting an expired cookie should be a problem.
-  var maxAge =
+  final maxAge =
       newSession.expires.difference(clock.now()) - const Duration(minutes: 25);
-  // The session may live long, but we set the cookie expiry to a month maximum.
-  // On repeated visits the cookie will be updated with a new maximum age.
-  if (maxAge.inDays > 30) {
-    maxAge = const Duration(days: 30);
-  }
   final cookieHeaders = session_cookie.updateSessionCookies(
     newSession.sessionId,
     maxAge: maxAge > Duration.zero ? maxAge : Duration.zero,

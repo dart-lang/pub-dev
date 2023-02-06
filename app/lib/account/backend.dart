@@ -466,7 +466,7 @@ class AccountBackend {
       ..imageUrl = imageUrl
       ..created = now
       ..updated = now
-      ..expires = now.add(Duration(days: 180));
+      ..expires = now.add(Duration(days: 30));
     await _db.commit(inserts: [session]);
     return UserSessionData.fromModel(session);
   }
