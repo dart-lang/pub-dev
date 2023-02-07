@@ -61,6 +61,12 @@ class InvalidInputException extends ResponseException {
   InvalidInputException.canonicalizeVersionError(String version)
       : this._('Unable to canonicalize the version: $version');
 
+  /// Thrown when the [version] is in a non-canonical form.
+  InvalidInputException.nonCanonicalVersion(
+      String version, String canonicalVersion)
+      : this._(
+            'Version is not in canonical form: "$version", use "$canonicalVersion" instead.');
+
   /// Check [condition] and throw [InvalidInputException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {

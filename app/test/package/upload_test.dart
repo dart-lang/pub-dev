@@ -878,7 +878,7 @@ void main() {
         expect(message.success.message, contains('Successfully uploaded'));
       });
 
-      testWithProfile('versions already exist', fn: () async {
+      testWithProfile('version already exist', fn: () async {
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('neon', '1.0.0'));
         final rs = createPubApiClient(authToken: adminClientToken)
@@ -888,6 +888,20 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message: 'Version 1.0.0 of package neon already exists',
+        );
+      });
+
+      testWithProfile('version in non-canonical form', fn: () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('neon', '1.0.001'));
+        final rs = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message:
+              'Version is not in canonical form: "1.0.001", use "1.0.1" instead.',
         );
       });
 

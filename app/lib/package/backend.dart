@@ -909,6 +909,10 @@ class PackageBackend {
         throw InvalidInputException.canonicalizeVersionError(
             pubspec.nonCanonicalVersion);
       }
+      if (versionString != pubspec.nonCanonicalVersion) {
+        throw InvalidInputException.nonCanonicalVersion(
+            pubspec.nonCanonicalVersion, versionString);
+      }
 
       // Check canonical archive.
       final canonicalArchivePath =
