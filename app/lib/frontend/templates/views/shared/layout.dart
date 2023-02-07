@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/frontend/request_context.dart';
-
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
@@ -125,19 +123,10 @@ d.Node pageLayoutNode({
             ),
             d.meta(
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
-            if (requestContext.experimentalFlags.useGisSignIn)
-              d.script(
-                src: 'https://accounts.google.com/gsi/client',
-                async: true,
-                defer: true,
-                onload: 'pubGsiClientInit()',
-              )
-            else
-              d.script(
-                src:
-                    'https://apis.google.com/js/platform.js?onload=pubAuthInit',
-                defer: true,
-              ),
+            d.script(
+              src: 'https://apis.google.com/js/platform.js?onload=pubAuthInit',
+              defer: true,
+            ),
             if (pageDataEncoded != null)
               d.meta(name: 'pub-page-data', content: pageDataEncoded),
             if (isLanding) ...[
