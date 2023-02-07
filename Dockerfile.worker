@@ -20,13 +20,13 @@ WORKDIR /home/worker/pub-dev
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
 RUN tool/setup-dart.sh /home/worker/dart 2.19.1
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
-RUN tool/setup-dart.sh /home/worker/dart 3.0.0-179.0.dev
+RUN tool/setup-dart.sh /home/worker/dart 3.0.0-187.0.dev
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN tool/setup-flutter.sh /home/worker/flutter 3.7.0
+RUN tool/setup-flutter.sh /home/worker/flutter 3.7.1
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/stable
-RUN tool/setup-flutter.sh /home/worker/flutter 3.7.0
+RUN tool/setup-flutter.sh /home/worker/flutter 3.7.1
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/preview
 
 # Configure SDKs to be used for analysis
