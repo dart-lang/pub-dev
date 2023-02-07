@@ -11,7 +11,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:appengine/appengine.dart';
-import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 // ignore: implementation_imports
@@ -19,8 +18,6 @@ import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
-
-import 'env_config.dart';
 
 export 'package:pana/pana.dart' show exampleFileCandidates;
 
@@ -266,61 +263,6 @@ Future<R> retryAsync<R>(
       }
       rethrow;
     }
-  }
-}
-
-/// Builds the Set-Cookie HTTP header value.
-String buildSetCookieValue({
-  required String name,
-  required String value,
-  required DateTime expires,
-}) {
-  if (value.isEmpty) {
-    value = '""';
-  }
-  return [
-    '$name=$value',
-    // Send cookie to anything under '/' required by '__Host-' prefix.
-    'Path=/',
-    // Max-Age takes precedence over 'Expires', this also has the benefit of
-    // not being corrupted by client-side clock skew.
-    'Max-Age=${expires.difference(clock.now()).inSeconds}',
-    // Cookie expires when the session expires.
-    'Expires=${HttpDate.format(expires)}',
-    // Do not include the cookie in CORS requests, unless the request is a
-    // top-level navigation to the site, as recommended in:
-    // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
-    'SameSite=Lax',
-    if (!envConfig.isRunningLocally)
-      'Secure', // Only allow this cookie to be sent when making HTTPS requests.
-    'HttpOnly', // Do not allow Javascript access to this cookie.
-  ].join('; ');
-}
-
-/// Parses the Cookie HTTP header and returns a map of the values.
-///
-/// This always return a non-null [Map], even if the [cookieHeader] is empty.
-Map<String, String> parseCookieHeader(String? cookieHeader) {
-  if (cookieHeader == null || cookieHeader.isEmpty) {
-    return <String, String>{};
-  }
-  try {
-    final r = <String, String>{};
-    // The cookieString is separated by '; ', and contains 'name=value'
-    // See: https://tools.ietf.org/html/rfc6265#section-5.4
-    for (final s in cookieHeader.split('; ')) {
-      final i = s.indexOf('=');
-      if (i != -1) {
-        r[s.substring(0, i)] = s.substring(i + 1);
-      }
-    }
-    return r;
-  } catch (_) {
-    // Ignore broken cookies, we could throw a ResponseException instead, and
-    // send the use a 400 error, this would be more correct. But unfortunately
-    // it wouldn't help the user if the browser is sending a malformed 'cookie'
-    // header. It would only serve to persistently break the site for the user.
-    return <String, String>{};
   }
 }
 

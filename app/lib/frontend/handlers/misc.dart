@@ -12,6 +12,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../publisher/backend.dart';
+import '../../shared/cookie_utils.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
@@ -167,13 +168,6 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
   final flags = requestContext.experimentalFlags
       .combineWithQueryParams(request.requestedUri.queryParameters);
 
-  final cookie =
-      Cookie('experimental', flags.isEmpty ? '' : flags.encodedAsCookie())
-        ..httpOnly = true
-        ..path = '/'
-        ..maxAge =
-            flags.isEmpty ? 0 : 7 * 24 * 60 * 60; // cookie lives for one week
-
   final clearUri = Uri(
       path: '/experimental', queryParameters: flags.urlParametersForToggle());
   final clearLink = flags.isEmpty ? '' : '(<a href="$clearUri">clear</a>).';
@@ -201,7 +195,11 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
   </center>
 </body>
 </html>''', headers: {
-    HttpHeaders.setCookieHeader: cookie.toString(),
+    HttpHeaders.setCookieHeader: buildSetCookieValue(
+      name: experimentalCookieName,
+      value: flags.encodedAsCookie(),
+      maxAge: experimentalCookieDuration,
+    ),
   });
 }
 

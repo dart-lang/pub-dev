@@ -4,6 +4,8 @@
 
 import 'package:meta/meta.dart';
 
+import '../../shared/cookie_utils.dart';
+
 const _publicFlags = <String>{};
 
 const _allFlags = <String>{
@@ -11,6 +13,10 @@ const _allFlags = <String>{
   'signin',
   'sandbox',
 };
+
+/// The name of the experimental cookie.
+final experimentalCookieName = pubCookieName('experimental');
+const experimentalCookieDuration = Duration(days: 7);
 
 /// Holds the enabled experimental flags.
 ///
