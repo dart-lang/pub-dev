@@ -20,8 +20,7 @@ Map<String, dynamic> _$LikeDataToJson(LikeData instance) => <String, dynamic>{
       'created': instance.created?.toIso8601String(),
     };
 
-UserSessionData _$UserSessionDataFromJson(Map<String, dynamic> json) =>
-    UserSessionData(
+SessionData _$SessionDataFromJson(Map<String, dynamic> json) => SessionData(
       sessionId: json['sessionId'] as String,
       userId: json['userId'] as String?,
       email: json['email'] as String?,
@@ -31,7 +30,7 @@ UserSessionData _$UserSessionDataFromJson(Map<String, dynamic> json) =>
       expires: DateTime.parse(json['expires'] as String),
     );
 
-Map<String, dynamic> _$UserSessionDataToJson(UserSessionData instance) =>
+Map<String, dynamic> _$SessionDataToJson(SessionData instance) =>
     <String, dynamic>{
       'sessionId': instance.sessionId,
       'userId': instance.userId,

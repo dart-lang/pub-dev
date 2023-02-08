@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../../account/models.dart' show UserSessionData;
+import '../../../../account/models.dart' show SessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
@@ -12,7 +12,7 @@ import '../../layout.dart' show PageType, showSearchBanner;
 /// Creates the site header and navigation node.
 d.Node siteHeaderNode({
   required PageType pageType,
-  UserSessionData? userSession,
+  SessionData? userSession,
 }) {
   return d.div(
     classes: ['site-header'],
@@ -112,7 +112,7 @@ d.Node siteHeaderNode({
   );
 }
 
-d.Node _userBlock(UserSessionData userSession) {
+d.Node _userBlock(SessionData userSession) {
   return d.div(
     classes: ['nav-container', 'nav-profile-container', 'hoverable'],
     children: [

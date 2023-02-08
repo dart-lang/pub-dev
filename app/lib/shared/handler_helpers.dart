@@ -266,7 +266,7 @@ shelf.Handler _userSessionWrapper(Logger logger, shelf.Handler handler) {
         request.headers.containsKey(HttpHeaders.cookieHeader)) {
       final cookieString = request.headers[HttpHeaders.cookieHeader];
       final sessionData =
-          await accountBackend.parseAndLookupSessionCookie(cookieString);
+          await accountBackend.parseAndLookupUserSessionCookie(cookieString);
       if (sessionData != null) {
         registerUserSessionData(sessionData);
       }

@@ -26,6 +26,7 @@ String buildSetCookieValue({
   required String name,
   required String value,
   required Duration maxAge,
+  bool sameSiteStrict = false,
 }) {
   if (maxAge < Duration.zero) {
     maxAge = Duration.zero;
@@ -43,7 +44,7 @@ String buildSetCookieValue({
     // Do not include the cookie in CORS requests, unless the request is a
     // top-level navigation to the site, as recommended in:
     // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
-    'SameSite=Lax',
+    if (sameSiteStrict) 'SameSite=Strict' else 'SameSite=Lax',
     if (!envConfig.isRunningLocally)
       'Secure', // Only allow this cookie to be sent when making HTTPS requests.
     'HttpOnly', // Do not allow Javascript access to this cookie.
@@ -70,7 +71,7 @@ Map<String, String> parseCookieHeader(String? cookieHeader) {
     return r;
   } catch (_) {
     // Ignore broken cookies, we could throw a ResponseException instead, and
-    // send the use a 400 error, this would be more correct. But unfortunately
+    // send the user a 400 error, this would be more correct. But unfortunately
     // it wouldn't help the user if the browser is sending a malformed 'cookie'
     // header. It would only serve to persistently break the site for the user.
     return <String, String>{};

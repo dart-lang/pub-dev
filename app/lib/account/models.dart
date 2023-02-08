@@ -120,6 +120,47 @@ class LikeData {
   }
 }
 
+/// Tracks the strict session id (from cookie), optionally with
+/// authenticated userId and cached profile information.
+@db.Kind(name: 'ClientSession', idType: db.IdType.String)
+class ClientSession extends db.ExpandoModel<String> {
+  /// Same as [id].
+  /// This is a v4 (random) UUID String.
+  String get sessionId => id as String;
+
+  @db.StringProperty()
+  String? userId;
+
+  @db.StringProperty(indexed: false)
+  String? email;
+
+  /// The name of the user given by the authentication provider.
+  /// May be null, or could contain any arbitrary text.
+  @db.StringProperty(indexed: false)
+  String? name;
+
+  @db.StringProperty(indexed: false)
+  String? imageUrl;
+
+  @db.DateTimeProperty(required: true, indexed: false)
+  DateTime? created;
+
+  @db.DateTimeProperty(required: true, indexed: true)
+  DateTime? expires;
+
+  @db.DateTimeProperty(indexed: false)
+  DateTime? authenticated;
+
+  @db.StringProperty(indexed: false)
+  String? csrfToken;
+
+  /// The random value used for OpenID authentication.
+  @db.StringProperty(indexed: false)
+  String? openidNonce;
+
+  bool isExpired() => clock.now().isAfter(expires!);
+}
+
 /// Maps the session id (from cookie) to User.id and cached profile properties.
 @db.Kind(name: 'UserSession', idType: db.IdType.String)
 class UserSession extends db.ExpandoModel<String> {
@@ -157,9 +198,9 @@ final _imgParamPattern = RegExp(
   r'=(?:(?:[swh]\d+)|[cp])(?:-(?:(?:[swh]\d+)|[cp]))*$',
 );
 
-/// The cacheable version of [UserSession].
+/// The cacheable version of [UserSession] or [ClientSession].
 @JsonSerializable()
-class UserSessionData {
+class SessionData {
   /// This is a v4 (random) UUID String that is set as a http cookie.
   final String sessionId;
 
@@ -181,7 +222,7 @@ class UserSessionData {
   /// The time when the session will expire.
   final DateTime expires;
 
-  UserSessionData({
+  SessionData({
     required this.sessionId,
     this.userId,
     this.email,
@@ -191,8 +232,8 @@ class UserSessionData {
     required this.expires,
   });
 
-  factory UserSessionData.fromModel(UserSession session) {
-    return UserSessionData(
+  factory SessionData.fromModel(UserSession session) {
+    return SessionData(
       sessionId: session.sessionId,
       userId: session.userId,
       email: session.email,
@@ -203,10 +244,10 @@ class UserSessionData {
     );
   }
 
-  factory UserSessionData.fromJson(Map<String, dynamic> json) =>
-      _$UserSessionDataFromJson(json);
+  factory SessionData.fromJson(Map<String, dynamic> json) =>
+      _$SessionDataFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
+  Map<String, dynamic> toJson() => _$SessionDataToJson(this);
 
   bool get isExpired => clock.now().isAfter(expires);
 

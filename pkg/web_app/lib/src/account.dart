@@ -15,7 +15,21 @@ import 'api_client/api_client.dart' deferred as api_client;
 import 'google_auth_js.dart';
 import 'google_js.dart';
 
+late final _newSigningMetaContent = document
+    .querySelector('meta[name="pub-experiment-signin"]')
+    ?.getAttribute('content');
+late final _useNewSignin = _newSigningMetaContent == '1';
+
 void setupAccount() {
+  if (_useNewSignin) {
+    // TODO: implement client-side sign-in methods.
+    return;
+  } else {
+    _setupOldAccount();
+  }
+}
+
+void _setupOldAccount() {
   final metaElem =
       document.querySelector('meta[name="google-signin-client_id"]');
   final clientId = metaElem == null ? null : metaElem.attributes['content'];

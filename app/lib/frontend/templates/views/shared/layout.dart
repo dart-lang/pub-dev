@@ -4,6 +4,7 @@
 
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
+import '../../../request_context.dart';
 import '../../../static_files.dart' show staticUrls;
 
 d.Node pageLayoutNode({
@@ -149,6 +150,8 @@ d.Node pageLayoutNode({
                     .getAssetUrl('/static/highlight/highlight-with-init.js'),
                 as: 'script',
               ),
+            if (requestContext.experimentalFlags.useNewSignIn)
+              d.meta(name: 'pub-experiment-signin', content: '1'),
           ],
         ),
         d.element(

@@ -40,7 +40,7 @@ shelf.Response jsonResponse(
   Map map, {
   int status = 200,
   bool indentJson = false,
-  Map<String, String>? headers,
+  Map<String, Object>? headers,
 }) {
   final body = (indentJson || requestContext.indentJson)
       ? _prettyJson.convert(map)
