@@ -107,7 +107,7 @@ void main() {
 // Cookie for enable experiments, remove this when not needed anymore
 final _headers = {
   'Cookie': Cookie(
-    'experimental',
+    experimentalCookieName,
     ExperimentalFlags({'sandbox'}).encodedAsCookie(),
   ).toString(),
 };

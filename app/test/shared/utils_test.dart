@@ -100,21 +100,6 @@ void main() {
     });
   });
 
-  group('parseCookieHeader', () {
-    test('no value', () {
-      expect(parseCookieHeader(null), {});
-      expect(parseCookieHeader(' '), {});
-    });
-
-    test('single value', () {
-      expect(parseCookieHeader('a=b'), {'a': 'b'});
-    });
-
-    test('two values', () {
-      expect(parseCookieHeader('a=b; c=dd'), {'a': 'b', 'c': 'dd'});
-    });
-  });
-
   group('uuid', () {
     test('format known UUId', () {
       expect(createUuid(List<int>.filled(16, 0)),

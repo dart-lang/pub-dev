@@ -21,10 +21,11 @@ import '../frontend/templates/layout.dart';
 import '../service/csp/default_csp.dart';
 
 import 'configuration.dart';
+import 'cookie_utils.dart';
 import 'exceptions.dart';
 import 'handlers.dart';
 import 'urls.dart' as urls;
-import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
+import 'utils.dart' show fileAnIssueContent;
 
 // The .dev top-level domain is included on the HSTS preload list, making HTTPS
 // required on all connections to .dev websites and pages without needing
@@ -121,7 +122,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final experimentalFlags =
-        ExperimentalFlags.parseFromCookie(cookies['experimental']);
+        ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
 
     final enableRobots = !experimentalFlags.isEmpty ||
         (!activeConfiguration.blockRobots && isPrimaryHost);

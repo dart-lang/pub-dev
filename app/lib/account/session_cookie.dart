@@ -7,8 +7,10 @@ library session_cookie;
 
 import 'dart:io' show HttpHeaders;
 
+import 'package:clock/clock.dart';
+
+import '../shared/cookie_utils.dart';
 import '../shared/env_config.dart';
-import '../shared/utils.dart' show buildSetCookieValue, parseCookieHeader;
 
 /// The name of the session cookie.
 ///
@@ -33,12 +35,13 @@ Map<String, String> createSessionCookie(String sessionId, DateTime expires) {
   // This way clock skew on the client is less likely to cause us to receive
   // an invalid cookie. Not that getting an expired cookie should be a problem.
   final expiration = expires.subtract(Duration(minutes: 25));
+  final maxAge = expiration.difference(clock.now());
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
   return {
     HttpHeaders.setCookieHeader: buildSetCookieValue(
       name: _pubSessionCookieName,
       value: sessionId,
-      expires: expiration,
+      maxAge: maxAge,
     ),
   };
 }
@@ -63,19 +66,10 @@ String? parseSessionCookie(String? cookieString) {
 /// the local session store was compromised.
 Map<String, String> clearSessionCookie() {
   return {
-    // TODO: use buildSetCookieValue
-    HttpHeaders.setCookieHeader: [
-      // Same cookie name as when it was set.
-      '$_pubSessionCookieName=""',
-      // Send cookie to anything under '/' required by '__Host-' prefix.
-      'Path=/',
-      // Cookie expires when the session expires, expire the session immediately
-      // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-5.3.2
-      'Max-Age=0',
-      // Keep attributes from when cookie was set.
-      'SameSite=Lax',
-      if (!envConfig.isRunningLocally) 'Secure',
-      'HttpOnly',
-    ].join('; '),
+    HttpHeaders.setCookieHeader: buildSetCookieValue(
+      name: _pubSessionCookieName,
+      value: '',
+      maxAge: Duration.zero,
+    ),
   };
 }
