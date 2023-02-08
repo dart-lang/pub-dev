@@ -909,6 +909,7 @@ class PackageBackend {
         throw InvalidInputException.canonicalizeVersionError(
             pubspec.nonCanonicalVersion);
       }
+      // TODO: check this in pkg/pub_package_reader too
       if (versionString != pubspec.nonCanonicalVersion) {
         throw InvalidInputException.nonCanonicalVersion(
             pubspec.nonCanonicalVersion, versionString);
