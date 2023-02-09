@@ -135,7 +135,7 @@ class ClientSession extends db.ExpandoModel<String> {
   String? email;
 
   /// The name of the user given by the authentication provider.
-  /// May be null, or could contain any arbitrary text.
+  /// May be null, or human readable name (specified by the user, in their profile).
   @db.StringProperty(indexed: false)
   String? name;
 
