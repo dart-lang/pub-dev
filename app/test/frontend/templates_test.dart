@@ -435,7 +435,7 @@ void main() {
           () async {
             // update session as package data loading checks that
             final user = await requireAuthenticatedWebUser();
-            registerUserSessionData(UserSessionData(
+            registerUserSessionData(SessionData(
               userId: user.userId,
               created: clock.now(),
               expires: clock.now().add(Duration(days: 1)),
@@ -464,7 +464,7 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-          final session = await accountBackend.createNewSession(
+          final session = await accountBackend.createNewUserSession(
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
           );
@@ -722,7 +722,7 @@ void main() {
         await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
           final authenticatedUser = await requireAuthenticatedWebUser();
           final user = authenticatedUser.user;
-          final session = await accountBackend.createNewSession(
+          final session = await accountBackend.createNewUserSession(
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
           );
@@ -746,7 +746,7 @@ void main() {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final session = await accountBackend.createNewSession(
+        final session = await accountBackend.createNewUserSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
@@ -773,7 +773,7 @@ void main() {
       await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final session = await accountBackend.createNewSession(
+        final session = await accountBackend.createNewUserSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
@@ -800,7 +800,7 @@ void main() {
       await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final session = await accountBackend.createNewSession(
+        final session = await accountBackend.createNewUserSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );

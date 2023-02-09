@@ -15,7 +15,7 @@ import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
-import '../account/models.dart' show LikeData, UserSessionData;
+import '../account/models.dart' show LikeData, SessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
@@ -41,15 +41,15 @@ class CachePatterns {
   // NOTE: This class should only contain methods that return Entry<T>, as well
   //       configuration options like prefix and TTL.
 
-  /// Cache for [UserSessionData].
-  Entry<UserSessionData> userSessionData(String sessionId) => _cache
+  /// Cache for [SessionData].
+  Entry<SessionData> userSessionData(String sessionId) => _cache
       .withPrefix('account-usersession/')
       .withTTL(Duration(hours: 24))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (UserSessionData? data) => data!.toJson(),
-        decode: (d) => UserSessionData.fromJson(d as Map<String, dynamic>),
+        encode: (SessionData? data) => data!.toJson(),
+        decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
 
   /// Cache for [DartdocEntry] objects.

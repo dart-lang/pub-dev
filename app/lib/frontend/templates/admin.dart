@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../account/models.dart' show LikeData, User, UserSessionData;
+import '../../account/models.dart' show LikeData, User, SessionData;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/models.dart';
@@ -31,7 +31,7 @@ String renderAuthorizedPage() {
 /// Renders the search results on the current user's packages page.
 String renderAccountPackagesPage({
   required User user,
-  required UserSessionData userSessionData,
+  required SessionData userSessionData,
   required List<PackageView> packageHits,
   required String? startPackage,
   required String? nextPackage,
@@ -92,7 +92,7 @@ String renderAccountPackagesPage({
 /// Renders the current user's liked packages page.
 String renderMyLikedPackagesPage({
   required User user,
-  required UserSessionData userSessionData,
+  required SessionData userSessionData,
   required List<LikeData> likes,
 }) {
   final resultCount = likes.isNotEmpty
@@ -131,7 +131,7 @@ String renderMyLikedPackagesPage({
 /// Renders the current user's publishers page.
 String renderAccountPublishersPage({
   required User user,
-  required UserSessionData userSessionData,
+  required SessionData userSessionData,
   required List<PublisherSummary> publishers,
 }) {
   final pln = publisherListNode(publishers: publishers, isGlobal: false);
@@ -162,7 +162,7 @@ String renderAccountPublishersPage({
 /// Renders the current user's activity page.
 String renderAccountMyActivityPage({
   required User user,
-  required UserSessionData userSessionData,
+  required SessionData userSessionData,
   required AuditLogRecordPage activities,
 }) {
   final activityLog = activityLogNode(
@@ -213,7 +213,7 @@ Tab _myActivityLogLink() => Tab.withLink(
     title: myActivityLogTabTitle,
     href: urls.myActivityLogUrl());
 
-d.Node _accountDetailHeader(User user, UserSessionData userSessionData) {
+d.Node _accountDetailHeader(User user, SessionData userSessionData) {
   return renderDetailHeader(
     title: userSessionData.name,
     image: d.Image(

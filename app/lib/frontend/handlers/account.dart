@@ -54,7 +54,7 @@ Future<shelf.Response> updateSessionHandler(
 
   final cookieString = request.headers[HttpHeaders.cookieHeader];
   final sessionData =
-      await accountBackend.parseAndLookupSessionCookie(cookieString);
+      await accountBackend.parseAndLookupUserSessionCookie(cookieString);
   final t2 = sw.elapsed;
   // check if the session data is the same
   if (sessionData != null &&
@@ -71,7 +71,7 @@ Future<shelf.Response> updateSessionHandler(
 
   final profile = await authProvider.getAccountProfile(body.accessToken);
   final t3 = sw.elapsed;
-  final newSession = await accountBackend.createNewSession(
+  final newSession = await accountBackend.createNewUserSession(
     name: profile!.name!,
     imageUrl: profile.imageUrl!,
   );
@@ -84,7 +84,7 @@ Future<shelf.Response> updateSessionHandler(
       changed: true,
       expires: newSession.expires,
     ).toJson(),
-    headers: session_cookie.createSessionCookie(
+    headers: session_cookie.createUserSessionCookie(
         newSession.sessionId, newSession.expires),
   );
 }
@@ -93,12 +93,12 @@ Future<shelf.Response> updateSessionHandler(
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   final cookieString = request.headers[HttpHeaders.cookieHeader];
   final sessionData =
-      await accountBackend.parseAndLookupSessionCookie(cookieString);
+      await accountBackend.parseAndLookupUserSessionCookie(cookieString);
   final hasUserSession = sessionData != null;
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
   if (hasUserSession) {
-    await accountBackend.invalidateSession(sessionData.sessionId);
+    await accountBackend.invalidateUserSession(sessionData.sessionId);
   }
   return jsonResponse(
     ClientSessionStatus(
@@ -106,7 +106,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
       expires: null,
     ).toJson(),
     // Clear cookie, so we don't have to lookup an invalid sessionId.
-    headers: session_cookie.clearSessionCookie(),
+    headers: session_cookie.clearSessionCookies(),
   );
 }
 

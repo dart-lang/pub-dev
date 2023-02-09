@@ -57,7 +57,7 @@ void _registerBearerToken(String token) => ss.register(#_bearerToken, token);
 String? _getBearerToken() => ss.lookup(#_bearerToken) as String?;
 
 /// Sets the active user's session data object.
-void registerUserSessionData(UserSessionData value) =>
+void registerUserSessionData(SessionData value) =>
     ss.register(#_userSessionData, value);
 
 /// The active user's session data.
@@ -70,8 +70,8 @@ void registerUserSessionData(UserSessionData value) =>
 /// `id_token` be present as `Authentication: Bearer <id_token>` header instead.
 /// Such scheme does not work for `GET` requests that serve content to the
 /// browser, and hence, we employ session cookies for this purpose.
-UserSessionData? get userSessionData =>
-    ss.lookup(#_userSessionData) as UserSessionData?;
+SessionData? get userSessionData =>
+    ss.lookup(#_userSessionData) as SessionData?;
 
 /// Verifies the current bearer in the request scope and returns the
 /// current authenticated user.
@@ -455,13 +455,13 @@ class AccountBackend {
   /// Creates a new session for the current authenticated user and returns the
   /// new session data.
   ///
-  /// The [UserSessionData.sessionId] is a secret that will be stored in a
+  /// The [SessionData.sessionId] is a secret that will be stored in a
   /// secure cookie. Presence of this `sessionId` in a cookie, can only be used
   /// to authorize user specific content to be embedded in HTML pages (such pages
   /// must have `Cache-Control: private`, and may not be cached in server-side).
   /// JSON APIs whether fetching data or updating data cannot be authorized with
   /// a cookie carrying the `sessionId`.
-  Future<UserSessionData> createNewSession({
+  Future<SessionData> createNewUserSession({
     required String name,
     required String imageUrl,
   }) async {
@@ -476,18 +476,18 @@ class AccountBackend {
       ..created = now
       ..expires = now.add(Duration(days: 14));
     await _db.commit(inserts: [session]);
-    return UserSessionData.fromModel(session);
+    return SessionData.fromModel(session);
   }
 
   /// Parse [cookieString] and lookup session if cookie value is available.
   ///
   /// Returns `null` if the session does not exists or any issue is present
-  Future<UserSessionData?> parseAndLookupSessionCookie(
+  Future<SessionData?> parseAndLookupUserSessionCookie(
       String? cookieString) async {
     try {
-      final sessionId = session_cookie.parseSessionCookie(cookieString);
+      final sessionId = session_cookie.parseUserSessionCookie(cookieString);
       if (sessionId != null && sessionId.isNotEmpty) {
-        return await _lookupSession(sessionId);
+        return await _lookupUserSession(sessionId);
       }
     } catch (e, st) {
       _logger.severe('Unable to process session cookie.', e, st);
@@ -497,7 +497,7 @@ class AccountBackend {
 
   /// Returns the user session associated with the [sessionId] or null if it
   /// does not exists.
-  Future<UserSessionData?> _lookupSession(String sessionId) async {
+  Future<SessionData?> _lookupUserSession(String sessionId) async {
     ArgumentError.checkNotNull(sessionId, 'sessionId');
 
     final cacheEntry = cache.userSessionData(sessionId);
@@ -519,26 +519,30 @@ class AccountBackend {
       return null;
     }
 
-    final data = UserSessionData.fromModel(session);
+    final data = SessionData.fromModel(session);
     await cacheEntry.set(data);
     return data;
   }
 
   /// Removes the session data from the Datastore and from cache.
-  Future<void> invalidateSession(String sessionId) async {
+  Future<void> invalidateUserSession(String sessionId) async {
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     await _db.commit(deletes: [key]);
     await cache.userSessionData(sessionId).purge();
   }
 
-  /// Removes the expired sessions from Datastore and Redis cache.
-  Future<void> deleteObsoleteSessions() async {
+  /// Removes the expired sessions from Datastore.
+  Future<void> deleteExpiredSessions() async {
     final now = clock.now().toUtc();
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));
     final query = _db.query<UserSession>()..filter('expires <', ts);
     final count = await _db.deleteWithQuery(query);
     _logger.info('Deleted ${count.deleted} UserSession entries.');
+
+    final query2 = _db.query<ClientSession>()..filter('expires <', ts);
+    final count2 = await _db.deleteWithQuery(query2);
+    _logger.info('Deleted ${count2.deleted} ClientSession entries.');
   }
 
   /// Updates the blocked status of a user.

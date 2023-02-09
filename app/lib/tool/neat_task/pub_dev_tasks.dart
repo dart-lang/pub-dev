@@ -93,7 +93,7 @@ void _setupGenericPeriodicTasks() {
   _daily(
     name: 'delete-expired-sessions',
     isRuntimeVersioned: false,
-    task: () async => await accountBackend.deleteObsoleteSessions(),
+    task: () async => await accountBackend.deleteExpiredSessions(),
   );
 
   // Updates Package's stable, prerelease and preview version fields in case a
