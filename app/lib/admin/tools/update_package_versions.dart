@@ -15,7 +15,7 @@ final _argParser = ArgParser()
 Future<String> executeUpdatePackageVersions(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool) {
-    return 'Ensures Package.latestVersion / latestPreviewVersion / latestPrereleaseVersion is up-to-date.'
+    return 'Ensures Package.latestVersion / latestPreviewVersion / latestPrereleaseVersion is up-to-date.\n'
         'Usage: <tool> --package [pkg] -- updates package\n'
         '${_argParser.usage}';
   }
