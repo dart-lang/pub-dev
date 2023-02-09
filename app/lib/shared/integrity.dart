@@ -85,6 +85,7 @@ class IntegrityChecker {
       yield* _checkModeratedPackages();
       yield* _checkAuditLogs();
       yield* _reportPubspecVersionIssues();
+      // TODO: report unmapped properties
     } finally {
       _httpClient.close();
     }

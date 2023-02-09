@@ -33,6 +33,7 @@ import '../shared/exceptions.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'tools/block_publisher_and_all_members.dart';
 import 'tools/create_publisher.dart';
+import 'tools/delete_all_staging.dart';
 import 'tools/list_package_blocked.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
@@ -43,6 +44,7 @@ import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
 import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
+import 'tools/update_package_versions.dart';
 import 'tools/uploader_count_report.dart';
 import 'tools/user_merger.dart';
 
@@ -60,10 +62,12 @@ typedef Tool = Future<String> Function(List<String> args);
 
 final Map<String, Tool> availableTools = {
   'create-publisher': executeCreatePublisher,
+  'delete-all-staging': executeDeleteAllStaging,
   'list-package-blocked': executeListPackageBlocked,
   'notify-service': executeNotifyService,
   'package-discontinued': executeSetPackageDiscontinued,
   'package-publisher': executeSetPackagePublisher,
+  'update-package-versions': executeUpdatePackageVersions,
   'recent-uploaders': executeRecentUploaders,
   'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
   'publisher-member': executePublisherMember,
