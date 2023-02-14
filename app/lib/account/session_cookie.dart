@@ -8,16 +8,19 @@ library session_cookie;
 import 'dart:io' show HttpHeaders;
 
 import 'package:clock/clock.dart';
+import 'package:meta/meta.dart';
 
 import '../shared/cookie_utils.dart';
 import '../shared/env_config.dart';
 
 /// The client session cookie that will be sent on every kind of session.
-final _clientSessionLaxCookieName = pubCookieName('SID');
+@visibleForTesting
+final clientSessionLaxCookieName = pubCookieName('SID');
 
 /// The client session cookie that will be sent only on strictly top-level
 /// sessions using SameSite=Strict.
-final _clientSessionStrictCookieName = pubCookieName('SSID');
+@visibleForTesting
+final clientSessionStrictCookieName = pubCookieName('SSID');
 
 /// The name of the session cookie.
 ///
@@ -62,12 +65,12 @@ Map<String, Object> createClientSessionCookie({
   return {
     HttpHeaders.setCookieHeader: [
       buildSetCookieValue(
-        name: _clientSessionLaxCookieName,
+        name: clientSessionLaxCookieName,
         value: sessionId,
         maxAge: maxAge,
       ),
       buildSetCookieValue(
-        name: _clientSessionStrictCookieName,
+        name: clientSessionStrictCookieName,
         value: sessionId,
         maxAge: maxAge,
         sameSiteStrict: true,
@@ -89,6 +92,36 @@ String? parseUserSessionCookie(String? cookieString) {
   return sessionId;
 }
 
+/// Parses the cookie values and returns the status of client session cookies.
+ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
+  final values = parseCookieHeader(cookieString);
+  final lax = values[clientSessionLaxCookieName]?.trim() ?? '';
+  final strict = values[clientSessionStrictCookieName]?.trim() ?? '';
+  if (lax.isEmpty) {
+    return ClientSessionCookieStatus(
+      isLaxCookiePresent: false,
+      isStrictCookiePresent: strict.isNotEmpty,
+      sessionId: null,
+      hasError: strict.isNotEmpty,
+    );
+  }
+  if (strict.isEmpty) {
+    return ClientSessionCookieStatus(
+      isLaxCookiePresent: true,
+      isStrictCookiePresent: false,
+      sessionId: lax,
+      hasError: false,
+    );
+  }
+  final hasError = lax != strict;
+  return ClientSessionCookieStatus(
+    isLaxCookiePresent: true,
+    isStrictCookiePresent: true,
+    sessionId: hasError ? null : strict,
+    hasError: hasError,
+  );
+}
+
 /// Create a set of HTTP headers that clears a session cookie.
 ///
 /// If clearing the session cookie, remember that the most important part is to
@@ -103,15 +136,30 @@ Map<String, Object> clearSessionCookies() {
         maxAge: Duration.zero,
       ),
       buildSetCookieValue(
-        name: _clientSessionLaxCookieName,
+        name: clientSessionLaxCookieName,
         value: '',
         maxAge: Duration.zero,
       ),
       buildSetCookieValue(
-        name: _clientSessionStrictCookieName,
+        name: clientSessionStrictCookieName,
         value: '',
         maxAge: Duration.zero,
       ),
     ],
   };
+}
+
+/// The session cookies present with the request, with the current session identifier.
+class ClientSessionCookieStatus {
+  final bool isLaxCookiePresent;
+  final bool isStrictCookiePresent;
+  final String? sessionId;
+  final bool hasError;
+
+  ClientSessionCookieStatus({
+    required this.isLaxCookiePresent,
+    required this.isStrictCookiePresent,
+    required this.sessionId,
+    required this.hasError,
+  });
 }
