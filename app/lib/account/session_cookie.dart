@@ -99,26 +99,26 @@ ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
   final strict = values[clientSessionStrictCookieName]?.trim() ?? '';
   if (lax.isEmpty) {
     return ClientSessionCookieStatus(
-      isLaxCookiePresent: false,
-      isStrictCookiePresent: strict.isNotEmpty,
+      isPresent: false,
+      isStrict: false,
       sessionId: null,
-      hasError: strict.isNotEmpty,
+      needsReset: strict.isNotEmpty,
     );
   }
   if (strict.isEmpty) {
     return ClientSessionCookieStatus(
-      isLaxCookiePresent: true,
-      isStrictCookiePresent: false,
+      isPresent: true,
+      isStrict: false,
       sessionId: lax,
-      hasError: false,
+      needsReset: false,
     );
   }
   final hasError = lax != strict;
   return ClientSessionCookieStatus(
-    isLaxCookiePresent: true,
-    isStrictCookiePresent: true,
+    isPresent: true,
+    isStrict: true,
     sessionId: hasError ? null : strict,
-    hasError: hasError,
+    needsReset: hasError,
   );
 }
 
@@ -151,15 +151,17 @@ Map<String, Object> clearSessionCookies() {
 
 /// The session cookies present with the request, with the current session identifier.
 class ClientSessionCookieStatus {
-  final bool isLaxCookiePresent;
-  final bool isStrictCookiePresent;
+  final bool isPresent;
+  final bool isStrict;
   final String? sessionId;
-  final bool hasError;
+  final bool needsReset;
 
   ClientSessionCookieStatus({
-    required this.isLaxCookiePresent,
-    required this.isStrictCookiePresent,
+    required this.isPresent,
+    required this.isStrict,
     required this.sessionId,
-    required this.hasError,
+    required this.needsReset,
   });
+
+  late final isValid = isPresent && !needsReset;
 }
