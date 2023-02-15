@@ -19,7 +19,6 @@ import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
-import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
