@@ -30,7 +30,6 @@ void main() {
       expect(keywords, containsAll(['as', 'assert', 'async', 'for']));
       // reserved, but allowed because package:async already exists.
       keywords.remove('async');
-      // reserved, but allowed because package:base already exists.
       keywords.remove('base');
       keywords.remove('when');
       for (final keyword in keywords) {

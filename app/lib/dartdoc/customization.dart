@@ -16,8 +16,6 @@ class DartdocCustomizerConfig {
   final String docRootUrl;
   final String latestStableDocumentationUrl;
   final String pubPackagePageUrl;
-  final String cookieNoticeCssUrl;
-  final String cookieNoticeJsUrl;
   final String dartLogoSvgUrl;
   final String githubMarkdownCssUrl;
   final String gtmJsUrl;
@@ -30,8 +28,6 @@ class DartdocCustomizerConfig {
     required this.isLatestStable,
     required this.docRootUrl,
     required this.latestStableDocumentationUrl,
-    required this.cookieNoticeCssUrl,
-    required this.cookieNoticeJsUrl,
     required this.pubPackagePageUrl,
     required this.dartLogoSvgUrl,
     required this.githubMarkdownCssUrl,
@@ -210,12 +206,14 @@ class DartdocCustomizer {
     head.append(Element.tag('link')
       ..attributes['rel'] = 'stylesheet'
       ..attributes['type'] = 'text/css'
-      ..attributes['href'] = config.cookieNoticeCssUrl);
+      ..attributes['href'] = 'https://www.gstatic.com/glue/v25_0/ccb.min.css');
 
     head.append(
       Element.tag('script')
         ..attributes['defer'] = 'defer'
-        ..attributes['src'] = config.cookieNoticeJsUrl
+        ..attributes['src'] =
+            'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js'
+        ..attributes['data-autoload-cookie-consent-bar'] = 'true'
         ..text = '',
     );
   }

@@ -32,7 +32,7 @@ void main() {
       expect(reports.last, isNull);
       final report = reports[1]!;
       expect(report.dartdocEntry, isNotNull);
-      expect(report.dartdocEntry!.totalSize, 585);
+      expect(report.dartdocEntry!.totalSize, 676);
       expect(report.documentationSection!.grantedPoints, 10);
       expect(report.documentationSection!.maxPoints, 10);
       expect(
@@ -47,7 +47,7 @@ void main() {
 
       expect(entries.first, isNotNull);
       expect(entries.last, isNull);
-      expect(entries[1]!.totalSize, 585);
+      expect(entries[1]!.totalSize, 676);
     });
   });
 }
