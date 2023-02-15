@@ -10,6 +10,7 @@ const reservedWords = <String>{
   'assert',
   // 'async', // reserved, but allowed because package:async already exists.
   'await',
+  // 'base', // reserved, but allowed because package:base already exists.
   'break',
   'case',
   'catch',
@@ -52,6 +53,7 @@ const reservedWords = <String>{
   'required',
   'rethrow',
   'return',
+  'sealed',
   'set',
   'show',
   'static',

@@ -81,7 +81,9 @@ d.Node pageLayoutNode({
                   'https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700&display=swap',
             ),
             d.link(rel: 'shortcut icon', href: faviconUrl),
-
+            d.link(
+                rel: 'stylesheet',
+                href: 'https://www.gstatic.com/glue/v25_0/ccb.min.css'),
             d.link(
               rel: 'search',
               type: 'application/opensearchdescription+xml',
@@ -119,8 +121,10 @@ d.Node pageLayoutNode({
               defer: true,
             ),
             d.script(
-              src: staticUrls.getAssetUrl('/static/js/cookie-notice.js'),
+              src:
+                  'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js',
               defer: true,
+              attributes: {'data-autoload-cookie-consent-bar': 'true'},
             ),
             d.meta(
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
