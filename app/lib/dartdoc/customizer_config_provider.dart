@@ -23,8 +23,6 @@ DartdocCustomizerConfig customizerConfig({
     latestStableDocumentationUrl: pkgDocUrl(packageName, isLatest: true),
     pubPackagePageUrl: pkgPageUrl(packageName,
         version: isLatestStable ? null : packageVersion),
-    cookieNoticeCssUrl: staticUrls.getAssetUrl('/static/css/cookie-notice.css'),
-    cookieNoticeJsUrl: staticUrls.getAssetUrl('/static/js/cookie-notice.js'),
     dartLogoSvgUrl: staticUrls.dartLogoSvg,
     githubMarkdownCssUrl: staticUrls.githubMarkdownCss,
     gtmJsUrl: staticUrls.gtmJs,
