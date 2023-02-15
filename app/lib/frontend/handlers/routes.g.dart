@@ -295,6 +295,16 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/sign-in',
+    service.startSignIn,
+  );
+  router.add(
+    'GET',
+    r'/oauth/callback',
+    service.oauth2Callback,
+  );
+  router.add(
+    'GET',
     r'/my-packages',
     service.accountPackagesPage,
   );

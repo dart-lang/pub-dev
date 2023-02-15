@@ -137,6 +137,21 @@ class FakeAuthProvider extends BaseAuthProvider {
       imageUrl: imageUrl,
     );
   }
+
+  @override
+  Future<Uri> getOauthAuthenticationUrl({
+    required String state,
+    required String nonce,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthResult?> tryAuthenticateOauthCode({
+    required String code,
+  }) async {
+    throw UnimplementedError();
+  }
 }
 
 @visibleForTesting

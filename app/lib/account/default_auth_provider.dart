@@ -14,6 +14,7 @@ import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
 import '../service/openid/openid_models.dart';
+import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/email.dart' show looksLikeEmail;
 import '../shared/exceptions.dart';
@@ -27,10 +28,16 @@ final _tokenInfoEndPoint = Uri.parse('https://oauth2.googleapis.com/tokeninfo');
 
 /// Provides OAuth2-based authentication through JWKS and Google account APIs.
 class DefaultAuthProvider extends BaseAuthProvider {
+  final String? _oauthSiteAudience;
+  final String? _oauthSiteAudienceSecret;
   late http.Client _httpClient;
   late oauth2_v2.Oauth2Api _oauthApi;
 
-  DefaultAuthProvider() {
+  DefaultAuthProvider({
+    String? oauthSiteAudience,
+    String? oauthSiteAudienceSecret,
+  })  : _oauthSiteAudience = oauthSiteAudience,
+        _oauthSiteAudienceSecret = oauthSiteAudienceSecret {
     _httpClient = httpRetryClient(retries: 2);
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
   }
@@ -85,6 +92,69 @@ class DefaultAuthProvider extends BaseAuthProvider {
   }) async {
     final openIdData = await openIdDataFetch();
     return await token.verifySignature(openIdData.jwks);
+  }
+
+  String _getOauthSiteAudience() =>
+      _oauthSiteAudience ?? activeConfiguration.pubSiteAudience!;
+
+  Future<String?> _getOauthSiteAudienceSecret(String audience) async {
+    return _oauthSiteAudienceSecret ??
+        await secretBackend.getCachedValue('${SecretKey.oauthPrefix}$audience');
+  }
+
+  @override
+  Future<Uri> getOauthAuthenticationUrl({
+    required String state,
+    required String nonce,
+  }) async {
+    // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
+    return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
+      queryParameters: {
+        'client_id': _getOauthSiteAudience(),
+        'redirect_uri': getOauthCallbackUrl(),
+        'response_type': 'code',
+        'scope': [
+          oauth2_v2.Oauth2Api.openidScope,
+          oauth2_v2.Oauth2Api.userinfoEmailScope,
+          oauth2_v2.Oauth2Api.userinfoProfileScope,
+        ].join(' '),
+        'state': state,
+        'nonce': nonce,
+      },
+    );
+  }
+
+  @override
+  Future<AuthResult?> tryAuthenticateOauthCode({
+    required String code,
+  }) async {
+    try {
+      final audience = _getOauthSiteAudience();
+      final secret = await _getOauthSiteAudienceSecret(audience);
+      final tokenUri = Uri.parse('https://oauth2.googleapis.com/token');
+      final formData = {
+        'code': code,
+        'client_id': audience,
+        'client_secret': secret,
+        'redirect_uri': getOauthCallbackUrl(),
+        'grant_type': 'authorization_code',
+      };
+      final rs = await http.post(tokenUri, body: formData);
+      if (rs.statusCode != 200) {
+        return null;
+      }
+      final body = json.decode(rs.body);
+      // TODO: also expose access_token for domain verification calls
+      final idToken = body['id_token'] as String;
+      final auth = await _tryAuthenticateJwt(idToken);
+      if (auth == null) {
+        return null;
+      }
+      return auth;
+    } catch (e, st) {
+      _logger.severe('Error processing oauth code.', e, st);
+      return null;
+    }
   }
 }
 
@@ -320,10 +390,28 @@ abstract class BaseAuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, email_verified = "$emailVerified"');
       return null; // missing email (probably missing 'email' scope)
     }
+    final nonce = r['nonce'];
+    if (nonce != null && nonce is! String) {
+      _logger.warning('JWT rejected, bad `nonce`');
+      return null;
+    }
+    final name = r['name'];
+    if (name != null && name is! String) {
+      _logger.warning('JWT rejected, bad `name`');
+      return null;
+    }
+    final picture = r['picture'];
+    if (picture != null && picture is! String) {
+      _logger.warning('JWT rejected, bad `picture`');
+      return null;
+    }
     return AuthResult(
       oauthUserId: sub,
       email: email,
       audience: aud,
+      name: name as String?,
+      nonce: nonce as String?,
+      imageUrl: picture as String?,
     );
   }
 
@@ -337,6 +425,12 @@ abstract class BaseAuthProvider extends AuthProvider {
       name: info.name ?? info.givenName,
       imageUrl: info.picture,
     );
+  }
+
+  String getOauthCallbackUrl() {
+    return activeConfiguration.primarySiteUri
+        .replace(path: '/oauth/callback')
+        .toString();
   }
 }
 

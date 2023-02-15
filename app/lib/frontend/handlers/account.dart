@@ -13,6 +13,7 @@ import '../../account/consent_backend.dart';
 import '../../account/like_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
+import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../publisher/backend.dart';
@@ -21,6 +22,7 @@ import '../../scorecard/backend.dart';
 import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
+import '../../shared/utils.dart' show createUuid;
 
 import '../templates/admin.dart';
 import '../templates/consent.dart';
@@ -30,6 +32,53 @@ final _logger = Logger('account_handler');
 
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
+
+/// Handles GET /sign-in
+Future<shelf.Response> startSignInHandler(shelf.Request request) async {
+  if (!requestContext.experimentalFlags.useNewSignIn) {
+    return notFoundHandler(request);
+  }
+  final nonce = createUuid();
+  // TODO: get current session or create a new one
+  // TODO: store nonce on session
+  final oauth2Url = await authProvider.getOauthAuthenticationUrl(
+    state: '', // TODO: use meaningful state
+    nonce: nonce,
+  );
+  return redirectResponse(
+    oauth2Url.toString(),
+    // TODO: send session cookie headers
+  );
+}
+
+/// Handles GET /oauth/callback
+Future<shelf.Response> oauth2CallbackHandler(shelf.Request request) async {
+  if (!requestContext.experimentalFlags.useNewSignIn) {
+    return notFoundHandler(request);
+  }
+  final code = request.requestedUri.queryParameters['code'];
+  if (code != null && code.isNotEmpty) {
+    // TODO: verify state in the response
+    // TODO: verify authuser (=0)
+    // TODO: verify prompt (=none)
+    final profile = await authProvider.tryAuthenticateOauthCode(code: code);
+    if (profile == null) {
+      throw AuthenticationException.failed();
+    }
+    // TODO: implement proper action on successful authentication
+    return jsonResponse(
+      {
+        'oauthUserId': '*' * profile.oauthUserId.length,
+        'email': profile.email,
+        'nonce': profile.nonce,
+        'name': profile.name,
+        'imageUrl': profile.imageUrl,
+      },
+      indentJson: true,
+    );
+  }
+  return notFoundHandler(request);
+}
 
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(

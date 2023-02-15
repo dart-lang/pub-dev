@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show FutureOr, Zone;
+import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
@@ -177,7 +178,20 @@ Future<R> withFakeServices<R>({
     }
 
     // register fake services that would have external dependencies
-    registerAuthProvider(FakeAuthProvider());
+
+    // Local override for OAuth services when developing for external servers.
+    final fakeOauthSiteAudience =
+        Platform.environment['PUB_DEV_FAKE_OAUTH_SITE_AUDIENCE'];
+    final fakeOauthSiteAudienceSecret =
+        Platform.environment['PUB_DEV_FAKE_OAUTH_SITE_AUDIENCE_SECRET'];
+    if (fakeOauthSiteAudience != null && fakeOauthSiteAudienceSecret != null) {
+      registerAuthProvider(DefaultAuthProvider(
+        oauthSiteAudience: fakeOauthSiteAudience,
+        oauthSiteAudienceSecret: fakeOauthSiteAudienceSecret,
+      ));
+    } else {
+      registerAuthProvider(FakeAuthProvider());
+    }
     registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());

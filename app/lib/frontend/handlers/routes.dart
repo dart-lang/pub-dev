@@ -309,6 +309,16 @@ class PubSiteService {
   // **** Account, authentication and user administration
   // ****
 
+  /// Redirects user to the OAuth2 sign-in page.
+  @Route.get('/sign-in')
+  Future<Response> startSignIn(Request request) async =>
+      startSignInHandler(request);
+
+  /// Redirects user to the OAuth2 sign-in page.
+  @Route.get('/oauth/callback')
+  Future<Response> oauth2Callback(Request request) async =>
+      oauth2CallbackHandler(request);
+
   /// List of the current user's packages.
   @Route.get('/my-packages')
   Future<Response> accountPackagesPage(Request request) async =>
