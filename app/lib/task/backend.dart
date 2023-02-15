@@ -323,10 +323,6 @@ class TaskBackend {
     String packageName, {
     bool updateDependants = false,
   }) async {
-    if (activeConfiguration.isProduction) {
-      return; // HACK: Disable analysis for now
-    }
-
     var lastVersionCreated = initialTimestamp;
     await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
