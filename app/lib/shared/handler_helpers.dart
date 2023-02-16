@@ -13,16 +13,12 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
-import '../account/models.dart';
 import '../frontend/dom/dom.dart' as d;
-import '../frontend/handlers/experimental.dart';
 import '../frontend/handlers/headers.dart';
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 import '../service/csp/default_csp.dart';
 
-import 'configuration.dart';
-import 'cookie_utils.dart';
 import 'exceptions.dart';
 import 'handlers.dart';
 import 'utils.dart' show fileAnIssueContent;
@@ -111,46 +107,10 @@ shelf.Handler _redirectLoopDetectorWrapper(
 /// Populates [requestContext] with the extracted request attributes.
 shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    final cookies =
-        parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-
-    // Never read or look for the session cookie on hosts other than the
-    // primary site. Who knows how it got there or what it means.
-    // Also never cache HTML pages or URLs that are not on the primary host.
-    final isPrimaryHost =
-        request.requestedUri.host == activeConfiguration.primarySiteUri.host;
-
-    // Never read or look for the session cookie on request that try to modify
-    // data (non-GET HTTP methods).
-    final isAllowedForSession = request.method == 'GET';
-    SessionData? userSessionData;
-    if (isPrimaryHost && isAllowedForSession) {
-      userSessionData =
-          await accountBackend.parseAndLookupUserSessionCookie(cookies);
-    }
-
-    final indentJson =
-        request.requestedUri.queryParameters.containsKey('pretty');
-    final experimentalFlags =
-        ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
-
-    final enableRobots = !experimentalFlags.isEmpty ||
-        (!activeConfiguration.blockRobots && isPrimaryHost);
-    final uiCacheEnabled = //
-        isPrimaryHost && // don't cache on non-primary domains
-            experimentalFlags
-                .isEmpty && // don't cache if experimental cookie is enabled
-            userSessionData == null; // don't cache if a user session is active
-
-    registerRequestContext(RequestContext(
-      indentJson: indentJson,
-      blockRobots: !enableRobots,
-      uiCacheEnabled: uiCacheEnabled,
-      experimentalFlags: experimentalFlags,
-      userSessionData: userSessionData,
-    ));
+    final context = await buildRequestContext(request: request);
+    registerRequestContext(context);
     shelf.Response rs = await handler(request);
-    if (!uiCacheEnabled && !CacheHeaders.hasCacheHeader(rs.headers)) {
+    if (!context.uiCacheEnabled && !CacheHeaders.hasCacheHeader(rs.headers)) {
       // Indicates that the response is intended for a single user and must not
       // be stored by a shared cache. A private cache may store the response.
       rs = rs.change(headers: {
