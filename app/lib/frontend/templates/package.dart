@@ -257,6 +257,7 @@ String _renderPkgPage({
     pkgPageTab: pkgPageTab,
   );
   final noIndex = pkgPageTab == urls.PkgPageTab.install ||
+      pkgPageTab == urls.PkgPageTab.score ||
       (card?.isSkipped ?? false) ||
       (card?.grantedPubPoints == 0) ||
       data.package!.isExcludedInRobots;
