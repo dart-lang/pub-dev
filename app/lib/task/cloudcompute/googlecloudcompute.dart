@@ -439,7 +439,7 @@ write_files:
     [Service]
     Type=oneshot
     Environment="HOME=/home/worker"
-    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries="us-central1-docker.pkg.dev"
     ExecStart=/usr/bin/docker run --rm -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
     ExecStartPost=/sbin/shutdown now
     StandardOutput=journal+console

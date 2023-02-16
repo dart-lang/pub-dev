@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Upgraded `package:markdown` to `7.0.0`.
+ * Bumped runtimeVersion to `2023.02.14`.
 
 ## `20230210t134600-all`
  * Bumped runtimeVersion to `2023.02.10`
