@@ -256,7 +256,9 @@ String _renderPkgPage({
     includeHost: true,
     pkgPageTab: pkgPageTab,
   );
-  final noIndex = (card?.isSkipped ?? false) ||
+  final noIndex = pkgPageTab == urls.PkgPageTab.install ||
+      pkgPageTab == urls.PkgPageTab.score ||
+      (card?.isSkipped ?? false) ||
       (card?.grantedPubPoints == 0) ||
       data.package!.isExcludedInRobots;
   return renderLayoutPage(
