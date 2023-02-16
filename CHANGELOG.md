@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Downgraded `package:markdown` to `6.0.1`.
 
 ## `20230216t120900-all`
  * Upgraded `package:markdown` to `7.0.0`.
