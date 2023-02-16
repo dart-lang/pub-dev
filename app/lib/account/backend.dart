@@ -56,23 +56,6 @@ AccountBackend get accountBackend =>
 void _registerBearerToken(String token) => ss.register(#_bearerToken, token);
 String? _getBearerToken() => ss.lookup(#_bearerToken) as String?;
 
-/// Sets the active user's session data object.
-void registerUserSessionData(SessionData value) =>
-    ss.register(#_userSessionData, value);
-
-/// The active user's session data.
-///
-/// **Warning:** the existence of a session MAY ONLY be used for authenticating
-/// a user for the purpose of generating HTML output served from a GET request.
-///
-/// This may **NOT** to authenticate mutations, API interactions, not even GET
-/// APIs that return JSON. Whenever possible we require the OpenID-Connect
-/// `id_token` be present as `Authentication: Bearer <id_token>` header instead.
-/// Such scheme does not work for `GET` requests that serve content to the
-/// browser, and hence, we employ session cookies for this purpose.
-SessionData? get userSessionData =>
-    ss.lookup(#_userSessionData) as SessionData?;
-
 /// Verifies the current bearer in the request scope and returns the
 /// current authenticated user.
 ///
@@ -479,13 +462,13 @@ class AccountBackend {
     return SessionData.fromModel(session);
   }
 
-  /// Parse [cookieString] and lookup session if cookie value is available.
+  /// Process [cookies] and lookup session if cookie value is available.
   ///
   /// Returns `null` if the session does not exists or any issue is present
   Future<SessionData?> parseAndLookupUserSessionCookie(
-      String? cookieString) async {
+      Map<String, String> cookies) async {
     try {
-      final sessionId = session_cookie.parseUserSessionCookie(cookieString);
+      final sessionId = session_cookie.parseUserSessionCookie(cookies);
       if (sessionId != null && sessionId.isNotEmpty) {
         return await _lookupUserSession(sessionId);
       }
@@ -498,8 +481,6 @@ class AccountBackend {
   /// Returns the user session associated with the [sessionId] or null if it
   /// does not exists.
   Future<SessionData?> _lookupUserSession(String sessionId) async {
-    ArgumentError.checkNotNull(sessionId, 'sessionId');
-
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
     if (cached != null) {

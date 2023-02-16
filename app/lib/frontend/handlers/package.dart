@@ -261,14 +261,14 @@ Future<shelf.Response> packageAdminHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      if (userSessionData == null) {
+      if (requestContext.userSessionData == null) {
         return htmlResponse(renderUnauthenticatedPage());
       }
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
       }
       final page = await publisherBackend
-          .listPublishersForUser(userSessionData!.userId!);
+          .listPublishersForUser(requestContext.userSessionData!.userId!);
       final uploaderEmails = await accountBackend
           .lookupUsersById(data.package!.uploaders ?? <String>[]);
       final retractableVersions =
@@ -295,7 +295,7 @@ Future<shelf.Response> packageActivityLogHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      if (userSessionData == null) {
+      if (requestContext.userSessionData == null) {
         return htmlResponse(renderUnauthenticatedPage());
       }
       if (!data.isAdmin!) {
@@ -328,10 +328,10 @@ Future<PackagePageData> loadPackagePageData(
     );
   }
 
-  final bool isLiked = (userSessionData == null)
+  final bool isLiked = (requestContext.userSessionData == null)
       ? false
       : await likeBackend.getPackageLikeStatus(
-              userSessionData!.userId!, package.name!) !=
+              requestContext.userSessionData!.userId!, package.name!) !=
           null;
 
   versionName ??= package.latestVersion;
@@ -364,7 +364,7 @@ Future<PackagePageData> loadPackagePageData(
     showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
   );
 
-  final sessionUserId = userSessionData?.userId;
+  final sessionUserId = requestContext.userSessionData?.userId;
   final isAdmin = sessionUserId == null
       ? false
       : await packageBackend.isPackageAdmin(package, sessionUserId);

@@ -5,7 +5,7 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/search_form.dart';
 
-import '../../account/backend.dart' show userSessionData;
+import '../../frontend/request_context.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
@@ -75,7 +75,7 @@ String renderLayoutPage(
     bodyClasses: bodyClasses,
     siteHeader: siteHeaderNode(
       pageType: type,
-      userSession: userSessionData,
+      userSession: requestContext.userSessionData,
     ),
     announcementBanner: announcementBannerHtml == null
         ? null

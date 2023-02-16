@@ -80,11 +80,9 @@ Map<String, Object> createClientSessionCookie({
   };
 }
 
-/// Parse [cookieString] and return `sessionId` or `null`.
-///
-/// The [cookieString] is the value of the `cookie:` request header.
-String? parseUserSessionCookie(String? cookieString) {
-  final sessionId = parseCookieHeader(cookieString)['$_userSessionCookieName'];
+/// Process [cookies] and return `sessionId` or `null`.
+String? parseUserSessionCookie(Map<String, String> cookies) {
+  final sessionId = cookies['$_userSessionCookieName'];
   // An empty sessionId cookie is the result of reseting the cookie.
   // Browser usually won't send this, but let's make sure we handle the case.
   if (sessionId != null && sessionId.isEmpty) {
