@@ -27,7 +27,7 @@ class CacheHeaders {
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
         isSignedin ? (signedInStorage ?? 'private') : 'public',
-        if (maxAge > Duration.zero) 'max-age=${maxAge.inSeconds}',
+        if (maxAge >= Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
   }
