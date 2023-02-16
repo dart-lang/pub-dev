@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/cookie_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -53,9 +54,9 @@ Future<shelf.Response> updateSessionHandler(
     throw NotFoundException.resource('no such url');
   }
 
-  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
   final sessionData =
-      await accountBackend.parseAndLookupUserSessionCookie(cookieString);
+      await accountBackend.parseAndLookupUserSessionCookie(cookies);
   final t2 = sw.elapsed;
   // check if the session data is the same
   if (sessionData != null &&
@@ -92,9 +93,9 @@ Future<shelf.Response> updateSessionHandler(
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
   final sessionData =
-      await accountBackend.parseAndLookupUserSessionCookie(cookieString);
+      await accountBackend.parseAndLookupUserSessionCookie(cookies);
   final hasUserSession = sessionData != null;
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
