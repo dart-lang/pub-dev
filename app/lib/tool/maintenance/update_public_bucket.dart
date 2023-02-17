@@ -84,7 +84,7 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
     if (canonicalInfo != null) {
       // Warn if both the canonical and the public bucket has the same object,
       // but it wasn't matched through the [PackageVersion] query above.
-      if (publicInfo.age < ageCheckThreshold) {
+      if (canonicalInfo.age < ageCheckThreshold) {
         // Ignore recent files.
         continue;
       }
