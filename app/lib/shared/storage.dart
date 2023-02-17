@@ -344,7 +344,10 @@ class VersionedJsonStorage {
   }
 }
 
+/// Additional methods on object metadata.
 extension ObjectInfoExt on ObjectInfo {
+  Duration get age => clock.now().difference(updated);
+
   bool hasSameSignatureAs(ObjectInfo? other) {
     if (other == null) {
       return false;

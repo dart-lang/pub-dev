@@ -12,8 +12,10 @@ import '../../shared/test_services.dart';
 void main() {
   group('update public bucket', () {
     testWithProfile('no update', fn: () async {
-      final updated = await updatePublicArchiveBucket();
-      expect(updated, 0);
+      final changes =
+          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      expect(changes.archivesUpdated, 0);
+      expect(changes.archivesDeleted, 0);
     });
 
     testWithProfile('missing file', fn: () async {
@@ -21,8 +23,38 @@ void main() {
           storageService.bucket(activeConfiguration.publicPackagesBucketName!);
       await bucket.delete('packages/oxygen-1.0.0.tar.gz');
 
-      final updated = await updatePublicArchiveBucket();
-      expect(updated, 1);
+      final changes =
+          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      expect(changes.archivesUpdated, 1);
+      expect(changes.archivesDeleted, 0);
+
+      final changes2 =
+          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      expect(changes2.archivesUpdated, 0);
+      expect(changes2.archivesDeleted, 0);
+    });
+
+    testWithProfile('extra file', fn: () async {
+      final bucket =
+          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
+      await bucket.writeBytes('xyz.txt', [1]);
+
+      // recent file gets ignored
+      final recent = await updatePublicArchiveBucket();
+      expect(recent.archivesUpdated, 0);
+      expect(recent.archivesDeleted, 0);
+
+      // non-recent file gets deleted
+      final changes =
+          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      expect(changes.archivesUpdated, 0);
+      expect(changes.archivesDeleted, 1);
+
+      // TODO: second round should report 0 deleted after delete gets implemented.
+      final changes2 =
+          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      expect(changes2.archivesUpdated, 0);
+      expect(changes2.archivesDeleted, 1);
     });
   });
 }
