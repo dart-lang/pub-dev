@@ -76,21 +76,27 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
     // Skip recently updated objects.
     if (publicInfo.age < ageCheckThreshold) {
+      // Ignore recent files.
       continue;
     }
 
     final canonicalInfo = await canonicalBucket.tryInfo(entry.name);
     if (canonicalInfo != null) {
+      // Warn if both the canonical and the public bucket has the same object,
+      // but it wasn't matched through the [PackageVersion] query above.
       if (publicInfo.age < ageCheckThreshold) {
+        // Ignore recent files.
         continue;
       }
       _logger.severe(
           'Object without matching PackageVersion in canonical and public buckets: "${entry.name}".');
       continue;
+    } else {
+      // The object in the public bucket has no matching file in the canonical bucket.
+      // We can assume it is stale and can delete it.
+      _logger.shout('Deleting object from public bucket: "${entry.name}".');
+      deleted++;
     }
-
-    _logger.shout('Deleting object from public bucket: "${entry.name}".');
-    deleted++;
   }
 
   return PublicBucketUpdateStat(
