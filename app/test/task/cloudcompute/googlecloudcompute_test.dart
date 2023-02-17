@@ -10,15 +10,14 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:pub_dev/shared/env_config.dart';
+import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/cloudcompute/googlecloudcompute.dart';
 import 'package:test/test.dart';
 
-import '../../shared/test_services.dart';
-
 void main() {
   test('CloudCompute from createGoogleCloudCompute()', () async {
-    setupLogging();
+    setupDebugEnvBasedLogging();
 
     await withAppEngineServices(() async {
       registerCloudComputeClient(authClientService);

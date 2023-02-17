@@ -30,7 +30,8 @@ void main() {
           .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
       Future<void> inviteCompleterFn() async {
         final pageUrl = await inviteUrlFuture.timeout(Duration(seconds: 30));
-        final pageUri = Uri.parse(pageUrl);
+        final pageUri = Uri.parse(
+            pageUrl.substring(pageUrl.indexOf('https://pub.dev/consent')));
         final consentId = pageUri.queryParameters['id'];
 
         // spoofed consent, trying to accept it with a different user

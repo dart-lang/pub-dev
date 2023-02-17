@@ -51,7 +51,8 @@ class FakePubServer {
           await nameTracker.startTracking();
 
           final appHandler = createAppHandler();
-          final handler = wrapHandler(_logger, appHandler, sanitize: true);
+          final handler = wrapHandler(Logger('fake_server.default'), appHandler,
+              sanitize: true);
 
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
