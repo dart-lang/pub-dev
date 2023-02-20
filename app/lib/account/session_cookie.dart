@@ -107,20 +107,17 @@ ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
   }
   if (lax.isEmpty) {
     return ClientSessionCookieStatus(
-      isPresent: false,
       isStrict: false,
       sessionId: null,
     );
   }
   if (strict.isEmpty) {
     return ClientSessionCookieStatus(
-      isPresent: true,
       isStrict: false,
       sessionId: lax,
     );
   }
   return ClientSessionCookieStatus(
-    isPresent: true,
     isStrict: true,
     sessionId: strict,
   );
@@ -155,13 +152,13 @@ Map<String, Object> clearSessionCookies() {
 
 /// The session cookies present with the request, with the current session identifier.
 class ClientSessionCookieStatus {
-  final bool isPresent;
   final bool isStrict;
   final String? sessionId;
 
   ClientSessionCookieStatus({
-    required this.isPresent,
     required this.isStrict,
     required this.sessionId,
   });
+
+  late final isPresent = sessionId != null && sessionId!.isNotEmpty;
 }
