@@ -39,6 +39,7 @@ class RequestContext {
 
   /// The active user's session data.
   ///
+  //TODO: Update this information when new sessions are adopted.
   /// **Warning:** the existence of a session MAY ONLY be used for authenticating
   /// a user for the purpose of generating HTML output served from a GET request.
   ///
