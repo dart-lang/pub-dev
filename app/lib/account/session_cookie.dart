@@ -106,21 +106,13 @@ ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
     );
   }
   if (lax.isEmpty) {
+    return ClientSessionCookieStatus.missing();
+  } else {
     return ClientSessionCookieStatus(
-      isStrict: false,
-      sessionId: null,
-    );
-  }
-  if (strict.isEmpty) {
-    return ClientSessionCookieStatus(
-      isStrict: false,
       sessionId: lax,
+      isStrict: strict.isNotEmpty,
     );
   }
-  return ClientSessionCookieStatus(
-    isStrict: true,
-    sessionId: strict,
-  );
 }
 
 /// Create a set of HTTP headers that clears a session cookie.
@@ -155,9 +147,13 @@ class ClientSessionCookieStatus {
   final bool isStrict;
   final String? sessionId;
 
+  ClientSessionCookieStatus.missing()
+      : isStrict = false,
+        sessionId = null;
+
   ClientSessionCookieStatus({
-    required this.isStrict,
     required this.sessionId,
+    required this.isStrict,
   });
 
   late final isPresent = sessionId != null && sessionId!.isNotEmpty;
