@@ -14,6 +14,14 @@ import 'search_service.dart';
 
 final _logger = Logger('search.dart_sdk_mem_index');
 
+/// Results from these libraries are ranked with lower score and
+/// will be displayed only if the query has the library name, or
+/// there are not other results that could match the query.
+@visibleForTesting
+const dartSdkLibraryWeights = <String, double>{
+  'dart:html': 0.7,
+};
+
 /// Sets the Dart SDK in-memory index.
 void registerDartSdkMemIndex(DartSdkMemIndex updater) =>
     ss.register(#_dartSdkMemIndex, updater);
@@ -71,6 +79,7 @@ Future<SdkMemIndex?> _createDartSdkMemIndex() async {
         libraryRelativeUrls: content.libraryRelativeUrls,
       ),
     );
+    index.updatesLibraryWeights(dartSdkLibraryWeights);
     return index;
   } catch (e, st) {
     _logger.warning('Unable to load Dart SDK index.', e, st);

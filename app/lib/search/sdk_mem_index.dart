@@ -15,6 +15,7 @@ class SdkMemIndex {
   final _tokensPerLibrary = <String, TokenIndex>{};
   final _baseUriPerLibrary = <String, String>{};
   final _descriptionPerLibrary = <String, String>{};
+  final _libraryWeights = <String, double>{};
 
   SdkMemIndex({
     required String sdk,
@@ -68,6 +69,11 @@ class SdkMemIndex {
     _descriptionPerLibrary.addAll(descriptions);
   }
 
+  /// Updates the non-default weight for libraries.
+  void updatesLibraryWeights(Map<String, double> weights) {
+    _libraryWeights.addAll(weights);
+  }
+
   Future<List<SdkLibraryHit>> search(
     String query, {
     int? limit,
@@ -82,7 +88,13 @@ class SdkMemIndex {
       final rs = tokens.searchWords(words).top(3, minValue: 0.05);
       if (rs.isEmpty) continue;
 
-      hits.add(_Hit(library, rs));
+      // We may recude the rank of certain libraries, except when their name is
+      // also part of the query. E.g. `dart:html` with `query=cursor` may be
+      // scored lower than `query=html cursor`.
+      final weight = query.contains(library.split(':').last)
+          ? 1.0
+          : _libraryWeights[library];
+      hits.add(_Hit(library, rs, weight: weight));
     }
     if (hits.isEmpty) return <SdkLibraryHit>[];
 
@@ -117,7 +129,13 @@ class SdkMemIndex {
 class _Hit {
   final String library;
   final Score top;
-  final double score;
+  final double weight;
 
-  _Hit(this.library, this.top) : score = top.maxValue;
+  _Hit(
+    this.library,
+    this.top, {
+    required double? weight,
+  }) : weight = weight ?? 1.0;
+
+  late final score = top.maxValue * weight;
 }

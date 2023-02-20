@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:test/test.dart';
@@ -18,6 +19,7 @@ void main() {
         version: '',
         baseUri: Uri.parse('https://api.dart.dev/x/'),
       );
+      index.updatesLibraryWeights(dartSdkLibraryWeights);
       await index.addDartdocIndex(DartdocIndex.fromJsonList([
         {
           'name': 'dart:async',
@@ -54,8 +56,18 @@ void main() {
           'packageName': 'Dart',
           'enclosedBy': {'name': 'AsyncError', 'type': 'class'},
         },
+        {
+          'name': 'Window',
+          'qualifiedName': 'dart:html.Window',
+          'href': 'dart-html/Window-class.html',
+          'type': 'class',
+          'overriddenDepth': 0,
+          'packageName': 'Dart',
+          'enclosedBy': {'name': 'dart:html', 'type': 'library'},
+        },
       ]));
       index.addLibraryDescriptions({'dart:async': 'async description'});
+      index.addLibraryDescriptions({'dart:html': 'html description'});
     });
 
     test('AsyncError', () async {
@@ -137,6 +149,19 @@ void main() {
           },
         ],
       );
+    });
+
+    test('html reduced score', () async {
+      // qualified query gets higher score
+      final rs1 = await index.search('window');
+      final rs2 = await index.search('html window');
+      expect(rs1.single.library, 'dart:html');
+      expect(rs2.single.library, 'dart:html');
+      expect(rs1.single.score < rs2.single.score * 0.8, isTrue);
+
+      // the keyword would match dart:html too, but the low score will be removed from the list
+      final rs3 = await index.search('dart');
+      expect(rs3.single.library, 'dart:async');
     });
   });
 }
