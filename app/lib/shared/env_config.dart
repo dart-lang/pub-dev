@@ -46,7 +46,8 @@ class _EnvConfig {
   late final debug = Platform.environment['DEBUG'];
 
   /// True, if the app (or test) is running inside CI.
-  bool get isInsideCI => Platform.environment.containsKey('CI');
+  bool get isInsideCI => Platform.environment.containsKey('CI') &&
+  RegExp(r'^(?:true|1)$', caseInsensitive: false).hasMatch(Platform.environment['CI']);
 
   /// True, if running inside AppEngine.
   bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
