@@ -24,7 +24,7 @@ abstract class ResponseException extends ApiResponseException {
     int status,
     String code,
     String message, {
-    Map<String, String>? headers,
+    Map<String, Object>? headers,
   }) : super(status: status, code: code, message: message, headers: headers);
 
   @override
@@ -332,12 +332,17 @@ class OperationForbiddenException extends ResponseException {
 
 /// Thrown when authentication failed, credentials is missing or invalid.
 class AuthenticationException extends ResponseException {
-  AuthenticationException._(String message)
-      : super._(
+  AuthenticationException._(
+    String message, {
+    Map<String, Object>? headers,
+  }) : super._(
           401,
           'MissingAuthentication',
           message,
-          headers: _wwwAuthenticateHeaders(message),
+          headers: {
+            ..._wwwAuthenticateHeaders(message),
+            ...?headers,
+          },
         );
 
   /// Signaling that `authorization` header was missing.
@@ -365,6 +370,15 @@ class AuthenticationException extends ResponseException {
   /// Signaling that User lookup (via e-mail) failed.
   factory AuthenticationException.userNotFound() =>
       AuthenticationException._('User not found.');
+
+  /// Signaling that cookie values provided by the client are invalid.
+  factory AuthenticationException.cookieInvalid({
+    Map<String, Object>? headers,
+  }) =>
+      AuthenticationException._(
+        'Browser cookie invalid.',
+        headers: headers,
+      );
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server

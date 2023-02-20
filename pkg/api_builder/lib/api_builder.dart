@@ -54,7 +54,7 @@ class ApiResponseException implements Exception {
   final int status;
   final String code;
   final String message;
-  final Map<String, String>? headers;
+  final Map<String, Object>? headers;
 
   ApiResponseException({
     required this.status,
