@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 
 import '../shared/cookie_utils.dart';
 import '../shared/env_config.dart';
+import '../shared/exceptions.dart';
 
 /// The client session cookie that will be sent on every kind of session.
 @visibleForTesting
@@ -97,12 +98,18 @@ ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
   final values = parseCookieHeader(cookieString);
   final lax = values[clientSessionLaxCookieName]?.trim() ?? '';
   final strict = values[clientSessionStrictCookieName]?.trim() ?? '';
+  final needsReset = (lax.isEmpty && strict.isNotEmpty) ||
+      (lax.isNotEmpty && strict.isNotEmpty && lax != strict);
+  if (needsReset) {
+    throw AuthenticationException.cookieInvalid(
+      headers: clearSessionCookies(),
+    );
+  }
   if (lax.isEmpty) {
     return ClientSessionCookieStatus(
       isPresent: false,
       isStrict: false,
       sessionId: null,
-      needsReset: strict.isNotEmpty,
     );
   }
   if (strict.isEmpty) {
@@ -110,15 +117,12 @@ ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
       isPresent: true,
       isStrict: false,
       sessionId: lax,
-      needsReset: false,
     );
   }
-  final hasError = lax != strict;
   return ClientSessionCookieStatus(
     isPresent: true,
     isStrict: true,
-    sessionId: hasError ? null : strict,
-    needsReset: hasError,
+    sessionId: strict,
   );
 }
 
@@ -154,14 +158,12 @@ class ClientSessionCookieStatus {
   final bool isPresent;
   final bool isStrict;
   final String? sessionId;
-  final bool needsReset;
 
   ClientSessionCookieStatus({
     required this.isPresent,
     required this.isStrict,
     required this.sessionId,
-    required this.needsReset,
   });
 
-  late final isValid = isPresent && !needsReset;
+  late final isValid = isPresent;
 }

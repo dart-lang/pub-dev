@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:pub_dev/account/session_cookie.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -12,14 +15,27 @@ void main() {
         if (lax != null) '$clientSessionLaxCookieName=$lax',
         if (strict != null) '$clientSessionStrictCookieName=$strict',
       ].join('; ');
-      final status = parseClientSessionCookies(cookies);
-      if (!status.isPresent || status.needsReset || !status.isValid) {
-        expect(status.sessionId, null);
+      try {
+        final status = parseClientSessionCookies(cookies);
+        if (!status.isPresent || !status.isValid) {
+          expect(status.sessionId, null);
+        }
+        if (status.isStrict) {
+          expect(status.isPresent, true);
+        }
+        return status;
+      } on ResponseException catch (e) {
+        // check cookie reset headers
+        final values = e.headers?[HttpHeaders.setCookieHeader] as List?;
+        expect(values, isNotNull);
+        expect(values, isNotEmpty);
+        expect(values!.map((e) => e.toString()).toList(), [
+          'pub-sid-insecure=""; Path=/; Max-Age=0; SameSite=Lax; HttpOnly',
+          'PUB_SID_INSECURE=""; Path=/; Max-Age=0; SameSite=Lax; HttpOnly',
+          'PUB_SSID_INSECURE=""; Path=/; Max-Age=0; SameSite=Lax; HttpOnly',
+        ]);
+        rethrow;
       }
-      if (status.isStrict) {
-        expect(status.isPresent, true);
-      }
-      return status;
     }
 
     test('both missing', () {
@@ -27,7 +43,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.needsReset, false);
       expect(status.isValid, false);
     });
 
@@ -36,7 +51,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.needsReset, false);
       expect(status.isValid, false);
     });
 
@@ -45,7 +59,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.needsReset, false);
       expect(status.isValid, false);
     });
 
@@ -54,7 +67,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.needsReset, false);
       expect(status.isValid, false);
     });
 
@@ -63,17 +75,11 @@ void main() {
       expect(status.isPresent, true);
       expect(status.isStrict, false);
       expect(status.sessionId, '1');
-      expect(status.needsReset, false);
       expect(status.isValid, true);
     });
 
     test('only strict present', () {
-      final status = parse(null, '1');
-      expect(status.isPresent, false);
-      expect(status.isStrict, false);
-      expect(status.sessionId, null);
-      expect(status.needsReset, true);
-      expect(status.isValid, false);
+      expect(() => parse(null, '1'), throwsA(isA<AuthenticationException>()));
     });
 
     test('both present, same values', () {
@@ -81,17 +87,11 @@ void main() {
       expect(status.isPresent, true);
       expect(status.isStrict, true);
       expect(status.sessionId, '1');
-      expect(status.needsReset, false);
       expect(status.isValid, true);
     });
 
     test('both present, different values', () {
-      final status = parse('1', '2');
-      expect(status.isPresent, true);
-      expect(status.isStrict, true);
-      expect(status.sessionId, null);
-      expect(status.needsReset, true);
-      expect(status.isValid, false);
+      expect(() => parse('1', '2'), throwsA(isA<AuthenticationException>()));
     });
   });
 }
