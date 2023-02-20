@@ -17,7 +17,7 @@ void main() {
       ].join('; ');
       try {
         final status = parseClientSessionCookies(cookies);
-        if (!status.isPresent || !status.isValid) {
+        if (!status.isPresent) {
           expect(status.sessionId, null);
         }
         if (status.isStrict) {
@@ -43,7 +43,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.isValid, false);
     });
 
     test('lax empty', () {
@@ -51,7 +50,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.isValid, false);
     });
 
     test('strict empty', () {
@@ -59,7 +57,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.isValid, false);
     });
 
     test('both empty', () {
@@ -67,7 +64,6 @@ void main() {
       expect(status.isPresent, false);
       expect(status.isStrict, false);
       expect(status.sessionId, null);
-      expect(status.isValid, false);
     });
 
     test('only lax present', () {
@@ -75,7 +71,6 @@ void main() {
       expect(status.isPresent, true);
       expect(status.isStrict, false);
       expect(status.sessionId, '1');
-      expect(status.isValid, true);
     });
 
     test('only strict present', () {
@@ -87,7 +82,6 @@ void main() {
       expect(status.isPresent, true);
       expect(status.isStrict, true);
       expect(status.sessionId, '1');
-      expect(status.isValid, true);
     });
 
     test('both present, different values', () {

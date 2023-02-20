@@ -164,6 +164,4 @@ class ClientSessionCookieStatus {
     required this.isStrict,
     required this.sessionId,
   });
-
-  late final isValid = isPresent;
 }
