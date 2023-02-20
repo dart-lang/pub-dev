@@ -4,6 +4,7 @@
 
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -12,18 +13,33 @@ import 'package:pub_dev/shared/storage.dart';
 
 final _logger = Logger('update_public_buckets');
 
+class PublicBucketUpdateStat {
+  final int archivesUpdated;
+  final int archivesDeleted;
+
+  PublicBucketUpdateStat({
+    required this.archivesUpdated,
+    required this.archivesDeleted,
+  });
+}
+
 /// Updates the public package archive:
 /// - copies missing archive objects from canonical to public
 ///
 /// Return the number of objects that were updated.
-Future<int> updatePublicArchiveBucket() async {
+Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
+  @visibleForTesting Duration ageCheckThreshold = const Duration(days: 1),
+}) async {
   _logger.info('Scanning PackageVersions for public bucket updates...');
 
   var updated = 0;
+  var deleted = 0;
   final canonicalBucket =
       storageService.bucket(activeConfiguration.canonicalPackagesBucketName!);
   final publicBucket =
       storageService.bucket(activeConfiguration.publicPackagesBucketName!);
+
+  final objectNamesInPublicBucket = <String>{};
 
   await for (final pv in dbService.query<PackageVersion>().run()) {
     // ignore: invalid_use_of_visible_for_testing_member
@@ -38,6 +54,53 @@ Future<int> updatePublicArchiveBucket() async {
       );
       updated++;
     }
+    objectNamesInPublicBucket.add(objectName);
   }
-  return updated;
+
+  await for (final entry in publicBucket.list()) {
+    // Skip non-objects.
+    if (!entry.isObject) {
+      continue;
+    }
+    // Skip objects that were matched in the previous step.
+    if (objectNamesInPublicBucket.contains(entry.name)) {
+      continue;
+    }
+
+    final publicInfo = await publicBucket.tryInfo(entry.name);
+    if (publicInfo == null) {
+      _logger.warning(
+          'Failed to get info for public bucket object "${entry.name}".');
+      continue;
+    }
+
+    // Skip recently updated objects.
+    if (publicInfo.age < ageCheckThreshold) {
+      // Ignore recent files.
+      continue;
+    }
+
+    final canonicalInfo = await canonicalBucket.tryInfo(entry.name);
+    if (canonicalInfo != null) {
+      // Warn if both the canonical and the public bucket has the same object,
+      // but it wasn't matched through the [PackageVersion] query above.
+      if (canonicalInfo.age < ageCheckThreshold) {
+        // Ignore recent files.
+        continue;
+      }
+      _logger.severe(
+          'Object without matching PackageVersion in canonical and public buckets: "${entry.name}".');
+      continue;
+    } else {
+      // The object in the public bucket has no matching file in the canonical bucket.
+      // We can assume it is stale and can delete it.
+      _logger.shout('Deleting object from public bucket: "${entry.name}".');
+      deleted++;
+    }
+  }
+
+  return PublicBucketUpdateStat(
+    archivesUpdated: updated,
+    archivesDeleted: deleted,
+  );
 }
