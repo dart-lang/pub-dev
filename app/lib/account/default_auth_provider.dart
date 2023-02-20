@@ -127,6 +127,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
   @override
   Future<AuthResult?> tryAuthenticateOauthCode({
     required String code,
+    required String expectedNonce,
   }) async {
     try {
       final audience = _getOauthSiteAudience();
@@ -146,7 +147,10 @@ class DefaultAuthProvider extends BaseAuthProvider {
       final body = json.decode(rs.body);
       // TODO: also expose access_token for domain verification calls
       final idToken = body['id_token'] as String;
-      final auth = await _tryAuthenticateJwt(idToken);
+      final auth = await _tryAuthenticateJwt(
+        idToken,
+        expectedNonce: expectedNonce,
+      );
       if (auth == null) {
         return null;
       }
@@ -326,7 +330,10 @@ abstract class BaseAuthProvider extends AuthProvider {
   }
 
   /// Authenticate with openid-connect `id_token`.
-  Future<AuthResult?> _tryAuthenticateJwt(String jwt) async {
+  Future<AuthResult?> _tryAuthenticateJwt(
+    String jwt, {
+    String? expectedNonce,
+  }) async {
     final response = await callTokenInfoWithIdToken(idToken: jwt);
     // Expect a 200 response
     if (response.statusCode != 200) {
@@ -395,6 +402,10 @@ abstract class BaseAuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, bad `nonce`');
       return null;
     }
+    if (expectedNonce != null && nonce != expectedNonce) {
+      _logger.warning('JWT rejected, expected different `nonce`.');
+      return null;
+    }
     final name = r['name'];
     if (name != null && name is! String) {
       _logger.warning('JWT rejected, bad `name`');
@@ -410,7 +421,6 @@ abstract class BaseAuthProvider extends AuthProvider {
       email: email,
       audience: aud,
       name: name as String?,
-      nonce: nonce as String?,
       imageUrl: picture as String?,
     );
   }

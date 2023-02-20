@@ -8,7 +8,6 @@ class AuthResult {
   final String oauthUserId;
   final String email;
   final String audience;
-  final String? nonce;
   final String? name;
   final String? imageUrl;
 
@@ -16,7 +15,6 @@ class AuthResult {
     required this.oauthUserId,
     required this.email,
     required this.audience,
-    this.nonce,
     this.name,
     this.imageUrl,
   });
@@ -56,6 +54,7 @@ abstract class AuthProvider {
   /// Returns the OAuth2 profile information using the authentication [code].
   Future<AuthResult?> tryAuthenticateOauthCode({
     required String code,
+    required String expectedNonce,
   });
 
   /// Close resources.

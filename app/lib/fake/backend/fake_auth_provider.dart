@@ -149,6 +149,7 @@ class FakeAuthProvider extends BaseAuthProvider {
   @override
   Future<AuthResult?> tryAuthenticateOauthCode({
     required String code,
+    required String expectedNonce,
   }) async {
     throw UnimplementedError();
   }

@@ -61,7 +61,11 @@ Future<shelf.Response> oauth2CallbackHandler(shelf.Request request) async {
     // TODO: verify state in the response
     // TODO: verify authuser (=0)
     // TODO: verify prompt (=none)
-    final profile = await authProvider.tryAuthenticateOauthCode(code: code);
+    // TODO: use `expectedNonce` when trying to authenticate `code`.
+    final profile = await authProvider.tryAuthenticateOauthCode(
+      code: code,
+      expectedNonce: '[TBD]',
+    );
     if (profile == null) {
       throw AuthenticationException.failed();
     }
@@ -70,7 +74,6 @@ Future<shelf.Response> oauth2CallbackHandler(shelf.Request request) async {
       {
         'oauthUserId': '*' * profile.oauthUserId.length,
         'email': profile.email,
-        'nonce': profile.nonce,
         'name': profile.name,
         'imageUrl': profile.imageUrl,
       },
