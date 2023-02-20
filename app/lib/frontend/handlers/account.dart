@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/cookie_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -13,6 +14,7 @@ import '../../account/consent_backend.dart';
 import '../../account/like_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
+import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../publisher/backend.dart';
@@ -52,9 +54,9 @@ Future<shelf.Response> updateSessionHandler(
     throw NotFoundException.resource('no such url');
   }
 
-  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
   final sessionData =
-      await accountBackend.parseAndLookupUserSessionCookie(cookieString);
+      await accountBackend.parseAndLookupUserSessionCookie(cookies);
   final t2 = sw.elapsed;
   // check if the session data is the same
   if (sessionData != null &&
@@ -91,9 +93,9 @@ Future<shelf.Response> updateSessionHandler(
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final cookieString = request.headers[HttpHeaders.cookieHeader];
+  final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
   final sessionData =
-      await accountBackend.parseAndLookupUserSessionCookie(cookieString);
+      await accountBackend.parseAndLookupUserSessionCookie(cookies);
   final hasUserSession = sessionData != null;
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
@@ -113,7 +115,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
 /// Handles GET /consent?id=<consentId>
 Future<shelf.Response> consentPageHandler(
     shelf.Request request, String? consentId) async {
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
@@ -122,7 +124,8 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final user = await accountBackend.lookupUserById(userSessionData!.userId!);
+  final user = await accountBackend
+      .lookupUserById(requestContext.userSessionData!.userId!);
   final consent = await consentBackend.getConsent(consentId, user!);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
@@ -218,7 +221,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
 
 /// Handles requests for GET /my-packages [?q=...]
 Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
@@ -229,12 +232,13 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
   final next = request.requestedUri.queryParameters['next'];
   final page = await packageBackend
-      .listPackagesForUser(userSessionData!.userId!, next: next);
+      .listPackagesForUser(requestContext.userSessionData!.userId!, next: next);
   final hits = await scoreCardBackend.getPackageViews(page.packages);
 
   final html = renderAccountPackagesPage(
-    user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
-    userSessionData: userSessionData!,
+    user: (await accountBackend
+        .lookupUserById(requestContext.userSessionData!.userId!))!,
+    userSessionData: requestContext.userSessionData!,
     startPackage: next,
     packageHits: hits.whereType<PackageView>().toList(),
     nextPackage: page.nextPackage,
@@ -245,15 +249,16 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 /// Handles requests for GET my-liked-packages
 Future<shelf.Response> accountMyLikedPackagesPageHandler(
     shelf.Request request) async {
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
-  final user = (await accountBackend.lookupUserById(userSessionData!.userId!))!;
+  final user = (await accountBackend
+      .lookupUserById(requestContext.userSessionData!.userId!))!;
   final likes = await likeBackend.listPackageLikes(user);
   final html = renderMyLikedPackagesPage(
     user: user,
-    userSessionData: userSessionData!,
+    userSessionData: requestContext.userSessionData!,
     likes: likes,
   );
   return htmlResponse(html);
@@ -262,15 +267,16 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
 /// Handles requests for GET /my-publishers
 Future<shelf.Response> accountPublishersPageHandler(
     shelf.Request request) async {
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
-  final page =
-      await publisherBackend.listPublishersForUser(userSessionData!.userId!);
+  final page = await publisherBackend
+      .listPublishersForUser(requestContext.userSessionData!.userId!);
   final content = renderAccountPublishersPage(
-    user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
-    userSessionData: userSessionData!,
+    user: (await accountBackend
+        .lookupUserById(requestContext.userSessionData!.userId!))!,
+    userSessionData: requestContext.userSessionData!,
     publishers: page.publishers!,
   );
   return htmlResponse(content);
@@ -279,18 +285,19 @@ Future<shelf.Response> accountPublishersPageHandler(
 /// Handles requests for GET /my-activity-log
 Future<shelf.Response> accountMyActivityLogPageHandler(
     shelf.Request request) async {
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   final before = auditBackend.parseBeforeQueryParameter(
       request.requestedUri.queryParameters['before']);
   final activities = await auditBackend.listRecordsForUserId(
-    userSessionData!.userId!,
+    requestContext.userSessionData!.userId!,
     before: before,
   );
   final content = renderAccountMyActivityPage(
-    user: (await accountBackend.lookupUserById(userSessionData!.userId!))!,
-    userSessionData: userSessionData!,
+    user: (await accountBackend
+        .lookupUserById(requestContext.userSessionData!.userId!))!,
+    userSessionData: requestContext.userSessionData!,
     activities: activities,
   );
   return htmlResponse(content);

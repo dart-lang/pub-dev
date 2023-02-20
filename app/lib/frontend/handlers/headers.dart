@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import '../../account/backend.dart';
+import '../../frontend/request_context.dart';
 
 /// Represents cache-control settings for an asset category.
 class CacheHeaders {
@@ -23,11 +23,11 @@ class CacheHeaders {
   });
 
   Map<String, String> call() {
-    final isSignedin = userSessionData != null;
+    final isSignedin = requestContext.userSessionData != null;
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
         isSignedin ? (signedInStorage ?? 'private') : 'public',
-        if (maxAge > Duration.zero) 'max-age=${maxAge.inSeconds}',
+        if (maxAge >= Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
   }

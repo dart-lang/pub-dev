@@ -8,7 +8,6 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../account/backend.dart';
 import '../../audit/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
@@ -25,7 +24,7 @@ import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   return htmlResponse(renderCreatePublisherPage());
@@ -116,7 +115,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     searchForm: appliedSearchForm,
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
-        publisher, userSessionData?.userId),
+        publisher, requestContext.userSessionData?.userId),
     messageFromBackend: searchResult.message,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
@@ -135,12 +134,12 @@ Future<shelf.Response> publisherAdminPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
-    userSessionData!.userId,
+    requestContext.userSessionData!.userId,
   );
   if (!isAdmin) {
     return htmlResponse(renderUnauthorizedPage());
@@ -162,12 +161,12 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (userSessionData == null) {
+  if (requestContext.userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
-    userSessionData!.userId,
+    requestContext.userSessionData!.userId,
   );
   if (!isAdmin) {
     return htmlResponse(renderUnauthorizedPage());

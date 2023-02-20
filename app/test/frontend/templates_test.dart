@@ -16,6 +16,7 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/consent.dart';
@@ -435,12 +436,16 @@ void main() {
           () async {
             // update session as package data loading checks that
             final user = await requireAuthenticatedWebUser();
-            registerUserSessionData(SessionData(
-              userId: user.userId,
-              created: clock.now(),
-              expires: clock.now().add(Duration(days: 1)),
-              sessionId: 'session-1',
-            ));
+            registerRequestContext(
+              RequestContext(
+                userSessionData: SessionData(
+                  userId: user.userId,
+                  created: clock.now(),
+                  expires: clock.now().add(Duration(days: 1)),
+                  sessionId: 'session-1',
+                ),
+              ),
+            );
             return await loadPackagePageData(
                 'oxygen', '1.2.0', AssetKind.readme);
           },
@@ -468,7 +473,11 @@ void main() {
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
           );
-          registerUserSessionData(session);
+          registerRequestContext(
+            RequestContext(
+              userSessionData: session,
+            ),
+          );
           final data = await loadPackagePageData('oxygen', '1.2.0', null);
           final activities = await auditBackend.listRecordsForPackage('oxygen');
           expect(activities.records, isNotEmpty);
@@ -726,7 +735,11 @@ void main() {
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
           );
-          registerUserSessionData(session);
+          registerRequestContext(
+            RequestContext(
+              userSessionData: session,
+            ),
+          );
           final html = renderAccountPackagesPage(
             user: user,
             userSessionData: session,
@@ -750,7 +763,11 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
-        registerUserSessionData(session);
+        registerRequestContext(
+          RequestContext(
+            userSessionData: session,
+          ),
+        );
         final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
         final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
         final html = renderMyLikedPackagesPage(
@@ -777,7 +794,11 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
-        registerUserSessionData(session);
+        registerRequestContext(
+          RequestContext(
+            userSessionData: session,
+          ),
+        );
         final publisherCreated = DateTime(2021, 07, 01, 16, 05);
         final html = renderAccountPublishersPage(
           user: user,
@@ -804,7 +825,11 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
-        registerUserSessionData(session);
+        registerRequestContext(
+          RequestContext(
+            userSessionData: session,
+          ),
+        );
         final activities = await auditBackend.listRecordsForUserId(user.userId);
         expect(activities.records, isNotEmpty);
         final html = renderAccountMyActivityPage(
