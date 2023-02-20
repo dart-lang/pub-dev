@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart';
-import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/fake/server/fake_analyzer_service.dart';
@@ -17,7 +16,6 @@ import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
@@ -68,18 +66,7 @@ class FakeServerCommand extends Command {
     final dataFile = argResults!['data-file'] as String?;
     final watch = argResults!['watch'] == true;
 
-    if (envConfig.isInsideCI) {
-      setupDebugEnvBasedLogging(extraDebug: 'fake_server pub.email');
-    } else {
-      Logger.root.onRecord.listen((r) {
-        print([
-          r.time.toIso8601String(),
-          r.toString(),
-          r.error,
-          r.stackTrace?.toString(),
-        ].where((e) => e != null).join(' '));
-      });
-    }
+    setupDebugEnvBasedLogging(defaultDebugEnvValue: 'fake_server pub.email');
 
     final state = LocalServerState();
     if (dataFile != null) {

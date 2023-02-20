@@ -26,17 +26,15 @@ class _LoggerNamePattern {
 ///
 /// Multiple filters can be applied, the last matching filter will be applied.
 void setupDebugEnvBasedLogging({
-  String? extraDebug,
+  /// The value to use in the absence of the `DEBUG` environment variable.
+  String? defaultDebugEnvValue,
 }) {
   if (_envBasedLoggingSetupDone) {
     return;
   }
   _envBasedLoggingSetupDone = true;
-  final debugEnv = [
-    // ignore: invalid_use_of_visible_for_testing_member
-    if (envConfig.debug != null) envConfig.debug,
-    if (extraDebug != null) extraDebug,
-  ].join(' ');
+  // ignore: invalid_use_of_visible_for_testing_member
+  final debugEnv = envConfig.debug ?? defaultDebugEnvValue ?? '';
   if (debugEnv.isEmpty) {
     return;
   }
