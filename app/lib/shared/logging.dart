@@ -25,16 +25,13 @@ class _LoggerNamePattern {
 ///  * `DEBUG='* -neat_cache'`, will show output from all loggers, except 'neat_cache'.
 ///
 /// Multiple filters can be applied, the last matching filter will be applied.
-void setupDebugEnvBasedLogging({
-  /// The value to use in the absence of the `DEBUG` environment variable.
-  String? defaultDebugEnvValue,
-}) {
+void setupDebugEnvBasedLogging() {
   if (_envBasedLoggingSetupDone) {
     return;
   }
   _envBasedLoggingSetupDone = true;
   // ignore: invalid_use_of_visible_for_testing_member
-  final debugEnv = envConfig.debug ?? defaultDebugEnvValue ?? '';
+  final debugEnv = envConfig.debug ?? '*';
   if (debugEnv.isEmpty) {
     return;
   }

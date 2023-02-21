@@ -66,7 +66,7 @@ class FakeServerCommand extends Command {
     final dataFile = argResults!['data-file'] as String?;
     final watch = argResults!['watch'] == true;
 
-    setupDebugEnvBasedLogging(defaultDebugEnvValue: 'fake_server pub.email');
+    setupDebugEnvBasedLogging();
 
     final state = LocalServerState();
     if (dataFile != null) {

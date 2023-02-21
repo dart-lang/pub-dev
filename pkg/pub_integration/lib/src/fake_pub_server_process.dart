@@ -64,6 +64,9 @@ class FakePubServerProcess {
         '--dartdoc-port=$dartdocPort',
       ],
       workingDirectory: pkgDir,
+      environment: {
+        'DEBUG': 'fake_server pub.email',
+      },
     );
     final instance = FakePubServerProcess._(port, process, coverageConfig);
     instance._bindListeners();
