@@ -26,12 +26,12 @@ void main() {
     });
 
     test('publisher script', () async {
-      final inviteUrlFuture = fakePubServerProcess
+      final inviteUrlLogLineFuture = fakePubServerProcess
           .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
 
       Future<void> inviteCompleterFn() async {
         final inviteUrlLogLine =
-            await inviteUrlFuture.timeout(Duration(seconds: 30));
+            await inviteUrlLogLineFuture.timeout(Duration(seconds: 30));
         final inviteUri = Uri.parse(inviteUrlLogLine
             .substring(inviteUrlLogLine.indexOf('https://pub.dev/consent')));
         final consentId = inviteUri.queryParameters['id'];
