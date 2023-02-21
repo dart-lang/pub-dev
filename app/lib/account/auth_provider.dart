@@ -51,7 +51,10 @@ abstract class AuthProvider {
     required String nonce,
   });
 
-  /// Returns the OAuth2 profile information using the authentication [code].
+  /// Verifies authentication using [code] and returns the OAuth2 profile information.
+  ///
+  /// This is the final step of the sign-in flow started by redirecting the user
+  /// to [getOauthAuthenticationUrl].
   Future<AuthResult?> tryAuthenticateOauthCode({
     required String code,
     required String expectedNonce,
