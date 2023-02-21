@@ -350,3 +350,17 @@ extension ByteArrayEqualsExt on List<int> {
     return true;
   }
 }
+
+/// Compare two strings with with fixed number of operations to prevent timing attacks.
+bool fixedTimeEquals(String a, String b) {
+  final N = a.length;
+  var result = 0;
+  if (N != b.length) {
+    b = a; // always cycle through a to avoid leaking length
+    result = 1; // return false
+  }
+  for (var i = 0; i < N; i++) {
+    result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+  }
+  return result == 0;
+}

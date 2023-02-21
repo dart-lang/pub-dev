@@ -18,6 +18,7 @@ import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/email.dart' show looksLikeEmail;
 import '../shared/exceptions.dart';
+import '../shared/utils.dart' show fixedTimeEquals;
 import '../tool/utils/http.dart' show httpRetryClient;
 import 'auth_provider.dart';
 
@@ -402,7 +403,12 @@ abstract class BaseAuthProvider extends AuthProvider {
       _logger.warning('JWT rejected, bad `nonce`');
       return null;
     }
-    if (expectedNonce != null && nonce != expectedNonce) {
+    if (expectedNonce != null && nonce == null) {
+      _logger.warning('JWT rejected, expected `nonce`.');
+      return null;
+    }
+    if (expectedNonce != null &&
+        !fixedTimeEquals(nonce as String, expectedNonce)) {
       _logger.warning('JWT rejected, expected different `nonce`.');
       return null;
     }
