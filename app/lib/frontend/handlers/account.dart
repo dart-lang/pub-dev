@@ -166,7 +166,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
 /// Handles GET /consent?id=<consentId>
 Future<shelf.Response> consentPageHandler(
     shelf.Request request, String? consentId) async {
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
@@ -175,8 +175,8 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final user = await accountBackend
-      .lookupUserById(requestContext.userSessionData!.userId!);
+  final user =
+      await accountBackend.lookupUserById(requestContext.authenticatedUserId!);
   final consent = await consentBackend.getConsent(consentId, user!);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
@@ -272,7 +272,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
 
 /// Handles requests for GET /my-packages [?q=...]
 Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
@@ -283,12 +283,12 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
   final next = request.requestedUri.queryParameters['next'];
   final page = await packageBackend
-      .listPackagesForUser(requestContext.userSessionData!.userId!, next: next);
+      .listPackagesForUser(requestContext.authenticatedUserId!, next: next);
   final hits = await scoreCardBackend.getPackageViews(page.packages);
 
   final html = renderAccountPackagesPage(
     user: (await accountBackend
-        .lookupUserById(requestContext.userSessionData!.userId!))!,
+        .lookupUserById(requestContext.authenticatedUserId!))!,
     userSessionData: requestContext.userSessionData!,
     startPackage: next,
     packageHits: hits.whereType<PackageView>().toList(),
@@ -300,12 +300,12 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 /// Handles requests for GET my-liked-packages
 Future<shelf.Response> accountMyLikedPackagesPageHandler(
     shelf.Request request) async {
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
   final user = (await accountBackend
-      .lookupUserById(requestContext.userSessionData!.userId!))!;
+      .lookupUserById(requestContext.authenticatedUserId!))!;
   final likes = await likeBackend.listPackageLikes(user);
   final html = renderMyLikedPackagesPage(
     user: user,
@@ -318,15 +318,15 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
 /// Handles requests for GET /my-publishers
 Future<shelf.Response> accountPublishersPageHandler(
     shelf.Request request) async {
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
   final page = await publisherBackend
-      .listPublishersForUser(requestContext.userSessionData!.userId!);
+      .listPublishersForUser(requestContext.authenticatedUserId!);
   final content = renderAccountPublishersPage(
     user: (await accountBackend
-        .lookupUserById(requestContext.userSessionData!.userId!))!,
+        .lookupUserById(requestContext.authenticatedUserId!))!,
     userSessionData: requestContext.userSessionData!,
     publishers: page.publishers!,
   );
@@ -336,18 +336,18 @@ Future<shelf.Response> accountPublishersPageHandler(
 /// Handles requests for GET /my-activity-log
 Future<shelf.Response> accountMyActivityLogPageHandler(
     shelf.Request request) async {
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   final before = auditBackend.parseBeforeQueryParameter(
       request.requestedUri.queryParameters['before']);
   final activities = await auditBackend.listRecordsForUserId(
-    requestContext.userSessionData!.userId!,
+    requestContext.authenticatedUserId!,
     before: before,
   );
   final content = renderAccountMyActivityPage(
     user: (await accountBackend
-        .lookupUserById(requestContext.userSessionData!.userId!))!,
+        .lookupUserById(requestContext.authenticatedUserId!))!,
     userSessionData: requestContext.userSessionData!,
     activities: activities,
   );

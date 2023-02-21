@@ -57,6 +57,10 @@ class RequestContext {
     ExperimentalFlags? experimentalFlags,
     this.userSessionData,
   }) : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty;
+
+  late final isAuthenticated = userSessionData?.userId != null;
+  late final isNotAuthenticated = !isAuthenticated;
+  late final authenticatedUserId = userSessionData?.userId;
 }
 
 Future<RequestContext> buildRequestContext({

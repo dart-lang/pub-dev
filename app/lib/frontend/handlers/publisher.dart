@@ -24,7 +24,7 @@ import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   return htmlResponse(renderCreatePublisherPage());
@@ -115,7 +115,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     searchForm: appliedSearchForm,
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
-        publisher, requestContext.userSessionData?.userId),
+        publisher, requestContext.authenticatedUserId),
     messageFromBackend: searchResult.message,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
@@ -134,12 +134,12 @@ Future<shelf.Response> publisherAdminPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
-    requestContext.userSessionData!.userId,
+    requestContext.authenticatedUserId,
   );
   if (!isAdmin) {
     return htmlResponse(renderUnauthorizedPage());
@@ -161,12 +161,12 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (requestContext.userSessionData == null) {
+  if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
-    requestContext.userSessionData!.userId,
+    requestContext.authenticatedUserId,
   );
   if (!isAdmin) {
     return htmlResponse(renderUnauthorizedPage());

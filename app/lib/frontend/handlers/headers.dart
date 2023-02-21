@@ -23,10 +23,11 @@ class CacheHeaders {
   });
 
   Map<String, String> call() {
-    final isSignedin = requestContext.userSessionData != null;
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
-        isSignedin ? (signedInStorage ?? 'private') : 'public',
+        requestContext.isAuthenticated
+            ? (signedInStorage ?? 'private')
+            : 'public',
         if (maxAge >= Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
