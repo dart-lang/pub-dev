@@ -45,14 +45,6 @@ class _EnvConfig {
   @visibleForTesting
   late final debug = Platform.environment['DEBUG'];
 
-  /// Local override for OAuth services when developing for external servers.
-  late final fakeOauthSiteAudience =
-      Platform.environment['PUB_DEV_FAKE_OAUTH_SITE_AUDIENCE'];
-
-  /// Local override for OAuth services when developing for external servers.
-  late final fakeOauthSiteAudienceSecret =
-      Platform.environment['PUB_DEV_FAKE_OAUTH_SITE_AUDIENCE_SECRET'];
-
   /// True, if running inside AppEngine.
   bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
 

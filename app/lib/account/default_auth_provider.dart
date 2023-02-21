@@ -29,16 +29,10 @@ final _tokenInfoEndPoint = Uri.parse('https://oauth2.googleapis.com/tokeninfo');
 
 /// Provides OAuth2-based authentication through JWKS and Google account APIs.
 class DefaultAuthProvider extends BaseAuthProvider {
-  final String? _oauthSiteAudience;
-  final String? _oauthSiteAudienceSecret;
   late http.Client _httpClient;
   late oauth2_v2.Oauth2Api _oauthApi;
 
-  DefaultAuthProvider({
-    String? oauthSiteAudience,
-    String? oauthSiteAudienceSecret,
-  })  : _oauthSiteAudience = oauthSiteAudience,
-        _oauthSiteAudienceSecret = oauthSiteAudienceSecret {
+  DefaultAuthProvider() {
     _httpClient = httpRetryClient(retries: 2);
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
   }
@@ -95,12 +89,11 @@ class DefaultAuthProvider extends BaseAuthProvider {
     return await token.verifySignature(openIdData.jwks);
   }
 
-  String _getOauthSiteAudience() =>
-      _oauthSiteAudience ?? activeConfiguration.pubSiteAudience!;
+  String _getOauthSiteAudience() => activeConfiguration.pubSiteAudience!;
 
   Future<String?> _getOauthSiteAudienceSecret(String audience) async {
-    return _oauthSiteAudienceSecret ??
-        await secretBackend.getCachedValue('${SecretKey.oauthPrefix}$audience');
+    return await secretBackend
+        .getCachedValue('${SecretKey.oauthPrefix}$audience');
   }
 
   @override

@@ -177,17 +177,7 @@ Future<R> withFakeServices<R>({
     }
 
     // register fake services that would have external dependencies
-
-    // Local override for OAuth services when developing for external servers.
-    if (envConfig.fakeOauthSiteAudience != null &&
-        envConfig.fakeOauthSiteAudienceSecret != null) {
-      registerAuthProvider(DefaultAuthProvider(
-        oauthSiteAudience: envConfig.fakeOauthSiteAudience,
-        oauthSiteAudienceSecret: envConfig.fakeOauthSiteAudienceSecret,
-      ));
-    } else {
-      registerAuthProvider(FakeAuthProvider());
-    }
+    registerAuthProvider(FakeAuthProvider());
     registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
     registerEmailSender(FakeEmailSender());
