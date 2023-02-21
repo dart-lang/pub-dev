@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Downgraded `package:markdown` to `6.0.1`.
+ * Removed `required: true` from the `UserSession.userId` field.
+   TODO: remove `ClientSession` and merge fields into `UserSession` after this release becomes stable.
 
 ## `20230216t120900-all`
  * Upgraded `package:markdown` to `7.0.0`.

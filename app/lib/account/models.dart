@@ -168,7 +168,7 @@ class UserSession extends db.ExpandoModel<String> {
   /// This is a v4 (random) UUID String.
   String get sessionId => id as String;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty()
   String? userId;
 
   @db.StringProperty(required: true, indexed: false)
