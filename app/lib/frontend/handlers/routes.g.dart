@@ -301,7 +301,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add(
     'GET',
     r'/oauth/callback',
-    service.oauth2Callback,
+    service.signInCallback,
   );
   router.add(
     'GET',

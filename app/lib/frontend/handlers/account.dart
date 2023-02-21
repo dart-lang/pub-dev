@@ -51,8 +51,8 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   );
 }
 
-/// Handles GET /oauth/callback
-Future<shelf.Response> oauth2CallbackHandler(shelf.Request request) async {
+/// Handles GET /sign-in/callback
+Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.useNewSignIn) {
     return notFoundHandler(request);
   }

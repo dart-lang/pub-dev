@@ -439,7 +439,7 @@ abstract class BaseAuthProvider extends AuthProvider {
 
   String getOauthCallbackUrl() {
     return activeConfiguration.primarySiteUri
-        .replace(path: '/oauth/callback')
+        .replace(path: '/sign-in/callback')
         .toString();
   }
 }
