@@ -261,14 +261,14 @@ Future<shelf.Response> packageAdminHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      if (requestContext.userSessionData == null) {
+      if (requestContext.isNotAuthenticated) {
         return htmlResponse(renderUnauthenticatedPage());
       }
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
       }
       final page = await publisherBackend
-          .listPublishersForUser(requestContext.userSessionData!.userId!);
+          .listPublishersForUser(requestContext.authenticatedUserId!);
       final uploaderEmails = await accountBackend
           .lookupUsersById(data.package!.uploaders ?? <String>[]);
       final retractableVersions =
@@ -295,7 +295,7 @@ Future<shelf.Response> packageActivityLogHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      if (requestContext.userSessionData == null) {
+      if (requestContext.isNotAuthenticated) {
         return htmlResponse(renderUnauthenticatedPage());
       }
       if (!data.isAdmin!) {
@@ -328,10 +328,10 @@ Future<PackagePageData> loadPackagePageData(
     );
   }
 
-  final bool isLiked = (requestContext.userSessionData == null)
+  final bool isLiked = requestContext.isNotAuthenticated
       ? false
       : await likeBackend.getPackageLikeStatus(
-              requestContext.userSessionData!.userId!, package.name!) !=
+              requestContext.authenticatedUserId!, package.name!) !=
           null;
 
   versionName ??= package.latestVersion;
@@ -364,10 +364,10 @@ Future<PackagePageData> loadPackagePageData(
     showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
   );
 
-  final sessionUserId = requestContext.userSessionData?.userId;
-  final isAdmin = sessionUserId == null
+  final isAdmin = requestContext.isNotAuthenticated
       ? false
-      : await packageBackend.isPackageAdmin(package, sessionUserId);
+      : await packageBackend.isPackageAdmin(
+          package, requestContext.authenticatedUserId!);
 
   return PackagePageData(
     package: package,
