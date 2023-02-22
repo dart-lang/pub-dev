@@ -65,6 +65,7 @@ class FakePubServerProcess {
       ],
       workingDirectory: pkgDir,
       environment: {
+        // Because we read the consent email from stdout.
         'DEBUG': 'fake_server pub.email',
       },
     );
