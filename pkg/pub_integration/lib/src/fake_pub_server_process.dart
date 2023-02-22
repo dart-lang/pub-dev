@@ -64,6 +64,10 @@ class FakePubServerProcess {
         '--dartdoc-port=$dartdocPort',
       ],
       workingDirectory: pkgDir,
+      environment: {
+        // Because we read the consent email from stdout.
+        'DEBUG': 'fake_server pub.email',
+      },
     );
     final instance = FakePubServerProcess._(port, process, coverageConfig);
     instance._bindListeners();

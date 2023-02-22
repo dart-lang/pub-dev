@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:logging/logging.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
@@ -20,8 +18,8 @@ import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/integrity.dart';
+import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -49,7 +47,7 @@ void testWithProfile(
   dynamic skip,
 }) {
   scopedTest(name, () async {
-    setupLogging();
+    setupDebugEnvBasedLogging();
     await withFakeServices(
       fn: () async {
         registerSearchClient(SearchClient(
@@ -98,7 +96,7 @@ void testWithFakeTime(
 }) {
   scopedTest(name, () async {
     await FakeTime.run((fakeTime) async {
-      setupLogging();
+      setupDebugEnvBasedLogging();
       await withFakeServices(
         fn: () async {
           registerSearchClient(SearchClient(
@@ -131,77 +129,6 @@ void testWithFakeTime(
         },
       );
     });
-  });
-}
-
-bool _loggingDone = false;
-
-class _LoggerNamePattern {
-  final bool negated;
-  final RegExp pattern;
-  _LoggerNamePattern(this.negated, this.pattern);
-}
-
-/// Setup logging if environment variable `DEBUG` is defined.
-///
-/// Logs are filtered based on `DEBUG='<filter>'`. This is simple filter
-/// operating on log names.
-///
-/// **Examples**:
-///  * `DEBUG='*'`, will show output from all loggers.
-///  * `DEBUG='pub.*'`, will show output from loggers with name prefixed 'pub.'.
-///  * `DEBUG='* -neat_cache'`, will show output from all loggers, except 'neat_cache'.
-///
-/// Multiple filters can be applied, the last matching filter will be applied.
-void setupLogging() {
-  if (_loggingDone) {
-    return;
-  }
-  _loggingDone = true;
-  final debugEnv = (envConfig.debug ?? '').trim();
-  if (debugEnv.isEmpty) {
-    return;
-  }
-
-  final patterns = debugEnv.split(' ').map((s) {
-    var pattern = s.trim();
-    final negated = pattern.startsWith('-');
-    if (negated) {
-      pattern = pattern.substring(1);
-    }
-
-    return _LoggerNamePattern(
-      negated,
-      RegExp('^' +
-          pattern.splitMapJoin(
-            '*',
-            onMatch: (m) => '.*',
-            onNonMatch: RegExp.escape,
-          ) +
-          '\$'),
-    );
-  }).toList();
-
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((LogRecord rec) {
-    final time = clock.now(); // rec.time
-
-    var matched = false;
-    for (final p in patterns) {
-      if (p.pattern.hasMatch(rec.loggerName)) {
-        matched = !p.negated;
-      }
-    }
-    if (!matched) {
-      return;
-    }
-
-    for (final line in rec.message.split('\n')) {
-      print('$time [${rec.loggerName}] ${rec.level.name}: $line');
-    }
-    if (rec.error != null) {
-      print('ERROR: ${rec.error}, ${rec.stackTrace}');
-    }
   });
 }
 

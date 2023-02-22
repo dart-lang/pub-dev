@@ -26,13 +26,15 @@ void main() {
     });
 
     test('publisher script', () async {
-      final inviteUrlFuture = fakePubServerProcess
+      final inviteUrlLogLineFuture = fakePubServerProcess
           .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
 
       Future<void> inviteCompleterFn() async {
-        final pageUrl = await inviteUrlFuture.timeout(Duration(seconds: 30));
-        final pageUri = Uri.parse(pageUrl);
-        final consentId = pageUri.queryParameters['id'];
+        final inviteUrlLogLine =
+            await inviteUrlLogLineFuture.timeout(Duration(seconds: 30));
+        final inviteUri = Uri.parse(inviteUrlLogLine
+            .substring(inviteUrlLogLine.indexOf('https://pub.dev/consent')));
+        final consentId = inviteUri.queryParameters['id'];
 
         // spoofed consent, trying to accept it with a different user
         final rs1 = await httpClient.put(

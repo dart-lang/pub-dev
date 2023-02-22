@@ -226,7 +226,6 @@ class _Bucket implements Bucket {
   @override
   Future<ObjectInfo> info(String name) async {
     _validateObjectName(name);
-    _logger.info('info request for $name');
     final info = _files[name];
     if (info == null) {
       throw DetailedApiRequestError(404, '$name does not exists');
@@ -237,7 +236,6 @@ class _Bucket implements Bucket {
   @override
   Stream<List<int>> read(String objectName, {int? offset, int? length}) async* {
     _validateObjectName(objectName);
-    _logger.info('read request for $objectName');
     final file = _files[objectName];
     if (file == null) {
       throw DetailedApiRequestError(404, '$objectName does not exists');
