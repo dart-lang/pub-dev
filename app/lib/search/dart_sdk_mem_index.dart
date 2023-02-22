@@ -79,7 +79,10 @@ Future<SdkMemIndex?> _createDartSdkMemIndex() async {
         libraryRelativeUrls: content.libraryRelativeUrls,
       ),
     );
-    index.updatesLibraryWeights(dartSdkLibraryWeights);
+    index.updateWeights(
+      libraryWeights: dartSdkLibraryWeights,
+      apiPageDirWeights: {},
+    );
     return index;
   } catch (e, st) {
     _logger.warning('Unable to load Dart SDK index.', e, st);
