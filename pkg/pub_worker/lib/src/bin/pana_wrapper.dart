@@ -33,11 +33,23 @@ Future<void> main(List<String> args) async {
   final pubCache = Platform.environment['PUB_CACHE']!;
 
   // Setup logging
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.level.name}: ${rec.time}: ${rec.message}');
-    if (rec.error != null) {
-      print('ERROR: ${rec.error}, ${rec.stackTrace}');
+    final prefix = '${rec.time} ${rec.level.name}:';
+    final printLinesWithPrefix = (String lines) {
+      for (final line in lines.split('\n')) {
+        print('$prefix $line');
+      }
+    };
+
+    printLinesWithPrefix(rec.message);
+    final e = rec.error;
+    if (e != null) {
+      printLinesWithPrefix(e.toString());
+      final st = rec.stackTrace;
+      if (st != null) {
+        printLinesWithPrefix(st.toString());
+      }
     }
   });
 
