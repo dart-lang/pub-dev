@@ -200,6 +200,13 @@ class FakeCloudCompute extends CloudCompute {
     _running = false;
     await _doneRunningInstance.future;
   }
+
+  @override
+  Future<void> close() async {
+    if (_running) {
+      await stopInstanceExecution();
+    }
+  }
 }
 
 @sealed

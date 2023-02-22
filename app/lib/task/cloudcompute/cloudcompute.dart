@@ -98,6 +98,9 @@ abstract class CloudCompute {
   /// Systems should assume deletion is best-effort and periodically list
   /// instances to delete instances that are no longer needed.
   Future<void> delete(String zone, String instanceName);
+
+  /// Cancel timers and free resources.
+  Future<void> close();
 }
 
 /// Exception thrown by [CloudCompute.createInstance] if resources in a cloud

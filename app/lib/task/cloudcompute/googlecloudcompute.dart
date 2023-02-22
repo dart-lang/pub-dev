@@ -751,6 +751,9 @@ runcmd:
         created,
         state,
       );
+
+  @override
+  Future<void> close() async {}
 }
 
 /// Utility method for parsing `instance.creationTimestamp`.
