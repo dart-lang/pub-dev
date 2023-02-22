@@ -8,11 +8,15 @@ class AuthResult {
   final String oauthUserId;
   final String email;
   final String audience;
+  final String? name;
+  final String? imageUrl;
 
   AuthResult({
     required this.oauthUserId,
     required this.email,
     required this.audience,
+    this.name,
+    this.imageUrl,
   });
 }
 
@@ -40,6 +44,21 @@ abstract class AuthProvider {
 
   /// Returns the profile information of a given access token.
   Future<AccountProfile?> getAccountProfile(String? accessToken);
+
+  /// Returns the URL that the user should visit for authentication.
+  Future<Uri> getOauthAuthenticationUrl({
+    required String state,
+    required String nonce,
+  });
+
+  /// Verifies authentication using [code] and returns the OAuth2 profile information.
+  ///
+  /// This is the final step of the sign-in flow started by redirecting the user
+  /// to [getOauthAuthenticationUrl].
+  Future<AuthResult?> tryAuthenticateOauthCode({
+    required String code,
+    required String expectedNonce,
+  });
 
   /// Close resources.
   Future<void> close();
