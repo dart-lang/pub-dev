@@ -36,7 +36,7 @@ Future<void> main(List<String> args) async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
-    if (rec.error != null) {
+    if (rec.level > Level.INFO && rec.error != null) {
       print('ERROR: ${rec.error}, ${rec.stackTrace}');
     }
   });
