@@ -58,7 +58,7 @@ shelf.Response jsonResponse(
 shelf.Response htmlResponse(
   String content, {
   int status = 200,
-  Map<String, String>? headers,
+  Map<String, Object>? headers,
   bool noReferrer = false,
 }) {
   headers ??= <String, String>{};

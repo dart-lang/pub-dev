@@ -164,6 +164,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
           noIndex: true,
         ),
         status: e.status,
+        headers: e.headers,
       );
     } catch (error, st) {
       logger.severe('Request handler failed', error, Trace.from(st));
