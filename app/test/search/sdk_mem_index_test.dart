@@ -19,7 +19,12 @@ void main() {
         version: '',
         baseUri: Uri.parse('https://api.dart.dev/x/'),
       );
-      index.updatesLibraryWeights(dartSdkLibraryWeights);
+      index.updateWeights(
+        libraryWeights: dartSdkLibraryWeights,
+        apiPageDirWeights: {
+          'dart:html/FakeIcons': 0.7,
+        },
+      );
       await index.addDartdocIndex(DartdocIndex.fromJsonList([
         {
           'name': 'dart:async',
@@ -64,6 +69,15 @@ void main() {
           'overriddenDepth': 0,
           'packageName': 'Dart',
           'enclosedBy': {'name': 'dart:html', 'type': 'library'},
+        },
+        {
+          'name': 'flame',
+          'qualifiedName': 'dart:html.FakeIcons.flame',
+          'href': 'dart-html/FakeIcons/flame-constant.html',
+          'type': 'constant',
+          'overriddenDepth': 0,
+          'packageName': 'Dart',
+          'enclosedBy': {'name': 'dart:html.FakeIcons', 'type': 'class'},
         },
       ]));
       index.addLibraryDescriptions({'dart:async': 'async description'});
@@ -151,7 +165,7 @@ void main() {
       );
     });
 
-    test('html reduced score', () async {
+    test('reduced score with library', () async {
       // qualified query gets higher score
       final rs1 = await index.search('window');
       final rs2 = await index.search('html window');
@@ -162,6 +176,15 @@ void main() {
       // the keyword would match dart:html too, but the low score will be removed from the list
       final rs3 = await index.search('dart');
       expect(rs3.single.library, 'dart:async');
+    });
+
+    test('reduced score with api page', () async {
+      // qualified query gets higher score
+      final rs1 = await index.search('flame');
+      final rs2 = await index.search('html flame');
+      expect(rs1.single.library, 'dart:html');
+      expect(rs2.single.library, 'dart:html');
+      expect(rs1.single.score < rs2.single.score * 0.8, isTrue);
     });
   });
 }

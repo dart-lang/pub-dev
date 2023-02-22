@@ -35,6 +35,11 @@ const _allowedLibraries = <String>{
   'flutter_web_plugins',
 };
 
+const _flutterApiPageDirWeights = <String, double>{
+  'cupertino/CupertinoIcons': 0.7,
+  'material/Icons': 0.7,
+};
+
 final _logger = Logger('search.flutter_sdk_mem_index');
 
 /// Sets the Flutter SDK in-memory index.
@@ -85,6 +90,10 @@ Future<SdkMemIndex?> _createFlutterSdkMemIndex() async {
         baseUri: index.baseUri,
         libraryRelativeUrls: content.libraryRelativeUrls,
       ),
+    );
+    index.updateWeights(
+      libraryWeights: {},
+      apiPageDirWeights: _flutterApiPageDirWeights,
     );
     return index;
   } catch (e, st) {

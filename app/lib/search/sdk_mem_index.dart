@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as p;
+
 import '../shared/versions.dart' show toolStableDartSdkVersion;
 import 'models.dart';
 import 'search_service.dart';
@@ -16,6 +18,7 @@ class SdkMemIndex {
   final _baseUriPerLibrary = <String, String>{};
   final _descriptionPerLibrary = <String, String>{};
   final _libraryWeights = <String, double>{};
+  final _apiPageDirWeights = <String, double>{};
 
   SdkMemIndex({
     required String sdk,
@@ -70,8 +73,12 @@ class SdkMemIndex {
   }
 
   /// Updates the non-default weight for libraries.
-  void updatesLibraryWeights(Map<String, double> weights) {
-    _libraryWeights.addAll(weights);
+  void updateWeights({
+    required Map<String, double> libraryWeights,
+    required Map<String, double> apiPageDirWeights,
+  }) {
+    _libraryWeights.addAll(libraryWeights);
+    _apiPageDirWeights.addAll(apiPageDirWeights);
   }
 
   Future<List<SdkLibraryHit>> search(
@@ -84,17 +91,27 @@ class SdkMemIndex {
 
     final hits = <_Hit>[];
     for (final library in _tokensPerLibrary.keys) {
-      final tokens = _tokensPerLibrary[library]!;
-      final rs = tokens.searchWords(words).top(3, minValue: 0.05);
-      if (rs.isEmpty) continue;
-
       // We may recude the rank of certain libraries, except when their name is
       // also part of the query. E.g. `dart:html` with `query=cursor` may be
       // scored lower than `query=html cursor`.
-      final weight = query.contains(library.split(':').last)
-          ? 1.0
-          : _libraryWeights[library];
-      hits.add(_Hit(library, rs, weight: weight));
+      final isQualifiedQuery = query.contains(library.split(':').last);
+
+      final tokens = _tokensPerLibrary[library]!;
+      final plainResults = tokens.searchWords(words).top(3, minValue: 0.05);
+      if (plainResults.isEmpty) continue;
+
+      final libraryWeight = _libraryWeights[library] ?? 1.0;
+      final weightedResults = isQualifiedQuery
+          ? plainResults
+          : plainResults.map(
+              (key, value) {
+                final dir = p.dirname(key);
+                final w = (_apiPageDirWeights[dir] ?? 1.0) * libraryWeight;
+                return w * value;
+              },
+            );
+
+      hits.add(_Hit(library, weightedResults));
     }
     if (hits.isEmpty) return <SdkLibraryHit>[];
 
@@ -129,13 +146,8 @@ class SdkMemIndex {
 class _Hit {
   final String library;
   final Score top;
-  final double weight;
 
-  _Hit(
-    this.library,
-    this.top, {
-    required double? weight,
-  }) : weight = weight ?? 1.0;
+  _Hit(this.library, this.top);
 
-  late final score = top.maxValue * weight;
+  late final score = top.maxValue;
 }
