@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/shared/cookie_utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -21,6 +20,8 @@ import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../scorecard/backend.dart';
 import '../../shared/configuration.dart' show activeConfiguration;
+import '../../shared/cookie_utils.dart';
+import '../../shared/env_config.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/utils.dart' show createUuid;
@@ -40,15 +41,29 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
   final nonce = createUuid();
-  // TODO: get current session or create a new one
-  // TODO: store nonce on session
+  // TODO: update current session if it exists instead of always creating a new one
+  final session = await accountBackend.createNewClientSession(
+    nonce: nonce,
+  );
+  final params = request.requestedUri.queryParameters;
+  // Automated authentication handling for local fake server.
+  final fakeEmail = envConfig.isRunningLocally ? params['fake-email'] : null;
+  final go = params['go'];
+  // TODO: verify go
+  final state = <String, String>{
+    if (fakeEmail != null) 'fake-email': fakeEmail,
+    if (go != null) 'go': go,
+  };
   final oauth2Url = await authProvider.getOauthAuthenticationUrl(
-    state: '', // TODO: use meaningful state
+    state: state,
     nonce: nonce,
   );
   return redirectResponse(
     oauth2Url.toString(),
-    // TODO: send session cookie headers
+    headers: session_cookie.createClientSessionCookie(
+      sessionId: session.sessionId,
+      maxAge: session.maxAge,
+    ),
   );
 }
 
@@ -57,31 +72,59 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.useNewSignIn) {
     return notFoundHandler(request);
   }
-  final code = request.requestedUri.queryParameters['code'];
-  if (code != null && code.isNotEmpty) {
-    // TODO: verify state in the response
-    // TODO: verify authuser (=0)
-    // TODO: verify prompt (=none)
-    // TODO: use `expectedNonce` when trying to authenticate `code`.
-    final profile = await authProvider.tryAuthenticateOauthCode(
-      code: code,
-      expectedNonce: '[TBD]',
-    );
-    if (profile == null) {
-      throw AuthenticationException.failed();
-    }
-    // TODO: implement proper action on successful authentication
-    return jsonResponse(
-      {
-        'oauthUserId': '*' * profile.oauthUserId.length,
-        'email': profile.email,
-        'name': profile.name,
-        'imageUrl': profile.imageUrl,
-      },
-      indentJson: true,
+  final params = request.requestedUri.queryParameters;
+  final code = params['code'];
+  if (code == null || code.isEmpty) {
+    return notFoundHandler(request, body: 'Missing `code`.');
+  }
+  if (!requestContext.clientSessionCookieStatus.isPresent) {
+    return notFoundHandler(request, body: 'Missing session cookie.');
+  }
+  final session = await accountBackend.lookupValidUserSession(
+      requestContext.clientSessionCookieStatus.sessionId!);
+  if (session == null) {
+    return notFoundHandler(
+      request,
+      body: 'Expired session.',
+      headers: session_cookie.clearSessionCookies(),
     );
   }
-  return notFoundHandler(request);
+  final expectedNonce = session.openidNonce;
+  if (expectedNonce == null) {
+    return notFoundHandler(request, body: 'Missing `nonce` in session.');
+  }
+  final state = Uri.tryParse('?${params['state'] ?? ''}')?.queryParameters ??
+      <String, String>{};
+  // TODO: verify state in the response
+  // TODO: verify authuser (=0)
+  // TODO: verify prompt (=none)
+  final profile = await authProvider.tryAuthenticateOauthCode(
+    code: code,
+    expectedNonce: expectedNonce,
+  );
+  if (profile == null) {
+    throw AuthenticationException.failed();
+  }
+  await accountBackend.updateClientSessionWithProfile(
+    sessionId: session.sessionId,
+    profile: profile,
+  );
+
+  // TODO: implement proper action on successful authentication
+  final go = state['go'];
+  if (go != null) {
+    // TODO: verify go
+    return redirectResponse(go);
+  }
+  return jsonResponse(
+    {
+      'oauthUserId': '*' * profile.oauthUserId.length,
+      'email': profile.email,
+      'name': profile.name,
+      'imageUrl': profile.imageUrl,
+    },
+    indentJson: true,
+  );
 }
 
 /// Handles POST /api/account/session

@@ -98,7 +98,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
 
   @override
   Future<Uri> getOauthAuthenticationUrl({
-    required String state,
+    required Map<String, String> state,
     required String nonce,
   }) async {
     // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
@@ -112,7 +112,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
           oauth2_v2.Oauth2Api.userinfoEmailScope,
           oauth2_v2.Oauth2Api.userinfoProfileScope,
         ].join(' '),
-        'state': state,
+        'state': Uri(queryParameters: state).toString().substring(1),
         'nonce': nonce,
       },
     );

@@ -92,10 +92,10 @@ String? parseUserSessionCookie(Map<String, String> cookies) {
 }
 
 /// Parses the cookie values and returns the status of client session cookies.
-ClientSessionCookieStatus parseClientSessionCookies(String? cookieString) {
-  final values = parseCookieHeader(cookieString);
-  final lax = values[clientSessionLaxCookieName]?.trim() ?? '';
-  final strict = values[clientSessionStrictCookieName]?.trim() ?? '';
+ClientSessionCookieStatus parseClientSessionCookies(
+    Map<String, String> cookies) {
+  final lax = cookies[clientSessionLaxCookieName]?.trim() ?? '';
+  final strict = cookies[clientSessionStrictCookieName]?.trim() ?? '';
   final needsReset = (lax.isEmpty && strict.isNotEmpty) ||
       (lax.isNotEmpty && strict.isNotEmpty && lax != strict);
   if (needsReset) {

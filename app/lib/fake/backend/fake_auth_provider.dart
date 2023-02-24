@@ -11,13 +11,13 @@ import 'package:crypto/crypto.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:pub_dev/account/default_auth_provider.dart';
-import 'package:pub_dev/service/openid/gcp_openid.dart';
-import 'package:pub_dev/service/openid/openid_models.dart';
-
 import '../../account/auth_provider.dart';
+import '../../account/default_auth_provider.dart';
+import '../../service/openid/gcp_openid.dart';
 import '../../service/openid/github_openid.dart';
 import '../../service/openid/jwt.dart';
+import '../../service/openid/openid_models.dart';
+import '../../shared/configuration.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.
@@ -140,10 +140,27 @@ class FakeAuthProvider extends BaseAuthProvider {
 
   @override
   Future<Uri> getOauthAuthenticationUrl({
-    required String state,
+    required Map<String, String> state,
     required String nonce,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    final email = state['fake-email'];
+    if (email == null || email.isEmpty) {
+      return Uri.parse(getOauthCallbackUrl());
+    }
+    final token = _createGcpToken(
+      email: email,
+      audience: activeConfiguration.pubSiteAudience!,
+      signature: null,
+      extraPayload: {
+        'nonce': nonce,
+      },
+    );
+    return Uri.parse(getOauthCallbackUrl()).replace(
+      queryParameters: {
+        'state': Uri(queryParameters: state).toString().substring(1),
+        'code': token,
+      },
+    );
   }
 
   @override
@@ -151,7 +168,29 @@ class FakeAuthProvider extends BaseAuthProvider {
     required String code,
     required String expectedNonce,
   }) async {
-    throw UnimplementedError();
+    final token = JsonWebToken.tryParse(code);
+    if (token == null) {
+      return null;
+    }
+    if (token.payload['nonce'] != expectedNonce) {
+      return null;
+    }
+    final email = token.payload['email'] as String;
+    // using the user part as name
+    final name =
+        email.split('@').first.replaceAll('-', ' ').replaceAll('.', ' ');
+
+    // gravatar image with retro face
+    final emailMd5 = md5.convert(utf8.encode(email.trim())).toString();
+    final imageUrl = 'https://www.gravatar.com/avatar/$emailMd5?d=retro&s=200';
+
+    return AuthResult(
+      oauthUserId: token.payload['sub'] as String,
+      email: email,
+      audience: token.payload['aud'] as String,
+      name: name,
+      imageUrl: imageUrl,
+    );
   }
 }
 
@@ -184,6 +223,7 @@ String _createGcpToken({
   required String email,
   required String audience,
   required List<int>? signature,
+  Map<String, Object>? extraPayload,
 }) {
   final token = JsonWebToken(
     header: {
@@ -195,6 +235,7 @@ String _createGcpToken({
       'sub': _oauthUserIdFromEmail(email),
       'aud': audience,
       'iss': GcpServiceAccountJwtPayload.issuerUrl,
+      ...?extraPayload,
       ..._jwtPayloadTimestamps(),
     },
     signature: signature ?? utf8.encode('valid'),

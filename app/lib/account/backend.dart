@@ -38,6 +38,9 @@ import 'session_cookie.dart' as session_cookie;
 const pubSessionCookieName = '__Host-pub-sid';
 final _logger = Logger('account.backend');
 
+/// The duration or extension of a client session.
+const _sessionDuration = Duration(days: 30);
+
 /// Sets the auth provider service.
 void registerAuthProvider(AuthProvider authProvider) =>
     ss.register(#_authProvider, authProvider);
@@ -342,7 +345,6 @@ class AccountBackend {
   /// Otherwise (e.g. multiple entities with the same email, or data inconsistency)
   /// the method will return `null`.
   Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
-    ArgumentError.checkNotNull(auth, 'auth');
     final emptyKey = _db.emptyKey;
 
     // Attempt to lookup the user, the common case is that the user exists.
@@ -435,6 +437,58 @@ class AccountBackend {
     });
   }
 
+  /// Creates a new client session for pre-authorization secrets and
+  /// post-authorization user information.
+  Future<SessionData> createNewClientSession({
+    required String nonce,
+  }) async {
+    final now = clock.now().toUtc();
+    final session = UserSession()
+      ..id = createUuid()
+      // TODO: make this null after all deployed version can handle it
+      ..userId = ''
+      // TODO: make this null after all deployed version can handle it
+      ..email = ''
+      ..openidNonce = nonce
+      ..created = now
+      ..expires = now.add(_sessionDuration);
+    await _db.commit(inserts: [session]);
+    return SessionData.fromModel(session);
+  }
+
+  /// Updates the [UserSession] entity with the authenticated profile information.
+  ///
+  /// Returns the new [SessionData] that is also populated in the cache.
+  Future<SessionData> updateClientSessionWithProfile({
+    required String sessionId,
+    required AuthResult profile,
+  }) async {
+    final cacheEntry = cache.userSessionData(sessionId);
+    final now = clock.now().toUtc();
+    final user = await _lookupOrCreateUserByOauthUserId(profile);
+    if (user == null || user.isBlocked || user.isDeleted) {
+      throw AuthenticationException.failed();
+    }
+    final data = await withRetryTransaction(_db, (tx) async {
+      final session = await tx.lookupOrNull<UserSession>(
+          _db.emptyKey.append(UserSession, id: sessionId));
+      if (session == null || session.isExpired()) {
+        throw NotFoundException('Session has been expired.');
+      }
+      session
+        ..userId = user.userId
+        ..email = user.email
+        ..name = profile.name
+        ..imageUrl = profile.imageUrl
+        ..authenticated = now
+        ..expires = now.add(_sessionDuration);
+      tx.insert(session);
+      return SessionData.fromModel(session);
+    });
+    await cacheEntry.set(data);
+    return data;
+  }
+
   /// Creates a new session for the current authenticated user and returns the
   /// new session data.
   ///
@@ -444,6 +498,8 @@ class AccountBackend {
   /// must have `Cache-Control: private`, and may not be cached in server-side).
   /// JSON APIs whether fetching data or updating data cannot be authorized with
   /// a cookie carrying the `sessionId`.
+  ///
+  /// NOTE: This method will be removed after the login migration.
   Future<SessionData> createNewUserSession({
     required String name,
     required String imageUrl,
@@ -487,22 +543,33 @@ class AccountBackend {
       return cached.isExpired ? null : cached;
     }
 
-    final key = _db.emptyKey.append(UserSession, id: sessionId);
-    final list = await _db.lookup<UserSession>([key]);
-    final session = list.single;
+    final session = await lookupValidUserSession(sessionId);
     if (session == null) {
-      return null;
-    }
-
-    if (session.isExpired()) {
-      await _db.commit(deletes: [key]);
-      await cacheEntry.purge();
       return null;
     }
 
     final data = SessionData.fromModel(session);
     await cacheEntry.set(data);
     return data;
+  }
+
+  /// Returns the [UserSession] associated with the [sessionId] or
+  /// `null` if it does not exists.
+  ///
+  /// Deletes the session entry if is has already expired and
+  /// clears the related cache too.
+  Future<UserSession?> lookupValidUserSession(String sessionId) async {
+    final key = _db.emptyKey.append(UserSession, id: sessionId);
+    final session = await _db.lookupOrNull<UserSession>(key);
+    if (session == null) {
+      return null;
+    }
+    if (session.isExpired()) {
+      await _db.commit(deletes: [key]);
+      await cache.userSessionData(sessionId).purge();
+      return null;
+    }
+    return session;
   }
 
   /// Removes the session data from the Datastore and from cache.
@@ -520,10 +587,6 @@ class AccountBackend {
     final query = _db.query<UserSession>()..filter('expires <', ts);
     final count = await _db.deleteWithQuery(query);
     _logger.info('Deleted ${count.deleted} UserSession entries.');
-
-    final query2 = _db.query<ClientSession>()..filter('expires <', ts);
-    final count2 = await _db.deleteWithQuery(query2);
-    _logger.info('Deleted ${count2.deleted} ClientSession entries.');
   }
 
   /// Updates the blocked status of a user.

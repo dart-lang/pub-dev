@@ -11,10 +11,10 @@ import 'package:test/test.dart';
 void main() {
   group('Client session cookie parsing', () {
     ClientSessionCookieStatus parse(String? lax, [String? strict]) {
-      final cookies = [
-        if (lax != null) '$clientSessionLaxCookieName=$lax',
-        if (strict != null) '$clientSessionStrictCookieName=$strict',
-      ].join('; ');
+      final cookies = {
+        if (lax != null) clientSessionLaxCookieName: lax,
+        if (strict != null) clientSessionStrictCookieName: strict,
+      };
       try {
         final status = parseClientSessionCookies(cookies);
         if (!status.isPresent) {

@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2023.02.28`.
+ * Removed `required: true` from the `UserSession.email` field.
 
 ## `20230223t105400-all`
  * Bumped runtimeVersion to `2023.02.22`.

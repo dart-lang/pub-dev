@@ -9,6 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../account/backend.dart';
 import '../account/models.dart';
+import '../account/session_cookie.dart';
 import '../shared/configuration.dart';
 import '../shared/cookie_utils.dart';
 
@@ -50,15 +51,21 @@ class RequestContext {
   /// browser, and hence, we employ session cookies for this purpose.
   final SessionData? userSessionData;
 
+  /// The status of the client session cookie.
+  final ClientSessionCookieStatus clientSessionCookieStatus;
+
   RequestContext({
     this.indentJson = false,
     this.blockRobots = true,
     this.uiCacheEnabled = false,
     ExperimentalFlags? experimentalFlags,
     this.userSessionData,
-  }) : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty;
+    ClientSessionCookieStatus? clientSessionCookieStatus,
+  })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
+        clientSessionCookieStatus =
+            clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
-  late final isAuthenticated = userSessionData?.userId != null;
+  late final isAuthenticated = userSessionData?.isAuthenticated ?? false;
   late final isNotAuthenticated = !isAuthenticated;
   late final authenticatedUserId = userSessionData?.userId;
 }
@@ -83,22 +90,30 @@ Future<RequestContext> buildRequestContext({
         await accountBackend.parseAndLookupUserSessionCookie(cookies);
   }
 
+  // Parse client session cookie status, which can be present at any kind of request.
+  final clientSessionCookieStatus = parseClientSessionCookies(cookies);
+
   final indentJson = request.requestedUri.queryParameters.containsKey('pretty');
   final experimentalFlags =
       ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
 
   final enableRobots = !experimentalFlags.isEmpty ||
       (!activeConfiguration.blockRobots && isPrimaryHost);
-  final uiCacheEnabled = //
-      isPrimaryHost && // don't cache on non-primary domains
-          experimentalFlags
-              .isEmpty && // don't cache if experimental cookie is enabled
-          userSessionData == null; // don't cache if a user session is active
+  final uiCacheEnabled =
+      // don't cache on non-primary domains
+      isPrimaryHost &&
+          // don't cache if experimental cookie is enabled
+          experimentalFlags.isEmpty &&
+          // don't cache if a user session is active
+          userSessionData == null &&
+          // don't cache if client session is active
+          !clientSessionCookieStatus.isPresent;
   return RequestContext(
     indentJson: indentJson,
     blockRobots: !enableRobots,
     uiCacheEnabled: uiCacheEnabled,
     experimentalFlags: experimentalFlags,
     userSessionData: userSessionData,
+    clientSessionCookieStatus: clientSessionCookieStatus,
   );
 }
