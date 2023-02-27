@@ -72,7 +72,6 @@ class PackageSummary {
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
-
   /// The maximum length of the extracted content text.
   int maxContentLength = 128 * 1024,
 
