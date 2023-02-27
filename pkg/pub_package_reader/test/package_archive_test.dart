@@ -166,6 +166,7 @@ void main() {
       isRejected('>=2.0.0');
       isRejected('<4.0.0');
       isRejected('<4.0.0-0');
+      isRejected('>=2.11.0 <4.0.0');
       isRejected('>=2.12.0 <4.0.1');
       isRejected('>=3.0.0 <4.0.1');
       isRejected('>=4.0.0');
