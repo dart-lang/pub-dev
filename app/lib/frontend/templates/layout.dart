@@ -63,6 +63,7 @@ String renderLayoutPage(
     if (type == PageType.landing) 'page-landing',
   ];
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
+  final session = requestContext.userSessionData;
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,
@@ -70,12 +71,13 @@ String renderLayoutPage(
     faviconUrl: faviconUrl ?? staticUrls.smallDartFavicon,
     noIndex: noIndex,
     oauthClientId: activeConfiguration.pubSiteAudience,
+    csrfToken: session?.csrfToken,
     pageDataEncoded:
         pageData == null ? null : pageDataJsonCodec.encode(pageData.toJson()),
     bodyClasses: bodyClasses,
     siteHeader: siteHeaderNode(
       pageType: type,
-      userSession: requestContext.userSessionData,
+      userSession: session,
     ),
     announcementBanner: announcementBannerHtml == null
         ? null

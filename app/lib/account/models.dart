@@ -192,6 +192,10 @@ class SessionData {
   /// The time when the session will expire.
   final DateTime expires;
 
+  /// The CSRF token to store in the HTML page that is expected to be
+  /// present in authenticated requests.
+  final String? csrfToken;
+
   SessionData({
     required this.sessionId,
     this.userId,
@@ -200,6 +204,7 @@ class SessionData {
     this.imageUrl,
     required this.created,
     required this.expires,
+    this.csrfToken,
   });
 
   factory SessionData.fromModel(UserSession session) {
@@ -211,6 +216,7 @@ class SessionData {
       imageUrl: session.imageUrl,
       created: session.created!,
       expires: session.expires!,
+      // TODO: set csrfToken after `UserSession` is merged with `ClientSession
     );
   }
 
