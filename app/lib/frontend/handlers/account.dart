@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/account/default_auth_provider.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -93,8 +94,7 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   if (expectedNonce == null) {
     return notFoundHandler(request, body: 'Missing `nonce` in session.');
   }
-  final state = Uri.tryParse('?${params['state'] ?? ''}')?.queryParameters ??
-      <String, String>{};
+  final state = decodeState(params['state']);
   // TODO: verify state in the response
   // TODO: verify authuser (=0)
   // TODO: verify prompt (=none)
