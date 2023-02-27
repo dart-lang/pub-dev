@@ -472,7 +472,9 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
   if (!sdk.intersect(_preNullSafety).isEmpty &&
       !sdk.intersect(_postDart3).isEmpty) {
     yield ArchiveIssue(
-        'The SDK lower constraint is outside of the Dart 3 compatibility window (">=2.12.0").');
+        'An SDK lower bound constraint less than 2.12.0 is not compatible with Dart 3.\n'
+        'Either bump the lower bound SDK constraint to `>=2.12.0`, or\n'
+        'lower the upper bound SDK constraint to `<3.0.0`.');
   }
 }
 
