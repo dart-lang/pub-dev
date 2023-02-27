@@ -157,7 +157,7 @@ class FakeAuthProvider extends BaseAuthProvider {
     );
     return Uri.parse(getOauthCallbackUrl()).replace(
       queryParameters: {
-        'state': Uri(queryParameters: state).toString().substring(1),
+        'state': encodeState(state),
         'code': token,
       },
     );
