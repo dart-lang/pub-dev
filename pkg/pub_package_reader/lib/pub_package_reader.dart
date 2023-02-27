@@ -72,6 +72,7 @@ class PackageSummary {
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
+
   /// The maximum length of the extracted content text.
   int maxContentLength = 128 * 1024,
 
@@ -757,6 +758,58 @@ Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
     if (item.length > 255) {
       yield ArchiveIssue(
           'Invalid `funding` value (`$item`): maximum URL length is 255 characters.');
+    }
+  }
+}
+
+Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
+  final map = loadYaml(pubspecContent) as Map;
+  if (!map.containsKey('topics')) {
+    return;
+  }
+  final topics = map['topics'];
+  if (topics == null || topics is! List || topics.isEmpty) {
+    yield ArchiveIssue(
+        '`pubspec.yaml` has invalid `topics`: only a list of topic names are allowed.');
+    return;
+  }
+  if (topics.length > 5) {
+    yield ArchiveIssue(
+        '`pubspec.yaml` has invalid `topics`: at most 5 topics are allowed.');
+    return;
+  }
+
+  for (var item in topics) {
+    if (item is! String) {
+      yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): only strings are allowed.');
+      continue;
+    }
+    item = item.trim();
+    if (item.length < 3) {
+      yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): name is too short (less than 3 characters).');
+      continue;
+    }
+
+    if (item.length > 32) {
+      yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): name is too long (over 32 characters).');
+      continue;
+    }
+
+    if (topics.where((x) => x == item).length > 1) {
+      yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): name must only be present once.');
+    }
+
+    final RegExp regExp = RegExp(r'^[a-z]([a-z0-9]|\-(?=[^\-]))+[a-z0-9]$');
+    if (!regExp.hasMatch(item)) {
+      yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): must consist of lowercase '
+          'alphanumerical characters or dash (but no double dash), starting '
+          'with a-z and ending with a-z or 0-9.');
+      continue;
     }
   }
 }

@@ -812,4 +812,170 @@ dev_dependencies:
       expect(checkFunding('funding:\n - https://example.com/fund-me'), isEmpty);
     });
   });
+
+  group('topics', () {
+    test('not a list', () {
+      final pubspec = '''
+      name: package
+      topics:
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('only a list')),
+        isTrue,
+      );
+    });
+
+    test('too many topic names', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - button
+        - widget
+        - network
+        - server
+        - reliablity
+        - client
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('at most 5')),
+        isTrue,
+      );
+    });
+
+    test('not a string', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - a: button
+        - b: widget
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('only strings')),
+        isTrue,
+      );
+    });
+
+    test('name too short', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - button
+        - widget
+        - bu
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('too short')),
+        isTrue,
+      );
+    });
+
+    test('name too long', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - button
+        - widget
+        - thisisindeedaverylongnamefortopic
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('too long')),
+        isTrue,
+      );
+    });
+
+    test('duplicate name', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - button
+        - widget
+        - button
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('present once')),
+        isTrue,
+      );
+    });
+
+    test('invalid name: starts with dash', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - -button
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('must consist')),
+        isTrue,
+      );
+    });
+
+    test('invalid name: starts with number', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - 1button
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('must consist')),
+        isTrue,
+      );
+    });
+
+    test('invalid name: ends with dash', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - button-
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('must consist')),
+        isTrue,
+      );
+    });
+
+    test('invalid name: contains double dash', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - but--ton
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('must consist')),
+        isTrue,
+      );
+    });
+
+    test('OK', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - but-ton
+        - widget
+      ''';
+      expect(
+        checkTopics(pubspec),
+        isEmpty,
+      );
+    });
+  });
 }
