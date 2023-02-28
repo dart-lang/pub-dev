@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -495,7 +496,9 @@ Map<String, String> decodeState(String? state) {
   try {
     final map = _stateCodec.decode(state);
     if (map is Map<String, dynamic>) {
-      return map.map((key, value) => MapEntry(key, value.toString()));
+      return map
+          .whereValue((v) => v != null)
+          .map((key, value) => MapEntry(key, value.toString()));
     } else {
       return const <String, String>{};
     }
