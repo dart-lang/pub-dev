@@ -14,6 +14,7 @@ d.Node pageLayoutNode({
   required String faviconUrl,
   required bool noIndex,
   required String? oauthClientId,
+  required String? csrfToken,
   required String? pageDataEncoded,
   required List<String>? bodyClasses,
   required d.Node siteHeader,
@@ -128,6 +129,8 @@ d.Node pageLayoutNode({
             ),
             d.meta(
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
+            if (csrfToken != null && csrfToken.isNotEmpty)
+              d.meta(name: 'csrf-token', content: csrfToken),
             d.script(
               src: 'https://apis.google.com/js/platform.js?onload=pubAuthInit',
               defer: true,

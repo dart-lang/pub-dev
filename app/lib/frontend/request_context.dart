@@ -38,6 +38,9 @@ class RequestContext {
   /// The parsed experimental flags.
   final ExperimentalFlags experimentalFlags;
 
+  /// The CSRF token recieved via the header of the request.
+  final String? csrfToken;
+
   /// The active user's session data.
   ///
   //TODO: Update this information when new sessions are adopted.
@@ -59,6 +62,7 @@ class RequestContext {
     this.blockRobots = true,
     this.uiCacheEnabled = false,
     ExperimentalFlags? experimentalFlags,
+    this.csrfToken,
     this.userSessionData,
     ClientSessionCookieStatus? clientSessionCookieStatus,
   })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
@@ -92,6 +96,7 @@ Future<RequestContext> buildRequestContext({
 
   // Parse client session cookie status, which can be present at any kind of request.
   final clientSessionCookieStatus = parseClientSessionCookies(cookies);
+  final csrfToken = request.headers['x-pub-csrf-token']?.trim();
 
   final indentJson = request.requestedUri.queryParameters.containsKey('pretty');
   final experimentalFlags =
@@ -113,6 +118,7 @@ Future<RequestContext> buildRequestContext({
     blockRobots: !enableRobots,
     uiCacheEnabled: uiCacheEnabled,
     experimentalFlags: experimentalFlags,
+    csrfToken: csrfToken,
     userSessionData: userSessionData,
     clientSessionCookieStatus: clientSessionCookieStatus,
   );

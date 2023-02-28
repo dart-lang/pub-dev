@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:html';
+
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
@@ -13,20 +15,60 @@ Client createAuthenticatedClient(Future<String?> Function() getToken) {
   return _AuthenticatedClient(getToken);
 }
 
-/// An [Client] which sends a `Bearer` token as `Authorization` header for each request.
-class _AuthenticatedClient extends BrowserClient {
-  final Future<String?> Function() _getToken;
+String? _getCsrfMetaContent() {
+  final values = document.head
+      ?.querySelectorAll('meta[name="csrf-token"]')
+      .map((e) => e.attributes['content'])
+      .where((e) => e != null)
+      .cast<String>()
+      .toList();
+  if (values == null || values.isEmpty) {
+    return null;
+  }
+  return values.first.trim();
+}
+
+/// An HTTP [Client] which sends custom headers alongside each request:
+///
+///  - `Authorization` header with `Bearer` token, when `getAuthTokenFn` is
+///    provided and returns a non-null value.
+///
+///  - `x-pub-csrf-token` header when the HTML document's `<head>` contains the
+///    `<meta name="csrf-token" content="<token>">` element.
+class _AuthenticatedClient extends _BrowserClient {
+  _AuthenticatedClient(Future<String?> Function()? getAuthTokenFn)
+      : super(
+          getHeadersFn: () async {
+            final bearerToken =
+                getAuthTokenFn == null ? null : await getAuthTokenFn();
+            final csrfToken = _getCsrfMetaContent();
+            return {
+              if (bearerToken != null && bearerToken.isNotEmpty)
+                'Authorization': 'Bearer $bearerToken',
+              if (csrfToken != null && csrfToken.isNotEmpty)
+                'x-pub-csrf-token': csrfToken,
+            };
+          },
+        );
+}
+
+/// An [Client] which updates the headers for each request.
+class _BrowserClient extends BrowserClient {
+  final Future<Map<String, String>> Function() getHeadersFn;
   final _client = BrowserClient();
-  _AuthenticatedClient(this._getToken);
+  _BrowserClient({
+    required this.getHeadersFn,
+  });
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {
-    final token = await _getToken();
-    // Make new request object and perform the authenticated request.
-    final modifiedRequest =
-        _RequestImpl(request.method, request.url, request.finalize());
-    modifiedRequest.headers.addAll(request.headers);
-    modifiedRequest.headers['Authorization'] = 'Bearer $token';
+    final headers = await getHeadersFn();
+
+    final modifiedRequest = _RequestImpl.fromRequest(
+      request,
+      updateHeaders: headers,
+    );
+
     final response = await _client.send(modifiedRequest);
     final wwwAuthenticate = response.headers['www-authenticate'];
     if (wwwAuthenticate != null) {
@@ -44,11 +86,25 @@ class _AuthenticatedClient extends BrowserClient {
 }
 
 class _RequestImpl extends BaseRequest {
-  final Stream<List<int>> _stream;
+  final ByteStream _stream;
 
-  _RequestImpl(String method, Uri url, [Stream<List<int>>? stream])
-      : _stream = stream ?? Stream.fromIterable([]),
-        super(method, url);
+  _RequestImpl.fromRequest(
+    BaseRequest request, {
+    required Map<String, String> updateHeaders,
+  })  : _stream = request.finalize(),
+        super(request.method, request.url) {
+    final newKeys = <String>{
+      ...request.headers.keys,
+      ...updateHeaders.keys,
+    };
+    for (final key in newKeys) {
+      final newValue = updateHeaders[key] ?? request.headers[key];
+      if (newValue != null) {
+        headers[key] = newValue;
+      }
+    }
+    headers.addAll(request.headers);
+  }
 
   @override
   ByteStream finalize() {
