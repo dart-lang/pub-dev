@@ -57,7 +57,10 @@ class InstalledSdk {
         maxBy(sdks, (s) => s.version);
   }
 
-  static InstalledSdk futureSdk(List<InstalledSdk> sdks) {
+  static InstalledSdk? futureSdk(List<InstalledSdk> sdks) {
+    if (sdks.isEmpty) {
+      return null;
+    }
     sdks = [...sdks]..sort((a, b) => a.version.compareTo(b.version));
     return sdks.last;
   }
