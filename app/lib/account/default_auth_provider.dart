@@ -480,9 +480,11 @@ DateTime _parseTimestamp(dynamic timestamp) {
   throw ArgumentError.value(timestamp, 'timestamp', 'must be int or string');
 }
 
+final _stateCodec = json.fuse(utf8).fuse(base64Url);
+
 /// Encode map-based [state] as URL-compatible string.
 String encodeState(Map<String, String> state) {
-  return base64Url.encode(utf8.encode(json.encode(state)));
+  return _stateCodec.encode(state);
 }
 
 /// Decode URL-provided state as Map.
@@ -491,7 +493,7 @@ Map<String, String> decodeState(String? state) {
     return const <String, String>{};
   }
   try {
-    final map = json.decode(utf8.decode(base64Url.decode(state)));
+    final map = _stateCodec.decode(state);
     if (map is Map<String, dynamic>) {
       return map.map((key, value) => MapEntry(key, value.toString()));
     } else {
