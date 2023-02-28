@@ -800,9 +800,15 @@ Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
     if (topics.where((x) => x == item).length > 1) {
       yield ArchiveIssue(
           'Invalid `topics` value (`$item`): name must only be present once.');
+      continue;
     }
 
-    final RegExp regExp = RegExp(r'^[a-z]([a-z0-9]|\-(?=[^\-]))+[a-z0-9]$');
+    final RegExp regExp = RegExp(r'^' // Start at beginning.
+        r'[a-z]' // Start with alphabetic character.
+        r'([a-z0-9]|\-(?=[^\-]))+' // Can contain alphanumeric or dash but no double dash.
+        r'[a-z0-9]' // Must end with alphanumeric character.
+        r'$' // End of string.
+        );
     if (!regExp.hasMatch(item)) {
       yield ArchiveIssue(
           'Invalid `topics` value (`$item`): must consist of lowercase '
