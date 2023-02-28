@@ -104,58 +104,62 @@ for PKG in ${PKGS}; do
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
       test_00)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 0'
-        dart test -P presubmit --total-shards 7 --shard-index 0 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 0'
+        dart test -P presubmit --total-shards 8 --shard-index 0 || EXIT_CODE=$?
         ;;
       test_01)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 1'
-        dart test -P presubmit --total-shards 7 --shard-index 1 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 1'
+        dart test -P presubmit --total-shards 8 --shard-index 1 || EXIT_CODE=$?
         ;;
       test_02)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 2'
-        dart test -P presubmit --total-shards 7 --shard-index 2 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 2'
+        dart test -P presubmit --total-shards 8 --shard-index 2 || EXIT_CODE=$?
         ;;
       test_03)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 3'
-        dart test -P presubmit --total-shards 7 --shard-index 3 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 3'
+        dart test -P presubmit --total-shards 8 --shard-index 3 || EXIT_CODE=$?
         ;;
       test_04)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 4'
-        dart test -P presubmit --total-shards 7 --shard-index 4 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 4'
+        dart test -P presubmit --total-shards 8 --shard-index 4 || EXIT_CODE=$?
         ;;
       test_05)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 5'
-        dart test -P presubmit --total-shards 7 --shard-index 5 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 5'
+        dart test -P presubmit --total-shards 8 --shard-index 5 || EXIT_CODE=$?
         ;;
       test_06)
-        echo 'dart test -P presubmit --total-shards 7 --shard-index 6'
-        dart test -P presubmit --total-shards 7 --shard-index 6 || EXIT_CODE=$?
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 6'
+        dart test -P presubmit --total-shards 8 --shard-index 6 || EXIT_CODE=$?
         ;;
       test_07)
+        echo 'dart test -P presubmit --total-shards 8 --shard-index 7'
+        dart test -P presubmit --total-shards 8 --shard-index 7 || EXIT_CODE=$?
+        ;;
+      test_08)
         echo 'dart test --run-skipped'
         dart test --run-skipped || EXIT_CODE=$?
         ;;
-      test_08)
+      test_09)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 0'
         dart test --run-skipped --total-shards 3 --shard-index 0 || EXIT_CODE=$?
         ;;
-      test_09)
+      test_10)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 1'
         dart test --run-skipped --total-shards 3 --shard-index 1 || EXIT_CODE=$?
         ;;
-      test_10)
+      test_11)
         echo 'dart test --run-skipped --total-shards 3 --shard-index 2'
         dart test --run-skipped --total-shards 3 --shard-index 2 || EXIT_CODE=$?
         ;;
-      test_11)
+      test_12)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
         ;;
-      test_12)
+      test_13)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
         ;;
-      test_13)
+      test_14)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
         ;;
