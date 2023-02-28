@@ -17,8 +17,7 @@ Client createAuthenticatedClient(Future<String?> Function() getToken) {
 
 String? _getCsrfMetaContent() {
   final values = document.head
-      ?.querySelectorAll('meta')
-      .where((e) => e.attributes['name'] == 'csrf-token')
+      ?.querySelectorAll('meta[name="csrf-token"]')
       .map((e) => e.attributes['content'])
       .where((e) => e != null)
       .cast<String>()
