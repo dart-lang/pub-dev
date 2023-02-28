@@ -28,6 +28,8 @@ RUN tool/setup-flutter.sh /home/worker/flutter 3.7.4
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/stable
 RUN tool/setup-flutter.sh /home/worker/flutter 3.8.0-10.1.pre
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/preview
+RUN tool/setup-flutter.sh /home/worker/flutter master
+RUN mv /home/worker/flutter/flutter /home/worker/flutter/future
 
 # Configure SDKs to be used for analysis
 ENV DART_SDK="/home/worker/dart/stable"
