@@ -58,7 +58,7 @@ class InstalledSdk {
   }
 
   static InstalledSdk futureSdk(List<InstalledSdk> sdks) {
-    sdks = [...sdks]..sort((a, b)=> a.version.compareTo(b.version));
+    sdks = [...sdks]..sort((a, b) => a.version.compareTo(b.version));
     return sdks.last;
   }
 }
