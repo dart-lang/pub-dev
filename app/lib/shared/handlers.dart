@@ -30,7 +30,15 @@ const jsonResponseHeaders = <String, String>{
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
-shelf.Response redirectResponse(String url) => shelf.Response.seeOther(url);
+shelf.Response redirectResponse(
+  String url, {
+  Map<String, Object>? headers,
+}) {
+  return shelf.Response.seeOther(
+    url,
+    headers: headers,
+  );
+}
 
 shelf.Response redirectToSearch(String query) {
   return redirectResponse(urls.searchUrl(q: query));
@@ -71,9 +79,17 @@ shelf.Response htmlResponse(
 shelf.Response badRequestHandler(shelf.Request request) =>
     htmlResponse(default400BadRequest, status: 400);
 
-shelf.Response notFoundHandler(shelf.Request request,
-        {String body = default404NotFound}) =>
-    htmlResponse(body, status: 404);
+shelf.Response notFoundHandler(
+  shelf.Request request, {
+  String body = default404NotFound,
+  Map<String, Object>? headers,
+}) {
+  return htmlResponse(
+    body,
+    status: 404,
+    headers: headers,
+  );
+}
 
 shelf.Response rejectRobotsHandler(shelf.Request request) =>
     shelf.Response.ok('User-agent: *\nDisallow: /\n');

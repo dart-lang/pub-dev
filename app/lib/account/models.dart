@@ -120,48 +120,8 @@ class LikeData {
   }
 }
 
-/// Tracks the strict session id (from cookie), optionally with
-/// authenticated userId and cached profile information.
-@db.Kind(name: 'ClientSession', idType: db.IdType.String)
-class ClientSession extends db.ExpandoModel<String> {
-  /// Same as [id].
-  /// This is a v4 (random) UUID String.
-  String get sessionId => id as String;
-
-  @db.StringProperty()
-  String? userId;
-
-  @db.StringProperty(indexed: false)
-  String? email;
-
-  /// The name of the user given by the authentication provider.
-  /// May be null, or human readable name (specified by the user, in their profile).
-  @db.StringProperty(indexed: false)
-  String? name;
-
-  @db.StringProperty(indexed: false)
-  String? imageUrl;
-
-  @db.DateTimeProperty(required: true, indexed: false)
-  DateTime? created;
-
-  @db.DateTimeProperty(required: true, indexed: true)
-  DateTime? expires;
-
-  @db.DateTimeProperty(indexed: false)
-  DateTime? authenticated;
-
-  @db.StringProperty(indexed: false)
-  String? csrfToken;
-
-  /// The random value used for OpenID authentication.
-  @db.StringProperty(indexed: false)
-  String? openidNonce;
-
-  bool isExpired() => clock.now().isAfter(expires!);
-}
-
-/// Maps the session id (from cookie) to User.id and cached profile properties.
+/// Tracks the client session, optionally with authenticated
+/// userId and cached profile information.
 @db.Kind(name: 'UserSession', idType: db.IdType.String)
 class UserSession extends db.ExpandoModel<String> {
   /// Same as [id].
@@ -171,7 +131,7 @@ class UserSession extends db.ExpandoModel<String> {
   @db.StringProperty()
   String? userId;
 
-  @db.StringProperty(required: true, indexed: false)
+  @db.StringProperty(indexed: false)
   String? email;
 
   /// The name of the user given by the authentication provider.
@@ -188,6 +148,16 @@ class UserSession extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? expires;
 
+  @db.DateTimeProperty(indexed: false)
+  DateTime? authenticated;
+
+  @db.StringProperty(indexed: false)
+  String? csrfToken;
+
+  /// The random value used for OpenID authentication.
+  @db.StringProperty(indexed: false)
+  String? openidNonce;
+
   bool isExpired() => clock.now().isAfter(expires!);
 }
 
@@ -198,7 +168,7 @@ final _imgParamPattern = RegExp(
   r'=(?:(?:[swh]\d+)|[cp])(?:-(?:(?:[swh]\d+)|[cp]))*$',
 );
 
-/// The cacheable version of [UserSession] or [ClientSession].
+/// The cacheable version of [UserSession].
 @JsonSerializable()
 class SessionData {
   /// This is a v4 (random) UUID String that is set as a http cookie.
@@ -249,8 +219,9 @@ class SessionData {
 
   Map<String, dynamic> toJson() => _$SessionDataToJson(this);
 
+  Duration get maxAge => expires.difference(clock.now());
+  bool get isAuthenticated => userId != null && userId!.isNotEmpty;
   bool get isExpired => clock.now().isAfter(expires);
-
   bool get hasName => name != null && name!.isNotEmpty;
 
   /// Set image size to NxN pixels for faster loading, see:

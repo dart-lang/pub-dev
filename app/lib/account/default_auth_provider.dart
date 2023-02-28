@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show json;
+import 'dart:convert';
 
+import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -98,7 +99,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
 
   @override
   Future<Uri> getOauthAuthenticationUrl({
-    required String state,
+    required Map<String, String> state,
     required String nonce,
   }) async {
     // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
@@ -112,7 +113,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
           oauth2_v2.Oauth2Api.userinfoEmailScope,
           oauth2_v2.Oauth2Api.userinfoProfileScope,
         ].join(' '),
-        'state': state,
+        'state': encodeState(state),
         'nonce': nonce,
       },
     );
@@ -478,4 +479,30 @@ DateTime _parseTimestamp(dynamic timestamp) {
     return DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
   }
   throw ArgumentError.value(timestamp, 'timestamp', 'must be int or string');
+}
+
+final _stateCodec = json.fuse(utf8).fuse(base64Url);
+
+/// Encode map-based [state] as URL-compatible string.
+String encodeState(Map<String, String> state) {
+  return _stateCodec.encode(state);
+}
+
+/// Decode URL-provided state as Map.
+Map<String, String> decodeState(String? state) {
+  if (state == null || state.isEmpty) {
+    return const <String, String>{};
+  }
+  try {
+    final map = _stateCodec.decode(state);
+    if (map is Map<String, dynamic>) {
+      return map
+          .whereValue((v) => v != null)
+          .map((key, value) => MapEntry(key, value.toString()));
+    } else {
+      return const <String, String>{};
+    }
+  } on FormatException {
+    return const <String, String>{};
+  }
 }

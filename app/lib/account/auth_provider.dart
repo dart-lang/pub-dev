@@ -47,7 +47,7 @@ abstract class AuthProvider {
 
   /// Returns the URL that the user should visit for authentication.
   Future<Uri> getOauthAuthenticationUrl({
-    required String state,
+    required Map<String, String> state,
     required String nonce,
   });
 
