@@ -8,6 +8,11 @@ import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 
+final emptyTestProfile = TestProfile(
+  defaultUser: 'admin@pub.dev',
+  packages: [],
+);
+
 final defaultTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
   packages: [

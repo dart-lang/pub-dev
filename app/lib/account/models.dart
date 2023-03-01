@@ -216,7 +216,7 @@ class SessionData {
       imageUrl: session.imageUrl,
       created: session.created!,
       expires: session.expires!,
-      // TODO: set csrfToken after `UserSession` is merged with `ClientSession
+      csrfToken: session.csrfToken,
     );
   }
 

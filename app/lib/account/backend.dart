@@ -451,7 +451,8 @@ class AccountBackend {
       ..email = ''
       ..openidNonce = nonce
       ..created = now
-      ..expires = now.add(_sessionDuration);
+      ..expires = now.add(_sessionDuration)
+      ..csrfToken = createUuid();
     await _db.commit(inserts: [session]);
     return SessionData.fromModel(session);
   }
@@ -487,6 +488,41 @@ class AccountBackend {
     });
     await cacheEntry.set(data);
     return data;
+  }
+
+  /// Tries to authenticate the web user with the session cookies and
+  /// - if present and if required - the CSRF token.
+  Future<AuthenticatedUser?> tryAuthenticateWebSessionUser({
+    required String? sessionId,
+    required bool hasStrictCookie,
+    required String? csrfTokenInHeader,
+    required bool requiresStrictCookie,
+  }) async {
+    if (sessionId == null) {
+      return null;
+    }
+    if (requiresStrictCookie && !hasStrictCookie) {
+      return null;
+    }
+
+    final session = await _lookupUserSession(sessionId);
+    if (session == null || !session.isAuthenticated) {
+      return null;
+    }
+
+    // assuming that strict mode is always used with CSRF token verification
+    if (requiresStrictCookie) {
+      if (csrfTokenInHeader == null || csrfTokenInHeader != session.csrfToken) {
+        return null;
+      }
+    }
+
+    final user = await lookupUserById(session.userId!);
+    if (user == null || user.isBlocked || user.isDeleted) {
+      return null;
+    }
+    return AuthenticatedUser(user,
+        audience: activeConfiguration.pubSiteAudience!);
   }
 
   /// Creates a new session for the current authenticated user and returns the

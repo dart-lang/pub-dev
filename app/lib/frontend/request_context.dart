@@ -112,7 +112,9 @@ Future<RequestContext> buildRequestContext({
           // don't cache if a user session is active
           userSessionData == null &&
           // don't cache if client session is active
-          !clientSessionCookieStatus.isPresent;
+          !clientSessionCookieStatus.isPresent &&
+          // sanity check, this should be covered by client session cookie
+          (csrfToken?.isNotEmpty ?? false);
   return RequestContext(
     indentJson: indentJson,
     blockRobots: !enableRobots,
