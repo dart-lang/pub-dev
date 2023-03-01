@@ -10,25 +10,28 @@ stages:
   - unit_test:
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 0
+      - test: -P presubmit --total-shards 8 --shard-index 0
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 1
+      - test: -P presubmit --total-shards 8 --shard-index 1
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 2
+      - test: -P presubmit --total-shards 8 --shard-index 2
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 3
+      - test: -P presubmit --total-shards 8 --shard-index 3
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 4
+      - test: -P presubmit --total-shards 8 --shard-index 4
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 5
+      - test: -P presubmit --total-shards 8 --shard-index 5
     - group:
       - command: sudo apt-get install webp
-      - test: -P presubmit --total-shards 7 --shard-index 6
+      - test: -P presubmit --total-shards 8 --shard-index 6
+    - group:
+      - command: sudo apt-get install webp
+      - test: -P presubmit --total-shards 8 --shard-index 7
 
 cache:
   directories:
