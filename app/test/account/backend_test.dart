@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
+import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -114,6 +117,120 @@ void main() {
           .map((u) => u.oauthUserId)
           .toSet();
       expect(ids2, {'admin-pub-dev', 'c-example-com', 'user-pub-dev'});
+    });
+
+    group('session web user', () {
+      testWithProfile(
+        'no headers',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          expect(
+            await accountBackend.tryAuthenticateWebSessionUser(
+              sessionId: null,
+              hasStrictCookie: true,
+              csrfTokenInHeader: null,
+              requiresStrictCookie: false,
+            ),
+            null,
+          );
+        },
+      );
+
+      testWithProfile(
+        'UserSession entry not present',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          expect(
+            await accountBackend.tryAuthenticateWebSessionUser(
+              sessionId: 'session-id',
+              hasStrictCookie: true,
+              csrfTokenInHeader: null,
+              requiresStrictCookie: false,
+            ),
+            null,
+          );
+        },
+      );
+
+      testWithProfile(
+        'session not authenticated',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final session =
+              await accountBackend.createNewClientSession(nonce: 'nonce');
+          expect(
+            await accountBackend.tryAuthenticateWebSessionUser(
+              sessionId: session.sessionId,
+              hasStrictCookie: true,
+              csrfTokenInHeader: null,
+              requiresStrictCookie: false,
+            ),
+            null,
+          );
+        },
+      );
+
+      testWithProfile(
+        'no csrf token or bad csrf token',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final email = 'user@pub.dev';
+          final oauthUserId = fakeOauthUserIdFromEmail(email);
+          final session =
+              await accountBackend.createNewClientSession(nonce: 'nonce');
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: email,
+              audience: activeConfiguration.pubSiteAudience!,
+            ),
+          );
+          expect(
+              await accountBackend.tryAuthenticateWebSessionUser(
+                sessionId: session.sessionId,
+                hasStrictCookie: true,
+                csrfTokenInHeader: null,
+                requiresStrictCookie: true,
+              ),
+              null);
+          expect(
+              await accountBackend.tryAuthenticateWebSessionUser(
+                sessionId: session.sessionId,
+                hasStrictCookie: true,
+                csrfTokenInHeader: 'bad-token',
+                requiresStrictCookie: true,
+              ),
+              null);
+        },
+      );
+
+      testWithProfile(
+        'success',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final email = 'user@pub.dev';
+          final oauthUserId = fakeOauthUserIdFromEmail(email);
+          final session =
+              await accountBackend.createNewClientSession(nonce: 'nonce');
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: email,
+              audience: activeConfiguration.pubSiteAudience!,
+            ),
+          );
+          final authenticatedUser =
+              await accountBackend.tryAuthenticateWebSessionUser(
+            sessionId: session.sessionId,
+            hasStrictCookie: true,
+            csrfTokenInHeader: session.csrfToken,
+            requiresStrictCookie: true,
+          );
+          expect(authenticatedUser?.email, email);
+        },
+      );
     });
   });
 }

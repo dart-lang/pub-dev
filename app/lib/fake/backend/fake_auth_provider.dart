@@ -232,7 +232,7 @@ String _createGcpToken({
     },
     payload: {
       'email': email,
-      'sub': _oauthUserIdFromEmail(email),
+      'sub': fakeOauthUserIdFromEmail(email),
       'aud': audience,
       'iss': GcpServiceAccountJwtPayload.issuerUrl,
       ...?extraPayload,
@@ -292,7 +292,7 @@ String createFakeGithubActionToken({
   return token.asEncodedString();
 }
 
-String _oauthUserIdFromEmail(String email) =>
+String fakeOauthUserIdFromEmail(String email) =>
     email.replaceAll('@', '-').replaceAll('.', '-');
 
 Map<String, dynamic> _jwtPayloadTimestamps() {
