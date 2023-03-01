@@ -42,8 +42,8 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
   final nonce = createUuid();
-  // TODO: update current session if it exists instead of always creating a new one
-  final session = await accountBackend.createNewClientSession(
+  final session = await accountBackend.createOrUpdateClientSession(
+    sessionId: requestContext.clientSessionCookieStatus.sessionId,
     nonce: nonce,
   );
   final params = request.requestedUri.queryParameters;

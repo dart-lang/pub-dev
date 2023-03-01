@@ -54,18 +54,23 @@ void main() {
         ),
       );
 
+      String? firstSessionId;
       // sign-in page
       await headlessEnv.withPage(
         fn: (page) async {
           await page.gotoOrigin('/experimental?signin=1');
           final rs = await page.gotoOrigin('/sign-in?fake-email=user@pub.dev');
-          final cookies = (await page.cookies()).map((e) => e.name).toSet();
-          expect(cookies, contains('PUB_SID_INSECURE'));
-          expect(cookies, contains('PUB_SSID_INSECURE'));
+          final cookies = await page.cookies();
+          final cookieNames = cookies.map((e) => e.name).toSet();
+          expect(cookieNames, contains('PUB_SID_INSECURE'));
+          expect(cookieNames, contains('PUB_SSID_INSECURE'));
           expect(page.url, startsWith('$origin/sign-in/callback?'));
           expect(rs.status, 200);
           final content = await page.content;
           expect(content, contains('user@pub.dev'));
+
+          firstSessionId =
+              cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value;
         },
       );
 
@@ -73,10 +78,16 @@ void main() {
       await headlessEnv.withPage(
         fn: (page) async {
           await page.gotoOrigin('/sign-in?fake-email=user@pub.dev&go=/help');
-          final cookies = (await page.cookies()).map((e) => e.name).toSet();
-          expect(cookies, contains('PUB_SID_INSECURE'));
-          expect(cookies, contains('PUB_SSID_INSECURE'));
+          final cookies = await page.cookies();
+          final cookieNames = cookies.map((e) => e.name).toSet();
+          expect(cookieNames, contains('PUB_SID_INSECURE'));
+          expect(cookieNames, contains('PUB_SSID_INSECURE'));
           expect(page.url, '$origin/help');
+
+          expect(
+            cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value,
+            firstSessionId,
+          );
         },
       );
 

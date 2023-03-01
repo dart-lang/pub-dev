@@ -444,12 +444,32 @@ class AccountBackend {
     });
   }
 
-  /// Creates a new client session for pre-authorization secrets and
-  /// post-authorization user information.
-  Future<SessionData> createNewClientSession({
+  /// Updates an existing or creates a new client session for pre-authorization
+  /// secrets and post-authorization user information.
+  Future<SessionData> createOrUpdateClientSession({
+    String? sessionId,
     required String nonce,
   }) async {
     final now = clock.now().toUtc();
+    final oldSession =
+        sessionId == null ? null : await lookupValidUserSession(sessionId);
+    // try to update old session first
+    if (oldSession != null) {
+      final rs = await withRetryTransaction(_db, (tx) async {
+        final session = await tx.lookupOrNull<UserSession>(oldSession.key);
+        if (session == null) {
+          return null;
+        }
+        session
+          ..expires = now.add(_sessionDuration)
+          ..openidNonce = nonce;
+        tx.insert(session);
+        return SessionData.fromModel(session);
+      });
+      if (rs != null) return rs;
+    }
+
+    // in the absence of a valid existing session, create a new one
     final session = UserSession()
       ..id = createUuid()
       // TODO: make this null after all deployed version can handle it
@@ -489,6 +509,7 @@ class AccountBackend {
         ..name = profile.name
         ..imageUrl = profile.imageUrl
         ..authenticated = now
+        ..openidNonce = createUuid() // resets the nonce to a new random UUID
         ..expires = now.add(_sessionDuration);
       tx.insert(session);
       return SessionData.fromModel(session);

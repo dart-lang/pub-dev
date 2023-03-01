@@ -157,7 +157,7 @@ void main() {
         testProfile: emptyTestProfile,
         fn: () async {
           final session =
-              await accountBackend.createNewClientSession(nonce: 'nonce');
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
           expect(
             await accountBackend.tryAuthenticateWebSessionUser(
               sessionId: session.sessionId,
@@ -177,7 +177,7 @@ void main() {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
           final session =
-              await accountBackend.createNewClientSession(nonce: 'nonce');
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(
@@ -212,7 +212,7 @@ void main() {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
           final session =
-              await accountBackend.createNewClientSession(nonce: 'nonce');
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(
