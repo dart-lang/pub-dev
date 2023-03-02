@@ -19,8 +19,9 @@ String renderPkgAdminPage(
   List<String> userPublishers,
   List<User> uploaderUsers,
   List<String> retractableVersions,
-  List<String> retractedVersions,
-) {
+  List<String> retractedVersions, {
+  required SessionData? sessionData,
+}) {
   final tabs = buildPackageTabs(
     data: data,
     adminTab: Tab.withContent(
@@ -49,13 +50,15 @@ String renderPkgAdminPage(
     title: '${data.package!.name} package - Admin',
     pageData: pkgPageData(data.package!, data.version!),
     noIndex: true,
+    sessionData: sessionData,
   );
 }
 
 String renderPkgActivityLogPage(
   PackagePageData data,
-  AuditLogRecordPage activities,
-) {
+  AuditLogRecordPage activities, {
+  required SessionData? sessionData,
+}) {
   final activityLog = activityLogNode(
     baseUrl: urls.pkgActivityLogUrl(data.package!.name!),
     activities: activities,
@@ -82,5 +85,6 @@ String renderPkgActivityLogPage(
     title: '${data.package!.name} package - Admin',
     pageData: pkgPageData(data.package!, data.version!),
     noIndex: true,
+    sessionData: sessionData,
   );
 }

@@ -139,18 +139,23 @@ void main() {
       'landing page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final html = renderLandingPage(ffPackages: [
-          (await scoreCardBackend.getPackageView('flutter_titanium'))!,
-        ], mostPopularPackages: [
-          (await scoreCardBackend.getPackageView('neon'))!,
-          (await scoreCardBackend.getPackageView('oxygen'))!,
-        ], topPoWVideos: [
-          PkgOfWeekVideo(
-              videoId: 'video-id',
-              title: 'POW Title',
-              description: 'POW description',
-              thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4'),
-        ]);
+        final html = renderLandingPage(
+          ffPackages: [
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!,
+          ],
+          mostPopularPackages: [
+            (await scoreCardBackend.getPackageView('neon'))!,
+            (await scoreCardBackend.getPackageView('oxygen'))!,
+          ],
+          topPoWVideos: [
+            PkgOfWeekVideo(
+                videoId: 'video-id',
+                title: 'POW Title',
+                description: 'POW description',
+                thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4'),
+          ],
+          sessionData: null,
+        );
         expectGoldenFile(html, 'landing_page.html');
       },
     );
@@ -163,7 +168,7 @@ void main() {
           adminAtPubDevAuthToken,
           () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
         );
-        final html = renderPkgShowPage(data);
+        final html = renderPkgShowPage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_show_page.html', timestamps: {
           'published': data.package!.created,
           'updated': data.version!.created,
@@ -177,7 +182,7 @@ void main() {
       fn: () async {
         final data =
             await loadPackagePageData('oxygen', '1.2.0', AssetKind.changelog);
-        final html = renderPkgChangelogPage(data);
+        final html = renderPkgChangelogPage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_changelog_page.html', timestamps: {
           'published': data.package!.created,
           'updated': data.version!.created,
@@ -191,7 +196,7 @@ void main() {
       fn: () async {
         final data =
             await loadPackagePageData('oxygen', '1.2.0', AssetKind.example);
-        final html = renderPkgExamplePage(data);
+        final html = renderPkgExamplePage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_example_page.html', timestamps: {
           'published': data.package!.created,
           'updated': data.version!.created,
@@ -204,7 +209,7 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageData('oxygen', '1.2.0', null);
-        final html = renderPkgInstallPage(data);
+        final html = renderPkgInstallPage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_install_page.html', timestamps: {
           'published': data.package!.created,
           'updated': data.version!.created,
@@ -215,7 +220,7 @@ void main() {
     testWithProfile('package score page', processJobsWithFakeRunners: true,
         fn: () async {
       final data = await loadPackagePageData('oxygen', '1.2.0', null);
-      final html = renderPkgScorePage(data);
+      final html = renderPkgScorePage(data, sessionData: null);
       expectGoldenFile(html, 'pkg_score_page.html', timestamps: {
         'published': data.package!.created,
         'updated': data.version!.created,
@@ -228,7 +233,7 @@ void main() {
       fn: () async {
         final data =
             await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
-        final html = renderPkgShowPage(data);
+        final html = renderPkgShowPage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_show_version_page.html', timestamps: {
           'published': data.package!.created,
           'updated': data.version!.created,
@@ -245,7 +250,7 @@ void main() {
           () => loadPackagePageData(
               'flutter_titanium', '1.10.0', AssetKind.readme),
         );
-        final html = renderPkgShowPage(data);
+        final html = renderPkgShowPage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html',
             timestamps: {
               'published': data.package!.created,
@@ -269,7 +274,7 @@ void main() {
         ),
         processJobsWithFakeRunners: true, fn: () async {
       final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
-      final html = renderPkgShowPage(data);
+      final html = renderPkgShowPage(data, sessionData: null);
       expectGoldenFile(html, 'pkg_show_page_discontinued.html', timestamps: {
         'published': data.package!.created,
         'updated': data.version!.created,
@@ -292,14 +297,14 @@ void main() {
         ),
         processJobsWithFakeRunners: true, fn: () async {
       final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
-      final html = renderPkgShowPage(data);
+      final html = renderPkgShowPage(data, sessionData: null);
       expectGoldenFile(html, 'pkg_show_page_retracted.html', timestamps: {
         'published': data.package!.created,
         'updated': data.version!.created,
       });
 
       final data2 = await loadPackagePageData('pkg', '2.0.0', AssetKind.readme);
-      final html2 = renderPkgShowPage(data2);
+      final html2 = renderPkgShowPage(data2, sessionData: null);
       expectGoldenFile(
           html2, 'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
@@ -324,7 +329,7 @@ void main() {
         ),
         processJobsWithFakeRunners: true, fn: () async {
       final data2 = await loadPackagePageData('pkg', '2.0.0', AssetKind.readme);
-      final html2 = renderPkgShowPage(data2);
+      final html2 = renderPkgShowPage(data2, sessionData: null);
       expectGoldenFile(
           html2, 'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
@@ -345,7 +350,7 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageData('pkg', '1.0.0-legacy', null);
-        final html = renderPkgScorePage(data);
+        final html = renderPkgScorePage(data, sessionData: null);
         expectGoldenFile(html, 'pkg_show_page_legacy.html', timestamps: {
           'published': data.package!.created,
           'updated': data.version!.created,
@@ -356,7 +361,7 @@ void main() {
     // package analysis was intentionally left out for this template
     testWithProfile('package show page with publisher', fn: () async {
       final data = await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
-      final html = renderPkgShowPage(data);
+      final html = renderPkgShowPage(data, sessionData: null);
       expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
         'published': data.package!.created,
         'updated': data.package!.lastVersionPublished,
@@ -431,19 +436,21 @@ void main() {
       'package admin page',
       processJobsWithFakeRunners: true,
       fn: () async {
+        late SessionData sessionData;
         final data = await accountBackend.withBearerToken(
           adminAtPubDevAuthToken,
           () async {
             // update session as package data loading checks that
             final user = await requireAuthenticatedWebUser();
+            sessionData = SessionData(
+              userId: user.userId,
+              created: clock.now(),
+              expires: clock.now().add(Duration(days: 1)),
+              sessionId: 'session-1',
+            );
             registerRequestContext(
               RequestContext(
-                userSessionData: SessionData(
-                  userId: user.userId,
-                  created: clock.now(),
-                  expires: clock.now().add(Duration(days: 1)),
-                  sessionId: 'session-1',
-                ),
+                oldSessionDataFuture: Future.value(sessionData),
               ),
             );
             return await loadPackagePageData(
@@ -456,6 +463,7 @@ void main() {
           await accountBackend.lookupUsersByEmail('admin@pub.dev'),
           ['2.0.0'],
           ['1.0.0'],
+          sessionData: sessionData,
         );
         expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
           'published': data.package!.created,
@@ -475,7 +483,7 @@ void main() {
           );
           registerRequestContext(
             RequestContext(
-              userSessionData: session,
+              oldSessionDataFuture: Future.value(session),
             ),
           );
           final data = await loadPackagePageData('oxygen', '1.2.0', null);
@@ -497,7 +505,8 @@ void main() {
             ..expires = auditLogRecordExpiresInFarFuture
             ..summary = 'old action');
 
-          final html = renderPkgActivityLogPage(data, activities);
+          final html =
+              renderPkgActivityLogPage(data, activities, sessionData: session);
           expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
             'published': data.package!.created,
             'updated': data.version!.created,
@@ -534,6 +543,7 @@ void main() {
           ),
           PageLinks.empty(),
           searchForm: searchForm,
+          sessionData: null,
         );
         expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
           'oxygen-created': oxygen.created,
@@ -566,6 +576,7 @@ void main() {
           ),
           PageLinks(searchForm, 50),
           searchForm: searchForm,
+          sessionData: null,
         );
         expectGoldenFile(html, 'search_page.html', timestamps: {
           'oxygen-created': oxygen.created,
@@ -600,6 +611,7 @@ void main() {
             created: DateTime(2019, 09, 19),
           ),
         ],
+        sessionData: null,
       );
       expectGoldenFile(
         html,
@@ -633,6 +645,7 @@ void main() {
           pageLinks: PageLinks(searchForm, 10),
           isAdmin: true,
           messageFromBackend: null,
+          sessionData: null,
         );
         expectGoldenFile(html, 'publisher_packages_page.html', timestamps: {
           'neon-created': neon.created,
@@ -665,6 +678,7 @@ void main() {
           pageLinks: PageLinks(searchForm, 10),
           isAdmin: true,
           messageFromBackend: null,
+          sessionData: null,
         );
         expectGoldenFile(html, 'publisher_unlisted_packages_page.html',
             timestamps: {
@@ -686,6 +700,7 @@ void main() {
         final html = renderPublisherAdminPage(
           publisher: publisher,
           members: members,
+          sessionData: null,
         );
         expectGoldenFile(
           html,
@@ -713,6 +728,7 @@ void main() {
         final html = renderPublisherActivityLogPage(
           publisher: publisher,
           activities: activities,
+          sessionData: null,
         );
         expectGoldenFile(html, 'publisher_activity_log_page.html', timestamps: {
           'publisher-created': publisher.created,
@@ -734,11 +750,6 @@ void main() {
           final session = await accountBackend.createNewUserSession(
             name: 'Pub User',
             imageUrl: 'pub.dev/user-img-url.png',
-          );
-          registerRequestContext(
-            RequestContext(
-              userSessionData: session,
-            ),
           );
           final html = renderAccountPackagesPage(
             user: user,
@@ -762,11 +773,6 @@ void main() {
         final session = await accountBackend.createNewUserSession(
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
-        );
-        registerRequestContext(
-          RequestContext(
-            userSessionData: session,
-          ),
         );
         final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
         final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
@@ -794,11 +800,6 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
-        registerRequestContext(
-          RequestContext(
-            userSessionData: session,
-          ),
-        );
         final publisherCreated = DateTime(2021, 07, 01, 16, 05);
         final html = renderAccountPublishersPage(
           user: user,
@@ -825,11 +826,6 @@ void main() {
           name: 'Pub User',
           imageUrl: 'pub.dev/user-img-url.png',
         );
-        registerRequestContext(
-          RequestContext(
-            userSessionData: session,
-          ),
-        );
         final activities = await auditBackend.listRecordsForUserId(user.userId);
         expect(activities.records, isNotEmpty);
         final html = renderAccountMyActivityPage(
@@ -845,7 +841,7 @@ void main() {
     });
 
     scopedTest('create publisher page', () {
-      final html = renderCreatePublisherPage();
+      final html = renderCreatePublisherPage(sessionData: null);
       expectGoldenFile(html, 'create_publisher_page.html');
     });
 
@@ -854,6 +850,7 @@ void main() {
         consentId: '1234-5678',
         title: 'Invite for something',
         descriptionHtml: '<b>Warning!</b> And text...',
+        sessionData: null,
       );
       expectGoldenFile(html, 'consent_page.html');
     });
@@ -910,17 +907,18 @@ void main() {
     });
 
     scopedTest('authorized page', () {
-      final String html = renderAuthorizedPage();
+      final String html = renderAuthorizedPage(sessionData: null);
       expectGoldenFile(html, 'authorized_page.html');
     });
 
     scopedTest('error page', () {
-      final String html = renderErrorPage('error_title', 'error_message');
+      final String html =
+          renderErrorPage('error_title', 'error_message', sessionData: null);
       expectGoldenFile(html, 'error_page.html');
     });
 
     scopedTest('help page', () async {
-      final html = renderHelpPage();
+      final html = renderHelpPage(sessionData: null);
       expectGoldenFile(html, 'help_page.html');
     });
 

@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/page_data.dart';
 
+import '../../account/models.dart';
 import '../dom/dom.dart' as d;
 
 import 'layout.dart';
@@ -17,6 +18,7 @@ String renderConsentPage({
   required String consentId,
   required String title,
   required String descriptionHtml,
+  required SessionData? sessionData,
 }) {
   final content = consentPageNode(
     title: title,
@@ -28,6 +30,7 @@ String renderConsentPage({
     title: 'Consent',
     noIndex: true,
     pageData: PageData(consentId: consentId),
+    sessionData: sessionData,
   );
 }
 

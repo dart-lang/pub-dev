@@ -107,10 +107,12 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
           version: docFilePath.version, relativePath: 'log.txt');
       final versionsUrl = pkgVersionsUrl(docFilePath.package);
       final content = renderErrorPage(
-          'Documentation missing',
-          'Pub site failed to generate dartdoc for this package.\n\n'
-              '- View [dartdoc log]($logTxtUrl)\n'
-              '- Check [other versions]($versionsUrl) of the same package.\n');
+        'Documentation missing',
+        'Pub site failed to generate dartdoc for this package.\n\n'
+            '- View [dartdoc log]($logTxtUrl)\n'
+            '- Check [other versions]($versionsUrl) of the same package.\n',
+        sessionData: await requestContext.sessionData,
+      );
       return htmlResponse(content, status: 404);
     }
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path!);
@@ -122,7 +124,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     }
     final headers = {
       HttpHeaders.contentTypeHeader: contentType(docFilePath.path!),
-      ...CacheHeaders.dartdocAsset(),
+      ...await CacheHeaders.dartdocAsset(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(info.lastModified),
       HttpHeaders.etagHeader: info.etag,
     };

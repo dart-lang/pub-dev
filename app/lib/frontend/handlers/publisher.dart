@@ -24,10 +24,14 @@ import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  if (await requestContext.isNotAuthenticated) {
+    return htmlResponse(renderUnauthenticatedPage(
+      sessionData: await requestContext.sessionData,
+    ));
   }
-  return htmlResponse(renderCreatePublisherPage());
+  return htmlResponse(renderCreatePublisherPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for GET /publishers
@@ -35,14 +39,20 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   if (requestContext.uiCacheEnabled) {
     final content = await cache.uiPublisherListPage().get(() async {
       final page = await publisherBackend.listPublishers();
-      return renderPublisherListPage(page.publishers!);
+      return renderPublisherListPage(
+        page.publishers!,
+        sessionData: await requestContext.sessionData,
+      );
     });
     return htmlResponse(content!);
   }
 
   // no caching for logged-in user
   final page = await publisherBackend.listPublishers();
-  final content = renderPublisherListPage(page.publishers!);
+  final content = renderPublisherListPage(
+    page.publishers!,
+    sessionData: await requestContext.sessionData,
+  );
   return htmlResponse(content);
 }
 
@@ -106,6 +116,10 @@ Future<shelf.Response> publisherPackagesPageHandler(
   final searchResult = await searchAdapter.search(appliedSearchForm);
   final int totalCount = searchResult.totalCount;
   final links = PageLinks(appliedSearchForm, totalCount);
+  final isAdmin = await requestContext.isNotAuthenticated
+      ? false
+      : await publisherBackend.isMemberAdmin(
+          publisher, await requestContext.authenticatedUserId);
 
   final html = renderPublisherPackagesPage(
     publisher: publisher,
@@ -114,9 +128,9 @@ Future<shelf.Response> publisherPackagesPageHandler(
     pageLinks: links,
     searchForm: appliedSearchForm,
     totalCount: totalCount,
-    isAdmin: await publisherBackend.isMemberAdmin(
-        publisher, requestContext.authenticatedUserId),
+    isAdmin: isAdmin,
     messageFromBackend: searchResult.message,
+    sessionData: await requestContext.sessionData,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);
@@ -134,20 +148,25 @@ Future<shelf.Response> publisherAdminPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  if (await requestContext.isNotAuthenticated) {
+    return htmlResponse(renderUnauthenticatedPage(
+      sessionData: await requestContext.sessionData,
+    ));
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
-    requestContext.authenticatedUserId,
+    await requestContext.authenticatedUserId,
   );
   if (!isAdmin) {
-    return htmlResponse(renderUnauthorizedPage());
+    return htmlResponse(renderUnauthorizedPage(
+      sessionData: await requestContext.sessionData,
+    ));
   }
 
   return htmlResponse(renderPublisherAdminPage(
     publisher: publisher,
     members: await publisherBackend.listPublisherMembers(publisherId),
+    sessionData: await requestContext.sessionData,
   ));
 }
 
@@ -161,15 +180,19 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  if (await requestContext.isNotAuthenticated) {
+    return htmlResponse(renderUnauthenticatedPage(
+      sessionData: await requestContext.sessionData,
+    ));
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
-    requestContext.authenticatedUserId,
+    await requestContext.authenticatedUserId,
   );
   if (!isAdmin) {
-    return htmlResponse(renderUnauthorizedPage());
+    return htmlResponse(renderUnauthorizedPage(
+      sessionData: await requestContext.sessionData,
+    ));
   }
 
   final before = auditBackend.parseBeforeQueryParameter(
@@ -181,5 +204,6 @@ Future<shelf.Response> publisherActivityLogPageHandler(
   return htmlResponse(renderPublisherActivityLogPage(
     publisher: publisher,
     activities: activities,
+    sessionData: await requestContext.sessionData,
   ));
 }

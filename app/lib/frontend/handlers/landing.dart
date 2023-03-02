@@ -44,6 +44,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
       topFlutterPackages: topPackages.topFlutter(),
       topDartPackages: topPackages.topDart(),
       topPoWVideos: youtubeBackend.getTopPackageOfWeekVideos(count: 4),
+      sessionData: await requestContext.sessionData,
     );
   }
 

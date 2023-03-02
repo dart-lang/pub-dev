@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../frontend/request_context.dart';
 import '../../package/name_tracker.dart';
 import '../../package/search_adapter.dart';
 import '../../shared/handlers.dart';
@@ -79,6 +80,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       searchForm: searchForm,
       messageFromBackend: searchResult.message,
       openSections: openSections,
+      sessionData: await requestContext.sessionData,
     ),
   );
   _searchOverallLatencyTracker.add(sw.elapsed);

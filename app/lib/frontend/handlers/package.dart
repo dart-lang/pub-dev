@@ -11,6 +11,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../account/like_backend.dart';
+import '../../account/models.dart';
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -69,7 +70,7 @@ Future<shelf.Response> packageVersionsListHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
-    renderFn: (data) async {
+    renderFn: (data, sessionData) async {
       final versions = await packageBackend.listVersionsCached(packageName);
       if (versions.versions.isEmpty) {
         return redirectToSearch(packageName);
@@ -81,6 +82,7 @@ Future<shelf.Response> packageVersionsListHandler(
         // output is expected in descending versions order
         versions.descendingVersions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
+        sessionData: sessionData,
       );
     },
     cacheEntry: cache.uiPackageVersions(packageName),
@@ -97,12 +99,12 @@ Future<shelf.Response> packageChangelogHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.changelog,
-    renderFn: (data) {
+    renderFn: (data, sessionData) {
       if (!data.hasChangelog) {
         return redirectResponse(
             urls.pkgPageUrl(packageName, version: versionName));
       }
-      return renderPkgChangelogPage(data);
+      return renderPkgChangelogPage(data, sessionData: sessionData);
     },
     cacheEntry: cache.uiPackageChangelog(packageName, versionName),
   );
@@ -118,12 +120,12 @@ Future<shelf.Response> packageExampleHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.example,
-    renderFn: (data) {
+    renderFn: (data, sessionData) {
       if (!data.hasExample) {
         return redirectResponse(
             urls.pkgPageUrl(packageName, version: versionName));
       }
-      return renderPkgExamplePage(data);
+      return renderPkgExamplePage(data, sessionData: sessionData);
     },
     cacheEntry: cache.uiPackageExample(packageName, versionName),
   );
@@ -139,7 +141,8 @@ Future<shelf.Response> packageInstallHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: null,
-    renderFn: (data) => renderPkgInstallPage(data),
+    renderFn: (data, sessionData) =>
+        renderPkgInstallPage(data, sessionData: sessionData),
     cacheEntry: cache.uiPackageInstall(packageName, versionName),
   );
 }
@@ -154,7 +157,8 @@ Future<shelf.Response> packageLicenseHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.license,
-    renderFn: (data) => renderPkgLicensePage(data),
+    renderFn: (data, sessionData) =>
+        renderPkgLicensePage(data, sessionData: sessionData),
     cacheEntry: cache.uiPackageLicense(packageName, versionName),
   );
 }
@@ -169,7 +173,8 @@ Future<shelf.Response> packagePubspecHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.pubspec,
-    renderFn: (data) => renderPkgPubspecPage(data),
+    renderFn: (data, sessionData) =>
+        renderPkgPubspecPage(data, sessionData: sessionData),
     cacheEntry: cache.uiPackagePubspec(packageName, versionName),
   );
 }
@@ -184,7 +189,8 @@ Future<shelf.Response> packageScoreHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: null,
-    renderFn: (data) => renderPkgScorePage(data),
+    renderFn: (data, sessionData) =>
+        renderPkgScorePage(data, sessionData: sessionData),
     cacheEntry: cache.uiPackageScore(packageName, versionName),
   );
 }
@@ -199,7 +205,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.readme,
-    renderFn: (data) => renderPkgShowPage(data),
+    renderFn: (data, sessionData) =>
+        renderPkgShowPage(data, sessionData: sessionData),
     cacheEntry: cache.uiPackagePage(packageName, versionName),
   );
 }
@@ -209,7 +216,8 @@ Future<shelf.Response> _handlePackagePage({
   required String packageName,
   required String? versionName,
   required String? assetKind,
-  required FutureOr Function(PackagePageData data) renderFn,
+  required FutureOr Function(PackagePageData data, SessionData? sessionData)
+      renderFn,
   Entry<String>? cacheEntry,
 }) async {
   checkPackageVersionParams(packageName, versionName);
@@ -230,12 +238,16 @@ Future<shelf.Response> _handlePackagePage({
         data.package!.isNotVisible ||
         data.version == null) {
       if (data.moderatedPackage != null) {
-        final content = renderModeratedPackagePage(packageName);
+        final content = renderModeratedPackagePage(
+          packageName,
+          sessionData: await requestContext.sessionData,
+        );
         return htmlResponse(content, status: 404);
       }
       return formattedNotFoundHandler(request);
     }
-    final renderedResult = await renderFn(data);
+    final renderedResult =
+        await renderFn(data, await requestContext.sessionData);
     if (renderedResult is String) {
       cachedPage = renderedResult;
     } else if (renderedResult is shelf.Response) {
@@ -260,15 +272,19 @@ Future<shelf.Response> packageAdminHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
-    renderFn: (data) async {
-      if (requestContext.isNotAuthenticated) {
-        return htmlResponse(renderUnauthenticatedPage());
+    renderFn: (data, sessionData) async {
+      if (await requestContext.isNotAuthenticated) {
+        return htmlResponse(renderUnauthenticatedPage(
+          sessionData: sessionData,
+        ));
       }
       if (!data.isAdmin!) {
-        return htmlResponse(renderUnauthorizedPage());
+        return htmlResponse(renderUnauthorizedPage(
+          sessionData: sessionData,
+        ));
       }
       final page = await publisherBackend
-          .listPublishersForUser(requestContext.authenticatedUserId!);
+          .listPublishersForUser(await requestContext.authenticatedUserId);
       final uploaderEmails = await accountBackend
           .lookupUsersById(data.package!.uploaders ?? <String>[]);
       final retractableVersions =
@@ -281,6 +297,7 @@ Future<shelf.Response> packageAdminHandler(
         uploaderEmails.cast(),
         retractableVersions.map((v) => v.id!).toList(),
         retractedVersions.map((v) => v.id!).toList(),
+        sessionData: sessionData,
       );
     },
   );
@@ -294,12 +311,16 @@ Future<shelf.Response> packageActivityLogHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
-    renderFn: (data) async {
-      if (requestContext.isNotAuthenticated) {
-        return htmlResponse(renderUnauthenticatedPage());
+    renderFn: (data, sessionData) async {
+      if (await requestContext.isNotAuthenticated) {
+        return htmlResponse(renderUnauthenticatedPage(
+          sessionData: sessionData,
+        ));
       }
       if (!data.isAdmin!) {
-        return htmlResponse(renderUnauthorizedPage());
+        return htmlResponse(renderUnauthorizedPage(
+          sessionData: sessionData,
+        ));
       }
       final before = auditBackend.parseBeforeQueryParameter(
           request.requestedUri.queryParameters['before']);
@@ -307,7 +328,11 @@ Future<shelf.Response> packageActivityLogHandler(
         packageName,
         before: before,
       );
-      return renderPkgActivityLogPage(data, activities);
+      return renderPkgActivityLogPage(
+        data,
+        activities,
+        sessionData: sessionData,
+      );
     },
   );
 }
@@ -328,10 +353,10 @@ Future<PackagePageData> loadPackagePageData(
     );
   }
 
-  final bool isLiked = requestContext.isNotAuthenticated
+  final bool isLiked = (await requestContext.isNotAuthenticated)
       ? false
       : await likeBackend.getPackageLikeStatus(
-              requestContext.authenticatedUserId!, package.name!) !=
+              await requestContext.authenticatedUserId, package.name!) !=
           null;
 
   versionName ??= package.latestVersion;
@@ -364,10 +389,10 @@ Future<PackagePageData> loadPackagePageData(
     showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
   );
 
-  final isAdmin = requestContext.isNotAuthenticated
+  final isAdmin = (await requestContext.isNotAuthenticated)
       ? false
       : await packageBackend.isPackageAdmin(
-          package, requestContext.authenticatedUserId!);
+          package, await requestContext.authenticatedUserId);
 
   return PackagePageData(
     package: package,

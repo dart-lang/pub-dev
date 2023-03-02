@@ -22,10 +22,10 @@ class CacheHeaders {
     this.signedInStorage,
   });
 
-  Map<String, String> call() {
+  Future<Map<String, String>> call() async {
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
-        requestContext.isAuthenticated
+        (await requestContext.isAuthenticated)
             ? (signedInStorage ?? 'private')
             : 'public',
         if (maxAge >= Duration.zero) 'max-age=${maxAge.inSeconds}',

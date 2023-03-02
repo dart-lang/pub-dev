@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../account/models.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
@@ -22,6 +23,7 @@ String renderPkgVersionsPage(
   PackagePageData data,
   List<VersionInfo> versions, {
   required Version dartSdkVersion,
+  required SessionData? sessionData,
 }) {
   final previewVersionRows = <d.Node>[];
   final stableVersionRows = <d.Node>[];
@@ -121,5 +123,6 @@ String renderPkgVersionsPage(
     canonicalUrl: canonicalUrl,
     pageData: pkgPageData(data.package!, data.version!),
     noIndex: data.package!.isDiscontinued,
+    sessionData: sessionData,
   );
 }

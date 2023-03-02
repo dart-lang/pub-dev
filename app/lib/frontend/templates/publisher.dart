@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/data/publisher_api.dart' as api;
 import 'package:_pub_shared/search/search_form.dart' show SearchForm;
 
+import '../../account/models.dart';
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
@@ -21,23 +22,30 @@ import 'views/publisher/header_metadata.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the create publisher page.
-String renderCreatePublisherPage() {
+String renderCreatePublisherPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     createPublisherPageNode,
     title: 'Create publisher',
     noIndex: true, // no need to index, as the page is only for a logged-in user
+    sessionData: sessionData,
   );
 }
 
 /// Renders the global publisher list page.
-String renderPublisherListPage(List<PublisherSummary> publishers) {
+String renderPublisherListPage(
+  List<PublisherSummary> publishers, {
+  required SessionData? sessionData,
+}) {
   final content = publisherListNode(publishers: publishers, isGlobal: true);
   return renderLayoutPage(
     PageType.listing,
     content,
     title: 'Publishers',
     canonicalUrl: '/publishers',
+    sessionData: sessionData,
   );
 }
 
@@ -51,6 +59,7 @@ String renderPublisherPackagesPage({
   required SearchForm searchForm,
   required int totalCount,
   required bool isAdmin,
+  required SessionData? sessionData,
 }) {
   final title = 'Packages of publisher ${publisher.publisherId}';
 
@@ -125,6 +134,7 @@ String renderPublisherPackagesPage({
         searchResultPage.hasNoHit ||
         pageLinks.currentPage! > 1,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: sessionData,
   );
 }
 
@@ -132,6 +142,7 @@ String renderPublisherPackagesPage({
 String renderPublisherAdminPage({
   required Publisher publisher,
   required List<api.PublisherMember> members,
+  required SessionData? sessionData,
 }) {
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
@@ -163,6 +174,7 @@ String renderPublisherAdminPage({
     canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: sessionData,
   );
 }
 
@@ -170,6 +182,7 @@ String renderPublisherAdminPage({
 String renderPublisherActivityLogPage({
   required Publisher publisher,
   required AuditLogRecordPage activities,
+  required SessionData? sessionData,
 }) {
   final activityLog = activityLogNode(
     baseUrl: urls.publisherActivityLogUrl(publisher.publisherId),
@@ -204,6 +217,7 @@ String renderPublisherActivityLogPage({
     canonicalUrl: urls.publisherActivityLogUrl(publisher.publisherId),
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: sessionData,
   );
 }
 

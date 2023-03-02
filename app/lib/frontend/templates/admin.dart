@@ -19,12 +19,15 @@ import 'views/pkg/package_list.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the response that is displayed after pub client authorizes successfully.
-String renderAuthorizedPage() {
+String renderAuthorizedPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.package,
     authorizedNode,
     title: 'Pub Authorized Successfully',
     noIndex: true,
+    sessionData: sessionData,
   );
 }
 
@@ -86,6 +89,7 @@ String renderAccountPackagesPage({
     title: title,
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: userSessionData,
   );
 }
 
@@ -125,6 +129,7 @@ String renderMyLikedPackagesPage({
     title: 'My liked packages',
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: userSessionData,
   );
 }
 
@@ -156,6 +161,7 @@ String renderAccountPublishersPage({
     title: 'My publishers',
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: userSessionData,
   );
 }
 
@@ -192,6 +198,7 @@ String renderAccountMyActivityPage({
     title: 'My activity log',
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
+    sessionData: userSessionData,
   );
 }
 

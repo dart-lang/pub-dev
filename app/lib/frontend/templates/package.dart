@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 
+import '../../account/models.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
 import '../../shared/handlers.dart';
@@ -146,7 +147,10 @@ d.Node renderPkgHeader(PackagePageData data) {
 }
 
 /// Renders the package detail page.
-String renderPkgShowPage(PackagePageData data) {
+String renderPkgShowPage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -154,11 +158,15 @@ String renderPkgShowPage(PackagePageData data) {
       readmeTab: _readmeTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.readme,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the package changelog page.
-String renderPkgChangelogPage(PackagePageData data) {
+String renderPkgChangelogPage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -166,11 +174,15 @@ String renderPkgChangelogPage(PackagePageData data) {
       changelogTab: _changelogTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.changelog,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the package example page.
-String renderPkgExamplePage(PackagePageData data) {
+String renderPkgExamplePage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -178,11 +190,15 @@ String renderPkgExamplePage(PackagePageData data) {
       exampleTab: _exampleTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.example,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the package install page.
-String renderPkgInstallPage(PackagePageData data) {
+String renderPkgInstallPage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -190,11 +206,15 @@ String renderPkgInstallPage(PackagePageData data) {
       installingTab: _installTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.install,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the package license page.
-String renderPkgLicensePage(PackagePageData data) {
+String renderPkgLicensePage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -202,11 +222,15 @@ String renderPkgLicensePage(PackagePageData data) {
       licenseTab: _licenseTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.license,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the package pubspec page.
-String renderPkgPubspecPage(PackagePageData data) {
+String renderPkgPubspecPage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -214,11 +238,15 @@ String renderPkgPubspecPage(PackagePageData data) {
       pubspecTab: _pubspecTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.pubspec,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the package score page.
-String renderPkgScorePage(PackagePageData data) {
+String renderPkgScorePage(
+  PackagePageData data, {
+  required SessionData? sessionData,
+}) {
   return _renderPkgPage(
     data: data,
     tabs: buildPackageTabs(
@@ -226,6 +254,7 @@ String renderPkgScorePage(PackagePageData data) {
       scoreTab: _scoreTab(data),
     ),
     pkgPageTab: urls.PkgPageTab.score,
+    sessionData: sessionData,
   );
 }
 
@@ -233,6 +262,7 @@ String _renderPkgPage({
   required PackagePageData data,
   required List<Tab> tabs,
   required urls.PkgPageTab pkgPageTab,
+  required SessionData? sessionData,
 }) {
   final card = data.scoreCard;
 
@@ -270,6 +300,7 @@ String _renderPkgPage({
     canonicalUrl: canonicalUrl,
     noIndex: noIndex,
     pageData: pkgPageData(data.package!, data.version!),
+    sessionData: sessionData,
   );
 }
 
@@ -515,7 +546,14 @@ List<Tab> buildPackageTabs({
 }
 
 /// Renders the package page when the package has been moderated.
-String renderModeratedPackagePage(String packageName) {
+String renderModeratedPackagePage(
+  String packageName, {
+  required SessionData? sessionData,
+}) {
   final message = 'The package `$packageName` has been removed.';
-  return renderErrorPage(default404NotFound, message);
+  return renderErrorPage(
+    default404NotFound,
+    message,
+    sessionData: sessionData,
+  );
 }

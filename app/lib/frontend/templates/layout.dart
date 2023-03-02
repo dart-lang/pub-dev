@@ -5,7 +5,7 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/search_form.dart';
 
-import '../../frontend/request_context.dart';
+import '../../account/models.dart';
 import '../../service/announcement/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
@@ -51,6 +51,7 @@ String renderLayoutPage(
   bool noIndex = false,
   PageData? pageData,
   List<String>? mainClasses,
+  required SessionData? sessionData,
 }) {
   // normalize canonical URL
   if (canonicalUrl != null && canonicalUrl.startsWith('/')) {
@@ -63,7 +64,6 @@ String renderLayoutPage(
     if (type == PageType.landing) 'page-landing',
   ];
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
-  final session = requestContext.userSessionData;
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,
@@ -71,13 +71,13 @@ String renderLayoutPage(
     faviconUrl: faviconUrl ?? staticUrls.smallDartFavicon,
     noIndex: noIndex,
     oauthClientId: activeConfiguration.pubSiteAudience,
-    csrfToken: session?.csrfToken,
+    csrfToken: sessionData?.csrfToken,
     pageDataEncoded:
         pageData == null ? null : pageDataJsonCodec.encode(pageData.toJson()),
     bodyClasses: bodyClasses,
     siteHeader: siteHeaderNode(
       pageType: type,
-      userSession: session,
+      userSession: sessionData,
     ),
     announcementBanner: announcementBannerHtml == null
         ? null

@@ -113,7 +113,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     if (!context.uiCacheEnabled && !CacheHeaders.hasCacheHeader(rs.headers)) {
       // Indicates that the response is intended for a single user and must not
       // be stored by a shared cache. A private cache may store the response.
-      rs = rs.change(headers: CacheHeaders.private());
+      rs = rs.change(headers: await CacheHeaders.private());
     }
     return rs;
   };
@@ -159,6 +159,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
           content,
           title: 'Error ${e.code}',
           noIndex: true,
+          sessionData: null,
         ),
         status: e.status,
         headers: e.headers,
@@ -189,6 +190,7 @@ Request ID: ${context.traceId}
         d.markdown(markdownText),
         title: title,
         noIndex: true,
+        sessionData: null,
       );
       return htmlResponse(content, status: 500, headers: debugHeaders);
     } finally {

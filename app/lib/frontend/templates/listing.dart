@@ -6,6 +6,7 @@ import 'dart:math';
 
 import 'package:_pub_shared/search/search_form.dart';
 
+import '../../account/models.dart';
 import '../../package/search_adapter.dart';
 import '../../search/search_service.dart';
 import '../dom/dom.dart' as d;
@@ -37,6 +38,7 @@ String renderPkgIndexPage(
   required SearchForm searchForm,
   String? messageFromBackend,
   Set<String>? openSections,
+  required SessionData? sessionData,
 }) {
   final topPackages = getSdkDict(null).topSdkPackages;
   final isSearch = searchForm.hasQuery;
@@ -70,6 +72,7 @@ String renderPkgIndexPage(
     canonicalUrl: searchForm.toSearchLink(),
     noIndex: true,
     mainClasses: [],
+    sessionData: sessionData,
   );
 }
 

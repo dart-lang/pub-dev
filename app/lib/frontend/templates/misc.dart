@@ -6,6 +6,7 @@ import 'dart:io' as io;
 
 import 'package:path/path.dart' as p;
 
+import '../../account/models.dart';
 import '../dom/dom.dart' as d;
 import '../static_files.dart' as static_files;
 
@@ -40,27 +41,35 @@ late final _sideImage = d.Image(
 );
 
 /// Renders the response where the real content is only provided for logged-in users.
-String renderUnauthenticatedPage() {
+String renderUnauthenticatedPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     unauthenticatedNode,
     title: 'Authentication required',
     noIndex: true,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the response where the real content is only provided for authorized users.
-String renderUnauthorizedPage() {
+String renderUnauthorizedPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     unauthorizedNode,
     title: 'Authorization required',
     noIndex: true,
+    sessionData: sessionData,
   );
 }
 
 /// Renders the `doc/api.md`.
-String renderHelpApiPage() {
+String renderHelpApiPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(
@@ -69,11 +78,14 @@ String renderHelpApiPage() {
     ),
     title: 'pub.dev API',
     canonicalUrl: '/help/api',
+    sessionData: sessionData,
   );
 }
 
 /// Renders the `doc/help.md`.
-String renderHelpPage() {
+String renderHelpPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(
@@ -82,11 +94,14 @@ String renderHelpPage() {
     ),
     title: 'Help | Dart packages',
     canonicalUrl: '/help',
+    sessionData: sessionData,
   );
 }
 
 /// Renders the `doc/help-scoring.md`.
-String renderHelpScoringPage() {
+String renderHelpScoringPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(
@@ -95,11 +110,14 @@ String renderHelpScoringPage() {
     ),
     title: 'Scoring | Dart packages',
     canonicalUrl: '/help/scoring',
+    sessionData: sessionData,
   );
 }
 
 /// Renders the `doc/help-search.md`.
-String renderHelpSearchPage() {
+String renderHelpSearchPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(
@@ -108,11 +126,14 @@ String renderHelpSearchPage() {
     ),
     title: 'Search | Dart packages',
     canonicalUrl: '/help/search',
+    sessionData: sessionData,
   );
 }
 
 /// Renders the `doc/help-publishing.md`.
-String renderHelpPublishingPage() {
+String renderHelpPublishingPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(
@@ -121,6 +142,7 @@ String renderHelpPublishingPage() {
     ),
     title: 'Publishing | Dart packages',
     canonicalUrl: '/help/publishing',
+    sessionData: sessionData,
   );
 }
 
@@ -131,31 +153,42 @@ d.Node _readDocContent(String path) {
 }
 
 /// Renders the `/doc/policy.md` document.
-String renderPolicyPage() {
+String renderPolicyPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(_policyMarkdown),
     title: 'Policy | Pub site',
     canonicalUrl: '/policy',
+    sessionData: sessionData,
   );
 }
 
 /// Renders the `doc/security.md` template.
-String renderSecurityPage() {
+String renderSecurityPage({
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(_securityMarkdown),
     title: 'Security | Pub site',
     canonicalUrl: '/security',
+    sessionData: sessionData,
   );
 }
 
 /// Renders the error page template.
-String renderErrorPage(String title, String message) {
+String renderErrorPage(
+  String title,
+  String message, {
+  required SessionData? sessionData,
+}) {
   return renderLayoutPage(
     PageType.error,
     errorPageNode(title: title, content: d.markdown(message)),
     title: title,
     noIndex: true,
+    sessionData: sessionData,
   );
 }

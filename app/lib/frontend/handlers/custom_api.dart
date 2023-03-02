@@ -109,7 +109,7 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.packageNames(),
+    ...await CacheHeaders.packageNames(),
   });
 }
 
@@ -141,7 +141,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.packageNameCompletion(),
+    ...await CacheHeaders.packageNameCompletion(),
   });
 }
 

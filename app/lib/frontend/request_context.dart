@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../account/backend.dart';
@@ -52,7 +53,7 @@ class RequestContext {
   /// `id_token` be present as `Authentication: Bearer <id_token>` header instead.
   /// Such scheme does not work for `GET` requests that serve content to the
   /// browser, and hence, we employ session cookies for this purpose.
-  final SessionData? userSessionData;
+  final Future<SessionData?>? _oldSessionDataFuture;
 
   /// The status of the client session cookie.
   final ClientSessionCookieStatus clientSessionCookieStatus;
@@ -63,15 +64,37 @@ class RequestContext {
     this.uiCacheEnabled = false,
     ExperimentalFlags? experimentalFlags,
     this.csrfToken,
-    this.userSessionData,
+    Future<SessionData?>? oldSessionDataFuture,
     ClientSessionCookieStatus? clientSessionCookieStatus,
-  })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
+  })  : _oldSessionDataFuture = oldSessionDataFuture,
+        experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
         clientSessionCookieStatus =
             clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
-  late final isAuthenticated = userSessionData?.isAuthenticated ?? false;
-  late final isNotAuthenticated = !isAuthenticated;
-  late final authenticatedUserId = userSessionData?.userId;
+  Future<SessionData?>? _sessionData;
+  Future<SessionData?> get sessionData async {
+    if (_sessionData != null) {
+      return _sessionData;
+    }
+    if (clientSessionCookieStatus.isPresent) {
+      // TODO: try loading new client session;
+    }
+    _sessionData ??= _oldSessionDataFuture;
+    _sessionData ??= Future.value(null);
+    return _sessionData!;
+  }
+
+  Future<bool> get isAuthenticated async =>
+      (await sessionData)?.isAuthenticated ?? false;
+  Future<bool> get isNotAuthenticated async => !(await isAuthenticated);
+
+  Future<String> get authenticatedUserId async {
+    final userId = (await sessionData)?.userId;
+    if (userId == null) {
+      throw AuthenticationException.failed();
+    }
+    return userId;
+  }
 }
 
 Future<RequestContext> buildRequestContext({
@@ -88,10 +111,10 @@ Future<RequestContext> buildRequestContext({
   // Never read or look for the session cookie on request that try to modify
   // data (non-GET HTTP methods).
   final isAllowedForSession = request.method == 'GET';
-  SessionData? userSessionData;
+  Future<SessionData?>? oldSessionDataFuture;
   if (isPrimaryHost && isAllowedForSession) {
-    userSessionData =
-        await accountBackend.parseAndLookupUserSessionCookie(cookies);
+    oldSessionDataFuture = Future.microtask(
+        () => accountBackend.parseAndLookupUserSessionCookie(cookies));
   }
 
   // Parse client session cookie status, which can be present at any kind of request.
@@ -110,9 +133,7 @@ Future<RequestContext> buildRequestContext({
           // don't cache if experimental cookie is enabled
           experimentalFlags.isEmpty &&
           // don't cache if a user session is active
-          userSessionData == null &&
-          // don't cache if client session is active
-          !clientSessionCookieStatus.isPresent &&
+          !hasAnySessionCookie(cookies) &&
           // sanity check, this should be covered by client session cookie
           (csrfToken?.isNotEmpty ?? false);
   return RequestContext(
@@ -121,7 +142,7 @@ Future<RequestContext> buildRequestContext({
     uiCacheEnabled: uiCacheEnabled,
     experimentalFlags: experimentalFlags,
     csrfToken: csrfToken,
-    userSessionData: userSessionData,
+    oldSessionDataFuture: oldSessionDataFuture,
     clientSessionCookieStatus: clientSessionCookieStatus,
   );
 }

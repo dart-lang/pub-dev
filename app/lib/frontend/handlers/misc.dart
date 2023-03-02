@@ -25,37 +25,51 @@ import 'headers.dart';
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpPage());
+  return htmlResponse(renderHelpPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /help/api
 Future<shelf.Response> helpApiPageHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpApiPage());
+  return htmlResponse(renderHelpApiPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /help/scoring
 Future<shelf.Response> helpPageScoringHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpScoringPage());
+  return htmlResponse(renderHelpScoringPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /help/search
 Future<shelf.Response> helpPageSearchHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpSearchPage());
+  return htmlResponse(renderHelpSearchPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /help/publishing
 Future<shelf.Response> helpPagePublishingHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpPublishingPage());
+  return htmlResponse(renderHelpPublishingPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /policy
 Future<shelf.Response> policyPageHandler(shelf.Request request) async {
-  return htmlResponse(renderPolicyPage());
+  return htmlResponse(renderPolicyPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /security
 Future<shelf.Response> securityPageHandler(shelf.Request request) async {
-  return htmlResponse(renderSecurityPage());
+  return htmlResponse(renderSecurityPage(
+    sessionData: await requestContext.sessionData,
+  ));
 }
 
 /// Handles requests for /readiness_check
@@ -156,7 +170,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
       HttpHeaders.etagHeader: staticFile.etag,
       if (parsed.urlHash == staticFile.etag ||
           parsed.pathHash == staticFileCache.etag)
-        ...CacheHeaders.staticAsset(),
+        ...await CacheHeaders.staticAsset(),
     };
     return shelf.Response.ok(bytes, headers: headers);
   }
@@ -212,9 +226,13 @@ String _notFoundMessage(Uri requestedUri) {
 }
 
 /// Renders a formatted response when the request points to a missing or invalid path.
-shelf.Response formattedNotFoundHandler(shelf.Request request) {
+Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
   return htmlResponse(
-    renderErrorPage(default404NotFound, _notFoundMessage(request.requestedUri)),
+    renderErrorPage(
+      default404NotFound,
+      _notFoundMessage(request.requestedUri),
+      sessionData: await requestContext.sessionData,
+    ),
     status: 404,
   );
 }

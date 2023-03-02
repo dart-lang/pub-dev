@@ -40,6 +40,13 @@ String get _userSessionCookieName {
   return '__Host-pub-sid';
 }
 
+/// Returns true if any of the [cookies] is a session-cookie.
+bool hasAnySessionCookie(Map<String, String> cookies) {
+  return cookies.containsKey(_userSessionCookieName) ||
+      cookies.containsKey(clientSessionLaxCookieName) ||
+      cookies.containsKey(clientSessionStrictCookieName);
+}
+
 /// Create a set of HTTP headers that store a session cookie.
 Map<String, String> createUserSessionCookie(
     String sessionId, DateTime expires) {
