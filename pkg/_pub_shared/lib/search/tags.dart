@@ -16,6 +16,7 @@ const allowedTagPrefixes = [
   'sdk:',
   'show:',
   'has:',
+  'topic:'
 ];
 
 /// Collection of package-related tags.
