@@ -431,7 +431,7 @@ void main() {
       'package admin page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data = await accountBackend.withBearerToken(
+        await accountBackend.withBearerToken(
           adminAtPubDevAuthToken,
           () async {
             // update session as package data loading checks that
@@ -446,21 +446,21 @@ void main() {
                 ),
               ),
             );
-            return await loadPackagePageData(
-                'oxygen', '1.2.0', AssetKind.readme);
+            final data =
+                await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
+            final html = renderPkgAdminPage(
+              data,
+              ['example.com'],
+              await accountBackend.lookupUsersByEmail('admin@pub.dev'),
+              ['2.0.0'],
+              ['1.0.0'],
+            );
+            expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
+              'published': data.package!.created,
+              'updated': data.version!.created,
+            });
           },
         );
-        final html = renderPkgAdminPage(
-          data,
-          ['example.com'],
-          await accountBackend.lookupUsersByEmail('admin@pub.dev'),
-          ['2.0.0'],
-          ['1.0.0'],
-        );
-        expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
-        });
       },
     );
 
