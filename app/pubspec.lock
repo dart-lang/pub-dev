@@ -432,18 +432,18 @@ packages:
     dependency: "direct main"
     description:
       name: json_annotation
-      sha256: "3520fa844009431b5d4491a5a778603520cdc399ab3406332dcc50f93547258c"
+      sha256: c33da08e136c3df0190bd5bbe51ae1df4a7d96e7954d1d7249fea2968a72d317
       url: "https://pub.dev"
     source: hosted
-    version: "4.7.0"
+    version: "4.8.0"
   json_serializable:
     dependency: "direct dev"
     description:
       name: json_serializable
-      sha256: f3c2c18a7889580f71926f30c1937727c8c7d4f3a435f8f5e8b0ddd25253ef5d
+      sha256: dadc08bd61f72559f938dd08ec20dbfec6c709bba83515085ea943d2078d187a
       url: "https://pub.dev"
     source: hosted
-    version: "6.5.4"
+    version: "6.6.1"
   jsontool:
     dependency: transitive
     description:
@@ -544,10 +544,10 @@ packages:
     dependency: "direct main"
     description:
       name: pana
-      sha256: "877642bb0b781b1349c90bf0d165199cfe1289bc97ee0974bdf66da503645bc8"
+      sha256: "1337b449133cf758ad63409e1bf0715f931eeb6ecfeaad9cf6e350e8980d8333"
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.26"
+    version: "0.21.27"
   path:
     dependency: "direct main"
     description:
@@ -630,10 +630,10 @@ packages:
     dependency: "direct main"
     description:
       name: pubspec_parse
-      sha256: "75f6614d6dde2dc68948dffbaa4fe5dae32cd700eb9fb763fe11dfb45a3c4d0a"
+      sha256: ec85d7d55339d85f44ec2b682a82fea340071e8978257e5a43e69f79e98ef50c
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "1.2.2"
   retry:
     dependency: "direct main"
     description:
