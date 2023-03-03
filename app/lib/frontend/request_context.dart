@@ -102,11 +102,8 @@ Future<RequestContext> buildRequestContext({
   SessionData? clientSessionData;
   final clientSessionCookieStatus = parseClientSessionCookies(cookies);
   if (isPrimaryHost && clientSessionCookieStatus.isPresent) {
-    final clientSession = await accountBackend
-        .lookupValidUserSession(clientSessionCookieStatus.sessionId!);
-    if (clientSession != null) {
-      clientSessionData = SessionData.fromModel(clientSession);
-    }
+    clientSessionData = await accountBackend
+        .getSessionData(clientSessionCookieStatus.sessionId!);
   }
 
   final csrfToken = request.headers['x-pub-csrf-token']?.trim();

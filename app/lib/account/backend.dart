@@ -496,7 +496,7 @@ class AccountBackend {
       return null;
     }
 
-    final session = await _lookupUserSession(sessionId);
+    final session = await getSessionData(sessionId);
     if (session == null || !session.isAuthenticated) {
       return null;
     }
@@ -553,7 +553,7 @@ class AccountBackend {
     try {
       final sessionId = session_cookie.parseUserSessionCookie(cookies);
       if (sessionId != null && sessionId.isNotEmpty) {
-        return await _lookupUserSession(sessionId);
+        return await getSessionData(sessionId);
       }
     } catch (e, st) {
       _logger.severe('Unable to process session cookie.', e, st);
@@ -563,7 +563,10 @@ class AccountBackend {
 
   /// Returns the user session associated with the [sessionId] or null if it
   /// does not exists.
-  Future<SessionData?> _lookupUserSession(String sessionId) async {
+  ///
+  /// First it tries to load the session from cache, then, if it is not in cache,
+  /// it will try to load it from Datastore.
+  Future<SessionData?> getSessionData(String sessionId) async {
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
     if (cached != null) {
