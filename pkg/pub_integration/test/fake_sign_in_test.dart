@@ -74,7 +74,7 @@ void main() {
         },
       );
 
-      // sign-in with redirect
+      // same user sign-in with redirect
       await headlessEnv.withPage(
         fn: (page) async {
           await page.gotoOrigin('/sign-in?fake-email=user@pub.dev&go=/help');
@@ -105,6 +105,23 @@ void main() {
               isNot(contains(
                   'You have insufficient permissions to view this page.')));
           expect(await rs2.content, contains('Automated publishing'));
+        },
+      );
+
+      // sign-in with different user selected - session id changes
+      await headlessEnv.withPage(
+        fn: (page) async {
+          await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev&go=/');
+          final cookies = await page.cookies();
+          final cookieNames = cookies.map((e) => e.name).toSet();
+          expect(cookieNames, contains('PUB_SID_INSECURE'));
+          expect(cookieNames, contains('PUB_SSID_INSECURE'));
+          expect(page.url, '$origin/');
+
+          expect(
+            cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value,
+            isNot(firstSessionId),
+          );
         },
       );
     });

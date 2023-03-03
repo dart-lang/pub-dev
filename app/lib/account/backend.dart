@@ -501,18 +501,43 @@ class AccountBackend {
       final session = await tx.lookupOrNull<UserSession>(
           _db.emptyKey.append(UserSession, id: sessionId));
       if (session == null || session.isExpired()) {
-        throw NotFoundException('Session has been expired.');
+        throw AuthenticationException.failed('Session has been expired.');
       }
-      session
-        ..userId = user.userId
-        ..email = user.email
-        ..name = profile.name
-        ..imageUrl = profile.imageUrl
-        ..authenticated = now
-        ..openidNonce = createUuid() // resets the nonce to a new random UUID
-        ..expires = now.add(_sessionDuration);
-      tx.insert(session);
-      return SessionData.fromModel(session);
+      final oldUserId = session.userId;
+      if (oldUserId != null &&
+          oldUserId.isNotEmpty &&
+          oldUserId != user.userId) {
+        // expire old session
+        tx.delete(session.key);
+        await cacheEntry.purgeAndRepeat();
+
+        // create a new session
+        final newSession = UserSession()
+          ..id = createUuid()
+          ..userId = user.userId
+          ..email = user.email
+          ..name = profile.name
+          ..imageUrl = profile.imageUrl
+          ..openidNonce = createUuid()
+          ..created = now
+          ..authenticated = now
+          ..expires = now.add(_sessionDuration)
+          ..csrfToken = createUuid();
+        tx.insert(newSession);
+        return SessionData.fromModel(newSession);
+      } else {
+        // only update the current one
+        session
+          ..userId = user.userId
+          ..email = user.email
+          ..name = profile.name
+          ..imageUrl = profile.imageUrl
+          ..authenticated = now
+          ..openidNonce = createUuid() // resets the nonce to a new random UUID
+          ..expires = now.add(_sessionDuration);
+        tx.insert(session);
+        return SessionData.fromModel(session);
+      }
     });
     await cacheEntry.set(data);
     return data;
