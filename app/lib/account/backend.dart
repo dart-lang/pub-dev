@@ -491,7 +491,6 @@ class AccountBackend {
     required String sessionId,
     required AuthResult profile,
   }) async {
-    final cacheEntry = cache.userSessionData(sessionId);
     final now = clock.now().toUtc();
     final user = await _lookupOrCreateUserByOauthUserId(profile);
     if (user == null || user.isBlocked || user.isDeleted) {
@@ -509,7 +508,7 @@ class AccountBackend {
           oldUserId != user.userId) {
         // expire old session
         tx.delete(session.key);
-        await cacheEntry.purgeAndRepeat();
+        await cache.userSessionData(sessionId).purgeAndRepeat();
 
         // create a new session
         final newSession = UserSession()
@@ -539,7 +538,7 @@ class AccountBackend {
         return SessionData.fromModel(session);
       }
     });
-    await cacheEntry.set(data);
+    await cache.userSessionData(data.sessionId).set(data);
     return data;
   }
 
