@@ -54,6 +54,8 @@ class RequestContext {
   /// browser, and hence, we employ session cookies for this purpose.
   final SessionData? userSessionData;
 
+  final SessionData? clientSessionData;
+
   /// The status of the client session cookie.
   final ClientSessionCookieStatus clientSessionCookieStatus;
 
@@ -64,14 +66,16 @@ class RequestContext {
     ExperimentalFlags? experimentalFlags,
     this.csrfToken,
     this.userSessionData,
+    this.clientSessionData,
     ClientSessionCookieStatus? clientSessionCookieStatus,
   })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
         clientSessionCookieStatus =
             clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
-  late final isAuthenticated = userSessionData?.isAuthenticated ?? false;
+  late final sessionData = clientSessionData ?? userSessionData;
+  late final isAuthenticated = sessionData?.isAuthenticated ?? false;
   late final isNotAuthenticated = !isAuthenticated;
-  late final authenticatedUserId = userSessionData?.userId;
+  late final authenticatedUserId = sessionData?.userId;
 }
 
 Future<RequestContext> buildRequestContext({
@@ -95,7 +99,16 @@ Future<RequestContext> buildRequestContext({
   }
 
   // Parse client session cookie status, which can be present at any kind of request.
+  SessionData? clientSessionData;
   final clientSessionCookieStatus = parseClientSessionCookies(cookies);
+  if (isPrimaryHost && clientSessionCookieStatus.isPresent) {
+    final clientSession = await accountBackend
+        .lookupValidUserSession(clientSessionCookieStatus.sessionId!);
+    if (clientSession != null) {
+      clientSessionData = SessionData.fromModel(clientSession);
+    }
+  }
+
   final csrfToken = request.headers['x-pub-csrf-token']?.trim();
 
   final indentJson = request.requestedUri.queryParameters.containsKey('pretty');
@@ -122,6 +135,7 @@ Future<RequestContext> buildRequestContext({
     experimentalFlags: experimentalFlags,
     csrfToken: csrfToken,
     userSessionData: userSessionData,
+    clientSessionData: clientSessionData,
     clientSessionCookieStatus: clientSessionCookieStatus,
   );
 }

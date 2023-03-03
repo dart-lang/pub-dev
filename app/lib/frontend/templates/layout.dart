@@ -63,7 +63,7 @@ String renderLayoutPage(
     if (type == PageType.landing) 'page-landing',
   ];
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
-  final session = requestContext.userSessionData;
+  final session = requestContext.sessionData;
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,

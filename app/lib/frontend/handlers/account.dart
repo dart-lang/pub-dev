@@ -332,7 +332,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   final html = renderAccountPackagesPage(
     user: (await accountBackend
         .lookupUserById(requestContext.authenticatedUserId!))!,
-    userSessionData: requestContext.userSessionData!,
+    userSessionData: requestContext.sessionData!,
     startPackage: next,
     packageHits: hits.whereType<PackageView>().toList(),
     nextPackage: page.nextPackage,
@@ -352,7 +352,7 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
   final likes = await likeBackend.listPackageLikes(user);
   final html = renderMyLikedPackagesPage(
     user: user,
-    userSessionData: requestContext.userSessionData!,
+    userSessionData: requestContext.sessionData!,
     likes: likes,
   );
   return htmlResponse(html);
@@ -370,7 +370,7 @@ Future<shelf.Response> accountPublishersPageHandler(
   final content = renderAccountPublishersPage(
     user: (await accountBackend
         .lookupUserById(requestContext.authenticatedUserId!))!,
-    userSessionData: requestContext.userSessionData!,
+    userSessionData: requestContext.sessionData!,
     publishers: page.publishers!,
   );
   return htmlResponse(content);
@@ -391,7 +391,7 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
   final content = renderAccountMyActivityPage(
     user: (await accountBackend
         .lookupUserById(requestContext.authenticatedUserId!))!,
-    userSessionData: requestContext.userSessionData!,
+    userSessionData: requestContext.sessionData!,
     activities: activities,
   );
   return htmlResponse(content);

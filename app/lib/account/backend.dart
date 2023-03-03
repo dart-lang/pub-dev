@@ -27,15 +27,6 @@ import 'auth_provider.dart';
 import 'models.dart';
 import 'session_cookie.dart' as session_cookie;
 
-/// The name of the session cookie.
-///
-/// Cookies prefixed '__Host-' must:
-///  * be set by a HTTPS response,
-///  * not feature a 'Domain' directive, and,
-///  * have 'Path=/' directive.
-/// Hence, such a cookie cannot have been set by another website or an
-/// HTTP proxy for this website.
-const pubSessionCookieName = '__Host-pub-sid';
 final _logger = Logger('account.backend');
 
 /// The duration or extension of a client session.
