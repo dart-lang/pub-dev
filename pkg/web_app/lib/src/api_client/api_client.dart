@@ -5,6 +5,7 @@
 import 'dart:html';
 
 import '../_authentication_proxy.dart';
+import '../account.dart';
 import '../deferred/http.dart' as http;
 import 'pubapi.client.dart';
 
@@ -27,6 +28,10 @@ PubApiClient get unauthenticatedClient =>
 PubApiClient get client {
   return PubApiClient(_baseUrl,
       client: http.createAuthenticatedClient(() async {
+    if (useNewSignin) {
+      return null;
+    }
+
     // Wait until we're initialized
     await authProxyReady;
 

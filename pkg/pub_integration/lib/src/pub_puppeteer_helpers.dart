@@ -52,8 +52,9 @@ extension PageExt on Page {
       final text = (await button.textContent()).trim();
       if (text.toLowerCase() == label.toLowerCase()) {
         await button.click();
-        break;
+        return;
       }
     }
+    throw Exception('Button with label "$label" is not on the page.');
   }
 }

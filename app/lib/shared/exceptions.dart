@@ -364,8 +364,12 @@ class AuthenticationException extends ResponseException {
           '`accessToken` does not match current active user.');
 
   /// Signaling that `authorization` header has bad value or is expired.
-  factory AuthenticationException.failed() =>
-      AuthenticationException._('Authentication failed.');
+  factory AuthenticationException.failed([String? message]) {
+    return AuthenticationException._([
+      'Authentication failed.',
+      if (message != null) message,
+    ].join(' '));
+  }
 
   /// Signaling that User lookup (via e-mail) failed.
   factory AuthenticationException.userNotFound() =>

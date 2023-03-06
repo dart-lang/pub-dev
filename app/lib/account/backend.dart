@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 
 import '../audit/models.dart';
+import '../frontend/request_context.dart';
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../shared/configuration.dart';
@@ -63,6 +64,21 @@ String? _getBearerToken() => ss.lookup(#_bearerToken) as String?;
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
+  if (requestContext.experimentalFlags.useNewSignIn &&
+      requestContext.clientSessionCookieStatus.isPresent) {
+    final sessionUser = await accountBackend.tryAuthenticateWebSessionUser(
+      sessionId: requestContext.clientSessionCookieStatus.sessionId,
+      hasStrictCookie: requestContext.clientSessionCookieStatus.isStrict,
+      csrfTokenInHeader: requestContext.csrfToken,
+      requiresStrictCookie: true,
+    );
+    if (sessionUser != null) {
+      return sessionUser;
+    } else {
+      throw AuthenticationException.failed('Session expired.');
+    }
+  }
+
   final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedUser) {
     if (agent.audience != activeConfiguration.pubSiteAudience) {
