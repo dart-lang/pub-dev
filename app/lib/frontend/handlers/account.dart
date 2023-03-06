@@ -111,7 +111,7 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   if (profile == null) {
     throw AuthenticationException.failed();
   }
-  await accountBackend.updateClientSessionWithProfile(
+  final newSession = await accountBackend.updateClientSessionWithProfile(
     sessionId: session.sessionId,
     profile: profile,
   );
@@ -120,7 +120,13 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   final go = state['go'];
   if (go != null) {
     // TODO: verify go
-    return redirectResponse(go);
+    return redirectResponse(
+      go,
+      headers: session_cookie.createClientSessionCookie(
+        sessionId: newSession.sessionId,
+        maxAge: newSession.maxAge,
+      ),
+    );
   }
   return jsonResponse(
     {
@@ -130,6 +136,10 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
       'imageUrl': profile.imageUrl,
     },
     indentJson: true,
+    headers: session_cookie.createClientSessionCookie(
+      sessionId: newSession.sessionId,
+      maxAge: newSession.maxAge,
+    ),
   );
 }
 
