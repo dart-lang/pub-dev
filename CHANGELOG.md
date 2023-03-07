@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * NOTE: renamed `is:dart3-ready` to `is:dart3-compatible`.
 
 ## `20230307t120800-all`
  * Bumped runtimeVersion to `2023.03.07`.

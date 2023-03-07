@@ -90,7 +90,7 @@ class _PanaRunner implements PanaRunner {
                 ? null
                 : await getDefaultAnalysisOptionsYaml(),
             checkRemoteRepository: isInternal,
-            futureSdkTag: PackageVersionTags.isDart3Ready,
+            futureSdkTag: PackageVersionTags.isDart3Compatible,
           ),
           logger: Logger.detached('pana/$package/$version'),
           storeResource: store,

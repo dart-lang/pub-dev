@@ -73,7 +73,8 @@ d.Node _packageItem(
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
-  final isDart3Ready = view.tags.contains(PackageVersionTags.isDart3Ready);
+  final isDart3Compatible =
+      view.tags.contains(PackageVersionTags.isDart3Compatible);
 
   Iterable<d.Node> versionAndTimestamp(
     Release release, {
@@ -128,8 +129,8 @@ d.Node _packageItem(
         child: licenseNode,
       ),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
-    if (isNullSafe && !isDart3Ready) nullSafeBadgeNode(),
-    if (isDart3Ready) dart3ReadyNode,
+    if (isNullSafe && !isDart3Compatible) nullSafeBadgeNode(),
+    if (isDart3Compatible) dart3CompatibleNode,
   ]);
 
   final screenshots = view.screenshots;

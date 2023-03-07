@@ -78,6 +78,9 @@ abstract class PackageVersionTags {
   /// Package version is compatible with Dart 3.
   static const String isDart3Ready = 'is:dart3-ready';
 
+  /// Package version is compatible with Dart 3.
+  static const String isDart3Compatible = 'is:dart3-compatible';
+
   /// Version tags that provide a positive, forward-looking property
   /// of a prerelease or preview version.
   ///
@@ -90,7 +93,7 @@ abstract class PackageVersionTags {
     PackageVersionTags.isPlugin,
     PackageVersionTags.hasFundingLink,
     PackageVersionTags.hasScreenshot,
-    PackageVersionTags.isDart3Ready,
+    PackageVersionTags.isDart3Compatible,
   };
 }
 
