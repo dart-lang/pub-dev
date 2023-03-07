@@ -11,6 +11,7 @@ import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/publisher/backend.dart';
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -216,7 +217,11 @@ class IntegrityChecker {
         yield 'PublisherMember "${pm.id}" has bad `userId` value: "${pm.userId}".';
       }
       if (!_publishers.contains(pm.publisherId)) {
-        yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
+        // double check actual status to prevent misreports on cache race conditions
+        final p = await publisherBackend.getPublisher(pm.publisherId);
+        if (p != null) {
+          yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
+        }
       }
       if (pm.userId == null) {
         yield 'PublisherMember of "${pm.publisherId}" has no `userId`.';
@@ -441,7 +446,12 @@ class IntegrityChecker {
       foundAssetIds.add(pva.assetId);
       // check if PackageVersionAsset is referenced in PackageVersionInfo
       if (!referencedAssetIds.contains(pva.assetId)) {
-        yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
+        // double check actual status to prevent misreports on cache race conditions
+        final info = await packageBackend.lookupPackageVersionInfo(
+            pva.package!, pva.version!);
+        if (info == null || !info.assets.contains(pva.kind!)) {
+          yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
+        }
       }
       // check pubspec content
       if (pva.kind == AssetKind.pubspec) {
@@ -635,7 +645,11 @@ class IntegrityChecker {
       final packageName = pkg.name!;
       _moderatedPackages.add(packageName);
       if (await _packageExists(packageName)) {
-        yield 'Moderated package "$packageName" also present in active packages.';
+        // double check actual status to prevent misreports on cache race conditions
+        final p = await packageBackend.lookupPackage(packageName);
+        if (p != null) {
+          yield 'Moderated package "$packageName" also present in active packages.';
+        }
       }
     }
   }
