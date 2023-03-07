@@ -20,7 +20,7 @@ WORKDIR /home/worker/pub-dev
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
 RUN tool/setup-dart.sh /home/worker/dart 2.19.3
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
-RUN tool/setup-dart.sh /home/worker/dart 3.0.0-218.1.dev
+RUN tool/setup-dart.sh /home/worker/dart 3.0.0-290.0.dev
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/

@@ -22,7 +22,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.03.03',
+  '2023.03.07',
   // Fallback runtime versions.
   '2023.02.22',
   '2023.02.14',
@@ -56,7 +56,7 @@ bool shouldGCVersion(String version) =>
 final String runtimeSdkVersion = '2.19.0';
 final String toolStableDartSdkVersion = '2.19.3';
 final String toolStableFlutterSdkVersion = '3.7.6';
-final String toolPreviewDartSdkVersion = '3.0.0-218.1.dev';
+final String toolPreviewDartSdkVersion = '3.0.0-290.0.dev';
 final String toolPreviewFlutterSdkVersion = '3.8.0-10.1.pre';
 
 final semanticToolStableDartSdkVersion =
