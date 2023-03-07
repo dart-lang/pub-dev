@@ -76,6 +76,7 @@ abstract class PackageVersionTags {
   static const String hasScreenshot = 'has:screenshot';
 
   /// Package version is compatible with Dart 3.
+  /// TODO: remove after the next release gets stable
   static const String isDart3Ready = 'is:dart3-ready';
 
   /// Package version is compatible with Dart 3.

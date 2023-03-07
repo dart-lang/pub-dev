@@ -74,7 +74,8 @@ d.Node _packageItem(
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
   final isDart3Compatible =
-      view.tags.contains(PackageVersionTags.isDart3Compatible);
+      view.tags.contains(PackageVersionTags.isDart3Ready) ||
+          view.tags.contains(PackageVersionTags.isDart3Compatible);
 
   Iterable<d.Node> versionAndTimestamp(
     Release release, {
