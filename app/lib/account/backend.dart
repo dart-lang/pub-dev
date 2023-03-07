@@ -605,8 +605,21 @@ class AccountBackend {
   /// Removes the session data from the Datastore and from cache.
   Future<void> invalidateUserSession(String sessionId) async {
     final key = _db.emptyKey.append(UserSession, id: sessionId);
-    await _db.commit(deletes: [key]);
+    try {
+      await _db.commit(deletes: [key]);
+    } catch (_) {
+      // ignore if the entity has been already deleted concurrently
+    }
     await cache.userSessionData(sessionId).purge();
+  }
+
+  /// Scans Datastore for all sessions the user has, and invalidates
+  /// them all (by deleting the Datastore entry and purging the cache).
+  Future<void> invalidateAllUserSessions(String userId) async {
+    final query = _db.query<UserSession>()..filter('userId =', userId);
+    await for (final session in query.run()) {
+      await invalidateUserSession(session.sessionId);
+    }
   }
 
   /// Removes the expired sessions from Datastore.
