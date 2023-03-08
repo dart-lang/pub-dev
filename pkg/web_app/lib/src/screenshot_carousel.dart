@@ -17,6 +17,8 @@ void _setEventForScreenshot() {
   final imageContainer = document.getElementById('-image-container')!;
   final prev = document.getElementById('-carousel-prev')!;
   final next = document.getElementById('-carousel-next')!;
+  final description =
+      document.getElementById('-screenshot-description') as ParagraphElement;
   ImageElement? imageElement =
       document.getElementById('-carousel-image') as ImageElement?;
   if (imageElement == null) {
@@ -27,6 +29,7 @@ void _setEventForScreenshot() {
   }
 
   List<String> images = [];
+  List<String> descriptions = [];
 
   void hideElement(Element element) {
     element.style.display = 'none';
@@ -38,8 +41,10 @@ void _setEventForScreenshot() {
 
   void showImage(int index, UIEvent event) {
     event.stopPropagation();
+    hideElement(description);
     hideElement(imageElement!);
     imageElement.src = images[index];
+    description.text = descriptions[index];
 
     if (index == images.length - 1) {
       hideElement(next);
@@ -56,6 +61,7 @@ void _setEventForScreenshot() {
 
     imageElement.onLoad.listen((event) {
       showElement(imageElement!);
+      showElement(description);
     });
   }
 
@@ -66,6 +72,7 @@ void _setEventForScreenshot() {
       document.body!.classes.remove('overflow-auto');
       document.body!.classes.add('overflow-hidden');
       images = thumbnail.dataset['thumbnail']!.split(',');
+      descriptions = thumbnail.dataset['thumbnail-descriptions']!.split(',');
       showImage(screenshotIndex, event);
     });
   }
@@ -75,6 +82,7 @@ void _setEventForScreenshot() {
     hideElement(carousel);
     hideElement(next);
     hideElement(prev);
+    hideElement(description);
     document.body!.classes.remove('overflow-hidden');
     document.body!.classes.add('overflow-auto');
     screenshotIndex = 0;

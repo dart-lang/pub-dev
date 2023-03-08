@@ -43,10 +43,13 @@ d.Node imageCarousel() {
         'data-ga-click-event': 'screenshot-carousel-prev-click',
       });
 
+  final description =
+      d.p(id: '-screenshot-description', classes: ['screenshot-description']);
+
   return d.div(
     id: '-screenshot-carousel',
     classes: ['carousel'],
-    children: [prev, imageContainer, next],
+    children: [prev, imageContainer, next, description],
   );
 }
 
@@ -60,11 +63,15 @@ d.Node collectionsIcon() {
 }
 
 d.Node screenshotThumbnailNode(
-    String thumbnailUrl, List<String>? screenshotUrls) {
+  String thumbnailUrl,
+  List<String>? screenshotUrls,
+  List<String>? screenshotDescriptions,
+) {
   return d.div(classes: [
     'thumbnail-container'
   ], attributes: {
     'data-thumbnail': screenshotUrls!.join(','),
+    'data-thumbnail-descriptions': screenshotDescriptions!.join(','),
     'data-ga-click-event': 'screenshot-thumbnail-click',
   }, children: [
     d.img(
