@@ -15,25 +15,30 @@ final _logger = Logger('update_public_buckets');
 
 class PublicBucketUpdateStat {
   final int archivesUpdated;
+  final int archivesToBeDeleted;
   final int archivesDeleted;
 
   PublicBucketUpdateStat({
     required this.archivesUpdated,
+    required this.archivesToBeDeleted,
     required this.archivesDeleted,
   });
 }
 
 /// Updates the public package archive:
-/// - copies missing archive objects from canonical to public
+/// - copies missing archive objects from canonical to public bucket,
+/// - deletes leftover objects from public bucket
 ///
 /// Return the number of objects that were updated.
 Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
   @visibleForTesting Duration ageCheckThreshold = const Duration(days: 1),
+  @visibleForTesting Duration deleteIfOlder = const Duration(days: 7),
 }) async {
   _logger.info('Scanning PackageVersions for public bucket updates...');
 
-  var updated = 0;
-  var deleted = 0;
+  var updatedCount = 0;
+  var toBeDeletedCount = 0;
+  final deleteObjects = <String>[];
   final canonicalBucket =
       storageService.bucket(activeConfiguration.canonicalPackagesBucketName!);
   final publicBucket =
@@ -52,7 +57,7 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
         canonicalBucket.absoluteObjectName(objectName),
         publicBucket.absoluteObjectName(objectName),
       );
-      updated++;
+      updatedCount++;
     }
     objectNamesInPublicBucket.add(objectName);
   }
@@ -94,13 +99,24 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
     } else {
       // The object in the public bucket has no matching file in the canonical bucket.
       // We can assume it is stale and can delete it.
-      _logger.shout('Deleting object from public bucket: "${entry.name}".');
-      deleted++;
+      if (publicInfo.age <= deleteIfOlder) {
+        _logger.shout(
+            'Object from public bucket will be deleted: "${entry.name}".');
+        toBeDeletedCount++;
+      } else {
+        deleteObjects.add(entry.name);
+      }
     }
   }
 
+  for (final objectName in deleteObjects) {
+    _logger.shout('Deleting object from public bucket: "$objectName".');
+    await publicBucket.delete(objectName);
+  }
+
   return PublicBucketUpdateStat(
-    archivesUpdated: updated,
-    archivesDeleted: deleted,
+    archivesUpdated: updatedCount,
+    archivesToBeDeleted: toBeDeletedCount,
+    archivesDeleted: deleteObjects.length,
   );
 }

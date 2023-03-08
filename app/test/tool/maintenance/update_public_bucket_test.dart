@@ -15,6 +15,7 @@ void main() {
       final changes =
           await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
       expect(changes.archivesUpdated, 0);
+      expect(changes.archivesToBeDeleted, 0);
       expect(changes.archivesDeleted, 0);
     });
 
@@ -26,11 +27,13 @@ void main() {
       final changes =
           await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
       expect(changes.archivesUpdated, 1);
+      expect(changes.archivesToBeDeleted, 0);
       expect(changes.archivesDeleted, 0);
 
       final changes2 =
           await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
       expect(changes2.archivesUpdated, 0);
+      expect(changes.archivesToBeDeleted, 0);
       expect(changes2.archivesDeleted, 0);
     });
 
@@ -42,19 +45,31 @@ void main() {
       // recent file gets ignored
       final recent = await updatePublicArchiveBucket();
       expect(recent.archivesUpdated, 0);
+      expect(recent.archivesToBeDeleted, 0);
       expect(recent.archivesDeleted, 0);
 
-      // non-recent file gets deleted
+      // non-recent file will get deleted
       final changes =
           await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
       expect(changes.archivesUpdated, 0);
-      expect(changes.archivesDeleted, 1);
+      expect(changes.archivesToBeDeleted, 1);
+      expect(changes.archivesDeleted, 0);
 
-      // TODO: second round should report 0 deleted after delete gets implemented.
-      final changes2 =
-          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      // non-recent file is deleted
+      final changes2 = await updatePublicArchiveBucket(
+        ageCheckThreshold: Duration.zero,
+        deleteIfOlder: Duration.zero,
+      );
       expect(changes2.archivesUpdated, 0);
+      expect(changes2.archivesToBeDeleted, 0);
       expect(changes2.archivesDeleted, 1);
+
+      // second round should report 0 deleted
+      final changes3 =
+          await updatePublicArchiveBucket(ageCheckThreshold: Duration.zero);
+      expect(changes3.archivesUpdated, 0);
+      expect(changes3.archivesToBeDeleted, 0);
+      expect(changes3.archivesDeleted, 0);
     });
   });
 }
