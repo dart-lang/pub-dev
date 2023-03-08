@@ -101,6 +101,8 @@ class DefaultAuthProvider extends BaseAuthProvider {
   Future<Uri> getOauthAuthenticationUrl({
     required Map<String, String> state,
     required String nonce,
+    required bool promptConsent,
+    required String? loginHint,
   }) async {
     // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
@@ -115,6 +117,8 @@ class DefaultAuthProvider extends BaseAuthProvider {
         ].join(' '),
         'state': encodeState(state),
         'nonce': nonce,
+        if (promptConsent) 'prompt': 'consent',
+        if (loginHint != null && loginHint.isNotEmpty) 'login_hint': loginHint,
       },
     );
   }
