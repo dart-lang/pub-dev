@@ -444,12 +444,32 @@ class AccountBackend {
     });
   }
 
-  /// Creates a new client session for pre-authorization secrets and
-  /// post-authorization user information.
-  Future<SessionData> createNewClientSession({
+  /// Updates an existing or creates a new client session for pre-authorization
+  /// secrets and post-authorization user information.
+  Future<SessionData> createOrUpdateClientSession({
+    String? sessionId,
     required String nonce,
   }) async {
     final now = clock.now().toUtc();
+    final oldSession =
+        sessionId == null ? null : await lookupValidUserSession(sessionId);
+    // try to update old session first
+    if (oldSession != null) {
+      final rs = await withRetryTransaction(_db, (tx) async {
+        final session = await tx.lookupOrNull<UserSession>(oldSession.key);
+        if (session == null) {
+          return null;
+        }
+        session
+          ..expires = now.add(_sessionDuration)
+          ..openidNonce = nonce;
+        tx.insert(session);
+        return SessionData.fromModel(session);
+      });
+      if (rs != null) return rs;
+    }
+
+    // in the absence of a valid existing session, create a new one
     final session = UserSession()
       ..id = createUuid()
       // TODO: make this null after all deployed version can handle it
@@ -471,7 +491,6 @@ class AccountBackend {
     required String sessionId,
     required AuthResult profile,
   }) async {
-    final cacheEntry = cache.userSessionData(sessionId);
     final now = clock.now().toUtc();
     final user = await _lookupOrCreateUserByOauthUserId(profile);
     if (user == null || user.isBlocked || user.isDeleted) {
@@ -481,19 +500,45 @@ class AccountBackend {
       final session = await tx.lookupOrNull<UserSession>(
           _db.emptyKey.append(UserSession, id: sessionId));
       if (session == null || session.isExpired()) {
-        throw NotFoundException('Session has been expired.');
+        throw AuthenticationException.failed('Session has been expired.');
       }
-      session
-        ..userId = user.userId
-        ..email = user.email
-        ..name = profile.name
-        ..imageUrl = profile.imageUrl
-        ..authenticated = now
-        ..expires = now.add(_sessionDuration);
-      tx.insert(session);
-      return SessionData.fromModel(session);
+      final oldUserId = session.userId;
+      if (oldUserId != null &&
+          oldUserId.isNotEmpty &&
+          oldUserId != user.userId) {
+        // expire old session
+        tx.delete(session.key);
+        await cache.userSessionData(sessionId).purgeAndRepeat();
+
+        // create a new session
+        final newSession = UserSession()
+          ..id = createUuid()
+          ..userId = user.userId
+          ..email = user.email
+          ..name = profile.name
+          ..imageUrl = profile.imageUrl
+          ..openidNonce = createUuid()
+          ..created = now
+          ..authenticated = now
+          ..expires = now.add(_sessionDuration)
+          ..csrfToken = createUuid();
+        tx.insert(newSession);
+        return SessionData.fromModel(newSession);
+      } else {
+        // only update the current one
+        session
+          ..userId = user.userId
+          ..email = user.email
+          ..name = profile.name
+          ..imageUrl = profile.imageUrl
+          ..authenticated = now
+          ..openidNonce = createUuid() // resets the nonce to a new random UUID
+          ..expires = now.add(_sessionDuration);
+        tx.insert(session);
+        return SessionData.fromModel(session);
+      }
     });
-    await cacheEntry.set(data);
+    await cache.userSessionData(data.sessionId).set(data);
     return data;
   }
 

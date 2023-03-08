@@ -42,8 +42,8 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
   final nonce = createUuid();
-  // TODO: update current session if it exists instead of always creating a new one
-  final session = await accountBackend.createNewClientSession(
+  final session = await accountBackend.createOrUpdateClientSession(
+    sessionId: requestContext.clientSessionCookieStatus.sessionId,
     nonce: nonce,
   );
   final params = request.requestedUri.queryParameters;
@@ -111,7 +111,7 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   if (profile == null) {
     throw AuthenticationException.failed();
   }
-  await accountBackend.updateClientSessionWithProfile(
+  final newSession = await accountBackend.updateClientSessionWithProfile(
     sessionId: session.sessionId,
     profile: profile,
   );
@@ -120,7 +120,13 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   final go = state['go'];
   if (go != null) {
     // TODO: verify go
-    return redirectResponse(go);
+    return redirectResponse(
+      go,
+      headers: session_cookie.createClientSessionCookie(
+        sessionId: newSession.sessionId,
+        maxAge: newSession.maxAge,
+      ),
+    );
   }
   return jsonResponse(
     {
@@ -130,6 +136,10 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
       'imageUrl': profile.imageUrl,
     },
     indentJson: true,
+    headers: session_cookie.createClientSessionCookie(
+      sessionId: newSession.sessionId,
+      maxAge: newSession.maxAge,
+    ),
   );
 }
 

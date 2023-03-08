@@ -9,6 +9,7 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
@@ -157,7 +158,7 @@ void main() {
         testProfile: emptyTestProfile,
         fn: () async {
           final session =
-              await accountBackend.createNewClientSession(nonce: 'nonce');
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
           expect(
             await accountBackend.tryAuthenticateWebSessionUser(
               sessionId: session.sessionId,
@@ -177,7 +178,7 @@ void main() {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
           final session =
-              await accountBackend.createNewClientSession(nonce: 'nonce');
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(
@@ -212,7 +213,7 @@ void main() {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
           final session =
-              await accountBackend.createNewClientSession(nonce: 'nonce');
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(
@@ -229,6 +230,62 @@ void main() {
             requiresStrictCookie: true,
           );
           expect(authenticatedUser?.email, email);
+
+          // repeated call keeps session
+          final sessionData =
+              await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: email,
+              audience: activeConfiguration.pubSiteAudience!,
+            ),
+          );
+          expect(sessionData.sessionId, session.sessionId);
+        },
+      );
+
+      testWithProfile(
+        'success - user change',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final email = 'user@pub.dev';
+          final oauthUserId = fakeOauthUserIdFromEmail(email);
+          final session =
+              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: email,
+              audience: activeConfiguration.pubSiteAudience!,
+            ),
+          );
+          final authenticatedUser =
+              await accountBackend.tryAuthenticateWebSessionUser(
+            sessionId: session.sessionId,
+            hasStrictCookie: true,
+            csrfTokenInHeader: session.csrfToken,
+            requiresStrictCookie: true,
+          );
+          expect(authenticatedUser?.email, email);
+
+          // repeated call changes session
+          final newEmail = 'admin@pub.dev';
+          final sessionData =
+              await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: fakeOauthUserIdFromEmail(newEmail),
+              email: newEmail,
+              audience: activeConfiguration.pubSiteAudience!,
+            ),
+          );
+          expect(sessionData.sessionId, isNot(session.sessionId));
+          final oldSessionEntry = await dbService.lookupOrNull<UserSession>(
+              dbService.emptyKey.append(UserSession, id: session.sessionId));
+          expect(oldSessionEntry, isNull);
+          expect(await cache.userSessionData(session.sessionId).get(), isNull);
         },
       );
     });
