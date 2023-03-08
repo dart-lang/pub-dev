@@ -75,7 +75,7 @@ class RequestContext {
   late final sessionData = clientSessionData ?? userSessionData;
   late final isAuthenticated = sessionData?.isAuthenticated ?? false;
   late final isNotAuthenticated = !isAuthenticated;
-  late final authenticatedUserId = sessionData?.userId;
+  late final authenticatedUserId = isAuthenticated ? sessionData?.userId : null;
 }
 
 Future<RequestContext> buildRequestContext({

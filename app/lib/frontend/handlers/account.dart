@@ -187,18 +187,19 @@ Future<shelf.Response> updateSessionHandler(
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-  final sessionData =
-      await accountBackend.parseAndLookupUserSessionCookie(cookies);
-  final hasUserSession = sessionData != null;
-  // Invalidate the server-side sessionId, in case the user signed out because
+  final sessionId = requestContext.sessionData?.sessionId;
+  final userId = requestContext.authenticatedUserId;
+  // Invalidate the server-side session object, in case the user signed out because
   // the local cookie store was compromised.
-  if (hasUserSession) {
-    await accountBackend.invalidateUserSession(sessionData.sessionId);
+  if (sessionId != null) {
+    await accountBackend.invalidateUserSession(sessionId);
+  }
+  if (requestContext.experimentalFlags.useNewSignIn && userId != null) {
+    await accountBackend.invalidateAllUserSessions(userId);
   }
   return jsonResponse(
     ClientSessionStatus(
-      changed: hasUserSession,
+      changed: sessionId != null,
       expires: null,
     ).toJson(),
     // Clear cookie, so we don't have to lookup an invalid sessionId.
