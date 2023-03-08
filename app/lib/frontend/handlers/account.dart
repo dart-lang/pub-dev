@@ -58,6 +58,8 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   final oauth2Url = await authProvider.getOauthAuthenticationUrl(
     state: state,
     nonce: nonce,
+    promptConsent: false,
+    loginHint: requestContext.sessionData?.email,
   );
   return redirectResponse(
     oauth2Url.toString(),
@@ -74,6 +76,11 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
   final params = request.requestedUri.queryParameters;
+  final error = params['error'];
+  if (error != null && error.isNotEmpty) {
+    return htmlResponse('There was an error: $error', status: 401);
+  }
+
   final code = params['code'];
   if (code == null || code.isEmpty) {
     return notFoundHandler(request, body: 'Missing `code`.');
@@ -96,8 +103,7 @@ Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
   }
   final state = decodeState(params['state']);
   // TODO: verify state in the response
-  // TODO: verify authuser (=0)
-  // TODO: verify prompt (=none)
+  // TODO: verify prompt (=none or =consent)
   final profile = await authProvider.tryAuthenticateOauthCode(
     code: code,
     expectedNonce: expectedNonce,

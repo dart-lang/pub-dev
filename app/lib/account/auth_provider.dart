@@ -49,6 +49,8 @@ abstract class AuthProvider {
   Future<Uri> getOauthAuthenticationUrl({
     required Map<String, String> state,
     required String nonce,
+    required bool promptConsent,
+    required String? loginHint,
   });
 
   /// Verifies authentication using [code] and returns the OAuth2 profile information.
