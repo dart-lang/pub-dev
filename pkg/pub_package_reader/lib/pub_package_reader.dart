@@ -795,9 +795,9 @@ Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
       continue;
     }
     item = item.trim();
-    if (item.length < 3) {
+    if (item.length < 2) {
       yield ArchiveIssue(
-          'Invalid `topics` value (`$item`): name is too short (less than 3 characters).');
+          'Invalid `topics` value (`$item`): name is too short (less than 2 characters).');
       continue;
     }
 
@@ -815,7 +815,7 @@ Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
 
     final RegExp regExp = RegExp(r'^' // Start at beginning.
         r'[a-z]' // Start with alphabetic character.
-        r'([a-z0-9]|\-(?=[^\-]))+' // Can contain alphanumeric or dash but no double dash.
+        r'([a-z0-9]|\-(?=[^\-]))*' // Can contain alphanumeric or dash but no double dash.
         r'[a-z0-9]' // Must end with alphanumeric character.
         r'$' // End of string.
         );

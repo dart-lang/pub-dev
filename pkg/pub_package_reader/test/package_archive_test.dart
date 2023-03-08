@@ -868,7 +868,7 @@ dev_dependencies:
       topics:
         - button
         - widget
-        - bu
+        - b
       ''';
       expect(
         checkTopics(pubspec)
