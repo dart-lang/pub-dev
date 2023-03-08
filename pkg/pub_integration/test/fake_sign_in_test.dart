@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:test/test.dart';
@@ -30,6 +33,27 @@ void main() {
       );
       await headlessEnv.startBrowser();
 
+      // init server data
+      await http.post(
+        Uri.parse('$origin/fake-test-profile'),
+        body: json.encode(
+          {
+            'testProfile': {
+              'defaultUser': 'admin@pub.dev',
+              'packages': [
+                {
+                  'name': 'admin_pkg',
+                },
+                {
+                  'name': 'user_pkg',
+                  'uploaders': ['user@pub.dev'],
+                },
+              ],
+            },
+          },
+        ),
+      );
+
       // sign-in page
       await headlessEnv.withPage(
         fn: (page) async {
@@ -53,6 +77,23 @@ void main() {
           expect(cookies, contains('PUB_SID_INSECURE'));
           expect(cookies, contains('PUB_SSID_INSECURE'));
           expect(page.url, '$origin/help');
+        },
+      );
+
+      // visiting unauthorized admin page fails
+      await headlessEnv.withPage(
+        fn: (page) async {
+          final rs1 = await page.gotoOrigin('/packages/admin_pkg/admin');
+          expect(await rs1.content,
+              contains('You have insufficient permissions to view this page.'));
+
+          final rs2 = await page.gotoOrigin('/packages/user_pkg/admin');
+          final content = await rs2.content;
+          expect(
+              content,
+              isNot(contains(
+                  'You have insufficient permissions to view this page.')));
+          expect(await rs2.content, contains('Automated publishing'));
         },
       );
     });

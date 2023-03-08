@@ -18,11 +18,12 @@ import 'google_js.dart';
 late final _newSigningMetaContent = document
     .querySelector('meta[name="pub-experiment-signin"]')
     ?.getAttribute('content');
-late final _useNewSignin = _newSigningMetaContent == '1';
+late final useNewSignin = _newSigningMetaContent == '1';
 
 void setupAccount() {
-  if (_useNewSignin) {
-    // TODO: implement client-side sign-in methods.
+  if (useNewSignin) {
+    // TODO: review client-side sign-in methods.
+    _initWidgets();
     return;
   } else {
     _setupOldAccount();
