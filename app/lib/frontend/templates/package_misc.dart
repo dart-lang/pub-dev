@@ -37,9 +37,9 @@ d.Node nullSafeBadgeNode({String? title}) {
   );
 }
 
-/// Renders the Dart 3 ready badge.
-final dart3ReadyNode = packageBadgeNode(
-  label: 'Dart 3 ready',
+/// Renders the Dart 3 compatible badge.
+final dart3CompatibleNode = packageBadgeNode(
+  label: 'Dart 3 compatible',
   title: 'Package is expected to be compatible with Dart 3.',
 );
 

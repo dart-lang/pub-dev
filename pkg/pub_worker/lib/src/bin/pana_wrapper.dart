@@ -113,7 +113,7 @@ Future<void> main(List<String> args) async {
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
       //TODO: Run dartdoc as part of pana
       checkRemoteRepository: true,
-      futureSdkTag: PackageVersionTags.isDart3Ready,
+      futureSdkTag: PackageVersionTags.isDart3Compatible,
     ),
     logger: _log,
     storeResource: (filename, data) async {
