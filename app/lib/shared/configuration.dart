@@ -40,6 +40,9 @@ const _fakeClientAudience = 'fake-client-audience';
 /// client side authentication should use the fake authentication tokens.
 const _fakeSiteAudience = 'fake-site-audience';
 
+/// Special value to indicate that the site is running in fake mode.
+const _fakeServerAudience = 'fake-server-audience';
+
 /// Special value to indicate that the external client is running in fake mode.
 const _fakeExternalAudience = 'https://pub.dev';
 
@@ -149,8 +152,11 @@ class Configuration {
   /// The OAuth audience (`client_id`) that the `pub` client uses.
   final String? pubClientAudience;
 
-  /// The OAuth audience (`client_id`) that the pub site uses.
+  /// The OAuth audience (`client_id`) that the pub site's JS frontend uses.
   final String? pubSiteAudience;
+
+  /// The OAuth audience that the pub site server backend uses.
+  final String? pubServerAudience;
 
   /// The OAuth audience that external services should use when addressing `pub.dev`.
   /// Examples of such uses:
@@ -271,6 +277,7 @@ class Configuration {
     required this.storageBaseUrl,
     required this.pubClientAudience,
     required this.pubSiteAudience,
+    required this.pubServerAudience,
     required this.externalServiceAudience,
     required this.gmailRelayServiceAccount,
     required this.gmailRelayImpersonatedGSuiteUser,
@@ -333,6 +340,7 @@ class Configuration {
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
+      pubServerAudience: _fakeServerAudience,
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
@@ -380,6 +388,7 @@ class Configuration {
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
+      pubServerAudience: _fakeServerAudience,
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
