@@ -90,7 +90,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
     return await token.verifySignature(openIdData.jwks);
   }
 
-  String _getOauthSiteAudience() => activeConfiguration.pubSiteAudience!;
+  String _getOauthSiteAudience() => activeConfiguration.pubServerAudience!;
 
   Future<String?> _getOauthSiteAudienceSecret(String audience) async {
     return await secretBackend
