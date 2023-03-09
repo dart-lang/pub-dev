@@ -157,8 +157,7 @@ void main() {
         'session not authenticated',
         testProfile: emptyTestProfile,
         fn: () async {
-          final session =
-              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
+          final session = await accountBackend.createOrUpdateClientSession();
           expect(
             await accountBackend.tryAuthenticateWebSessionUser(
               sessionId: session.sessionId,
@@ -177,8 +176,7 @@ void main() {
         fn: () async {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
-          final session =
-              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
+          final session = await accountBackend.createOrUpdateClientSession();
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(
@@ -212,8 +210,7 @@ void main() {
         fn: () async {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
-          final session =
-              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
+          final session = await accountBackend.createOrUpdateClientSession();
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(
@@ -251,8 +248,7 @@ void main() {
         fn: () async {
           final email = 'user@pub.dev';
           final oauthUserId = fakeOauthUserIdFromEmail(email);
-          final session =
-              await accountBackend.createOrUpdateClientSession(nonce: 'nonce');
+          final session = await accountBackend.createOrUpdateClientSession();
           await accountBackend.updateClientSessionWithProfile(
             sessionId: session.sessionId,
             profile: AuthResult(

@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:ulid/ulid.dart';
 
 import '../frontend/static_files.dart';
@@ -158,7 +159,15 @@ class UserSession extends db.ExpandoModel<String> {
   @db.StringProperty(indexed: false)
   String? openidNonce;
 
+  UserSession();
+  UserSession.init() {
+    id = createUuid();
+    csrfToken = createUuid();
+    openidNonce = createUuid();
+  }
+
   bool isExpired() => clock.now().isAfter(expires!);
+  Duration get maxAge => expires!.difference(clock.now());
 }
 
 /// Pattern for detecting profile image parameters as specified in [1].
