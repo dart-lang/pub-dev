@@ -446,9 +446,8 @@ class AccountBackend {
 
   /// Updates an existing or creates a new client session for pre-authorization
   /// secrets and post-authorization user information.
-  Future<SessionData> createOrUpdateClientSession({
+  Future<UserSession> createOrUpdateClientSession({
     String? sessionId,
-    required String nonce,
   }) async {
     final now = clock.now().toUtc();
     final oldSession =
@@ -460,28 +459,23 @@ class AccountBackend {
         if (session == null) {
           return null;
         }
-        session
-          ..expires = now.add(_sessionDuration)
-          ..openidNonce = nonce;
+        session.expires = now.add(_sessionDuration);
         tx.insert(session);
-        return SessionData.fromModel(session);
+        return session;
       });
       if (rs != null) return rs;
     }
 
     // in the absence of a valid existing session, create a new one
-    final session = UserSession()
-      ..id = createUuid()
+    final session = UserSession.init()
       // TODO: make this null after all deployed version can handle it
       ..userId = ''
       // TODO: make this null after all deployed version can handle it
       ..email = ''
-      ..openidNonce = nonce
       ..created = now
-      ..expires = now.add(_sessionDuration)
-      ..csrfToken = createUuid();
+      ..expires = now.add(_sessionDuration);
     await _db.commit(inserts: [session]);
-    return SessionData.fromModel(session);
+    return session;
   }
 
   /// Updates the [UserSession] entity with the authenticated profile information.
@@ -511,17 +505,14 @@ class AccountBackend {
         await cache.userSessionData(sessionId).purgeAndRepeat();
 
         // create a new session
-        final newSession = UserSession()
-          ..id = createUuid()
+        final newSession = UserSession.init()
           ..userId = user.userId
           ..email = user.email
           ..name = profile.name
           ..imageUrl = profile.imageUrl
-          ..openidNonce = createUuid()
           ..created = now
           ..authenticated = now
-          ..expires = now.add(_sessionDuration)
-          ..csrfToken = createUuid();
+          ..expires = now.add(_sessionDuration);
         tx.insert(newSession);
         return SessionData.fromModel(newSession);
       } else {
@@ -532,7 +523,6 @@ class AccountBackend {
           ..name = profile.name
           ..imageUrl = profile.imageUrl
           ..authenticated = now
-          ..openidNonce = createUuid() // resets the nonce to a new random UUID
           ..expires = now.add(_sessionDuration);
         tx.insert(session);
         return SessionData.fromModel(session);

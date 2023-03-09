@@ -25,7 +25,6 @@ import '../../shared/cookie_utils.dart';
 import '../../shared/env_config.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
-import '../../shared/utils.dart' show createUuid;
 
 import '../templates/admin.dart';
 import '../templates/consent.dart';
@@ -41,10 +40,8 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.useNewSignIn) {
     return notFoundHandler(request);
   }
-  final nonce = createUuid();
   final session = await accountBackend.createOrUpdateClientSession(
     sessionId: requestContext.clientSessionCookieStatus.sessionId,
-    nonce: nonce,
   );
   final params = request.requestedUri.queryParameters;
   // Automated authentication handling for local fake server.
@@ -57,7 +54,7 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   };
   final oauth2Url = await authProvider.getOauthAuthenticationUrl(
     state: state,
-    nonce: nonce,
+    nonce: session.openidNonce!,
     promptConsent: false,
     loginHint: requestContext.sessionData?.email,
   );
