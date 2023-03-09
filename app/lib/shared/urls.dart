@@ -425,3 +425,23 @@ extension UriExt on Uri {
   /// Whether on rendering we should emit rel="ugc".
   bool get shouldIndicateUgc => host.isNotEmpty && !isTrustedHost;
 }
+
+/// Whether the [value] is accepted as a valid local redirection URL.
+bool isValidLocalRedirectUrl(String value) {
+  value = value.trim();
+  if (value.isEmpty) {
+    return false;
+  }
+  if (!value.startsWith('/')) {
+    return false;
+  }
+  final uri = Uri.tryParse(value);
+  if (uri == null || uri.hasScheme || uri.hasAuthority || uri.hasFragment) {
+    return false;
+  }
+  final normalized = p.normalize(value);
+  if (normalized != value) {
+    return false;
+  }
+  return true;
+}

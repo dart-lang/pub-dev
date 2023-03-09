@@ -25,6 +25,7 @@ import '../../shared/cookie_utils.dart';
 import '../../shared/env_config.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
+import '../../shared/urls.dart' as urls;
 
 import '../templates/admin.dart';
 import '../templates/consent.dart';
@@ -46,11 +47,13 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   final params = request.requestedUri.queryParameters;
   // Automated authentication handling for local fake server.
   final fakeEmail = envConfig.isRunningLocally ? params['fake-email'] : null;
-  final go = params['go'];
-  // TODO: verify go
+  final go = params['go'] ?? '/';
+  if (!urls.isValidLocalRedirectUrl(go)) {
+    return notFoundHandler(request, body: 'Invalid `go` URL.');
+  }
   final state = <String, String>{
     if (fakeEmail != null) 'fake-email': fakeEmail,
-    if (go != null) 'go': go,
+    'go': go,
   };
   final oauth2Url = await authProvider.getOauthAuthenticationUrl(
     state: state,
@@ -82,6 +85,12 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   if (code == null || code.isEmpty) {
     return notFoundHandler(request, body: 'Missing `code`.');
   }
+  final state = decodeState(params['state']);
+  final go = state['go'];
+  if (go == null || !urls.isValidLocalRedirectUrl(go)) {
+    return notFoundHandler(request, body: 'Missing or invalid `go`.');
+  }
+
   if (!requestContext.clientSessionCookieStatus.isPresent) {
     return notFoundHandler(request, body: 'Missing session cookie.');
   }
@@ -98,7 +107,6 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   if (expectedNonce == null) {
     return notFoundHandler(request, body: 'Missing `nonce` in session.');
   }
-  final state = decodeState(params['state']);
   // TODO: verify state in the response
   // TODO: verify prompt (=none or =consent)
   final profile = await authProvider.tryAuthenticateOauthCode(
@@ -113,30 +121,23 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
     profile: profile,
   );
 
-  // TODO: implement proper action on successful authentication
-  final go = state['go'];
-  if (go != null) {
-    // TODO: verify go
-    return redirectResponse(
-      go,
-      headers: session_cookie.createClientSessionCookie(
-        sessionId: newSession.sessionId,
-        maxAge: newSession.maxAge,
-      ),
-    );
-  }
-  return jsonResponse(
-    {
-      'oauthUserId': '*' * profile.oauthUserId.length,
-      'email': profile.email,
-      'name': profile.name,
-      'imageUrl': profile.imageUrl,
-    },
-    indentJson: true,
+  return redirectResponse(
+    go,
     headers: session_cookie.createClientSessionCookie(
       sessionId: newSession.sessionId,
       maxAge: newSession.maxAge,
     ),
+  );
+}
+
+/// Handles GET /api/account/session
+Future<ClientSessionStatus> getClientSessionStatusHandler(
+    shelf.Request request) async {
+  final session = requestContext.sessionData;
+  return ClientSessionStatus(
+    changed: false,
+    expires: session?.expires,
+    authenticated: session?.authenticated,
   );
 }
 
@@ -172,6 +173,7 @@ Future<shelf.Response> updateSessionHandler(
     final status = ClientSessionStatus(
       changed: false,
       expires: sessionData.expires,
+      authenticated: null,
     );
     _logger.info(
         '[pub-session-handler-debug] Session was alive: $t1 / ${t2 - t1}.');
@@ -192,6 +194,7 @@ Future<shelf.Response> updateSessionHandler(
     ClientSessionStatus(
       changed: true,
       expires: newSession.expires,
+      authenticated: null,
     ).toJson(),
     headers: session_cookie.createUserSessionCookie(
         newSession.sessionId, newSession.expires),
@@ -214,6 +217,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
     ClientSessionStatus(
       changed: sessionId != null,
       expires: null,
+      authenticated: null,
     ).toJson(),
     // Clear cookie, so we don't have to lookup an invalid sessionId.
     headers: session_cookie.clearSessionCookies(),
