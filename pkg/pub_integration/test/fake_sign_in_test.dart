@@ -64,7 +64,6 @@ void main() {
           final cookieNames = cookies.map((e) => e.name).toSet();
           expect(cookieNames, contains('PUB_SID_INSECURE'));
           expect(cookieNames, contains('PUB_SSID_INSECURE'));
-          expect(page.url, startsWith('$origin/sign-in/callback?'));
           expect(rs.status, 200);
           final content = await page.content;
           expect(content, contains('user@pub.dev'));

@@ -300,8 +300,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
-    r'/sign-in/callback',
-    service.signInCallback,
+    r'/sign-in/complete',
+    service.signInComplete,
   );
   router.add(
     'GET',

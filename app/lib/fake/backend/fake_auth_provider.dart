@@ -147,7 +147,7 @@ class FakeAuthProvider extends BaseAuthProvider {
   }) async {
     final email = state['fake-email'] ?? loginHint;
     if (email == null || email.isEmpty) {
-      return Uri.parse(getOauthCallbackUrl());
+      return Uri.parse(getOauthRedirectUri());
     }
     final token = _createGcpToken(
       email: email,
@@ -157,7 +157,7 @@ class FakeAuthProvider extends BaseAuthProvider {
         'nonce': nonce,
       },
     );
-    return Uri.parse(getOauthCallbackUrl()).replace(
+    return Uri.parse(getOauthRedirectUri()).replace(
       queryParameters: {
         'state': encodeState(state),
         'code': token,

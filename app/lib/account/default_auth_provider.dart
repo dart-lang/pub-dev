@@ -108,7 +108,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
       queryParameters: {
         'client_id': _getOauthSiteAudience(),
-        'redirect_uri': getOauthCallbackUrl(),
+        'redirect_uri': getOauthRedirectUri(),
         'response_type': 'code',
         'scope': [
           oauth2_v2.Oauth2Api.openidScope,
@@ -136,7 +136,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
         'code': code,
         'client_id': audience,
         'client_secret': secret,
-        'redirect_uri': getOauthCallbackUrl(),
+        'redirect_uri': getOauthRedirectUri(),
         'grant_type': 'authorization_code',
       };
       final rs = await http.post(tokenUri, body: formData);
@@ -442,9 +442,9 @@ abstract class BaseAuthProvider extends AuthProvider {
     );
   }
 
-  String getOauthCallbackUrl() {
+  String getOauthRedirectUri() {
     return activeConfiguration.primarySiteUri
-        .replace(path: '/sign-in/callback')
+        .replace(path: '/sign-in/complete')
         .toString();
   }
 }
