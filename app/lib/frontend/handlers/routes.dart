@@ -314,10 +314,10 @@ class PubSiteService {
   Future<Response> startSignIn(Request request) async =>
       startSignInHandler(request);
 
-  /// Redirects user to the OAuth2 sign-in page.
-  @Route.get('/sign-in/callback')
-  Future<Response> signInCallback(Request request) async =>
-      signInCallbackHandler(request);
+  /// Callback handler of the successful OAuth2 sign-in flow.
+  @Route.get('/sign-in/complete')
+  Future<Response> signInComplete(Request request) async =>
+      signInCompleteHandler(request);
 
   /// List of the current user's packages.
   @Route.get('/my-packages')

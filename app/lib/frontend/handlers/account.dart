@@ -67,8 +67,8 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   );
 }
 
-/// Handles GET /sign-in/callback
-Future<shelf.Response> signInCallbackHandler(shelf.Request request) async {
+/// Handles GET /sign-in/complete
+Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.useNewSignIn) {
     return notFoundHandler(request);
   }
