@@ -5,6 +5,7 @@
 import '../../../../account/models.dart' show SessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
+import '../../../request_context.dart';
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../layout.dart' show PageType, showSearchBanner;
@@ -160,12 +161,16 @@ d.Node _userBlock(SessionData userSession) {
               ],
             ),
             d.div(classes: ['nav-separator']),
-            d.a(
-              classes: ['nav-link'],
+            if (requestContext.experimentalFlags.useNewSignIn)
+              d.button(
+                id: '-account-switch',
+                classes: ['nav-button', 'link'],
+                text: 'Switch account',
+              ),
+            d.button(
+              classes: ['nav-button'],
               id: '-account-logout',
-              href: '',
               text: 'Sign out',
-              attributes: {'aria-role': 'button'},
             ),
           ],
         ),

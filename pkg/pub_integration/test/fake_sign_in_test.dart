@@ -123,6 +123,36 @@ void main() {
           );
         },
       );
+
+      // sign-out with button
+      await headlessEnv.withPage(fn: (page) async {
+        await page.gotoOrigin('/');
+        expect(await page.content, contains('admin@pub.dev'));
+        await page.hover('.nav-profile-img');
+        await page.click('#-account-logout');
+        await Future.delayed(Duration(seconds: 10));
+        final cookies = await page.cookies();
+        final cookieNames = cookies.map((e) => e.name).toSet();
+        expect(cookieNames, isNot(contains('PUB_SID_INSECURE')));
+        expect(cookieNames, isNot(contains('PUB_SSID_INSECURE')));
+        expect(await page.content, isNot(contains('admin@pub.dev')));
+      });
+
+      // sign-in with button
+      await headlessEnv.withPage(fn: (page) async {
+        await page.gotoOrigin('/help');
+        expect(await page.content, isNot(contains('user@pub.dev')));
+        final handle = await page.$('#-account-login');
+        await handle.evaluate(
+            'node => node.setAttribute("data-fake-email", "user@pub.dev")');
+        await page.click('#-account-login');
+        await Future.delayed(Duration(seconds: 2));
+        final cookies = await page.cookies();
+        final cookieNames = cookies.map((e) => e.name).toSet();
+        expect(cookieNames, contains('PUB_SID_INSECURE'));
+        expect(cookieNames, contains('PUB_SSID_INSECURE'));
+        expect(await page.content, contains('user@pub.dev'));
+      });
     });
   });
 }

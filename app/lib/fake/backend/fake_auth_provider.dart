@@ -142,7 +142,7 @@ class FakeAuthProvider extends BaseAuthProvider {
   Future<Uri> getOauthAuthenticationUrl({
     required Map<String, String> state,
     required String nonce,
-    required bool promptConsent,
+    required bool promptSelect,
     required String? loginHint,
   }) async {
     final email = state['fake-email'] ?? loginHint;

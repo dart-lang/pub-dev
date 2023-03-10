@@ -143,6 +143,17 @@
     height: 50px;
   }
 
+  .nav-button {
+    padding: 8px 10px 8px 0px;
+    background-color: transparent;
+    color: inherit;
+    opacity: 1.0;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
   .nav-link {
     color: $site-header-popup-fg;
     display: block;

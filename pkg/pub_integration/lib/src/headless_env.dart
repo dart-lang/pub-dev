@@ -106,7 +106,9 @@ class HeadlessEnv {
       // soft-abort
       if (rq.url.startsWith('https://www.google-analytics.com/') ||
           rq.url.startsWith('https://www.googletagmanager.com/') ||
-          rq.url.startsWith('https://www.google.com/insights')) {
+          rq.url.startsWith('https://www.google.com/insights') ||
+          rq.url.startsWith(
+              'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/')) {
         await rq.abort(error: ErrorReason.failed);
         return;
       }

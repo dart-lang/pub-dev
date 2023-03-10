@@ -55,7 +55,7 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   final oauth2Url = await authProvider.getOauthAuthenticationUrl(
     state: state,
     nonce: session.openidNonce!,
-    promptConsent: false,
+    promptSelect: params['select'] == '1',
     loginHint: requestContext.sessionData?.email,
   );
   return redirectResponse(
