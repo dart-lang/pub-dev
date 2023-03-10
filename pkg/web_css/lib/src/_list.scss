@@ -133,7 +133,20 @@
   .carousel-prev {
     left: 10px;
   }
-}
+
+  .screenshot-description {
+    font-size: 16px;
+    z-index: 2;
+    color: white;
+    bottom: 0;
+    left: 20px;
+    position: absolute;
+    background: rgba(0,0,0,0.7);
+    border-radius: 25px;
+    max-width: 35%;
+    padding:12px;
+  }
+ }
 
 .thumbnail-image {
   border: solid 1px #d5d4d4;

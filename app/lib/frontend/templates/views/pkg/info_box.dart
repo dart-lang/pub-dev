@@ -54,12 +54,14 @@ d.Node packageInfoBoxNode({
   final screenshots = data.scoreCard?.panaReport?.screenshots;
   String? thumbnailUrl;
   final screenshotUrls = <String>[];
+  final screenshotDescriptions = <String>[];
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = imageStorage.getImageUrl(
         package.name!, version.version!, screenshots.first.webp190Thumbnail);
     for (ProcessedScreenshot s in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
           package.name!, version.version!, s.webpImage));
+      screenshotDescriptions.add(s.description);
     }
   }
   return d.fragment([
@@ -69,7 +71,10 @@ d.Node packageInfoBoxNode({
       d.div(classes: [
         'detail-screenshot-thumbnail'
       ], children: [
-        screenshotThumbnailNode(thumbnailUrl, screenshotUrls),
+        screenshotThumbnailNode(
+            thumbnailUrl: thumbnailUrl,
+            screenshotUrls: screenshotUrls,
+            screenshotDescriptions: screenshotDescriptions),
         collectionsIcon(),
       ]),
     _publisher(package.publisherId),

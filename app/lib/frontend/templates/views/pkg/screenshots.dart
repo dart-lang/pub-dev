@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
 import '../../../static_files.dart';
@@ -43,10 +45,13 @@ d.Node imageCarousel() {
         'data-ga-click-event': 'screenshot-carousel-prev-click',
       });
 
+  final description =
+      d.p(id: '-screenshot-description', classes: ['screenshot-description']);
+
   return d.div(
     id: '-screenshot-carousel',
     classes: ['carousel'],
-    children: [prev, imageContainer, next],
+    children: [prev, imageContainer, next, description],
   );
 }
 
@@ -59,12 +64,16 @@ d.Node collectionsIcon() {
           height: 30, width: 30, alt: 'image', src: collectionsIconWhite));
 }
 
-d.Node screenshotThumbnailNode(
-    String thumbnailUrl, List<String>? screenshotUrls) {
+d.Node screenshotThumbnailNode({
+  required String thumbnailUrl,
+  required List<String> screenshotUrls,
+  required List<String> screenshotDescriptions,
+}) {
   return d.div(classes: [
     'thumbnail-container'
   ], attributes: {
-    'data-thumbnail': screenshotUrls!.join(','),
+    'data-thumbnail': screenshotUrls.join(','),
+    'data-thumbnail-descriptions-json': jsonEncode(screenshotDescriptions),
     'data-ga-click-event': 'screenshot-thumbnail-click',
   }, children: [
     d.img(

@@ -138,6 +138,7 @@ d.Node _packageItem(
   final bool hasScreenshots = screenshots != null && screenshots.isNotEmpty;
   String? thumbnailUrl;
   final screenshotUrls = <String>[];
+  final screenshotDescriptions = <String>[];
   if (hasScreenshots) {
     thumbnailUrl = imageStorage.getImageUrl(view.name!, releases.stable.version,
         screenshots.first.webp100Thumbnail);
@@ -145,12 +146,14 @@ d.Node _packageItem(
     for (ProcessedScreenshot s in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
           view.name!, releases.stable.version, s.webpImage));
+      screenshotDescriptions.add(s.description);
     }
   }
 
   return _item(
     thumbnailUrl: thumbnailUrl,
     screenshotUrls: screenshotUrls,
+    screenshotDescriptions: screenshotDescriptions,
     url: urls.pkgPageUrl(view.name!),
     name: view.name!,
     newTimestamp: view.created,
@@ -176,6 +179,7 @@ d.Node _packageItem(
 d.Node _item({
   String? thumbnailUrl,
   List<String>? screenshotUrls,
+  List<String>? screenshotDescriptions,
   required String url,
   required String name,
   required DateTime? newTimestamp,
@@ -237,7 +241,10 @@ d.Node _item({
           d.div(classes: [
             'packages-screenshot-thumbnail'
           ], children: [
-            screenshotThumbnailNode(thumbnailUrl, screenshotUrls),
+            screenshotThumbnailNode(
+                thumbnailUrl: thumbnailUrl,
+                screenshotUrls: screenshotUrls!,
+                screenshotDescriptions: screenshotDescriptions!),
             collectionsIcon()
           ])
       ]),
