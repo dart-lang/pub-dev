@@ -73,7 +73,6 @@ d.Node screenshotThumbnailNode({
     'thumbnail-container'
   ], attributes: {
     'data-thumbnail': screenshotUrls.join(','),
-    // 'data-thumbnail-descriptions': screenshotDescriptions.join(','),
     'data-thumbnail-descriptions-json': jsonEncode(screenshotDescriptions),
     'data-ga-click-event': 'screenshot-thumbnail-click',
   }, children: [
