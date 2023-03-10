@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:html';
 
 void setupScreenshotCarousel() {
@@ -72,7 +73,8 @@ void _setEventForScreenshot() {
       document.body!.classes.remove('overflow-auto');
       document.body!.classes.add('overflow-hidden');
       images = thumbnail.dataset['thumbnail']!.split(',');
-      descriptions = thumbnail.dataset['thumbnail-descriptions']!.split(',');
+      final raw = jsonDecode(thumbnail.dataset['thumbnail-descriptions-json']!);
+      descriptions = (raw as List).cast<String>();
       showImage(screenshotIndex, event);
     });
   }

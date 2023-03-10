@@ -242,7 +242,9 @@ d.Node _item({
             'packages-screenshot-thumbnail'
           ], children: [
             screenshotThumbnailNode(
-                thumbnailUrl, screenshotUrls, screenshotDescriptions),
+                thumbnailUrl: thumbnailUrl,
+                screenshotUrls: screenshotUrls!,
+                screenshotDescriptions: screenshotDescriptions!),
             collectionsIcon()
           ])
       ]),

@@ -72,7 +72,9 @@ d.Node packageInfoBoxNode({
         'detail-screenshot-thumbnail'
       ], children: [
         screenshotThumbnailNode(
-            thumbnailUrl, screenshotUrls, screenshotDescriptions),
+            thumbnailUrl: thumbnailUrl,
+            screenshotUrls: screenshotUrls,
+            screenshotDescriptions: screenshotDescriptions),
         collectionsIcon(),
       ]),
     _publisher(package.publisherId),
