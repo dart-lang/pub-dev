@@ -130,17 +130,6 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   );
 }
 
-/// Handles GET /api/account/session
-Future<ClientSessionStatus> getClientSessionStatusHandler(
-    shelf.Request request) async {
-  final session = requestContext.sessionData;
-  return ClientSessionStatus(
-    changed: false,
-    expires: session?.expires,
-    authenticated: session?.authenticated,
-  );
-}
-
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(
     shelf.Request request, ClientSessionRequest body) async {

@@ -453,22 +453,6 @@ Router _$PubApiRouter(PubApi service) {
     r'/api/account/session',
     (Request request) async {
       try {
-        final _$result = await service.getClientSessionStatus(
-          request,
-        );
-        return $utilities.jsonResponse(_$result.toJson());
-      } on ApiResponseException catch (e) {
-        return e.asApiResponse();
-      } catch (e, st) {
-        return $utilities.unhandledError(e, st);
-      }
-    },
-  );
-  router.add(
-    'POST',
-    r'/api/account/session',
-    (Request request) async {
-      try {
         final _$result = await service.updateSession(
           request,
           await $utilities.decodeJson<ClientSessionRequest>(

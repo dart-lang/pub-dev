@@ -217,13 +217,6 @@ class PubApiClient {
     ));
   }
 
-  Future<_i4.ClientSessionStatus> getClientSessionStatus() async {
-    return _i4.ClientSessionStatus.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/account/session',
-    ));
-  }
-
   Future<List<int>> updateSession(_i4.ClientSessionRequest payload) async {
     return await _client.requestBytes(
       verb: 'post',
