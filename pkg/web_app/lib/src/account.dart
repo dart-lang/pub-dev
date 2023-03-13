@@ -88,18 +88,54 @@ void _initGoogleAuthAndWidgets() {
   _initWidgets();
 }
 
+void _doSignIn({bool selectAccount = false}) {
+  final signInButton = document.getElementById('-account-login');
+  // fake sign-in hook for integration tests
+  final fakeEmail =
+      signInButton == null ? null : signInButton.dataset['fake-email'];
+  final uri = Uri.parse(window.location.href);
+  final relativeUri = Uri(
+    path: uri.path,
+    query: uri.hasQuery ? uri.query : null,
+  );
+  final newLocation = Uri(
+    scheme: uri.scheme,
+    host: uri.host,
+    port: uri.port,
+    path: '/sign-in',
+    queryParameters: {
+      'go': relativeUri.toString(),
+      if (selectAccount) 'select': '1',
+      if (fakeEmail != null) 'fake-email': fakeEmail,
+    },
+  );
+  window.location.assign(newLocation.toString());
+}
+
 void _initWidgets() {
-  document
-      .getElementById('-account-login')
-      ?.onClick
-      .listen((_) => authenticationProxy.trySignIn());
-  document.getElementById('-account-logout')?.onClick.listen((_) async {
-    await authenticationProxy.signOut();
-    // Force session invalidation in case the signOut() wouldn't trigger it at this point.
-    await api_client.unauthenticatedClient.invalidateSession();
-    // Force page reload if it was not done after signing out.
-    if (document.getElementById('-account-logout') != null) {
+  document.getElementById('-account-login')?.onClick.listen((_) {
+    if (useNewSignin) {
+      _doSignIn();
+    } else {
+      authenticationProxy.trySignIn();
+    }
+  });
+  document.getElementById('-account-switch')?.onClick.listen((_) {
+    _doSignIn(selectAccount: true);
+  });
+  document.getElementById('-account-logout')?.onClick.listen((e) async {
+    if (useNewSignin) {
+      await api_client.loadLibrary();
+      await api_client.client.invalidateSession();
       window.location.reload();
+    } else {
+      await authenticationProxy.signOut();
+      // Force session invalidation in case the signOut() wouldn't trigger it at this point.
+      await api_client.unauthenticatedClient.invalidateSession();
+      // Force page reload if it was not done after signing out.
+      if (document.getElementById('-account-logout') != null) {
+        window.location.reload();
+      }
     }
   });
   admin_pages.loadLibrary().then((_) => admin_pages.initAdminPages());
