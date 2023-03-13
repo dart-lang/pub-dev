@@ -511,6 +511,7 @@ class AccountBackend {
           ..name = profile.name
           ..imageUrl = profile.imageUrl
           ..created = now
+          ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(newSession);
         return SessionData.fromModel(newSession);
@@ -521,6 +522,7 @@ class AccountBackend {
           ..email = user.email
           ..name = profile.name
           ..imageUrl = profile.imageUrl
+          ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(session);
         return SessionData.fromModel(session);

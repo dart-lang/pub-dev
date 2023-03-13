@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/default_auth_provider.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -216,8 +217,9 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
 /// Handles GET /consent?id=<consentId>
 Future<shelf.Response> consentPageHandler(
     shelf.Request request, String? consentId) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
 
   if (consentId == null || consentId.isEmpty) {
@@ -322,8 +324,9 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
 
 /// Handles requests for GET /my-packages [?q=...]
 Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
 
   // Redirect in case of empty search query.
@@ -350,8 +353,9 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 /// Handles requests for GET my-liked-packages
 Future<shelf.Response> accountMyLikedPackagesPageHandler(
     shelf.Request request) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
 
   final user = (await accountBackend
@@ -368,8 +372,9 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
 /// Handles requests for GET /my-publishers
 Future<shelf.Response> accountPublishersPageHandler(
     shelf.Request request) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
 
   final page = await publisherBackend
@@ -386,8 +391,9 @@ Future<shelf.Response> accountPublishersPageHandler(
 /// Handles requests for GET /my-activity-log
 Future<shelf.Response> accountMyActivityLogPageHandler(
     shelf.Request request) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
   final before = auditBackend.parseBeforeQueryParameter(
       request.requestedUri.queryParameters['before']);
@@ -402,4 +408,34 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
     activities: activities,
   );
   return htmlResponse(content);
+}
+
+/// Prepares the common responses for unauthenticated users or sessions that
+/// need redirect to the authentication service.
+///
+/// Returns non-null response if the further request processing is blocked.
+Future<shelf.Response?> checkAuthenticatedPageRequest(
+    shelf.Request request) async {
+  if (requestContext.isNotAuthenticated) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+
+  final now = clock.now();
+  final lastAuthenticated = requestContext.sessionData?.authenticatedAt;
+  final needsReAuthentication = requestContext.experimentalFlags.useNewSignIn &&
+      (lastAuthenticated == null ||
+          now.difference(lastAuthenticated) > Duration(minutes: 30));
+  if (needsReAuthentication) {
+    final requestedUri = request.requestedUri;
+    final goUri = Uri(
+      path: requestedUri.path,
+      query: requestedUri.hasQuery ? requestedUri.query : null,
+    );
+    final signInUri = Uri(path: '/sign-in', queryParameters: {
+      'go': goUri.toString(),
+    });
+    return redirectResponse(signInUri.toString());
+  }
+
+  return null;
 }

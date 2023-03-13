@@ -73,9 +73,10 @@ class RequestContext {
             clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
   late final sessionData = clientSessionData ?? userSessionData;
-  late final isAuthenticated = sessionData?.isAuthenticated ?? false;
-  late final isNotAuthenticated = !isAuthenticated;
-  late final authenticatedUserId = isAuthenticated ? sessionData?.userId : null;
+  late final _isAuthenticated = sessionData?.isAuthenticated ?? false;
+  late final isNotAuthenticated = !_isAuthenticated;
+  late final authenticatedUserId =
+      _isAuthenticated ? sessionData?.userId : null;
 }
 
 Future<RequestContext> buildRequestContext({
