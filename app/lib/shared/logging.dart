@@ -31,7 +31,7 @@ void setupDebugEnvBasedLogging() {
   }
   _envBasedLoggingSetupDone = true;
   // ignore: invalid_use_of_visible_for_testing_member
-  final debugEnv = envConfig.debug ?? '*';
+  final debugEnv = envConfig.debug ?? 'fake_server pub.email';
   if (debugEnv.isEmpty) {
     return;
   }
