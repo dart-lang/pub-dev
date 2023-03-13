@@ -28,9 +28,6 @@ SessionData _$SessionDataFromJson(Map<String, dynamic> json) => SessionData(
       imageUrl: json['imageUrl'] as String?,
       created: DateTime.parse(json['created'] as String),
       expires: DateTime.parse(json['expires'] as String),
-      authenticated: json['authenticated'] == null
-          ? null
-          : DateTime.parse(json['authenticated'] as String),
       csrfToken: json['csrfToken'] as String?,
     );
 
@@ -43,6 +40,5 @@ Map<String, dynamic> _$SessionDataToJson(SessionData instance) =>
       'imageUrl': instance.imageUrl,
       'created': instance.created.toIso8601String(),
       'expires': instance.expires.toIso8601String(),
-      'authenticated': instance.authenticated?.toIso8601String(),
       'csrfToken': instance.csrfToken,
     };

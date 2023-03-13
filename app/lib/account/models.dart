@@ -149,9 +149,6 @@ class UserSession extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? expires;
 
-  @db.DateTimeProperty(indexed: false)
-  DateTime? authenticated;
-
   @db.StringProperty(indexed: false)
   String? csrfToken;
 
@@ -201,9 +198,6 @@ class SessionData {
   /// The time when the session will expire.
   final DateTime expires;
 
-  /// The time when the session was last authenticated.
-  final DateTime? authenticated;
-
   /// The CSRF token to store in the HTML page that is expected to be
   /// present in authenticated requests.
   final String? csrfToken;
@@ -216,7 +210,6 @@ class SessionData {
     this.imageUrl,
     required this.created,
     required this.expires,
-    this.authenticated,
     this.csrfToken,
   });
 
@@ -229,7 +222,6 @@ class SessionData {
       imageUrl: session.imageUrl,
       created: session.created!,
       expires: session.expires!,
-      authenticated: session.authenticated,
       csrfToken: session.csrfToken,
     );
   }
