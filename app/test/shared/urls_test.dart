@@ -205,4 +205,30 @@ void main() {
       );
     });
   });
+
+  group('local redirect url', () {
+    test('accepted', () {
+      final values = [
+        '/',
+        '/packages/http/versions',
+        '/my-packages',
+        '/packages?q=sdk:dart',
+      ];
+      for (final v in values) {
+        expect(isValidLocalRedirectUrl(v), true, reason: v);
+      }
+    });
+
+    test('rejected', () {
+      final values = [
+        'https://pub.dev/',
+        '//',
+        '/../',
+        '/packages#id',
+      ];
+      for (final v in values) {
+        expect(isValidLocalRedirectUrl(v), false, reason: v);
+      }
+    });
+  });
 }

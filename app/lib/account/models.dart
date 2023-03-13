@@ -149,9 +149,6 @@ class UserSession extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? expires;
 
-  @db.DateTimeProperty(indexed: false)
-  DateTime? authenticated;
-
   @db.StringProperty(indexed: false)
   String? csrfToken;
 
