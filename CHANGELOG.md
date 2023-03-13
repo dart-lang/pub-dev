@@ -2,6 +2,10 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2023.03.13`.
+ * Upgraded stable Dart analysis SDK to `2.19.4`.
+ * Upgraded stable Flutter analysis SDK to `3.7.7`.
+ * Upgraded preview Dart analysis SDK to `3.0.0-305.0.dev`.
  * NOTE: renamed `is:dart3-ready` to `is:dart3-compatible`.
  * Note: started to delete leftover objects in the public bucket.
 
