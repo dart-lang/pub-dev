@@ -29,6 +29,7 @@ import '../templates/package.dart';
 import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
 
+import 'account.dart' show checkAuthenticatedPageRequest;
 import 'misc.dart' show formattedNotFoundHandler;
 
 // Non-revealing metrics to monitor the search service behavior from outside.
@@ -261,8 +262,9 @@ Future<shelf.Response> packageAdminHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      if (requestContext.isNotAuthenticated) {
-        return htmlResponse(renderUnauthenticatedPage());
+      final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+      if (unauthenticatedRs != null) {
+        return unauthenticatedRs;
       }
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());
@@ -295,8 +297,9 @@ Future<shelf.Response> packageActivityLogHandler(
     versionName: null,
     assetKind: null,
     renderFn: (data) async {
-      if (requestContext.isNotAuthenticated) {
-        return htmlResponse(renderUnauthenticatedPage());
+      final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+      if (unauthenticatedRs != null) {
+        return unauthenticatedRs;
       }
       if (!data.isAdmin!) {
         return htmlResponse(renderUnauthorizedPage());

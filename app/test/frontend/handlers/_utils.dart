@@ -5,12 +5,12 @@
 library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers.dart';
+import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
@@ -54,6 +54,20 @@ Future<shelf.Response> issueHttp(
   if (uri.path.contains('//')) {
     throw ArgumentError('Double-slash URL detected: "$url".');
   }
+  return await _doHttp(
+    method: method,
+    uri: uri,
+    headers: headers,
+    body: body,
+  );
+}
+
+Future<shelf.Response> _doHttp({
+  required String method,
+  required Uri uri,
+  Map<String, String>? headers,
+  body,
+}) async {
   final request = shelf.Request(
     method,
     uri,
@@ -67,22 +81,35 @@ Future<shelf.Response> issueHttp(
   }) as shelf.Response;
 }
 
-Future<String> acquireSessionCookie(String token) async {
+Future<String> acquireSessionCookies(String email) async {
   final rs = await issueHttp(
-    'POST',
-    '/api/account/session',
-    headers: {
-      'authorization': 'bearer $token',
-    },
-    body: json.encode({
-      'accessToken': token,
-    }),
+    'GET',
+    Uri(
+      path: '/sign-in',
+      queryParameters: {
+        'fake-email': email,
+        'go': '/',
+      },
+    ).toString(),
+    headers: {'cookie': '$experimentalCookieName=signin'},
     scheme: activeConfiguration.primarySiteUri.scheme,
     host: activeConfiguration.primarySiteUri.host,
   );
-  expect(rs.statusCode, 200);
-  final cookieHeader = rs.headers['set-cookie'];
-  return cookieHeader!.split(';').first;
+  expect(rs.statusCode, 303);
+  final cookieHeaders = rs.headersAll['set-cookie'] ?? <String>[];
+  final result = [
+    '$experimentalCookieName=signin',
+    ...cookieHeaders.map((h) => h.split(';').first),
+  ].join('; ');
+
+  // complete sign-in
+  final nextStep = Uri.parse(rs.headers['location']!);
+  await _doHttp(
+    method: 'GET',
+    uri: nextStep,
+    headers: {'cookie': result},
+  );
+  return result;
 }
 
 Future<String> expectHtmlResponse(

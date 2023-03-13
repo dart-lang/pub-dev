@@ -20,12 +20,14 @@ import '../templates/listing.dart' show PageLinks;
 import '../templates/misc.dart';
 import '../templates/publisher.dart';
 
+import 'account.dart' show checkAuthenticatedPageRequest;
 import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
   return htmlResponse(renderCreatePublisherPage());
 }
@@ -134,8 +136,9 @@ Future<shelf.Response> publisherAdminPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
@@ -161,8 +164,9 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  if (unauthenticatedRs != null) {
+    return unauthenticatedRs;
   }
   final isAdmin = await publisherBackend.isMemberAdmin(
     publisher,
