@@ -21,7 +21,7 @@ imageBucketName: dartlang-pub-dev--pub-images
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
 pubSiteAudience: 621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com
-pubServerAudience: TODO
+pubServerAudience: 621485135717-082tj8o9vu32lbmquftsolqngk2o13lp.apps.googleusercontent.com
 externalServiceAudience: https://pub.dev
 gmailRelayServiceAccount:
 gmailRelayImpersonatedGSuiteUser:
