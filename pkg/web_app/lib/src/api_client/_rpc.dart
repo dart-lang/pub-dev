@@ -58,22 +58,55 @@ Future<R?> rpc<R>({
 
   final spinner = _createSpinner();
   document.body!.append(spinner);
+
+  Future<void> cancelSpinner() async {
+    spinner.remove();
+    await keyDownSubscription.cancel();
+    buttons.forEach((e) => e.disabled = false);
+    inputs.forEach((e) => e.disabled = false);
+  }
+
   R? result;
   Exception? error;
   String? errorMessage;
   try {
     result = await fn!();
   } on RequestException catch (e) {
+    final location = e.headers['location'];
+    if (e.status == 401 && location != null) {
+      final locationUri = Uri.tryParse(location);
+      if (locationUri != null && locationUri.toString().isNotEmpty) {
+        await cancelSpinner();
+        final errorObject = e.bodyAsJson()['error'] as Map?;
+        final message = errorObject?['message'];
+        await modalMessage(
+          'Further consent needed.',
+          Element.p()
+            ..text = [
+              if (message != null) message,
+              'You will be redirected, please authorize the action.',
+            ].join(' '),
+        );
+
+        final windowUri = Uri.parse(window.location.href);
+        final newUri = Uri(
+          scheme: windowUri.scheme,
+          host: windowUri.host,
+          port: windowUri.port,
+          path: locationUri.path,
+          query: locationUri.hasQuery ? locationUri.query : null,
+        );
+        window.location.assign(newUri.toString());
+        return null;
+      }
+    }
     error = e;
     errorMessage = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
   } catch (e) {
     error = Exception('Unexpected error: $e');
     errorMessage = 'Unexpected error: $e';
   } finally {
-    spinner.remove();
-    await keyDownSubscription.cancel();
-    buttons.forEach((e) => e.disabled = false);
-    inputs.forEach((e) => e.disabled = false);
+    await cancelSpinner();
   }
 
   if (error != null) {

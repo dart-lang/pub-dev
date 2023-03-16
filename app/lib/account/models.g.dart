@@ -32,6 +32,9 @@ SessionData _$SessionDataFromJson(Map<String, dynamic> json) => SessionData(
           ? null
           : DateTime.parse(json['authenticatedAt'] as String),
       csrfToken: json['csrfToken'] as String?,
+      grantedScopes: (json['grantedScopes'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$SessionDataToJson(SessionData instance) =>
@@ -45,4 +48,5 @@ Map<String, dynamic> _$SessionDataToJson(SessionData instance) =>
       'expires': instance.expires.toIso8601String(),
       'authenticatedAt': instance.authenticatedAt?.toIso8601String(),
       'csrfToken': instance.csrfToken,
+      'grantedScopes': instance.grantedScopes,
     };

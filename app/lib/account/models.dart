@@ -159,6 +159,19 @@ class UserSession extends db.ExpandoModel<String> {
   @db.StringProperty(indexed: false)
   String? openidNonce;
 
+  /// The access token from the OpenID authentication.
+  ///
+  /// Note: we shall only try to use this token when [authenticatedAt]
+  /// happened in the last hour.
+  ///
+  /// Note: we do not cache the token in redis.
+  @db.StringProperty(indexed: false)
+  String? accessToken;
+
+  /// The granted scopes from the OpenID authentication.
+  @db.StringProperty(indexed: false)
+  String? grantedScopes;
+
   UserSession();
   UserSession.init() {
     id = createUuid();
@@ -208,6 +221,9 @@ class SessionData {
   /// present in authenticated requests.
   final String? csrfToken;
 
+  /// The list of granted scopes from the OpenID authentication.
+  final List<String>? grantedScopes;
+
   SessionData({
     required this.sessionId,
     this.userId,
@@ -218,6 +234,7 @@ class SessionData {
     required this.expires,
     this.authenticatedAt,
     this.csrfToken,
+    this.grantedScopes,
   });
 
   factory SessionData.fromModel(UserSession session) {
@@ -231,6 +248,7 @@ class SessionData {
       expires: session.expires!,
       authenticatedAt: session.authenticatedAt,
       csrfToken: session.csrfToken,
+      grantedScopes: (session.grantedScopes ?? '').split(' ').toSet().toList(),
     );
   }
 

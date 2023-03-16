@@ -494,6 +494,21 @@ class AuthorizationException extends ResponseException {
   String toString() => '$code: $message'; // used by package:pub_server
 }
 
+/// Thrown when an operation requires extra scope.
+class ScopeNeededException extends ResponseException {
+  ScopeNeededException({
+    required String location,
+    required String message,
+  }) : super._(
+          401,
+          'ScopeNeeded',
+          message,
+          headers: {
+            'location': location,
+          },
+        );
+}
+
 /// Thrown when action is conflicting with current state of a resource.
 ///
 /// Example:

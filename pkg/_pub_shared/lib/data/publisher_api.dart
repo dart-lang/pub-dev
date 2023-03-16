@@ -16,7 +16,7 @@ class CreatePublisherRequest {
   ///  * be valid at the time of the request,
   ///  * obtained from the OAuth2 flow used on the pub.dev website,
   ///  * have the scope: `'https://www.googleapis.com/auth/webmasters.readonly'`.
-  final String accessToken;
+  final String? accessToken;
 
   // json_serializable boiler-plate
   CreatePublisherRequest({required this.accessToken});

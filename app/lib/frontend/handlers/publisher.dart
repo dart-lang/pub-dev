@@ -25,11 +25,15 @@ import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  final domain = request.requestedUri.queryParameters['domain'];
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(
+    request,
+    includeWebmasterScope: domain != null && domain.isNotEmpty,
+  );
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
   }
-  return htmlResponse(renderCreatePublisherPage());
+  return htmlResponse(renderCreatePublisherPage(domain: domain));
 }
 
 /// Handles requests for GET /publishers

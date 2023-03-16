@@ -75,7 +75,7 @@ class ApiResponseException implements Exception {
         'code': code,
         'message': message,
       }),
-      headers: {
+      headers: <String, Object>{
         'content-type': 'application/json; charset="utf-8"',
         'x-content-type-options': 'nosniff',
         ...?headers,

@@ -486,6 +486,8 @@ class AccountBackend {
     required AuthResult profile,
   }) async {
     final now = clock.now().toUtc();
+    final info = await authProvider.callTokenInfoWithAccessToken(
+        accessToken: profile.accessToken ?? '');
     final user = await _lookupOrCreateUserByOauthUserId(profile);
     if (user == null || user.isBlocked || user.isDeleted) {
       throw AuthenticationException.failed();
@@ -510,6 +512,8 @@ class AccountBackend {
           ..email = user.email
           ..name = profile.name
           ..imageUrl = profile.imageUrl
+          ..accessToken = profile.accessToken
+          ..grantedScopes = info.scope
           ..created = now
           ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
@@ -522,6 +526,8 @@ class AccountBackend {
           ..email = user.email
           ..name = profile.name
           ..imageUrl = profile.imageUrl
+          ..accessToken = profile.accessToken
+          ..grantedScopes = info.scope
           ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(session);

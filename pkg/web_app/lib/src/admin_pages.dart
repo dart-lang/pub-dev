@@ -8,6 +8,7 @@ import 'dart:html';
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:web_app/src/account.dart';
 
 import '_authentication_proxy.dart';
 import '_dom_helper.dart';
@@ -363,11 +364,13 @@ class _CreatePublisherWidget {
       fn: () async {
         final extraScope =
             'https://www.googleapis.com/auth/webmasters.readonly';
-        final payload = CreatePublisherRequest(
-          accessToken:
-              (await authenticationProxy.accessToken(extraScope: extraScope))!,
+        final accessToken = useNewSignin
+            ? null
+            : await authenticationProxy.accessToken(extraScope: extraScope);
+        await api_client.client.createPublisher(
+          publisherId,
+          CreatePublisherRequest(accessToken: accessToken),
         );
-        await api_client.client.createPublisher(publisherId, payload);
       },
       successMessage: text('Publisher created. The page will reload.'),
       onSuccess: (_) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
+
 import '../service/openid/jwt.dart';
 
 class AuthResult {
@@ -10,6 +12,7 @@ class AuthResult {
   final String audience;
   final String? name;
   final String? imageUrl;
+  final String? accessToken;
 
   AuthResult({
     required this.oauthUserId,
@@ -17,7 +20,21 @@ class AuthResult {
     required this.audience,
     this.name,
     this.imageUrl,
+    this.accessToken,
   });
+
+  AuthResult withToken({
+    required String accessToken,
+  }) {
+    return AuthResult(
+      oauthUserId: oauthUserId,
+      email: email,
+      audience: audience,
+      name: name,
+      imageUrl: imageUrl,
+      accessToken: accessToken,
+    );
+  }
 }
 
 class AccountProfile {
@@ -50,6 +67,7 @@ abstract class AuthProvider {
     required Map<String, String> state,
     required String nonce,
     required bool promptSelect,
+    required bool includeWebmasterScope,
     required String? loginHint,
   });
 
@@ -61,6 +79,10 @@ abstract class AuthProvider {
     required String code,
     required String expectedNonce,
   });
+
+  /// Calls the Google tokeninfo POST endpoint with [accessToken].
+  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken(
+      {required String accessToken});
 
   /// Close resources.
   Future<void> close();

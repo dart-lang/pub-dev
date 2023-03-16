@@ -21,10 +21,12 @@ import 'views/publisher/header_metadata.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the create publisher page.
-String renderCreatePublisherPage() {
+String renderCreatePublisherPage({
+  required String? domain,
+}) {
   return renderLayoutPage(
     PageType.standalone,
-    createPublisherPageNode,
+    createPublisherPageNode(domain: domain),
     title: 'Create publisher',
     noIndex: true, // no need to index, as the page is only for a logged-in user
   );
