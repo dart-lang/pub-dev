@@ -19,6 +19,7 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 
 final _logger = Logger('pub.email');
+final _simpleUrlRegExp = RegExp(r'https?://(.+)');
 
 /// Sets the active [EmailSender].
 void registerEmailSender(EmailSender value) =>
@@ -56,8 +57,12 @@ class _LoggingEmailSender implements EmailSender {
         'from ${message.from} '
         'to ${message.recipients.join(', ')}';
 
+    final urls = _simpleUrlRegExp
+        .allMatches(message.bodyText)
+        .map((e) => e.group(0))
+        .toList();
     _logger.info('Not sending email (SMTP not configured): '
-        '$debugHeader\n${message.bodyText}.');
+        '$debugHeader${urls.map((e) => '\n$e').join('')}');
   }
 }
 
