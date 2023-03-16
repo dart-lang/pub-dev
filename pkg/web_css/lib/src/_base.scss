@@ -407,3 +407,22 @@ a.-x-ago {
   opacity: 0.75;
   margin-right: 3px;
 }
+
+.-pub-session-warning {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ffffaa;
+  padding: 12px 24px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.05);
+
+  button {
+    background-color: transparent;
+    margin-left: 8px;
+    padding: 8px;
+  }
+}

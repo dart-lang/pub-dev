@@ -20,11 +20,13 @@ class PageData {
   final String? consentId;
   final PkgData? pkgData;
   final PublisherData? publisher;
+  final bool? sessionAware;
 
   PageData({
     this.consentId,
     this.pkgData,
     this.publisher,
+    this.sessionAware,
   });
 
   factory PageData.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +37,7 @@ class PageData {
   bool get isConsentPage => consentId != null;
   bool get isPackagePage => pkgData != null;
   bool get isPublisherPage => publisher != null;
+  bool get isSessionAware => sessionAware == true;
 }
 
 /// The server-provided data about the current package.

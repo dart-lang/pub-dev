@@ -24,9 +24,9 @@ ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) =>
       expires: json['expires'] == null
           ? null
           : DateTime.parse(json['expires'] as String),
-      authenticated: json['authenticated'] == null
+      authenticatedAt: json['authenticatedAt'] == null
           ? null
-          : DateTime.parse(json['authenticated'] as String),
+          : DateTime.parse(json['authenticatedAt'] as String),
     );
 
 Map<String, dynamic> _$ClientSessionStatusToJson(
@@ -34,7 +34,7 @@ Map<String, dynamic> _$ClientSessionStatusToJson(
     <String, dynamic>{
       'changed': instance.changed,
       'expires': instance.expires?.toIso8601String(),
-      'authenticated': instance.authenticated?.toIso8601String(),
+      'authenticatedAt': instance.authenticatedAt?.toIso8601String(),
     };
 
 LikedPackagesRepsonse _$LikedPackagesRepsonseFromJson(

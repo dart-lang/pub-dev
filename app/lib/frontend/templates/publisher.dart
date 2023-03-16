@@ -161,6 +161,7 @@ String renderPublisherAdminPage({
       publisher: PublisherData(
         publisherId: publisher.publisherId,
       ),
+      sessionAware: true,
     ),
     canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
     noIndex: true,

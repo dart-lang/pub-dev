@@ -14,6 +14,7 @@ PageData _$PageDataFromJson(Map<String, dynamic> json) => PageData(
       publisher: json['publisher'] == null
           ? null
           : PublisherData.fromJson(json['publisher'] as Map<String, dynamic>),
+      sessionAware: json['sessionAware'] as bool?,
     );
 
 Map<String, dynamic> _$PageDataToJson(PageData instance) {
@@ -28,6 +29,7 @@ Map<String, dynamic> _$PageDataToJson(PageData instance) {
   writeNotNull('consentId', instance.consentId);
   writeNotNull('pkgData', instance.pkgData);
   writeNotNull('publisher', instance.publisher);
+  writeNotNull('sessionAware', instance.sessionAware);
   return val;
 }
 
