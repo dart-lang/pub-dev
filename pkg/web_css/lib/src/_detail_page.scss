@@ -174,11 +174,12 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   .detail-like {
     font-family: $font-family-roboto;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     text-transform: uppercase;
     white-space: nowrap;
     display: flex;
+    margin-top: -2px;
 
     .likes-count {
       display: inline-block;
