@@ -183,6 +183,10 @@ void main() {
               oauthUserId: oauthUserId,
               email: email,
               audience: activeConfiguration.pubSiteAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email,
+                audience: activeConfiguration.pubServerAudience,
+              ),
             ),
           );
           expect(
@@ -217,6 +221,10 @@ void main() {
               oauthUserId: oauthUserId,
               email: email,
               audience: activeConfiguration.pubSiteAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email,
+                audience: activeConfiguration.pubServerAudience,
+              ),
             ),
           );
           final authenticatedUser =
@@ -236,6 +244,10 @@ void main() {
               oauthUserId: oauthUserId,
               email: email,
               audience: activeConfiguration.pubSiteAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email,
+                audience: activeConfiguration.pubServerAudience,
+              ),
             ),
           );
           expect(sessionData.sessionId, session.sessionId);
@@ -255,6 +267,10 @@ void main() {
               oauthUserId: oauthUserId,
               email: email,
               audience: activeConfiguration.pubSiteAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email,
+                audience: activeConfiguration.pubServerAudience,
+              ),
             ),
           );
           final authenticatedUser =
@@ -275,6 +291,10 @@ void main() {
               oauthUserId: fakeOauthUserIdFromEmail(newEmail),
               email: newEmail,
               audience: activeConfiguration.pubSiteAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email,
+                audience: activeConfiguration.pubServerAudience,
+              ),
             ),
           );
           expect(sessionData.sessionId, isNot(session.sessionId));

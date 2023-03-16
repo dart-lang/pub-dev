@@ -45,7 +45,8 @@ class FakeAuthProvider extends BaseAuthProvider {
   }) async {
     final token = JsonWebToken.tryParse(accessToken);
     if (token == null) {
-      throw oauth2_v2.ApiRequestError(null);
+      throw oauth2_v2.ApiRequestError(
+          'Unable to parse access token: $accessToken');
     }
     final goodSignature = await verifyTokenSignature(
         token: token, openIdDataFetch: () async => throw AssertionError());
