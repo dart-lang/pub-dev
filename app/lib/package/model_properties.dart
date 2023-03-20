@@ -79,6 +79,8 @@ class Pubspec {
 
   String? get description => _inner.description;
 
+  List<String>? get topics => _inner.topics;
+
   Map<String, dynamic>? get executables {
     _load();
     final map = _json!['executables'];

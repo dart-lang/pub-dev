@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -50,6 +51,7 @@ d.Node packageInfoBoxNode({
     );
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
+  final topics = _topicstNode(version.pubspec?.topics);
 
   final screenshots = data.scoreCard?.panaReport?.screenshots;
   String? thumbnailUrl;
@@ -82,6 +84,8 @@ d.Node packageInfoBoxNode({
       description: version.pubspec!.description,
       metaLinks: metaLinks,
     ),
+    if (topics != null && requestContext.experimentalFlags.showTopics)
+      _block('Topics', topics),
     if (docLinks.isNotEmpty)
       _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
     if (fundingLinks.isNotEmpty)
@@ -174,6 +178,20 @@ d.Node? _licenseNode({
     d.a(href: licenseUrl, text: paths.join(', ')),
     d.text(')'),
   ]);
+}
+
+d.Node? _topicstNode(List<String>? topics) {
+  if (topics == null) return null;
+
+  final nodes = <d.Node>[];
+  for (final topic in topics) {
+    if (nodes.isNotEmpty) {
+      nodes.add(d.text(' '));
+    }
+    final node = d.a(href: urls.searchUrl(q: 'topic:$topic'), text: '#$topic');
+    nodes.add(node);
+  }
+  return d.fragment(nodes);
 }
 
 d.Node? _dependencyListNode(Map<String, pubspek.Dependency>? dependencies) {

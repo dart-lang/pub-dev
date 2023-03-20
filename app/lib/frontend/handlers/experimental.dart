@@ -12,6 +12,7 @@ const _allFlags = <String>{
   ..._publicFlags,
   'signin',
   'sandbox',
+  'topics',
 };
 
 /// The name of the experimental cookie.
@@ -52,6 +53,9 @@ class ExperimentalFlags {
 
   /// Whether to use the new sign-in, session handling and authorization.
   bool get useNewSignIn => _enabled.contains('signin');
+
+  /// Whether to show topics associated with a package.
+  bool get showTopics => _enabled.contains('topics');
 
   bool get isEmpty => _enabled.isEmpty;
 
