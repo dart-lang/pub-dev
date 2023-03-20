@@ -60,7 +60,7 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
     state: state,
     nonce: session.openidNonce!,
     promptSelect: params['select'] == '1',
-    includeWebmasterScope: params['webmaster'] == '1',
+    includeScopes: params['scope']?.split(' '),
     loginHint: requestContext.sessionData?.email,
   );
   return redirectResponse(
@@ -416,7 +416,7 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
 /// Returns non-null response if the further request processing is blocked.
 Future<shelf.Response?> checkAuthenticatedPageRequest(
   shelf.Request request, {
-  bool includeWebmasterScope = false,
+  List<String> requiredScopes = const <String>[],
 }) async {
   if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
@@ -428,9 +428,6 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
       now.difference(lastAuthenticated) > Duration(minutes: 30);
 
   final grantedScopes = requestContext.sessionData?.grantedScopes ?? <String>[];
-  final requiredScopes = <String>[
-    if (includeWebmasterScope) webmasterScope,
-  ];
   final hasAllRequiredScopes = requiredScopes.every(grantedScopes.contains);
 
   final needsReAuthentication = requestContext.experimentalFlags.useNewSignIn &&
@@ -443,7 +440,7 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
     );
     final signInUri = Uri(path: '/sign-in', queryParameters: {
       'go': goUri.toString(),
-      if (includeWebmasterScope) 'webmaster': '1',
+      if (requiredScopes.isNotEmpty) 'scope': requiredScopes.join(' '),
     });
     return redirectResponse(signInUri.toString());
   }

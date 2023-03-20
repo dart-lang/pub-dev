@@ -3,8 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
+import 'package:googleapis/searchconsole/v1.dart' as wmx;
 
 import '../service/openid/jwt.dart';
+import '../shared/exceptions.dart';
+
+/// The scope name for webmaster access.
+final webmasterScope = wmx.SearchConsoleApi.webmastersReadonlyScope;
+
+/// The list of scopes that are allowed in the public API request.
+final _allowedScopes = <String>{
+  webmasterScope,
+};
 
 class AuthResult {
   final String oauthUserId;
@@ -67,7 +77,7 @@ abstract class AuthProvider {
     required Map<String, String> state,
     required String nonce,
     required bool promptSelect,
-    required bool includeWebmasterScope,
+    required List<String>? includeScopes,
     required String? loginHint,
   });
 
@@ -86,4 +96,15 @@ abstract class AuthProvider {
 
   /// Close resources.
   Future<void> close();
+}
+
+/// Verifies the [includeScopes] and throws if any of them is not allowed.
+void verifyIncludeScopes(List<String>? includeScopes) {
+  if (includeScopes == null || includeScopes.isEmpty) {
+    return;
+  }
+  for (final scope in includeScopes) {
+    InvalidInputException.check(
+        _allowedScopes.contains(scope), 'Invalid scope: "$scope".');
+  }
 }

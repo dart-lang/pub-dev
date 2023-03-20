@@ -144,9 +144,10 @@ class FakeAuthProvider extends BaseAuthProvider {
     required Map<String, String> state,
     required String nonce,
     required bool promptSelect,
-    required bool includeWebmasterScope,
+    required List<String>? includeScopes,
     required String? loginHint,
   }) async {
+    verifyIncludeScopes(includeScopes);
     final email = state['fake-email'] ?? loginHint;
     if (email == null || email.isEmpty) {
       return Uri.parse(getOauthRedirectUri());
@@ -158,9 +159,7 @@ class FakeAuthProvider extends BaseAuthProvider {
       extraPayload: {
         'nonce': nonce,
       },
-      scope: [
-        if (includeWebmasterScope) webmasterScope,
-      ].join(' '),
+      scope: includeScopes?.join(' '),
     );
     return Uri.parse(getOauthRedirectUri()).replace(
       queryParameters: {

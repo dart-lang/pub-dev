@@ -10,9 +10,9 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
+import '../account/auth_provider.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
-import '../account/default_auth_provider.dart';
 import '../audit/models.dart';
 import '../frontend/request_context.dart';
 import '../shared/datastore.dart';
@@ -166,8 +166,8 @@ class PublisherBackend {
         final locationUrl = Uri(
           path: '/sign-in',
           queryParameters: {
-            'webmaster': '1',
             'go': goUrl,
+            'scope': webmasterScope,
           },
         ).toString();
         throw ScopeNeededException(

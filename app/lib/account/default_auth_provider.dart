@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
-import 'package:googleapis/searchconsole/v1.dart' as wmx;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -28,9 +27,6 @@ final _logger = Logger('pub.account.google_auth2');
 
 /// The token-info end-point.
 final _tokenInfoEndPoint = Uri.parse('https://oauth2.googleapis.com/tokeninfo');
-
-/// The scope name for webmaster access.
-final webmasterScope = wmx.SearchConsoleApi.webmastersReadonlyScope;
 
 /// Provides OAuth2-based authentication through JWKS and Google account APIs.
 class DefaultAuthProvider extends BaseAuthProvider {
@@ -106,9 +102,10 @@ class DefaultAuthProvider extends BaseAuthProvider {
     required Map<String, String> state,
     required String nonce,
     required bool promptSelect,
-    required bool includeWebmasterScope,
+    required List<String>? includeScopes,
     required String? loginHint,
   }) async {
+    verifyIncludeScopes(includeScopes);
     // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
       queryParameters: {
@@ -119,7 +116,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
           oauth2_v2.Oauth2Api.openidScope,
           oauth2_v2.Oauth2Api.userinfoEmailScope,
           oauth2_v2.Oauth2Api.userinfoProfileScope,
-          if (includeWebmasterScope) webmasterScope,
+          ...?includeScopes,
         ].join(' '),
         'state': encodeState(state),
         'nonce': nonce,
