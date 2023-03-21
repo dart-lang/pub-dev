@@ -111,6 +111,7 @@ d.Node iconButton({
   Map<String, String>? attributes,
   required d.Image onIcon,
   required d.Image offIcon,
+  bool disabled = false,
 }) {
   return d.element(
     'button',
@@ -119,7 +120,10 @@ d.Node iconButton({
       'mdc-icon-button',
       if (isOn) 'mdc-icon-button--on',
     ],
-    attributes: attributes,
+    attributes: {
+      ...?attributes,
+      if (disabled) 'disabled': 'disabled',
+    },
     children: [
       d.img(
         classes: ['mdc-icon-button__icon'],
