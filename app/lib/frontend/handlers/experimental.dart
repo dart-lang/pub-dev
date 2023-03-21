@@ -51,7 +51,7 @@ class ExperimentalFlags {
   bool get showSandboxedOutput => _enabled.contains('sandbox');
 
   /// Whether to use the new sign-in, session handling and authorization.
-  bool get useNewSignIn => _enabled.contains('signin');
+  bool get useNewSignIn => true;// _enabled.contains('signin');
 
   bool get isEmpty => _enabled.isEmpty;
 

@@ -23,7 +23,6 @@ late final useNewSignin = _newSigningMetaContent == '1';
 
 void setupAccount() {
   if (useNewSignin) {
-    // TODO: review client-side sign-in methods.
     _initSessionMonitor();
     _initWidgets();
     return;
