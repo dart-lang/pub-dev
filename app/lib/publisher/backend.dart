@@ -10,9 +10,11 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
+import '../account/auth_provider.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../audit/models.dart';
+import '../frontend/request_context.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
@@ -148,19 +150,48 @@ class PublisherBackend {
       'publisherId',
       maximum: maxPublisherIdLength, // Some upper limit for sanity.
     );
-    InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
+    var accessToken = body.accessToken;
+    if (accessToken == null) {
+      final session = await accountBackend
+          .lookupValidUserSession(requestContext.sessionData!.sessionId);
+      final grantedScopes =
+          session?.grantedScopes?.split(' ') ?? const <String>[];
+      if (grantedScopes.contains(webmasterScope)) {
+        accessToken = session?.accessToken;
+      } else {
+        final goUrl = Uri(
+          path: '/create-publisher',
+          queryParameters: {'domain': publisherId},
+        ).toString();
+        final locationUrl = Uri(
+          path: '/sign-in',
+          queryParameters: {
+            'go': goUrl,
+            'scope': webmasterScope,
+          },
+        ).toString();
+        throw ScopeNeededException(
+          message: 'Please authorize access to Google Search Console.',
+          location: locationUrl,
+        );
+      }
+    }
+    InvalidInputException.checkNotNull(accessToken, 'accessToken');
     InvalidInputException.checkStringLength(
-      body.accessToken,
+      accessToken!,
       'accessToken',
       minimum: 1,
       maximum: 4096,
     );
-    await accountBackend.verifyAccessTokenOwnership(body.accessToken, user);
+    // TODO: remove this check after the new sign-in goes live
+    if (body.accessToken != null) {
+      await accountBackend.verifyAccessTokenOwnership(accessToken, user);
+    }
 
     // Verify ownership of domain.
     final isOwner = await domainVerifier.verifyDomainOwnership(
       publisherId,
-      body.accessToken,
+      accessToken,
     );
     if (!isOwner) {
       throw AuthorizationException.userIsNotDomainOwner(publisherId);

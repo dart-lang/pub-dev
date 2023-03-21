@@ -845,7 +845,7 @@ void main() {
     });
 
     scopedTest('create publisher page', () {
-      final html = renderCreatePublisherPage();
+      final html = renderCreatePublisherPage(domain: null);
       expectGoldenFile(html, 'create_publisher_page.html');
     });
 

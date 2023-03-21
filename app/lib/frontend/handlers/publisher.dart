@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/auth_provider.dart';
 import '../../audit/backend.dart';
 import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
@@ -25,11 +26,16 @@ import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+  final domain = request.requestedUri.queryParameters['domain'];
+  final includeWebmasterScope = domain != null && domain.isNotEmpty;
+  final unauthenticatedRs = await checkAuthenticatedPageRequest(
+    request,
+    requiredScopes: [if (includeWebmasterScope) webmasterScope],
+  );
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
   }
-  return htmlResponse(renderCreatePublisherPage());
+  return htmlResponse(renderCreatePublisherPage(domain: domain));
 }
 
 /// Handles requests for GET /publishers

@@ -9,7 +9,7 @@ part of 'publisher_api.dart';
 CreatePublisherRequest _$CreatePublisherRequestFromJson(
         Map<String, dynamic> json) =>
     CreatePublisherRequest(
-      accessToken: json['accessToken'] as String,
+      accessToken: json['accessToken'] as String?,
     );
 
 Map<String, dynamic> _$CreatePublisherRequestToJson(

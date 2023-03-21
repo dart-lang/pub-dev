@@ -7,11 +7,11 @@ import 'dart:io';
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/account/default_auth_provider.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
+import '../../account/default_auth_provider.dart';
 import '../../account/like_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
@@ -60,6 +60,7 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
     state: state,
     nonce: session.openidNonce!,
     promptSelect: params['select'] == '1',
+    includeScopes: params['scope']?.split(' '),
     loginHint: requestContext.sessionData?.email,
   );
   return redirectResponse(
@@ -121,7 +122,6 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
     sessionId: session.sessionId,
     profile: profile,
   );
-
   return redirectResponse(
     go,
     headers: session_cookie.createClientSessionCookie(
@@ -415,16 +415,23 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
 ///
 /// Returns non-null response if the further request processing is blocked.
 Future<shelf.Response?> checkAuthenticatedPageRequest(
-    shelf.Request request) async {
+  shelf.Request request, {
+  List<String> requiredScopes = const <String>[],
+}) async {
   if (requestContext.isNotAuthenticated) {
     return htmlResponse(renderUnauthenticatedPage());
   }
 
   final now = clock.now();
   final lastAuthenticated = requestContext.sessionData?.authenticatedAt;
+  final isLastAuthenticationOld = lastAuthenticated == null ||
+      now.difference(lastAuthenticated) > Duration(minutes: 30);
+
+  final grantedScopes = requestContext.sessionData?.grantedScopes ?? <String>[];
+  final hasAllRequiredScopes = requiredScopes.every(grantedScopes.contains);
+
   final needsReAuthentication = requestContext.experimentalFlags.useNewSignIn &&
-      (lastAuthenticated == null ||
-          now.difference(lastAuthenticated) > Duration(minutes: 30));
+      (isLastAuthenticationOld || !hasAllRequiredScopes);
   if (needsReAuthentication) {
     final requestedUri = request.requestedUri;
     final goUri = Uri(
@@ -433,6 +440,7 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
     );
     final signInUri = Uri(path: '/sign-in', queryParameters: {
       'go': goUri.toString(),
+      if (requiredScopes.isNotEmpty) 'scope': requiredScopes.join(' '),
     });
     return redirectResponse(signInUri.toString());
   }

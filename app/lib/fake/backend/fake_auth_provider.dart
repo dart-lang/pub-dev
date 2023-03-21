@@ -45,7 +45,8 @@ class FakeAuthProvider extends BaseAuthProvider {
   }) async {
     final token = JsonWebToken.tryParse(accessToken);
     if (token == null) {
-      throw oauth2_v2.ApiRequestError(null);
+      throw oauth2_v2.ApiRequestError(
+          'Unable to parse access token: $accessToken');
     }
     final goodSignature = await verifyTokenSignature(
         token: token, openIdDataFetch: () async => throw AssertionError());
@@ -143,8 +144,10 @@ class FakeAuthProvider extends BaseAuthProvider {
     required Map<String, String> state,
     required String nonce,
     required bool promptSelect,
+    required List<String>? includeScopes,
     required String? loginHint,
   }) async {
+    verifyIncludeScopes(includeScopes);
     final email = state['fake-email'] ?? loginHint;
     if (email == null || email.isEmpty) {
       return Uri.parse(getOauthRedirectUri());
@@ -156,6 +159,7 @@ class FakeAuthProvider extends BaseAuthProvider {
       extraPayload: {
         'nonce': nonce,
       },
+      scope: includeScopes?.join(' '),
     );
     return Uri.parse(getOauthRedirectUri()).replace(
       queryParameters: {
@@ -192,6 +196,12 @@ class FakeAuthProvider extends BaseAuthProvider {
       audience: token.payload['aud'] as String,
       name: name,
       imageUrl: imageUrl,
+      accessToken: _createGcpToken(
+        email: email,
+        audience: activeConfiguration.pubServerAudience!,
+        scope: token.payload['scope'] as String?,
+        signature: null,
+      ),
     );
   }
 }
@@ -226,6 +236,7 @@ String _createGcpToken({
   required String audience,
   required List<int>? signature,
   Map<String, Object>? extraPayload,
+  String? scope,
 }) {
   final token = JsonWebToken(
     header: {
@@ -239,6 +250,7 @@ String _createGcpToken({
       'iss': GcpServiceAccountJwtPayload.issuerUrl,
       ...?extraPayload,
       ..._jwtPayloadTimestamps(),
+      if (scope != null) 'scope': scope,
     },
     signature: signature ?? utf8.encode('valid'),
   );

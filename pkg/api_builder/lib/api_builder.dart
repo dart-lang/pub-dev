@@ -54,12 +54,14 @@ class ApiResponseException implements Exception {
   final int status;
   final String code;
   final String message;
+  final Map<String, Object>? body;
   final Map<String, Object>? headers;
 
   ApiResponseException({
     required this.status,
     required this.code,
     required this.message,
+    this.body,
     this.headers,
   });
 
@@ -67,6 +69,7 @@ class ApiResponseException implements Exception {
     return shelf.Response(
       status,
       body: json.fuse(utf8).encode({
+        ...?body,
         'error': {
           'code': code,
           'message': message,
@@ -75,7 +78,7 @@ class ApiResponseException implements Exception {
         'code': code,
         'message': message,
       }),
-      headers: {
+      headers: <String, Object>{
         'content-type': 'application/json; charset="utf-8"',
         'x-content-type-options': 'nosniff',
         ...?headers,

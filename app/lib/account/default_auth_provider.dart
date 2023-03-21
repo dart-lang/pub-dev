@@ -102,8 +102,10 @@ class DefaultAuthProvider extends BaseAuthProvider {
     required Map<String, String> state,
     required String nonce,
     required bool promptSelect,
+    required List<String>? includeScopes,
     required String? loginHint,
   }) async {
+    verifyIncludeScopes(includeScopes);
     // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
       queryParameters: {
@@ -114,6 +116,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
           oauth2_v2.Oauth2Api.openidScope,
           oauth2_v2.Oauth2Api.userinfoEmailScope,
           oauth2_v2.Oauth2Api.userinfoProfileScope,
+          ...?includeScopes,
         ].join(' '),
         'state': encodeState(state),
         'nonce': nonce,
@@ -147,6 +150,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
       final body = json.decode(rs.body);
       // TODO: also expose access_token for domain verification calls
       final idToken = body['id_token'] as String;
+      final accessToken = body['access_token'] as String;
       final auth = await _tryAuthenticateJwt(
         idToken,
         expectedNonce: expectedNonce,
@@ -154,7 +158,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
       if (auth == null) {
         return null;
       }
-      return auth;
+      return auth.withToken(accessToken: accessToken);
     } catch (e, st) {
       _logger.severe('Error processing oauth code.', e, st);
       return null;
@@ -164,10 +168,6 @@ class DefaultAuthProvider extends BaseAuthProvider {
 
 /// Provides base methods and checks for OAuth2-based authentication.
 abstract class BaseAuthProvider extends AuthProvider {
-  /// Calls the Google tokeninfo POST endpoint with [accessToken].
-  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken(
-      {required String accessToken});
-
   /// Calls the Google tokeninfo GET endpoint with [idToken].
   Future<http.Response> callTokenInfoWithIdToken({required String idToken});
 
