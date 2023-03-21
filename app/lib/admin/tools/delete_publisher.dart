@@ -18,7 +18,10 @@ Future<String> executeDeletePublisher(List<String> args) async {
   final argv = _argParser.parse(args);
 
   if (argv['help'] as bool) {
-    return 'Delete a publisher using admin rights.\n${_argParser.usage}';
+    return 'Delete a publisher using admin rights.\n'
+        '- Can only delete publishers with no packages.\n'
+        '- Will not leave a tombstone, the publisher can be recreated.\n'
+        '${_argParser.usage}';
   }
 
   final publisherId = argv['publisher'] as String?;
