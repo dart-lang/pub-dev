@@ -69,7 +69,7 @@ class ApiResponseException implements Exception {
     return shelf.Response(
       status,
       body: json.fuse(utf8).encode({
-          ...?body,
+        ...?body,
         'error': {
           'code': code,
           'message': message,
