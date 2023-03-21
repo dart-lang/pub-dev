@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/format/number_format.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../dom/dom.dart' as d;
 import '../../../../dom/material.dart' as material;
@@ -20,6 +21,8 @@ d.Node detailHeaderNode({
   /// Set true for more whitespace in the header.
   required bool isLoose,
 }) {
+  final isLikeDisabled = requestContext.experimentalFlags.useNewSignIn &&
+      requestContext.isNotAuthenticated;
   final hasBanners = isFlutterFavorite;
   return d.fragment([
     if (hasBanners)
@@ -116,6 +119,10 @@ d.Node detailHeaderNode({
                                 'data-ga-click-event': 'toggle-like',
                                 'aria-pressed': isLiked ? 'true' : 'false',
                               },
+                              disabled: isLikeDisabled,
+                              title: isLikeDisabled
+                                  ? 'Sign-in to like the package.'
+                                  : null,
                             ),
                             d.span(
                               classes: ['likes-count'],
