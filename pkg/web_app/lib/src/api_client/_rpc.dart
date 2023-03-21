@@ -72,8 +72,9 @@ Future<R?> rpc<R>({
   try {
     result = await fn!();
   } on RequestException catch (e) {
-    final location = e.headers['location'];
-    if (e.status == 401 && location != null) {
+    final asJson = e.bodyAsJson();
+    if (e.status == 401 && asJson.containsKey('go')) {
+      final location = e.bodyAsJson()['go'] as String;
       final locationUri = Uri.tryParse(location);
       if (locationUri != null && locationUri.toString().isNotEmpty) {
         await cancelSpinner();

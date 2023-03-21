@@ -24,8 +24,15 @@ abstract class ResponseException extends ApiResponseException {
     int status,
     String code,
     String message, {
+    Map<String, Object>? body,
     Map<String, Object>? headers,
-  }) : super(status: status, code: code, message: message, headers: headers);
+  }) : super(
+          status: status,
+          code: code,
+          message: message,
+          body: body,
+          headers: headers,
+        );
 
   @override
   String toString() => '$code($status): $message'; // implemented for debugging
@@ -503,8 +510,8 @@ class ScopeNeededException extends ResponseException {
           401,
           'ScopeNeeded',
           message,
-          headers: {
-            'location': location,
+          body: {
+            'go': location,
           },
         );
 }
