@@ -21,6 +21,8 @@ d.Node detailHeaderNode({
   /// Set true for more whitespace in the header.
   required bool isLoose,
 }) {
+  final isLikeDisabled = requestContext.experimentalFlags.useNewSignIn &&
+      requestContext.isNotAuthenticated;
   final hasBanners = isFlutterFavorite;
   return d.fragment([
     if (hasBanners)
@@ -117,9 +119,10 @@ d.Node detailHeaderNode({
                                 'data-ga-click-event': 'toggle-like',
                                 'aria-pressed': isLiked ? 'true' : 'false',
                               },
-                              disabled: requestContext
-                                      .experimentalFlags.useNewSignIn &&
-                                  requestContext.isNotAuthenticated,
+                              disabled: isLikeDisabled,
+                              title: isLikeDisabled
+                                  ? 'Sign-in to like the package.'
+                                  : null,
                             ),
                             d.span(
                               classes: ['likes-count'],

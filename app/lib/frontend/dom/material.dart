@@ -112,6 +112,7 @@ d.Node iconButton({
   required d.Image onIcon,
   required d.Image offIcon,
   bool disabled = false,
+  String? title,
 }) {
   return d.element(
     'button',
@@ -123,6 +124,7 @@ d.Node iconButton({
     attributes: {
       ...?attributes,
       if (disabled) 'disabled': 'disabled',
+      if (title != null) 'title': title,
     },
     children: [
       d.img(
