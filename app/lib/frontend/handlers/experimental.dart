@@ -6,7 +6,9 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{};
+const _publicFlags = <String>{
+  'topics',
+};
 
 const _allFlags = <String>{
   ..._publicFlags,
@@ -52,6 +54,9 @@ class ExperimentalFlags {
 
   /// Whether to use the new sign-in, session handling and authorization.
   bool get useNewSignIn => _enabled.contains('signin');
+
+  /// Whether to show topics associated with a package.
+  bool get showTopics => _enabled.contains('topics');
 
   bool get isEmpty => _enabled.isEmpty;
 
