@@ -109,8 +109,6 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   if (expectedNonce == null) {
     return notFoundHandler(request, body: 'Missing `nonce` in session.');
   }
-  // TODO: verify state in the response
-  // TODO: verify prompt (=none or =consent)
   final profile = await authProvider.tryAuthenticateOauthCode(
     code: code,
     expectedNonce: expectedNonce,

@@ -1,4 +1,4 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -50,18 +50,9 @@ void main() {
 
         // github publishing
         await headlessEnv.withPage(fn: (page) async {
-          await page.gotoOrigin('/experimental?publishing=1');
-          await Future.delayed(Duration(seconds: 2));
-          await page.gotoOrigin('/');
-          await page.click('#-account-login');
-          await page.waitForSelector('#-pub-custom-token-input',
-              timeout: Duration(seconds: 2));
-          await page.focusAndType('#-pub-custom-token-input',
-              'admin-at-pub-dot-dev?aud=fake-site-audience');
-
-          await page.clickOnButtonWithLabel('ok');
-          await page.waitForNavigation(timeout: Duration(seconds: 5));
-          await Future.delayed(Duration(seconds: 2));
+          await page.gotoOrigin('/experimental?signin=1');
+          await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev');
+          await Future.delayed(Duration(seconds: 1));
 
           await page.gotoOrigin('/packages/test_pkg/admin');
           await Future.delayed(Duration(seconds: 1));
