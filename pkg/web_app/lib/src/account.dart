@@ -82,6 +82,8 @@ void _initSessionMonitor() {
     }
   }
 
+  /// TODO: rewrite this to just make a while loop and then do await
+  /// Future.delayed(sessionExpiresThreshold.subtract(now.subtract(authenticatedAt)))
   Timer.periodic(checkFrequency, (timer) async {
     await checkSession();
   });
