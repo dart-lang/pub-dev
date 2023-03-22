@@ -181,7 +181,7 @@ d.Node? _licenseNode({
 }
 
 d.Node? _topicstNode(List<String>? topics) {
-  if (topics == null) return null;
+  if (topics == null || topics.isEmpty) return null;
 
   final nodes = <d.Node>[];
   for (final topic in topics) {

@@ -6,13 +6,14 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{};
+const _publicFlags = <String>{
+  'topics',
+};
 
 const _allFlags = <String>{
   ..._publicFlags,
   'signin',
   'sandbox',
-  'topics',
 };
 
 /// The name of the experimental cookie.
