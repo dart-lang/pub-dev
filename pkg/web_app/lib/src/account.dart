@@ -40,8 +40,8 @@ void _initSessionMonitor() {
   }
 
   final checkFrequency = Duration(minutes: 5);
-  final sessionExpiresThreshold = Duration(minutes: 30);
-  final authenticationThreshold = Duration(minutes: 45);
+  final sessionExpiresThreshold = Duration(minutes: 45);
+  final authenticationThreshold = Duration(minutes: 55);
 
   DivElement? lastDiv;
   String? lastMessage;
