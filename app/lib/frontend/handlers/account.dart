@@ -131,6 +131,17 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   );
 }
 
+/// Handles GET /api/account/session
+Future<ClientSessionStatus> getAccountSessionHandler(
+    shelf.Request request) async {
+  final sessionData = requestContext.sessionData;
+  return ClientSessionStatus(
+    changed: false,
+    expires: sessionData?.expires,
+    authenticatedAt: sessionData?.authenticatedAt,
+  );
+}
+
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(
     shelf.Request request, ClientSessionRequest body) async {
@@ -163,7 +174,7 @@ Future<shelf.Response> updateSessionHandler(
     final status = ClientSessionStatus(
       changed: false,
       expires: sessionData.expires,
-      authenticated: null,
+      authenticatedAt: null,
     );
     _logger.info(
         '[pub-session-handler-debug] Session was alive: $t1 / ${t2 - t1}.');
@@ -184,7 +195,7 @@ Future<shelf.Response> updateSessionHandler(
     ClientSessionStatus(
       changed: true,
       expires: newSession.expires,
-      authenticated: null,
+      authenticatedAt: null,
     ).toJson(),
     headers: session_cookie.createUserSessionCookie(
         newSession.sessionId, newSession.expires),
@@ -207,7 +218,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
     ClientSessionStatus(
       changed: sessionId != null,
       expires: null,
-      authenticated: null,
+      authenticatedAt: null,
     ).toJson(),
     // Clear cookie, so we don't have to lookup an invalid sessionId.
     headers: session_cookie.clearSessionCookies(),

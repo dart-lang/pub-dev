@@ -7,6 +7,7 @@ import 'dart:html';
 import 'dart:js';
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:web_app/src/page_data.dart';
 
 import '_authentication_proxy.dart';
 import '_dom_helper.dart';
@@ -23,11 +24,69 @@ late final useNewSignin = _newSigningMetaContent == '1';
 void setupAccount() {
   if (useNewSignin) {
     // TODO: review client-side sign-in methods.
+    _initSessionMonitor();
     _initWidgets();
     return;
   } else {
     _setupOldAccount();
   }
+}
+
+void _initSessionMonitor() {
+  // No need to monitor session on non-editable pages,
+  // where no action or state-change may be started.
+  if (!pageData.isSessionAware) {
+    return;
+  }
+
+  final checkFrequency = Duration(minutes: 5);
+  final sessionExpiresThreshold = Duration(minutes: 45);
+  final authenticationThreshold = Duration(minutes: 55);
+
+  DivElement? lastDiv;
+  String? lastMessage;
+  void removeLast() {
+    lastDiv?.remove();
+    lastDiv = null;
+    lastMessage = null;
+  }
+
+  Future<void> checkSession() async {
+    await api_client.loadLibrary();
+    final status = await api_client.unauthenticatedClient.getAccountSession();
+    final now = DateTime.now();
+    final expires = status.expires;
+    final authenticatedAt = status.authenticatedAt;
+    String? displayMessage;
+    if (expires == null || authenticatedAt == null) {
+      displayMessage = 'Your session has expired.';
+    } else if (expires.isBefore(now.add(sessionExpiresThreshold)) ||
+        authenticatedAt.isBefore(now.subtract(authenticationThreshold))) {
+      displayMessage = 'Your session will expire soon.';
+    }
+    if (lastMessage != displayMessage) {
+      removeLast();
+      lastMessage = displayMessage;
+
+      if (displayMessage != null) {
+        final div = DivElement()
+          ..classes.add('-pub-session-warning')
+          ..innerText = displayMessage
+          ..append(ButtonElement()
+            ..text = 'X'
+            ..onClick.listen((_) => removeLast()));
+        document.body!.append(div);
+        lastDiv = div;
+      }
+      return;
+    }
+  }
+
+  /// TODO: rewrite this to just make a while loop and then do await
+  /// Future.delayed(sessionExpiresThreshold.subtract(now.subtract(authenticatedAt)))
+  Timer.periodic(checkFrequency, (timer) async {
+    await checkSession();
+  });
 }
 
 void _setupOldAccount() {

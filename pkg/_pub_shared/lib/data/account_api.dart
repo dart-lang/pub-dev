@@ -36,12 +36,12 @@ class ClientSessionStatus {
   /// reloaded.
   final bool? changed;
   final DateTime? expires;
-  final DateTime? authenticated;
+  final DateTime? authenticatedAt;
 
   ClientSessionStatus({
     required this.changed,
     required this.expires,
-    required this.authenticated,
+    required this.authenticatedAt,
   });
 
   factory ClientSessionStatus.fromJson(Map<String, dynamic> json) =>

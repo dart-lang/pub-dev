@@ -21,10 +21,16 @@ class PageData {
   final PkgData? pkgData;
   final PublisherData? publisher;
 
+  /// Flag to monitor when the session is close to expiry.
+  /// In such cases a notification will be shown, so that the user
+  /// has a chance to save their work on the page before it may be lost.
+  final bool? sessionAware;
+
   PageData({
     this.consentId,
     this.pkgData,
     this.publisher,
+    this.sessionAware,
   });
 
   factory PageData.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +41,7 @@ class PageData {
   bool get isConsentPage => consentId != null;
   bool get isPackagePage => pkgData != null;
   bool get isPublisherPage => publisher != null;
+  bool get isSessionAware => sessionAware == true;
 }
 
 /// The server-provided data about the current package.

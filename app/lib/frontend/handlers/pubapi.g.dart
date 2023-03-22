@@ -449,6 +449,22 @@ Router _$PubApiRouter(PubApi service) {
     },
   );
   router.add(
+    'GET',
+    r'/api/account/session',
+    (Request request) async {
+      try {
+        final _$result = await service.getAccountSession(
+          request,
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
     'POST',
     r'/api/account/session',
     (Request request) async {

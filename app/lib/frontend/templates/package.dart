@@ -270,18 +270,28 @@ String _renderPkgPage({
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
     noIndex: noIndex,
-    pageData: pkgPageData(data.package!, data.version!),
+    pageData: pkgPageData(
+      data.package!,
+      data.version!,
+      editable: pkgPageTab == urls.PkgPageTab.admin,
+    ),
   );
 }
 
-PageData pkgPageData(Package package, PackageVersion selectedVersion) {
+PageData pkgPageData(
+  Package package,
+  PackageVersion selectedVersion, {
+  bool? editable,
+}) {
   return PageData(
     pkgData: PkgData(
-        package: package.name!,
-        version: selectedVersion.version!,
-        publisherId: package.publisherId,
-        isDiscontinued: package.isDiscontinued,
-        likes: package.likes),
+      package: package.name!,
+      version: selectedVersion.version!,
+      publisherId: package.publisherId,
+      isDiscontinued: package.isDiscontinued,
+      likes: package.likes,
+    ),
+    sessionAware: editable,
   );
 }
 
