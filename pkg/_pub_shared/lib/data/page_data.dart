@@ -20,6 +20,7 @@ class PageData {
   final String? consentId;
   final PkgData? pkgData;
   final PublisherData? publisher;
+
   /// Flag to monitor when the session is close to expiry.
   /// In such cases a notification will be shown, so that the user
   /// has a chance to save their work on the page before it may be lost.
