@@ -102,7 +102,7 @@ d.Node createPublisherPageNode({
         ),
         material.raisedButton(
           id: '-admin-create-publisher',
-          label: 'Create publisher',
+          label: domain == null ? 'Start verification' : 'Create publisher',
         ),
       ],
     ),
