@@ -131,10 +131,12 @@ d.Node pageLayoutNode({
                 name: 'google-signin-client_id', content: oauthClientId ?? ''),
             if (csrfToken != null && csrfToken.isNotEmpty)
               d.meta(name: 'csrf-token', content: csrfToken),
-            d.script(
-              src: 'https://apis.google.com/js/platform.js?onload=pubAuthInit',
-              defer: true,
-            ),
+            if (!requestContext.experimentalFlags.useNewSignIn)
+              d.script(
+                src:
+                    'https://apis.google.com/js/platform.js?onload=pubAuthInit',
+                defer: true,
+              ),
             if (pageDataEncoded != null)
               d.meta(name: 'pub-page-data', content: pageDataEncoded),
             if (isLanding) ...[
