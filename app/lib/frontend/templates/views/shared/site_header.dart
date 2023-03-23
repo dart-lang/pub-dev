@@ -55,7 +55,7 @@ d.Node siteHeaderNode({
           'scroll-container',
         ],
         children: [
-          if (userSession == null)
+          if (userSession == null || !userSession.isAuthenticated)
             d.div(
               classes: ['nav-login-container'],
               child: d.button(
@@ -106,7 +106,8 @@ d.Node siteHeaderNode({
           _foldableMobileLinks('Pub.dev', _pubDevLinks),
           _foldableMobileLinks('Flutter', _flutterLinks),
           _foldableMobileLinks('Dart', _dartLinks),
-          if (userSession != null) _userBlock(userSession),
+          if (userSession != null && userSession.isAuthenticated)
+            _userBlock(userSession),
         ],
       ),
     ],
