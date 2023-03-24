@@ -3,7 +3,11 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20230323t135600-all`
+ * Fixing session-related rendering in new sign-in flow.
+
 ## `20230322t165800-all`
+ * Enabled new sign-in flow.
 
 ## `20230316t130000-all`
  * Bumped runtimeVersion to `2023.03.13`.
