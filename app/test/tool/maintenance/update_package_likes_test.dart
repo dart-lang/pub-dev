@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -25,9 +26,8 @@ void main() {
 
     testWithProfile('no need to change like counts #2', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
-      await createPubApiClient(
-        authToken: userAtPubDevAuthToken,
-      ).likePackage('oxygen');
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+      await client.likePackage('oxygen');
       expect(await updatePackageLikes(), 0);
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.likes, p1!.likes + 1);

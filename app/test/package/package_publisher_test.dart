@@ -66,7 +66,7 @@ void main() {
     );
 
     testWithProfile('User is not an uploader', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = client.setPackagePublisher(
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -77,7 +77,8 @@ void main() {
     });
 
     testWithProfile('successful', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.setPackagePublisher(
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -120,7 +121,8 @@ void main() {
 
   group('Upload with a publisher', () {
     testWithProfile('not an admin', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       await client.setPackagePublisher(
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -134,7 +136,8 @@ void main() {
     });
 
     testWithProfile('successful', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       await client.setPackagePublisher(
         'oxygen',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -215,7 +218,8 @@ void main() {
     );
 
     testWithProfile('successful', testProfile: _profile(), fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.setPackagePublisher(
         'one',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -265,7 +269,8 @@ void main() {
     );
 
     testWithProfile('successful', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = client.removePackagePublisher('neon');
       await expectApiException(rs, status: 501);
 //  Code commented out while we decide if this feature is something we want to
@@ -288,13 +293,13 @@ dynamic _json(value) => json.decode(json.encode(value));
 
 void _testUserNotMemberOfPublisher({
   required Future<void> Function(PubApiClient client) fn,
-  String? authToken,
+  String? email,
   TestProfile? testProfile,
 }) {
-  authToken ??= createFakeAuthTokenForEmail('other@pub.dev');
+  email ??= 'other@pub.dev';
   testWithProfile('Active user is not a member of publisher',
       testProfile: testProfile, fn: () async {
-    final client = createPubApiClient(authToken: authToken);
+    final client = await createFakeAuthPubApiClient(email: email!);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -302,13 +307,13 @@ void _testUserNotMemberOfPublisher({
 
 void _testUserNotAdminOfPublisher({
   required Future<void> Function(PubApiClient client) fn,
-  String? authToken,
+  String? email,
   TestProfile? testProfile,
 }) {
-  authToken ??= adminAtPubDevAuthToken;
+  email ??= adminAtPubDevEmail;
   testWithProfile('Active user is not admin of publisher',
       testProfile: testProfile, fn: () async {
-    await accountBackend.withBearerToken(authToken, () async {
+    await withFakeAuthRequestContext(email!, () async {
       final user = await requireAuthenticatedWebUser();
       final members = await dbService
           .query<PublisherMember>()
@@ -321,7 +326,7 @@ void _testUserNotAdminOfPublisher({
       }
       await dbService.commit(inserts: members);
     });
-    final client = createPubApiClient(authToken: authToken);
+    final client = await createFakeAuthPubApiClient(email: email);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -334,13 +339,13 @@ void _testNoActiveUser(Future Function(PubApiClient client) fn) {
     await expectApiException(rs,
         status: 401,
         code: 'MissingAuthentication',
-        message: 'please add `authorization` header');
+        message: 'Authentication failed');
   });
 }
 
 void _testNoPackage(Future Function(PubApiClient client) fn) {
   testWithProfile('No package with given name', fn: () async {
-    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
@@ -348,7 +353,7 @@ void _testNoPackage(Future Function(PubApiClient client) fn) {
 
 void _testNoPublisher(Future Function(PubApiClient client) fn) {
   testWithProfile('No publisher with given id', fn: () async {
-    final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
@@ -370,7 +375,8 @@ void _testPublisherBlocked(
       p.isBlocked = true;
       await dbService.commit(inserts: [p]);
 
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = fn(client);
       await expectApiException(rs, status: status, code: code);
     },

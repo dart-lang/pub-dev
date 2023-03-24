@@ -14,6 +14,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/request_context.dart';
@@ -112,6 +113,11 @@ void main() {
               'Dart <code>%%stable-dart-version%%</code>')
           .replaceAll('/static/hash-${staticFileCache.etag}/',
               '/static/hash-%%etag%%/');
+      final csrfToken = requestContext.sessionData?.csrfToken;
+      if (csrfToken != null) {
+        replacedContent =
+            replacedContent.replaceAll(csrfToken, '%%csrf-token%%');
+      }
 
       // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml.XmlDocument.parse(
@@ -159,8 +165,8 @@ void main() {
       'package show page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data = await accountBackend.withBearerToken(
-          adminAtPubDevAuthToken,
+        final data = await withFakeAuthRequestContext(
+          adminAtPubDevEmail,
           () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
         );
         final html = renderPkgShowPage(data);
@@ -240,8 +246,8 @@ void main() {
       'package show page with flutter_plugin',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data = await accountBackend.withBearerToken(
-          adminAtPubDevAuthToken,
+        final data = await withFakeAuthRequestContext(
+          adminAtPubDevEmail,
           () => loadPackagePageData(
               'flutter_titanium', '1.10.0', AssetKind.readme),
         );
@@ -431,21 +437,9 @@ void main() {
       'package admin page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        await accountBackend.withBearerToken(
-          adminAtPubDevAuthToken,
+        await withFakeAuthRequestContext(
+          adminAtPubDevEmail,
           () async {
-            // update session as package data loading checks that
-            final user = await requireAuthenticatedWebUser();
-            registerRequestContext(
-              RequestContext(
-                userSessionData: SessionData(
-                  userId: user.userId,
-                  created: clock.now(),
-                  expires: clock.now().add(Duration(days: 1)),
-                  sessionId: 'session-1',
-                ),
-              ),
-            );
             final data =
                 await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
             final html = renderPkgAdminPage(
@@ -468,16 +462,7 @@ void main() {
       'package activity log page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-          final session = await accountBackend.createNewUserSession(
-            name: 'Pub User',
-            imageUrl: 'pub.dev/user-img-url.png',
-          );
-          registerRequestContext(
-            RequestContext(
-              userSessionData: session,
-            ),
-          );
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final data = await loadPackagePageData('oxygen', '1.2.0', null);
           final activities = await auditBackend.listRecordsForPackage('oxygen');
           expect(activities.records, isNotEmpty);
@@ -728,21 +713,12 @@ void main() {
       fn: () async {
         final oxygen = await scoreCardBackend.getPackageView('oxygen');
         final neon = await scoreCardBackend.getPackageView('neon');
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
           final authenticatedUser = await requireAuthenticatedWebUser();
           final user = authenticatedUser.user;
-          final session = await accountBackend.createNewUserSession(
-            name: 'Pub User',
-            imageUrl: 'pub.dev/user-img-url.png',
-          );
-          registerRequestContext(
-            RequestContext(
-              userSessionData: session,
-            ),
-          );
           final html = renderAccountPackagesPage(
             user: user,
-            userSessionData: session,
+            userSessionData: requestContext.sessionData!,
             packageHits: [oxygen!, neon!],
             startPackage: 'oxygen',
             nextPackage: 'package_after_neon',
@@ -756,23 +732,14 @@ void main() {
     );
 
     testWithProfile('/my-liked-packages page', fn: () async {
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final session = await accountBackend.createNewUserSession(
-          name: 'Pub User',
-          imageUrl: 'pub.dev/user-img-url.png',
-        );
-        registerRequestContext(
-          RequestContext(
-            userSessionData: session,
-          ),
-        );
         final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
         final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
         final html = renderMyLikedPackagesPage(
           user: user,
-          userSessionData: session,
+          userSessionData: requestContext.sessionData!,
           likes: [
             LikeData(package: 'super_package', created: liked1),
             LikeData(package: 'another_package', created: liked2)
@@ -787,22 +754,13 @@ void main() {
     });
 
     testWithProfile('/my-publishers page', fn: () async {
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final session = await accountBackend.createNewUserSession(
-          name: 'Pub User',
-          imageUrl: 'pub.dev/user-img-url.png',
-        );
-        registerRequestContext(
-          RequestContext(
-            userSessionData: session,
-          ),
-        );
         final publisherCreated = DateTime(2021, 07, 01, 16, 05);
         final html = renderAccountPublishersPage(
           user: user,
-          userSessionData: session,
+          userSessionData: requestContext.sessionData!,
           publishers: [
             PublisherSummary(
               publisherId: 'example.com',
@@ -818,23 +776,14 @@ void main() {
     });
 
     testWithProfile('/my-activity-log page', fn: () async {
-      await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+      await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final session = await accountBackend.createNewUserSession(
-          name: 'Pub User',
-          imageUrl: 'pub.dev/user-img-url.png',
-        );
-        registerRequestContext(
-          RequestContext(
-            userSessionData: session,
-          ),
-        );
         final activities = await auditBackend.listRecordsForUserId(user.userId);
         expect(activities.records, isNotEmpty);
         final html = renderAccountMyActivityPage(
           user: user,
-          userSessionData: session,
+          userSessionData: requestContext.sessionData!,
           activities: activities,
         );
         expectGoldenFile(html, 'my_activity_log_page.html', timestamps: {
@@ -924,23 +873,23 @@ void main() {
       expectGoldenFile(html, 'help_page.html');
     });
 
-    test('pagination: single page', () {
+    scopedTest('pagination: single page', () {
       final html = paginationNode(PageLinks.empty()).toString();
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
-    test('pagination: in the middle', () {
+    scopedTest('pagination: in the middle', () {
       final html = paginationNode(PageLinks(SearchForm(currentPage: 10), 299))
           .toString();
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
-    test('pagination: at first page', () {
+    scopedTest('pagination: at first page', () {
       final html = paginationNode(PageLinks(SearchForm(), 600)).toString();
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
-    test('pagination: at last page', () {
+    scopedTest('pagination: at last page', () {
       final html =
           paginationNode(PageLinks(SearchForm(currentPage: 10), 91)).toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);

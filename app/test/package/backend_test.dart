@@ -158,8 +158,7 @@ void main() {
       });
 
       testWithProfile('not authorized', fn: () async {
-        final token = createFakeAuthTokenForEmail('foo@bar.com');
-        await accountBackend.withBearerToken(token, () async {
+        await withFakeAuthRequestContext('foo@bar.com', () async {
           final rs = packageBackend.inviteUploader(
               'oxygen', InviteUploaderRequest(email: 'a@b.com'));
           await expectLater(rs, throwsA(isA<AuthorizationException>()));
@@ -169,15 +168,18 @@ void main() {
       testWithProfile('blocked user', fn: () async {
         final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
         await dbService.commit(inserts: [user..isBlocked = true]);
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
-          final rs = packageBackend.inviteUploader(
-              'oxygen', InviteUploaderRequest(email: 'a@b.com'));
-          await expectLater(rs, throwsA(isA<AuthorizationException>()));
-        });
+        final rs = withFakeAuthRequestContext(
+          adminAtPubDevEmail,
+          () async {
+            return packageBackend.inviteUploader(
+                'oxygen', InviteUploaderRequest(email: 'a@b.com'));
+          },
+        );
+        await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
       testWithProfile('package does not exist', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.inviteUploader(
               'no_package', InviteUploaderRequest(email: 'a@b.com'));
           await expectLater(rs, throwsA(isA<NotFoundException>()));
@@ -185,7 +187,7 @@ void main() {
       });
 
       testWithProfile('already exists', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           Future<void> verify(String email) async {
             final rs = packageBackend.inviteUploader(
                 'oxygen', InviteUploaderRequest(email: email));
@@ -205,7 +207,7 @@ void main() {
       });
 
       testWithProfile('successful', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final newUploader = 'somebody@example.com';
           final rs = await packageBackend.inviteUploader(
               'oxygen', InviteUploaderRequest(email: newUploader));
@@ -235,15 +237,14 @@ void main() {
       });
 
       testWithProfile('not authorized', fn: () async {
-        final token = createFakeAuthTokenForEmail('foo@bar.com');
-        await accountBackend.withBearerToken(token, () async {
+        await withFakeAuthRequestContext('foo@bar.com', () async {
           final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           await expectLater(rs, throwsA(isA<AuthorizationException>()));
         });
       });
 
       testWithProfile('package does not exist', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs =
               packageBackend.removeUploader('non_hydrogen', 'user@pub.dev');
           await expectLater(rs, throwsA(isA<NotFoundException>()));
@@ -251,7 +252,7 @@ void main() {
       });
 
       testWithProfile('cannot remove last uploader', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           await expectLater(
               rs,
@@ -261,7 +262,7 @@ void main() {
       });
 
       testWithProfile('cannot remove non-existent uploader', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.removeUploader('oxygen', 'foo2@bar.com');
           await expectLater(
               rs,
@@ -277,7 +278,7 @@ void main() {
         pkg.addUploader(user.userId);
         await dbService.commit(inserts: [pkg]);
 
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           await expectLater(
               rs,
@@ -297,7 +298,7 @@ void main() {
         final pkg2 = (await packageBackend.lookupPackage('oxygen'))!;
         expect(pkg2.uploaders, contains(user.userId));
 
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           await packageBackend.removeUploader('oxygen', 'user@pub.dev');
         });
 
@@ -358,8 +359,8 @@ void main() {
       });
 
       testWithProfile('isDiscontinued', fn: () async {
-        await accountBackend.withBearerToken(
-            adminAtPubDevAuthToken,
+        await withFakeAuthRequestContext(
+            adminAtPubDevEmail,
             () => packageBackend.updateOptions(
                 'oxygen', PkgOptions(isDiscontinued: true)));
         final pd = await packageBackend.listVersions('oxygen');
@@ -369,7 +370,7 @@ void main() {
 
     group('options', () {
       testWithProfile('discontinued', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true));
           final p = (await packageBackend.lookupPackage('oxygen'))!;
@@ -380,7 +381,7 @@ void main() {
       });
 
       testWithProfile('replaced by - without discontinued', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.updateOptions(
               'oxygen', PkgOptions(replacedBy: 'neon'));
           await expectLater(
@@ -391,7 +392,7 @@ void main() {
       });
 
       testWithProfile('replaced by - with discontinued=false', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: false, replacedBy: 'neon'));
           await expectLater(
@@ -402,7 +403,7 @@ void main() {
       });
 
       testWithProfile('replaced by - same package', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'oxygen'));
           await expectLater(
@@ -414,7 +415,7 @@ void main() {
 
       testWithProfile('replaced by - with invalid / non existing package',
           fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.updateOptions('oxygen',
               PkgOptions(isDiscontinued: true, replacedBy: 'no such package'));
           await expectLater(
@@ -426,7 +427,7 @@ void main() {
 
       testWithProfile('replaced by - other package is discontinued too',
           fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'neon'));
           final rs = packageBackend.updateOptions('flutter_titanium',
@@ -439,7 +440,7 @@ void main() {
       });
 
       testWithProfile('replaced by - success', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true, replacedBy: 'neon'));
           final p = (await packageBackend.lookupPackage('oxygen'))!;
@@ -471,7 +472,7 @@ void main() {
       });
 
       testWithProfile('unlisted', fn: () async {
-        await accountBackend.withBearerToken(adminAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isUnlisted: true));
           final p = (await packageBackend.lookupPackage('oxygen'))!;

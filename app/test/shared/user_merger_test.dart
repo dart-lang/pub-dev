@@ -56,8 +56,8 @@ void main() {
   testWithProfile('session', fn: () async {
     final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
     final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-    final control = await accountBackend.withBearerToken(
-      createFakeAuthTokenForEmail('control@pub.dev'),
+    final control = await withFakeAuthRequestContext(
+      'control@pub.dev',
       () => requireAuthenticatedWebUser(),
     );
     await dbService.commit(inserts: [
@@ -88,8 +88,8 @@ void main() {
   testWithProfile('new consent', fn: () async {
     final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
     final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-    final control = await accountBackend.withBearerToken(
-      createFakeAuthTokenForEmail('control@pub.dev'),
+    final control = await withFakeAuthRequestContext(
+      'control@pub.dev',
       () => requireAuthenticatedWebUser(),
     );
 

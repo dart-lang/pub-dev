@@ -29,6 +29,7 @@
     <script src="/static/hash-%%etag%%/js/script.dart.js" defer="defer"></script>
     <script src="https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js" defer="defer" data-autoload-cookie-consent-bar="true"></script>
     <meta name="google-signin-client_id" content="fake-site-audience"/>
+    <meta name="csrf-token" content="%%csrf-token%%"/>
     <meta name="pub-page-data" content="eyJwa2dEYXRhIjp7InBhY2thZ2UiOiJveHlnZW4iLCJ2ZXJzaW9uIjoiMS4yLjAiLCJsaWtlcyI6MCwiaXNEaXNjb250aW51ZWQiOmZhbHNlfSwic2Vzc2lvbkF3YXJlIjp0cnVlfQ=="/>
     <link rel="preload" href="/static/hash-%%etag%%/highlight/highlight-with-init.js" as="script"/>
     <meta name="pub-experiment-signin" content="1"/>
@@ -117,13 +118,14 @@
           </div>
         </div>
         <div class="nav-container nav-profile-container hoverable">
-          <input class="nav-profile-img nav-profile-image-desktop" type="image" src="" alt="Profile Image"/>
+          <input class="nav-profile-img nav-profile-image-desktop" type="image" src="https://www.gravatar.com/avatar/92c525024f1911332fe1d0f7dd750977?d=retro&amp;s=200" alt="Profile Image"/>
           <div class="nav-hover-popup">
             <div class="nav-table-column">
               <div class="nav-account-title-mobile">
-                <img class="nav-profile-img nav-profile-img-mobile" src="" alt="Profile Image" width="30" height="30"/>
+                <img class="nav-profile-img nav-profile-img-mobile" src="https://www.gravatar.com/avatar/92c525024f1911332fe1d0f7dd750977?d=retro&amp;s=200" alt="Profile Image" width="30" height="30"/>
                 <div class="nav-account-title">
-                  <div class="nav-account-email"></div>
+                  <div class="nav-account-name">admin</div>
+                  <div class="nav-account-email">admin@pub.dev</div>
                 </div>
               </div>
               <div class="nav-separator"></div>

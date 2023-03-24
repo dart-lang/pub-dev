@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/maintenance/remove_orphaned_likes.dart';
@@ -14,8 +15,8 @@ import '../../shared/test_services.dart';
 void main() {
   group('Remove orphaned likes', () {
     testWithProfile('finds the like but no need to delete it', fn: () async {
-      await createPubApiClient(authToken: userAtPubDevAuthToken)
-          .likePackage('oxygen');
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+      await client.likePackage('oxygen');
       final counts = await removeOrphanedLikes(minAgeThreshold: Duration.zero);
       expect(counts.found, 1);
       expect(counts.deleted, 0);
@@ -24,8 +25,9 @@ void main() {
     testWithProfile(
       'finds like without package',
       fn: () async {
-        await createPubApiClient(authToken: userAtPubDevAuthToken)
-            .likePackage('oxygen');
+        final client =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+        await client.likePackage('oxygen');
         await dbService.commit(
             deletes: [dbService.emptyKey.append(Package, id: 'oxygen')]);
         final counts =
@@ -41,8 +43,9 @@ void main() {
     testWithProfile(
       'finds like without userid',
       fn: () async {
-        await createPubApiClient(authToken: userAtPubDevAuthToken)
-            .likePackage('oxygen');
+        final client =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+        await client.likePackage('oxygen');
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         await dbService.commit(deletes: [user.key]);
         final counts =

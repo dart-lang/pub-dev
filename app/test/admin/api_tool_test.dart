@@ -98,8 +98,8 @@ void main() {
             '`admin@pub.dev` invited `newmember@pub.dev` to be a member for publisher `example.com`.');
 
         late String consentId;
-        await accountBackend.withBearerToken(
-          createFakeAuthTokenForEmail('newmember@pub.dev'),
+        await withFakeAuthRequestContext(
+          'newmember@pub.dev',
           () async {
             final authenticatedUser = await requireAuthenticatedWebUser();
             final user = authenticatedUser.user;
@@ -114,8 +114,8 @@ void main() {
           },
         );
 
-        final acceptingClient = createPubApiClient(
-            authToken: createFakeAuthTokenForEmail('newmember@pub.dev'));
+        final acceptingClient =
+            await createFakeAuthPubApiClient(email: 'newmember@pub.dev');
         final rs = await acceptingClient.resolveConsent(
             consentId, account_api.ConsentResult(granted: true));
         expect(rs.granted, true);

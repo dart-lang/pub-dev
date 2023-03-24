@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -41,7 +42,7 @@ void main() {
     });
 
     testWithProfile('unauthorized', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await expectApiException(
         client.setVersionOptions('oxygen', '1.2.0', VersionOptions()),
         status: 403,
@@ -50,7 +51,8 @@ void main() {
     });
 
     testWithProfile('bad package', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       await expectApiException(
         client.setVersionOptions('no_package', '1.2.0', VersionOptions()),
         status: 404,
@@ -59,7 +61,8 @@ void main() {
     });
 
     testWithProfile('bad version', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       await expectApiException(
         client.setVersionOptions('oxygen', '10.0.0', VersionOptions()),
         status: 404,
@@ -81,7 +84,8 @@ void main() {
         recentlyRetracted: [],
       );
 
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       await expectApiException(
         client.setVersionOptions(
             'oxygen', '1.0.0', VersionOptions(isRetracted: true)),
@@ -96,7 +100,8 @@ void main() {
         retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
         recentlyRetracted: [],
       );
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       await client.setVersionOptions(
           'oxygen', '1.2.0', VersionOptions(isRetracted: true));
       await expectVersions(
@@ -126,7 +131,8 @@ void main() {
         retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
         recentlyRetracted: [],
       );
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final orig = await client.getVersionOptions('oxygen', '1.2.0');
       expect(orig.isRetracted, isFalse);
       final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');
@@ -200,7 +206,8 @@ void main() {
       final origLatestPublished = pkg.latestPublished;
       final origLatestPrereleasePublished = pkg.latestPrereleasePublished;
 
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final orig = await client.getVersionOptions('oxygen', '1.2.0');
       expect(orig.isRetracted, isFalse);
       final origInfo = await client.packageVersionInfo('oxygen', '1.2.0');

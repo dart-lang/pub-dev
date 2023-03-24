@@ -267,8 +267,8 @@ void main() {
       testWithProfile(
           'service account cannot upload because email not matching',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -299,8 +299,8 @@ void main() {
       testWithProfile(
           'service account cannot upload because id lock prevents it',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -340,8 +340,8 @@ void main() {
       });
 
       testWithProfile('successful upload with service account', fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -411,8 +411,8 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because repository not matching',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -446,8 +446,8 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because ref type not matching',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -481,8 +481,8 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because version pattern not matching',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -518,8 +518,8 @@ void main() {
           'GitHub Actions cannot upload because id lock prevents it',
           fn: () async {
         Future<void> setupPublishingAndLock() async {
-          await withHttpPubApiClient(
-            bearerToken: adminAtPubDevAuthToken,
+          await withFakeAuthHttpPubApiClient(
+            email: adminAtPubDevEmail,
             fn: (client) async {
               await client.setAutomatedPublishing(
                 'oxygen',
@@ -581,8 +581,8 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (without environment)',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -617,8 +617,8 @@ void main() {
             ],
             defaultUser: 'admin@pub.dev',
           ), fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               '_dummy_pkg',
@@ -689,8 +689,8 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because environment is missing',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -727,8 +727,8 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because environment not matching',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
@@ -766,8 +766,8 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (with environment)',
           fn: () async {
-        await withHttpPubApiClient(
-          bearerToken: adminAtPubDevAuthToken,
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
           fn: (client) async {
             await client.setAutomatedPublishing(
               'oxygen',

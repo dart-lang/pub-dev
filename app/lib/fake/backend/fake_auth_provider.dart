@@ -8,11 +8,18 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import '../../account/auth_provider.dart';
 import '../../account/default_auth_provider.dart';
+import '../../account/session_cookie.dart';
+import '../../frontend/handlers/pubapi.client.dart';
 import '../../service/openid/gcp_openid.dart';
 import '../../service/openid/github_openid.dart';
 import '../../service/openid/jwt.dart';
@@ -316,4 +323,160 @@ Map<String, dynamic> _jwtPayloadTimestamps() {
     'nbf': now.millisecondsSinceEpoch ~/ 1000,
     'exp': now.add(Duration(minutes: 1)).millisecondsSinceEpoch ~/ 1000,
   };
+}
+
+/// Creates a new session and returns the sessionId from the cookies.
+Future<String> _acquireFakeSessionId({
+  required String email,
+  String? pubHostedUrl,
+  List<String>? scopes,
+}) async {
+  final baseUri =
+      Uri.parse(pubHostedUrl ?? activeConfiguration.primarySiteUri.toString());
+  final client = http.Client();
+  try {
+    final rs = await client.send(http.Request(
+      'GET',
+      Uri(
+        scheme: baseUri.scheme,
+        host: baseUri.host,
+        port: baseUri.port,
+        path: '/sign-in',
+        queryParameters: {
+          'fake-email': email,
+          'go': '/',
+          if (scopes != null) 'scope': scopes.join(' '),
+        },
+      ),
+    )..followRedirects = false);
+    if (rs.statusCode != 303) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+    final cookieHeaders =
+        rs.headers['set-cookie']?.split(',').map((e) => e.trim()) ?? <String>[];
+    final cookies = cookieHeaders.map((h) => h.split(';').first).toList();
+    final sessionId = cookies
+        .firstWhere((e) => e.startsWith('$clientSessionLaxCookieName='))
+        .split('=')
+        .last
+        .trim();
+    // complete sign-in
+    final completeRequest = http.Request(
+      'GET',
+      Uri.parse(rs.headers['location']!),
+    );
+    completeRequest.headers['cookie'] = cookies.join('; ');
+    final rs2 = await client.send(completeRequest);
+    if (rs2.statusCode != 200) {
+      throw AuthenticationException.failed();
+    }
+    return sessionId;
+  } finally {
+    client.close();
+  }
+}
+
+/// Issues a page request and extracts the CSRF token value.
+Future<String> _acquireCsrfToken({
+  required String sessionId,
+  String? pubHostedUrl,
+}) async {
+  final baseUri =
+      Uri.parse(pubHostedUrl ?? activeConfiguration.primarySiteUri.toString());
+  final client = http.Client();
+  try {
+    final rs = await client.send(http.Request(
+      'GET',
+      Uri(
+        scheme: baseUri.scheme,
+        host: baseUri.host,
+        port: baseUri.port,
+        path: '/my-liked-packages',
+      ),
+    )..headers['cookie'] =
+        '$clientSessionLaxCookieName=$sessionId; $clientSessionStrictCookieName=$sessionId');
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}.');
+    }
+    final body = await rs.stream.bytesToString();
+    return body.split('name="csrf-token" content="').last.split('"').first;
+  } finally {
+    client.close();
+  }
+}
+
+/// Creates a pub.dev API client and executes [fn], making sure that the HTTP
+/// resources are freed after the callback finishes.
+///
+/// The [email] is used to create an HTTP session and the related CSRF token is
+/// extracted from the session, both are sent alongside the requests.
+Future<R> withFakeAuthHttpPubApiClient<R>({
+  required String email,
+  List<String>? scopes,
+  required Future<R> Function(PubApiClient client) fn,
+  String? pubHostedUrl,
+}) async {
+  final sessionId = await _acquireFakeSessionId(
+    email: email,
+    pubHostedUrl: pubHostedUrl,
+    scopes: scopes,
+  );
+  final csrfToken = await _acquireCsrfToken(
+    sessionId: sessionId,
+    pubHostedUrl: pubHostedUrl,
+  );
+
+  return await withHttpPubApiClient(
+    sessionId: sessionId,
+    csrfToken: csrfToken,
+    pubHostedUrl: pubHostedUrl,
+    fn: fn,
+  );
+}
+
+/// Creates an API client with fake [email] that uses the configured HTTP endpoints.
+///
+/// Services scopes are used to automatically close the client once we exit the current scope.
+@visibleForTesting
+Future<PubApiClient> createFakeAuthPubApiClient({
+  required String email,
+  String? pubHostedUrl,
+  List<String>? scopes,
+}) async {
+  final sessionId = await _acquireFakeSessionId(
+    email: email,
+    pubHostedUrl: pubHostedUrl,
+    scopes: scopes,
+  );
+  final csrfToken = await _acquireCsrfToken(
+    sessionId: sessionId,
+    pubHostedUrl: pubHostedUrl,
+  );
+  return createPubApiClient(
+    sessionId: sessionId,
+    csrfToken: csrfToken,
+  );
+}
+
+/// Creates a request context scope with the provided [email] using the fake
+/// authentication provider, then runs [fn] with it.
+Future<R> withFakeAuthRequestContext<R>(
+  String email,
+  Future<R> Function() fn, {
+  List<String>? scopes,
+}) async {
+  final sessionId = await _acquireFakeSessionId(email: email);
+  final csrfToken = await _acquireCsrfToken(sessionId: sessionId);
+  final sessionData = await accountBackend.getSessionData(sessionId);
+  return await ss.fork(() async {
+    registerRequestContext(RequestContext(
+      clientSessionCookieStatus: ClientSessionCookieStatus(
+        sessionId: sessionId,
+        isStrict: true,
+      ),
+      clientSessionData: sessionData,
+      csrfToken: csrfToken,
+    ));
+    return await fn();
+  }) as R;
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -17,19 +18,21 @@ void main() {
     });
 
     testWithProfile('package - no package', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = client.accountPackageOptions('no_package');
       await expectApiException(rs, status: 404);
     });
 
     testWithProfile('package - not admin', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.accountPackageOptions('oxygen');
       expect(rs.isAdmin, isFalse);
     });
 
     testWithProfile('package - admin', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.accountPackageOptions('oxygen');
       expect(rs.isAdmin, isTrue);
     });
@@ -41,19 +44,21 @@ void main() {
     });
 
     testWithProfile('publisher - no publisher', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = client.accountPublisherOptions('no-domain.com');
       await expectApiException(rs, status: 404);
     });
 
     testWithProfile('publisher - not admin', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.accountPublisherOptions('example.com');
       expect(rs.isAdmin, isFalse);
     });
 
     testWithProfile('publisher - admin', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.accountPublisherOptions('example.com');
       expect(rs.isAdmin, isTrue);
     });

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -14,7 +15,7 @@ void main() {
     final pkg2 = 'neon';
 
     testWithProfile('Like package', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.getLikePackage(pkg1);
       expect(rs.package, pkg1);
       expect(rs.liked, false);
@@ -29,7 +30,7 @@ void main() {
     });
 
     testWithProfile('Like already liked package', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.likePackage(pkg1);
       expect(rs.package, pkg1);
       expect(rs.liked, true);
@@ -44,13 +45,13 @@ void main() {
     });
 
     testWithProfile('Like non-existing package', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await expectApiException(client.likePackage('non_existing_package'),
           status: 404);
     });
 
     testWithProfile('List package likes', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.listPackageLikes();
       expect(rs.likedPackages!.isEmpty, true);
 
@@ -71,7 +72,7 @@ void main() {
     });
 
     testWithProfile('Unlike package', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.listPackageLikes();
       expect(rs.likedPackages!.isEmpty, true);
 
@@ -100,15 +101,16 @@ void main() {
     });
 
     testWithProfile('Unlike non-existing package', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await expectApiException(client.unlikePackage('non_existing_package'),
           status: 404);
     });
 
     testWithProfile('Two users don\'t affect each other\'s package likes.',
         fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
-      final client2 = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+      final client2 =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.listPackageLikes();
       expect(rs.likedPackages!.isEmpty, true);
 
@@ -125,8 +127,9 @@ void main() {
 
     testWithProfile('Package likes property is incremented/decremented.',
         fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
-      final client2 = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+      final client2 =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.getPackageLikes(pkg1);
       expect(rs.likes, 0);
       final rs2 = await client2.getPackageLikes(pkg1);
@@ -171,7 +174,7 @@ void main() {
 
     testWithProfile('Get number of likes for non-existing package.',
         fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await expectApiException(client.getPackageLikes('non_existing_package'),
           status: 404);
     });
@@ -184,7 +187,7 @@ void main() {
       expect(rs.likes, 0);
 
       final authenticatedClient =
-          createPubApiClient(authToken: userAtPubDevAuthToken);
+          await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await authenticatedClient.likePackage(pkg1);
 
       final rs1 = await client.getPackageLikes(pkg1);

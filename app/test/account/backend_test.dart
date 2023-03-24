@@ -43,8 +43,8 @@ void main() {
       final oldIds =
           await dbService.query<User>().run().map((u) => u.userId).toList();
 
-      final u = await accountBackend.withBearerToken(
-        createFakeAuthTokenForEmail('new-user@pub.dev'),
+      final u = await withFakeAuthRequestContext(
+        'new-user@pub.dev',
         () => requireAuthenticatedWebUser(),
       );
       expect(u.userId, hasLength(36));
@@ -73,8 +73,7 @@ void main() {
       expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
       String? userId;
-      await accountBackend.withBearerToken(
-          createFakeAuthTokenForEmail('a@example.com'), () async {
+      await withFakeAuthRequestContext('a@example.com', () async {
         final u1 = await requireAuthenticatedWebUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'a@example.com');
@@ -101,8 +100,7 @@ void main() {
           .toSet();
       expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
-      await accountBackend.withBearerToken(
-          createFakeAuthTokenForEmail('c@example.com'), () async {
+      await withFakeAuthRequestContext('c@example.com', () async {
         final u1 = await requireAuthenticatedWebUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'c@example.com');
