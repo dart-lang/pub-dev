@@ -6,6 +6,7 @@ import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -16,6 +17,8 @@ import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('Adjust like counts', () {
     testWithProfile('no need to change like counts #1', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');

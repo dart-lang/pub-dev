@@ -9,6 +9,7 @@ import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/user_merger.dart';
@@ -18,6 +19,8 @@ import 'package:test/test.dart';
 import 'test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   Future<void> _corruptAndFix() async {
     final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
     final user = await accountBackend.lookupUserByEmail('user@pub.dev');

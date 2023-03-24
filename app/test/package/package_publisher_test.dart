@@ -12,6 +12,7 @@ import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -23,6 +24,8 @@ import '../shared/test_services.dart';
 import 'backend_test_utils.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('Get publisher info', () {
     _testNoPackage((client) => client.getPackagePublisher('no_package'));
     _testPublisherBlocked((client) => client.publisherInfo('example.com'));

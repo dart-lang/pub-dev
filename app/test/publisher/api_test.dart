@@ -15,6 +15,7 @@ import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:test/test.dart';
 
@@ -23,6 +24,8 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('Publisher API', () {
     group('Get publisher info', () {
       _testNoPublisher((client) => client.publisherInfo('no-domain.net'));
