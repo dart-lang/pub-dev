@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/script/publisher.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/headless_env.dart';
+import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('publisher', () {
     late FakePubServerProcess fakePubServerProcess;
+    late final HeadlessEnv headlessEnv;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -21,11 +22,19 @@ void main() {
     });
 
     tearDownAll(() async {
+      await headlessEnv.close();
       await fakePubServerProcess.kill();
       httpClient.close();
     });
 
     test('publisher script', () async {
+      // start browser
+      headlessEnv = HeadlessEnv(
+        testName: 'browser',
+        origin: 'http://localhost:${fakePubServerProcess.port}',
+      );
+      await headlessEnv.startBrowser();
+
       final inviteUrlLogLineFuture = fakePubServerProcess
           .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
 
@@ -34,37 +43,25 @@ void main() {
             await inviteUrlLogLineFuture.timeout(Duration(seconds: 30));
         final inviteUri = Uri.parse(inviteUrlLogLine
             .substring(inviteUrlLogLine.indexOf('https://pub.dev/consent')));
-        final consentId = inviteUri.queryParameters['id'];
+        final consentId = inviteUri.queryParameters['id']!;
 
         // spoofed consent, trying to accept it with a different user
-        final rs1 = await httpClient.put(
-          Uri.parse(
-              'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
-          headers: {
-            'Authorization':
-                'Bearer somebodyelse-at-example-dot-org?aud=fake-site-audience',
-            'content-type': 'application/json; charset="utf-8"',
+        await headlessEnv.withPage(
+          fn: (page) async {
+            await page
+                .gotoOrigin('/sign-in?fake-email=somebodyelse@example.com');
+            final rs = await page.gotoOrigin('/consent?id=$consentId');
+            expect(rs.status, 400);
           },
-          body: json.encode({'granted': true}),
         );
-        if (rs1.statusCode != 400) {
-          throw Exception('Expected status code 400, got: ${rs1.statusCode}');
-        }
 
         // accepting it with the good user
-        final rs2 = await httpClient.put(
-          Uri.parse(
-              'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId'),
-          headers: {
-            'Authorization':
-                'Bearer dev-at-example-dot-org?aud=fake-site-audience',
-            'content-type': 'application/json; charset="utf-8"',
+        await headlessEnv.withPage(
+          fn: (page) async {
+            await page.fakeAuthSignIn(email: 'dev@example.org');
+            await page.acceptConsent(consentId: consentId);
           },
-          body: json.encode({'granted': true}),
         );
-        if (rs2.statusCode != 200) {
-          throw Exception('Expected status code 200, got: ${rs2.statusCode}');
-        }
       }
 
       final script = PublisherScript(
@@ -72,6 +69,7 @@ void main() {
         credentialsFileContent: fakeCredentialsFileContent(),
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
+        headlessEnv: headlessEnv,
       );
       await script.verify();
     });
