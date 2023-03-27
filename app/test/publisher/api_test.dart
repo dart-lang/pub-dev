@@ -85,7 +85,10 @@ void main() {
       });
 
       testWithProfile('notverified.com', fn: () async {
-        final api = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
+        final api = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+          scopes: [webmasterScope],
+        );
 
         // Check that we can create the publisher
         final rs = api.createPublisher(
