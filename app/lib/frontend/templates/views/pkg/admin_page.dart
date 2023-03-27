@@ -361,7 +361,7 @@ d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
     '',
     'jobs:',
     '  publish:',
-    '    uses: dart-lang/setup-dart/.github/workflows/publish.yml',
+    '    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1',
     if (hasWithParameter) ...[
       '    with:',
       '      environment: \'${github.environment}\'',
