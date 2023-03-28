@@ -4,7 +4,6 @@
 
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
-import '../../../request_context.dart';
 import '../../../static_files.dart' show staticUrls;
 
 d.Node pageLayoutNode({
@@ -127,16 +126,8 @@ d.Node pageLayoutNode({
               defer: true,
               attributes: {'data-autoload-cookie-consent-bar': 'true'},
             ),
-            d.meta(
-                name: 'google-signin-client_id', content: oauthClientId ?? ''),
             if (csrfToken != null && csrfToken.isNotEmpty)
               d.meta(name: 'csrf-token', content: csrfToken),
-            if (!requestContext.experimentalFlags.useNewSignIn)
-              d.script(
-                src:
-                    'https://apis.google.com/js/platform.js?onload=pubAuthInit',
-                defer: true,
-              ),
             if (pageDataEncoded != null)
               d.meta(name: 'pub-page-data', content: pageDataEncoded),
             if (isLanding) ...[
@@ -159,8 +150,6 @@ d.Node pageLayoutNode({
                     .getAssetUrl('/static/highlight/highlight-with-init.js'),
                 as: 'script',
               ),
-            if (requestContext.experimentalFlags.useNewSignIn)
-              d.meta(name: 'pub-experiment-signin', content: '1'),
           ],
         ),
         d.element(

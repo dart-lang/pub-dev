@@ -21,8 +21,7 @@ d.Node detailHeaderNode({
   /// Set true for more whitespace in the header.
   required bool isLoose,
 }) {
-  final isLikeDisabled = requestContext.experimentalFlags.useNewSignIn &&
-      requestContext.isNotAuthenticated;
+  final isLikeDisabled = requestContext.isNotAuthenticated;
   final hasBanners = isFlutterFavorite;
   return d.fragment([
     if (hasBanners)

@@ -50,7 +50,6 @@ void main() {
 
         // github publishing
         await headlessEnv.withPage(fn: (page) async {
-          await page.gotoOrigin('/experimental?signin=1');
           await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev');
           await Future.delayed(Duration(seconds: 1));
 

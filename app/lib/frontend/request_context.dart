@@ -41,20 +41,7 @@ class RequestContext {
   /// The CSRF token recieved via the header of the request.
   final String? csrfToken;
 
-  /// The active user's session data.
-  ///
-  //TODO: Update this information when new sessions are adopted.
-  /// **Warning:** the existence of a session MAY ONLY be used for authenticating
-  /// a user for the purpose of generating HTML output served from a GET request.
-  ///
-  /// This may **NOT** to authenticate mutations, API interactions, not even GET
-  /// APIs that return JSON. Whenever possible we require the OpenID-Connect
-  /// `id_token` be present as `Authentication: Bearer <id_token>` header instead.
-  /// Such scheme does not work for `GET` requests that serve content to the
-  /// browser, and hence, we employ session cookies for this purpose.
-  final SessionData? userSessionData;
-
-  final SessionData? clientSessionData;
+  final SessionData? sessionData;
 
   /// The status of the client session cookie.
   final ClientSessionCookieStatus clientSessionCookieStatus;
@@ -65,14 +52,12 @@ class RequestContext {
     this.uiCacheEnabled = false,
     ExperimentalFlags? experimentalFlags,
     this.csrfToken,
-    this.userSessionData,
-    this.clientSessionData,
+    this.sessionData,
     ClientSessionCookieStatus? clientSessionCookieStatus,
   })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
         clientSessionCookieStatus =
             clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
-  late final sessionData = clientSessionData ?? userSessionData;
   late final _isAuthenticated = sessionData?.isAuthenticated ?? false;
   late final isNotAuthenticated = !_isAuthenticated;
   late final authenticatedUserId =
@@ -92,20 +77,11 @@ Future<RequestContext> buildRequestContext({
   final isPrimaryHost =
       request.requestedUri.host == activeConfiguration.primarySiteUri.host;
 
-  // Never read or look for the session cookie on request that try to modify
-  // data (non-GET HTTP methods).
-  final isAllowedForSession = request.method == 'GET';
-  SessionData? userSessionData;
-  if (!experimentalFlags.useNewSignIn && isPrimaryHost && isAllowedForSession) {
-    userSessionData =
-        await accountBackend.parseAndLookupUserSessionCookie(cookies);
-  }
-
   // Parse client session cookie status, which can be present at any kind of request.
-  SessionData? clientSessionData;
+  SessionData? sessionData;
   final clientSessionCookieStatus = parseClientSessionCookies(cookies);
   if (isPrimaryHost && clientSessionCookieStatus.isPresent) {
-    clientSessionData = await accountBackend
+    sessionData = await accountBackend
         .getSessionData(clientSessionCookieStatus.sessionId!);
   }
 
@@ -120,8 +96,6 @@ Future<RequestContext> buildRequestContext({
       isPrimaryHost &&
           // don't cache if experimental cookie is enabled
           experimentalFlags.isEmpty &&
-          // don't cache if a user session is active
-          userSessionData == null &&
           // don't cache if client session is active
           !clientSessionCookieStatus.isPresent &&
           // sanity check, this should be covered by client session cookie
@@ -132,8 +106,7 @@ Future<RequestContext> buildRequestContext({
     uiCacheEnabled: uiCacheEnabled,
     experimentalFlags: experimentalFlags,
     csrfToken: csrfToken,
-    userSessionData: userSessionData,
-    clientSessionData: clientSessionData,
+    sessionData: sessionData,
     clientSessionCookieStatus: clientSessionCookieStatus,
   );
 }

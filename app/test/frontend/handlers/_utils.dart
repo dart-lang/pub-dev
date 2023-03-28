@@ -10,7 +10,6 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
 import 'package:pub_dev/shared/urls.dart';
@@ -92,16 +91,12 @@ Future<String> acquireSessionCookies(String email) async {
         'go': '/',
       },
     ).toString(),
-    headers: {'cookie': '$experimentalCookieName=signin'},
     scheme: activeConfiguration.primarySiteUri.scheme,
     host: activeConfiguration.primarySiteUri.host,
   );
   expect(rs.statusCode, 303);
   final cookieHeaders = rs.headersAll['set-cookie'] ?? <String>[];
-  final result = [
-    '$experimentalCookieName=signin',
-    ...cookieHeaders.map((h) => h.split(';').first),
-  ].join('; ');
+  final result = cookieHeaders.map((h) => h.split(';').first).join('; ');
 
   // complete sign-in
   final nextStep = Uri.parse(rs.headers['location']!);
