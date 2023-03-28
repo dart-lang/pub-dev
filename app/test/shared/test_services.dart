@@ -140,21 +140,19 @@ void setupTestsWithCallerAuthorizationIssues(
   });
 
   testWithProfile('Active user is not authorized', fn: () async {
-    final token = createFakeAuthTokenForEmail('unauthorized@pub.dev');
-    final rs = fn(createPubApiClient(authToken: token));
+    final rs =
+        fn(await createFakeAuthPubApiClient(email: 'unauthorized@pub.dev'));
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 
   testWithProfile('Active user is blocked', fn: () async {
     final users = await dbService.query<User>().run().toList();
     final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
+    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
     await dbService.commit(inserts: [user..isBlocked = true]);
-    final token = createFakeAuthTokenForEmail('admin@pub.dev');
-    final rs = fn(createPubApiClient(authToken: token));
+    final rs = fn(client);
     await expectApiException(rs,
-        status: 403,
-        code: 'InsufficientPermissions',
-        message: 'User is blocked.');
+        status: 401, code: 'MissingAuthentication', message: 'failed');
   });
 }
 

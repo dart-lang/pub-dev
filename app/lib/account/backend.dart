@@ -79,14 +79,15 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
     }
   }
 
-  final agent = await _requireAuthenticatedAgent();
-  if (agent is AuthenticatedUser) {
-    if (agent.audience != activeConfiguration.pubSiteAudience) {
-      throw AuthenticationException.tokenInvalid(
-          'token audience "${agent.audience}" does not match expected value');
+  if (!requestContext.experimentalFlags.useNewSignIn) {
+    final agent = await _requireAuthenticatedAgent();
+    if (agent is AuthenticatedUser) {
+      if (agent.audience != activeConfiguration.pubSiteAudience) {
+        throw AuthenticationException.tokenInvalid(
+            'token audience "${agent.audience}" does not match expected value');
+      }
+      return agent;
     }
-
-    return agent;
   }
   throw AuthenticationException.failed();
 }

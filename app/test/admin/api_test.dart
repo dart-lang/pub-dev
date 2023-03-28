@@ -16,6 +16,7 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -29,6 +30,8 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('Admin API', () {
     group('List users', () {
       setupTestsWithAdminTokenIssues((client) => client.adminListUsers());
@@ -169,11 +172,12 @@ void main() {
         final versions = await versionsQuery.run().toList();
         expect(versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
 
-        final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final userClient =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
         await userClient.likePackage('oxygen');
 
         late Key likeKey;
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
           final user = await requireAuthenticatedWebUser();
           likeKey = dbService.emptyKey
               .append(User, id: user.userId)
@@ -231,11 +235,12 @@ void main() {
         final versions = await versionsQuery.run().toList();
         expect(versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
 
-        final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final userClient =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
         await userClient.likePackage('oxygen');
 
         late Key likeKey;
-        await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
           final user = await requireAuthenticatedWebUser();
           likeKey = dbService.emptyKey
               .append(User, id: user.userId)
@@ -346,7 +351,8 @@ void main() {
         final client = createPubApiClient(authToken: siteAdminToken);
 
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-        final userClient = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final userClient =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
         await userClient.likePackage('oxygen');
 
         final r2 = await client.getPackageLikes('oxygen');
@@ -512,9 +518,8 @@ void main() {
           expect(consentRow.args, ['oxygen']);
           expect(consentRow.createdBySiteAdmin, isTrue);
 
-          await createPubApiClient(
-            authToken: createFakeAuthTokenForEmail('someuser@pub.dev'),
-          ).resolveConsent(
+          await (await createFakeAuthPubApiClient(email: 'someuser@pub.dev'))
+              .resolveConsent(
             consentRow.consentId,
             account_api.ConsentResult(granted: true),
           );
@@ -566,8 +571,8 @@ void main() {
         testWithProfile('removing an uploader', fn: () async {
           final userAtPubDev =
               (await accountBackend.lookupUsersByEmail('user@pub.dev')).single;
-          final someUser = await accountBackend.withBearerToken(
-            createFakeAuthTokenForEmail('someuser@pub.dev'),
+          final someUser = await withFakeAuthRequestContext(
+            'someuser@pub.dev',
             () => requireAuthenticatedWebUser(),
           );
 
@@ -600,7 +605,7 @@ void main() {
       );
 
       testWithProfile('bad retraction value', fn: () async {
-        final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+        final client = createPubApiClient(authToken: siteAdminToken);
         await expectApiException(
           client.adminUpdateVersionOptions(
             'oxygen',

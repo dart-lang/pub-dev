@@ -49,11 +49,8 @@ final defaultTestProfile = TestProfile(
   ],
 );
 
-String get adminAtPubDevAuthToken =>
-    createFakeAuthTokenForEmail('admin@pub.dev');
-String get userAtPubDevAuthToken => createFakeAuthTokenForEmail('user@pub.dev');
-String get unauthorizedAtPubDevAuthToken =>
-    createFakeAuthTokenForEmail('unauthorized@pub.dev');
+const userAtPubDevEmail = 'user@pub.dev';
+const adminAtPubDevEmail = 'admin@pub.dev';
 String get adminClientToken => createFakeAuthTokenForEmail('admin@pub.dev',
     audience: 'fake-client-audience');
 String get siteAdminToken =>

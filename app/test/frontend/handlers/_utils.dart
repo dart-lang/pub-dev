@@ -81,6 +81,7 @@ Future<shelf.Response> _doHttp({
   }) as shelf.Response;
 }
 
+// TODO: migrate to use acquireFakeSessionCookies
 Future<String> acquireSessionCookies(String email) async {
   final rs = await issueHttp(
     'GET',

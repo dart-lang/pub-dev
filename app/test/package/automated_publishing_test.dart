@@ -5,6 +5,8 @@
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
@@ -13,6 +15,8 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('Update value through API', () {
     setupTestsWithCallerAuthorizationIssues(
       (client) =>
@@ -20,7 +24,7 @@ void main() {
     );
 
     testWithProfile('no package', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await expectApiException(
         client.setAutomatedPublishing(
             'no_such_package', AutomatedPublishingConfig()),
@@ -30,7 +34,7 @@ void main() {
     });
 
     testWithProfile('not admin', fn: () async {
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       await expectApiException(
         client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
         status: 403,
@@ -41,7 +45,8 @@ void main() {
     });
 
     testWithProfile('successful update with GitHub', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
@@ -73,7 +78,8 @@ void main() {
 
     testWithProfile('successful update with Google Cloud Service account',
         fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
@@ -101,7 +107,8 @@ void main() {
     });
 
     testWithProfile('GitHub Actions: bad project path', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final badPaths = [
         '',
         '/',
@@ -132,7 +139,8 @@ void main() {
     });
 
     testWithProfile('GitHub Actions: bad tag pattern', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final badPatterns = [
         '',
         'v',
@@ -159,7 +167,8 @@ void main() {
     });
 
     testWithProfile('GitHub Actions: bad environment pattern', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final badPatterns = [
         '',
         'e nvironment',
@@ -186,7 +195,8 @@ void main() {
     });
 
     testWithProfile('Google Cloud: bad service account email', fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final badValues = [
         '',
         'not.an.email',
@@ -215,7 +225,8 @@ void main() {
 
     testWithProfile('Google Cloud: email outside .gserviceaccount.com',
         fn: () async {
-      final client = createPubApiClient(authToken: adminAtPubDevAuthToken);
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
       final rs = client.setAutomatedPublishing(
         'oxygen',
         AutomatedPublishingConfig(

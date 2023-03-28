@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Turning off old sign-in flow.
 
 ## `20230323t135600-all`
  * Fixing session-related rendering in new sign-in flow.

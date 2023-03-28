@@ -4,6 +4,7 @@
 
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
+import 'package:pub_dev/account/session_cookie.dart';
 
 final _transientStatusCodes = {
   // See: https://cloud.google.com/storage/docs/xml-api/reference-status
@@ -37,10 +38,14 @@ http.Client httpRetryClient({
 /// header for each request.
 http.Client httpClientWithAuthorization({
   required Future<String?> Function() tokenProvider,
+  required Future<String?> Function() sessionIdProvider,
+  required Future<String?> Function() csrfTokenProvider,
   http.Client? client,
 }) {
   return _AuthenticatedClient(
     tokenProvider,
+    sessionIdProvider,
+    csrfTokenProvider,
     client ?? http.Client(),
     client == null,
   );
@@ -50,17 +55,40 @@ http.Client httpClientWithAuthorization({
 /// each request.
 class _AuthenticatedClient extends http.BaseClient {
   final Future<String?> Function() _tokenProvider;
+  final Future<String?> Function() _sessionIdProvider;
+  final Future<String?> Function() _csrfTokenProvider;
   final http.Client _client;
   final bool _closeInnerClient;
 
   _AuthenticatedClient(
-      this._tokenProvider, this._client, this._closeInnerClient);
+    this._tokenProvider,
+    this._sessionIdProvider,
+    this._csrfTokenProvider,
+    this._client,
+    this._closeInnerClient,
+  );
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final token = await _tokenProvider();
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
+    }
+    final sessionId = await _sessionIdProvider();
+    if (sessionId != null) {
+      final currentCookies = request.headers['cookie'];
+      request.headers['cookie'] = [
+        if (currentCookies != null && currentCookies.isNotEmpty) currentCookies,
+        // ignore: invalid_use_of_visible_for_testing_member
+        '$clientSessionLaxCookieName=$sessionId',
+        // ignore: invalid_use_of_visible_for_testing_member
+        '$clientSessionStrictCookieName=$sessionId',
+      ].join('; ');
+
+      final csrfToken = await _csrfTokenProvider();
+      if (csrfToken != null) {
+        request.headers['x-pub-csrf-token'] = csrfToken;
+      }
     }
     return await _client.send(request);
   }

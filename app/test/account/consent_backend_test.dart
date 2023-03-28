@@ -12,6 +12,7 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -22,20 +23,22 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('Uploader invite', () {
     Future<String?> inviteUploader(
         {String adminEmail = 'admin@pub.dev'}) async {
-      await withHttpPubApiClient(
-        bearerToken: createFakeAuthTokenForEmail(adminEmail),
+      await withFakeAuthHttpPubApiClient(
+        email: adminEmail,
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
         fn: (client) async {
           await client.invitePackageUploader(
-              'oxygen', InviteUploaderRequest(email: 'user@pub.dev'));
+              'oxygen', InviteUploaderRequest(email: userAtPubDevEmail));
         },
       );
 
       String? consentId;
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
@@ -63,7 +66,7 @@ void main() {
 
     testWithProfile('Uploader invite accepted', fn: () async {
       final consentId = await inviteUploader();
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.resolveConsent(
           consentId!, account_api.ConsentResult(granted: true));
       expect(rs.granted, true);
@@ -77,7 +80,7 @@ void main() {
 
     testWithProfile('Uploader invite rejected', fn: () async {
       final consentId = await inviteUploader();
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.resolveConsent(
           consentId!, account_api.ConsentResult(granted: false));
       expect(rs.granted, false);
@@ -107,14 +110,14 @@ void main() {
 
         // remove original admin
         final package = await packageBackend.lookupPackage('oxygen');
-        await accountBackend.withBearerToken(
-            createFakeAuthTokenForEmail('other@pub.dev'), () async {
+        await withFakeAuthRequestContext('other@pub.dev', () async {
           final agent = await requireAuthenticatedWebUser();
           package!.uploaders = [agent.userId];
         });
         await dbService.commit(inserts: [package!]);
 
-        final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final client =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
         final rs = client.resolveConsent(
             consentId!, account_api.ConsentResult(granted: true));
         await expectApiException(rs,
@@ -127,13 +130,12 @@ void main() {
     Future<String?> inviteContact({
       String adminEmail = 'admin@pub.dev',
     }) async {
-      final adminClient = createPubApiClient(
-          authToken: createFakeAuthTokenForEmail(adminEmail));
+      final adminClient = await createFakeAuthPubApiClient(email: adminEmail);
       await adminClient.updatePublisher('example.com',
           UpdatePublisherRequest(contactEmail: 'info@example.com'));
 
       String? consentId;
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
@@ -161,7 +163,7 @@ void main() {
     testWithProfile('Publisher contact accepted', fn: () async {
       final consentId = await inviteContact();
 
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.resolveConsent(
           consentId!, account_api.ConsentResult(granted: true));
       expect(rs.granted, true);
@@ -176,7 +178,7 @@ void main() {
     testWithProfile('Publisher contact rejected', fn: () async {
       final consentId = await inviteContact();
 
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.resolveConsent(
           consentId!, account_api.ConsentResult(granted: false));
       expect(rs.granted, false);
@@ -205,7 +207,8 @@ void main() {
         final consentId = await inviteContact();
         await _removeAdminRole('example.com', 'admin@pub.dev');
 
-        final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final client =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
         final rs = client.resolveConsent(
             consentId!, account_api.ConsentResult(granted: true));
         await expectApiException(rs,
@@ -218,13 +221,12 @@ void main() {
     Future<String?> inviteMember({
       String adminEmail = 'admin@pub.dev',
     }) async {
-      final adminClient = createPubApiClient(
-          authToken: createFakeAuthTokenForEmail(adminEmail));
+      final adminClient = await createFakeAuthPubApiClient(email: adminEmail);
       await adminClient.invitePublisherMember(
           'example.com', InviteMemberRequest(email: 'user@pub.dev'));
 
       String? consentId;
-      await accountBackend.withBearerToken(userAtPubDevAuthToken, () async {
+      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final consentRow = await dbService.query<Consent>().run().single;
@@ -254,7 +256,7 @@ void main() {
     testWithProfile('Publisher member accepted', fn: () async {
       final consentId = await inviteMember();
 
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.resolveConsent(
           consentId!, account_api.ConsentResult(granted: true));
       expect(rs.granted, true);
@@ -269,7 +271,7 @@ void main() {
     testWithProfile('Publisher member rejected', fn: () async {
       final consentId = await inviteMember();
 
-      final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
       final rs = await client.resolveConsent(
           consentId!, account_api.ConsentResult(granted: false));
       expect(rs.granted, false);
@@ -298,7 +300,8 @@ void main() {
         final consentId = await inviteMember();
         await _removeAdminRole('example.com', 'admin@pub.dev');
 
-        final client = createPubApiClient(authToken: userAtPubDevAuthToken);
+        final client =
+            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
         final rs = client.resolveConsent(
             consentId!, account_api.ConsentResult(granted: true));
         await expectApiException(rs,
@@ -317,8 +320,7 @@ Future<void> _expireConsent(String? consentId) async {
 }
 
 Future<void> _removeAdminRole(String publisherId, String email) async {
-  await accountBackend.withBearerToken(createFakeAuthTokenForEmail(email),
-      () async {
+  await withFakeAuthRequestContext(email, () async {
     final agent = await requireAuthenticatedWebUser();
     final publisher = await publisherBackend.getPublisher(publisherId);
     final member =

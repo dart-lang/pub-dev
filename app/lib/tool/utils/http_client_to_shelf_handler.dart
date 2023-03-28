@@ -19,6 +19,8 @@ import '../../tool/utils/http.dart';
 http.Client httpClientToShelfHandler({
   shelf.Handler? handler,
   String? authToken,
+  String? sessionId,
+  String? csrfToken,
 }) {
   handler ??= createAppHandler();
   handler = wrapHandler(
@@ -28,6 +30,8 @@ http.Client httpClientToShelfHandler({
   );
   return httpClientWithAuthorization(
     tokenProvider: () async => authToken,
+    sessionIdProvider: () async => sessionId,
+    csrfTokenProvider: () async => csrfToken,
     client: http_testing.MockClient(_wrapShelfHandler(handler)),
   );
 }
