@@ -83,6 +83,8 @@ Future<RequestContext> buildRequestContext({
   required shelf.Request request,
 }) async {
   final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
+  final experimentalFlags =
+      ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
 
   // Never read or look for the session cookie on hosts other than the
   // primary site. Who knows how it got there or what it means.
@@ -94,7 +96,7 @@ Future<RequestContext> buildRequestContext({
   // data (non-GET HTTP methods).
   final isAllowedForSession = request.method == 'GET';
   SessionData? userSessionData;
-  if (isPrimaryHost && isAllowedForSession) {
+  if (!experimentalFlags.useNewSignIn && isPrimaryHost && isAllowedForSession) {
     userSessionData =
         await accountBackend.parseAndLookupUserSessionCookie(cookies);
   }
@@ -110,8 +112,6 @@ Future<RequestContext> buildRequestContext({
   final csrfToken = request.headers['x-pub-csrf-token']?.trim();
 
   final indentJson = request.requestedUri.queryParameters.containsKey('pretty');
-  final experimentalFlags =
-      ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
 
   final enableRobots = !experimentalFlags.isEmpty ||
       (!activeConfiguration.blockRobots && isPrimaryHost);
