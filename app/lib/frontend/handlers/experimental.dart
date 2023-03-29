@@ -12,7 +12,6 @@ const _publicFlags = <String>{
 
 const _allFlags = <String>{
   ..._publicFlags,
-  'signin',
   'sandbox',
 };
 
@@ -51,9 +50,6 @@ class ExperimentalFlags {
 
   /// Whether to return dartdoc from sandboxing output.
   bool get showSandboxedOutput => _enabled.contains('sandbox');
-
-  /// Whether to use the new sign-in, session handling and authorization.
-  bool get useNewSignIn => true; // _enabled.contains('signin');
 
   /// Whether to show topics associated with a package.
   bool get showTopics => _enabled.contains('topics');

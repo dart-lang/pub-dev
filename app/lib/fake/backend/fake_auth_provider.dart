@@ -474,7 +474,7 @@ Future<R> withFakeAuthRequestContext<R>(
         sessionId: sessionId,
         isStrict: true,
       ),
-      clientSessionData: sessionData,
+      sessionData: sessionData,
       csrfToken: csrfToken,
     ));
     return await fn();

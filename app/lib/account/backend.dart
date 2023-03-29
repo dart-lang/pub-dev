@@ -64,8 +64,7 @@ String? _getBearerToken() => ss.lookup(#_bearerToken) as String?;
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
-  if (requestContext.experimentalFlags.useNewSignIn &&
-      requestContext.clientSessionCookieStatus.isPresent) {
+  if (requestContext.clientSessionCookieStatus.isPresent) {
     final sessionUser = await accountBackend.tryAuthenticateWebSessionUser(
       sessionId: requestContext.clientSessionCookieStatus.sessionId,
       hasStrictCookie: requestContext.clientSessionCookieStatus.isStrict,
@@ -76,17 +75,6 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
       return sessionUser;
     } else {
       throw AuthenticationException.failed('Session expired.');
-    }
-  }
-
-  if (!requestContext.experimentalFlags.useNewSignIn) {
-    final agent = await _requireAuthenticatedAgent();
-    if (agent is AuthenticatedUser) {
-      if (agent.audience != activeConfiguration.pubSiteAudience) {
-        throw AuthenticationException.tokenInvalid(
-            'token audience "${agent.audience}" does not match expected value');
-      }
-      return agent;
     }
   }
   throw AuthenticationException.failed();

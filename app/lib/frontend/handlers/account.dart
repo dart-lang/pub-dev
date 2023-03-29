@@ -39,9 +39,6 @@ shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
 /// Handles GET /sign-in
 Future<shelf.Response> startSignInHandler(shelf.Request request) async {
-  if (!requestContext.experimentalFlags.useNewSignIn) {
-    return notFoundHandler(request);
-  }
   final session = await accountBackend.createOrUpdateClientSession(
     sessionId: requestContext.clientSessionCookieStatus.sessionId,
   );
@@ -74,9 +71,6 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
 
 /// Handles GET /sign-in/complete
 Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
-  if (!requestContext.experimentalFlags.useNewSignIn) {
-    return notFoundHandler(request);
-  }
   final params = request.requestedUri.queryParameters;
   final error = params['error'];
   if (error != null && error.isNotEmpty) {
@@ -209,7 +203,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   if (sessionId != null) {
     await accountBackend.invalidateUserSession(sessionId);
   }
-  if (requestContext.experimentalFlags.useNewSignIn && userId != null) {
+  if (userId != null) {
     await accountBackend.invalidateAllUserSessions(userId);
   }
   return jsonResponse(
@@ -439,8 +433,8 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
   final grantedScopes = requestContext.sessionData?.grantedScopes ?? <String>[];
   final hasAllRequiredScopes = requiredScopes.every(grantedScopes.contains);
 
-  final needsReAuthentication = requestContext.experimentalFlags.useNewSignIn &&
-      (isLastAuthenticationOld || !hasAllRequiredScopes);
+  final needsReAuthentication =
+      isLastAuthenticationOld || !hasAllRequiredScopes;
   if (needsReAuthentication) {
     final requestedUri = request.requestedUri;
     final goUri = Uri(
