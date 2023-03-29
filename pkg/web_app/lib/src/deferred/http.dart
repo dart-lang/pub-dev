@@ -10,7 +10,7 @@ import 'package:http/http.dart';
 export 'package:http/http.dart' show Client;
 
 /// Creates an authenticated [Client] that extends request with the CSRF header.
-Client createAuthenticatedClient() {
+Client createClientWithCsrf() {
   return _AuthenticatedClient();
 }
 

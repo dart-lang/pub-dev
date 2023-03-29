@@ -24,5 +24,5 @@ PubApiClient get unauthenticatedClient =>
 
 /// The pub API client to use with account credentials.
 PubApiClient get client {
-  return PubApiClient(_baseUrl, client: http.createAuthenticatedClient());
+  return PubApiClient(_baseUrl, client: http.createClientWithCsrf());
 }
