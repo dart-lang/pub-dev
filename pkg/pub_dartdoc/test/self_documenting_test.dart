@@ -90,7 +90,7 @@ void main() {
         'static-assets/highlight.pack.js',
         'static-assets/play_button.svg',
         'static-assets/readme.md',
-        'static-assets/search.png',
+        'static-assets/search.svg',
         'static-assets/styles.css',
       ]);
     });

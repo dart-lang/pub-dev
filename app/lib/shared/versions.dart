@@ -22,10 +22,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.03.13',
+  '2023.03.29',
   // Fallback runtime versions.
+  '2023.03.13',
   '2023.03.07',
-  '2023.02.22',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -68,7 +68,7 @@ final semanticToolStableFlutterSdkVersion =
 final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '6.1.5';
+final String dartdocVersion = '6.2.1';
 
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
