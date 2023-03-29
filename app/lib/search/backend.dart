@@ -292,7 +292,7 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
     }
   });
 
-  final results = pathMap.keys.map((key) {
+  final results = pathMap.keys.where(symbolMap.containsKey).map((key) {
     final path = pathMap[key]!;
     final symbols = symbolMap[key]!.toList()..sort();
     return ApiDocPage(
