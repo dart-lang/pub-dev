@@ -219,7 +219,7 @@ class IntegrityChecker {
       if (!_publishers.contains(pm.publisherId)) {
         // double check actual status to prevent misreports on cache race conditions
         final p = await publisherBackend.getPublisher(pm.publisherId);
-        if (p != null) {
+        if (p == null) {
           yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
         }
       }
