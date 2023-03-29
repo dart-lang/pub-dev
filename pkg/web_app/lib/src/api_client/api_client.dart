@@ -4,8 +4,6 @@
 
 import 'dart:html';
 
-import '../_authentication_proxy.dart';
-import '../account.dart';
 import '../deferred/http.dart' as http;
 import 'pubapi.client.dart';
 
@@ -26,22 +24,5 @@ PubApiClient get unauthenticatedClient =>
 
 /// The pub API client to use with account credentials.
 PubApiClient get client {
-  return PubApiClient(_baseUrl,
-      client: http.createAuthenticatedClient(() async {
-    if (useNewSignin) {
-      return null;
-    }
-
-    // Wait until we're initialized
-    await authProxyReady;
-
-    if (!authenticationProxy.isSignedIn()) {
-      await authenticationProxy.trySignIn();
-    }
-    if (!authenticationProxy.isSignedIn()) {
-      print('Login failed');
-      throw StateError('User not logged in');
-    }
-    return authenticationProxy.idToken();
-  }));
+  return PubApiClient(_baseUrl, client: http.createClientWithCsrf());
 }
