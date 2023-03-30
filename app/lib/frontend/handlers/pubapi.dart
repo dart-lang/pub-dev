@@ -270,18 +270,6 @@ class PubApi {
   Future<ClientSessionStatus> getAccountSession(Request request) =>
       getAccountSessionHandler(request);
 
-  /// Registers (or extends) a user session.
-  ///
-  /// This endpoint should be called after an explicit login action or when the
-  /// client-side auth library receives an updated GoogleUser object
-  /// (automatic updates).
-  ///
-  /// The response header will contain the updated session cookie, and the body
-  /// is a [ClientSessionStatus].
-  @EndPoint.post('/api/account/session')
-  Future<Response> updateSession(Request request, ClientSessionRequest body) =>
-      updateSessionHandler(request, body);
-
   /// Removes the user session.
   ///
   /// This endpoint should be called after an explicit logout action or when the

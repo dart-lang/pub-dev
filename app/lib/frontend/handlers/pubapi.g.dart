@@ -465,24 +465,6 @@ Router _$PubApiRouter(PubApi service) {
     },
   );
   router.add(
-    'POST',
-    r'/api/account/session',
-    (Request request) async {
-      try {
-        final _$result = await service.updateSession(
-          request,
-          await $utilities.decodeJson<ClientSessionRequest>(
-              request, (o) => ClientSessionRequest.fromJson(o)),
-        );
-        return _$result;
-      } on ApiResponseException catch (e) {
-        return e.asApiResponse();
-      } catch (e, st) {
-        return $utilities.unhandledError(e, st);
-      }
-    },
-  );
-  router.add(
     'DELETE',
     r'/api/account/session',
     (Request request) async {

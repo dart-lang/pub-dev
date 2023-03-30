@@ -7,11 +7,9 @@ library session_cookie;
 
 import 'dart:io' show HttpHeaders;
 
-import 'package:clock/clock.dart';
 import 'package:meta/meta.dart';
 
 import '../shared/cookie_utils.dart';
-import '../shared/env_config.dart';
 import '../shared/exceptions.dart';
 
 /// The client session cookie that will be sent on every kind of session.
@@ -22,41 +20,6 @@ final clientSessionLaxCookieName = pubCookieName('SID');
 /// sessions using SameSite=Strict.
 @visibleForTesting
 final clientSessionStrictCookieName = pubCookieName('SSID');
-
-/// The name of the session cookie.
-///
-/// Depends on whether we're running locally.
-String get _userSessionCookieName {
-  if (envConfig.isRunningLocally) {
-    return 'pub-sid-insecure'; // Note. this should only happen on localhost.
-  }
-
-  // Cookies prefixed '__Host-' must:
-  //  * be set by a HTTPS response,
-  //  * not feature a 'Domain' directive, and,
-  //  * have 'Path=/' directive.
-  // Hence, such a cookie cannot have been set by another website or an
-  // HTTP proxy for this website.
-  return '__Host-pub-sid';
-}
-
-/// Create a set of HTTP headers that store a session cookie.
-Map<String, String> createUserSessionCookie(
-    String sessionId, DateTime expires) {
-  // Always create a cookie that expires 25 minutes before the session.
-  // This way clock skew on the client is less likely to cause us to receive
-  // an invalid cookie. Not that getting an expired cookie should be a problem.
-  final expiration = expires.subtract(Duration(minutes: 25));
-  final maxAge = expiration.difference(clock.now());
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-  return {
-    HttpHeaders.setCookieHeader: buildSetCookieValue(
-      name: _userSessionCookieName,
-      value: sessionId,
-      maxAge: maxAge,
-    ),
-  };
-}
 
 /// Create a set of HTTP headers that store the client session cookie.
 Map<String, Object> createClientSessionCookie({
@@ -78,17 +41,6 @@ Map<String, Object> createClientSessionCookie({
       ),
     ],
   };
-}
-
-/// Process [cookies] and return `sessionId` or `null`.
-String? parseUserSessionCookie(Map<String, String> cookies) {
-  final sessionId = cookies['$_userSessionCookieName'];
-  // An empty sessionId cookie is the result of reseting the cookie.
-  // Browser usually won't send this, but let's make sure we handle the case.
-  if (sessionId != null && sessionId.isEmpty) {
-    return null;
-  }
-  return sessionId;
 }
 
 /// Parses the cookie values and returns the status of client session cookies.
@@ -121,11 +73,6 @@ ClientSessionCookieStatus parseClientSessionCookies(
 Map<String, Object> clearSessionCookies() {
   return {
     HttpHeaders.setCookieHeader: [
-      buildSetCookieValue(
-        name: _userSessionCookieName,
-        value: '',
-        maxAge: Duration.zero,
-      ),
       buildSetCookieValue(
         name: clientSessionLaxCookieName,
         value: '',

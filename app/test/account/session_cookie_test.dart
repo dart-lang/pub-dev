@@ -30,7 +30,6 @@ void main() {
         expect(values, isNotNull);
         expect(values, isNotEmpty);
         expect(values!.map((e) => e.toString()).toList(), [
-          'pub-sid-insecure=""; Path=/; Max-Age=0; SameSite=Lax; HttpOnly',
           'PUB_SID_INSECURE=""; Path=/; Max-Age=0; SameSite=Lax; HttpOnly',
           'PUB_SSID_INSECURE=""; Path=/; Max-Age=0; SameSite=Lax; HttpOnly',
         ]);

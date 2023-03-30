@@ -224,14 +224,6 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> updateSession(_i4.ClientSessionRequest payload) async {
-    return await _client.requestBytes(
-      verb: 'post',
-      path: '/api/account/session',
-      body: payload.toJson(),
-    );
-  }
-
   Future<List<int>> invalidateSession() async {
     return await _client.requestBytes(
       verb: 'delete',
