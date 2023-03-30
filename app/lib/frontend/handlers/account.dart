@@ -121,7 +121,6 @@ Future<ClientSessionStatus> getAccountSessionHandler(
     shelf.Request request) async {
   final sessionData = requestContext.sessionData;
   return ClientSessionStatus(
-    changed: false,
     expires: sessionData?.expires,
     authenticatedAt: sessionData?.authenticatedAt,
   );
@@ -140,11 +139,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
     await accountBackend.invalidateAllUserSessions(userId);
   }
   return jsonResponse(
-    ClientSessionStatus(
-      changed: sessionId != null,
-      expires: null,
-      authenticatedAt: null,
-    ).toJson(),
+    {},
     // Clear cookie, so we don't have to lookup an invalid sessionId.
     headers: session_cookie.clearSessionCookies(),
   );
