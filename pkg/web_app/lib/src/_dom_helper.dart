@@ -115,6 +115,7 @@ Element _buildDialog({
                         ..classes.addAll([
                           'mdc-button',
                           'mdc-dialog__button',
+                          '-pub-dom-dialog-cancel-button',
                         ])
                         ..tabIndex = 2
                         ..onClick.listen((_) {
@@ -122,16 +123,14 @@ Element _buildDialog({
                         })
                         ..children = [
                           Element.span()
-                            ..classes.addAll([
-                              'mdc-button__label',
-                              '-pub-dom-dialog-cancel-button',
-                            ])
+                            ..classes.add('mdc-button__label')
                             ..innerText = cancelButtonText ?? 'Cancel',
                         ],
                     Element.tag('button')
                       ..classes.addAll([
                         'mdc-button',
                         'mdc-dialog__button',
+                        '-pub-dom-dialog-ok-button',
                       ])
                       ..tabIndex = 1
                       ..onClick.listen((_) {
@@ -139,10 +138,7 @@ Element _buildDialog({
                       })
                       ..children = [
                         Element.span()
-                          ..classes.addAll([
-                            'mdc-button__label',
-                            '-pub-dom-dialog-ok-button',
-                          ])
+                          ..classes.add('mdc-button__label')
                           ..innerText = okButtonText ?? 'Ok',
                       ],
                   ],
