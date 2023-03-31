@@ -121,7 +121,6 @@ Future<ClientSessionStatus> getAccountSessionHandler(
     shelf.Request request) async {
   final sessionData = requestContext.sessionData;
   return ClientSessionStatus(
-    changed: false,
     expires: sessionData?.expires,
     authenticatedAt: sessionData?.authenticatedAt,
   );
@@ -129,7 +128,7 @@ Future<ClientSessionStatus> getAccountSessionHandler(
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final sessionId = requestContext.sessionData?.sessionId;
+  final sessionId = requestContext.clientSessionCookieStatus.sessionId;
   final userId = requestContext.authenticatedUserId;
   // Invalidate the server-side session object, in case the user signed out because
   // the local cookie store was compromised.
@@ -140,11 +139,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
     await accountBackend.invalidateAllUserSessions(userId);
   }
   return jsonResponse(
-    ClientSessionStatus(
-      changed: sessionId != null,
-      expires: null,
-      authenticatedAt: null,
-    ).toJson(),
+    {},
     // Clear cookie, so we don't have to lookup an invalid sessionId.
     headers: session_cookie.clearSessionCookies(),
   );
