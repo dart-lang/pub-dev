@@ -5,10 +5,10 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: "0c80aeab9bc807ab10022cd3b2f4cf2ecdf231949dc1ddd9442406a003f19201"
+      sha256: a36ec4843dc30ea6bf652bf25e3448db6c5e8bcf4aa55f063a5d1dad216d8214
       url: "https://pub.dev"
     source: hosted
-    version: "52.0.0"
+    version: "58.0.0"
   _pub_shared:
     dependency: "direct main"
     description:
@@ -20,10 +20,10 @@ packages:
     dependency: transitive
     description:
       name: analyzer
-      sha256: cd8ee83568a77f3ae6b913a36093a1c9b1264e7cb7f834d9ddd2311dade9c1f4
+      sha256: cc4242565347e98424ce9945c819c192ec0838cb9d1f6aa4a97cc96becbc5b27
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.0"
+    version: "5.10.0"
   api_builder:
     dependency: "direct main"
     description:
@@ -203,10 +203,10 @@ packages:
     dependency: transitive
     description:
       name: dartdoc
-      sha256: f9bf2fbf11e5dce3ffd085e1169f6218b632318403cb3f5762619e4d092e1e68
+      sha256: "9fa385774ff71259daeee9b9848da4d3673d158c3f5ad3f4957f9d4c8799587d"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.5"
+    version: "6.2.1"
   file:
     dependency: transitive
     description:
@@ -343,13 +343,13 @@ packages:
     source: hosted
     version: "1.1.1"
   markdown:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: markdown
-      sha256: c2b81e184067b41d0264d514f7cdaa2c02d38511e39d6521a1ccc238f6d7b3f2
+      sha256: d95a9d12954aafc97f984ca29baaa7690ed4d9ec4140a23ad40580bcdb6c87f5
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.1"
+    version: "7.0.2"
   matcher:
     dependency: transitive
     description:

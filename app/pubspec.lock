@@ -480,10 +480,10 @@ packages:
     dependency: "direct main"
     description:
       name: markdown
-      sha256: c2b81e184067b41d0264d514f7cdaa2c02d38511e39d6521a1ccc238f6d7b3f2
+      sha256: d95a9d12954aafc97f984ca29baaa7690ed4d9ec4140a23ad40580bcdb6c87f5
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.1"
+    version: "7.0.2"
   matcher:
     dependency: transitive
     description:
