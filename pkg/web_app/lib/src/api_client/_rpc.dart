@@ -4,9 +4,9 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'package:_pub_shared/pubapi.dart';
 
 import '../_dom_helper.dart';
-import 'pubapi.client.dart';
 
 /// Wraps asynchronous server calls with an optional confirm window, a spinner,
 /// error- and success handling.

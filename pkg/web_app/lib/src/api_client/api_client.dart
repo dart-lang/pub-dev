@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+import 'package:_pub_shared/pubapi.dart';
 
 import '../_authentication_proxy.dart';
 import '../account.dart';
 import '../deferred/http.dart' as http;
-import 'pubapi.client.dart';
 
 export '_rpc.dart';
 
