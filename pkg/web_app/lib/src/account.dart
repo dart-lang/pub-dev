@@ -28,11 +28,10 @@ void _initSessionMonitor() {
     return;
   }
 
-  final defaultCheckDelay = Duration(minutes: 5);
+  final minCheckDelay = Duration(minutes: 5);
   final authenticationThreshold = Duration(minutes: 55);
-  final maxDurationBetweenChecks = authenticationThreshold - defaultCheckDelay;
-  final sessionExpiresThreshold =
-      authenticationThreshold - (defaultCheckDelay * 2);
+  final maxDurationBetweenChecks = authenticationThreshold - minCheckDelay;
+  final sessionExpiresThreshold = authenticationThreshold - (minCheckDelay * 2);
 
   DivElement? lastDiv;
   String? lastMessage;
@@ -84,7 +83,7 @@ void _initSessionMonitor() {
         // unless the user session timed out or expired.
         //
         // In any of the above cases, defaulting to the default frequency is safe.
-        await Future.delayed(defaultCheckDelay);
+        await Future.delayed(minCheckDelay);
       } else {
         // When the session is active, we can run the next check just before the
         // authentication threshold maxes out. Added sanity checks to bound the delay
@@ -94,8 +93,8 @@ void _initSessionMonitor() {
             .difference(DateTime.now());
         if (nextCheck > maxDurationBetweenChecks) {
           nextCheck = maxDurationBetweenChecks;
-        } else if (nextCheck < defaultCheckDelay) {
-          nextCheck = defaultCheckDelay;
+        } else if (nextCheck < minCheckDelay) {
+          nextCheck = minCheckDelay;
         }
         await Future.delayed(nextCheck);
       }
