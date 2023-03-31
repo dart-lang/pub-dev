@@ -148,7 +148,6 @@ class DefaultAuthProvider extends BaseAuthProvider {
         return null;
       }
       final body = json.decode(rs.body);
-      // TODO: also expose access_token for domain verification calls
       final idToken = body['id_token'] as String;
       final accessToken = body['access_token'] as String;
       final auth = await _tryAuthenticateJwt(

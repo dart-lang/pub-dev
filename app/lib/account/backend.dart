@@ -456,10 +456,6 @@ class AccountBackend {
 
     // in the absence of a valid existing session, create a new one
     final session = UserSession.init()
-      // TODO: make this null after all deployed version can handle it
-      ..userId = ''
-      // TODO: make this null after all deployed version can handle it
-      ..email = ''
       ..created = now
       ..expires = now.add(_sessionDuration);
     await _db.commit(inserts: [session]);
