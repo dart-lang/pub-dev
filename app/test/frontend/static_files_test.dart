@@ -65,16 +65,6 @@ void main() {
     );
   });
 
-  group('Manual copy of files', () {
-    test('pubapi.client.dart', () async {
-      final f1 = File('lib/frontend/handlers/pubapi.client.dart');
-      final c1 = await f1.readAsString();
-      final f2 = File('../pkg/web_app/lib/src/api_client/pubapi.client.dart');
-      final c2 = await f2.readAsString();
-      expect(c2, c1);
-    });
-  });
-
   group('default content', () {
     late StaticFileCache cache;
 

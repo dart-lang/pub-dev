@@ -17,6 +17,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.4.0"
+  api_builder:
+    dependency: "direct main"
+    description:
+      path: "../api_builder"
+      relative: true
+    source: path
+    version: "0.0.0"
   args:
     dependency: transitive
     description:
@@ -225,6 +232,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.15.1"
+  http:
+    dependency: transitive
+    description:
+      name: http
+      sha256: "6aa2946395183537c8b880962d935877325d6a09a2867c3970c05c0fed6ac482"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.5"
+  http_methods:
+    dependency: transitive
+    description:
+      name: http_methods
+      sha256: c192bb6fb4ae99d06053f67a2c1c65350a29bc778a39d9a12b96bd2ec820e9dc
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -369,6 +392,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  shelf_router:
+    dependency: transitive
+    description:
+      name: shelf_router
+      sha256: "0b0bfb835e8b2bb43c5341ee689f0d2851e9cea377a4f2db4ec06a1a99beace4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.3"
   shelf_static:
     dependency: transitive
     description:
@@ -505,6 +536,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: "648e103079f7c64a36dc7d39369cabb358d377078a051d6ae2ad3aa539519313"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.7"
   vm_service:
     dependency: transitive
     description:
