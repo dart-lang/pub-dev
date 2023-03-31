@@ -10,6 +10,8 @@ import 'package:web_app/src/page_data.dart';
 import 'admin_pages.dart' deferred as admin_pages;
 import 'api_client/api_client.dart' deferred as api_client;
 
+final _signInButton = document.getElementById('-account-login');
+
 void setupAccount() {
   _initSessionMonitor();
   _initWidgets();
@@ -21,10 +23,15 @@ void _initSessionMonitor() {
   if (!pageData.isSessionAware) {
     return;
   }
+  // No need to monitor if the page was created with an unauthenticated session.
+  if (_signInButton != null) {
+    return;
+  }
 
-  final checkFrequency = Duration(minutes: 5);
-  final sessionExpiresThreshold = Duration(minutes: 45);
+  final minCheckDelay = Duration(minutes: 5);
   final authenticationThreshold = Duration(minutes: 55);
+  final maxDurationBetweenChecks = authenticationThreshold - minCheckDelay;
+  final sessionExpiresThreshold = authenticationThreshold - (minCheckDelay * 2);
 
   DivElement? lastDiv;
   String? lastMessage;
@@ -34,7 +41,9 @@ void _initSessionMonitor() {
     lastMessage = null;
   }
 
-  Future<void> checkSession() async {
+  /// Checks current session status and returns the last authentication timestamp
+  /// (or null if session timed out).
+  Future<DateTime?> checkSession() async {
     await api_client.loadLibrary();
     final status = await api_client.unauthenticatedClient.getAccountSession();
     final now = DateTime.now();
@@ -61,22 +70,47 @@ void _initSessionMonitor() {
         document.body!.append(div);
         lastDiv = div;
       }
-      return;
+    }
+    return authenticatedAt;
+  }
+
+  Future<void> monitor() async {
+    DateTime? authenticatedAt;
+    for (;;) {
+      if (authenticatedAt == null) {
+        // On the first cycle this ensures that we wait ample time before
+        // the first check. Subsequent cycles should have a non-zero value,
+        // unless the user session timed out or expired.
+        //
+        // In any of the above cases, defaulting to the default frequency is safe.
+        await Future.delayed(minCheckDelay);
+      } else {
+        // When the session is active, we can run the next check just before the
+        // authentication threshold maxes out. Added sanity checks to bound the delay
+        // within a reasonable timeframe.
+        var nextCheck = authenticatedAt
+            .add(maxDurationBetweenChecks)
+            .difference(DateTime.now());
+        if (nextCheck > maxDurationBetweenChecks) {
+          nextCheck = maxDurationBetweenChecks;
+        } else if (nextCheck < minCheckDelay) {
+          nextCheck = minCheckDelay;
+        }
+        await Future.delayed(nextCheck);
+      }
+
+      // Update session information and label.
+      authenticatedAt = await checkSession();
     }
   }
 
-  /// TODO: rewrite this to just make a while loop and then do await
-  /// Future.delayed(sessionExpiresThreshold.subtract(now.subtract(authenticatedAt)))
-  Timer.periodic(checkFrequency, (timer) async {
-    await checkSession();
-  });
+  // Start monitoring without waiting on the infinite loop to complete.
+  unawaited(Future.microtask(monitor));
 }
 
 void _doSignIn({bool selectAccount = false}) {
-  final signInButton = document.getElementById('-account-login');
   // fake sign-in hook for integration tests
-  final fakeEmail =
-      signInButton == null ? null : signInButton.dataset['fake-email'];
+  final fakeEmail = _signInButton?.dataset['fake-email'];
   final uri = Uri.parse(window.location.href);
   final relativeUri = Uri(
     path: uri.path,
