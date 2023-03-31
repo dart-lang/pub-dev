@@ -7,6 +7,7 @@ import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -17,6 +18,8 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('AccountBackend', () {
     testWithProfile('No user', fn: () async {
       expect(await accountBackend.getEmailOfUserId(createUuid()), isNull);
@@ -43,8 +46,8 @@ void main() {
       final oldIds =
           await dbService.query<User>().run().map((u) => u.userId).toList();
 
-      final u = await accountBackend.withBearerToken(
-        createFakeAuthTokenForEmail('new-user@pub.dev'),
+      final u = await withFakeAuthRequestContext(
+        'new-user@pub.dev',
         () => requireAuthenticatedWebUser(),
       );
       expect(u.userId, hasLength(36));
@@ -73,8 +76,7 @@ void main() {
       expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
       String? userId;
-      await accountBackend.withBearerToken(
-          createFakeAuthTokenForEmail('a@example.com'), () async {
+      await withFakeAuthRequestContext('a@example.com', () async {
         final u1 = await requireAuthenticatedWebUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'a@example.com');
@@ -101,8 +103,7 @@ void main() {
           .toSet();
       expect(ids1, {'admin-pub-dev', 'user-pub-dev'});
 
-      await accountBackend.withBearerToken(
-          createFakeAuthTokenForEmail('c@example.com'), () async {
+      await withFakeAuthRequestContext('c@example.com', () async {
         final u1 = await requireAuthenticatedWebUser();
         expect(u1.userId, hasLength(36));
         expect(u1.email, 'c@example.com');

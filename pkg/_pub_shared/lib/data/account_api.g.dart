@@ -20,7 +20,6 @@ Map<String, dynamic> _$ClientSessionRequestToJson(
 
 ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) =>
     ClientSessionStatus(
-      changed: json['changed'] as bool?,
       expires: json['expires'] == null
           ? null
           : DateTime.parse(json['expires'] as String),
@@ -32,7 +31,6 @@ ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ClientSessionStatusToJson(
         ClientSessionStatus instance) =>
     <String, dynamic>{
-      'changed': instance.changed,
       'expires': instance.expires?.toIso8601String(),
       'authenticatedAt': instance.authenticatedAt?.toIso8601String(),
     };

@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -21,8 +18,6 @@ import '../../package/models.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../scorecard/backend.dart';
-import '../../shared/configuration.dart' show activeConfiguration;
-import '../../shared/cookie_utils.dart';
 import '../../shared/env_config.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
@@ -32,16 +27,11 @@ import '../templates/admin.dart';
 import '../templates/consent.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 
-final _logger = Logger('account_handler');
-
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
 /// Handles GET /sign-in
 Future<shelf.Response> startSignInHandler(shelf.Request request) async {
-  if (!requestContext.experimentalFlags.useNewSignIn) {
-    return notFoundHandler(request);
-  }
   final session = await accountBackend.createOrUpdateClientSession(
     sessionId: requestContext.clientSessionCookieStatus.sessionId,
   );
@@ -74,9 +64,6 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
 
 /// Handles GET /sign-in/complete
 Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
-  if (!requestContext.experimentalFlags.useNewSignIn) {
-    return notFoundHandler(request);
-  }
   final params = request.requestedUri.queryParameters;
   final error = params['error'];
   if (error != null && error.isNotEmpty) {
@@ -134,90 +121,25 @@ Future<ClientSessionStatus> getAccountSessionHandler(
     shelf.Request request) async {
   final sessionData = requestContext.sessionData;
   return ClientSessionStatus(
-    changed: false,
     expires: sessionData?.expires,
     authenticatedAt: sessionData?.authenticatedAt,
   );
 }
 
-/// Handles POST /api/account/session
-Future<shelf.Response> updateSessionHandler(
-    shelf.Request request, ClientSessionRequest body) async {
-  final sw = Stopwatch()..start();
-  final authenticatedUser = await requireAuthenticatedWebUser();
-  final user = authenticatedUser.user;
-
-  InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
-  await accountBackend.verifyAccessTokenOwnership(body.accessToken!, user);
-  final t1 = sw.elapsed;
-
-  // Only allow creation of sessions on the primary site host.
-  // Exposing session on other domains is a security concern.
-  // Note: staging sites may have a different primary host.
-  if (request.requestedUri.host != activeConfiguration.primarySiteUri.host ||
-      request.requestedUri.scheme !=
-          activeConfiguration.primarySiteUri.scheme) {
-    // The resource simply doesn't exist on this host.
-    throw NotFoundException.resource('no such url');
-  }
-
-  final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-  final sessionData =
-      await accountBackend.parseAndLookupUserSessionCookie(cookies);
-  final t2 = sw.elapsed;
-  // check if the session data is the same
-  if (sessionData != null &&
-      sessionData.userId == user.userId &&
-      sessionData.email == user.email) {
-    final status = ClientSessionStatus(
-      changed: false,
-      expires: sessionData.expires,
-      authenticatedAt: null,
-    );
-    _logger.info(
-        '[pub-session-handler-debug] Session was alive: $t1 / ${t2 - t1}.');
-    return jsonResponse(status.toJson());
-  }
-
-  final profile = await authProvider.getAccountProfile(body.accessToken);
-  final t3 = sw.elapsed;
-  final newSession = await accountBackend.createNewUserSession(
-    name: profile!.name!,
-    imageUrl: profile.imageUrl!,
-  );
-  final t4 = sw.elapsed;
-  _logger.info(
-      '[pub-session-handler-debug] Session was created: $t1 / ${t2 - t1} / ${t3 - t2} / ${t4 - t3}.');
-
-  return jsonResponse(
-    ClientSessionStatus(
-      changed: true,
-      expires: newSession.expires,
-      authenticatedAt: null,
-    ).toJson(),
-    headers: session_cookie.createUserSessionCookie(
-        newSession.sessionId, newSession.expires),
-  );
-}
-
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final sessionId = requestContext.sessionData?.sessionId;
+  final sessionId = requestContext.clientSessionCookieStatus.sessionId;
   final userId = requestContext.authenticatedUserId;
   // Invalidate the server-side session object, in case the user signed out because
   // the local cookie store was compromised.
   if (sessionId != null) {
     await accountBackend.invalidateUserSession(sessionId);
   }
-  if (requestContext.experimentalFlags.useNewSignIn && userId != null) {
+  if (userId != null) {
     await accountBackend.invalidateAllUserSessions(userId);
   }
   return jsonResponse(
-    ClientSessionStatus(
-      changed: sessionId != null,
-      expires: null,
-      authenticatedAt: null,
-    ).toJson(),
+    {},
     // Clear cookie, so we don't have to lookup an invalid sessionId.
     headers: session_cookie.clearSessionCookies(),
   );
@@ -439,8 +361,8 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
   final grantedScopes = requestContext.sessionData?.grantedScopes ?? <String>[];
   final hasAllRequiredScopes = requiredScopes.every(grantedScopes.contains);
 
-  final needsReAuthentication = requestContext.experimentalFlags.useNewSignIn &&
-      (isLastAuthenticationOld || !hasAllRequiredScopes);
+  final needsReAuthentication =
+      isLastAuthenticationOld || !hasAllRequiredScopes;
   if (needsReAuthentication) {
     final requestedUri = request.requestedUri;
     final goUri = Uri(

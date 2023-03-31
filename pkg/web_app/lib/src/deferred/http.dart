@@ -9,10 +9,9 @@ import 'package:http/http.dart';
 
 export 'package:http/http.dart' show Client;
 
-/// Creates an authenticated [Client] that calls [getToken] to obtain an
-/// bearer-token to use in the `Authorization: Bearer <token>` header.
-Client createAuthenticatedClient(Future<String?> Function() getToken) {
-  return _AuthenticatedClient(getToken);
+/// Creates an authenticated [Client] that extends request with the CSRF header.
+Client createClientWithCsrf() {
+  return _AuthenticatedClient();
 }
 
 String? _getCsrfMetaContent() {
@@ -30,21 +29,14 @@ String? _getCsrfMetaContent() {
 
 /// An HTTP [Client] which sends custom headers alongside each request:
 ///
-///  - `Authorization` header with `Bearer` token, when `getAuthTokenFn` is
-///    provided and returns a non-null value.
-///
 ///  - `x-pub-csrf-token` header when the HTML document's `<head>` contains the
 ///    `<meta name="csrf-token" content="<token>">` element.
 class _AuthenticatedClient extends _BrowserClient {
-  _AuthenticatedClient(Future<String?> Function()? getAuthTokenFn)
+  _AuthenticatedClient()
       : super(
           getHeadersFn: () async {
-            final bearerToken =
-                getAuthTokenFn == null ? null : await getAuthTokenFn();
             final csrfToken = _getCsrfMetaContent();
             return {
-              if (bearerToken != null && bearerToken.isNotEmpty)
-                'Authorization': 'Bearer $bearerToken',
               if (csrfToken != null && csrfToken.isNotEmpty)
                 'x-pub-csrf-token': csrfToken,
             };

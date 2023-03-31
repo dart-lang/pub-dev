@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/neat_task/datastore_status_provider.dart';
@@ -10,6 +11,8 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('DatastoreStatusProvider', () {
     Future<List<NeatTaskStatus>> listStatuses() async {
       return await dbService.query<NeatTaskStatus>().run().toList();

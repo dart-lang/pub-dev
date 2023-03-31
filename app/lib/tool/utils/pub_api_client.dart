@@ -16,13 +16,21 @@ import '../../service/services.dart';
 import '../../shared/configuration.dart';
 import 'http.dart';
 
-/// Creates an API client with [authToken] that uses the configured HTTP endpoints.
+/// Creates an API client with [authToken], [sessionId] and/or
+/// [csrfToken] that uses the configured HTTP endpoints.
 ///
 /// Services scopes are used to automatically close the client once we exit the current scope.
 @visibleForTesting
-PubApiClient createPubApiClient({String? authToken}) {
-  final httpClient =
-      httpClientWithAuthorization(tokenProvider: () async => authToken);
+PubApiClient createPubApiClient({
+  String? authToken,
+  String? sessionId,
+  String? csrfToken,
+}) {
+  final httpClient = httpClientWithAuthorization(
+    tokenProvider: () async => authToken,
+    sessionIdProvider: () async => sessionId,
+    csrfTokenProvider: () async => csrfToken,
+  );
   registerScopeExitCallback(() async => httpClient.close());
   return PubApiClient(
     activeConfiguration.primaryApiUri!.toString(),
@@ -83,15 +91,20 @@ class _FakeTimeClient implements http.Client {
 /// Creates a pub.dev API client and executes [fn], making sure that the HTTP
 /// resources are freed after the callback finishes.
 ///
-/// If [bearerToken] is specified, the Authorization HTTP header will be sent
-/// with a Bearer token.
+/// If [bearerToken], [sessionId] or [csrfToken] is specified, the corresponding
+/// HTTP header will be sent alongside the request.
 Future<R> withHttpPubApiClient<R>({
   String? bearerToken,
+  String? sessionId,
+  String? csrfToken,
   String? pubHostedUrl,
   required Future<R> Function(PubApiClient client) fn,
 }) async {
-  final httpClient =
-      httpClientWithAuthorization(tokenProvider: () async => bearerToken);
+  final httpClient = httpClientWithAuthorization(
+    tokenProvider: () async => bearerToken,
+    sessionIdProvider: () async => sessionId,
+    csrfTokenProvider: () async => csrfToken,
+  );
   try {
     final apiClient = PubApiClient(
       pubHostedUrl ?? activeConfiguration.primaryApiUri!.toString(),

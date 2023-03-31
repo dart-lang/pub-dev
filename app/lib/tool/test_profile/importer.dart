@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -40,14 +41,16 @@ Future<void> importProfile({
   // create publishers
   for (final p in profile.publishers) {
     final firstMemberEmail = p.members.first.email;
-    final token = createFakeAuthTokenForEmail(firstMemberEmail);
-    await withHttpPubApiClient(
-      bearerToken: token,
+    await withFakeAuthHttpPubApiClient(
+      email: firstMemberEmail,
+      scopes: [webmasterScope],
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         try {
           await client.createPublisher(
-              p.name, CreatePublisherRequest(accessToken: token));
+            p.name,
+            CreatePublisherRequest(accessToken: null),
+          );
         } on RequestException catch (e) {
           // Ignore 409s, that's probably just because it's been created before.
           if (e.status != 409) {
@@ -108,8 +111,8 @@ Future<void> importProfile({
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];
 
-    await withHttpPubApiClient(
-      bearerToken: createFakeAuthTokenForEmail(activeEmail!),
+    await withFakeAuthHttpPubApiClient(
+      email: activeEmail!,
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         // update publisher
@@ -158,8 +161,8 @@ Future<void> importProfile({
   final createLikeCounts = <String, int>{};
   // create users
   for (final u in profile.users) {
-    await withHttpPubApiClient(
-      bearerToken: createFakeAuthTokenForEmail(u.email),
+    await withFakeAuthHttpPubApiClient(
+      email: u.email,
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         // creates user (regardless of likes being specified)
@@ -182,8 +185,8 @@ Future<void> importProfile({
 
       for (var i = 0; i < likesMissing; i++) {
         final userEmail = 'like-$i@pub.dev';
-        await withHttpPubApiClient(
-          bearerToken: createFakeAuthTokenForEmail(userEmail),
+        await withFakeAuthHttpPubApiClient(
+          email: userEmail,
           pubHostedUrl: pubHostedUrl,
           fn: (client) async {
             await client.likePackage(p.name);

@@ -84,20 +84,21 @@ class PublishingScript {
       await dart.getDependencies(_dummyExampleDir.path);
       await dart.run(_dummyExampleDir.path, 'bin/main.dart');
 
-      // add/remove uploader
-      await _pubHttpClient.inviteUploader(
-        packageName: '_dummy_pkg',
-        accessToken: mainAccessToken,
-        invitedEmail: invitedEmail,
-      );
-      await inviteCompleterFn();
-      await _verifyDummyPkg();
-      await _pubHttpClient.removeUploader(
-        packageName: '_dummy_pkg',
-        accessToken: mainAccessToken,
-        uploaderEmail: invitedEmail,
-      );
-      await _verifyDummyPkg();
+      // TODO: re-add uploader invites with better token/session/csrf handling
+      // // add/remove uploader
+      // await _pubHttpClient.inviteUploader(
+      //   packageName: '_dummy_pkg',
+      //   accessToken: mainAccessToken,
+      //   invitedEmail: invitedEmail,
+      // );
+      // await inviteCompleterFn();
+      // await _verifyDummyPkg();
+      // await _pubHttpClient.removeUploader(
+      //   packageName: '_dummy_pkg',
+      //   accessToken: mainAccessToken,
+      //   uploaderEmail: invitedEmail,
+      // );
+      // await _verifyDummyPkg();
 
       if (expectLiveSite) {
         await _verifyDummyDocumentation();

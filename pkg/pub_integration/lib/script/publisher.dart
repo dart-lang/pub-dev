@@ -5,6 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pub_integration/src/headless_env.dart';
+import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+
 import '../src/pub_http_client.dart';
 import '../src/pub_tool_client.dart';
 import '../src/test_data.dart';
@@ -19,6 +22,7 @@ class PublisherScript {
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
   final PubHttpClient _pubHttpClient;
+  final HeadlessEnv headlessEnv;
   DartToolClient? _pubToolClient;
 
   late Directory _temp;
@@ -28,6 +32,7 @@ class PublisherScript {
     required this.credentialsFileContent,
     required this.invitedEmail,
     required this.inviteCompleterFn,
+    required this.headlessEnv,
   }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
   final userWebsiteToken = 'user-at-example-dot-com?aud=fake-site-audience';
@@ -48,16 +53,17 @@ class PublisherScript {
       await _verifyDummyPkg(
           version: '1.0.0', uploaderEmail: 'user@example.com');
 
-      await _pubHttpClient.createPublisher(
-        authToken: userWebsiteToken,
-        publisherId: 'example.com',
-        accessToken: userWebsiteToken,
-      );
-      await _pubHttpClient.setPackagePublisher(
-        authToken: userWebsiteToken,
-        package: '_dummy_pkg',
-        publisherId: 'example.com',
-      );
+      await headlessEnv.withPage(fn: (page) async {
+        await page.fakeAuthSignIn(
+          email: 'user@example.com',
+          scopes: [webmastersReadonlyScope],
+        );
+        await page.createPublisher(publisherId: 'example.com');
+        await page.setPackagePublisher(
+          package: '_dummy_pkg',
+          publisherId: 'example.com',
+        );
+      });
 
       final infoBody =
           await _pubHttpClient.getContent('/api/packages/_dummy_pkg/publisher');
@@ -76,26 +82,28 @@ class PublisherScript {
       await _verifyPublisherListPage();
 
       // member invite
-      final members1 = await _pubHttpClient.listMembers(
-        authToken: userWebsiteToken,
-        publisherId: 'example.com',
-      );
-      _verifyMap({'user@example.com': 'admin'}, members1);
+      await headlessEnv.withPage(fn: (page) async {
+        await page.fakeAuthSignIn(
+          email: 'user@example.com',
+        );
 
-      await _pubHttpClient.inviteMember(
-        authToken: userWebsiteToken,
-        publisherId: 'example.com',
-        invitedEmail: invitedEmail,
-      );
-      await inviteCompleterFn();
-      final members2 = await _pubHttpClient.listMembers(
-        authToken: userWebsiteToken,
-        publisherId: 'example.com',
-      );
-      _verifyMap({
-        'user@example.com': 'admin',
-        invitedEmail: 'admin',
-      }, members2);
+        final members1 =
+            await page.listPublisherMembers(publisherId: 'example.com');
+        _verifyMap({'user@example.com': 'admin'}, members1);
+
+        await page.invitePublisherMember(
+          publisherId: 'example.com',
+          invitedEmail: invitedEmail,
+        );
+        await inviteCompleterFn();
+
+        final members2 =
+            await page.listPublisherMembers(publisherId: 'example.com');
+        _verifyMap({
+          'user@example.com': 'admin',
+          invitedEmail: 'admin',
+        }, members2);
+      });
 
       // TODO: verify my publishers page
     } finally {

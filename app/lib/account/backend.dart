@@ -26,7 +26,6 @@ import '../shared/utils.dart';
 import 'agent.dart';
 import 'auth_provider.dart';
 import 'models.dart';
-import 'session_cookie.dart' as session_cookie;
 
 final _logger = Logger('account.backend');
 
@@ -64,8 +63,7 @@ String? _getBearerToken() => ss.lookup(#_bearerToken) as String?;
 /// a new one. When the authenticated email of the user changes, the email
 /// field will be updated to the latest one.
 Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
-  if (requestContext.experimentalFlags.useNewSignIn &&
-      requestContext.clientSessionCookieStatus.isPresent) {
+  if (requestContext.clientSessionCookieStatus.isPresent) {
     final sessionUser = await accountBackend.tryAuthenticateWebSessionUser(
       sessionId: requestContext.clientSessionCookieStatus.sessionId,
       hasStrictCookie: requestContext.clientSessionCookieStatus.isStrict,
@@ -77,16 +75,6 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
     } else {
       throw AuthenticationException.failed('Session expired.');
     }
-  }
-
-  final agent = await _requireAuthenticatedAgent();
-  if (agent is AuthenticatedUser) {
-    if (agent.audience != activeConfiguration.pubSiteAudience) {
-      throw AuthenticationException.tokenInvalid(
-          'token audience "${agent.audience}" does not match expected value');
-    }
-
-    return agent;
   }
   throw AuthenticationException.failed();
 }
@@ -468,10 +456,6 @@ class AccountBackend {
 
     // in the absence of a valid existing session, create a new one
     final session = UserSession.init()
-      // TODO: make this null after all deployed version can handle it
-      ..userId = ''
-      // TODO: make this null after all deployed version can handle it
-      ..email = ''
       ..created = now
       ..expires = now.add(_sessionDuration);
     await _db.commit(inserts: [session]);
@@ -571,51 +555,6 @@ class AccountBackend {
     }
     return AuthenticatedUser(user,
         audience: activeConfiguration.pubSiteAudience!);
-  }
-
-  /// Creates a new session for the current authenticated user and returns the
-  /// new session data.
-  ///
-  /// The [SessionData.sessionId] is a secret that will be stored in a
-  /// secure cookie. Presence of this `sessionId` in a cookie, can only be used
-  /// to authorize user specific content to be embedded in HTML pages (such pages
-  /// must have `Cache-Control: private`, and may not be cached in server-side).
-  /// JSON APIs whether fetching data or updating data cannot be authorized with
-  /// a cookie carrying the `sessionId`.
-  ///
-  /// NOTE: This method will be removed after the login migration.
-  Future<SessionData> createNewUserSession({
-    required String name,
-    required String imageUrl,
-  }) async {
-    final user = await requireAuthenticatedWebUser();
-    final now = clock.now().toUtc();
-    final session = UserSession()
-      ..id = createUuid()
-      ..userId = user.userId
-      ..email = user.email
-      ..name = name
-      ..imageUrl = imageUrl
-      ..created = now
-      ..expires = now.add(Duration(days: 14));
-    await _db.commit(inserts: [session]);
-    return SessionData.fromModel(session);
-  }
-
-  /// Process [cookies] and lookup session if cookie value is available.
-  ///
-  /// Returns `null` if the session does not exists or any issue is present
-  Future<SessionData?> parseAndLookupUserSessionCookie(
-      Map<String, String> cookies) async {
-    try {
-      final sessionId = session_cookie.parseUserSessionCookie(cookies);
-      if (sessionId != null && sessionId.isNotEmpty) {
-        return await getSessionData(sessionId);
-      }
-    } catch (e, st) {
-      _logger.severe('Unable to process session cookie.', e, st);
-    }
-    return null;
   }
 
   /// Returns the user session associated with the [sessionId] or null if it

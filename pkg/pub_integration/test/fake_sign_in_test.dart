@@ -58,7 +58,6 @@ void main() {
       // sign-in page
       await headlessEnv.withPage(
         fn: (page) async {
-          await page.gotoOrigin('/experimental?signin=1');
           final rs = await page.gotoOrigin('/sign-in?fake-email=user@pub.dev');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();

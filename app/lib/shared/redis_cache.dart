@@ -296,7 +296,7 @@ class CachePatterns {
   ) =>
       _cache
           .withPrefix('task-result/')
-          .withTTL(Duration(hours: 6))['$blobId/$path'];
+          .withTTL(Duration(hours: 4))['$blobId/$path'];
 
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<String> dartdocHtml(
