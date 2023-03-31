@@ -128,8 +128,10 @@ void main() {
         await page.gotoOrigin('/');
         expect(await page.content, contains('admin@pub.dev'));
         await page.hover('.nav-profile-img');
-        await page.click('#-account-logout');
-        await Future.delayed(Duration(seconds: 10));
+        await Future.wait([
+          page.waitForNavigation(),
+          page.click('#-account-logout'),
+        ]);
         final cookies = await page.cookies();
         final cookieNames = cookies.map((e) => e.name).toSet();
         expect(cookieNames, isNot(contains('PUB_SID_INSECURE')));
@@ -144,8 +146,10 @@ void main() {
         final handle = await page.$('#-account-login');
         await handle.evaluate(
             'node => node.setAttribute("data-fake-email", "user@pub.dev")');
-        await page.click('#-account-login');
-        await Future.delayed(Duration(seconds: 2));
+        await Future.wait([
+          page.waitForNavigation(),
+          page.click('#-account-login'),
+        ]);
         final cookies = await page.cookies();
         final cookieNames = cookies.map((e) => e.name).toSet();
         expect(cookieNames, contains('PUB_SID_INSECURE'));
