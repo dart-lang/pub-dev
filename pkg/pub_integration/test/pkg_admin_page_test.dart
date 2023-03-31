@@ -51,26 +51,17 @@ void main() {
         // github publishing
         await headlessEnv.withPage(fn: (page) async {
           await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev');
-          await Future.delayed(Duration(seconds: 1));
-
           await page.gotoOrigin('/packages/test_pkg/admin');
-          await Future.delayed(Duration(seconds: 1));
 
-          await page.click('#-pkg-admin-automated-github-enabled');
-          await Future.delayed(Duration(seconds: 1));
-          await page.focusAndType(
+          await page.waitAndClick('#-pkg-admin-automated-github-enabled');
+          await page.waitFocusAndType(
               '#-pkg-admin-automated-github-repository', 'dart-lang/pub-dev');
-          await Future.delayed(Duration(seconds: 1));
-          await page.click('#-pkg-admin-automated-button');
-          await Future.delayed(Duration(seconds: 1));
-
-          await page.clickOnButtonWithLabel('ok');
-          await Future.delayed(Duration(seconds: 1));
+          await page.waitAndClick('#-pkg-admin-automated-button',
+              waitForOneResponse: true);
+          await page.waitAndClickOnDialogOk();
           await page.reload();
-          await Future.delayed(Duration(seconds: 1));
-          final value =
-              await (await page.$('#-pkg-admin-automated-github-repository'))
-                  .propertyValue('value');
+          final value = await page.propertyValue(
+              '#-pkg-admin-automated-github-repository', 'value');
           expect(value, 'dart-lang/pub-dev');
         });
       });

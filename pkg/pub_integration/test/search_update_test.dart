@@ -165,8 +165,7 @@ void main() {
 
           // show hidden
           await page.click('.search-form-section[data-section-tag="advanced"]');
-          await Future.delayed(Duration(seconds: 1));
-          await page.click('#search-form-checkbox-show-unlisted');
+          await page.waitAndClick('#search-form-checkbox-show-unlisted');
           await page.waitForNavigation(wait: Until.networkIdle);
           final i7 = await listingPageInfo(page);
           expect(i7.totalCount, i6.totalCount);
@@ -246,8 +245,7 @@ void main() {
 
           // OSI approved
           await page.click('.search-form-section[data-section-tag="license"]');
-          await Future.delayed(Duration(seconds: 1));
-          await page.click('#search-form-checkbox-license-osi-approved');
+          await page.waitAndClick('#search-form-checkbox-license-osi-approved');
           await page.waitForNavigation(wait: Until.networkIdle);
 
           expect(await page.propertyValue('input[name="q"]', 'value'),

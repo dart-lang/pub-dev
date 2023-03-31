@@ -122,7 +122,10 @@ Element _buildDialog({
                         })
                         ..children = [
                           Element.span()
-                            ..classes.add('mdc-button__label')
+                            ..classes.addAll([
+                              'mdc-button__label',
+                              '-pub-dom-dialog-cancel-button',
+                            ])
                             ..innerText = cancelButtonText ?? 'Cancel',
                         ],
                     Element.tag('button')
@@ -136,7 +139,10 @@ Element _buildDialog({
                       })
                       ..children = [
                         Element.span()
-                          ..classes.add('mdc-button__label')
+                          ..classes.addAll([
+                            'mdc-button__label',
+                            '-pub-dom-dialog-ok-button',
+                          ])
                           ..innerText = okButtonText ?? 'Ok',
                       ],
                   ],

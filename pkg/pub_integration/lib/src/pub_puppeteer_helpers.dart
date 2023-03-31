@@ -42,10 +42,9 @@ Future<ListingPageInfo> listingPageInfo(Page page) async {
   );
 }
 
-Future<void> _waitABit() => Future.delayed(Duration(milliseconds: 400));
-
 extension PubPageExt on Page {
-  Future<void> focusAndType(String selector, String text) async {
+  Future<void> waitFocusAndType(String selector, String text) async {
+    await waitForSelector(selector, timeout: Duration(seconds: 5));
     await focus(selector);
     await keyboard.sendCharacter(text);
   }
@@ -83,11 +82,9 @@ extension PubPageExt on Page {
     required String publisherId,
   }) async {
     await gotoOrigin('/create-publisher?domain=$publisherId');
-    await _waitABit();
-    await click('#-admin-create-publisher');
-    await _waitABit();
-    await clickOnButtonWithLabel('ok');
-    await _waitABit();
+    await waitAndClick('#-admin-create-publisher');
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
   }
 
   Future<void> setPackagePublisher({
@@ -95,15 +92,11 @@ extension PubPageExt on Page {
     required String publisherId,
   }) async {
     await gotoOrigin('/packages/$package/admin');
-    await _waitABit();
-    await click('#-admin-set-publisher-input');
-    await _waitABit();
-    await click('li[data-value="$publisherId"]');
-    await _waitABit();
-    await click('#-admin-set-publisher-button');
-    await _waitABit();
-    await clickOnButtonWithLabel('ok');
-    await _waitABit();
+    await waitAndClick('#-admin-set-publisher-input');
+    await waitAndClick('li[data-value="$publisherId"]');
+    await waitAndClick('#-admin-set-publisher-button');
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
   }
 
   Future<Map<String, String>> listPublisherMembers({
@@ -111,7 +104,6 @@ extension PubPageExt on Page {
   }) async {
     final result = <String, String>{};
     await gotoOrigin('/publishers/$publisherId/admin');
-    await _waitABit();
     final rows = await $$('#-pub-publisher-admin-members-table tbody tr');
     for (final row in rows) {
       final cols = await row.$$('td');
@@ -125,24 +117,58 @@ extension PubPageExt on Page {
     required String invitedEmail,
   }) async {
     await gotoOrigin('/publishers/$publisherId/admin');
-    await _waitABit();
-    await click('#-admin-add-member-button');
-    await _waitABit();
-    await type('#-admin-invite-member-input', invitedEmail);
-    await _waitABit();
-    await clickOnButtonWithLabel('add');
-    await _waitABit();
-    await clickOnButtonWithLabel('ok');
-    await _waitABit();
+    await waitAndClick('#-admin-add-member-button');
+    await _waitAndType('#-admin-invite-member-input', invitedEmail);
+    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
   }
 
   Future<void> acceptConsent({
     required String consentId,
   }) async {
     await gotoOrigin('/consent?id=$consentId');
-    await click('#-admin-consent-accept-button');
-    await _waitABit();
-    await clickOnButtonWithLabel('ok');
-    await _waitABit();
+    await waitAndClick('#-admin-consent-accept-button');
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
+  }
+
+  Future<void> waitAndClick(
+    String selector, {
+    bool? waitForOneResponse,
+  }) async {
+    await waitForSelector(
+      selector,
+      timeout: Duration(seconds: 5),
+    );
+    Future? future;
+    if (waitForOneResponse ?? false) {
+      future = frameManager.networkManager.onResponse.first;
+    }
+    await click(selector);
+    if (future != null) {
+      await future;
+    }
+  }
+
+  Future<void> _waitAndType(String selector, String text) async {
+    await waitForSelector(
+      selector,
+      timeout: Duration(seconds: 5),
+    );
+    await type(selector, text);
+  }
+
+  Future<void> waitAndClickOnDialogOk({
+    bool? waitForOneResponse,
+  }) async {
+    await waitAndClick(
+      '.-pub-dom-dialog-ok-button',
+      waitForOneResponse: waitForOneResponse,
+    );
+  }
+
+  Future<void> _waitForModelHidden() async {
+    await waitForSelector('.mdc-dialog', hidden: true);
   }
 }
