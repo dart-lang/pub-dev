@@ -4,29 +4,29 @@
     "build": "webpack --mode=production"
   },
   "dependencies": {
-    "@material/auto-init": "^13.0.0",
-    "@material/button": "^13.0.0",
-    "@material/checkbox": "^13.0.0",
-    "@material/data-table": "^13.0.0",
-    "@material/dialog": "^13.0.0",
-    "@material/fab": "^13.0.0",
-    "@material/form-field": "^13.0.0",
-    "@material/icon-button": "^13.0.0",
-    "@material/list": "^13.0.0",
-    "@material/menu": "^13.0.0",
-    "@material/menu-surface": "^13.0.0",
-    "@material/select": "^13.0.0",
-    "@material/textfield": "^13.0.0"
+    "@material/auto-init": "^14.0.0",
+    "@material/button": "^14.0.0",
+    "@material/checkbox": "^14.0.0",
+    "@material/data-table": "^14.0.0",
+    "@material/dialog": "^14.0.0",
+    "@material/fab": "^14.0.0",
+    "@material/form-field": "^14.0.0",
+    "@material/icon-button": "^14.0.0",
+    "@material/list": "^14.0.0",
+    "@material/menu": "^14.0.0",
+    "@material/menu-surface": "^14.0.0",
+    "@material/select": "^14.0.0",
+    "@material/textfield": "^14.0.0"
   },
   "devDependencies": {
-    "css-loader": "^6.7.1",
+    "css-loader": "^6.7.3",
     "extract-loader": "^5.1.0",
     "file-loader": "^6.2.0",
-    "mini-css-extract-plugin": "^2.6.1",
+    "mini-css-extract-plugin": "^2.7.5",
     "path": "^0.12.7",
-    "sass": "^1.54.4",
-    "sass-loader": "^13.0.2",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "sass": "^1.60.0",
+    "sass-loader": "^13.2.2",
+    "webpack": "^5.77.0",
+    "webpack-cli": "^5.0.1"
   }
 }

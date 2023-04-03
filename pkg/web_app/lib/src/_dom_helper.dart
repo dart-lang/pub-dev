@@ -118,7 +118,8 @@ Element _buildDialog({
                           '-pub-dom-dialog-cancel-button',
                         ])
                         ..tabIndex = 2
-                        ..onClick.listen((_) {
+                        ..onClick.listen((e) {
+                          e.preventDefault();
                           closing(false);
                         })
                         ..children = [
@@ -133,7 +134,8 @@ Element _buildDialog({
                         '-pub-dom-dialog-ok-button',
                       ])
                       ..tabIndex = 1
-                      ..onClick.listen((_) {
+                      ..onClick.listen((e) {
+                        e.preventDefault();
                         closing(true);
                       })
                       ..children = [

@@ -162,11 +162,6 @@ extension PubPageExt on Page {
   Future<void> waitAndClickOnDialogOk({
     bool? waitForOneResponse,
   }) async {
-    // For some reason MDC Dialog trigger a client-side error when we are trying
-    // to click on the button too early.
-    // The error (`FocusTrap: Element must have at least one focusable child.`)
-    // seems to be absent if we allow some time to pass before clicking on it.
-    await Future.delayed(Duration(milliseconds: 500));
     await waitAndClick(
       '.-pub-dom-dialog-ok-button',
       waitForOneResponse: waitForOneResponse,
