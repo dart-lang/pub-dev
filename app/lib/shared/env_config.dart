@@ -45,6 +45,11 @@ class _EnvConfig {
   @visibleForTesting
   late final debug = Platform.environment['DEBUG'];
 
+  /// When specified, the server will output emails (as separate files, encoded in JSON)
+  /// in the specified directory.
+  late final fakeEmailSenderOutputDir =
+      Platform.environment['FAKE_EMAIL_SENDER_OUTPUT_DIR'];
+
   /// True, if running inside AppEngine.
   bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
 

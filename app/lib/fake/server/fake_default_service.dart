@@ -62,7 +62,7 @@ class FakePubServer {
               return await handler(request);
             }) as shelf.Response?)!;
           });
-          _logger.info('running on port $port');
+          print('running on port $port');
 
           await waitForProcessSignalTermination();
 

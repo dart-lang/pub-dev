@@ -116,6 +116,16 @@ class EmailMessage {
       throw ArgumentError('Invalid uuid: `$uuid`');
     }
   }
+
+  Map<String, Object?> toJson() {
+    return {
+      if (uuid != null) 'uuid': uuid,
+      'from': from.email,
+      'recipients': recipients.map((e) => e.email).toList(),
+      'subject': subject,
+      'bodyText': bodyText,
+    };
+  }
 }
 
 /// Parses the body text and splits the [input] paragraphs to [lineLength]
