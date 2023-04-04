@@ -4,13 +4,24 @@
 
 import 'dart:convert';
 
-/// The content of the fake credentials.json that can be used against fake_pub_server.
+/// The String content of the fake credentials.json that can be used against fake_pub_server.
 String fakeCredentialsFileContent() {
-  return json.encode({
-    'accessToken': 'user-at-example-dot-com?aud=fake-client-audience',
+  return json.encode(fakeCredentialsMap(email: 'user@example.com'));
+}
+
+/// The JSON Object of the fake credentials.json that can be used against fake_pub_server.
+Map<String, Object?> fakeCredentialsMap({
+  required String email,
+}) {
+  return <String, Object?>{
+    'accessToken': Uri(
+        path: email.replaceAll('@', '-at-').replaceAll('.', '-dot-'),
+        queryParameters: {
+          'aud': 'fake-client-audience',
+        }).toString(),
     'refreshToken': 'refresh-token',
     'tokenEndpoint': 'http://localhost:9999/o/oauth2/token',
     'scopes': ['email', 'openid'],
     'expiration': 2558512791154,
-  });
+  };
 }

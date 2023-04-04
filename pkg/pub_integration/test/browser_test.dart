@@ -48,7 +48,6 @@ void main() {
 
       // landing page
       await headlessEnv.withPage(
-        user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
           await page.gotoOrigin('/');
 
@@ -59,7 +58,6 @@ void main() {
 
       // listing page
       await headlessEnv.withPage(
-        user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
           await page.gotoOrigin('/packages');
 
@@ -71,7 +69,6 @@ void main() {
 
       // package page
       await headlessEnv.withPage(
-        user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
           await page.gotoOrigin('/packages/retry');
 
