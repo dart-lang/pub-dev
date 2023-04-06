@@ -12,6 +12,7 @@ import '../account/models.dart';
 import '../account/session_cookie.dart';
 import '../shared/configuration.dart';
 import '../shared/cookie_utils.dart';
+import '../shared/env_config.dart';
 
 import 'handlers/experimental.dart';
 
@@ -46,6 +47,9 @@ class RequestContext {
   /// The status of the client session cookie.
   final ClientSessionCookieStatus clientSessionCookieStatus;
 
+  /// Whether to check rate limits for this request.
+  final bool checkRateLimits;
+
   RequestContext({
     this.indentJson = false,
     this.blockRobots = true,
@@ -54,7 +58,9 @@ class RequestContext {
     this.csrfToken,
     this.sessionData,
     ClientSessionCookieStatus? clientSessionCookieStatus,
+    bool? checkRateLimits,
   })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
+        checkRateLimits = checkRateLimits ?? envConfig.isRunningInAppengine,
         clientSessionCookieStatus =
             clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 

@@ -256,6 +256,15 @@ class PackageRejectedException extends ResponseException {
             'Package `$package` has reached the maximum version limit of `$limit`. '
                 'Please contact "support@pub.dev".');
 
+  /// The [package] has reached the [period] rate limit of [limit] packages.
+  PackageRejectedException.rateLimitReached(
+      String package, int limit, String period)
+      : super._(
+            400,
+            'PackageRejected',
+            'Package `$package` has reached the rate limit of $limit uploads in $period. '
+                'Please try again publishing later.');
+
   /// The [package] has an existing [version].
   PackageRejectedException.versionExists(String package, String version)
       : super._(400, 'PackageRejected',

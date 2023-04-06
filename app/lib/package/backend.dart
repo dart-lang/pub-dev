@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -17,6 +18,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -1028,6 +1030,11 @@ class PackageBackend {
     await _requireUploadAuthorization(
         agent, existingPackage, newVersion.version!);
 
+    // sanity check recent upload rate
+    if (existingPackage != null && requestContext.checkRateLimits) {
+      await _verifyPublishRateLimits(existingPackage);
+    }
+
     // query admin notification emails before the transaction
     List<String> uploaderEmails;
     if (existingPackage == null) {
@@ -1171,6 +1178,34 @@ class PackageBackend {
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
+  }
+
+  Future<void> _verifyPublishRateLimits(Package package) async {
+    final existingVersions = await listVersionsCached(package.name!);
+    final now = clock.now();
+    final oneMinuteAgo = now.subtract(Duration(minutes: 1));
+    if (package.lastVersionPublished!.isAfter(oneMinuteAgo)) {
+      throw PackageRejectedException.rateLimitReached(
+          package.name!, 1, 'one minute');
+    }
+
+    final publishedTimestamps =
+        existingVersions.versions.map((v) => v.published).whereNotNull();
+    final oneHourAgo = now.subtract(Duration(hours: 1));
+    final lastHourCount =
+        publishedTimestamps.where((ts) => ts.isAfter(oneHourAgo)).length;
+    if (lastHourCount >= 12) {
+      throw PackageRejectedException.rateLimitReached(
+          package.name!, 12, 'one hour');
+    }
+
+    final oneDayAgo = now.subtract(Duration(days: 1));
+    final lastDayCount =
+        publishedTimestamps.where((ts) => ts.isAfter(oneDayAgo)).length;
+    if (lastDayCount >= 24) {
+      throw PackageRejectedException.rateLimitReached(
+          package.name!, 24, 'one day');
+    }
   }
 
   /// The post-upload tasks are not critical and could fail without any impact on
