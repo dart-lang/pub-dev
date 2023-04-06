@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -16,6 +17,8 @@ import 'backend_test_utils.dart';
 
 void main() {
   final refTime = clock.now().subtract(Duration(days: 2));
+
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('Upload rate limit', () {
     Future<void> upload({
