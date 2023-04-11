@@ -30,10 +30,8 @@ void setupDebugEnvBasedLogging() {
     return;
   }
   _envBasedLoggingSetupDone = true;
-  // The default value here is a hack for integration tests to work.
-  // TODO: change fake services to emit important lines via print or communicate via file or API
   // ignore: invalid_use_of_visible_for_testing_member
-  final debugEnv = envConfig.debug ?? 'fake_server pub.email';
+  final debugEnv = envConfig.debug ?? '';
   if (debugEnv.isEmpty) {
     return;
   }

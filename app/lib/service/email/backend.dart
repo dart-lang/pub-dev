@@ -114,7 +114,7 @@ class EmailBackend {
     for (final recipientEmail in recipientEmails) {
       try {
         await emailSender.sendMessage(EmailMessage(
-          uuid: entry.uuid,
+          localMessageId: entry.uuid,
           EmailAddress(entry.fromEmail!),
           [EmailAddress(recipientEmail)],
           entry.subject!,

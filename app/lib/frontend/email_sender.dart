@@ -69,9 +69,9 @@ class _LoggingEmailSender implements EmailSender {
 final loggingEmailSender = _LoggingEmailSender();
 
 Message _toMessage(EmailMessage input) {
-  input.verifyUuid();
+  input.verifyLocalMessageId();
   return Message()
-    ..headers = {'Message-ID': '<${input.uuid}@pub.dev>'}
+    ..headers = {'Message-ID': '<${input.localMessageId}@pub.dev>'}
     ..from = _toAddress(input.from)
     ..recipients = input.recipients.map(_toAddress).toList()
     ..subject = input.subject

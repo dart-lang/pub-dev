@@ -17,15 +17,20 @@ final testTimeoutFactor = 6;
 /// Wrapper and helper methods around the fake server process.
 class FakePubServerProcess {
   final int port;
+  final String _tmpDir;
   final Process _process;
   final _CoverageConfig? _coverageConfig;
   final _startedCompleter = Completer();
   StreamSubscription? _stdoutListener;
   StreamSubscription? _stderrListener;
   Timer? _startupTimeoutTimer;
-  final _linePatterns = <_LinePattern>[];
 
-  FakePubServerProcess._(this.port, this._process, this._coverageConfig);
+  FakePubServerProcess._(
+    this.port,
+    this._tmpDir,
+    this._process,
+    this._coverageConfig,
+  );
 
   static Future<FakePubServerProcess> start({
     String? pkgDir,
@@ -46,6 +51,9 @@ class FakePubServerProcess {
     if (pr1.exitCode != 0) {
       throw Exception('dart pub get failed in app');
     }
+    final tmpDir = await Directory.systemTemp.createTemp('fake-pub-server');
+    final fakeEmailSenderOutputDir =
+        p.join(tmpDir.path, 'fake-email-sender-output-dir');
     final process = await Process.start(
       'dart',
       [
@@ -65,11 +73,11 @@ class FakePubServerProcess {
       ],
       workingDirectory: pkgDir,
       environment: {
-        // Because we read the consent email from stdout.
-        'DEBUG': Platform.environment['DEBUG'] ?? 'fake_server pub.email',
+        'FAKE_EMAIL_SENDER_OUTPUT_DIR': fakeEmailSenderOutputDir,
       },
     );
-    final instance = FakePubServerProcess._(port, process, coverageConfig);
+    final instance =
+        FakePubServerProcess._(port, tmpDir.path, process, coverageConfig);
     instance._bindListeners();
     return instance;
   }
@@ -85,13 +93,6 @@ class FakePubServerProcess {
           _startedCompleter.complete();
           _startupTimeoutTimer?.cancel();
           _coverageConfig?.startCollect();
-        }
-        for (int i = _linePatterns.length - 1; i >= 0; i--) {
-          final p = _linePatterns[i];
-          if (p.matcher(line)) {
-            _linePatterns.removeAt(i);
-            p.completer.complete(line);
-          }
         }
       },
     );
@@ -110,12 +111,6 @@ class FakePubServerProcess {
 
   Future<void> get started => _startedCompleter.future;
 
-  Future<String> waitForLine(LineMatcher matcher) {
-    final p = _LinePattern(matcher);
-    _linePatterns.add(p);
-    return p.completer.future;
-  }
-
   Future<void> kill() async {
     // First try SIGINT, and after 10 seconds do SIGTERM.
     print('Sending INT signal to ${_process.pid}...');
@@ -131,19 +126,37 @@ class FakePubServerProcess {
     await _stdoutListener?.cancel();
     await _stderrListener?.cancel();
     _startupTimeoutTimer?.cancel();
+    await Directory(_tmpDir).delete(recursive: true);
     if (exitCode != 0) {
       throw AssertionError('non-graceful termination, exit code: $exitCode');
     }
   }
-}
 
-/// Matches the output line.
-typedef LineMatcher = bool Function(String line);
-
-class _LinePattern {
-  final LineMatcher matcher;
-  final completer = Completer<String>();
-  _LinePattern(this.matcher);
+  /// Returns a list of all emails sent by this [FakePubServerProcess].
+  ///
+  /// Each email is a JSON object on the form:
+  /// ```js
+  /// {
+  ///   "from": "<email>",
+  ///   "uuid": "<message-id>", // optional
+  ///   "recipients": ["<email>", ...,
+  ///   "subject": "...",
+  ///   "bodyText": "..."
+  /// }
+  /// ```
+  Future<List<Map<String, Object?>>> readAllEmails() async {
+    final dir = Directory(p.join(_tmpDir, 'fake-email-sender-output-dir'));
+    final files = dir.listSync().whereType<File>().toList();
+    files.sort((a, b) {
+      final x = a.lastModifiedSync().compareTo(b.lastModifiedSync());
+      if (x != 0) return x;
+      return a.path.compareTo(b.path);
+    });
+    return files
+        .map((e) => e.readAsStringSync())
+        .map((s) => json.decode(s) as Map<String, Object?>)
+        .toList();
+  }
 }
 
 class _CoverageConfig {
