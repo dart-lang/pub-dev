@@ -1182,26 +1182,26 @@ class PackageBackend {
 
   Future<void> _verifyPublishRateLimits(Package package) async {
     final existingVersions = await listVersionsCached(package.name!);
-    
+
     // Count number of versions published since [someTimeAgo]
     int countPublishedSince(DateTime someTimeAgo) {
-      return existingVersions
-        .versions.map((v) => v.published)
-        .whereNotNull()
-        .where((ts) => ts.isAfter(someTimeAgo))
-        .length;
+      return existingVersions.versions
+          .map((v) => v.published)
+          .whereNotNull()
+          .where((ts) => ts.isAfter(someTimeAgo))
+          .length;
     }
-    
+
     if (countPublishedSince(clock.ago(minutes: 1)) >= 1) {
       throw PackageRejectedException.rateLimitReached(
-        package.name!, 1, 'one minute');
+          package.name!, 1, 'one minute');
     }
 
     if (countPublishedSince(clock.ago(hours: 1)) >= 12) {
       throw PackageRejectedException.rateLimitReached(
           package.name!, 12, 'one hour');
     }
-    
+
     if (countPublishedSince(clock.ago(days: 1)) >= 24) {
       throw PackageRejectedException.rateLimitReached(
           package.name!, 24, 'one day');
