@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2023.03.29`.
  * Upgraded dartdoc to `6.2.1`.
  * Upgraded `package:markdown` to `7.0.2`
+ * Upgraded material web components to `14.0.0`.
 
 ## `20230328t111100-all`
  * Turning off old sign-in flow.

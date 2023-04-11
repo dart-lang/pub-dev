@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # (re-)initialize and build the material components web bundle
 
-VERSION="13.0.0"
+VERSION="14.0.0"
 
 cat <<EOF >package.json
 {

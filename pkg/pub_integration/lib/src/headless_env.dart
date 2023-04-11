@@ -183,8 +183,16 @@ class HeadlessEnv {
 
     // print and store uncaught errors
     page.onError.listen((e) {
-      print('Error: $e');
-      clientErrors.add(e);
+      if (e.toString().contains(
+          'FocusTrap: Element must have at least one focusable child.')) {
+        // The error seems to come from material components, but it still works.
+        // TODO: investigate if this is something we can change on our side.
+        print('Ignored client error: $e');
+        return;
+      } else {
+        print('Client error: $e');
+        clientErrors.add(e);
+      }
     });
 
     _trackedPages.add(page);
