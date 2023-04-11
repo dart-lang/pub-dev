@@ -81,7 +81,7 @@ abstract class TestUser {
   ///
   /// These credentials can be used by the `dart pub` client to publish packages
   /// as this test user.
-  Future<Map<String, Object>> createCredentials();
+  Future<Map<String, Object?>> createCredentials();
 }
 
 @sealed

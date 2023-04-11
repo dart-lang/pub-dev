@@ -85,7 +85,6 @@ class HeadlessEnv {
 
   /// Creates a new page and setup overrides and tracking.
   Future<R> withPage<R>({
-    FakeGoogleUser? user,
     required Future<R> Function(Page page) fn,
   }) async {
     await startBrowser();
@@ -115,21 +114,6 @@ class HeadlessEnv {
       // ignore
       if (rq.url.startsWith('data:')) {
         await rq.continueRequest();
-        return;
-      }
-
-      if (rq.url ==
-          'https://apis.google.com/js/platform.js?onload=pubAuthInit') {
-        final fakePlatformJs = File('lib/src/fake_platform.js');
-        final fileContent = await fakePlatformJs.readAsString();
-        final overrides = <String>[
-          if (user != null) 'googleUser = ${json.encode(user.toJson())};',
-        ];
-        await rq.respond(
-          status: 200,
-          contentType: 'text/javascript',
-          body: '$fileContent\n\n${overrides.join('\n')}',
-        );
         return;
       }
 
@@ -284,9 +268,11 @@ class HeadlessEnv {
 final _pageOriginExpando = Expando<String>();
 
 extension PageExt on Page {
+  /// The base URL of the pub.dev website.
+  String get origin => _pageOriginExpando[this]!;
+
   /// Visits the [path] relative to the origin.
   Future<Response> gotoOrigin(String path) async {
-    final origin = _pageOriginExpando[this];
     return await goto('$origin$path', wait: Until.networkIdle);
   }
 
