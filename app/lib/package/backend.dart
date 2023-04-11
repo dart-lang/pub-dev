@@ -1182,27 +1182,27 @@ class PackageBackend {
 
   Future<void> _verifyPublishRateLimits(Package package) async {
     final existingVersions = await listVersionsCached(package.name!);
-    final now = clock.now();
-    final oneMinuteAgo = now.subtract(Duration(minutes: 1));
-    if (package.lastVersionPublished!.isAfter(oneMinuteAgo)) {
+    
+    // Count number of versions published since [someTimeAgo]
+    int countPublishedSince(DateTime someTimeAgo) {
+      return existingVersions
+        .versions.map((v) => v.published)
+        .whereNotNull()
+        .where((ts) => ts.isAfter(someTimeAgo))
+        .length;
+    }
+    
+    if (countPublishedSince(clock.ago(minutes: 1)) >= 1) {
       throw PackageRejectedException.rateLimitReached(
-          package.name!, 1, 'one minute');
+        package.name!, 1, 'one minute');
     }
 
-    final publishedTimestamps =
-        existingVersions.versions.map((v) => v.published).whereNotNull();
-    final oneHourAgo = now.subtract(Duration(hours: 1));
-    final lastHourCount =
-        publishedTimestamps.where((ts) => ts.isAfter(oneHourAgo)).length;
-    if (lastHourCount >= 12) {
+    if (countPublishedSince(clock.ago(hours: 1)) >= 12) {
       throw PackageRejectedException.rateLimitReached(
           package.name!, 12, 'one hour');
     }
-
-    final oneDayAgo = now.subtract(Duration(days: 1));
-    final lastDayCount =
-        publishedTimestamps.where((ts) => ts.isAfter(oneDayAgo)).length;
-    if (lastDayCount >= 24) {
+    
+    if (countPublishedSince(clock.ago(days: 1)) >= 24) {
       throw PackageRejectedException.rateLimitReached(
           package.name!, 24, 'one day');
     }
