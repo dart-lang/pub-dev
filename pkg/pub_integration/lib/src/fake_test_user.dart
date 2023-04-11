@@ -11,7 +11,24 @@ import 'package:puppeteer/puppeteer.dart';
 
 import 'test_scenario.dart';
 
-class FakeTestUser implements TestUser {
+Future<_FakeTestUser> createFakeTestUser({
+  required String email,
+  required Browser browser,
+  List<String>? scopes,
+}) async {
+  // TODO: refactor/reuse HeadlessEnv.withPage
+  final page = await browser.newPage();
+  await page.fakeAuthSignIn(email: email, scopes: scopes);
+  final api = await _apiClientHttpHeadersFromSignedInSession(page);
+  await page.close();
+  return _FakeTestUser(
+    email: email,
+    browser: browser,
+    api: api,
+  );
+}
+
+class _FakeTestUser implements TestUser {
   @override
   final String email;
 
@@ -21,7 +38,7 @@ class FakeTestUser implements TestUser {
   @override
   final PubApiClient api;
 
-  FakeTestUser({
+  _FakeTestUser({
     required this.email,
     required this.browser,
     required this.api,
@@ -36,23 +53,6 @@ class FakeTestUser implements TestUser {
   @override
   Future<Map<String, Object?>> createCredentials() async {
     return fakeCredentialsMap(email: email);
-  }
-
-  static Future<FakeTestUser> create({
-    required String email,
-    required Browser browser,
-    List<String>? scopes,
-  }) async {
-    // TODO: refactor/reuse HeadlessEnv.withPage
-    final page = await browser.newPage();
-    await page.fakeAuthSignIn(email: email, scopes: scopes);
-    final api = await _apiClientHttpHeadersFromSignedInSession(page);
-    await page.close();
-    return FakeTestUser(
-      email: email,
-      browser: browser,
-      api: api,
-    );
   }
 }
 
