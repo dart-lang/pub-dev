@@ -41,7 +41,6 @@ void main() {
         final inviteUrlLogLine = lastEmailText
             .split('\n')
             .firstWhere((line) => line.contains('https://pub.dev/consent'));
-        print(inviteUrlLogLine);
         final inviteUri = Uri.parse(inviteUrlLogLine
             .substring(inviteUrlLogLine.indexOf('https://pub.dev/consent')));
         final consentId = inviteUri.queryParameters['id']!;
