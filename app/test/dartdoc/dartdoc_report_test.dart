@@ -5,6 +5,7 @@
 import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/job/job.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -13,6 +14,8 @@ import 'package:test/test.dart';
 import '../shared/test_services.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
+
   group('ScoreCard dartdoc report', () {
     testWithProfile('write and read dartdoc reports', fn: () async {
       // run with fake dartdoc runner
