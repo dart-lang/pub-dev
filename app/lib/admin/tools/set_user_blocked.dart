@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/shared/email.dart';
 
 Future<String> executeSetUserBlocked(List<String> args) async {
   if (args.isEmpty || args.length > 2) {
@@ -16,10 +18,13 @@ Future<String> executeSetUserBlocked(List<String> args) async {
   final valueAsString = args.length == 2 ? args[1] : null;
   final blockedStatus = _parseValue(valueAsString);
 
-  final userById = await accountBackend.lookupUserById(idOrEmail);
-  final users = userById != null
-      ? [userById]
-      : await accountBackend.lookupUsersByEmail(idOrEmail);
+  late List<User> users;
+  if (isValidEmail(idOrEmail)) {
+    users = await accountBackend.lookupUsersByEmail(idOrEmail);
+  } else {
+    final user = await accountBackend.lookupUserById(idOrEmail);
+    users = user == null ? [] : [user];
+  }
   if (users.isEmpty) {
     return 'No user found.';
   }
