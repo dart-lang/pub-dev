@@ -132,6 +132,18 @@ class FakePubServerProcess {
     }
   }
 
+  /// Returns a list of all emails sent by this [FakePubServer].
+  ///
+  /// Each email is a JSON object on the form:
+  /// ```js
+  /// {
+  ///   "from": "<email>",
+  ///   "uuid": "<message-id>", // optional
+  ///   "recipients": ["<email>", ...,
+  ///   "subject": "...",
+  ///   "bodyText": "..."
+  /// }
+  /// ```
   Future<List<Map<String, Object?>>> readAllEmails() async {
     final dir = Directory(p.join(_tmpDir, 'fake-email-sender-output-dir'));
     final files = dir.listSync().whereType<File>().toList();
