@@ -28,14 +28,14 @@ class FakeEmailSender implements EmailSender {
 
   @override
   Future<void> sendMessage(EmailMessage message) async {
-    message.verifyUuid();
+    message.verifyLocalMessageId();
     if (failNextMessageCount > 0) {
       failNextMessageCount--;
       throw SmtpClientCommunicationException('fake network problem');
     }
     sentMessages.add(message);
     if (_outputDir != null) {
-      final uuid = message.uuid ?? Ulid().toCanonical();
+      final uuid = message.localMessageId ?? Ulid().toCanonical();
       final file = File(p.join(_outputDir!, '$uuid.json'));
       await file.parent.create(recursive: true);
       await file.writeAsString(json.encode(message.toJson()));

@@ -90,11 +90,11 @@ bool isValidEmail(String email) {
 class EmailMessage {
   /// The local part of the `Message-ID` SMTP header.
   ///
-  /// [uuid] is not required while in the message construction phase,
+  /// [localMessageId] is not required while in the message construction phase,
   /// but a must have when sending out the actual email. `EmailSender`
-  /// implementation must call [verifyUuid] before accepting the email
+  /// implementation must call [verifyLocalMessageId] before accepting the email
   /// for delivery.
-  final String? uuid;
+  final String? localMessageId;
   final EmailAddress from;
   final List<EmailAddress> recipients;
   final String subject;
@@ -105,13 +105,15 @@ class EmailMessage {
     this.recipients,
     this.subject,
     String bodyText, {
-    this.uuid,
+    this.localMessageId,
   }) : bodyText = reflowBodyText(bodyText);
 
-  /// Throws [ArgumentError] if the [uuid] field doesn't look like
+  /// Throws [ArgumentError] if the [localMessageId] field doesn't look like
   /// UUID or ULID.
-  void verifyUuid() {
-    final uuid = this.uuid;
+  ///
+  /// TODO: double-check that we follow https://www.jwz.org/doc/mid.html
+  void verifyLocalMessageId() {
+    final uuid = localMessageId;
     if (uuid == null || uuid.length < 25 || uuid.length > 36) {
       throw ArgumentError('Invalid uuid: `$uuid`');
     }
@@ -119,7 +121,7 @@ class EmailMessage {
 
   Map<String, Object?> toJson() {
     return {
-      if (uuid != null) 'uuid': uuid,
+      if (localMessageId != null) 'localMessageId': localMessageId,
       'from': from.email,
       'recipients': recipients.map((e) => e.email).toList(),
       'subject': subject,

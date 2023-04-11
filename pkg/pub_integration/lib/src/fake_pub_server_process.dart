@@ -132,7 +132,7 @@ class FakePubServerProcess {
     }
   }
 
-  /// Returns a list of all emails sent by this [FakePubServer].
+  /// Returns a list of all emails sent by this [FakePubServerProcess].
   ///
   /// Each email is a JSON object on the form:
   /// ```js
