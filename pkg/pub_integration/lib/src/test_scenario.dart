@@ -5,7 +5,7 @@
 import 'package:_pub_shared/pubapi.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:puppeteer/puppeteer.dart';
+import 'headless_env.dart';
 
 @sealed
 abstract class TestContext {
@@ -68,7 +68,7 @@ abstract class TestUser {
 
   /// Get a headless browser where this test user is signed-in to their
   /// Google Account.
-  Browser get browser;
+  HeadlessEnv get browser;
 
   /// Read the latest email sent to this test user.
   Future<String> readLatestEmail();

@@ -12,15 +12,15 @@ import 'package:puppeteer/puppeteer.dart';
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
 class HeadlessEnv {
-  final String testName;
+  final String? _testName;
   final String _origin;
   final String? _coverageDir;
   final Directory _tempDir;
-  final bool debug;
+  final bool _displayBrowser;
   Browser? _browser;
-  final clientErrors = <ClientError>[];
-  final serverErrors = <String>[];
-  late final bool trackCoverage =
+  final _clientErrors = <ClientError>[];
+  final _serverErrors = <String>[];
+  late final _trackCoverage =
       _coverageDir != null || Platform.environment.containsKey('COVERAGE');
   final _trackedPages = <Page>[];
 
@@ -32,10 +32,12 @@ class HeadlessEnv {
 
   HeadlessEnv({
     required String origin,
-    required this.testName,
+    String? testName,
     String? coverageDir,
-    this.debug = false,
-  })  : _origin = origin,
+    bool displayBrowser = false,
+  })  : _displayBrowser = displayBrowser,
+        _testName = testName,
+        _origin = origin,
         _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
         _tempDir = Directory.systemTemp.createTempSync('pub-headless');
 
@@ -74,7 +76,7 @@ class HeadlessEnv {
       ],
       noSandboxFlag: true,
       userDataDir: userDataDir.path,
-      headless: !debug,
+      headless: !_displayBrowser,
       devTools: false,
     );
 
@@ -91,14 +93,9 @@ class HeadlessEnv {
     final page = await _browser!.newPage();
     _pageOriginExpando[page] = _origin;
     await page.setRequestInterception(true);
-    if (trackCoverage) {
+    if (_trackCoverage) {
       await page.coverage.startJSCoverage(resetOnNavigation: false);
-      // TODO: figure out why the following future does not complete
-      void startCSSCoverage() {
-        page.coverage.startCSSCoverage(resetOnNavigation: false);
-      }
-
-      startCSSCoverage();
+      await page.coverage.startCSSCoverage(resetOnNavigation: false);
     }
 
     page.onRequest.listen((rq) async {
@@ -108,7 +105,16 @@ class HeadlessEnv {
           rq.url.startsWith('https://www.google.com/insights') ||
           rq.url.startsWith(
               'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/')) {
-        await rq.abort(error: ErrorReason.failed);
+        // reduce log error by replying with empty JS content
+        if (rq.url.endsWith('.js') || rq.url.contains('.js?')) {
+          await rq.respond(
+            status: 200,
+            body: '{}',
+            contentType: 'application/javascript',
+          );
+        } else {
+          await rq.abort(error: ErrorReason.failed);
+        }
         return;
       }
       // ignore
@@ -119,7 +125,7 @@ class HeadlessEnv {
 
       final uri = Uri.parse(rq.url);
       if (uri.path.contains('//')) {
-        serverErrors.add('Double-slash URL detected: "${rq.url}".');
+        _serverErrors.add('Double-slash URL detected: "${rq.url}".');
       }
 
       await rq.continueRequest(headers: rq.headers);
@@ -127,37 +133,37 @@ class HeadlessEnv {
 
     page.onResponse.listen((rs) async {
       if (rs.status >= 500) {
-        serverErrors
+        _serverErrors
             .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
       } else if (rs.status >= 400 && rs.url.contains('/static/')) {
-        serverErrors
+        _serverErrors
             .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
       }
 
       final contentType = rs.headers[HttpHeaders.contentTypeHeader];
       if (contentType == null || contentType.isEmpty) {
-        serverErrors
+        _serverErrors
             .add('Content type header is missing for ${rs.request.url}.');
       }
       if (rs.status == 200 && contentType!.contains('text/html')) {
         try {
           parseAndValidateHtml(await rs.text);
         } catch (e) {
-          serverErrors.add('${rs.request.url} returned bad HTML: $e');
+          _serverErrors.add('${rs.request.url} returned bad HTML: $e');
         }
       }
 
       final uri = Uri.parse(rs.url);
       if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
         if (!uri.pathSegments[1].startsWith('hash-')) {
-          serverErrors.add('Static ${rs.url} is without hash URL.');
+          _serverErrors.add('Static ${rs.url} is without hash URL.');
         }
 
         final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
         if (cacheHeader == null ||
             !cacheHeader.contains('public') ||
             !cacheHeader.contains('max-age')) {
-          serverErrors.add('Static ${rs.url} is without public caching.');
+          _serverErrors.add('Static ${rs.url} is without public caching.');
         }
       }
     });
@@ -175,7 +181,7 @@ class HeadlessEnv {
         return;
       } else {
         print('Client error: $e');
-        clientErrors.add(e);
+        _clientErrors.add(e);
       }
     });
 
@@ -191,7 +197,7 @@ class HeadlessEnv {
 
   /// Gets tracking results of [page] and closes it.
   Future<void> _closePage(Page page) async {
-    if (trackCoverage) {
+    if (_trackCoverage) {
       final jsEntries = await page.coverage.stopJSCoverage();
       for (final e in jsEntries) {
         _jsCoverages[e.url] ??= _Coverage(e.url);
@@ -212,11 +218,11 @@ class HeadlessEnv {
   }
 
   void _verifyErrors() {
-    if (clientErrors.isNotEmpty) {
-      throw Exception('Client errors detected: ${clientErrors.first}');
+    if (_clientErrors.isNotEmpty) {
+      throw Exception('Client errors detected: ${_clientErrors.first}');
     }
-    if (serverErrors.isNotEmpty) {
-      throw Exception('Server errors detected: ${serverErrors.first}');
+    if (_serverErrors.isNotEmpty) {
+      throw Exception('Server errors detected: ${_serverErrors.first}');
     }
   }
 
@@ -259,9 +265,18 @@ class HeadlessEnv {
       }
     }
 
-    await saveToFile(_jsCoverages, '$outputDir/$testName.js.json');
-    await saveToFile(_cssCoverages, '$outputDir/$testName.css.json');
+    final outputFileName = _testName ?? _generateTestName();
+    await saveToFile(_jsCoverages, '$outputDir/$outputFileName.js.json');
+    await saveToFile(_cssCoverages, '$outputDir/$outputFileName.css.json');
   }
+}
+
+String _generateTestName() {
+  return [
+    p.basenameWithoutExtension(Platform.script.path),
+    DateTime.now().microsecondsSinceEpoch,
+    ProcessInfo.currentRss,
+  ].join('-');
 }
 
 /// Stores the origin URL on the page.
