@@ -194,10 +194,10 @@ packages:
     dependency: transitive
     description:
       name: cli_util
-      sha256: "66f86e916d285c1a93d3b79587d94bd71984a66aac4ff74e524cfa7877f1395c"
+      sha256: b8db3080e59b2503ca9e7922c3df2072cf13992354d5e944074ffa836fba43b7
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.5"
+    version: "0.4.0"
   clock:
     dependency: "direct main"
     description:
@@ -544,10 +544,10 @@ packages:
     dependency: "direct main"
     description:
       name: pana
-      sha256: "1337b449133cf758ad63409e1bf0715f931eeb6ecfeaad9cf6e350e8980d8333"
+      sha256: b55f906bd324cdd1f21711499762ddccb4818befb72b1c3de974e4cb873e9feb
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.27"
+    version: "0.21.28"
   path:
     dependency: "direct main"
     description:
