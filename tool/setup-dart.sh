@@ -31,3 +31,4 @@ cd "$1"
 curl -sS "https://storage.googleapis.com/dart-archive/channels/$CHANNEL/raw/$2/sdk/dartsdk-linux-x64-release.zip" >dartsdk.zip
 unzip -q dartsdk.zip
 rm -f dartsdk.zip
+./bin/dart --disable-analytics
