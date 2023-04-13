@@ -25,7 +25,7 @@ Future<_FakeTestUser> createFakeTestUser({
   });
   return _FakeTestUser(
     email: email,
-    browser: headlessEnv,
+    headlessEnv: headlessEnv,
     api: api,
     fakeEmailReader: fakeEmailReader,
   );
@@ -35,8 +35,7 @@ class _FakeTestUser implements TestUser {
   @override
   final String email;
 
-  @override
-  final HeadlessEnv browser;
+  final HeadlessEnv _headlessEnv;
 
   @override
   final PubApiClient api;
@@ -45,10 +44,15 @@ class _FakeTestUser implements TestUser {
 
   _FakeTestUser({
     required this.email,
-    required this.browser,
+    required HeadlessEnv headlessEnv,
     required this.api,
     required FakeEmailReaderFromOutputDirectory fakeEmailReader,
-  }) : _fakeEmailReader = fakeEmailReader;
+  }) : _headlessEnv = headlessEnv, _fakeEmailReader = fakeEmailReader;
+
+  @override
+  Future<T> withBrowserPage<T>(Future<T> Function(Page page) fn) async {
+    return await _headlessEnv.withPage(fn: fn);
+  }
 
   @override
   Future<String> readLatestEmail() async {
