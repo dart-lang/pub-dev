@@ -47,7 +47,8 @@ class _FakeTestUser implements TestUser {
     required HeadlessEnv headlessEnv,
     required this.api,
     required FakeEmailReaderFromOutputDirectory fakeEmailReader,
-  }) : _headlessEnv = headlessEnv, _fakeEmailReader = fakeEmailReader;
+  })  : _headlessEnv = headlessEnv,
+        _fakeEmailReader = fakeEmailReader;
 
   @override
   Future<T> withBrowserPage<T>(Future<T> Function(Page page) fn) async {
