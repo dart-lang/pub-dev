@@ -63,25 +63,37 @@ abstract class TestServiceAccount {
 
 @sealed
 abstract class TestUser {
+  final Future<Map<String, Object?>> Function() _createCredentials;
+  final Future<String> Function() _readLatestEmail;
+
+  TestUser({
+    required this.api,
+    required this.email,
+    required this.browser,
+    required Future<Map<String, Object?>> Function() createCredentials,
+    required Future<String> Function() readLatestEmail,
+  })  : _createCredentials = createCredentials,
+        _readLatestEmail = readLatestEmail;
+
   /// Get email of the given test user.
-  String get email;
+  final String email;
 
   /// Get a headless browser where this test user is signed-in to their
   /// Google Account.
-  Browser get browser;
+  final Browser browser;
 
   /// Read the latest email sent to this test user.
-  Future<String> readLatestEmail();
+  Future<String> readLatestEmail() => _readLatestEmail();
 
   /// A API client for access the API authenticated with a session associated
   /// with this user.
-  PubApiClient get api;
+  final PubApiClient api;
 
   /// Create contents for `pub-credentials.json` for this test user.
   ///
   /// These credentials can be used by the `dart pub` client to publish packages
   /// as this test user.
-  Future<Map<String, Object?>> createCredentials();
+  Future<Map<String, Object?>> createCredentials() => _createCredentials();
 }
 
 @sealed
