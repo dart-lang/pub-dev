@@ -53,19 +53,27 @@ String? markdownToHtml(
   bool disableHashIds = false,
 }) {
   if (text == null) return null;
-  text = text.replaceAll('\r\n', '\n');
-  var nodes = _parseMarkdownSource(text, inlineOnly);
-  nodes = _rewriteRelativeUrls(
-    nodes,
-    urlResolverFn: urlResolverFn,
-    baseUrl: baseUrl,
-    baseDir: baseDir,
-  );
-  if (isChangelog) {
-    nodes = _groupChangelogNodes(nodes).toList();
+
+  final sw = Stopwatch()..start();
+  try {
+    text = text.replaceAll('\r\n', '\n');
+    var nodes = _parseMarkdownSource(text, inlineOnly);
+    nodes = _rewriteRelativeUrls(
+      nodes,
+      urlResolverFn: urlResolverFn,
+      baseUrl: baseUrl,
+      baseDir: baseDir,
+    );
+    if (isChangelog) {
+      nodes = _groupChangelogNodes(nodes).toList();
+    }
+    return _renderSafeHtml(nodes,
+        inlineOnly: inlineOnly, disableHashIds: disableHashIds);
+  } finally {
+    if (sw.elapsed.inSeconds >= 3) {
+      _logger.shout('Markdown rendering taking too long: ${sw.elapsed}');
+    }
   }
-  return _renderSafeHtml(nodes,
-      inlineOnly: inlineOnly, disableHashIds: disableHashIds);
 }
 
 /// Parses markdown [source].
