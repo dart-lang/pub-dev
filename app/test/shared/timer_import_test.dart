@@ -21,6 +21,9 @@ void main() {
     // Periodically updated cached values should use this wrapper.
     'lib/shared/cached_value.dart',
 
+    // Per-request Timer to log long-running requests.
+    'lib/shared/handler_helpers.dart',
+
     // Periodically updates redis connection.
     // Periodically purges selected caches.
     // TODO: consider refactor/redesign
