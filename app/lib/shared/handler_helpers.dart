@@ -146,6 +146,10 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     if (shouldLog) {
       logger.info('Handling request: ${request.requestedUri}');
     }
+    final timer = Timer(Duration(minutes: 1), () {
+      stdout.writeln('[pub-long-response-time] ${request.requestedUri}');
+      logger.shout('[pub-long-response-time] ${request.requestedUri}');
+    });
     try {
       return await handler(request);
     } on ResponseException catch (e) {
@@ -192,6 +196,7 @@ Request ID: ${context.traceId}
       );
       return htmlResponse(content, status: 500, headers: debugHeaders);
     } finally {
+      timer.cancel();
       if (shouldLog) {
         logger.info('Request handler done.');
       }
