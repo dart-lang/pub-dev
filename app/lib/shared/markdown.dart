@@ -70,7 +70,7 @@ String? markdownToHtml(
     return _renderSafeHtml(nodes,
         inlineOnly: inlineOnly, disableHashIds: disableHashIds);
   } finally {
-    if (sw.elapsed.inSeconds >= 10) {
+    if (sw.elapsed.inSeconds >= 3) {
       _logger.shout('Markdown rendering taking too long: ${sw.elapsed}');
     }
   }
