@@ -147,7 +147,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       logger.info('Handling request: ${request.requestedUri}');
     }
     final timer = Timer(Duration(minutes: 1), () {
-      stdout.writeln('[pub-long-response-time] ${request.requestedUri}');
+      stderr.writeln('[pub-long-response-time] ${request.requestedUri}');
       logger.shout('[pub-long-response-time] ${request.requestedUri}');
     });
     try {
