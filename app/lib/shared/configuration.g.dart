@@ -44,7 +44,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'primaryApiUri',
             'primarySiteUri',
             'admins',
-            'tools'
+            'tools',
+            'rateLimits'
           ],
         );
         final val = Configuration(
@@ -116,6 +117,12 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
                   ? null
                   : ToolsConfiguration.fromJson(
                       Map<String, dynamic>.from(v as Map))),
+          rateLimits: $checkedConvert(
+              'rateLimits',
+              (v) => (v as List<dynamic>?)
+                  ?.map((e) =>
+                      RateLimit.fromJson(Map<String, dynamic>.from(e as Map)))
+                  .toList()),
         );
         return val;
       },
@@ -156,6 +163,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'primarySiteUri': instance.primarySiteUri.toString(),
       'admins': instance.admins?.map((e) => e.toJson()).toList(),
       'tools': instance.tools?.toJson(),
+      'rateLimits': instance.rateLimits?.map((e) => e.toJson()).toList(),
     };
 
 AdminId _$AdminIdFromJson(Map json) => $checkedCreate(
@@ -239,3 +247,46 @@ Map<String, dynamic> _$ToolsConfigurationToJson(ToolsConfiguration instance) =>
       'futureDartSdkPath': instance.futureDartSdkPath,
       'futureFlutterSdkPath': instance.futureFlutterSdkPath,
     };
+
+RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'RateLimit',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          allowedKeys: const ['operation', 'scope', 'burst', 'hourly', 'daily'],
+        );
+        final val = RateLimit(
+          operation: $checkedConvert('operation', (v) => v as String),
+          scope: $checkedConvert(
+              'scope', (v) => $enumDecode(_$RateLimitScopeEnumMap, v)),
+          burst: $checkedConvert('burst', (v) => v as int?),
+          hourly: $checkedConvert('hourly', (v) => v as int?),
+          daily: $checkedConvert('daily', (v) => v as int?),
+        );
+        return val;
+      },
+    );
+
+Map<String, dynamic> _$RateLimitToJson(RateLimit instance) {
+  final val = <String, dynamic>{
+    'operation': instance.operation,
+    'scope': _$RateLimitScopeEnumMap[instance.scope]!,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('burst', instance.burst);
+  writeNotNull('hourly', instance.hourly);
+  writeNotNull('daily', instance.daily);
+  return val;
+}
+
+const _$RateLimitScopeEnumMap = {
+  RateLimitScope.package: 'package',
+  RateLimitScope.user: 'user',
+};

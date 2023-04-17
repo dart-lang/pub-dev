@@ -229,6 +229,9 @@ class Configuration {
   /// The local command-line tools.
   final ToolsConfiguration? tools;
 
+  /// The rate limits for auditable operations.
+  final List<RateLimit>? rateLimits;
+
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
@@ -289,6 +292,7 @@ class Configuration {
     required this.admins,
     required this.defaultServiceBaseUrl,
     required this.tools,
+    required this.rateLimits,
   });
 
   /// Load configuration from `app/config/<projectId>.yaml` where `projectId`
@@ -358,6 +362,7 @@ class Configuration {
         ),
       ],
       tools: null,
+      rateLimits: null,
     );
   }
 
@@ -406,6 +411,7 @@ class Configuration {
         ),
       ],
       tools: null,
+      rateLimits: null,
     );
   }
 
@@ -506,4 +512,47 @@ class ToolsConfiguration {
       _$ToolsConfigurationFromJson(json);
 
   Map<String, dynamic> toJson() => _$ToolsConfigurationToJson(this);
+}
+
+/// Defines the scope and filtering rules of the rate limit rule.
+enum RateLimitScope {
+  /// The rate limit rule is applied on the package scope.
+  package,
+
+  /// The rate limit rule is applied on the user / service account scope.
+  user,
+}
+
+/// Defines a rate limit for auditable operations.
+@JsonSerializable(
+  explicitToJson: true,
+  checked: true,
+  disallowUnrecognizedKeys: true,
+  includeIfNull: false,
+)
+class RateLimit {
+  final String operation;
+  final RateLimitScope scope;
+
+  /// Maximum number of operations in a short burst (2 minutes).
+  final int? burst;
+
+  /// Maximum number of operations in an hour.
+  final int? hourly;
+
+  /// Maximum number of operations in 24 hours.
+  final int? daily;
+
+  RateLimit({
+    required this.operation,
+    required this.scope,
+    this.burst,
+    this.hourly,
+    this.daily,
+  });
+
+  factory RateLimit.fromJson(Map<String, dynamic> json) =>
+      _$RateLimitFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RateLimitToJson(this);
 }
