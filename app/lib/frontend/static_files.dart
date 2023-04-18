@@ -306,9 +306,8 @@ Future updateLocalBuiltFilesIfNeeded() async {
   final scriptJsExists = await scriptJs.exists();
   final scriptJsLastModified =
       scriptJsExists ? await scriptJs.lastModified() : null;
-  _logger.info(
-      'pkg/web_app build status: source: $webAppLastModified, target: $scriptJsLastModified');
   if (!scriptJsExists || (scriptJsLastModified!.isBefore(webAppLastModified))) {
+    _logger.info('Building pkg/web_app');
     await scriptJs.parent.create(recursive: true);
     await updateWebAppBuild();
   }
@@ -319,9 +318,8 @@ Future updateLocalBuiltFilesIfNeeded() async {
   final styleCssExists = await styleCss.exists();
   final styleCssLastModified =
       styleCssExists ? await styleCss.lastModified() : null;
-  _logger.info(
-      'pkg/web_css build status: source: $webCssLastModified, target: $styleCssLastModified');
   if (!styleCssExists || (styleCssLastModified!.isBefore(webCssLastModified))) {
+    _logger.info('Building pkg/web_css');
     await updateWebCssBuild();
   }
 }
