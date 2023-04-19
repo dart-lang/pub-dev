@@ -916,6 +916,8 @@ class PackageView extends Object with FlagMixin {
   final List<ApiPageRef>? apiPages;
   final List<ProcessedScreenshot>? screenshots;
 
+  final List<String>? topics;
+
   PackageView({
     this.screenshots,
     this.name,
@@ -931,6 +933,7 @@ class PackageView extends Object with FlagMixin {
     this.replacedBy,
     this.spdxIdentifiers,
     this.apiPages,
+    this.topics,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
 
@@ -976,6 +979,7 @@ class PackageView extends Object with FlagMixin {
           .toList(),
       apiPages: apiPages,
       screenshots: scoreCard?.panaReport?.screenshots,
+      topics: version?.pubspec?.topics,
     );
   }
 
@@ -995,6 +999,7 @@ class PackageView extends Object with FlagMixin {
       spdxIdentifiers: spdxIdentifiers,
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,
+      topics: topics,
     );
   }
 

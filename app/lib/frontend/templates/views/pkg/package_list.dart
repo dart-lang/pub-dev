@@ -150,6 +150,18 @@ d.Node _packageItem(
     }
   }
 
+  List<d.Node> _topicsNode(List<String>? topics) {
+    if (topics == null || topics.isEmpty) return [];
+    return topics
+        .map(
+          (topic) => d.a(
+              classes: ['topics-tag'],
+              href: urls.searchUrl(q: 'topic:$topic'),
+              text: '#$topic'),
+        )
+        .toList();
+  }
+
   return _item(
     thumbnailUrl: thumbnailUrl,
     screenshotUrls: screenshotUrls,
@@ -173,6 +185,7 @@ d.Node _packageItem(
               page.title ?? page.path!,
             ))
         .toList(),
+    topics: _topicsNode(view.topics),
   );
 }
 
@@ -180,6 +193,7 @@ d.Node _item({
   String? thumbnailUrl,
   List<String>? screenshotUrls,
   List<String>? screenshotDescriptions,
+  List<d.Node> topics = const [],
   required String url,
   required String name,
   required DateTime? newTimestamp,
@@ -230,7 +244,10 @@ d.Node _item({
         d.div(
           classes: ['packages-body'],
           children: [
-            d.div(classes: ['packages-description'], text: description),
+            d.div(
+              classes: ['packages-description'],
+              children: [d.span(text: description), ...topics],
+            ),
             d.p(classes: ['packages-metadata'], child: metadataNode),
             if (tagsNode != null) d.div(child: tagsNode),
             if (apiPages != null && apiPages.isNotEmpty)
