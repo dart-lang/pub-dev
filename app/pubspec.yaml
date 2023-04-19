@@ -72,3 +72,5 @@ dev_dependencies:
   test: ^1.16.5
   xml: ^6.0.0
 
+dependency_overrides:
+  markdown: 6.0.1
