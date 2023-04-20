@@ -73,6 +73,6 @@ rateLimits:
     daily: 24
   - operation: package-published
     scope: user
-    burst: 16
-    hourly: 256
-    daily: 1024
+    burst: 20
+    hourly: 200
+    daily: 250
