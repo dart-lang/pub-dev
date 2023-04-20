@@ -43,7 +43,7 @@ String compactDescription(String? text) => _compactText(text, maxLength: 500);
 
 String compactReadme(String? text) {
   if (text == null || text.isEmpty) return '';
-  final html = markdownToHtml(text)!
+  final html = markdownToHtml(text)
       .replaceAll('</li>', '\n</li>')
       .replaceAll('</p>', '\n</p>')
       .replaceAll('</ul>', '\n</ul>')

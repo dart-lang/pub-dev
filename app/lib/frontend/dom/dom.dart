@@ -115,7 +115,7 @@ Node markdown(
   return dom.unsafeRawHtml(markdownToHtml(
     text,
     disableHashIds: disableHashIds,
-  )!);
+  ));
 }
 
 /// Creates DOM elements with <pre> and <code> for HLJS and pub.dev's copy-to-clipboard.

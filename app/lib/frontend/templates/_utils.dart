@@ -25,7 +25,7 @@ d.Node renderFile(
         baseUrl: baseUrl,
         baseDir: p.dirname(filename),
         isChangelog: isChangelog,
-      )!,
+      ),
     );
   } else if (_isDartFile(filename)) {
     return _renderDartCode(content);
