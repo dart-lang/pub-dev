@@ -111,8 +111,8 @@ Future startIsolates({
         errorsAreFatal: true,
       );
       isolates.add(isolate);
-      final protocolMessage = (await protocolReceivePort.take(1).toList())
-          .single as FrontendProtocolMessage;
+      final protocolMessage =
+          (await protocolReceivePort.first) as FrontendProtocolMessage;
       if (protocolMessage.statsConsumerPort != null) {
         statConsumerPorts.add(protocolMessage.statsConsumerPort!);
       }
@@ -204,7 +204,7 @@ Future startIsolates({
       );
       isolates.add(isolate);
       // read WorkerProtocolMessage
-      (await protocolReceivePort.take(1).toList()).single;
+      await protocolReceivePort.first;
       final statsSubscription =
           statsReceivePort.cast<Map>().listen((Map stats) {
         updateLatestStats(stats);
