@@ -65,6 +65,10 @@ Future _main(FrontendEntryMessage message) async {
   await topPackages.start();
   await youtubeBackend.start();
 
+  Timer.periodic(const Duration(seconds: 5), (_) async {
+    message.aliveSendPort.send(true);
+  });
+
   await runHandler(_logger, appHandler, sanitize: true);
 }
 
