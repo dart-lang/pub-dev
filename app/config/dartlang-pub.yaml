@@ -64,7 +64,7 @@ tools:
   previewDartSdkPath: '/tool/preview/dart-sdk'
   previewFlutterSdkPath: '/tool/preview/flutter'
   futureDartSdkPath: '/tool/preview/dart-sdk' # same as preview
-  futureFlutterSdkPath: '/tool/future/flutter'
+  futureFlutterSdkPath: '/tool/preview/flutter' # same as preview
 rateLimits:
   - operation: package-published
     scope: package
