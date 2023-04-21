@@ -44,7 +44,7 @@ bool _isMarkdownFile(String filename) {
 bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
 
 d.Node _renderDartCode(String text) =>
-    d.markdown('````dart\n${text.trim()}\n````\n');
+    d.codeSnippet(language: 'dart', text: text.trim());
 
 d.Node _renderPlainText(String text) =>
     d.div(classes: ['highlight'], child: d.pre(text: text));

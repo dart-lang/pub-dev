@@ -30,9 +30,6 @@ final Duration twoYears = const Duration(days: 2 * 365);
 /// Appengine.
 const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
-const fileAnIssueContent =
-    'Please open an issue: https://github.com/dart-lang/pub-dev/issues/new';
-
 final Logger _logger = Logger('pub.utils');
 final _random = Random.secure();
 

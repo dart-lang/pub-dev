@@ -21,7 +21,6 @@ import '../service/csp/default_csp.dart';
 
 import 'exceptions.dart';
 import 'handlers.dart';
-import 'utils.dart' show fileAnIssueContent;
 
 // The .dev top-level domain is included on the HSTS preload list, making HTTPS
 // required on all connections to .dev websites and pages without needing
@@ -152,7 +151,10 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (shouldLog) {
         logger.info('Caught response exception: $e');
       }
-      final content = d.markdown('# Error `${e.code}`\n\n${e.message}\n');
+      final content = d.fragment([
+        d.h1(text: 'Error: ${e.code}'),
+        d.codeSnippet(language: 'text', text: e.message),
+      ]);
       return htmlResponse(
         renderLayoutPage(
           PageType.package,
@@ -171,22 +173,25 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (context.traceId != null) {
         debugHeaders = {'package-site-request-id': context.traceId!};
       }
-      final markdownText = '''# $title
-
-**Fatal package site error.**
-
-$fileAnIssueContent
-
-Add these details to help us fix the issue:
-````
-Requested URL: ${request.requestedUri}
-Request ID: ${context.traceId}
-````
-      ''';
+      final issueUrl = 'https://github.com/dart-lang/pub-dev/issues/new';
+      final message = d.fragment([
+        d.h1(text: title),
+        d.p(child: d.b(text: 'Fatal package site error.')),
+        d.p(children: [
+          d.text('Please open an issue: '),
+          d.a(href: issueUrl, text: issueUrl),
+          d.p(text: 'Add these details to help us fix the issue:'),
+          d.codeSnippet(
+            language: 'text',
+            text: 'Requested URL: ${request.requestedUri}\n'
+                'Request ID: ${context.traceId}',
+          ),
+        ]),
+      ]);
 
       final content = renderLayoutPage(
         PageType.package,
-        d.markdown(markdownText),
+        message,
         title: title,
         noIndex: true,
       );
