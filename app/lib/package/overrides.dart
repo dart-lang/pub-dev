@@ -35,13 +35,6 @@ final _reservedPackageNames = <String>[
   'fluttery_seekbar',
 ].map(reducePackageName).toList();
 
-/// 'internal' packages are developed by the Dart team, and they are allowed to
-/// point their URLs to *.dartlang.org (others would get a penalty for it).
-const internalPackageNames = <String>[
-  'angular',
-  'angular_components',
-];
-
 const redirectPackageUrls = <String, String>{
   'flutter': 'https://api.flutter.dev/',
   'flutter_driver':
