@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:_pub_shared/pubapi.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -61,27 +63,40 @@ abstract class TestServiceAccount {
   Future<String> getIdToken();
 }
 
-@sealed
-abstract class TestUser {
-  /// Get email of the given test user.
-  String get email;
+typedef WithBroserPageCallbackFn = Future<T> Function<T>(
+    Future<T> Function(Page page) fn);
+typedef ReadLatestEmailFn = FutureOr<String> Function();
+typedef CreateCredentialsFn = FutureOr<Map<String, Object?>> Function();
 
-  /// Executes callback [fn] with the browser page where this test user is
+@sealed
+class TestUser {
+  /// The email of the given test user.
+  final String email;
+
+  /// An API client for access the API authenticated with a session associated
+  /// with this user.
+  final PubApiClient api;
+
+  /// Executes callback `fn` with the browser page where this test user is
   /// signed-in to their account.
-  Future<T> withBrowserPage<T>(Future<T> Function(Page page) fn);
+  final WithBroserPageCallbackFn withBrowserPage;
 
   /// Read the latest email sent to this test user.
-  Future<String> readLatestEmail();
-
-  /// A API client for access the API authenticated with a session associated
-  /// with this user.
-  PubApiClient get api;
+  final ReadLatestEmailFn readLatestEmail;
 
   /// Create contents for `pub-credentials.json` for this test user.
   ///
   /// These credentials can be used by the `dart pub` client to publish packages
   /// as this test user.
-  Future<Map<String, Object?>> createCredentials();
+  final CreateCredentialsFn createCredentials;
+
+  TestUser({
+    required this.email,
+    required this.api,
+    required this.withBrowserPage,
+    required this.readLatestEmail,
+    required this.createCredentials,
+  });
 }
 
 @sealed

@@ -12,7 +12,7 @@ import 'package:puppeteer/puppeteer.dart';
 
 import 'test_scenario.dart';
 
-Future<_FakeTestUser> createFakeTestUser({
+Future<TestUser> createFakeTestUser({
   required String email,
   required HeadlessEnv headlessEnv,
   required FakeEmailReaderFromOutputDirectory fakeEmailReader,
@@ -23,48 +23,18 @@ Future<_FakeTestUser> createFakeTestUser({
     await page.fakeAuthSignIn(email: email, scopes: scopes);
     api = await _apiClientHttpHeadersFromSignedInSession(page);
   });
-  return _FakeTestUser(
+  return TestUser(
     email: email,
-    headlessEnv: headlessEnv,
     api: api,
-    fakeEmailReader: fakeEmailReader,
+    createCredentials: () => fakeCredentialsMap(email: email),
+    readLatestEmail: () async {
+      final map = await fakeEmailReader.readLatestEmail(recipient: email);
+      return map['bodyText'] as String;
+    },
+    withBrowserPage: <T>(Future<T> Function(Page) fn) async {
+      return await headlessEnv.withPage<T>(fn: fn);
+    },
   );
-}
-
-class _FakeTestUser implements TestUser {
-  @override
-  final String email;
-
-  final HeadlessEnv _headlessEnv;
-
-  @override
-  final PubApiClient api;
-
-  final FakeEmailReaderFromOutputDirectory _fakeEmailReader;
-
-  _FakeTestUser({
-    required this.email,
-    required HeadlessEnv headlessEnv,
-    required this.api,
-    required FakeEmailReaderFromOutputDirectory fakeEmailReader,
-  })  : _headlessEnv = headlessEnv,
-        _fakeEmailReader = fakeEmailReader;
-
-  @override
-  Future<T> withBrowserPage<T>(Future<T> Function(Page page) fn) async {
-    return await _headlessEnv.withPage(fn: fn);
-  }
-
-  @override
-  Future<String> readLatestEmail() async {
-    final map = await _fakeEmailReader.readLatestEmail(recipient: email);
-    return map['bodyText'] as String;
-  }
-
-  @override
-  Future<Map<String, Object?>> createCredentials() async {
-    return fakeCredentialsMap(email: email);
-  }
 }
 
 /// Extracts the HTTP headers required for pub.dev API client (session cookies and CSRF token).
