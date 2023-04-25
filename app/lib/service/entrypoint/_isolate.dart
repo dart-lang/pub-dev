@@ -15,7 +15,6 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../../shared/env_config.dart';
 import '../../shared/scheduler_stats.dart';
-import '../../tool/utils/event_loop_tracker.dart';
 
 import '../services.dart';
 import 'tools.dart';
@@ -293,7 +292,6 @@ Future startIsolates({
 
 void _setupServiceIsolate() {
   useLoggingPackageAdaptor();
-  trackEventLoopLatency();
 }
 
 void _wrapper(List fnAndMessage) {

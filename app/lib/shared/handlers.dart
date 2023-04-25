@@ -10,7 +10,6 @@ import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/request_context.dart';
-import '../tool/utils/event_loop_tracker.dart';
 
 import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
@@ -102,11 +101,6 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
       'numberOfProcessors': Platform.numberOfProcessors,
       'currentRss': ProcessInfo.currentRss,
       'maxRss': ProcessInfo.maxRss,
-      'eventLoopLatencyMillis': {
-        'median': eventLoopLatencyTracker.median?.inMilliseconds,
-        'p90': eventLoopLatencyTracker.p90?.inMilliseconds,
-        'p99': eventLoopLatencyTracker.p99?.inMilliseconds,
-      },
     },
     'versions': {
       'runtime': runtimeVersion,
