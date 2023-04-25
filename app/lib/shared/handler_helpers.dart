@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -173,25 +174,14 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (context.traceId != null) {
         debugHeaders = {'package-site-request-id': context.traceId!};
       }
-      final issueUrl = 'https://github.com/dart-lang/pub-dev/issues/new';
-      final message = d.fragment([
-        d.h1(text: title),
-        d.p(child: d.b(text: 'Fatal package site error.')),
-        d.p(children: [
-          d.text('Please open an issue: '),
-          d.a(href: issueUrl, text: issueUrl),
-          d.p(text: 'Add these details to help us fix the issue:'),
-          d.codeSnippet(
-            language: 'text',
-            text: 'Requested URL: ${request.requestedUri}\n'
-                'Request ID: ${context.traceId}',
-          ),
-        ]),
-      ]);
 
       final content = renderLayoutPage(
         PageType.package,
-        message,
+        renderFatalError(
+          title: title,
+          requestedUri: request.requestedUri,
+          traceId: context.traceId,
+        ),
         title: title,
         noIndex: true,
       );

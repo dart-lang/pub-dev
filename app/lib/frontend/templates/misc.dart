@@ -159,3 +159,25 @@ String renderErrorPage(String title, String message) {
     noIndex: true,
   );
 }
+
+d.Node renderFatalError({
+  required String title,
+  required Uri requestedUri,
+  required String? traceId,
+}) {
+  final issueUrl = 'https://github.com/dart-lang/pub-dev/issues/new';
+  final message = d.fragment([
+    d.h1(text: title),
+    d.p(child: d.b(text: 'Fatal package site error.')),
+    d.p(children: [
+      d.text('Please open an issue: '),
+      d.a(href: issueUrl, text: issueUrl),
+      d.p(text: 'Add these details to help us fix the issue:'),
+      d.codeSnippet(
+        language: 'text',
+        text: 'Requested URL: $requestedUri\nRequest ID: $traceId',
+      ),
+    ]),
+  ]);
+  return message;
+}
