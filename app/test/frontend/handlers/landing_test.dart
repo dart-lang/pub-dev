@@ -100,6 +100,7 @@ void main() {
       });
     }
     testWithProfile('/osd.xml content check', fn: () async {
+      registerStaticFileCacheForTest(StaticFileCache.withDefaults());
       final rs = await issueGet('/osd.xml');
       expect(rs.statusCode, 200);
       expect(await rs.readAsString(), contains('OpenSearchDescription'));
