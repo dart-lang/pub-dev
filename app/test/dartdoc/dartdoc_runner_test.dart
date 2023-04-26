@@ -5,7 +5,6 @@
 import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -15,8 +14,6 @@ import '../frontend/handlers/_utils.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('dartdoc runner', () {
     testWithProfile(
       'end2end test',

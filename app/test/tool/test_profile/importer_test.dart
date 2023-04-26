@@ -5,7 +5,6 @@
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -16,8 +15,6 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('pub.dev importer tests', () {
     testWithProfile(
       'retry',

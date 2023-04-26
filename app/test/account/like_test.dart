@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -11,8 +10,6 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('/api/account/likes', () {
     final pkg1 = 'oxygen';
     final pkg2 = 'neon';

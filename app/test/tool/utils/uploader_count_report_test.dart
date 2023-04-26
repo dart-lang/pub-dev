@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/tools/uploader_count_report.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -21,8 +20,6 @@ class UserAndTime {
 }
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   testWithProfile('uploader count report',
       testProfile: TestProfile.fromJson(
           {'defaultUser': 'user@domain.com', 'packages': []}), fn: () async {

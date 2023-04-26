@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:html/parser.dart' as html_parser;
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
@@ -22,8 +21,6 @@ import '../shared/utils.dart';
 import 'handlers_test_utils.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('handlers', () {
     group('not found', () {
       scopedTest('/xxx', () async {

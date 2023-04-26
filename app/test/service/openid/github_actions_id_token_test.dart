@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/service/openid/github_openid.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:test/test.dart';
@@ -15,8 +14,6 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   final actionsIdTokenRequestUrl =
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_URL'] ?? '';
   final actionsIdTokenRequestToken =

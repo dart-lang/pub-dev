@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
@@ -13,8 +12,6 @@ import '_utils.dart';
 final _variableExp = RegExp(r'\<(.+?)\>');
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   // The test collects the GET routes containing a single `<publisherId>` named parameter.
   // These endpoints will be called with a combination of good and bad parameters, and
   // response status codes are checked against a valid set of codes specific to a use-case.

@@ -13,8 +13,6 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('landing page', () {
     testWithProfile('without proper data', fn: () async {
       await topPackages.update();

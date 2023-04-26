@@ -52,27 +52,7 @@ const String goldenDir = 'test/frontend/golden';
 final _regenerateGoldens = false;
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('templates', () {
-    late StaticFileCache oldCache;
-
-    setUpAll(() {
-      final properCache = StaticFileCache.withDefaults();
-      final cache = StaticFileCache();
-      for (String path in properCache.keys) {
-        final file = StaticFile(path, 'text/mock', [], clock.now(),
-            'mocked_hash_${path.hashCode.abs()}');
-        cache.addFile(file);
-      }
-      oldCache = staticFileCache;
-      registerStaticFileCacheForTest(cache);
-    });
-
-    tearDownAll(() {
-      registerStaticFileCacheForTest(oldCache);
-    });
-
     void expectGoldenFile(
       String content,
       String fileName, {

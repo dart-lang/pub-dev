@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -111,6 +112,23 @@ class StaticFileCache {
       ],
       contentSeparator: '\n',
     );
+  }
+
+  @visibleForTesting
+  factory StaticFileCache.forTests() {
+    final properCache = StaticFileCache.withDefaults();
+    final cache = StaticFileCache();
+    final paths = <String>{
+      ...properCache.keys,
+      '/static/css/style.css',
+      '/static/js/script.dart.js',
+    };
+    for (String path in paths) {
+      final file = StaticFile(path, 'text/mock', [], clock.now(),
+          'mocked_hash_${path.hashCode.abs()}');
+      cache.addFile(file);
+    }
+    return cache;
   }
 
   /// Returns the keys that are accepted as requests paths.
