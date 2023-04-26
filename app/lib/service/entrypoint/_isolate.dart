@@ -24,10 +24,12 @@ final _random = Random.secure();
 class FrontendEntryMessage {
   final int frontendIndex;
   final SendPort protocolSendPort;
+  final SendPort aliveSendPort;
 
   FrontendEntryMessage({
     required this.frontendIndex,
     required this.protocolSendPort,
+    required this.aliveSendPort,
   });
 }
 
@@ -93,6 +95,7 @@ Future startIsolates({
       frontendStarted++;
       final frontendIndex = frontendStarted;
       logger.info('About to start frontend isolate #$frontendIndex...');
+      final aliveReceivePort = ReceivePort();
       final errorReceivePort = ReceivePort();
       final exitReceivePort = ReceivePort();
       final protocolReceivePort = ReceivePort();
@@ -103,6 +106,7 @@ Future startIsolates({
           FrontendEntryMessage(
             frontendIndex: frontendIndex,
             protocolSendPort: protocolReceivePort.sendPort,
+            aliveSendPort: aliveReceivePort.sendPort,
           ),
         ],
         onError: errorReceivePort.sendPort,
@@ -121,7 +125,16 @@ Future startIsolates({
       StreamSubscription? errorSubscription;
       StreamSubscription? exitSubscription;
 
+      final autokillTimerCloseFn = _setupAutokillTimer(
+        isolate: isolate,
+        aliveReceivePort: aliveReceivePort,
+        timeout: Duration(minutes: 1),
+        logger: logger,
+        name: 'frontend isolate #$frontendIndex',
+      );
+
       Future<void> close() async {
+        await autokillTimerCloseFn();
         if (protocolMessage.statsConsumerPort != null) {
           statConsumerPorts.remove(protocolMessage.statsConsumerPort);
         }
@@ -213,32 +226,18 @@ Future startIsolates({
       });
       logger.info('Worker isolate #$workerIndex started.');
 
-      Timer? autoKillTimer;
-      void resetAutoKillTimer() {
-        if (deadWorkerTimeout == null) return;
-        autoKillTimer?.cancel();
-
-        /// Randomize TTL so that isolate restarts do not happen at the same time.
-        final ttl = deadWorkerTimeout +
-            Duration(seconds: _random.nextInt(deadWorkerTimeout.inSeconds));
-        autoKillTimer = Timer(ttl, () {
-          logger.info('Killing worker isolate #$workerIndex...');
-          isolate.kill();
-        });
-      }
-
-      // We DO NOT initialize [autoKillTimer] at this point, allowing the worker
-      // to do arbitrary-length setup. Once the first message comes in, we can
-      // start the auto-kill timer.
-      final aliveSubscription = aliveReceivePort.listen((_) {
-        resetAutoKillTimer();
-      });
+      final autokillTimerCloseFn = _setupAutokillTimer(
+        isolate: isolate,
+        aliveReceivePort: aliveReceivePort,
+        timeout: deadWorkerTimeout,
+        logger: logger,
+        name: 'worker isolate #$workerIndex',
+      );
 
       StreamSubscription? errorSubscription;
 
       Future<void> close() async {
-        await aliveSubscription.cancel();
-        autoKillTimer?.cancel();
+        await autokillTimerCloseFn();
         await statsSubscription.cancel();
         await errorSubscription?.cancel();
         errorReceivePort.close();
@@ -288,6 +287,47 @@ Future startIsolates({
       rethrow;
     }
   });
+}
+
+/// Resets (and starts) autokill timer on alive messages.
+/// Returns the [Function] that should be called on isolate closing,
+/// cancelling the stream listener and the timer that may be active.
+///
+/// NOTE: The timer will NOT be initialized when [timeout] is not specified or negative.
+Future<void> Function() _setupAutokillTimer({
+  required Isolate isolate,
+  required ReceivePort aliveReceivePort,
+  required Duration? timeout,
+  required Logger logger,
+  required String name,
+}) {
+  Timer? autokillTimer;
+  void resetAutokillTimer() {
+    if (timeout == null || timeout <= Duration.zero) {
+      return;
+    }
+    autokillTimer?.cancel();
+
+    /// Randomize TTL so that isolate restarts do not happen at the same time.
+    final ttl = timeout + Duration(seconds: _random.nextInt(30));
+    autokillTimer = Timer(ttl, () {
+      logger.shout(
+          'Killing "$name" isolate, because it is not sending alive pings');
+      isolate.kill();
+    });
+  }
+
+  // We DO NOT initialize `autokillTimer` at this point, allowing the isolate
+  // to do arbitrary-length setup. Once the first message comes in, we can
+  // start the auto-kill timer.
+  final aliveSubscription = aliveReceivePort.listen((_) {
+    resetAutokillTimer();
+  });
+
+  return () async {
+    await aliveSubscription.cancel();
+    autokillTimer?.cancel();
+  };
 }
 
 void _setupServiceIsolate() {

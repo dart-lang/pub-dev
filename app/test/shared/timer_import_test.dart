@@ -35,6 +35,9 @@ void main() {
     // Uses timer to send stats periodically to the frontend isolate.
     'lib/service/entrypoint/dartdoc.dart',
 
+    // Uses timer to send heartbeat signal to the master isolate.
+    'lib/service/entrypoint/frontend.dart',
+
     // Uses timer to timeout GlobalLock claim aquisition.
     'lib/tool/neat_task/pub_dev_tasks.dart',
 
