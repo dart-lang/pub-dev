@@ -312,7 +312,8 @@ Future<void> Function() _setupAutokillTimer({
     /// Randomize TTL so that isolate restarts do not happen at the same time.
     final ttl = timeout + Duration(seconds: _random.nextInt(30));
     autokillTimer = Timer(ttl, () {
-      logger.shout('Killing "$name" isolate, because it is not sending alive pings');
+      logger.shout(
+          'Killing "$name" isolate, because it is not sending alive pings');
       isolate.kill();
     });
   }
