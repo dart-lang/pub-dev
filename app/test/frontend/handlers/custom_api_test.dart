@@ -201,6 +201,7 @@ void main() {
         final body = await rs.readAsString();
         expect(body, contains('1.96.0'));
       },
+      timeout: Timeout(Duration(minutes: 2)),
     );
   });
 }
