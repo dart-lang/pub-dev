@@ -61,14 +61,7 @@ class _BrowserClient extends BrowserClient {
       updateHeaders: headers,
     );
 
-    final response = await _client.send(modifiedRequest);
-    final wwwAuthenticate = response.headers['www-authenticate'];
-    if (wwwAuthenticate != null) {
-      await response.stream.drain();
-      throw Exception(
-          'Access was denied (www-authenticate header was: $wwwAuthenticate).');
-    }
-    return response;
+    return await _client.send(modifiedRequest);
   }
 
   @override
