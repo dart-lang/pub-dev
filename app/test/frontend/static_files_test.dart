@@ -51,7 +51,7 @@ void main() {
     test(
       'github.css',
       () => checkAsset(
-          'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/github.css',
+          'https://github.com/dart-lang/dartdoc/raw/main/lib/resources/github.css',
           '/static/highlight/github.css'),
       tags: ['sanity'],
     );
@@ -59,7 +59,7 @@ void main() {
     test(
       'highlight.pack.js',
       () => checkAsset(
-          'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/highlight.pack.js',
+          'https://github.com/dart-lang/dartdoc/raw/main/lib/resources/highlight.pack.js',
           '/static/highlight/highlight.pack.js'),
       tags: ['sanity'],
     );
