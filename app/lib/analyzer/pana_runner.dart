@@ -15,7 +15,6 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/screenshots/backend.dart';
 
 import '../job/job.dart';
-import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
@@ -72,8 +71,7 @@ class _PanaRunner implements PanaRunner {
       fn: (toolEnv) async {
         final PackageAnalyzer analyzer =
             PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
-        final isInternal = internalPackageNames.contains(package) ||
-            packageStatus.isPublishedByDartDev;
+        final isInternal = packageStatus.isPublishedByDartDev;
 
         Future<void> store(String fileName, Uint8List data) async {
           final stream = () => Stream.value(data);
