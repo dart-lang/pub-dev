@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -21,7 +22,6 @@ import '../service/csp/default_csp.dart';
 
 import 'exceptions.dart';
 import 'handlers.dart';
-import 'utils.dart' show fileAnIssueContent;
 
 // The .dev top-level domain is included on the HSTS preload list, making HTTPS
 // required on all connections to .dev websites and pages without needing
@@ -152,7 +152,10 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (shouldLog) {
         logger.info('Caught response exception: $e');
       }
-      final content = d.markdown('# Error `${e.code}`\n\n${e.message}\n');
+      final content = d.fragment([
+        d.h1(text: 'Error: ${e.code}'),
+        d.codeSnippet(language: 'text', text: e.message),
+      ]);
       return htmlResponse(
         renderLayoutPage(
           PageType.package,
@@ -171,22 +174,14 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       if (context.traceId != null) {
         debugHeaders = {'package-site-request-id': context.traceId!};
       }
-      final markdownText = '''# $title
-
-**Fatal package site error.**
-
-$fileAnIssueContent
-
-Add these details to help us fix the issue:
-````
-Requested URL: ${request.requestedUri}
-Request ID: ${context.traceId}
-````
-      ''';
 
       final content = renderLayoutPage(
         PageType.package,
-        d.markdown(markdownText),
+        renderFatalError(
+          title: title,
+          requestedUri: request.requestedUri,
+          traceId: context.traceId,
+        ),
         title: title,
         noIndex: true,
       );
