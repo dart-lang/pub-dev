@@ -7,6 +7,8 @@ import 'dart:html';
 
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
+import 'package:web_app/src/_dom_helper.dart';
+import 'package:web_app/src/account.dart';
 
 import 'api_client/api_client.dart' deferred as api_client;
 import 'page_data.dart';
@@ -59,6 +61,17 @@ void setupLikes() {
   }
 
   iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) async {
+    if (isNotAuthenticated) {
+      iconButtonToggle.on = false;
+      final content = ParagraphElement()
+        ..text = 'You need to be signed-in to like packages. '
+            'Would you like to visit the authentication page?';
+      final redirect = await modalConfirm(content);
+      if (redirect) {
+        document.getElementById('-account-login')?.click();
+      }
+      return;
+    }
     likeButton.blur();
     await api_client.loadLibrary();
     if (iconButtonToggle.on ?? false) {
