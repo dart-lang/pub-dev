@@ -4,7 +4,6 @@
 
 import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -14,8 +13,6 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('bad authorization header', () {
     testWithProfile('no issue on public pages', fn: () async {
       await expectHtmlResponse(
@@ -94,8 +91,6 @@ void main() {
   });
 
   group('pub client authorization landing page', () {
-    setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
     testWithProfile('/authorized', fn: () async {
       await expectHtmlResponse(await issueGet('/authorized'));
     });

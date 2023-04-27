@@ -6,7 +6,6 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
@@ -15,8 +14,6 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('Update value through API', () {
     setupTestsWithCallerAuthorizationIssues(
       (client) =>

@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/screenshots/backend.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
@@ -17,8 +16,6 @@ import 'package:test/test.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   test('static analysis options is available', () async {
     final content = await getDefaultAnalysisOptionsYaml();
     expect(content.trim(), isNotEmpty);

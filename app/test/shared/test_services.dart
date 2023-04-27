@@ -12,6 +12,7 @@ import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/search_client.dart';
@@ -50,6 +51,7 @@ void testWithProfile(
     setupDebugEnvBasedLogging();
     await withFakeServices(
       fn: () async {
+        registerStaticFileCacheForTest(StaticFileCache.forTests());
         registerSearchClient(SearchClient(
             httpClientToShelfHandler(handler: searchServiceHandler)));
         registerScopeExitCallback(searchClient.close);

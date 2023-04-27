@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -111,6 +112,27 @@ class StaticFileCache {
       ],
       contentSeparator: '\n',
     );
+  }
+
+  @visibleForTesting
+  factory StaticFileCache.forTests() {
+    final properCache = StaticFileCache.withDefaults();
+    final cache = StaticFileCache();
+    final paths = <String>{
+      ...properCache.keys,
+      // These files are not checked in, and they are built as part of the
+      // deployment process. Normally page rendering checks their existence,
+      // and fails when they are missing. By listing these here, the build
+      // is no longer a strict requirement, and tests can be run without it.
+      '/static/css/style.css',
+      '/static/js/script.dart.js',
+    };
+    for (String path in paths) {
+      final file = StaticFile(path, 'text/mock', [], clock.now(),
+          'mocked_hash_${path.hashCode.abs()}');
+      cache.addFile(file);
+    }
+    return cache;
   }
 
   /// Returns the keys that are accepted as requests paths.

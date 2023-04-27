@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:pana/pana.dart' as pana;
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -14,8 +13,6 @@ import 'package:test/test.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('ScoreCard report size test', () {
     testWithProfile(
       'oversized pana report',

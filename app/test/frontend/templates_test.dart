@@ -52,27 +52,7 @@ const String goldenDir = 'test/frontend/golden';
 final _regenerateGoldens = false;
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('templates', () {
-    late StaticFileCache oldCache;
-
-    setUpAll(() {
-      final properCache = StaticFileCache.withDefaults();
-      final cache = StaticFileCache();
-      for (String path in properCache.keys) {
-        final file = StaticFile(path, 'text/mock', [], clock.now(),
-            'mocked_hash_${path.hashCode.abs()}');
-        cache.addFile(file);
-      }
-      oldCache = staticFileCache;
-      registerStaticFileCacheForTest(cache);
-    });
-
-    tearDownAll(() {
-      registerStaticFileCacheForTest(oldCache);
-    });
-
     void expectGoldenFile(
       String content,
       String fileName, {
@@ -573,7 +553,7 @@ void main() {
       },
     );
 
-    scopedTest('publisher list page', () {
+    testWithProfile('publisher list page', fn: () async {
       final html = renderPublisherListPage(
         [
           PublisherSummary(
@@ -793,12 +773,12 @@ void main() {
       });
     });
 
-    scopedTest('create publisher page', () {
+    testWithProfile('create publisher page', fn: () async {
       final html = renderCreatePublisherPage(domain: null);
       expectGoldenFile(html, 'create_publisher_page.html');
     });
 
-    scopedTest('consent page', () {
+    testWithProfile('consent page', fn: () async {
       final html = renderConsentPage(
         consentId: '1234-5678',
         title: 'Invite for something',
@@ -807,7 +787,8 @@ void main() {
       expectGoldenFile(html, 'consent_page.html');
     });
 
-    scopedTest('consent - package uploader invite (anonymous)', () {
+    testWithProfile('consent - package uploader invite (anonymous)',
+        fn: () async {
       final html = renderPackageUploaderInvite(
         invitingUserEmail: 'admin@pub.dev',
         packageName: 'example_pkg',
@@ -820,7 +801,8 @@ void main() {
       );
     });
 
-    scopedTest('consent - package uploader invite (authenticated)', () {
+    testWithProfile('consent - package uploader invite (authenticated)',
+        fn: () async {
       final html = renderPackageUploaderInvite(
         invitingUserEmail: 'admin@pub.dev',
         packageName: 'example_pkg',
@@ -833,7 +815,7 @@ void main() {
       );
     });
 
-    scopedTest('consent - publisher contact invite', () {
+    testWithProfile('consent - publisher contact invite', fn: () async {
       final html = renderPublisherContactInvite(
         invitingUserEmail: 'admin@pub.dev',
         contactEmail: 'hello@example.com',
@@ -846,7 +828,7 @@ void main() {
       );
     });
 
-    scopedTest('consent - publisher member invite', () {
+    testWithProfile('consent - publisher member invite', fn: () async {
       final html = renderPublisherMemberInvite(
         invitingUserEmail: 'admin@pub.dev',
         publisherId: 'dart.dev',
@@ -858,17 +840,17 @@ void main() {
       );
     });
 
-    scopedTest('authorized page', () {
+    testWithProfile('authorized page', fn: () async {
       final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
     });
 
-    scopedTest('error page', () {
+    testWithProfile('error page', fn: () async {
       final String html = renderErrorPage('error_title', 'error_message');
       expectGoldenFile(html, 'error_page.html');
     });
 
-    scopedTest('help page', () async {
+    testWithProfile('help page', fn: () async {
       final html = renderHelpPage();
       expectGoldenFile(html, 'help_page.html');
     });

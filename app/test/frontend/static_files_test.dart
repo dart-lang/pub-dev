@@ -216,6 +216,7 @@ void main() {
 
   group('static files handler', () {
     testWithProfile('bad path hash', fn: () async {
+      registerStaticFileCacheForTest(StaticFileCache.withDefaults());
       final rs = await issueGet('/static/hash-xyz/img/email-icon.svg');
       expect(rs.statusCode, 200);
       expect(await rs.readAsString(), contains('<svg'));
@@ -224,6 +225,7 @@ void main() {
     });
 
     testWithProfile('good path hash', fn: () async {
+      registerStaticFileCacheForTest(StaticFileCache.withDefaults());
       final rs = await issueGet(
           '/static/hash-${staticFileCache.etag}/img/email-icon.svg');
       expect(rs.statusCode, 200);

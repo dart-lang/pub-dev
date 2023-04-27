@@ -13,8 +13,6 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('landing page', () {
     testWithProfile('without proper data', fn: () async {
       await topPackages.update();
@@ -102,6 +100,7 @@ void main() {
       });
     }
     testWithProfile('/osd.xml content check', fn: () async {
+      registerStaticFileCacheForTest(StaticFileCache.withDefaults());
       final rs = await issueGet('/osd.xml');
       expect(rs.statusCode, 200);
       expect(await rs.readAsString(), contains('OpenSearchDescription'));

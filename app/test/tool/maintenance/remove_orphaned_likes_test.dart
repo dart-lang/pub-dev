@@ -4,7 +4,6 @@
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/maintenance/remove_orphaned_likes.dart';
@@ -14,8 +13,6 @@ import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFilesIfNeeded());
-
   group('Remove orphaned likes', () {
     testWithProfile('finds the like but no need to delete it', fn: () async {
       final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
