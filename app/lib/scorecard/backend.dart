@@ -148,6 +148,7 @@ class ScoreCardBackend {
       final status = PackageStatus.fromModels(package, version);
       final summary =
           await taskBackend.panaSummary(packageName, packageVersion);
+
       return ScoreCardData(
         packageName: packageName,
         packageVersion: packageVersion,
@@ -156,8 +157,7 @@ class ScoreCardBackend {
         packageCreated: package.created,
         packageVersionCreated: version.created,
         dartdocReport: DartdocReport(
-          timestamp:
-              null, // TODO: https://github.com/dart-lang/pana/issues/1162
+          timestamp: summary?.createdAt,
           // TODO: Embed dartdoc success status in summary, unclear if we need it
           reportStatus: ReportStatus.success, // assume success
           dartdocEntry: null, // unused
