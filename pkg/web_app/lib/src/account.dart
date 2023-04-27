@@ -11,6 +11,7 @@ import 'admin_pages.dart' deferred as admin_pages;
 import 'api_client/api_client.dart' deferred as api_client;
 
 final _signInButton = document.getElementById('-account-login');
+final isNotAuthenticated = _signInButton != null;
 
 void setupAccount() {
   _initSessionMonitor();
