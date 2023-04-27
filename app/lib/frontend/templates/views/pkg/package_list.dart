@@ -6,6 +6,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
@@ -246,7 +247,10 @@ d.Node _item({
           children: [
             d.div(
               classes: ['packages-description'],
-              children: [d.span(text: description), ...topics],
+              children: [
+                d.span(text: description),
+                if (requestContext.experimentalFlags.showTopics) ...topics,
+              ],
             ),
             d.p(classes: ['packages-metadata'], child: metadataNode),
             if (tagsNode != null) d.div(child: tagsNode),
