@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_pub_shared/data/task_api.dart' as api;
 import 'package:chunked_stream/chunked_stream.dart'
-    show readChunkedStream, MaximumSizeExceeded;
+    show readByteStream, MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -693,7 +694,7 @@ class TaskBackend {
     return shelf.Response.ok('');
   }
 
-  Future<List<int>?> _readFromBucket(
+  Future<Uint8List?> _readFromBucket(
     String path, {
     int? offset,
     int? length,
@@ -701,7 +702,7 @@ class TaskBackend {
       await retry(
         () async {
           try {
-            return await readChunkedStream(
+            return await readByteStream(
               _bucket.read(path, offset: offset, length: length),
               maxSize: 10 * 1024 * 1024, // sanity limit
             ).timeout(Duration(seconds: 30));
@@ -814,15 +815,20 @@ class TaskBackend {
     // Keep in mind that the [IndexBlob] return from [_taskResultIndex] has a
     // blobId that is the path to the blob within the task-result bucket.
     final length = range.end - range.start;
-    Future<List<int>?> doRead() => _readFromBucket(
-          range.blobId,
-          offset: range.start,
-          length: length,
-        );
     if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache.gzippedTaskResult(range.blobId, path).get(doRead);
+      return cache
+          .gzippedTaskResult(range.blobId, path)
+          .get(() => _readFromBucket(
+                range.blobId,
+                offset: range.start,
+                length: length,
+              ));
     } else {
-      return doRead();
+      return _readFromBucket(
+        range.blobId,
+        offset: range.start,
+        length: length,
+      );
     }
   }
 
