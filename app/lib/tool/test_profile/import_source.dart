@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:buffer/buffer.dart';
+import 'package:chunked_stream/chunked_stream.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart';
@@ -202,7 +202,7 @@ class ArchiveBuilder {
     final stream = Stream<TarEntry>.fromIterable(_entries)
         .transform(tarWriter)
         .transform(gzip.encoder);
-    return readAsBytes(stream);
+    return readByteStream(stream);
   }
 }
 
