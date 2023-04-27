@@ -6,6 +6,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
@@ -150,6 +151,18 @@ d.Node _packageItem(
     }
   }
 
+  List<d.Node> _topicsNode(List<String>? topics) {
+    if (topics == null || topics.isEmpty) return [];
+    return topics
+        .map(
+          (topic) => d.a(
+              classes: ['topics-tag'],
+              href: urls.searchUrl(q: 'topic:$topic'),
+              text: '#$topic'),
+        )
+        .toList();
+  }
+
   return _item(
     thumbnailUrl: thumbnailUrl,
     screenshotUrls: screenshotUrls,
@@ -173,6 +186,7 @@ d.Node _packageItem(
               page.title ?? page.path!,
             ))
         .toList(),
+    topics: _topicsNode(view.topics),
   );
 }
 
@@ -180,6 +194,7 @@ d.Node _item({
   String? thumbnailUrl,
   List<String>? screenshotUrls,
   List<String>? screenshotDescriptions,
+  List<d.Node> topics = const [],
   required String url,
   required String name,
   required DateTime? newTimestamp,
@@ -230,7 +245,13 @@ d.Node _item({
         d.div(
           classes: ['packages-body'],
           children: [
-            d.div(classes: ['packages-description'], text: description),
+            d.div(
+              classes: ['packages-description'],
+              children: [
+                d.span(text: description),
+                if (requestContext.experimentalFlags.showTopics) ...topics,
+              ],
+            ),
             d.p(classes: ['packages-metadata'], child: metadataNode),
             if (tagsNode != null) d.div(child: tagsNode),
             if (apiPages != null && apiPages.isNotEmpty)
