@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:buffer/buffer.dart';
+import 'package:chunked_stream/chunked_stream.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
@@ -78,7 +78,7 @@ class FakeStorageServer {
       await for (final m in stream) {
         final disposition = _parse(m.headers['content-disposition']);
         final name = disposition['name']!;
-        final data = await readAsBytes(m);
+        final data = await readByteStream(m);
         if (name == 'file') {
           final key = formData['key'];
           if (key != null) {

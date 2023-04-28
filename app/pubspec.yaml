@@ -10,9 +10,12 @@ dependencies:
   appengine: '^0.13.2'
   args: '^2.0.0'
   basics: ^0.9.0
+  chunked_stream: ^1.1.0
   clock: ^1.1.0
+  collection: ^1.15.0-nullsafety.4
   convert: '^3.0.0'
   crypto: '^3.0.0'
+  fake_async: ^1.2.0
   fake_gcloud:
     path: ../pkg/fake_gcloud
   gcloud: '^0.8.1'
@@ -42,6 +45,7 @@ dependencies:
   pub_semver: '^2.0.0'
   pubspec_parse: ^1.2.1
   retry: ^3.1.0
+  sanitize_html: ^2.0.0
   shelf: '^1.0.0'
   shelf_router: ^1.1.0
   stack_trace: ^1.10.0
@@ -51,16 +55,11 @@ dependencies:
   # pana version to be pinned
   pana: '0.21.30'
   # 3rd-party packages with pinned versions
-  buffer: '1.1.1'
   mailer: '5.1.0'
-  sanitize_html: ^2.0.0
   ulid: '2.0.0'
   tar: '0.5.4'
   api_builder:
     path: ../pkg/api_builder
-  collection: ^1.15.0-nullsafety.4
-  chunked_stream: ^1.1.0
-  fake_async: ^1.2.0
 
 dev_dependencies:
   build_runner: '^2.0.0'

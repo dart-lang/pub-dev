@@ -94,14 +94,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
-  buffer:
-    dependency: "direct main"
-    description:
-      name: buffer
-      sha256: "850b666e7d27c5cf42f39c43d3a9d37b7b35519b9715d9f85b418d76201518c6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.1"
   build:
     dependency: transitive
     description:
