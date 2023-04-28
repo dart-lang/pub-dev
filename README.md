@@ -7,10 +7,10 @@ is implemented using AppEngine Custom Runtimes with Flexible environment
 (see [package:appengine](https://pub.dev/packages/appengine) for more information about
 Dart support for AppEngine).
 
-If you are looking only for a simple self-hosted site to publish internal package,
-see [package:pub_server](https://pub.dev/packages/pub_server), which has
-an [example](https://pub.dev/packages/pub_server/example) for running
-one using the local filesystem as storage.
+This code isn't designed with private hosting in mind. 
+If you need a private hosted environment, you may find some of the suggestions in
+[this page](https://dart.dev/tools/pub/custom-package-repositories)
+to be helpful.
 
 ## Documentation
 
