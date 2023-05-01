@@ -18,8 +18,6 @@ class HeadlessEnv {
   final Directory _tempDir;
   final bool _displayBrowser;
   Browser? _browser;
-  final _clientErrors = <ClientError>[];
-  final _serverErrors = <String>[];
   late final _trackCoverage =
       _coverageDir != null || Platform.environment.containsKey('COVERAGE');
   final _trackedPages = <Page>[];
@@ -90,6 +88,8 @@ class HeadlessEnv {
     required Future<R> Function(Page page) fn,
   }) async {
     await startBrowser();
+    final clientErrors = <ClientError>[];
+    final serverErrors = <String>[];
     final page = await _browser!.newPage();
     _pageOriginExpando[page] = _origin;
     await page.setRequestInterception(true);
@@ -125,7 +125,7 @@ class HeadlessEnv {
 
       final uri = Uri.parse(rq.url);
       if (uri.path.contains('//')) {
-        _serverErrors.add('Double-slash URL detected: "${rq.url}".');
+        serverErrors.add('Double-slash URL detected: "${rq.url}".');
       }
 
       await rq.continueRequest(headers: rq.headers);
@@ -133,37 +133,37 @@ class HeadlessEnv {
 
     page.onResponse.listen((rs) async {
       if (rs.status >= 500) {
-        _serverErrors
+        serverErrors
             .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
       } else if (rs.status >= 400 && rs.url.contains('/static/')) {
-        _serverErrors
+        serverErrors
             .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
       }
 
       final contentType = rs.headers[HttpHeaders.contentTypeHeader];
       if (contentType == null || contentType.isEmpty) {
-        _serverErrors
+        serverErrors
             .add('Content type header is missing for ${rs.request.url}.');
       }
       if (rs.status == 200 && contentType!.contains('text/html')) {
         try {
           parseAndValidateHtml(await rs.text);
         } catch (e) {
-          _serverErrors.add('${rs.request.url} returned bad HTML: $e');
+          serverErrors.add('${rs.request.url} returned bad HTML: $e');
         }
       }
 
       final uri = Uri.parse(rs.url);
       if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
         if (!uri.pathSegments[1].startsWith('hash-')) {
-          _serverErrors.add('Static ${rs.url} is without hash URL.');
+          serverErrors.add('Static ${rs.url} is without hash URL.');
         }
 
         final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
         if (cacheHeader == null ||
             !cacheHeader.contains('public') ||
             !cacheHeader.contains('max-age')) {
-          _serverErrors.add('Static ${rs.url} is without public caching.');
+          serverErrors.add('Static ${rs.url} is without public caching.');
         }
       }
     });
@@ -181,17 +181,23 @@ class HeadlessEnv {
         return;
       } else {
         print('Client error: $e');
-        _clientErrors.add(e);
+        clientErrors.add(e);
       }
     });
 
     _trackedPages.add(page);
 
     try {
-      return await fn(page);
+      final r = await fn(page);
+      if (clientErrors.isNotEmpty) {
+        throw Exception('Client errors detected: ${clientErrors.first}');
+      }
+      if (serverErrors.isNotEmpty) {
+        throw Exception('Server errors detected: ${serverErrors.first}');
+      }
+      return r;
     } finally {
       await _closePage(page);
-      _verifyErrors();
     }
   }
 
@@ -215,15 +221,6 @@ class HeadlessEnv {
 
     await page.close();
     _trackedPages.remove(page);
-  }
-
-  void _verifyErrors() {
-    if (_clientErrors.isNotEmpty) {
-      throw Exception('Client errors detected: ${_clientErrors.first}');
-    }
-    if (_serverErrors.isNotEmpty) {
-      throw Exception('Server errors detected: ${_serverErrors.first}');
-    }
   }
 
   Future<void> close() async {
