@@ -337,6 +337,20 @@ class OperationForbiddenException extends ResponseException {
         );
 }
 
+/// Thrown when the operation is rejected because a rate limit is reached.
+class RateLimitException extends ResponseException {
+  RateLimitException({
+    required int maxCount,
+    required String windowAsText,
+  }) : super._(
+          429,
+          'RateLimit',
+          'The operation is blocked, as rate limit in the current window '
+              'has been reached ($maxCount in the $windowAsText). '
+              'Please try again later.',
+        );
+}
+
 /// Thrown when authentication failed, credentials is missing or invalid.
 class AuthenticationException extends ResponseException {
   AuthenticationException._(

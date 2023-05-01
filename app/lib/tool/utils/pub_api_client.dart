@@ -118,7 +118,7 @@ Future<R> withHttpPubApiClient<R>({
 
 extension PubApiClientExt on PubApiClient {
   @visibleForTesting
-  Future<SuccessMessage> uploadPackageBytes(List<int> bytes) async {
+  Future<String> preparePackageUpload(List<int> bytes) async {
     final uploadInfo = await getPackageUploadUrl();
 
     final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
@@ -134,6 +134,12 @@ extension PubApiClientExt on PubApiClient {
 
     final callbackUri =
         Uri.parse(uploadInfo.fields!['success_action_redirect']!);
-    return await finishPackageUpload(callbackUri.queryParameters['upload_id']!);
+    return callbackUri.queryParameters['upload_id']!;
+  }
+
+  @visibleForTesting
+  Future<SuccessMessage> uploadPackageBytes(List<int> bytes) async {
+    final uploadId = await preparePackageUpload(bytes);
+    return await finishPackageUpload(uploadId);
   }
 }

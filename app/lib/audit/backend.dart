@@ -5,9 +5,9 @@
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
-import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/datastore.dart';
+import '../shared/exceptions.dart';
 
 import 'models.dart';
 
@@ -26,6 +26,8 @@ AuditBackend get auditBackend => ss.lookup(#_auditBackend) as AuditBackend;
 /// Represents the backend for the audit handling and authentication.
 class AuditBackend {
   final DatastoreDB _db;
+  var _cachedRecords = _CachedRecords(DateTime(0), []);
+
   AuditBackend(this._db);
 
   Future<AuditLogRecordPage> _query(
@@ -136,4 +138,56 @@ class AuditBackend {
     InvalidInputException.check(parsed != null, 'Unable to parse `before`.');
     return parsed!;
   }
+
+  /// Returns the entries from the last day.
+  ///
+  /// Keeps the [_cachedRecords] fields updated, and lists only the entries
+  /// up to the last query.
+  Future<List<AuditLogRecord>> getEntriesFromLastDay() async {
+    final now = clock.now().toUtc();
+    final cachedAge = now.difference(_cachedRecords.updated);
+
+    // fast track for requests within 5 seconds:
+    if (cachedAge.inSeconds < 5) {
+      return _cachedRecords.records;
+    }
+
+    // calculate window to query
+    final day = const Duration(days: 1);
+    var window = cachedAge > day ? day : (day - cachedAge);
+    if (window < Duration(minutes: 2)) {
+      window = Duration(minutes: 2);
+    }
+
+    final query = dbService.query<AuditLogRecord>()
+      ..filter('created >', now.subtract(window));
+    final current = await query.run().toList();
+
+    // merge records from cache and current query
+    final recordMap = <String, AuditLogRecord>{};
+    for (final r in _cachedRecords.records) {
+      recordMap[r.id!] = r;
+    }
+    for (final r in current) {
+      recordMap[r.id!] = r;
+    }
+    // filter records that are within the last day
+    final records = recordMap.values
+        .where((r) => now.difference(r.created!) < day)
+        .toList();
+
+    // update if current list is newer
+    if (_cachedRecords.updated.isBefore(now)) {
+      _cachedRecords = _CachedRecords(now, records);
+    }
+
+    return records;
+  }
+}
+
+class _CachedRecords {
+  final DateTime updated;
+  final List<AuditLogRecord> records;
+
+  _CachedRecords(this.updated, this.records);
 }
