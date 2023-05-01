@@ -36,7 +36,8 @@ void main() {
       await headlessEnv.startBrowser();
 
       Future<void> inviteCompleterFn() async {
-        final emails = await fakePubServerProcess.readAllEmails();
+        final emails =
+            await fakePubServerProcess.fakeEmailReader.readAllEmails();
         final lastEmailText = emails.last['bodyText'] as String;
         final inviteUrlLogLine = lastEmailText
             .split('\n')

@@ -27,7 +27,8 @@ void main() {
 
     test('standard integration', () async {
       Future<void> inviteCompleterFn() async {
-        final emails = await fakePubServerProcess.readAllEmails();
+        final emails =
+            await fakePubServerProcess.fakeEmailReader.readAllEmails();
         final lastEmailText = emails.last['bodyText'] as String;
         final inviteUrlLogLine = lastEmailText
             .split('\n')

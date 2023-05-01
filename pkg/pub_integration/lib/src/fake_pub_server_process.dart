@@ -132,20 +132,28 @@ class FakePubServerProcess {
     }
   }
 
+  late final fakeEmailReader = FakeEmailReaderFromOutputDirectory(
+      p.join(_tmpDir, 'fake-email-sender-output-dir'));
+}
+
+class FakeEmailReaderFromOutputDirectory {
+  final String _path;
+  FakeEmailReaderFromOutputDirectory(this._path);
+
   /// Returns a list of all emails sent by this [FakePubServerProcess].
   ///
   /// Each email is a JSON object on the form:
   /// ```js
   /// {
+  ///   "localMessageId": "<message-id>", // optional
   ///   "from": "<email>",
-  ///   "uuid": "<message-id>", // optional
   ///   "recipients": ["<email>", ...,
   ///   "subject": "...",
   ///   "bodyText": "..."
   /// }
   /// ```
   Future<List<Map<String, Object?>>> readAllEmails() async {
-    final dir = Directory(p.join(_tmpDir, 'fake-email-sender-output-dir'));
+    final dir = Directory(_path);
     final files = dir.listSync().whereType<File>().toList();
     files.sort((a, b) {
       final x = a.lastModifiedSync().compareTo(b.lastModifiedSync());
@@ -156,6 +164,28 @@ class FakePubServerProcess {
         .map((e) => e.readAsStringSync())
         .map((s) => json.decode(s) as Map<String, Object?>)
         .toList();
+  }
+
+  /// Returns the latest email sent for [recipient].
+  ///
+  /// An email is a JSON object on the form:
+  /// ```js
+  /// {
+  ///   "localMessageId": "<message-id>", // optional
+  ///   "from": "<email>",
+  ///   "recipients": ["<email>", ...,
+  ///   "subject": "...",
+  ///   "bodyText": "..."
+  /// }
+  /// ```
+  Future<Map<String, Object?>> readLatestEmail({
+    required String recipient,
+  }) async {
+    final emails = await readAllEmails();
+    return emails.lastWhere((map) {
+      final recipients = (map['recipients'] as List).cast<String>();
+      return recipients.contains(recipient);
+    });
   }
 }
 

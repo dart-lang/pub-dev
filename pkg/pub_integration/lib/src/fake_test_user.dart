@@ -5,55 +5,36 @@
 import 'package:_pub_shared/pubapi.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_credentials.dart';
+import 'package:pub_integration/src/fake_pub_server_process.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:puppeteer/puppeteer.dart';
 
 import 'test_scenario.dart';
 
-Future<_FakeTestUser> createFakeTestUser({
+Future<TestUser> createFakeTestUser({
   required String email,
-  required Browser browser,
+  required HeadlessEnv headlessEnv,
+  required FakeEmailReaderFromOutputDirectory fakeEmailReader,
   List<String>? scopes,
 }) async {
-  // TODO: refactor/reuse HeadlessEnv.withPage
-  final page = await browser.newPage();
-  await page.fakeAuthSignIn(email: email, scopes: scopes);
-  final api = await _apiClientHttpHeadersFromSignedInSession(page);
-  await page.close();
-  return _FakeTestUser(
-    email: email,
-    browser: browser,
-    api: api,
-  );
-}
-
-class _FakeTestUser implements TestUser {
-  @override
-  final String email;
-
-  @override
-  final Browser browser;
-
-  @override
-  final PubApiClient api;
-
-  _FakeTestUser({
-    required this.email,
-    required this.browser,
-    required this.api,
+  late PubApiClient api;
+  await headlessEnv.withPage(fn: (page) async {
+    await page.fakeAuthSignIn(email: email, scopes: scopes);
+    api = await _apiClientHttpHeadersFromSignedInSession(page);
   });
-
-  @override
-  Future<String> readLatestEmail() {
-    // TODO: implement readLatestEmail after #6549 lands.
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Map<String, Object?>> createCredentials() async {
-    return fakeCredentialsMap(email: email);
-  }
+  return TestUser(
+    email: email,
+    api: api,
+    createCredentials: () => fakeCredentialsMap(email: email),
+    readLatestEmail: () async {
+      final map = await fakeEmailReader.readLatestEmail(recipient: email);
+      return map['bodyText'] as String;
+    },
+    withBrowserPage: <T>(Future<T> Function(Page) fn) async {
+      return await headlessEnv.withPage<T>(fn: fn);
+    },
+  );
 }
 
 /// Extracts the HTTP headers required for pub.dev API client (session cookies and CSRF token).
