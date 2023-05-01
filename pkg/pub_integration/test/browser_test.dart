@@ -70,6 +70,7 @@ void main() {
       // package page
       await headlessEnv.withPage(
         fn: (page) async {
+          await page.gotoOrigin('/experimental?nosandbox=true');
           await page.gotoOrigin('/packages/retry');
 
           // check pub score
