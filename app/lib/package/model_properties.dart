@@ -173,6 +173,7 @@ class Pubspec {
   }
 
   late final List<Uri> funding = _inner.funding ?? const <Uri>[];
+  late final hasTopic = topics?.isNotEmpty ?? false;
 }
 
 class MinSdkVersion {
