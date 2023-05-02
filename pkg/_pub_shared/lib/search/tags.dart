@@ -69,6 +69,9 @@ abstract class PackageVersionTags {
   /// The `pubspec.yaml` has one or more `funding` link.
   static const String hasFundingLink = 'has:funding-link';
 
+  /// The `pubspec.yaml` has one or more `topic` entry.
+  static const String hasTopic = 'has:topic';
+
   /// pana encountered errors during analysis.
   static const String hasError = 'has:error';
 
