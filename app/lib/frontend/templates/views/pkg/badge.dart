@@ -8,9 +8,13 @@ d.Node packageBadgeNode({
   required String label,
   String? title,
   d.Image? icon,
+  String? color,
 }) {
   return d.span(
-    classes: ['package-badge'],
+    classes: [
+      'package-badge',
+      if (color != null) 'package-badge-$color',
+    ],
     attributes: title != null ? <String, String>{'title': title} : null,
     children: [
       if (icon != null)

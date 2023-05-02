@@ -140,9 +140,13 @@ abstract class FlagMixin {
 
   bool get isLegacy => tags?.contains(PackageVersionTags.isLegacy) ?? false;
 
+  bool get isDart3Incompatible =>
+      tags?.contains(PackageVersionTags.isDart3Incompatible) ?? false;
+
   bool get isObsolete => tags?.contains(PackageVersionTags.isObsolete) ?? false;
 
-  bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
+  bool get isSkipped =>
+      isDiscontinued || isLegacy || isDart3Incompatible || isObsolete;
 }
 
 @JsonSerializable()
@@ -259,6 +263,8 @@ class PanaReport {
       derivedTags: <String>{
         ...?summary?.tags,
         if (packageStatus.isLegacy) PackageVersionTags.isLegacy,
+        if (packageStatus.isDart3Incompatible)
+          PackageVersionTags.isDart3Incompatible,
         if (packageStatus.isObsolete) PackageVersionTags.isObsolete,
         if (packageStatus.isDiscontinued) PackageTags.isDiscontinued,
       }.toList(),

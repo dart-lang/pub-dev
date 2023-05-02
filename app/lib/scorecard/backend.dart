@@ -454,6 +454,7 @@ class PackageStatus {
   final bool isDiscontinued;
   final bool isObsolete;
   final bool isLegacy;
+  final bool isDart3Incompatible;
   final bool usesFlutter;
   final bool usesPreviewAnalysisSdk;
   final bool isPublishedByDartDev;
@@ -466,6 +467,7 @@ class PackageStatus {
     this.isDiscontinued = false,
     this.isObsolete = false,
     this.isLegacy = false,
+    this.isDart3Incompatible = false,
     this.usesFlutter = false,
     this.usesPreviewAnalysisSdk = false,
     this.isPublishedByDartDev = false,
@@ -488,6 +490,7 @@ class PackageStatus {
       isDiscontinued: p.isDiscontinued,
       isObsolete: isObsolete,
       isLegacy: pv.pubspec!.supportsOnlyLegacySdk,
+      isDart3Incompatible: pv.pubspec!.isDart3Incompatible,
       usesFlutter: pv.pubspec!.usesFlutter,
       usesPreviewAnalysisSdk: pv.pubspec!.usesPreviewAnalysisSdk(),
       isPublishedByDartDev:

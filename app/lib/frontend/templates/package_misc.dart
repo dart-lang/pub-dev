@@ -43,6 +43,13 @@ final dart3CompatibleNode = packageBadgeNode(
   title: 'Package is expected to be compatible with Dart 3.',
 );
 
+/// Renders the Dart 3 incompatible badge.
+final dart3IncompatibleNode = packageBadgeNode(
+  label: 'Dart 3 incompatible',
+  title: 'Package is not compatible with Dart 3.',
+  color: 'red',
+);
+
 /// Renders the tags using the pkg/tags template.
 d.Node tagsNodeFromPackageView({
   required PackageView package,

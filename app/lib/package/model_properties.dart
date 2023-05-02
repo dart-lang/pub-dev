@@ -135,6 +135,13 @@ class Pubspec {
               .intersect(VersionConstraint.parse('>=2.0.0'))
               .isEmpty);
 
+  late final isDart3Incompatible =
+      !supportsOnlyLegacySdk && // do not mix is:legacy with is:dart3-incompatible
+          _hasDartSdkConstraint &&
+          !_dartSdkConstraint!
+              .intersect(VersionConstraint.parse('<2.12.0'))
+              .isEmpty;
+
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
     _load();
