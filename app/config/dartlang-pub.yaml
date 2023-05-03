@@ -21,6 +21,7 @@ taskWorkerNetwork: pub-workers
 cosImage: projects/cos-cloud/global/images/family/cos-97-lts
 taskWorkerServiceAccount: task-worker@dartlang-pub-tasks.iam.gserviceaccount.com
 imageBucketName: dartlang-pub--pub-images
+reportsBucketName: dartlang-pub-reports
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
 pubSiteAudience: 818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com
