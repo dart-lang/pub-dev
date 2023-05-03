@@ -536,10 +536,10 @@ packages:
     dependency: "direct main"
     description:
       name: pana
-      sha256: "1a44062384ad4a413a683235a10c6d3cf0a76307287be05f34e48feeadbfaa49"
+      sha256: "4d6db466f4fc2e1b7b21c8bd8076abb8185e989334eb3be9ce55bca96f80dfec"
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.30"
+    version: "0.21.31"
   path:
     dependency: "direct main"
     description:
