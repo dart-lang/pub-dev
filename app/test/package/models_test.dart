@@ -132,20 +132,42 @@ version: 1.0.9
       test('only Dart 1', () {
         expect(pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).supportsOnlyLegacySdk,
             true);
+        expect(pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).isDart3Incompatible,
+            false);
       });
 
       test('Dart 1 and 2', () {
         expect(pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).supportsOnlyLegacySdk,
+            false);
+        expect(pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).isDart3Incompatible,
+            true);
+      });
+
+      test('Dart pre-2.12', () {
+        expect(pubspecWithEnv({'sdk': '>=2.0.0 <3.0.0'}).supportsOnlyLegacySdk,
+            false);
+        expect(pubspecWithEnv({'sdk': '>=2.0.0 <3.0.0'}).isDart3Incompatible,
+            true);
+      });
+
+      test('Dart post-2.12', () {
+        expect(pubspecWithEnv({'sdk': '>=2.12.0 <3.0.0'}).supportsOnlyLegacySdk,
+            false);
+        expect(pubspecWithEnv({'sdk': '>=2.12.0 <3.0.0'}).isDart3Incompatible,
             false);
       });
 
       test('Dart 2 and 3', () {
         expect(pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).supportsOnlyLegacySdk,
             false);
+        expect(pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).isDart3Incompatible,
+            true);
       });
 
       test('Dart 3', () {
         expect(pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).supportsOnlyLegacySdk,
+            false);
+        expect(pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).isDart3Incompatible,
             false);
       });
     });

@@ -60,6 +60,13 @@ d.Node scoreTabNode({
             'The package version is not analyzed, because it does not support Dart 2 or 3. '
             'Until this is resolved, the package will receive a pub score of 0.',
       ),
+    if (card.isDart3Incompatible)
+      d.p(
+        classes: ['analysis-info'],
+        text:
+            'The package version is not analyzed, because it does not support Dart 3. '
+            'Until this is resolved, the package will receive a pub score of 0.',
+      ),
     if (showPending)
       d.p(
         classes: ['analysis-info'],

@@ -47,6 +47,7 @@ void main() {
       expressions.removeWhere((e) => e.startsWith('home-block-'));
       expressions.removeWhere(
           (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
+      expressions.removeWhere((e) => e.startsWith('package-badge-'));
       // shared CSS file (with dartdoc)
       expressions.removeAll([
         'cookie-notice-container',

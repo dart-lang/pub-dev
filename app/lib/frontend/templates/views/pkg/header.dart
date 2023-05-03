@@ -14,6 +14,7 @@ d.Node packageHeaderNode({
   required DateTime published,
   required bool isNullSafe,
   required bool isDart3Compatible,
+  required bool isDart3Incompatible,
   required LatestReleases? releases,
 }) {
   return d.fragment([
@@ -23,6 +24,7 @@ d.Node packageHeaderNode({
     if (publisherId != null) ..._publisher(publisherId),
     if (isNullSafe && !isDart3Compatible) nullSafeBadgeNode(),
     if (isDart3Compatible) dart3CompatibleNode,
+    if (isDart3Incompatible) dart3IncompatibleNode,
     if (releases != null) ..._releases(packageName, releases),
   ]);
 }

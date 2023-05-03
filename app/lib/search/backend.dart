@@ -123,14 +123,6 @@ class SearchBackend {
       ...previewTags,
     };
 
-    // backward-compatibility updates for the early period of the next deployment
-    // TODO: remove these once the deployment becomes stable
-    if (tags.contains(PackageVersionTags.isDart3Ready) ||
-        tags.contains(PackageVersionTags.isDart3Compatible)) {
-      tags.add(PackageVersionTags.isDart3Compatible);
-      tags.add(PackageVersionTags.isDart3Ready);
-    }
-
     final pubDataContent = await dartdocBackend.getTextContent(
         packageName, 'latest', 'pub-data.json',
         timeout: const Duration(minutes: 1));
@@ -339,15 +331,6 @@ class SnapshotStorage {
       _snapshot = SearchSnapshot.fromJson(map);
       _snapshot!.documents!
           .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-
-      // backward-compatibility updates for the early period of the next deployment
-      // TODO: remove these once the deployment becomes stable
-      for (final p in _snapshot!.documents!.values) {
-        if (p.tags.contains(PackageVersionTags.isDart3Ready) ||
-            !p.tags.contains(PackageVersionTags.isDart3Compatible)) {
-          p.tags.add(PackageVersionTags.isDart3Compatible);
-        }
-      }
 
       final count = _snapshot!.documents!.length;
       _logger

@@ -122,8 +122,10 @@ d.Node renderPkgHeader(PackagePageData data) {
     publisherId: package.publisherId,
     published: data.version!.created!,
     isNullSafe: isNullSafe,
-    isDart3Compatible: pkgView.tags.contains(PackageVersionTags.isDart3Ready) ||
+    isDart3Compatible:
         pkgView.tags.contains(PackageVersionTags.isDart3Compatible),
+    isDart3Incompatible:
+        pkgView.tags.contains(PackageVersionTags.isDart3Incompatible),
     releases: showReleases ? data.latestReleases : null,
   );
 
