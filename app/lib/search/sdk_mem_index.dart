@@ -30,10 +30,11 @@ class SdkMemIndex {
 
   factory SdkMemIndex.dart({String? version}) {
     version ??= toolStableDartSdkVersion;
+    final branch = version.contains('beta') ? 'beta' : 'stable';
     return SdkMemIndex(
         sdk: 'dart',
         version: version,
-        baseUri: Uri.parse('https://api.dart.dev/stable/$version/'));
+        baseUri: Uri.parse('https://api.dart.dev/$branch/$version/'));
   }
 
   factory SdkMemIndex.flutter() {
