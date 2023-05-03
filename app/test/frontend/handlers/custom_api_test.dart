@@ -46,6 +46,7 @@ void main() {
                     }
                   ],
                   'funding': isNotEmpty,
+                  'topics': ['chemical-element'],
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/oxygen/versions/1.2.0.tar.gz',
@@ -76,6 +77,7 @@ void main() {
                     }
                   ],
                   'funding': isNotEmpty,
+                  'topics': ['chemical-element'],
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/flutter_titanium/versions/1.10.0.tar.gz',
@@ -104,6 +106,7 @@ void main() {
                     }
                   ],
                   'funding': isNotEmpty,
+                  'topics': ['chemical-element'],
                 },
                 'archive_url':
                     '${activeConfiguration.primaryApiUri}/packages/neon/versions/1.0.0.tar.gz',

@@ -157,7 +157,7 @@ void _setupGenericPeriodicTasks() {
     ),
   );
 
-  _daily(name: 'topics', isRuntimeVersioned: false, task: countTopics);
+  _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics);
 
   // TODO: setup tasks to remove known obsolete (but now unmapped) fields from entities
 }
