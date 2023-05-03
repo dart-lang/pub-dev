@@ -82,6 +82,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for uploaded images.
   final String? imageBucketName;
 
+  /// The name of the Cloud Storage bucket to use for generated reports.
+  final String? reportsBucketName;
+
   /// The Cloud project Id. This is only required when using Apiary to access
   /// Datastore and/or Cloud Storage
   final String projectId;
@@ -265,6 +268,7 @@ class Configuration {
     required this.incomingPackagesBucketName,
     required this.projectId,
     required this.imageBucketName,
+    required this.reportsBucketName,
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
@@ -329,6 +333,7 @@ class Configuration {
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-fake',
       imageBucketName: 'fake-bucket-image',
+      reportsBucketName: 'fake-bucket-reports',
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
@@ -378,6 +383,7 @@ class Configuration {
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-test',
       imageBucketName: 'fake-bucket-image',
+      reportsBucketName: 'fake-bucket-reports',
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
@@ -424,6 +430,7 @@ class Configuration {
     canonicalPackagesBucketName!,
     dartdocStorageBucketName!,
     imageBucketName!,
+    reportsBucketName!,
     incomingPackagesBucketName!,
     popularityDumpBucketName!,
     publicPackagesBucketName!,

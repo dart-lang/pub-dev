@@ -4,6 +4,7 @@ dartdocStorageBucketName: foo
 popularityDumpBucketName: foo
 searchSnapshotBucketName: foo
 canonicalPackagesBucketName: foo
+reportsBucketName: foo
 maxTaskInstances: 0
 maxTaskRunHours: 2
 searchServicePrefix: 'https://search-dot-dartlang-pub-dev.appspot.com'

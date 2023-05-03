@@ -19,6 +19,7 @@ import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../service/email/backend.dart';
 import '../../shared/configuration.dart';
+import '../../shared/count_topics.dart';
 import '../../shared/datastore.dart';
 import '../../shared/integrity.dart';
 import '../../task/backend.dart';
@@ -28,7 +29,6 @@ import '../../tool/backfill/backfill_new_fields.dart';
 import '../maintenance/remove_orphaned_likes.dart';
 import '../maintenance/update_package_likes.dart';
 import '../maintenance/update_public_bucket.dart';
-
 import 'datastore_status_provider.dart';
 
 final _logger = Logger('pub_dev_tasks');
@@ -156,6 +156,8 @@ void _setupGenericPeriodicTasks() {
       project: activeConfiguration.taskWorkerProject!,
     ),
   );
+
+  _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics);
 
   // TODO: setup tasks to remove known obsolete (but now unmapped) fields from entities
 }
