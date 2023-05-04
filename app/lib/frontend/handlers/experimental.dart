@@ -52,7 +52,7 @@ class ExperimentalFlags {
   bool get showSandboxedOutput => _enabled.contains('sandbox');
 
   /// Whether to show topics associated with a package.
-  bool get showTopics => _enabled.contains('topics');
+  bool get showTopics => true;
 
   bool get isEmpty => _enabled.isEmpty;
 
