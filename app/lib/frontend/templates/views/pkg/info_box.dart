@@ -188,7 +188,10 @@ d.Node? _topicstNode(List<String>? topics) {
     if (nodes.isNotEmpty) {
       nodes.add(d.text(' '));
     }
-    final node = d.a(href: urls.searchUrl(q: 'topic:$topic'), text: '#$topic');
+    final node = d.a(
+        href: urls.searchUrl(q: 'topic:$topic'),
+        text: '#$topic',
+        rel: 'nofollow');
     nodes.add(node);
   }
   return d.fragment(nodes);

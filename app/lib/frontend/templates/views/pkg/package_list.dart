@@ -160,7 +160,8 @@ d.Node _packageItem(
           (topic) => d.a(
               classes: ['topics-tag'],
               href: urls.searchUrl(q: 'topic:$topic'),
-              text: '#$topic'),
+              text: '#$topic',
+              rel: 'nofollow'),
         )
         .toList();
   }
