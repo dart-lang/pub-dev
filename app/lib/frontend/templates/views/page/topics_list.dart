@@ -17,12 +17,12 @@ d.Node renderTopicsList(Map<String, int> topics) {
 
 /// Renders the package list node of /topics page.
 d.Node topicsListNode(Map<String, int> topics) {
-  final sortedTopics = SplayTreeMap<String, int>.from(
-      topics, (key1, key2) => topics[key1]!.compareTo(topics[key2]!));
+  final sortedTopics = topics.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
 
   return d.div(
       classes: ['packages', '-compact'],
-      children: sortedTopics.entries.map((e) => d.div(
+      children: sortedTopics.map((e) => d.div(
             classes: ['packages-item'],
             children: [
               d.h3(
