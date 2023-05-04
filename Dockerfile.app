@@ -33,8 +33,8 @@ WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
-RUN /project/tool/setup-dart.sh /tool/stable 3.0.0-417.4.beta
-RUN /project/tool/setup-dart.sh /tool/preview 3.0.0-417.4.beta
+RUN /project/tool/setup-dart.sh /tool/stable 3.0.0
+RUN /project/tool/setup-dart.sh /tool/preview 3.0.0
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 3.10.0-1.4.pre
