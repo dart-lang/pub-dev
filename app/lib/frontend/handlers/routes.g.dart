@@ -275,6 +275,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/topics',
+    service.topicsPage,
+  );
+  router.add(
+    'GET',
     r'/favicon.ico',
     service.staticAsset,
   );

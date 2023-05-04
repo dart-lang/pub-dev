@@ -5,23 +5,30 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/frontend/handlers/experimental.dart';
+import 'package:pub_dev/shared/storage.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../publisher/backend.dart';
+import '../../shared/configuration.dart';
 import '../../shared/cookie_utils.dart';
+import '../../shared/count_topics.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
-
 import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
-
 import 'headers.dart';
+
+final _log = Logger('pub.handlers.misc');
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
@@ -65,6 +72,27 @@ Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   } else {
     return htmlResponse('Service Unavailable', status: 503);
   }
+}
+
+/// Handles requests for /topics
+Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
+  late Map<String, int> topics;
+  try {
+    final data = await storageService
+        .bucket(activeConfiguration.reportsBucketName!)
+        .readAsBytes(topicsJsonFileName);
+
+    topics = utf8JsonDecoder.convert(data) as Map<String, int>;
+  } on FormatException catch (e, st) {
+    topics = {};
+    _log.shout('Error loading topics, error:', e, st);
+  } on DetailedApiRequestError catch (e, st) {
+    topics = {};
+    if (e.status != 404) {
+      _log.severe('Failed to load topics.json, error : ', e, st);
+    }
+  }
+  return htmlResponse(renderTopicsPage(topics));
 }
 
 /// Handles requests for /robots.txt

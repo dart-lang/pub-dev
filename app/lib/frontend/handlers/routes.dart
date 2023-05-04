@@ -294,6 +294,10 @@ class PubSiteService {
   Future<Response> sitemapPublishersTxt(Request request) =>
       sitemapPublishersTxtHandler(request);
 
+  /// Renders the topics page
+  @Route.get('/topics')
+  Future<Response> topicsPage(Request request) => topicsPageHandler(request);
+
   /// Renders static assets
   @Route.get('/favicon.ico')
   @Route.get('/osd.xml')
