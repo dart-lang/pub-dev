@@ -28,7 +28,8 @@ d.Node topicsListNode(Map<String, int> topics) {
                 children: [
                   d.a(
                       text: '#${e.key}',
-                      href: urls.searchUrl(q: 'topic:${e.key}')),
+                      href: urls.searchUrl(q: 'topic:${e.key}'),
+                      rel: 'nofollow'),
                   d.span(
                       classes: ['topics-metadata'],
                       text:
