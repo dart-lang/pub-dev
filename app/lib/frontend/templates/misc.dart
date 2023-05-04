@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/frontend/templates/views/page/topics_list.dart';
 
 import '../dom/dom.dart' as d;
 import '../static_files.dart' as static_files;
@@ -121,6 +122,18 @@ String renderHelpPublishingPage() {
     ),
     title: 'Publishing | Dart packages',
     canonicalUrl: '/help/publishing',
+  );
+}
+
+String renderTopicsPage(Map<String, int> topics) {
+  return renderLayoutPage(
+    PageType.standalone,
+    standalonePageNode(
+      renderTopicsList(topics),
+      sideImage: _sideImage,
+    ),
+    title: 'Topics',
+    canonicalUrl: '/topics',
   );
 }
 

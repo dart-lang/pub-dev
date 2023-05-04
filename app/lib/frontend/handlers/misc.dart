@@ -5,14 +5,20 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:pub_dev/frontend/handlers/experimental.dart';
+import 'package:pub_dev/shared/storage.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../publisher/backend.dart';
+import '../../shared/configuration.dart';
 import '../../shared/cookie_utils.dart';
+import '../../shared/count_topics.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
@@ -65,6 +71,25 @@ Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   } else {
     return htmlResponse('Service Unavailable', status: 503);
   }
+}
+
+/// Handles requests for /topics
+Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
+  late Map<String, int> topics;
+  try {
+    final data = await storageService
+        .bucket(activeConfiguration.reportsBucketName!)
+        .readAsBytes(topicsJsonFileName);
+
+    topics = utf8JsonDecoder.convert(data) as Map<String, int>;
+  } on FormatException {
+    topics = {};
+  } on DetailedApiRequestError catch (e, st) {
+    if (e.status == 404) {
+      topics = {};
+    }
+  }
+  return htmlResponse(renderTopicsPage(topics));
 }
 
 /// Handles requests for /robots.txt
