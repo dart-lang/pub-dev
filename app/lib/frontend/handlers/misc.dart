@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -22,12 +23,12 @@ import '../../shared/count_topics.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
-
 import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
-
 import 'headers.dart';
+
+final _log = Logger('pub.handlers.misc');
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
@@ -82,11 +83,13 @@ Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
         .readAsBytes(topicsJsonFileName);
 
     topics = utf8JsonDecoder.convert(data) as Map<String, int>;
-  } on FormatException {
+  } on FormatException catch (e, st) {
     topics = {};
+    _log.shout('Error loading topics, error:', e, st);
   } on DetailedApiRequestError catch (e, st) {
-    if (e.status == 404) {
-      topics = {};
+    topics = {};
+    if (e.status != 404) {
+      _log.severe('Failed to load topics.json, error : ', e, st);
     }
   }
   return htmlResponse(renderTopicsPage(topics));
