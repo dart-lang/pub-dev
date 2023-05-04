@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -153,7 +152,7 @@ class IndexUpdater implements TaskRunner {
 /// A task source that generates an update task for stale documents.
 ///
 /// It scans the current search snapshot every two hours, and selects the
-/// packages that have not been updated in the last 24 hours.
+/// packages that have not been updated in the last 48 hours.
 class _PeriodicUpdateTaskSource implements TaskSource {
   @override
   Stream<Task> startStreaming() async* {
@@ -161,15 +160,7 @@ class _PeriodicUpdateTaskSource implements TaskSource {
       await Future.delayed(Duration(hours: 2));
       final now = clock.now();
       final tasks = snapshotStorage.documents.values
-          .where((pd) {
-            final ageInMonths = now.difference(pd.updated ?? now).inDays ~/ 30;
-            // Packages updated in the past two years will get updated daily,
-            // each additional month adds an extra hour to the update time
-            // difference. Neglected packages (after 14 years of the last update)
-            // get refreshed in the index once in a week.
-            final updatePeriodHours = max(24, min(ageInMonths, 7 * 24));
-            return now.difference(pd.timestamp).inHours >= updatePeriodHours;
-          })
+          .where((pd) => now.difference(pd.timestamp).inHours >= 48)
           .map((pd) => Task(pd.package, pd.version!, now))
           .toList();
       _logger
