@@ -855,6 +855,11 @@ void main() {
       expectGoldenFile(html, 'help_page.html');
     });
 
+    testWithProfile('topics page', fn: () async {
+      final html = renderTopicsPage({'ui': 5, 'network': 7, 'http': 4});
+      expectGoldenFile(html, 'topics_page.html');
+    });
+
     scopedTest('pagination: single page', () {
       final html = paginationNode(PageLinks.empty()).toString();
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
