@@ -331,7 +331,7 @@ class CachePatterns {
           ))[configurationUrl];
 
   Entry<String> topicsPageCache() => _cache
-      .withPrefix('topics')
+      .withPrefix('topics/')
       .withTTL(Duration(hours: 1))
       .withCodec(utf8)['-'];
 }
