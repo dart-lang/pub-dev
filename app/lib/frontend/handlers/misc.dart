@@ -82,7 +82,8 @@ Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
         .bucket(activeConfiguration.reportsBucketName!)
         .readAsBytes(topicsJsonFileName);
 
-    topics = utf8JsonDecoder.convert(data) as Map<String, int>;
+    topics = (utf8JsonDecoder.convert(data) as Map<String, dynamic>)
+        .cast<String, int>();
   } on FormatException catch (e, st) {
     topics = {};
     _log.shout('Error loading topics, error:', e, st);
