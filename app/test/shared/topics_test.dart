@@ -8,6 +8,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/count_topics.dart';
 import 'package:test/test.dart';
 
+import '../frontend/handlers/_utils.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -24,5 +25,12 @@ void main() {
     // The default test profile has 3 packages that all get tagged with
     // the topic 'chemical-element'.
     expect(data, {'chemical-element': 3});
+
+    await expectHtmlResponse(
+      await issueGet('/topics'),
+      present: [
+        'chemical-element',
+      ],
+    );
   });
 }
