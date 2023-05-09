@@ -9,6 +9,43 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 
+class HeadlessGroup {
+  final String _origin;
+  final String? _testName;
+  final String? _coverageDir;
+  final bool _displayBrowser;
+
+  final _profiles = <HeadlessEnv>[];
+
+  HeadlessGroup({
+    required String origin,
+    String? testName,
+    String? coverageDir,
+    bool displayBrowser = false,
+  })  : _origin = origin,
+        _testName = testName,
+        _coverageDir = coverageDir,
+        _displayBrowser = displayBrowser;
+
+  Future<HeadlessEnv> createNewProfile() async {
+    final env = HeadlessEnv(
+      testName: '$_testName-${_profiles.length}',
+      origin: _origin,
+      coverageDir: _coverageDir,
+      displayBrowser: _displayBrowser,
+    );
+    _profiles.add(env);
+    await env.startBrowser();
+    return env;
+  }
+
+  Future<void> close() async {
+    while (_profiles.isNotEmpty) {
+      await _profiles.removeLast().close();
+    }
+  }
+}
+
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
 class HeadlessEnv {

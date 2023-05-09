@@ -52,9 +52,12 @@ Future<PubApiClient> _apiClientHttpHeadersFromSignedInSession(Page page) async {
     'cookie': cookieHeader,
     if (csrfToken != null) 'x-pub-csrf-token': csrfToken,
   };
-  final client = _HttpClient(http.Client(), true, headers);
+  final client = createHttpClientWithHeaders(headers);
   return PubApiClient(page.origin, client: client);
 }
+
+http.Client createHttpClientWithHeaders(Map<String, String> headers) =>
+    _HttpClient(http.Client(), true, headers);
 
 /// An [http.Client] which sends additional headers along the request.
 class _HttpClient extends http.BaseClient {
