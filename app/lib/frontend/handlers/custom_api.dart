@@ -8,6 +8,8 @@ import 'dart:io';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -34,6 +36,27 @@ Future<shelf.Response> apiDocumentationHandler(
   checkPackageVersionParams(package);
   if (isSoftRemoved(package)) {
     return jsonResponse({}, status: 404);
+  }
+
+  if (requestContext.experimentalFlags.showSandboxedOutput) {
+    if (!await packageBackend.isPackageVisible(package)) {
+      return jsonResponse({}, status: 404);
+    }
+    final status = await taskBackend.packageStatus(package);
+    return jsonResponse({
+      'name': package,
+      'versions': status.versions
+          .map((s) => {
+                'version': s.version,
+                'status': s.status == TaskPackageVersionStatus.pending ||
+                        s.status == TaskPackageVersionStatus.running
+                    ? 'pending'
+                    : (s.status == TaskPackageVersionStatus.failed
+                        ? 'failed'
+                        : 'completed'),
+              })
+          .toList(),
+    });
   }
 
   final cachedData = await cache.dartdocApiSummary(package).get();

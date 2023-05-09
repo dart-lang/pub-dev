@@ -36,9 +36,13 @@ import 'package:pub_dev/task/handlers.dart';
 import 'package:pub_dev/task/models.dart'
     show
         PackageState,
+        PackageStatus,
         PackageVersionState,
+        PackageVersionStatus,
+        TaskPackageVersionStatus,
+        initialTimestamp,
         maxTaskExecutionTime,
-        initialTimestamp;
+        taskRetryLimit;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:retry/retry.dart' show retry;
@@ -738,6 +742,7 @@ class TaskBackend {
   /// [package] and [version].
   Future<void> _purgeCache(String package, String version) async =>
       await Future.wait([
+        cache.taskPackageStatus(package).purge(),
         cache.taskResultIndex(package, version).purge(),
       ]);
 
@@ -898,6 +903,45 @@ class TaskBackend {
       _log.shout('Task log for $package/$version is malformed', e, st);
       return null;
     }
+  }
+
+  /// Get status information for a package being analyzed.
+  Future<PackageStatus> packageStatus(String package) async {
+    final status = await cache.taskPackageStatus(package).get(() async {
+      final key = PackageState.createKey(_db, runtimeVersion, package);
+      final state = await dbService.lookupOrNull<PackageState>(key);
+
+      return PackageStatus(
+        package: package,
+        versions: (state?.versions ?? {}).entries.map((e) {
+          final v = e.key;
+          final s = e.value;
+
+          var status = TaskPackageVersionStatus.completed;
+          if (s.attempts > 0 && s.attempts < taskRetryLimit) {
+            // attempts > 0 && attempts < taskRetryLimit  ==> pending
+            status = TaskPackageVersionStatus.pending;
+          } else if (s.scheduled
+              .add(Duration(days: 31))
+              .isBefore(clock.now())) {
+            // scheduled + 31 days < now                  ==> pending
+            status = TaskPackageVersionStatus.pending;
+          } else if (s.attempts == 0 && s.scheduled == initialTimestamp) {
+            // attempts == 0 && scheduled == init         ==> pending
+            status = TaskPackageVersionStatus.pending;
+          } else if (s.attempts >= taskRetryLimit) {
+            // attempts >= taskRetryLimit                 ==> failed
+            status = TaskPackageVersionStatus.failed;
+          } else {
+            // attempts == 0                              ==> completed
+            assert(s.attempts == 0);
+          }
+
+          return PackageVersionStatus(version: v, status: status);
+        }).toList(),
+      );
+    });
+    return status ?? PackageStatus(package: package, versions: []);
   }
 
   /// Create a URL for getting a resource created in pana.

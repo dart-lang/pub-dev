@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show json;
+import 'dart:convert' show Codec, json;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/convert.dart';
 import 'package:pub_dev/shared/datastore.dart' as db;
 
 part 'models.g.dart';
@@ -303,4 +304,57 @@ class PackageVersionStateMapProperty extends db.Property {
   bool validate(db.ModelDB mdb, Object? value) =>
       super.validate(mdb, value) &&
       (value == null || value is Map<String, PackageVersionState>);
+}
+
+/// Status for a package.
+@JsonSerializable()
+class PackageStatus {
+  final String package;
+
+  /// Status for versions.
+  ///
+  /// If a version is not represented by an entry in this list, then it is not
+  /// selected for analysis. Either because, it haven't been discovered yet, or
+  /// because we only analyse a limited number of versions.
+  final List<PackageVersionStatus> versions;
+
+  PackageStatus({
+    required this.package,
+    required this.versions,
+  });
+
+  factory PackageStatus.fromJson(Map<String, dynamic> m) =>
+      _$PackageStatusFromJson(m);
+  Map<String, dynamic> toJson() => _$PackageStatusToJson(this);
+}
+
+@JsonSerializable()
+class PackageVersionStatus {
+  /// Canonical version.
+  final String version;
+
+  final TaskPackageVersionStatus status;
+
+  PackageVersionStatus({
+    required this.version,
+    required this.status,
+  });
+
+  factory PackageVersionStatus.fromJson(Map<String, dynamic> m) =>
+      _$PackageVersionStatusFromJson(m);
+  Map<String, dynamic> toJson() => _$PackageVersionStatusToJson(this);
+}
+
+enum TaskPackageVersionStatus {
+  pending,
+  running,
+
+  /// Analysis have completed, there most likely is a summary, at-least there
+  /// is a task-log.
+  ///
+  /// Analysis may have failed.
+  completed,
+
+  /// Analysis failed to report a result.
+  failed,
 }
