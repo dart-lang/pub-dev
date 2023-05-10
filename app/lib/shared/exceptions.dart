@@ -342,12 +342,16 @@ class RateLimitException extends ResponseException {
   RateLimitException({
     required int maxCount,
     required String windowAsText,
+    required Duration window,
   }) : super._(
           429,
           'RateLimit',
           'The operation is blocked, as rate limit in the current window '
               'has been reached ($maxCount in the $windowAsText). '
               'Please try again later.',
+          headers: {
+            'Retry-After': '${window.inSeconds}',
+          },
         );
 }
 

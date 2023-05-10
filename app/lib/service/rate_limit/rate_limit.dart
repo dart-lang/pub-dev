@@ -76,6 +76,7 @@ Future<void> _verifyRateLimit({
     if (current != null && current.isAfter(clock.now())) {
       throw RateLimitException(
         maxCount: maxCount,
+        window: window,
         windowAsText: windowAsText,
       );
     }
@@ -96,6 +97,7 @@ Future<void> _verifyRateLimit({
       await entry.set(firstTimestamp.add(window), window);
       throw RateLimitException(
         maxCount: maxCount,
+        window: window,
         windowAsText: windowAsText,
       );
     }
