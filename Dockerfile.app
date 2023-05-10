@@ -34,11 +34,11 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 
 # Setup analysis Dart SDKs
 RUN /project/tool/setup-dart.sh /tool/stable 3.0.0
-RUN /project/tool/setup-dart.sh /tool/preview 3.0.0
+RUN /project/tool/setup-dart.sh /tool/preview 3.1.0-63.1.beta
 
 # Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 3.10.0-1.5.pre
-RUN /project/tool/setup-flutter.sh /tool/preview 3.10.0-1.5.pre
+RUN /project/tool/setup-flutter.sh /tool/stable 3.10.0
+RUN /project/tool/setup-flutter.sh /tool/preview 3.11.0-0.0.pre
 
 # Clear out any arguments the base images might have set
 CMD []
