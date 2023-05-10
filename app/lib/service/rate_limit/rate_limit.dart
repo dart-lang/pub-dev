@@ -71,7 +71,7 @@ Future<void> _verifyRateLimit({
       return;
     }
 
-    final entry = cache.rateLimitUntil(entryKey: entryKey, window: window);
+    final entry = cache.rateLimitUntil(entryKey);
     final current = await entry.get();
     if (current != null && current.isAfter(clock.now())) {
       throw RateLimitException(
@@ -93,7 +93,7 @@ Future<void> _verifyRateLimit({
       final firstTimestamp = relevantEntries
           .map((e) => e.created!)
           .reduce((a, b) => a.isBefore(b) ? a : b);
-      await entry.set(firstTimestamp.add(window));
+      await entry.set(firstTimestamp.add(window), window);
       throw RateLimitException(
         maxCount: maxCount,
         windowAsText: windowAsText,
