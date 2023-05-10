@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/dartdoc/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -27,6 +28,8 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show jsonUtf8Encoder;
 
 import 'headers.dart';
+
+final _logger = Logger('pub.custom_api');
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -120,6 +123,10 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   // only accept requests which allow gzip content encoding
   if (!request.acceptsGzipEncoding()) {
     throw NotAcceptableException('Client must accept gzip content.');
+  }
+  // log if the request does not accept JSON content
+  if (!request.acceptsJsonContent()) {
+    _logger.warning('[api-no-json-accept-header]');
   }
 
   final bytes = await cache.packageNameCompletitionDataJsonGz().get(() async {
