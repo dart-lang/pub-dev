@@ -27,6 +27,7 @@ AuditBackend get auditBackend => ss.lookup(#_auditBackend) as AuditBackend;
 class AuditBackend {
   final DatastoreDB _db;
   var _cachedRecords = _CachedRecords(DateTime(0), []);
+  Future<void>? _cacheRecordsUpdateFuture;
 
   AuditBackend(this._db);
 
@@ -144,15 +145,32 @@ class AuditBackend {
   /// Keeps the [_cachedRecords] fields updated, and lists only the entries
   /// up to the last query.
   Future<List<AuditLogRecord>> getEntriesFromLastDay() async {
-    final now = clock.now().toUtc();
-    final cachedAge = now.difference(_cachedRecords.updated);
+    if (_cacheRecordsUpdateFuture != null) {
+      await _cacheRecordsUpdateFuture;
+    } else {
+      final now = clock.now().toUtc();
+      final cachedAge = now.difference(_cachedRecords.updated);
+      if (cachedAge.inSeconds < 3) {
+        return _cachedRecords.records;
+      }
 
-    // fast track for requests within 5 seconds:
-    if (cachedAge.inSeconds < 5) {
-      return _cachedRecords.records;
+      // we should have only one update running
+      _cacheRecordsUpdateFuture = _updateEntriesFromLastDay(
+        cachedAge: cachedAge,
+        oldRecords: _cachedRecords.records,
+      );
+      await _cacheRecordsUpdateFuture;
+      _cacheRecordsUpdateFuture = null;
     }
+    return _cachedRecords.records;
+  }
 
+  Future<void> _updateEntriesFromLastDay({
+    required Duration cachedAge,
+    required Iterable<AuditLogRecord> oldRecords,
+  }) async {
     // calculate window to query
+    final now = clock.now();
     final day = const Duration(days: 1);
     var window = cachedAge > day ? day : (day - cachedAge);
     if (window < Duration(minutes: 2)) {
@@ -165,7 +183,7 @@ class AuditBackend {
 
     // merge records from cache and current query
     final recordMap = <String, AuditLogRecord>{};
-    for (final r in _cachedRecords.records) {
+    for (final r in oldRecords) {
       recordMap[r.id!] = r;
     }
     for (final r in current) {
@@ -176,12 +194,7 @@ class AuditBackend {
         .where((r) => now.difference(r.created!) < day)
         .toList();
 
-    // update if current list is newer
-    if (_cachedRecords.updated.isBefore(now)) {
-      _cachedRecords = _CachedRecords(now, records);
-    }
-
-    return records;
+    _cachedRecords = _CachedRecords(now, records);
   }
 }
 
