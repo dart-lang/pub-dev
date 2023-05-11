@@ -138,11 +138,16 @@ class SearchBackend {
       _logger.severe('Parsing pub-data.json failed.', e, st);
     }
 
+    final descriptionAndTopics = <String>[
+      pv.pubspec!.description ?? '',
+      ...?pv.pubspec!.topics,
+    ].join(' ');
+
     return PackageDocument(
       package: pv.package,
       version: pv.version!,
       tags: tags.toList(),
-      description: compactDescription(pv.pubspec!.description),
+      description: compactDescription(descriptionAndTopics),
       created: p.created,
       updated: p.lastVersionPublished,
       readme: compactReadme(readmeAsset?.textContent),
