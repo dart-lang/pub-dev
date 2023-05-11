@@ -76,29 +76,27 @@ Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
 
 /// Handles requests for /topics
 Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
-  final html = await cache.topicsPageCache().get(() async {
-    late Map<String, int> topics;
-    try {
-      final data = await storageService
+  late Map<String, int> topics;
+  try {
+    final data = await cache.topicsPageData().get(() async {
+      return await storageService
           .bucket(activeConfiguration.reportsBucketName!)
           .readAsBytes(topicsJsonFileName);
+    });
 
-      topics = (utf8JsonDecoder.convert(data) as Map<String, dynamic>)
-          .cast<String, int>();
-    } on FormatException catch (e, st) {
-      topics = {};
-      _log.shout('Error loading topics, error:', e, st);
-    } on DetailedApiRequestError catch (e, st) {
-      topics = {};
-      if (e.status != 404) {
-        _log.severe('Failed to load topics.json, error : ', e, st);
-      }
+    topics = (utf8JsonDecoder.convert(data!) as Map<String, dynamic>)
+        .cast<String, int>();
+  } on FormatException catch (e, st) {
+    topics = {};
+    _log.shout('Error loading topics, error:', e, st);
+  } on DetailedApiRequestError catch (e, st) {
+    topics = {};
+    if (e.status != 404) {
+      _log.severe('Failed to load topics.json, error : ', e, st);
     }
+  }
 
-    return renderTopicsPage(topics);
-  });
-
-  return htmlResponse(html!);
+  return htmlResponse(renderTopicsPage(topics));
 }
 
 /// Handles requests for /robots.txt
