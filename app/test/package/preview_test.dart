@@ -26,7 +26,7 @@ void main() {
     setUpAll(() async {
       final current = await getDartSdkVersion();
       currentSdkVersion = current.semanticVersion;
-      futureSdkVersion = currentSdkVersion!.nextMinor.nextMinor;
+      futureSdkVersion = Version.parse('3.99.0');
     });
 
     test('verify versions', () async {
@@ -228,7 +228,7 @@ class _ImportSource implements ImportSource {
       'version': version,
       'description': '$package is awesome',
       'environment': {
-        'sdk': '>=$minSdk <3.0.0',
+        'sdk': '>=$minSdk <4.0.0',
       },
     });
 
