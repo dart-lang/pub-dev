@@ -330,10 +330,8 @@ class CachePatterns {
             decode: (v) => OpenIdData.fromJson(v as Map<String, dynamic>),
           ))[configurationUrl];
 
-  Entry<String> topicsPageCache() => _cache
-      .withPrefix('topics/')
-      .withTTL(Duration(hours: 1))
-      .withCodec(utf8)['-'];
+  Entry<List<int>> topicsPageData() =>
+      _cache.withPrefix('topics-page-data/').withTTL(Duration(hours: 1))['-'];
 }
 
 /// The active cache.
