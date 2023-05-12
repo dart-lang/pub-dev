@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -155,14 +156,18 @@ extension RequestExt on shelf.Request {
   ///
   /// NOTE: the method does not parses the header, only checks whether the [encoding]
   ///       String is present (or everything is accepted).
+  @visibleForTesting
   bool acceptsEncoding(String encoding) {
-    final accepting = headers[HttpHeaders.acceptEncodingHeader];
+    final set = _parseAcceptHeader(HttpHeaders.acceptEncodingHeader);
+    return set?.contains(encoding) ?? false;
+  }
+
+  Set<String>? _parseAcceptHeader(String headerKey) {
+    final accepting = headers[headerKey];
     if (accepting == null || accepting.isEmpty) {
-      return false;
+      return null;
     }
-    final items =
-        accepting.split(',').map((p) => p.split(';').first.trim()).toSet();
-    return items.contains(encoding);
+    return accepting.split(',').map((p) => p.split(';').first.trim()).toSet();
   }
 
   /// Returns true if the current request declares that it accepts the `gzip` encoding.
@@ -170,4 +175,12 @@ extension RequestExt on shelf.Request {
   /// NOTE: the method does not parses the header, only checks whether the `gzip`
   ///       String is present (or everything is accepted).
   bool acceptsGzipEncoding() => acceptsEncoding('gzip');
+
+  /// Returns true if the current request declared that it accepts the `application/json`
+  /// content type or the accepting everything content type (`*/*`)
+  bool acceptsJsonContent() {
+    final set = _parseAcceptHeader(HttpHeaders.acceptHeader);
+    if (set == null) return false;
+    return set.contains('application/json') || set.contains('*/*');
+  }
 }
