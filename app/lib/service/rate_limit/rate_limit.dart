@@ -19,13 +19,21 @@ Future<void> verifyPackageUploadRateLimit({
   required String package,
 }) async {
   final operation = AuditLogRecordKind.packagePublished;
-  if (agent.email != null) {
+
+  if (agent is AuthenticatedUser) {
     await _verifyRateLimit(
       rateLimit: _getRateLimit(operation, RateLimitScope.user),
-      dataFilters: {'email': agent.email!},
+      userId: agent.userId,
+    );
+  } else {
+    // apply per-user rate limit on non-user agents as they were package-specific limits
+    await _verifyRateLimit(
+      rateLimit: _getRateLimit(operation, RateLimitScope.user),
+      package: package,
     );
   }
 
+  // regular package-specific limits
   await _verifyRateLimit(
     rateLimit: _getRateLimit(operation, RateLimitScope.package),
     package: package,
@@ -42,6 +50,7 @@ Future<void> _verifyRateLimit({
   required RateLimit? rateLimit,
   Map<String, String>? dataFilters,
   String? package,
+  String? userId,
 }) async {
   if (rateLimit == null) {
     return;
@@ -56,6 +65,7 @@ Future<void> _verifyRateLimit({
     rateLimit.operation,
     rateLimit.scope.name,
     if (package != null) 'package-$package',
+    if (userId != null) 'userId-$userId',
     ...?dataFilters?.entries.map((e) => [e.key, e.value].join('-')),
   ];
   final entryKey = Uri(pathSegments: cacheKeyParts).toString();
@@ -87,6 +97,7 @@ Future<void> _verifyRateLimit({
         .where((e) => e.kind == rateLimit.operation)
         .where((e) => e.created!.isAfter(windowStart))
         .where((e) => _containsPackage(e.packages, package))
+        .where((e) => _containsUserId(e.users, userId))
         .where((e) => _containsData(e.data, dataFilters))
         .toList();
 
@@ -131,6 +142,19 @@ bool _containsPackage(
     return false;
   }
   return packages.contains(package);
+}
+
+bool _containsUserId(
+  List<String>? users,
+  String? userId,
+) {
+  if (users == null || users.isEmpty) {
+    return false;
+  }
+  if (userId == null) {
+    return false;
+  }
+  return users.contains(userId);
 }
 
 bool _containsData(
