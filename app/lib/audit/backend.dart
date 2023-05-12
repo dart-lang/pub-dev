@@ -144,6 +144,8 @@ class AuditBackend {
   ///
   /// Keeps the [_cachedRecords] fields updated, and lists only the entries
   /// up to the last query.
+  ///
+  /// NOTE: there is no guarantee that the entries are in creation order
   Future<List<AuditLogRecord>> getEntriesFromLastDay() async {
     if (_cacheRecordsUpdateFuture != null) {
       await _cacheRecordsUpdateFuture;
@@ -182,17 +184,12 @@ class AuditBackend {
     final current = await query.run().toList();
 
     // merge records from cache and current query
-    final recordMap = <String, AuditLogRecord>{};
-    for (final r in oldRecords) {
-      recordMap[r.id!] = r;
-    }
-    for (final r in current) {
-      recordMap[r.id!] = r;
-    }
-    // filter records that are within the last day
-    final records = recordMap.values
-        .where((r) => now.difference(r.created!) < day)
-        .toList();
+    final currentIds = current.map((e) => e.id!).toSet();
+    final records = [
+      ...oldRecords.where((r) =>
+          !currentIds.contains(r.id!) && now.difference(r.created!) < day),
+      ...current,
+    ];
 
     _cachedRecords = _CachedRecords(now, records);
   }
