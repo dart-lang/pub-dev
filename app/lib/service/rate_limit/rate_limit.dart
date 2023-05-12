@@ -48,7 +48,6 @@ RateLimit? _getRateLimit(String operation, RateLimitScope scope) {
 
 Future<void> _verifyRateLimit({
   required RateLimit? rateLimit,
-  Map<String, String>? dataFilters,
   String? package,
   String? userId,
 }) async {
@@ -66,7 +65,6 @@ Future<void> _verifyRateLimit({
     rateLimit.scope.name,
     if (package != null) 'package-$package',
     if (userId != null) 'userId-$userId',
-    ...?dataFilters?.entries.map((e) => [e.key, e.value].join('-')),
   ];
   final entryKey = Uri(pathSegments: cacheKeyParts).toString();
 
@@ -96,9 +94,8 @@ Future<void> _verifyRateLimit({
     final relevantEntries = auditEntriesFromLastDay
         .where((e) => e.kind == rateLimit.operation)
         .where((e) => e.created!.isAfter(windowStart))
-        .where((e) => _containsPackage(e.packages, package))
-        .where((e) => _containsUserId(e.users, userId))
-        .where((e) => _containsData(e.data, dataFilters))
+        .where((e) => package == null || _containsPackage(e.packages, package))
+        .where((e) => userId == null || _containsUserId(e.users, userId))
         .toList();
 
     if (relevantEntries.length >= maxCount) {
@@ -133,12 +130,9 @@ Future<void> _verifyRateLimit({
 
 bool _containsPackage(
   List<String>? packages,
-  String? package,
+  String package,
 ) {
   if (packages == null || packages.isEmpty) {
-    return false;
-  }
-  if (package == null) {
     return false;
   }
   return packages.contains(package);
@@ -146,31 +140,10 @@ bool _containsPackage(
 
 bool _containsUserId(
   List<String>? users,
-  String? userId,
+  String userId,
 ) {
   if (users == null || users.isEmpty) {
     return false;
   }
-  if (userId == null) {
-    return false;
-  }
   return users.contains(userId);
-}
-
-bool _containsData(
-  Map<String, dynamic>? data,
-  Map<String, String>? filters,
-) {
-  if (data == null) {
-    return false;
-  }
-  if (filters == null || filters.isEmpty) {
-    return true;
-  }
-  for (final entry in filters.entries) {
-    if (data[entry.key] != entry.value) {
-      return false;
-    }
-  }
-  return true;
 }
