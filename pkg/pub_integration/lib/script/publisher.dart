@@ -5,8 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pub_integration/src/fake_pub_server_process.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/test_scenario.dart';
 
 import '../src/pub_http_client.dart';
 import '../src/pub_tool_client.dart';
@@ -18,24 +20,20 @@ typedef InviteCompleterFn = Future<void> Function();
 /// verification tests with the `pub` tool on the fake site.
 class PublisherScript {
   final String pubHostedUrl;
-  final String credentialsFileContent;
-  final String invitedEmail;
-  final InviteCompleterFn inviteCompleterFn;
   final PubHttpClient _pubHttpClient;
-  final HeadlessEnv headlessEnv;
+  final TestUser adminUser;
+  final TestUser invitedUser;
+  final TestUser unrelatedUser;
   DartToolClient? _pubToolClient;
 
   late Directory _temp;
 
   PublisherScript({
     required this.pubHostedUrl,
-    required this.credentialsFileContent,
-    required this.invitedEmail,
-    required this.inviteCompleterFn,
-    required this.headlessEnv,
+    required this.adminUser,
+    required this.invitedUser,
+    required this.unrelatedUser,
   }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
-
-  final userWebsiteToken = 'user-at-example-dot-com?aud=fake-site-audience';
 
   /// Verify all integration steps.
   Future<void> verify() async {
@@ -43,8 +41,10 @@ class PublisherScript {
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
       _pubToolClient = await DartToolClient.withServer(
-          pubHostedUrl: pubHostedUrl,
-          credentialsFileContent: credentialsFileContent);
+        pubHostedUrl: pubHostedUrl,
+        credentialsFileContent:
+            json.encode(await adminUser.createCredentials()),
+      );
 
       await _createFakeRetryPkg();
 
@@ -53,11 +53,7 @@ class PublisherScript {
       await _verifyDummyPkg(
           version: '1.0.0', uploaderEmail: 'user@example.com');
 
-      await headlessEnv.withPage(fn: (page) async {
-        await page.fakeAuthSignIn(
-          email: 'user@example.com',
-          scopes: [webmastersReadonlyScope],
-        );
+      await adminUser.withBrowserPage((page) async {
         await page.createPublisher(publisherId: 'example.com');
         await page.setPackagePublisher(
           package: '_dummy_pkg',
@@ -82,26 +78,41 @@ class PublisherScript {
       await _verifyPublisherListPage();
 
       // member invite
-      await headlessEnv.withPage(fn: (page) async {
-        await page.fakeAuthSignIn(
-          email: 'user@example.com',
-        );
-
+      await adminUser.withBrowserPage((page) async {
         final members1 =
             await page.listPublisherMembers(publisherId: 'example.com');
         _verifyMap({'user@example.com': 'admin'}, members1);
 
         await page.invitePublisherMember(
           publisherId: 'example.com',
-          invitedEmail: invitedEmail,
+          invitedEmail: invitedUser.email,
         );
-        await inviteCompleterFn();
+      });
 
+      // get consent id
+      final lastEmail = await invitedUser.readLatestEmail();
+      final consentId = extractConsentIdFromEmail(lastEmail);
+
+      // spoofed consent, trying to accept it with a different user
+      await unrelatedUser.withBrowserPage((page) async {
+        final rs = await page.gotoOrigin('/consent?id=$consentId');
+        if (rs.status != 400) {
+          throw Exception('Unexpected status code: ${rs.status}');
+        }
+      });
+
+      // accepting it with the good user
+      await invitedUser.withBrowserPage((page) async {
+        await page.acceptConsent(consentId: consentId);
+      });
+
+      // verify published members after invite succeeded
+      await adminUser.withBrowserPage((page) async {
         final members2 =
             await page.listPublisherMembers(publisherId: 'example.com');
         _verifyMap({
           'user@example.com': 'admin',
-          invitedEmail: 'admin',
+          invitedUser.email: 'admin',
         }, members2);
       });
 

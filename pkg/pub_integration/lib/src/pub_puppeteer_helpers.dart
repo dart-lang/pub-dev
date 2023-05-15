@@ -124,6 +124,18 @@ extension PubPageExt on Page {
     await _waitForModelHidden();
   }
 
+  Future<void> invitePackageAdmin({
+    required String package,
+    required String invitedEmail,
+  }) async {
+    await gotoOrigin('/packages/$package/admin');
+    await waitAndClick('#-pkg-admin-invite-uploader-button');
+    await _waitAndType('#-pkg-admin-invite-uploader-input', invitedEmail);
+    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
+  }
+
   Future<void> acceptConsent({
     required String consentId,
   }) async {

@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/test_scenario.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../src/pub_http_client.dart';
@@ -20,12 +25,10 @@ typedef InviteCompleterFn = Future<void> Function();
 /// `pub` tool on the pub.dev site (or on a test site).
 class PublishingScript {
   final String pubHostedUrl;
-  final String credentialsFileContent;
-  final String mainAccessToken;
-  final String invitedEmail;
-  final InviteCompleterFn inviteCompleterFn;
   final bool expectLiveSite;
   final PubHttpClient _pubHttpClient;
+  final TestUser adminUser;
+  final TestUser invitedUser;
 
   String? _newDummyVersion;
   late bool _hasRetry;
@@ -37,12 +40,10 @@ class PublishingScript {
 
   PublishingScript(
     this.pubHostedUrl,
-    this.credentialsFileContent,
-    this.mainAccessToken,
-    this.invitedEmail,
-    this.inviteCompleterFn,
-    this.expectLiveSite,
-  ) : _pubHttpClient = PubHttpClient(pubHostedUrl);
+    this.expectLiveSite, {
+    required this.adminUser,
+    required this.invitedUser,
+  }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
   /// Verify all integration steps.
   Future<void> verify() async {
@@ -50,7 +51,7 @@ class PublishingScript {
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     final dart = await DartToolClient.withServer(
       pubHostedUrl: pubHostedUrl,
-      credentialsFileContent: credentialsFileContent,
+      credentialsFileContent: json.encode(await adminUser.createCredentials()),
     );
     try {
       if (!_hasRetry) {
@@ -84,21 +85,29 @@ class PublishingScript {
       await dart.getDependencies(_dummyExampleDir.path);
       await dart.run(_dummyExampleDir.path, 'bin/main.dart');
 
-      // TODO: re-add uploader invites with better token/session/csrf handling
-      // // add/remove uploader
-      // await _pubHttpClient.inviteUploader(
-      //   packageName: '_dummy_pkg',
-      //   accessToken: mainAccessToken,
-      //   invitedEmail: invitedEmail,
-      // );
-      // await inviteCompleterFn();
-      // await _verifyDummyPkg();
-      // await _pubHttpClient.removeUploader(
-      //   packageName: '_dummy_pkg',
-      //   accessToken: mainAccessToken,
-      //   uploaderEmail: invitedEmail,
-      // );
-      // await _verifyDummyPkg();
+      // invite uploader
+      // TODO: use page.invitePackageAdmin instead
+      await adminUser.api.invitePackageUploader(
+          '_dummy_pkg', InviteUploaderRequest(email: invitedUser.email));
+
+      final lastEmail = await invitedUser.readLatestEmail();
+      final consentId = extractConsentIdFromEmail(lastEmail);
+
+      // accepting it with the good user
+      // TODO: use page.acceptConsent instead
+      await invitedUser.api
+          .resolveConsent(consentId, ConsentResult(granted: true));
+
+      await _verifyDummyPkg();
+
+      // remove uploader with API
+      await adminUser.api.removeUploaderFromUI(
+        '_dummy_pkg',
+        RemoveUploaderRequest(
+          email: invitedUser.email,
+        ),
+      );
+      await _verifyDummyPkg();
 
       if (expectLiveSite) {
         await _verifyDummyDocumentation();

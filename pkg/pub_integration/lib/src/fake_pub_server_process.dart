@@ -189,6 +189,17 @@ class FakeEmailReaderFromOutputDirectory {
   }
 }
 
+// TODO: find a better place for the utility method
+String extractConsentIdFromEmail(String email) {
+  final inviteUrlLogLine = email
+      .split('\n')
+      .firstWhere((line) => line.contains('https://pub.dev/consent'));
+  final inviteUri = Uri.parse(inviteUrlLogLine
+      .substring(inviteUrlLogLine.indexOf('https://pub.dev/consent')));
+  final consentId = inviteUri.queryParameters['id']!;
+  return consentId;
+}
+
 class _CoverageConfig {
   final int vmPort;
   final String outputPath;
