@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:puppeteer/puppeteer.dart';
@@ -13,23 +13,20 @@ import 'package:test/test.dart';
 
 void main() {
   group('browser', () {
-    late FakePubServerProcess fakePubServerProcess;
-    late final HeadlessEnv headlessEnv;
+    late final FakeTestScenario fakeTestScenario;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
+      fakeTestScenario = await FakeTestScenario.start();
     });
 
     tearDownAll(() async {
-      await headlessEnv.close();
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
       httpClient.close();
     });
 
     test('bulk tests', () async {
-      final origin = 'http://localhost:${fakePubServerProcess.port}';
+      final origin = fakeTestScenario.pubHostedUrl;
       // init server data
       //
       // The test profile import uses a fake analysis by default, which
@@ -54,13 +51,11 @@ void main() {
             },
           }));
 
-      // start browser
-      headlessEnv = HeadlessEnv(testName: 'search-update', origin: origin);
-      await headlessEnv.startBrowser();
+      final user = await fakeTestScenario.createAnonymousTestUser();
 
       // listing page
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/packages');
 
           // check package list
@@ -194,8 +189,8 @@ void main() {
       );
 
       // type + multiple checkbox clicks
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/packages');
 
           await page.focus('input[name="q"]');
@@ -239,8 +234,8 @@ void main() {
       );
 
       // licenses
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/packages');
 
           // OSI approved
@@ -257,8 +252,8 @@ void main() {
       );
 
       // back button working with checkboxes
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/packages');
 
           await page.focus('input[name="q"]');
@@ -281,8 +276,8 @@ void main() {
       );
 
       // back button updating the URL and the input text
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/packages');
 
           await page.focus('input[name="q"]');
@@ -308,7 +303,7 @@ void main() {
       );
 
       // Clicking on a tag keeps the search context.
-      await headlessEnv.withPage(fn: (page) async {
+      await user.withBrowserPage((page) async {
         await page.gotoOrigin('/packages?q=pkg+platform:android');
         // clicking on the first package's first sub-tag, which is `sdk:dart`
         await page.click('.tag-badge-sub');

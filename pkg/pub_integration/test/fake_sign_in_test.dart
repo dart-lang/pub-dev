@@ -5,37 +5,26 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('fake sign in', () {
-    late FakePubServerProcess fakePubServerProcess;
-    late final HeadlessEnv headlessEnv;
+    late final FakeTestScenario fakeTestScenario;
 
     setUpAll(() async {
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
+      fakeTestScenario = await FakeTestScenario.start();
     });
 
     tearDownAll(() async {
-      await headlessEnv.close();
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
     });
 
     test('bulk tests', () async {
-      // start browser
-      final origin = 'http://localhost:${fakePubServerProcess.port}';
-      headlessEnv = HeadlessEnv(
-        testName: 'fake_sign_in',
-        origin: origin,
-      );
-      await headlessEnv.startBrowser();
-
       // init server data
       await http.post(
-        Uri.parse('$origin/fake-test-profile'),
+        Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
         body: json.encode(
           {
             'testProfile': {
@@ -54,10 +43,11 @@ void main() {
         ),
       );
 
+      final browserSession = await fakeTestScenario.createAnonymousTestUser();
       String? firstSessionId;
       // sign-in page
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await browserSession.withBrowserPage(
+        (page) async {
           final rs = await page.gotoOrigin('/sign-in?fake-email=user@pub.dev');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();
@@ -73,14 +63,14 @@ void main() {
       );
 
       // same user sign-in with redirect
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await browserSession.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/sign-in?fake-email=user@pub.dev&go=/help');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();
           expect(cookieNames, contains('PUB_SID_INSECURE'));
           expect(cookieNames, contains('PUB_SSID_INSECURE'));
-          expect(page.url, '$origin/help');
+          expect(page.url, '${fakeTestScenario.pubHostedUrl}/help');
 
           expect(
             cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value,
@@ -90,8 +80,8 @@ void main() {
       );
 
       // visiting unauthorized admin page fails
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await browserSession.withBrowserPage(
+        (page) async {
           final rs1 = await page.gotoOrigin('/packages/admin_pkg/admin');
           expect(await rs1.content,
               contains('You have insufficient permissions to view this page.'));
@@ -107,14 +97,14 @@ void main() {
       );
 
       // sign-in with different user selected - session id changes
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await browserSession.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev&go=/');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();
           expect(cookieNames, contains('PUB_SID_INSECURE'));
           expect(cookieNames, contains('PUB_SSID_INSECURE'));
-          expect(page.url, '$origin/');
+          expect(page.url, '${fakeTestScenario.pubHostedUrl}/');
 
           expect(
             cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value,
@@ -124,7 +114,7 @@ void main() {
       );
 
       // sign-out with button
-      await headlessEnv.withPage(fn: (page) async {
+      await browserSession.withBrowserPage((page) async {
         await page.gotoOrigin('/');
         expect(await page.content, contains('admin@pub.dev'));
         await page.hover('.nav-profile-img');
@@ -140,7 +130,7 @@ void main() {
       });
 
       // sign-in with button
-      await headlessEnv.withPage(fn: (page) async {
+      await browserSession.withBrowserPage((page) async {
         await page.gotoOrigin('/help');
         expect(await page.content, isNot(contains('user@pub.dev')));
         final handle = await page.$('#-account-login');

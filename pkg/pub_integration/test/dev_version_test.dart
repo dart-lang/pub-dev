@@ -5,27 +5,26 @@
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/script/dev_version.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
-import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('devVersion - dev first', () {
-    late FakePubServerProcess fakePubServerProcess;
+    late final FakeTestScenario fakeTestScenario;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
+      fakeTestScenario = await FakeTestScenario.start();
     });
 
     tearDownAll(() async {
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
       httpClient.close();
     });
 
     test('steps', () async {
       final script = DevVersionScript(
-        pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
+        pubHostedUrl: fakeTestScenario.pubHostedUrl,
         credentialsFileContent: fakeCredentialsFileContent(),
       );
       await script.verify(false);
@@ -33,22 +32,21 @@ void main() {
   }, timeout: Timeout.factor(testTimeoutFactor));
 
   group('devVersion - stable first', () {
-    late FakePubServerProcess fakePubServerProcess;
+    late final FakeTestScenario fakeTestScenario;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
+      fakeTestScenario = await FakeTestScenario.start();
     });
 
     tearDownAll(() async {
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
       httpClient.close();
     });
 
     test('steps', () async {
       final script = DevVersionScript(
-        pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
+        pubHostedUrl: fakeTestScenario.pubHostedUrl,
         credentialsFileContent: fakeCredentialsFileContent(),
       );
       await script.verify(true);

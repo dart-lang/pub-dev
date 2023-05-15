@@ -4,45 +4,31 @@
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/pub_integration.dart';
-import 'package:pub_integration/src/fake_pub_server_process.dart';
-import 'package:pub_integration/src/fake_test_user.dart';
-import 'package:pub_integration/src/headless_env.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Integration test using pkg/fake_pub_server', () {
-    late FakePubServerProcess fakePubServerProcess;
-    late final HeadlessGroup headlessGroup;
+    late final FakeTestScenario fakeTestScenario;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
+      fakeTestScenario = await FakeTestScenario.start();
     });
 
     tearDownAll(() async {
-      await headlessGroup.close();
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
       httpClient.close();
     });
 
     test('standard integration', () async {
-      headlessGroup = HeadlessGroup(
-        testName: 'pub-integration',
-        origin: 'http://localhost:${fakePubServerProcess.port}',
-      );
-
       await verifyPub(
-        pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
-        adminUser: await createFakeTestUser(
+        pubHostedUrl: fakeTestScenario.pubHostedUrl,
+        adminUser: await fakeTestScenario.createTestUser(
           email: 'user@example.com',
-          headlessEnv: await headlessGroup.createNewProfile(),
-          fakeEmailReader: fakePubServerProcess.fakeEmailReader,
         ),
-        invitedUser: await createFakeTestUser(
+        invitedUser: await fakeTestScenario.createTestUser(
           email: 'dev@example.com',
-          headlessEnv: await headlessGroup.createNewProfile(),
-          fakeEmailReader: fakePubServerProcess.fakeEmailReader,
         ),
         expectLiveSite: false,
       );

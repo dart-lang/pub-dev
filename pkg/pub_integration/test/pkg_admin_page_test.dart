@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:test/test.dart';
@@ -14,23 +14,20 @@ void main() {
   group(
     'package admin page',
     () {
-      late FakePubServerProcess fakePubServerProcess;
-      late final HeadlessEnv headlessEnv;
+      late final FakeTestScenario fakeTestScenario;
       final httpClient = http.Client();
 
       setUpAll(() async {
-        fakePubServerProcess = await FakePubServerProcess.start();
-        await fakePubServerProcess.started;
+        fakeTestScenario = await FakeTestScenario.start();
       });
 
       tearDownAll(() async {
-        await headlessEnv.close();
-        await fakePubServerProcess.kill();
+        await fakeTestScenario.close();
         httpClient.close();
       });
 
       test('bulk tests', () async {
-        final origin = 'http://localhost:${fakePubServerProcess.port}';
+        final origin = fakeTestScenario.pubHostedUrl;
         // init server data
         await httpClient.post(Uri.parse('$origin/fake-test-profile'),
             body: json.encode({
@@ -44,13 +41,11 @@ void main() {
               },
             }));
 
-        // start browser
-        headlessEnv = HeadlessEnv(testName: 'pkg-admin-page', origin: origin);
-        await headlessEnv.startBrowser();
+        final user =
+            await fakeTestScenario.createTestUser(email: 'admin@pub.dev');
 
         // github publishing
-        await headlessEnv.withPage(fn: (page) async {
-          await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev');
+        await user.withBrowserPage((page) async {
           await page.gotoOrigin('/packages/test_pkg/admin');
 
           await page.waitAndClick('#-pkg-admin-automated-github-enabled');

@@ -6,22 +6,21 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_integration/src/fake_credentials.dart';
-import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:pub_integration/src/pub_tool_client.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('reject based on description', () {
-    late FakePubServerProcess fakePubServerProcess;
+    late final FakeTestScenario fakeTestScenario;
     late String pubHostedUrl;
     late DartToolClient globalDartTool;
     late DartToolClient localDartTool;
 
     setUpAll(() async {
       globalDartTool = await DartToolClient.withPubDev();
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
-      pubHostedUrl = 'http://localhost:${fakePubServerProcess.port}';
+      fakeTestScenario = await FakeTestScenario.start();
+      pubHostedUrl = fakeTestScenario.pubHostedUrl;
       localDartTool = await DartToolClient.withServer(
         pubHostedUrl: pubHostedUrl,
         credentialsFileContent: fakeCredentialsFileContent(),
@@ -31,7 +30,7 @@ void main() {
     tearDownAll(() async {
       await globalDartTool.close();
       await localDartTool.close();
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
     });
 
     test('uses a template', () async {

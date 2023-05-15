@@ -5,7 +5,7 @@
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/script/base_setup_script.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
-import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/fake_test_scenario.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:puppeteer/puppeteer.dart';
@@ -13,42 +13,34 @@ import 'package:test/test.dart';
 
 void main() {
   group('browser', () {
-    late FakePubServerProcess fakePubServerProcess;
+    late final FakeTestScenario fakeTestScenario;
     late BaseSetupScript script;
-    late final HeadlessEnv headlessEnv;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakePubServerProcess = await FakePubServerProcess.start();
-      await fakePubServerProcess.started;
+      fakeTestScenario = await FakeTestScenario.start();
     });
 
     tearDownAll(() async {
       await script.close();
-      await headlessEnv.close();
-      await fakePubServerProcess.kill();
+      await fakeTestScenario.close();
       httpClient.close();
     });
 
     test('bulk tests', () async {
       // base setup: publish packages
       script = BaseSetupScript(
-        pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
+        pubHostedUrl: fakeTestScenario.pubHostedUrl,
         credentialsFileContent: fakeCredentialsFileContent(),
       );
       await script.publishPackages();
       await script.updatePubSite();
 
-      // start browser
-      headlessEnv = HeadlessEnv(
-        testName: 'browser',
-        origin: 'http://localhost:${fakePubServerProcess.port}',
-      );
-      await headlessEnv.startBrowser();
+      final user = await fakeTestScenario.createAnonymousTestUser();
 
       // landing page
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/');
 
           // checking if there is a login button
@@ -57,8 +49,8 @@ void main() {
       );
 
       // listing page
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/packages');
 
           // check package list
@@ -68,8 +60,8 @@ void main() {
       );
 
       // package page
-      await headlessEnv.withPage(
-        fn: (page) async {
+      await user.withBrowserPage(
+        (page) async {
           await page.gotoOrigin('/experimental?nosandbox=true');
           await page.gotoOrigin('/packages/retry');
 
