@@ -63,7 +63,7 @@ abstract class TestServiceAccount {
   Future<String> getIdToken();
 }
 
-typedef WithBroserPageCallbackFn = Future<T> Function<T>(
+typedef WithBrowserPageCallbackFn = Future<T> Function<T>(
     Future<T> Function(Page page) fn);
 typedef ReadLatestEmailFn = FutureOr<String> Function();
 typedef CreateCredentialsFn = FutureOr<Map<String, Object?>> Function();
@@ -79,7 +79,7 @@ class TestUser {
 
   /// Executes callback `fn` with the browser page where this test user is
   /// signed-in to their account.
-  final WithBroserPageCallbackFn withBrowserPage;
+  final WithBrowserPageCallbackFn withBrowserPage;
 
   /// Read the latest email sent to this test user.
   final ReadLatestEmailFn readLatestEmail;
