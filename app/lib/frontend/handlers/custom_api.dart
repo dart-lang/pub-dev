@@ -38,10 +38,11 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse({}, status: 404);
   }
 
+  if (!await packageBackend.isPackageVisible(package)) {
+    return jsonResponse({}, status: 404);
+  }
+
   if (requestContext.experimentalFlags.showSandboxedOutput) {
-    if (!await packageBackend.isPackageVisible(package)) {
-      return jsonResponse({}, status: 404);
-    }
     final status = await taskBackend.packageStatus(package);
     return jsonResponse({
       'name': package,

@@ -918,7 +918,10 @@ class TaskBackend {
           final s = e.value;
 
           var status = TaskPackageVersionStatus.completed;
-          if (s.attempts > 0 && s.attempts < taskRetryLimit) {
+          if (s.attempts == 0 && s.scheduled == initialTimestamp) {
+            // attempts == 0 && scheduled == init         ==> pending
+            status = TaskPackageVersionStatus.pending;
+          } else if (s.attempts > 0 && s.attempts < taskRetryLimit) {
             // attempts > 0 && attempts < taskRetryLimit  ==> pending
             status = TaskPackageVersionStatus.pending;
           } else if (s.scheduled
@@ -926,15 +929,13 @@ class TaskBackend {
               .isBefore(clock.now())) {
             // scheduled + 31 days < now                  ==> pending
             status = TaskPackageVersionStatus.pending;
-          } else if (s.attempts == 0 && s.scheduled == initialTimestamp) {
-            // attempts == 0 && scheduled == init         ==> pending
-            status = TaskPackageVersionStatus.pending;
           } else if (s.attempts >= taskRetryLimit) {
             // attempts >= taskRetryLimit                 ==> failed
             status = TaskPackageVersionStatus.failed;
           } else {
             // attempts == 0                              ==> completed
             assert(s.attempts == 0);
+            assert(status == TaskPackageVersionStatus.completed);
           }
 
           return PackageVersionStatus(version: v, status: status);
