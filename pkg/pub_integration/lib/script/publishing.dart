@@ -85,29 +85,31 @@ class PublishingScript {
       await dart.getDependencies(_dummyExampleDir.path);
       await dart.run(_dummyExampleDir.path, 'bin/main.dart');
 
-      // invite uploader
-      // TODO: use page.invitePackageAdmin instead
-      await adminUser.api.invitePackageUploader(
-          '_dummy_pkg', InviteUploaderRequest(email: invitedUser.email));
+      if (pubHostedUrl.startsWith('http://localhost:')) {
+        // invite uploader
+        // TODO: use page.invitePackageAdmin instead
+        await adminUser.api.invitePackageUploader(
+            '_dummy_pkg', InviteUploaderRequest(email: invitedUser.email));
 
-      final lastEmail = await invitedUser.readLatestEmail();
-      final consentId = extractConsentIdFromEmail(lastEmail);
+        final lastEmail = await invitedUser.readLatestEmail();
+        final consentId = extractConsentIdFromEmail(lastEmail);
 
-      // accepting it with the good user
-      // TODO: use page.acceptConsent instead
-      await invitedUser.api
-          .resolveConsent(consentId, ConsentResult(granted: true));
+        // accepting it with the good user
+        // TODO: use page.acceptConsent instead
+        await invitedUser.api
+            .resolveConsent(consentId, ConsentResult(granted: true));
 
-      await _verifyDummyPkg();
+        await _verifyDummyPkg();
 
-      // remove uploader with API
-      await adminUser.api.removeUploaderFromUI(
-        '_dummy_pkg',
-        RemoveUploaderRequest(
-          email: invitedUser.email,
-        ),
-      );
-      await _verifyDummyPkg();
+        // remove uploader with API
+        await adminUser.api.removeUploaderFromUI(
+          '_dummy_pkg',
+          RemoveUploaderRequest(
+            email: invitedUser.email,
+          ),
+        );
+        await _verifyDummyPkg();
+      }
 
       if (expectLiveSite) {
         await _verifyDummyDocumentation();
