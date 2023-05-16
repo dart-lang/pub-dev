@@ -27,7 +27,7 @@ void main() {
       'end2end test',
       testProfile: TestProfile(
         packages: [
-          TestPackage(name: 'retry', versions: [TestVersion(version: '3.1.0')]),
+          TestPackage(name: 'retry', versions: [TestVersion(version: '3.1.1')]),
         ],
         defaultUser: 'admin@pub.dev',
       ),
@@ -35,7 +35,7 @@ void main() {
       fn: () async {
         await processJobsWithPanaRunner();
         await processJobsWithFakeDartdocRunner();
-        final card = await scoreCardBackend.getScoreCardData('retry', '3.1.0');
+        final card = await scoreCardBackend.getScoreCardData('retry', '3.1.1');
 
         expect(card!.grantedPubPoints, greaterThan(120));
         expect(card.maxPubPoints, card.grantedPubPoints);

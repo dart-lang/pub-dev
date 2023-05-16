@@ -121,6 +121,9 @@ class TestVersion {
       _$TestVersionFromJson(json);
 
   Map<String, dynamic> toJson() => _$TestVersionToJson(this);
+
+  @override
+  String toString() => '$version';
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

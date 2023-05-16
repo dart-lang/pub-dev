@@ -96,7 +96,7 @@ String _generateDummyPubspec(
     {
       'name': '____dummy____',
       'environment': {
-        'sdk': '>=$minSdkVersion <3.0.0',
+        'sdk': '^$minSdkVersion',
       },
       'dependencies': {
         package: version,
