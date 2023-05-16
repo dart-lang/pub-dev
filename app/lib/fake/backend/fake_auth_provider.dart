@@ -100,8 +100,16 @@ class FakeAuthProvider extends BaseAuthProvider {
   }
 
   @override
-  Future<AuthResult?> tryAuthenticateAsUser(String accessToken) async {
+  Future<AuthResult?> tryAuthenticateAsUser(String input) async {
     late String jwtTokenValue;
+    var accessToken = input;
+    // TODO: migrate all test to use base64-encoded token
+    try {
+      accessToken = utf8.decode(base64Url.decode(input));
+    } catch (_) {
+      // ignored
+    }
+
     if (accessToken.contains('-at-') &&
         !JsonWebToken.looksLikeJWT(accessToken)) {
       final uri = Uri.tryParse(accessToken);

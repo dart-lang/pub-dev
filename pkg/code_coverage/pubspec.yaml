@@ -2,7 +2,7 @@ name: code_coverage
 publish_to: none  # don't publish yet
 description: Code coverage tools.
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '^3.0.0'
 
 dependencies:
   args: ^2.0.0

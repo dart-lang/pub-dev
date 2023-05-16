@@ -132,7 +132,7 @@ class ScoreCard extends db.ExpandoModel<String> {
   }
 }
 
-abstract class FlagMixin {
+mixin FlagMixin {
   List<String>? get tags;
 
   bool get isDiscontinued =>

@@ -14,11 +14,11 @@ Map<String, Object?> fakeCredentialsMap({
   required String email,
 }) {
   return <String, Object?>{
-    'accessToken': Uri(
+    'accessToken': base64Url.encode(utf8.encode(Uri(
         path: email.replaceAll('@', '-at-').replaceAll('.', '-dot-'),
         queryParameters: {
           'aud': 'fake-client-audience',
-        }).toString(),
+        }).toString())),
     'refreshToken': 'refresh-token',
     'tokenEndpoint': 'http://localhost:9999/o/oauth2/token',
     'scopes': ['email', 'openid'],

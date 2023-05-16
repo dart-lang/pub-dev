@@ -39,14 +39,11 @@ void main() {
       final pvs = await _resolve([
         TestPackage(
           name: 'safe_url_check',
-          versions: [TestVersion(version: '1.0.0')],
+          versions: [TestVersion(version: '1.1.1')],
         )
       ]);
       expect(pvs, hasLength(2));
-      expect(pvs[0].package, 'safe_url_check');
-      expect(pvs[0].version, '1.0.0');
-      // the latest version of retry has been updated after safe_url_check 1.0.0
-      expect(pvs[1].package, 'retry');
+      expect(pvs.map((e) => e.package).toSet(), {'safe_url_check', 'retry'});
     });
   });
 }

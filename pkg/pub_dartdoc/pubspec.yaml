@@ -1,7 +1,7 @@
 name: pub_dartdoc
 description: The customized dartdoc for pub.dartlang.org.
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: '^3.0.0'
 dependencies:
   analyzer: any # whatever dartdoc supports
   path: ^1.8.0
