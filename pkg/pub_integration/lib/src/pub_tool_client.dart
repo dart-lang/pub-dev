@@ -157,7 +157,7 @@ class DartToolClient {
   }
 
   Future<void> getDependencies(String pkgDir) async {
-    await runDart(['pub', 'get'], workingDirectory: pkgDir);
+    await runDart(['pub', 'get', '--no-example'], workingDirectory: pkgDir);
   }
 
   Future<void> create(String pkgDir) async {
