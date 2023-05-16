@@ -3,7 +3,7 @@ publish_to: none  # don't publish yet
 description: Tools for integration tests.
 
 environment:
-  sdk: '>=2.19.0 <3.0.0'
+  sdk: '^3.0.0'
 
 dependencies:
   _pub_shared:

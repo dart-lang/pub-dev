@@ -48,7 +48,7 @@ class CachePatterns {
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (SessionData? data) => data!.toJson(),
+        encode: (SessionData data) => data.toJson(),
         decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
 
@@ -82,7 +82,7 @@ class CachePatterns {
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (dynamic map) => map,
+        encode: (Map<String, dynamic> map) => map,
         decode: (obj) => obj as Map<String, dynamic>,
       ))[package];
 
@@ -166,7 +166,7 @@ class CachePatterns {
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (dynamic d) => d.toJson(),
+        encode: (VersionScore d) => d.toJson(),
         decode: (d) => VersionScore.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
 
@@ -191,7 +191,7 @@ class CachePatterns {
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (dynamic map) => map,
+        encode: (Map<String, dynamic> map) => map,
         decode: (obj) => obj as Map<String, dynamic>,
       ))['$page'];
 

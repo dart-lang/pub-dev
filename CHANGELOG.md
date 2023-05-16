@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2023.05.16`.
+ * Upgraded runtime Dart SDK to `3.0.0`.
  * Upgraded `package:markdown` to `7.1.0`.
 
 ## `20230511t105900-all`

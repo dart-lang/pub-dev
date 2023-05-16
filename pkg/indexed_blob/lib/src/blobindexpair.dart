@@ -42,8 +42,7 @@ class BlobIndexPair {
     String blobId,
     Future<void> Function(
       Future<void> Function(String path, Stream<List<int>> content) addFile,
-    )
-        builder,
+    ) builder,
   ) async {
     final c = StreamController<List<int>>();
 
