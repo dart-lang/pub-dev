@@ -62,8 +62,13 @@ class PublishingScript {
 
       // too large asset files are rejected
       await _createDummyPkg(oversized: true);
+      final knownErrorPrefix = '''Package validation found the following hint:
+* The latest published version is 1.0.0-null-safety.1.
+  Your version $_newDummyVersion is earlier than that.
+''';
+
       await dart.publish(_dummyDir.path,
-          expectedError:
+          expectedError: knownErrorPrefix +
               '`CHANGELOG.md` exceeds the maximum content length (131072 bytes).');
       await _dummyDir.delete(recursive: true);
 
@@ -78,7 +83,7 @@ class PublishingScript {
 
       // upload the same version again
       await dart.publish(_dummyDir.path,
-          expectedError:
+          expectedError: knownErrorPrefix +
               'Version $_newDummyVersion of package _dummy_pkg already exists.');
 
       // run example
