@@ -25,14 +25,12 @@ import '../shared/versions.dart' as shared_versions;
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
 
-/// Exposed because the HTTP handler needs to know these files
-/// are served not from the blob.
-/// TODO: refactor after we are using only blobs in all accepted runtimes.
+/// Files that are served from inside the blob.
 const archiveFilePath = 'package.tar.gz';
 const blobFilePath = 'blob-data.gz';
 const blobIndexV1FilePath = 'index-v1.json';
 const buildLogFilePath = 'log.txt';
-const uploadedFilePaths = [
+const _uploadedFilePaths = [
   archiveFilePath,
   blobFilePath,
   blobIndexV1FilePath,
@@ -274,27 +272,22 @@ class DartdocBackend {
           () async => retry<FileInfo?>(
             () async {
               try {
-                if (uploadedFilePaths.contains(relativePath)) {
+                if (_uploadedFilePaths.contains(relativePath)) {
                   final info = await _storage.info(objectName);
                   return FileInfo(lastModified: info.updated, etag: info.etag);
                 }
                 final index = await _getBlobIndex(entry);
-                if (index != null) {
-                  final range = index.lookup(relativePath);
-                  if (range == null) {
-                    return null;
-                  }
-                  return FileInfo(
-                    lastModified: entry.timestamp!,
-                    etag: '${entry.uuid}-${range.start}-${range.end}',
-                    blobId: entry.uuid,
-                    blobOffset: range.start,
-                    blobLength: range.length,
-                  );
+                final range = index?.lookup(relativePath);
+                if (range == null) {
+                  return null;
                 }
-                // TODO: remove this once all the accepted runtimes use blobs
-                final info = await _storage.info(objectName);
-                return FileInfo(lastModified: info.updated, etag: info.etag);
+                return FileInfo(
+                  lastModified: entry.timestamp!,
+                  etag: '${entry.uuid}-${range.start}-${range.end}',
+                  blobId: entry.uuid,
+                  blobOffset: range.start,
+                  blobLength: range.length,
+                );
               } catch (e) {
                 // TODO: Handle exceptions / errors
                 _logger.info('Requested path $objectName does not exists.');
