@@ -176,7 +176,7 @@ Future<void> schedule(
         // Update PackageState
         s.versions!.addAll({
           for (final v in pendingVersions)
-            v: PackageVersionState(
+            v: PackageVersionStateInfo(
               scheduled: now,
               attempts: s.versions![v]!.attempts + 1,
               zone: zone,

@@ -36,10 +36,10 @@ import 'package:pub_dev/task/handlers.dart';
 import 'package:pub_dev/task/models.dart'
     show
         PackageState,
-        PackageStatus,
-        PackageVersionState,
+        PackageStateInfo,
+        PackageVersionStateInfo,
         PackageVersionStatus,
-        TaskPackageVersionStatus,
+        PackageVersionStatus,
         initialTimestamp,
         maxTaskExecutionTime,
         taskRetryLimit;
@@ -375,7 +375,7 @@ class TaskBackend {
             ..runtimeVersion = runtimeVersion
             ..versions = {
               for (final version in versions)
-                version: PackageVersionState(
+                version: PackageVersionStateInfo(
                   scheduled: initialTimestamp,
                   attempts: 0,
                 ),
@@ -419,7 +419,7 @@ class TaskBackend {
         // Add versions we should be tracking
         ..addAll({
           for (final v in untrackedVersions)
-            v: PackageVersionState(
+            v: PackageVersionStateInfo(
               scheduled: initialTimestamp,
               attempts: 0,
             ),
@@ -630,23 +630,6 @@ class TaskBackend {
       assert(versionState.instance != null);
       assert(versionState.zone != null);
 
-      zone = versionState.zone!;
-      instance = versionState.instance!;
-
-      // Remove instanceName, zone, secretToken, and set attempts = 0
-      state.versions![version] = PackageVersionState(
-        scheduled: versionState.scheduled,
-        attempts: 0,
-        instance: null, // version is no-longer running on this instance
-        secretToken: null, // TODO: Consider retaining this for idempotency
-        zone: null,
-      );
-
-      // Determine if something else was running on the instance
-      isInstanceDone = state.versions!.values.none(
-        (v) => v.instance == instance,
-      );
-
       // Clear cache entries for package / version
       await _purgeCache(package, version);
 
@@ -667,6 +650,26 @@ class TaskBackend {
           state.dependencies = updatedDependencies;
         }
       }
+      final dartdocIndex = await dartdocFile(package, version, 'index.html');
+
+      zone = versionState.zone!;
+      instance = versionState.instance!;
+
+      // Remove instanceName, zone, secretToken, and set attempts = 0
+      state.versions![version] = PackageVersionStateInfo(
+        scheduled: versionState.scheduled,
+        docs: dartdocIndex != null,
+        pana: summary != null,
+        attempts: 0,
+        instance: null, // version is no-longer running on this instance
+        secretToken: null, // TODO: Consider retaining this for idempotency
+        zone: null,
+      );
+
+      // Determine if something else was running on the instance
+      isInstanceDone = state.versions!.values.none(
+        (v) => v.instance == instance,
+      );
 
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
@@ -906,43 +909,19 @@ class TaskBackend {
   }
 
   /// Get status information for a package being analyzed.
-  Future<PackageStatus> packageStatus(String package) async {
+  Future<PackageStateInfo> packageStatus(String package) async {
     final status = await cache.taskPackageStatus(package).get(() async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await dbService.lookupOrNull<PackageState>(key);
 
-      return PackageStatus(
-        package: package,
-        versions: (state?.versions ?? {}).entries.map((e) {
-          final v = e.key;
-          final s = e.value;
-
-          var status = TaskPackageVersionStatus.completed;
-          if (s.attempts == 0 && s.scheduled == initialTimestamp) {
-            // attempts == 0 && scheduled == init         ==> pending
-            status = TaskPackageVersionStatus.pending;
-          } else if (s.attempts > 0 && s.attempts < taskRetryLimit) {
-            // attempts > 0 && attempts < taskRetryLimit  ==> pending
-            status = TaskPackageVersionStatus.pending;
-          } else if (s.scheduled
-              .add(Duration(days: 31))
-              .isBefore(clock.now())) {
-            // scheduled + 31 days < now                  ==> pending
-            status = TaskPackageVersionStatus.pending;
-          } else if (s.attempts >= taskRetryLimit) {
-            // attempts >= taskRetryLimit                 ==> failed
-            status = TaskPackageVersionStatus.failed;
-          } else {
-            // attempts == 0                              ==> completed
-            assert(s.attempts == 0);
-            assert(status == TaskPackageVersionStatus.completed);
-          }
-
-          return PackageVersionStatus(version: v, status: status);
-        }).toList(),
-      );
+      return PackageStateInfo(
+          package: package,
+          versions: (state?.versions ?? {}).map((key, value) => MapEntry(
+                key,
+                value.status,
+              )));
     });
-    return status ?? PackageStatus(package: package, versions: []);
+    return status ?? PackageStateInfo(package: package, versions: {});
   }
 
   /// Create a URL for getting a resource created in pana.

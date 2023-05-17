@@ -6,18 +6,23 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PackageVersionState _$PackageVersionStateFromJson(Map<String, dynamic> json) =>
-    PackageVersionState(
+PackageVersionStateInfo _$PackageVersionStateInfoFromJson(
+        Map<String, dynamic> json) =>
+    PackageVersionStateInfo(
       scheduled: DateTime.parse(json['scheduled'] as String),
       attempts: json['attempts'] as int,
       secretToken: json['secretToken'] as String?,
       zone: json['zone'] as String?,
       instance: json['instance'] as String?,
+      docs: json['docs'] as bool? ?? false,
+      pana: json['pana'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$PackageVersionStateToJson(
-        PackageVersionState instance) =>
+Map<String, dynamic> _$PackageVersionStateInfoToJson(
+        PackageVersionStateInfo instance) =>
     <String, dynamic>{
+      'docs': instance.docs,
+      'pana': instance.pana,
       'scheduled': instance.scheduled.toIso8601String(),
       'attempts': instance.attempts,
       'zone': instance.zone,
@@ -25,37 +30,24 @@ Map<String, dynamic> _$PackageVersionStateToJson(
       'secretToken': instance.secretToken,
     };
 
-PackageStatus _$PackageStatusFromJson(Map<String, dynamic> json) =>
-    PackageStatus(
+PackageStateInfo _$PackageStateInfoFromJson(Map<String, dynamic> json) =>
+    PackageStateInfo(
       package: json['package'] as String,
-      versions: (json['versions'] as List<dynamic>)
-          .map((e) => PackageVersionStatus.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      versions: (json['versions'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(k, $enumDecode(_$PackageVersionStatusEnumMap, e)),
+      ),
     );
 
-Map<String, dynamic> _$PackageStatusToJson(PackageStatus instance) =>
+Map<String, dynamic> _$PackageStateInfoToJson(PackageStateInfo instance) =>
     <String, dynamic>{
       'package': instance.package,
-      'versions': instance.versions,
+      'versions': instance.versions
+          .map((k, e) => MapEntry(k, _$PackageVersionStatusEnumMap[e]!)),
     };
 
-PackageVersionStatus _$PackageVersionStatusFromJson(
-        Map<String, dynamic> json) =>
-    PackageVersionStatus(
-      version: json['version'] as String,
-      status: $enumDecode(_$TaskPackageVersionStatusEnumMap, json['status']),
-    );
-
-Map<String, dynamic> _$PackageVersionStatusToJson(
-        PackageVersionStatus instance) =>
-    <String, dynamic>{
-      'version': instance.version,
-      'status': _$TaskPackageVersionStatusEnumMap[instance.status]!,
-    };
-
-const _$TaskPackageVersionStatusEnumMap = {
-  TaskPackageVersionStatus.pending: 'pending',
-  TaskPackageVersionStatus.running: 'running',
-  TaskPackageVersionStatus.completed: 'completed',
-  TaskPackageVersionStatus.failed: 'failed',
+const _$PackageVersionStatusEnumMap = {
+  PackageVersionStatus.pending: 'pending',
+  PackageVersionStatus.running: 'running',
+  PackageVersionStatus.completed: 'completed',
+  PackageVersionStatus.failed: 'failed',
 };

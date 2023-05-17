@@ -46,13 +46,13 @@ Future<shelf.Response> apiDocumentationHandler(
     final status = await taskBackend.packageStatus(package);
     return jsonResponse({
       'name': package,
-      'versions': status.versions
-          .map((s) => {
-                'version': s.version,
-                'status': s.status == TaskPackageVersionStatus.pending ||
-                        s.status == TaskPackageVersionStatus.running
+      'versions': status.versions.entries
+          .map((e) => {
+                'version': e.key,
+                'status': e.value == PackageVersionStatus.pending ||
+                        e.value == PackageVersionStatus.running
                     ? 'pending'
-                    : (s.status == TaskPackageVersionStatus.failed
+                    : (e.value == PackageVersionStatus.failed
                         ? 'failed'
                         : 'completed'),
               })

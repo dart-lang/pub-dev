@@ -103,7 +103,7 @@ class PackageState extends db.ExpandoModel<String> {
 
   /// Scheduling state for all versions of this package.
   @PackageVersionStateMapProperty(required: true)
-  Map<String, PackageVersionState>? versions;
+  Map<String, PackageVersionStateInfo>? versions;
 
   /// Next [DateTime] at which point some package version becomes pending.
   @db.DateTimeProperty(required: true, indexed: true)
@@ -191,7 +191,33 @@ class PackageState extends db.ExpandoModel<String> {
 
 /// State of a given `version` within a [PackageState].
 @JsonSerializable()
-class PackageVersionState {
+class PackageVersionStateInfo {
+  PackageVersionStatus get status {
+    if (attempts == 0 && scheduled == initialTimestamp) {
+      // attempts == 0 && scheduled == init         ==> pending
+      return PackageVersionStatus.pending;
+    } else if (attempts > 0 && attempts < taskRetryLimit) {
+      // attempts > 0 && attempts < taskRetryLimit  ==> pending
+      return PackageVersionStatus.pending;
+    } else if (scheduled.add(Duration(days: 31)).isBefore(clock.now())) {
+      // scheduled + 31 days < now                  ==> pending
+      return PackageVersionStatus.pending;
+    } else if (attempts >= taskRetryLimit) {
+      // attempts >= taskRetryLimit                 ==> failed
+      return PackageVersionStatus.failed;
+    } else {
+      // attempts == 0                              ==> completed
+      assert(attempts == 0);
+      return PackageVersionStatus.completed;
+    }
+  }
+
+  /// True, if dartdoc documentation is available.
+  final bool docs;
+
+  /// True, if pana summary is available.
+  final bool pana;
+
   /// [DateTime] this version of the package was last scheduled for analysis.
   ///
   /// This is [initialTimestamp] if never scheduled.
@@ -247,12 +273,14 @@ class PackageVersionState {
     return clock.now().difference(scheduled) < maxTaskExecutionTime && equal;
   }
 
-  PackageVersionState({
+  PackageVersionStateInfo({
     required this.scheduled,
     required this.attempts,
     this.secretToken,
     this.zone,
     this.instance,
+    this.docs = false,
+    this.pana = false,
   });
 
   @override
@@ -268,7 +296,7 @@ class PackageVersionState {
       ')';
 }
 
-/// A [db.Property] encoding a Map from version to [PackageVersionState] as JSON.
+/// A [db.Property] encoding a Map from version to [PackageVersionStateInfo] as JSON.
 class PackageVersionStateMapProperty extends db.Property {
   const PackageVersionStateMapProperty(
       {String? propertyName, bool required = false})
@@ -280,10 +308,10 @@ class PackageVersionStateMapProperty extends db.Property {
     Object? value, {
     bool forComparison = false,
   }) =>
-      json.encode((value as Map<String, PackageVersionState>).map(
+      json.encode((value as Map<String, PackageVersionStateInfo>).map(
         (version, state) => MapEntry(
           version,
-          _$PackageVersionStateToJson(state),
+          _$PackageVersionStateInfoToJson(state),
         ),
       ));
 
@@ -295,56 +323,39 @@ class PackageVersionStateMapProperty extends db.Property {
       (json.decode(value as String) as Map<String, dynamic>).map(
         (version, state) => MapEntry(
           version,
-          _$PackageVersionStateFromJson(state as Map<String, dynamic>),
+          _$PackageVersionStateInfoFromJson(state as Map<String, dynamic>),
         ),
       );
 
   @override
   bool validate(db.ModelDB mdb, Object? value) =>
       super.validate(mdb, value) &&
-      (value == null || value is Map<String, PackageVersionState>);
+      (value == null || value is Map<String, PackageVersionStateInfo>);
 }
 
 /// Status for a package.
 @JsonSerializable()
-class PackageStatus {
+class PackageStateInfo {
   final String package;
 
   /// Status for versions.
   ///
-  /// If a version is not represented by an entry in this list, then it is not
+  /// If a version is not represented by an entry in this map, then it is not
   /// selected for analysis. Either because, it haven't been discovered yet, or
   /// because we only analyse a limited number of versions.
-  final List<PackageVersionStatus> versions;
+  final Map<String, PackageVersionStatus> versions;
 
-  PackageStatus({
+  PackageStateInfo({
     required this.package,
     required this.versions,
   });
 
-  factory PackageStatus.fromJson(Map<String, dynamic> m) =>
-      _$PackageStatusFromJson(m);
-  Map<String, dynamic> toJson() => _$PackageStatusToJson(this);
+  factory PackageStateInfo.fromJson(Map<String, dynamic> m) =>
+      _$PackageStateInfoFromJson(m);
+  Map<String, dynamic> toJson() => _$PackageStateInfoToJson(this);
 }
 
-@JsonSerializable()
-class PackageVersionStatus {
-  /// Canonical version.
-  final String version;
-
-  final TaskPackageVersionStatus status;
-
-  PackageVersionStatus({
-    required this.version,
-    required this.status,
-  });
-
-  factory PackageVersionStatus.fromJson(Map<String, dynamic> m) =>
-      _$PackageVersionStatusFromJson(m);
-  Map<String, dynamic> toJson() => _$PackageVersionStatusToJson(this);
-}
-
-enum TaskPackageVersionStatus {
+enum PackageVersionStatus {
   pending,
   running,
 
