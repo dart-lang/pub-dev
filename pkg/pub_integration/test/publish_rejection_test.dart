@@ -75,7 +75,7 @@ void main() {
         // publish should fail with the description-related error message
         await localDartTool.publish(
           pkgDir,
-          expectedError:
+          expectedErrorContains:
               '`description` contains a generic text fragment coming from package templates (`A sample command-line application`).\n'
               'Please follow the guides to describe your package:\n'
               'https://dart.dev/tools/pub/pubspec#description',

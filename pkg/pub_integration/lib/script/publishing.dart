@@ -62,8 +62,9 @@ class PublishingScript {
 
       // too large asset files are rejected
       await _createDummyPkg(oversized: true);
+
       await dart.publish(_dummyDir.path,
-          expectedError:
+          expectedErrorContains:
               '`CHANGELOG.md` exceeds the maximum content length (131072 bytes).');
       await _dummyDir.delete(recursive: true);
 
@@ -78,7 +79,7 @@ class PublishingScript {
 
       // upload the same version again
       await dart.publish(_dummyDir.path,
-          expectedError:
+          expectedErrorContains:
               'Version $_newDummyVersion of package _dummy_pkg already exists.');
 
       // run example

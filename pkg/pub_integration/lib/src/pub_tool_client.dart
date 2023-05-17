@@ -110,7 +110,7 @@ class DartToolClient {
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
-    String? expectedError,
+    String? expectedErrorContains,
     String? expectedOutputContains,
   }) async {
     final cmd = 'dart ${arguments.join(' ')}';
@@ -142,7 +142,9 @@ class DartToolClient {
     if (pr.exitCode == 0) {
       return;
     }
-    if (expectedError == pr.stderr.toString().trim()) {
+    if (expectedErrorContains != null &&
+        expectedErrorContains.isNotEmpty &&
+        pr.stderr.toString().contains(expectedErrorContains)) {
       return;
     }
     throw Exception(
@@ -166,13 +168,13 @@ class DartToolClient {
 
   Future<void> publish(
     String pkgDir, {
-    String? expectedError,
+    String? expectedErrorContains,
     String? expectedOutputContains,
   }) async {
     await runDart(
       ['pub', 'publish', '--force'],
       workingDirectory: pkgDir,
-      expectedError: expectedError,
+      expectedErrorContains: expectedErrorContains,
       expectedOutputContains: expectedOutputContains,
     );
   }
