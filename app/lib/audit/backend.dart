@@ -186,8 +186,9 @@ class AuditBackend {
     // merge records from cache and current query
     final currentIds = current.map((e) => e.id!).toSet();
     final records = [
-      ...oldRecords.where((r) =>
-          !currentIds.contains(r.id!) && now.difference(r.created!) < day),
+      ...oldRecords
+          .where((r) => !currentIds.contains(r.id!)),
+          .where((r) => now.difference(r.created!) < day),
       ...current,
     ];
 
