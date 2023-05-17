@@ -61,15 +61,14 @@ Future<void> _verifyRateLimit({
     return;
   }
 
-  final cacheKeyParts = [
+  final cacheEntryKey = [
     rateLimit.operation,
     rateLimit.scope.name,
     if (package != null) 'package-$package',
     if (userId != null) 'userId-$userId',
-  ];
-  final entryKey = Uri(pathSegments: cacheKeyParts).toString();
+  ].join('/');
 
-  final auditEntriesFromLastDay = await auditBackend.getEntriesFromLastDay();
+  List<AuditLogRecord>? auditEntriesFromLastDay;
 
   Future<void> check({
     required Duration window,
@@ -80,7 +79,7 @@ Future<void> _verifyRateLimit({
       return;
     }
 
-    final entry = cache.rateLimitUntil(entryKey);
+    final entry = cache.rateLimitUntil(cacheEntryKey);
     final current = await entry.get();
     if (current != null && current.isAfter(clock.now())) {
       throw RateLimitException(
@@ -90,9 +89,11 @@ Future<void> _verifyRateLimit({
       );
     }
 
+    auditEntriesFromLastDay ??= await auditBackend.getEntriesFromLastDay();
+
     final now = clock.now().toUtc();
     final windowStart = now.subtract(window);
-    final relevantEntries = auditEntriesFromLastDay
+    final relevantEntries = auditEntriesFromLastDay!
         .where((e) => e.kind == rateLimit.operation)
         .where((e) => e.created!.isAfter(windowStart))
         .where((e) => package == null || _containsPackage(e.packages, package))
