@@ -360,10 +360,7 @@ class _CreatePublisherWidget {
       confirmQuestion: await markdown(
           'Are you sure you want to create publisher for `$publisherId`?'),
       fn: () async {
-        await api_client.client.createPublisher(
-          publisherId,
-          CreatePublisherRequest(accessToken: null),
-        );
+        await api_client.client.createPublisher(publisherId);
       },
       successMessage: text('Publisher created. The page will reload.'),
       onSuccess: (_) {

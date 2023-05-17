@@ -6,18 +6,6 @@ part of 'publisher_api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CreatePublisherRequest _$CreatePublisherRequestFromJson(
-        Map<String, dynamic> json) =>
-    CreatePublisherRequest(
-      accessToken: json['accessToken'] as String?,
-    );
-
-Map<String, dynamic> _$CreatePublisherRequestToJson(
-        CreatePublisherRequest instance) =>
-    <String, dynamic>{
-      'accessToken': instance.accessToken,
-    };
-
 UpdatePublisherRequest _$UpdatePublisherRequestFromJson(
         Map<String, dynamic> json) =>
     UpdatePublisherRequest(

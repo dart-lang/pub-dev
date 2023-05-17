@@ -46,17 +46,11 @@ void main() {
         );
 
         // Check that we can create the publisher
-        final r1 = await api.createPublisher(
-          'verified.com',
-          CreatePublisherRequest(accessToken: null),
-        );
+        final r1 = await api.createPublisher('verified.com');
         expect(r1.contactEmail, 'admin@pub.dev');
 
         // Check that creating again idempotently works too
-        final r2 = await api.createPublisher(
-          'verified.com',
-          CreatePublisherRequest(accessToken: null),
-        );
+        final r2 = await api.createPublisher('verified.com');
         expect(r2.contactEmail, 'admin@pub.dev');
 
         // Check that we can update the description
@@ -88,10 +82,7 @@ void main() {
         );
 
         // Check that we can create the publisher
-        final rs = api.createPublisher(
-          'notverified.com',
-          CreatePublisherRequest(accessToken: null),
-        );
+        final rs = api.createPublisher('notverified.com');
         await expectApiException(
           rs,
           status: 403,

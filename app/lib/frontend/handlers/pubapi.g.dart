@@ -243,8 +243,6 @@ Router _$PubApiRouter(PubApi service) {
         final _$result = await service.createPublisher(
           request,
           publisherId,
-          await $utilities.decodeJson<CreatePublisherRequest>(
-              request, (o) => CreatePublisherRequest.fromJson(o)),
         );
         return $utilities.jsonResponse(_$result.toJson());
       } on ApiResponseException catch (e) {
