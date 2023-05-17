@@ -187,7 +187,7 @@ class AuditBackend {
     final currentIds = current.map((e) => e.id!).toSet();
     final records = [
       ...oldRecords
-          .where((r) => !currentIds.contains(r.id!)),
+          .where((r) => !currentIds.contains(r.id!))
           .where((r) => now.difference(r.created!) < day),
       ...current,
     ];
