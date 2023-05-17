@@ -51,6 +51,7 @@ Future<void> _verifyRateLimit({
   String? package,
   String? userId,
 }) async {
+  assert(userId != null || package != null);
   if (rateLimit == null) {
     return;
   }
