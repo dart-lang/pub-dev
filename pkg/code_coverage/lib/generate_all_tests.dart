@@ -18,8 +18,8 @@ final _parser = ArgParser()
 /// Generates test/_all_tests.dart that includes reference to all tests.
 Future main(List<String> args) async {
   final argv = _parser.parse(args);
-  final name = argv['name'] as String;
-  final pathPrefix = argv['test-path-prefix'] as String;
+  final name = argv['name'] as String?;
+  final pathPrefix = argv['test-path-prefix'] as String?;
   final dir = Directory(argv['dir'] as String);
 
   final files = await dir
@@ -46,7 +46,6 @@ String _generateTestContent(List<String> files) {
   }
 
   return '''
-// @dart=2.9
 import 'package:test/test.dart';
 
 ${imports.join('\n')}
