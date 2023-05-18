@@ -5,9 +5,9 @@
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
-import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/datastore.dart';
+import '../shared/exceptions.dart';
 
 import 'models.dart';
 
@@ -26,6 +26,9 @@ AuditBackend get auditBackend => ss.lookup(#_auditBackend) as AuditBackend;
 /// Represents the backend for the audit handling and authentication.
 class AuditBackend {
   final DatastoreDB _db;
+  var _cachedRecords = _CachedRecords(DateTime(0), []);
+  Future<void>? _cacheRecordsUpdateFuture;
+
   AuditBackend(this._db);
 
   Future<AuditLogRecordPage> _query(
@@ -136,4 +139,66 @@ class AuditBackend {
     InvalidInputException.check(parsed != null, 'Unable to parse `before`.');
     return parsed!;
   }
+
+  /// Returns the entries from the last day.
+  ///
+  /// Keeps the [_cachedRecords] fields updated, and lists only the entries
+  /// up to the last query.
+  ///
+  /// NOTE: there is no guarantee that the entries are in creation order
+  Future<List<AuditLogRecord>> getEntriesFromLastDay() async {
+    if (_cacheRecordsUpdateFuture != null) {
+      await _cacheRecordsUpdateFuture;
+    } else {
+      final now = clock.now().toUtc();
+      final cachedAge = now.difference(_cachedRecords.updated);
+      if (cachedAge.inSeconds < 3) {
+        return _cachedRecords.records;
+      }
+
+      // we should have only one update running
+      _cacheRecordsUpdateFuture = _updateEntriesFromLastDay(
+        cachedAge: cachedAge,
+        oldRecords: _cachedRecords.records,
+      );
+      await _cacheRecordsUpdateFuture;
+      _cacheRecordsUpdateFuture = null;
+    }
+    return _cachedRecords.records;
+  }
+
+  Future<void> _updateEntriesFromLastDay({
+    required Duration cachedAge,
+    required Iterable<AuditLogRecord> oldRecords,
+  }) async {
+    // calculate window to query
+    final now = clock.now();
+    final day = const Duration(days: 1);
+    var window = cachedAge > day ? day : (day - cachedAge);
+    if (window < Duration(minutes: 2)) {
+      window = Duration(minutes: 2);
+    }
+
+    final query = dbService.query<AuditLogRecord>()
+      ..filter('created >', now.subtract(window));
+    final current = await query.run().toList();
+
+    // merge records from cache and current query
+    final currentIds = current.map((e) => e.id!).toSet();
+    final records = [
+      ...oldRecords
+          .where((r) => !currentIds.contains(r.id!))
+          .where((r) => now.difference(r.created!) < day),
+      ...current,
+    ];
+
+    _cachedRecords = _CachedRecords(now, records);
+  }
+}
+
+class _CachedRecords {
+  final DateTime updated;
+  final List<AuditLogRecord> records;
+
+  _CachedRecords(this.updated, this.records);
 }

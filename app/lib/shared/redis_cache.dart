@@ -332,6 +332,17 @@ class CachePatterns {
 
   Entry<List<int>> topicsPageData() =>
       _cache.withPrefix('topics-page-data/').withTTL(Duration(hours: 1))['-'];
+
+  /// When a rate limit is triggered, the cached entry holds the time
+  /// until the block should be applied.
+  Entry<DateTime> rateLimitUntil(String entryKey) => _cache
+      .withPrefix('rate-limit-until/')
+      .withTTL(Duration(hours: 1)) // gets override when the set is called
+      .withCodec(utf8)
+      .withCodec(wrapAsCodec(
+        encode: (DateTime v) => v.toUtc().toIso8601String(),
+        decode: (v) => DateTime.parse(v.toString()),
+      ))[entryKey];
 }
 
 /// The active cache.
