@@ -11,7 +11,6 @@ import 'page_updater.dart';
 
 void setupSearch() {
   _setEventForKeyboardShortcut();
-  _setEventForSearchInput();
   _setEventsForSearchForm();
   _setEventForFiltersToggle();
   _setEventForSortControl();
@@ -42,23 +41,6 @@ void _setEventForKeyboardShortcut() {
       }
     });
   }
-}
-
-void _setEventForSearchInput() {
-  final q = document.querySelector('input[name="q"]') as InputElement?;
-  if (q == null) return null;
-  final anchors = document.querySelectorAll('.search-link');
-  q.onChange.listen((_) {
-    final newSearchQuery = q.value!.trim();
-    for (final a in anchors) {
-      final oldHref = a.getAttribute('href')!;
-      final oldUri = Uri.parse(oldHref);
-      final params = Map<String, String>.from(oldUri.queryParameters);
-      params['q'] = newSearchQuery;
-      final String newHref = oldUri.replace(queryParameters: params).toString();
-      a.setAttribute('href', newHref);
-    }
-  });
 }
 
 /// When using the back button, or pulling a page state from cache or history,
