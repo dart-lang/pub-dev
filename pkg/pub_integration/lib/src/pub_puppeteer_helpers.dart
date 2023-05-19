@@ -136,6 +136,44 @@ extension PubPageExt on Page {
     await _waitForModelHidden();
   }
 
+  Future<List<String>> listPackageUploaderEmails({
+    required String package,
+  }) async {
+    await gotoOrigin('/packages/$package/admin');
+    final table = await $('#-pkg-admin-uploaders-table');
+    final buttons = await table.$$('.-pub-remove-uploader-button');
+    final emails = <String>[];
+    for (final button in buttons) {
+      final email = await button.attributeValue('data-email');
+      emails.add(email!);
+    }
+    return emails;
+  }
+
+  Future<void> deletePackageAdmin({
+    required String package,
+    required String email,
+  }) async {
+    await gotoOrigin('/packages/$package/admin');
+    final table = await $('#-pkg-admin-uploaders-table');
+    final buttons = await table.$$('.-pub-remove-uploader-button');
+    var clicked = false;
+    for (final button in buttons) {
+      final buttonEmail = await button.attributeValue('data-email');
+      if (email == buttonEmail) {
+        await button.click();
+        clicked = true;
+        break;
+      }
+    }
+    if (!clicked) {
+      throw Exception('Email "$email" was not found in the uploaders list.');
+    }
+    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
+  }
+
   Future<void> acceptConsent({
     required String consentId,
   }) async {
