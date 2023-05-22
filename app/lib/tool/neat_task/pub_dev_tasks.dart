@@ -173,6 +173,7 @@ void setupAnalyzerPeriodicTasks() {
     isRuntimeVersioned: true,
     task: () async =>
         await IntegrityChecker(dbService, concurrency: 2).verifyAndLogIssues(),
+    timeout: Duration(days: 1),
   );
 }
 
@@ -273,11 +274,12 @@ void _weekly({
   required String name,
   required bool isRuntimeVersioned,
   required NeatPeriodicTask task,
+  Duration timeout = const Duration(hours: 12),
 }) {
   final scheduler = NeatPeriodicTaskScheduler(
     name: name,
     interval: Duration(days: 6), // shifts the day when the task is triggered
-    timeout: Duration(hours: 12),
+    timeout: timeout,
     status: DatastoreStatusProvider.create(dbService, name,
         isRuntimeVersioned: isRuntimeVersioned),
     task: _wrapMemoryLogging(name, task),

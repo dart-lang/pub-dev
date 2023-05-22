@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/tags.dart';
@@ -237,18 +238,11 @@ class IntegrityChecker {
 
   Stream<String> _checkPackages() async* {
     _logger.info('Scanning Packages...');
-    final pool = Pool(_concurrency);
-    final futures = <Future<List<String>>>[];
-    await for (final p in _db.query<Package>().run()) {
-      final f = pool.withResource(() => _checkPackage(p).toList());
-      futures.add(f);
-    }
-    for (final f in futures) {
-      for (final item in await f) {
-        yield item;
+    yield* _withPool((queue) async {
+      await for (final p in _db.query<Package>().run()) {
+        queue(() => _checkPackage(p));
       }
-    }
-    await pool.close();
+    });
 
     for (final r in _packageReplacedBys.entries) {
       if (await _packageMissing(r.value)) {
@@ -483,9 +477,11 @@ class IntegrityChecker {
 
   Stream<String> _checkVersions() async* {
     _logger.info('Scanning PackageVersions...');
-    await for (PackageVersion pv in _db.query<PackageVersion>().run()) {
-      yield* _checkPackageVersion(pv);
-    }
+    yield* _withPool((queue) async {
+      await for (PackageVersion pv in _db.query<PackageVersion>().run()) {
+        queue(() => _checkPackageVersion(pv));
+      }
+    });
 
     for (final package in _packages
         .where((package) => !_packagesWithVersion.contains(package))) {
@@ -657,9 +653,11 @@ class IntegrityChecker {
   Stream<String> _checkAuditLogs() async* {
     _logger.info('Scanning AuditLogRecords...');
 
-    await for (final record in _db.query<AuditLogRecord>().run()) {
-      yield* _checkAuditLogRecord(record);
-    }
+    yield* _withPool((queue) async {
+      await for (final record in _db.query<AuditLogRecord>().run()) {
+        queue(() => _checkAuditLogRecord(record));
+      }
+    });
   }
 
   Stream<String> _checkAuditLogRecord(AuditLogRecord r) async* {
@@ -799,4 +797,26 @@ class IntegrityChecker {
       ].join();
     }
   }
+
+  Stream<String> _withPool(
+      FutureOr<void> Function(StreamingIssuesFnCallback queue) fn) async* {
+    final pool = Pool(_concurrency);
+    final futures = <Future<List<String>>>[];
+    try {
+      await fn((StreamingIssuesFn fn) {
+        final f = pool.withResource(() => fn().toList());
+        futures.add(f);
+      });
+      for (final f in futures) {
+        for (final item in await f) {
+          yield item;
+        }
+      }
+    } finally {
+      await pool.close();
+    }
+  }
 }
+
+typedef StreamingIssuesFn = Stream<String> Function();
+typedef StreamingIssuesFnCallback = void Function(StreamingIssuesFn fn);
