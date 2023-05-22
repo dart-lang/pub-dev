@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of pub_dartlang_org.appengine_repository.models;
+part of 'models.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

@@ -21,14 +21,16 @@ void main() {
 
       final entries = feed.findElements('entry').toList();
       expect(entries.length, 6);
-      expect(entries.map((e) => e.findElements('title').first.text).toList(), [
-        'v2.0.0-dev of oxygen',
-        'v1.2.0 of oxygen',
-        'v1.0.0 of oxygen',
-        'v1.10.0 of flutter_titanium',
-        'v1.0.0 of neon',
-        'v1.9.0 of flutter_titanium',
-      ]);
+      expect(
+          entries.map((e) => e.findElements('title').first.innerText).toList(),
+          [
+            'v2.0.0-dev of oxygen',
+            'v1.2.0 of oxygen',
+            'v1.0.0 of oxygen',
+            'v1.10.0 of flutter_titanium',
+            'v1.0.0 of neon',
+            'v1.9.0 of flutter_titanium',
+          ]);
 
       final oxygenExpr = RegExp('<entry>\n'
           '  <id>urn:uuid:a6a43bff-e1ef-4633-b5ee-e0516b655be9</id>\n'

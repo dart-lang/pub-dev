@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of pub_dartlang_org.handlers_redirects;
+part of 'redirects.dart';
 
 // **************************************************************************
 // ShelfRouterGenerator
