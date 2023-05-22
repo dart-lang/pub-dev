@@ -152,7 +152,7 @@ class IndexUpdater implements TaskRunner {
 /// A task source that generates an update task for stale documents.
 ///
 /// It scans the current search snapshot every two hours, and selects the
-/// packages that have not been updated in the last 48 hours.
+/// packages that have not been updated in the last 5 days.
 class _PeriodicUpdateTaskSource implements TaskSource {
   @override
   Stream<Task> startStreaming() async* {
@@ -160,7 +160,7 @@ class _PeriodicUpdateTaskSource implements TaskSource {
       await Future.delayed(Duration(hours: 2));
       final now = clock.now();
       final tasks = snapshotStorage.documents.values
-          .where((pd) => now.difference(pd.timestamp).inHours >= 48)
+          .where((pd) => now.difference(pd.timestamp).inDays >= 5)
           .map((pd) => Task(pd.package, pd.version!, now))
           .toList();
       _logger
