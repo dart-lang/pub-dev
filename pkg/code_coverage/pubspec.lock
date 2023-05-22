@@ -42,13 +42,13 @@ packages:
     source: hosted
     version: "2.1.1"
   collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: collection
-      sha256: "4a07be6cb69c84d677a6c3096fcf960cc3285a8330b4603e0d463d15d9bd934c"
+      sha256: f092b211a4319e98e5ff58223576de6c2803db36221657b46c82574721240687
       url: "https://pub.dev"
     source: hosted
-    version: "1.17.1"
+    version: "1.17.2"
   convert:
     dependency: transitive
     description:
@@ -133,18 +133,18 @@ packages:
     dependency: transitive
     description:
       name: json_annotation
-      sha256: "6cec7404b25d6338c8cb7b30131cd6c760079a4ec1fa7846c55bdda91f9d2819"
+      sha256: b10a7b2ff83d83c777edba3c6a0f97045ddadd56c944e1a23a3fdf43a1bf4467
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
-  lcov:
+    version: "4.8.1"
+  lcov_dart:
     dependency: "direct main"
     description:
-      name: lcov
-      sha256: "85dec52af2d6d7c2d10d95625974d4e00e840743462d82b292759bd5a29904a0"
+      name: lcov_dart
+      sha256: "69cc9dfcceb01245e1e35371e6d364242c20da896c7b8c44163cb2e7a6804014"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.0"
+    version: "7.0.0"
   logging:
     dependency: transitive
     description:
@@ -378,4 +378,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <3.0.0"
+  dart: ">=3.0.0 <4.0.0"

@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:lcov/lcov.dart';
+import 'package:lcov_dart/lcov_dart.dart';
 
 Map<String, Map<int, int>> _lineExecCounts = <String, Map<int, int>>{};
 
@@ -19,11 +19,11 @@ Future main() async {
     final report = Report.fromCoverage(coverage);
 
     for (final record in report.records) {
-      final path = record.sourceFile;
+      final path = record!.sourceFile;
       final partOfPubDev = path.startsWith('app/') || path.startsWith('pkg/');
       if (partOfPubDev) {
         final counts = _lineExecCounts.putIfAbsent(path, () => <int, int>{});
-        for (final lineData in record.lines.data) {
+        for (final lineData in record.lines!.data) {
           counts[lineData.lineNumber] =
               (counts[lineData.lineNumber] ?? 0) + lineData.executionCount;
         }
@@ -33,7 +33,7 @@ Future main() async {
 
   for (String path in _lineExecCounts.keys) {
     final counts = _lineExecCounts[path];
-    final total = counts.length;
+    final total = counts!.length;
     final covered = counts.values.where((i) => i > 0).length;
     _add(path, total, covered);
   }
@@ -64,7 +64,7 @@ Future main() async {
   final keys = _tree.keys.toList()..sort();
   for (String key in keys) {
     final entry = _tree[key];
-    final pctStr = entry.percentAsString;
+    final pctStr = entry!.percentAsString;
     final sb = StringBuffer();
     sb.write('   ' * entry.depth);
     sb.write('${entry.leaf} - $pctStr% - ${entry.covered}/${entry.total}');
@@ -78,8 +78,9 @@ Future main() async {
   await File('build/report.txt').writeAsString(output.toString());
 
   final uncoveredRanges = _lineExecCounts.keys
-      .map((path) => _topUncoveredRange(path, _lineExecCounts[path]))
-      .where((u) => u != null && u.codeLineCount > 0)
+      .map((path) => _topUncoveredRange(path, _lineExecCounts[path]!))
+      .whereType<_UncoveredRange>()
+      .where((u) => u.codeLineCount > 0)
       .toList()
     ..sort((a, b) => -a.codeLineCount.compareTo(b.codeLineCount));
   await File('build/uncovered-ranges.txt').writeAsString(uncoveredRanges
@@ -104,7 +105,7 @@ void _add(String path, int total, int covered) {
 class Entry {
   final String key;
   int depth = 0;
-  String leaf;
+  String? leaf;
   int total = 0;
   int covered = 0;
 
@@ -113,7 +114,7 @@ class Entry {
   double get percent => total == 0 ? 0.0 : covered * 100.0 / total;
   String get percentAsString => percent.toStringAsFixed(1);
 
-  String formatted(String path) {
+  String formatted(String? path) {
     return '$percentAsString% in ${path ?? key} ($covered/$total)';
   }
 }
@@ -127,7 +128,7 @@ class _UncoveredRange {
   _UncoveredRange(this.path, this.startLine, this.endLine, this.codeLineCount);
 }
 
-_UncoveredRange _topUncoveredRange(String path, Map<int, int> counts) {
+_UncoveredRange? _topUncoveredRange(String path, Map<int, int> counts) {
   final lines = counts.keys.toList()..sort();
   var uncovered = 0;
   var maxUncovered = 0;

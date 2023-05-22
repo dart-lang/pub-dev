@@ -6,8 +6,9 @@ environment:
 
 dependencies:
   args: ^2.0.0
+  collection: ^1.17.2
   coverage: ^1.3.2
-  lcov: ^6.0.0
+  lcov_dart: ^7.0.0
   path: ^1.8.0
   source_maps: ^0.10.10
 

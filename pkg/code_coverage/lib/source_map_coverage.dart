@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:source_maps/parser.dart';
 
@@ -44,9 +44,9 @@ Future<void> main() async {
 }
 
 Future<void> _process({
-  @required String coveragePath,
-  @required String outputPath,
-  @required List<String> staticPaths,
+  required String coveragePath,
+  required String outputPath,
+  required List<String> staticPaths,
 }) async {
   // load coverages
   final origCoverageRoot = json.decode(File(coveragePath).readAsStringSync())
@@ -66,21 +66,21 @@ Future<void> _process({
     // Initialize line counts with 0 for all the known lines.
     for (final e in sm.lines.expand((l) => l.entries)) {
       if (e.sourceUrlId == null) continue;
-      final sourceUrl = sm.urls[e.sourceUrlId];
+      final sourceUrl = sm.urls[e.sourceUrlId!];
       if (sourceUrl.startsWith('org-dartlang-sdk:')) continue;
       final counts = sourceCoverage.putIfAbsent(sourceUrl, () => <int, int>{});
-      counts[e.sourceLine] ??= 0;
+      counts[e.sourceLine!] ??= 0;
     }
 
     // Returns the source map location for [line] and [column] in the compiled file.
     // [line] and [column] is starting from 1
 
     // Returns `null` if the position is invalid or if there is no mapping.
-    TargetEntry _sourceLines(int line, int column) {
+    TargetEntry? _sourceLines(int line, int column) {
       try {
         final entries = sm.lines[line - 1].entries;
         // TargetEntry.column is 0-indexed
-        return entries.lastWhere((e) => e.column < column, orElse: () => null);
+        return entries.lastWhereOrNull((e) => e.column < column);
       } catch (_) {
         return null;
       }
@@ -118,11 +118,11 @@ Future<void> _process({
           .where((e) => e != null && e.sourceUrlId != null)
           .forEach(
         (e) {
-          final sourceUrl = sm.urls[e.sourceUrlId];
+          final sourceUrl = sm.urls[e!.sourceUrlId!];
           if (sourceUrl.startsWith('org-dartlang-sdk:')) return;
           final counts =
               sourceCoverage.putIfAbsent(sourceUrl, () => <int, int>{});
-          counts[e.sourceLine] = 1;
+          counts[e.sourceLine!] = 1;
         },
       );
     }
@@ -133,7 +133,7 @@ Future<void> _process({
   String _lcovSource(String source) {
     final relativeFileName = relative(source, from: '../..');
     final counts = sourceCoverage[source];
-    final lines = counts.keys.toList()..sort();
+    final lines = counts!.keys.toList()..sort();
     return [
       'SF:$relativeFileName',
       ...lines.map((line) => 'DA:$line,${counts[line]}'),
