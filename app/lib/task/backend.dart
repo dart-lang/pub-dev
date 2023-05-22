@@ -38,11 +38,8 @@ import 'package:pub_dev/task/models.dart'
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
-        PackageVersionStatus,
-        PackageVersionStatus,
         initialTimestamp,
-        maxTaskExecutionTime,
-        taskRetryLimit;
+        maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:retry/retry.dart' show retry;
