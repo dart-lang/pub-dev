@@ -69,11 +69,11 @@ tools:
 rateLimits:
   - operation: package-published
     scope: package
-    burst: 1
-    hourly: 12
-    daily: 24
+    burst: 10
+    hourly: 120
+    daily: 240
   - operation: package-published
     scope: user
-    burst: 20
-    hourly: 200
-    daily: 250
+    burst: 100
+    hourly: 1000
+    daily: 1250
