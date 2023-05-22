@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
@@ -175,7 +176,7 @@ Future<void> schedule(
         // Update PackageState
         s.versions!.addAll({
           for (final v in pendingVersions)
-            v: PackageVersionState(
+            v: PackageVersionStateInfo(
               scheduled: now,
               attempts: s.versions![v]!.attempts + 1,
               zone: zone,
@@ -206,6 +207,7 @@ Future<void> schedule(
         return;
       }
       assert(description != null);
+      await cache.taskPackageStatus(state.package).purge();
 
       scheduleMicrotask(() async {
         var rollbackPackageState = true;
@@ -279,6 +281,7 @@ Future<void> schedule(
               s.derivePendingAt();
               tx.insert(s);
             });
+            await cache.taskPackageStatus(state.package).purge();
           }
         }
       });

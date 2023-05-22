@@ -159,7 +159,8 @@ class ScoreCardBackend {
         dartdocReport: DartdocReport(
           timestamp: summary?.createdAt,
           // TODO: Embed dartdoc success status in summary, unclear if we need it
-          reportStatus: ReportStatus.success, // assume success
+          reportStatus:
+              summary == null ? ReportStatus.failed : ReportStatus.success,
           dartdocEntry: null, // unused
           documentationSection: null, // already embedded in summary
         ),

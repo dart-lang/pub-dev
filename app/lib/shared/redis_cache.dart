@@ -23,6 +23,7 @@ import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
+import '../task/models.dart';
 import 'convert.dart';
 import 'versions.dart';
 
@@ -297,6 +298,18 @@ class CachePatterns {
       _cache
           .withPrefix('task-result/')
           .withTTL(Duration(hours: 4))['$blobId/$path'];
+
+  /// Cache for task status.
+  Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
+      .withPrefix('task-status/')
+      .withTTL(Duration(hours: 3))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PackageStateInfo s) => s.toJson(),
+        decode: (data) =>
+            PackageStateInfo.fromJson(data as Map<String, dynamic>),
+      ))[package];
 
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<String> dartdocHtml(

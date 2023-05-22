@@ -36,9 +36,10 @@ import 'package:pub_dev/task/handlers.dart';
 import 'package:pub_dev/task/models.dart'
     show
         PackageState,
-        PackageVersionState,
-        maxTaskExecutionTime,
-        initialTimestamp;
+        PackageStateInfo,
+        PackageVersionStateInfo,
+        initialTimestamp,
+        maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:retry/retry.dart' show retry;
@@ -371,7 +372,7 @@ class TaskBackend {
             ..runtimeVersion = runtimeVersion
             ..versions = {
               for (final version in versions)
-                version: PackageVersionState(
+                version: PackageVersionStateInfo(
                   scheduled: initialTimestamp,
                   attempts: 0,
                 ),
@@ -415,7 +416,7 @@ class TaskBackend {
         // Add versions we should be tracking
         ..addAll({
           for (final v in untrackedVersions)
-            v: PackageVersionState(
+            v: PackageVersionStateInfo(
               scheduled: initialTimestamp,
               attempts: 0,
             ),
@@ -626,23 +627,6 @@ class TaskBackend {
       assert(versionState.instance != null);
       assert(versionState.zone != null);
 
-      zone = versionState.zone!;
-      instance = versionState.instance!;
-
-      // Remove instanceName, zone, secretToken, and set attempts = 0
-      state.versions![version] = PackageVersionState(
-        scheduled: versionState.scheduled,
-        attempts: 0,
-        instance: null, // version is no-longer running on this instance
-        secretToken: null, // TODO: Consider retaining this for idempotency
-        zone: null,
-      );
-
-      // Determine if something else was running on the instance
-      isInstanceDone = state.versions!.values.none(
-        (v) => v.instance == instance,
-      );
-
       // Clear cache entries for package / version
       await _purgeCache(package, version);
 
@@ -663,6 +647,26 @@ class TaskBackend {
           state.dependencies = updatedDependencies;
         }
       }
+      final dartdocIndex = await dartdocFile(package, version, 'index.html');
+
+      zone = versionState.zone!;
+      instance = versionState.instance!;
+
+      // Remove instanceName, zone, secretToken, and set attempts = 0
+      state.versions![version] = PackageVersionStateInfo(
+        scheduled: versionState.scheduled,
+        docs: dartdocIndex != null,
+        pana: summary != null,
+        attempts: 0,
+        instance: null, // version is no-longer running on this instance
+        secretToken: null, // TODO: Consider retaining this for idempotency
+        zone: null,
+      );
+
+      // Determine if something else was running on the instance
+      isInstanceDone = state.versions!.values.none(
+        (v) => v.instance == instance,
+      );
 
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
@@ -738,6 +742,7 @@ class TaskBackend {
   /// [package] and [version].
   Future<void> _purgeCache(String package, String version) async =>
       await Future.wait([
+        cache.taskPackageStatus(package).purge(),
         cache.taskResultIndex(package, version).purge(),
       ]);
 
@@ -898,6 +903,22 @@ class TaskBackend {
       _log.shout('Task log for $package/$version is malformed', e, st);
       return null;
     }
+  }
+
+  /// Get status information for a package being analyzed.
+  Future<PackageStateInfo> packageStatus(String package) async {
+    final status = await cache.taskPackageStatus(package).get(() async {
+      final key = PackageState.createKey(_db, runtimeVersion, package);
+      final state = await dbService.lookupOrNull<PackageState>(key);
+
+      return PackageStateInfo(
+          package: package,
+          versions: (state?.versions ?? {}).map((key, value) => MapEntry(
+                key,
+                value.status,
+              )));
+    });
+    return status ?? PackageStateInfo(package: package, versions: {});
   }
 
   /// Create a URL for getting a resource created in pana.
