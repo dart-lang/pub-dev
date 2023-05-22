@@ -9,7 +9,7 @@ dependencies:
     path: ../pkg/_pub_shared
   appengine: '^0.13.2'
   args: '^2.0.0'
-  basics: ^0.9.0
+  basics: ^0.10.0
   chunked_stream: ^1.1.0
   clock: ^1.1.0
   collection: ^1.15.0-nullsafety.4
@@ -19,14 +19,14 @@ dependencies:
   fake_gcloud:
     path: ../pkg/fake_gcloud
   gcloud: '^0.8.1'
-  googleapis: ^9.0.0
+  googleapis: ^10.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
   http: ^0.13.0
   http_parser: ^4.0.0
   indexed_blob:
     path: ../pkg/indexed_blob
-  intl: '^0.17.0'
+  intl: '^0.18.0'
   json_annotation: '^4.3.0'
   lints: ^2.0.0
   logging: '>=0.9.3 <2.0.0'
@@ -55,9 +55,9 @@ dependencies:
   # pana version to be pinned
   pana: '0.21.32'
   # 3rd-party packages with pinned versions
-  mailer: '5.1.0'
+  mailer: '6.0.1'
   ulid: '2.0.0'
-  tar: '0.5.4'
+  tar: '0.5.6'
   api_builder:
     path: ../pkg/api_builder
 

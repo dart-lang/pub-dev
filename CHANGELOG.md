@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Upgraded dependencies (incl. `mailer`, `tar`, `googleapis`).
 
 ## `20230522t134000-all`
  * Note: Started to rate limit package uploads using (locally cached) AuditLogRecords.
