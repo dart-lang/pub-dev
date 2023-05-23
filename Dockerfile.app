@@ -4,7 +4,7 @@ FROM dart:3.0.0
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y git unzip webp && \
+  apt-get install -y git unzip && \
   rm -rf /var/lib/apt/lists/*
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
@@ -35,6 +35,7 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 # Setup analysis Dart SDKs
 RUN /project/tool/setup-dart.sh /tool/stable 3.0.0
 RUN /project/tool/setup-dart.sh /tool/preview 3.1.0-63.1.beta
+RUN /project/tool/setup-webp.sh /usr/local/bin
 
 # Setup analysis Flutter SDKs
 RUN /project/tool/setup-flutter.sh /tool/stable 3.10.0
