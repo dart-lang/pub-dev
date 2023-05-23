@@ -120,14 +120,10 @@ class PubApiClient {
     ));
   }
 
-  Future<_i5.PublisherInfo> createPublisher(
-    String publisherId,
-    _i5.CreatePublisherRequest payload,
-  ) async {
+  Future<_i5.PublisherInfo> createPublisher(String publisherId) async {
     return _i5.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/publishers/$publisherId',
-      body: payload.toJson(),
     ));
   }
 

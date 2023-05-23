@@ -6,7 +6,6 @@
 
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
-import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/auth_provider.dart';
@@ -47,10 +46,7 @@ Future<void> importProfile({
       pubHostedUrl: pubHostedUrl,
       fn: (client) async {
         try {
-          await client.createPublisher(
-            p.name,
-            CreatePublisherRequest(accessToken: null),
-          );
+          await client.createPublisher(p.name);
         } on RequestException catch (e) {
           // Ignore 409s, that's probably just because it's been created before.
           if (e.status != 409) {

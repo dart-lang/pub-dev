@@ -133,10 +133,7 @@ class PublisherBackend {
   }
 
   /// Create publisher.
-  Future<api.PublisherInfo> createPublisher(
-    String publisherId,
-    api.CreatePublisherRequest body,
-  ) async {
+  Future<api.PublisherInfo> createPublisher(String publisherId) async {
     checkPublisherIdParam(publisherId);
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
@@ -150,32 +147,31 @@ class PublisherBackend {
       'publisherId',
       maximum: maxPublisherIdLength, // Some upper limit for sanity.
     );
-    var accessToken = body.accessToken;
-    if (accessToken == null) {
-      final session = await accountBackend
-          .lookupValidUserSession(requestContext.sessionData!.sessionId);
-      final grantedScopes =
-          session?.grantedScopes?.split(' ') ?? const <String>[];
-      if (grantedScopes.contains(webmasterScope)) {
-        accessToken = session?.accessToken;
-      } else {
-        final goUrl = Uri(
-          path: '/create-publisher',
-          queryParameters: {'domain': publisherId},
-        ).toString();
-        final locationUrl = Uri(
-          path: '/sign-in',
-          queryParameters: {
-            'go': goUrl,
-            'scope': webmasterScope,
-          },
-        ).toString();
-        throw ScopeNeededException(
-          message: 'Please authorize access to Google Search Console.',
-          location: locationUrl,
-        );
-      }
+    String? accessToken;
+    final session = await accountBackend
+        .lookupValidUserSession(requestContext.sessionData!.sessionId);
+    final grantedScopes =
+        session?.grantedScopes?.split(' ') ?? const <String>[];
+    if (grantedScopes.contains(webmasterScope)) {
+      accessToken = session?.accessToken;
+    } else {
+      final goUrl = Uri(
+        path: '/create-publisher',
+        queryParameters: {'domain': publisherId},
+      ).toString();
+      final locationUrl = Uri(
+        path: '/sign-in',
+        queryParameters: {
+          'go': goUrl,
+          'scope': webmasterScope,
+        },
+      ).toString();
+      throw ScopeNeededException(
+        message: 'Please authorize access to Google Search Console.',
+        location: locationUrl,
+      );
     }
+
     InvalidInputException.checkNotNull(accessToken, 'accessToken');
     InvalidInputException.checkStringLength(
       accessToken!,
@@ -183,10 +179,6 @@ class PublisherBackend {
       minimum: 1,
       maximum: 4096,
     );
-    // TODO: remove this check after the new sign-in goes live
-    if (body.accessToken != null) {
-      await accountBackend.verifyAccessTokenOwnership(accessToken, user);
-    }
 
     // Verify ownership of domain.
     final isOwner = await domainVerifier.verifyDomainOwnership(

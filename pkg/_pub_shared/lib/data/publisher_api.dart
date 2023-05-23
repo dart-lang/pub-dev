@@ -6,25 +6,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'publisher_api.g.dart';
 
-/// Request payload when creating a publisher.
-@JsonSerializable()
-class CreatePublisherRequest {
-  /// The OAuth2 `access_token` to be used with webmasters API to prove
-  /// ownership of the domain.
-  ///
-  /// This must:
-  ///  * be valid at the time of the request,
-  ///  * obtained from the OAuth2 flow used on the pub.dev website,
-  ///  * have the scope: `'https://www.googleapis.com/auth/webmasters.readonly'`.
-  final String? accessToken;
-
-  // json_serializable boiler-plate
-  CreatePublisherRequest({required this.accessToken});
-  factory CreatePublisherRequest.fromJson(Map<String, dynamic> json) =>
-      _$CreatePublisherRequestFromJson(json);
-  Map<String, dynamic> toJson() => _$CreatePublisherRequestToJson(this);
-}
-
 /// Request payload when updating a publisher.
 @JsonSerializable()
 class UpdatePublisherRequest {

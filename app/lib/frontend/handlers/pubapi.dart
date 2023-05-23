@@ -193,9 +193,8 @@ class PubApi {
   Future<PublisherInfo> createPublisher(
     Request request,
     String publisherId,
-    CreatePublisherRequest body,
   ) =>
-      publisherBackend.createPublisher(publisherId, body);
+      publisherBackend.createPublisher(publisherId);
 
   /// Returns publisher data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>')
