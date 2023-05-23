@@ -95,7 +95,8 @@ extension PubPageExt on Page {
     await waitAndClick('#-admin-set-publisher-input');
     await waitAndClick('li[data-value="$publisherId"]');
     await waitAndClick('#-admin-set-publisher-button');
-    await _waitConfirmDialogThenConfirmOp();
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
   }
 
   Future<Map<String, String>> listPublisherMembers({
