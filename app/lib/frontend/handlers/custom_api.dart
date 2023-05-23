@@ -7,7 +7,10 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:gcloud/storage.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/shared/count_topics.dart';
+import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -316,6 +319,34 @@ Future<VersionScore> packageVersionScoreHandler(
       lastUpdated: updated,
     );
   }))!;
+}
+
+/// Handles requests for
+/// - /api/topic-name-completion-data
+Future<shelf.Response> apiTopicNameCompletionDataHandler(
+    shelf.Request request) async {
+  // only accept requests which allow gzip content encoding
+  if (!request.acceptsGzipEncoding()) {
+    throw NotAcceptableException('Client must accept gzip content.');
+  }
+
+  if (!request.acceptsJsonContent()) {
+    throw NotAcceptableException('Client must accept json content.');
+  }
+
+  final bytes = await cache.topicNameCompletionDataJsonGz().get(() async {
+    final data = await storageService
+        .bucket(activeConfiguration.reportsBucketName!)
+        .readAsBytes(topicsJsonFileName);
+
+    return gzip.encode(data);
+  });
+
+  return shelf.Response(200, body: bytes, headers: {
+    ...jsonResponseHeaders,
+    'Content-Encoding': 'gzip',
+    ...CacheHeaders.topicNameCompletion(),
+  });
 }
 
 /// Handles requests for /api/search

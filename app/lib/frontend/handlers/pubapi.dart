@@ -343,6 +343,11 @@ class PubApi {
   Future<PkgOptions> packageOptions(Request request, String package) =>
       getPackageOptionsHandler(request, package);
 
+  @EndPoint.get('/api/topic-name-completion-data')
+  Future<Response> topicNameCompletionData(Request request) async {
+    return apiTopicNameCompletionDataHandler(request);
+  }
+
   @EndPoint.put('/api/packages/<package>/options')
   Future<PkgOptions> setPackageOptions(
           Request request, String package, PkgOptions body) =>

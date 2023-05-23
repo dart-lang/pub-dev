@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/frontend/handlers.dart';
@@ -16,6 +17,7 @@ import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
@@ -48,6 +50,7 @@ class FakePubServer {
           }
 
           await generateFakePopularityValues();
+          await generateFakeTopicValues();
           await nameTracker.startTracking();
 
           final appHandler = createAppHandler();
@@ -72,4 +75,10 @@ class FakePubServer {
         });
     _logger.info('closed');
   }
+}
+
+Future<void> generateFakeTopicValues() async {
+  await storageService
+      .bucket('fake-bucket-reports')
+      .writeBytes('topics.json', jsonUtf8Encoder.convert({'ffi': 7}));
 }

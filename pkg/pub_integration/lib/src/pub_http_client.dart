@@ -236,6 +236,18 @@ class PubHttpClient {
     return packages;
   }
 
+  /// Returns the list of topics from the `/api/topic-name-completion-data`
+  /// endpoint.
+  Future<List<String>> apiTopicNameCompletionData() async {
+    final Response rs = await _http.get(
+        _pubHostedUrl.resolve('/api/topic-name-completion-data'),
+        headers: {HttpHeaders.acceptHeader: 'application/json'});
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+    return (json.decode(rs.body) as Map<String, dynamic>).keys.toList();
+  }
+
   /// Invites a new uploader to the package.
   Future<void> inviteUploader({
     required String packageName,

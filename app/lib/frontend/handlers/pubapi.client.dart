@@ -312,6 +312,13 @@ class PubApiClient {
     ));
   }
 
+  Future<List<int>> topicNameCompletionData() async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/topic-name-completion-data',
+    );
+  }
+
   Future<_i3.PkgOptions> setPackageOptions(
     String package,
     _i3.PkgOptions payload,
