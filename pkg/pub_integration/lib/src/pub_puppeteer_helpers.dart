@@ -169,7 +169,9 @@ extension PubPageExt on Page {
     if (!clicked) {
       throw Exception('Email "$email" was not found in the uploaders list.');
     }
+    // Click ok in the dialog to confirm
     await waitAndClickOnDialogOk(waitForOneResponse: true);
+    // Click ok on the popup saying it was done
     await waitAndClickOnDialogOk();
     await _waitForModelHidden();
   }
