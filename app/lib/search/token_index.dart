@@ -254,11 +254,11 @@ class TokenIndex {
     final Map<String, double> docScores = <String, double>{};
     for (String token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token]!;
-      for (String id in docWeights.keys) {
-        if (limitToIds != null && !limitToIds.contains(id)) continue;
-        final double prevValue = docScores[id] ?? 0.0;
-        final double currentValue = tokenMatch[token]! * docWeights[id]!;
-        docScores[id] = math.max(prevValue, currentValue);
+      for (final e in docWeights.entries) {
+        if (limitToIds != null && !limitToIds.contains(e.key)) continue;
+        final double prevValue = docScores[e.key] ?? 0.0;
+        final double currentValue = tokenMatch[token]! * e.value;
+        docScores[e.key] = math.max(prevValue, currentValue);
       }
     }
 
@@ -268,13 +268,13 @@ class TokenIndex {
     final double wordSizeExponent = 1.0 / wordCount;
 
     // post-process match weights
-    for (String id in docScores.keys.toList()) {
-      double docSize = _docSizes[id]!;
+    docScores.updateAll((id, docScore) {
+      var docSize = _docSizes[id]!;
       if (wordCount > 1) {
         docSize = math.pow(docSize, wordSizeExponent).toDouble();
       }
-      docScores[id] = weight * docScores[id]! / docSize;
-    }
+      return weight * docScore / docSize;
+    });
     return docScores;
   }
 
