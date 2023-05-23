@@ -135,7 +135,7 @@ class InMemoryPackageIndex implements PackageIndex {
 
   @override
   Future<PackageSearchResult> search(ServiceSearchQuery query) async {
-    final Set<String> packages = Set.from(_packages.keys);
+    final packages = Set<String>.of(_packages.keys);
 
     // filter on package prefix
     if (query.parsedQuery.packagePrefix != null) {
