@@ -95,8 +95,7 @@ extension PubPageExt on Page {
     await waitAndClick('#-admin-set-publisher-input');
     await waitAndClick('li[data-value="$publisherId"]');
     await waitAndClick('#-admin-set-publisher-button');
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<Map<String, String>> listPublisherMembers({
@@ -119,9 +118,7 @@ extension PubPageExt on Page {
     await gotoOrigin('/publishers/$publisherId/admin');
     await waitAndClick('#-admin-add-member-button');
     await _waitAndType('#-admin-invite-member-input', invitedEmail);
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<void> invitePackageAdmin({
@@ -131,9 +128,7 @@ extension PubPageExt on Page {
     await gotoOrigin('/packages/$package/admin');
     await waitAndClick('#-pkg-admin-invite-uploader-button');
     await _waitAndType('#-pkg-admin-invite-uploader-input', invitedEmail);
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<List<String>> listPackageUploaderEmails({
@@ -169,11 +164,7 @@ extension PubPageExt on Page {
     if (!clicked) {
       throw Exception('Email "$email" was not found in the uploaders list.');
     }
-    // Click ok in the dialog to confirm
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
-    // Click ok on the popup saying it was done
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<void> acceptConsent({
@@ -181,6 +172,14 @@ extension PubPageExt on Page {
   }) async {
     await gotoOrigin('/consent?id=$consentId');
     await waitAndClick('#-admin-consent-accept-button');
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
+  }
+
+  Future<void> _waitConfirmDialogThenConfirmOp() async {
+    // Click ok in the dialog to confirm
+    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    // Click ok on the popup saying it was done
     await waitAndClickOnDialogOk();
     await _waitForModelHidden();
   }
