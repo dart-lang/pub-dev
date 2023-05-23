@@ -97,32 +97,22 @@ class Score {
     if (threshold == null) {
       return this;
     }
-    final result = <String, double>{};
-    for (String key in _values.keys) {
-      final value = _values[key]!;
-      if (value < threshold) continue;
-      result[key] = value;
-    }
+    final result = Map<String, double>.fromEntries(
+        _values.entries.where((entry) => entry.value >= threshold!));
     return Score(result);
   }
 
   /// Keeps the scores only for values in [keys].
-  Score project(Iterable<String> keys) {
-    final result = <String, double>{};
-    for (String key in keys) {
-      final value = _values[key];
-      if (value == null) continue;
-      result[key] = value;
-    }
+  Score project(Set<String> keys) {
+    final result = Map<String, double>.fromEntries(
+        _values.entries.where((entry) => keys.contains(entry.key)));
     return Score(result);
   }
 
   /// Transfer the score values with [f].
   Score map(double Function(String key, double value) f) {
-    final result = <String, double>{};
-    for (String key in _values.keys) {
-      result[key] = f(key, _values[key]!);
-    }
+    final result = Map<String, double>.fromEntries(
+        _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
     return Score(result);
   }
 
