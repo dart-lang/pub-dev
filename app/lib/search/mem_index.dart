@@ -480,15 +480,15 @@ class PackageNameIndex {
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
         : word.substring(0, word.length - 1);
+    final parts = singularWord.length <= 3
+        ? [singularWord]
+        : ngrams(singularWord, 3, 3).toList();
     for (final pkg in pkgNamesToCheck) {
       final withoutGaps = _namesWithoutGaps[pkg] ?? pkg;
       if (withoutGaps.contains(singularWord)) {
         values[pkg] = 1.0;
         continue;
       }
-      final parts = singularWord.length <= 3
-          ? [singularWord]
-          : ngrams(singularWord, 3, 3).toList();
       var matched = 0;
       for (final part in parts) {
         if (withoutGaps.contains(part)) {
