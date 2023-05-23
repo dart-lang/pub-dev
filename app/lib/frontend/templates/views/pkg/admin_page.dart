@@ -63,6 +63,7 @@ d.Node packageAdminPageNode({
       if (!pkgHasPublisher) ...[
         d.h3(text: 'Uploaders'),
         material.dataTable<User>(
+          id: '-pkg-admin-uploaders-table',
           ariaLabel: 'Uploaders of package',
           columns: [
             material.DataTableColumn<User>(

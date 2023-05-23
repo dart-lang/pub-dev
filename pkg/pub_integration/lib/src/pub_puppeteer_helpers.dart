@@ -119,9 +119,7 @@ extension PubPageExt on Page {
     await gotoOrigin('/publishers/$publisherId/admin');
     await waitAndClick('#-admin-add-member-button');
     await _waitAndType('#-admin-invite-member-input', invitedEmail);
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<void> invitePackageAdmin({
@@ -131,9 +129,43 @@ extension PubPageExt on Page {
     await gotoOrigin('/packages/$package/admin');
     await waitAndClick('#-pkg-admin-invite-uploader-button');
     await _waitAndType('#-pkg-admin-invite-uploader-input', invitedEmail);
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
+  }
+
+  Future<List<String>> listPackageUploaderEmails({
+    required String package,
+  }) async {
+    await gotoOrigin('/packages/$package/admin');
+    final table = await $('#-pkg-admin-uploaders-table');
+    final buttons = await table.$$('.-pub-remove-uploader-button');
+    final emails = <String>[];
+    for (final button in buttons) {
+      final email = await button.attributeValue('data-email');
+      emails.add(email!);
+    }
+    return emails;
+  }
+
+  Future<void> deletePackageAdmin({
+    required String package,
+    required String email,
+  }) async {
+    await gotoOrigin('/packages/$package/admin');
+    final table = await $('#-pkg-admin-uploaders-table');
+    final buttons = await table.$$('.-pub-remove-uploader-button');
+    var clicked = false;
+    for (final button in buttons) {
+      final buttonEmail = await button.attributeValue('data-email');
+      if (email == buttonEmail) {
+        await button.click();
+        clicked = true;
+        break;
+      }
+    }
+    if (!clicked) {
+      throw Exception('Email "$email" was not found in the uploaders list.');
+    }
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<void> acceptConsent({
@@ -141,6 +173,14 @@ extension PubPageExt on Page {
   }) async {
     await gotoOrigin('/consent?id=$consentId');
     await waitAndClick('#-admin-consent-accept-button');
+    await waitAndClickOnDialogOk();
+    await _waitForModelHidden();
+  }
+
+  Future<void> _waitConfirmDialogThenConfirmOp() async {
+    // Click ok in the dialog to confirm
+    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    // Click ok on the popup saying it was done
     await waitAndClickOnDialogOk();
     await _waitForModelHidden();
   }

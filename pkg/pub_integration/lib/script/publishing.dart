@@ -6,10 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:_pub_shared/data/account_api.dart';
-import 'package:_pub_shared/data/package_api.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_integration/src/fake_pub_server_process.dart';
+import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_scenario.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -89,26 +88,47 @@ class PublishingScript {
       if (pubHostedUrl.startsWith('http://localhost:')) {
         // invite uploader
         // TODO: use page.invitePackageAdmin instead
-        await adminUser.api.invitePackageUploader(
-            '_dummy_pkg', InviteUploaderRequest(email: invitedUser.email));
+        await adminUser.withBrowserPage((page) async {
+          final emails =
+              await page.listPackageUploaderEmails(package: '_dummy_pkg');
+          if (emails.contains(invitedUser.email)) {
+            throw Exception('"${invitedUser.email}" is already an uploader.');
+          }
+          await page.invitePackageAdmin(
+            package: '_dummy_pkg',
+            invitedEmail: invitedUser.email,
+          );
+        });
 
         final lastEmail = await invitedUser.readLatestEmail();
         final consentId = extractConsentIdFromEmail(lastEmail);
 
         // accepting it with the good user
-        // TODO: use page.acceptConsent instead
-        await invitedUser.api
-            .resolveConsent(consentId, ConsentResult(granted: true));
+        await invitedUser.withBrowserPage((page) async {
+          await page.acceptConsent(consentId: consentId);
+          final emails =
+              await page.listPackageUploaderEmails(package: '_dummy_pkg');
+          if (!emails.contains(invitedUser.email)) {
+            throw Exception(
+                '"${invitedUser.email}" has not become an uploader.');
+          }
+        });
 
         await _verifyDummyPkg();
 
         // remove uploader with API
-        await adminUser.api.removeUploaderFromUI(
-          '_dummy_pkg',
-          RemoveUploaderRequest(
+        await adminUser.withBrowserPage((page) async {
+          await page.deletePackageAdmin(
+            package: '_dummy_pkg',
             email: invitedUser.email,
-          ),
-        );
+          );
+          final emails =
+              await page.listPackageUploaderEmails(package: '_dummy_pkg');
+          if (emails.contains(invitedUser.email)) {
+            throw Exception('"${invitedUser.email}" is still an uploader.');
+          }
+        });
+
         await _verifyDummyPkg();
       }
 
