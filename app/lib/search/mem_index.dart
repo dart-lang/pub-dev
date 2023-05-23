@@ -135,7 +135,7 @@ class InMemoryPackageIndex implements PackageIndex {
 
   @override
   Future<PackageSearchResult> search(ServiceSearchQuery query) async {
-    final Set<String> packages = Set.from(_packages.keys);
+    final packages = Set<String>.of(_packages.keys);
 
     // filter on package prefix
     if (query.parsedQuery.packagePrefix != null) {
@@ -334,11 +334,10 @@ class InMemoryPackageIndex implements PackageIndex {
       }
 
       final apiPackages = <String, double>{};
-      for (String key in symbolPages.getKeys()) {
-        final pkg = _apiDocPkg(key);
+      for (final entry in symbolPages.getValues().entries) {
+        final pkg = _apiDocPkg(entry.key);
         if (!packages.contains(pkg)) continue;
-        final value = symbolPages[key];
-        apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
+        apiPackages[pkg] = math.max(entry.value, apiPackages[pkg] ?? 0.0);
       }
       final apiPkgScore = Score(apiPackages);
       var score = Score.max([core, apiPkgScore])
