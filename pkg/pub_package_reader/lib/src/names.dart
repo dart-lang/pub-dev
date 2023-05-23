@@ -39,6 +39,7 @@ const reservedWords = <String>{
   'implements',
   'import',
   'in',
+  'inline',
   'interface',
   'is',
   'late',
