@@ -445,11 +445,12 @@ class _TextResults {
 /// A simple (non-inverted) index designed for package name lookup.
 @visibleForTesting
 class PackageNameIndex {
+  final _data = <String, _PkgNameData>{};
+
   /// Maps package name to a reduced form of the name:
   /// the same character parts, but without `-`.
-  final _namesWithoutGaps = <String, String>{};
-
-  String _collapseName(String package) => package.replaceAll('_', '');
+  String _collapseName(String package) =>
+      package.replaceAll('_', '').toLowerCase();
 
   void addAll(Iterable<String> packages) {
     for (final package in packages) {
@@ -459,12 +460,15 @@ class PackageNameIndex {
 
   /// Add a new [package] to the index.
   void add(String package) {
-    _namesWithoutGaps[package] = _collapseName(package);
+    _data.putIfAbsent(package, () {
+      final collapsed = _collapseName(package);
+      return _PkgNameData(collapsed, trigrams(collapsed).toSet());
+    });
   }
 
   /// Remove a [package] from the index.
   void remove(String package) {
-    _namesWithoutGaps.remove(package);
+    _data.remove(package);
   }
 
   /// Search [text] and return the matching packages with scores.
@@ -474,23 +478,26 @@ class PackageNameIndex {
 
   /// Search using the parsed [word] and return the match packages with scores.
   Score searchWord(String word, {Set<String>? packages}) {
-    final pkgNamesToCheck = packages ?? _namesWithoutGaps.keys;
+    final pkgNamesToCheck = packages ?? _data.keys;
     final values = <String, double>{};
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
         : word.substring(0, word.length - 1);
-    final parts = singularWord.length <= 3
-        ? [singularWord]
-        : ngrams(singularWord, 3, 3).toList();
+    final collapsedWord = _collapseName(singularWord);
+    final parts =
+        collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
     for (final pkg in pkgNamesToCheck) {
-      final withoutGaps = _namesWithoutGaps[pkg] ?? pkg;
-      if (withoutGaps.contains(singularWord)) {
+      final entry = _data[pkg];
+      if (entry == null) {
+        continue;
+      }
+      if (entry.collapsed.contains(collapsedWord)) {
         values[pkg] = 1.0;
         continue;
       }
       var matched = 0;
       for (final part in parts) {
-        if (withoutGaps.contains(part)) {
+        if (entry.trigrams.contains(part)) {
           matched++;
         }
       }
@@ -500,6 +507,13 @@ class PackageNameIndex {
     }
     return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
   }
+}
+
+class _PkgNameData {
+  final String collapsed;
+  final Set<String> trigrams;
+
+  _PkgNameData(this.collapsed, this.trigrams);
 }
 
 class _LikeScore {

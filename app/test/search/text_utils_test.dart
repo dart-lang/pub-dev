@@ -129,32 +129,20 @@ Other useful methods will be added soon...
     });
   });
 
-  group('ngrams', () {
+  group('trigrams', () {
     test('small input', () {
-      expect(ngrams('', 2, 2), isEmpty);
-      expect(ngrams('a', 2, 2), isEmpty);
-      expect(ngrams('ab', 3, 3), isEmpty);
-      expect(ngrams('ab', 3, 4), isEmpty);
+      expect(trigrams(''), isEmpty);
+      expect(trigrams('a'), isEmpty);
+      expect(trigrams('ab'), isEmpty);
     });
 
-    test('2-grams', () {
-      expect(ngrams('ab', 2, 2), {'ab'});
-      expect(ngrams('abcdef', 2, 2), {'ab', 'bc', 'cd', 'de', 'ef'});
+    test('small inputs', () {
+      expect(trigrams('abc'), ['abc']);
+      expect(trigrams('abcd'), ['abc', 'bcd']);
     });
 
-    test('2-3-grams', () {
-      expect(ngrams('ab', 2, 3), {'ab'});
-      expect(ngrams('abcdef', 2, 3), {
-        'ab',
-        'bc',
-        'cd',
-        'de',
-        'ef',
-        'abc',
-        'bcd',
-        'cde',
-        'def',
-      });
+    test('repeated values', () {
+      expect(trigrams('aaaab'), ['aaa', 'aaa', 'aab']);
     });
   });
 }

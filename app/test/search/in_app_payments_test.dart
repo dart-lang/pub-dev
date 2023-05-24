@@ -36,7 +36,7 @@ Add _In-App Payments_ to your Flutter app with this plugin.''')));
         'packageHits': [
           {
             'package': 'flutter_iap',
-            'score': closeTo(0.73, 0.01),
+            'score': 1.0,
           },
         ],
       });

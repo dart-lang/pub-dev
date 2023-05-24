@@ -133,17 +133,18 @@ final _upperA = 'A'.codeUnits.single;
 final _upperZ = 'Z'.codeUnits.single;
 bool _isLower(int c) => c < _upperA || _upperZ < c;
 
-/// Generates the N-grams of [input], which are continuous character strings of
-/// length between [minLength] and [maxLength] (both inclusive).
-/// Eg. abc -> ab, bc
-Set<String> ngrams(String input, int minLength, int maxLength) {
-  final ngrams = <String>{};
-  for (int length = minLength; length <= maxLength; length++) {
-    if (input.length >= length) {
-      for (int i = 0; i <= input.length - length; i++) {
-        ngrams.add(input.substring(i, i + length));
-      }
+/// Generates the 3-grams of [input], which are continuous character strings of
+/// length 3. Eg. `abcd` -> `abc`, `bcd`.
+List<String> trigrams(String input) {
+  if (input.length < 3) {
+    return const <String>[];
+  } else if (input.length == 3) {
+    return [input];
+  } else {
+    final result = <String>[];
+    for (var i = 0; i < input.length - 2; i++) {
+      result.add(input.substring(i, i + 3));
     }
+    return result;
   }
-  return ngrams;
 }
