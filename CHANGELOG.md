@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20230524t141500-all`
+
 ## `20230523t155100-all`
  * Note: removed unused-looking code in publisher creation, we need to check if it is still working after deployment.
 
