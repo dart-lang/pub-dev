@@ -125,7 +125,7 @@ class SearchBackend {
 
     final pubDataContent = await dartdocBackend.getTextContent(
         packageName, 'latest', 'pub-data.json',
-        timeout: const Duration(minutes: 1));
+        timeout: const Duration(minutes: 1), maxSize: 10 * 1014);
 
     List<ApiDocPage>? apiDocPages;
     try {

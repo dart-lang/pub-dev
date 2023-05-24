@@ -330,11 +330,13 @@ class DartdocBackend {
   /// Returns the text content of a file inside the dartdoc archive.
   ///
   /// Returns `null` if the file does not exists, or its content can't be parsed as String.
+  /// Returns `null` if the file exceeds [maxSize].
   Future<String?> getTextContent(
     String package,
     String version,
     String relativePath, {
     required Duration timeout,
+    int maxSize = -1,
   }) async {
     try {
       final entry =
@@ -346,9 +348,16 @@ class DartdocBackend {
       if (index != null) {
         final range = index.lookup(relativePath);
         if (range == null) return null;
+        if (maxSize != -1 && range.length > maxSize) {
+          return null;
+        }
         final bytes = await _storage.readAsBytes(entry.objectName(blobFilePath),
             offset: range.start, length: range.length);
-        return utf8.decode(gzip.decode(bytes));
+        final decompressed = gzip.decode(bytes);
+        if (maxSize != -1 && decompressed.length > maxSize) {
+          return null;
+        }
+        return utf8.decode(decompressed);
       }
       // TODO: remove this once all the accepted runtimes use blobs
       final stream = readContent(entry, relativePath).transform(utf8.decoder);
