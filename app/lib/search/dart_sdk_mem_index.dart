@@ -49,9 +49,9 @@ class DartSdkMemIndex {
     await _index.close();
   }
 
-  Future<List<SdkLibraryHit>> search(String query, {int? limit}) async {
+  List<SdkLibraryHit> search(String query, {int? limit}) {
     if (!_index.isAvailable) return <SdkLibraryHit>[];
-    return await _index.value!.search(query, limit: limit);
+    return _index.value!.search(query, limit: limit);
   }
 
   @visibleForTesting

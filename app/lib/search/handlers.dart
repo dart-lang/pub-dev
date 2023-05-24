@@ -72,7 +72,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
     dartSdkMemIndex: dartSdkMemIndex,
     flutterSdkMemIndex: flutterSdkMemIndex,
   );
-  final result = await combiner.search(query);
+  final result = combiner.search(query);
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
     _logger.info(

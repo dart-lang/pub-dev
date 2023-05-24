@@ -22,9 +22,8 @@ void main() {
     });
 
     test('json_tool', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'json_tool', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
+          query: 'json_tool', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -62,9 +61,8 @@ void main() {
     });
 
     test('json_tool', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'json_tool', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
+          query: 'json_tool', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,

@@ -23,7 +23,7 @@ void main() {
     });
 
     test('lombock', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'lombock', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,

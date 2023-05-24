@@ -49,9 +49,8 @@ void main() {
     });
 
     test('flutter iap', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'flutter iap', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
+          query: 'flutter iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -66,9 +65,8 @@ void main() {
     });
 
     test('flutter_iap', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'flutter_iap', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
+          query: 'flutter_iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,

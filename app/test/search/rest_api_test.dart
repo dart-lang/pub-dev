@@ -48,7 +48,7 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
     });
 
     test('REST API', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'rest api', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,

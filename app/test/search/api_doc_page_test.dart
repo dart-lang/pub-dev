@@ -48,7 +48,7 @@ void main() {
     });
 
     test('foo', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'foo', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('serve', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'serve', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -89,9 +89,8 @@ void main() {
     });
 
     test('page generator', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'page generator', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
+          query: 'page generator', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -110,7 +109,7 @@ void main() {
     });
 
     test('web page', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'web page', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,

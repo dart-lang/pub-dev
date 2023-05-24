@@ -119,7 +119,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package name match: async', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(query: 'async'));
+          index.search(ServiceSearchQuery.parse(query: 'async'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -132,7 +132,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('description match: composable', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(query: 'composable'));
+          index.search(ServiceSearchQuery.parse(query: 'composable'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -148,7 +148,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('readme match: chrome.sockets', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(query: 'chrome.sockets'));
+          index.search(ServiceSearchQuery.parse(query: 'chrome.sockets'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -164,7 +164,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('exact phrase match: utility', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(query: '"utility"'));
+          index.search(ServiceSearchQuery.parse(query: '"utility"'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
@@ -177,8 +177,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('exact phrase: multiple words with matching cases', () async {
-      final result = await index
-          .search(ServiceSearchQuery.parse(query: '"AsyncCache class"'));
+      final result =
+          index.search(ServiceSearchQuery.parse(query: '"AsyncCache class"'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -190,8 +190,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('exact phrase: multiple words with non-matching cases', () async {
-      final result = await index
-          .search(ServiceSearchQuery.parse(query: '"asynccache Class"'));
+      final result =
+          index.search(ServiceSearchQuery.parse(query: '"asynccache Class"'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 0,
@@ -203,8 +203,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('exact phrase with dot: "once on demand."', () async {
-      final result = await index
-          .search(ServiceSearchQuery.parse(query: '"once on demand."'));
+      final result =
+          index.search(ServiceSearchQuery.parse(query: '"once on demand."'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -217,7 +217,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package prefix: chrome', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(query: 'package:chrome'));
+          index.search(ServiceSearchQuery.parse(query: 'package:chrome'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -232,7 +232,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by text: single-letter t', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 't', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -246,8 +246,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by created: no filter', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(order: SearchOrder.created));
+      final PackageSearchResult result =
+          index.search(ServiceSearchQuery.parse(order: SearchOrder.created));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
@@ -261,7 +261,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by updated: no filter', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: '', order: SearchOrder.updated));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -276,7 +276,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by updated: query text filter', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'http', order: SearchOrder.updated));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -290,7 +290,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by update with sdk filter', () async {
-      final result = await index.search(
+      final result = index.search(
         SearchForm(
           query: 'sdk:dart runtime:native-jit',
           order: SearchOrder.updated,
@@ -308,8 +308,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by popularity', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
+      final PackageSearchResult result =
+          index.search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
@@ -324,7 +324,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('order by like count', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(order: SearchOrder.like));
+          index.search(ServiceSearchQuery.parse(order: SearchOrder.like));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
@@ -338,8 +338,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by pub points', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(order: SearchOrder.points));
+      final PackageSearchResult result =
+          index.search(ServiceSearchQuery.parse(order: SearchOrder.points));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
@@ -353,8 +353,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter by one dependency', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(query: 'dependency:test'));
+      final PackageSearchResult result =
+          index.search(ServiceSearchQuery.parse(query: 'dependency:test'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
@@ -366,14 +366,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
 
       // do not highlight package if otherwise exact match is in the query
-      final rs2 = await index
-          .search(ServiceSearchQuery.parse(query: 'http dependency:test'));
+      final rs2 =
+          index.search(ServiceSearchQuery.parse(query: 'http dependency:test'));
       expect(rs2.totalCount, 1);
     });
 
     test('filter by foo as direct/dev dependency', () async {
       final PackageSearchResult result =
-          await index.search(ServiceSearchQuery.parse(query: 'dependency:foo'));
+          index.search(ServiceSearchQuery.parse(query: 'dependency:foo'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -385,8 +385,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter by foo as transitive dependency', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(query: 'dependency*:foo'));
+      final PackageSearchResult result =
+          index.search(ServiceSearchQuery.parse(query: 'dependency*:foo'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
@@ -398,13 +398,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
 
       // do not highlight package if otherwise exact match is in the query
-      final rs2 = await index
-          .search(ServiceSearchQuery.parse(query: 'http dependency*:foo'));
+      final rs2 =
+          index.search(ServiceSearchQuery.parse(query: 'http dependency*:foo'));
       expect(rs2.totalCount, 2);
     });
 
     test('filter by text and dependency', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'composable dependency:test'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -417,7 +417,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter by two dependencies', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'dependency:async dependency:test'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -430,7 +430,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('no results via publisher', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'publisher:other-domain.com'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -441,8 +441,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter by publisher', () async {
-      final PackageSearchResult result = await index
-          .search(ServiceSearchQuery.parse(query: 'publisher:dart.dev'));
+      final PackageSearchResult result =
+          index.search(ServiceSearchQuery.parse(query: 'publisher:dart.dev'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -453,14 +453,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
 
       // do not highlight package if otherwise exact match is in the query
-      final rs2 = await index
+      final rs2 = index
           .search(ServiceSearchQuery.parse(query: 'async publisher:dart.dev'));
       expect(rs2.totalCount, 1);
     });
 
     test('no results with minPoints', () async {
-      final result =
-          await index.search(ServiceSearchQuery.parse(minPoints: 100000));
+      final result = index.search(ServiceSearchQuery.parse(minPoints: 100000));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 0,
@@ -470,8 +469,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter with minPoints', () async {
-      final result =
-          await index.search(ServiceSearchQuery.parse(minPoints: 10));
+      final result = index.search(ServiceSearchQuery.parse(minPoints: 10));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
@@ -484,8 +482,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('no results with updatedInDays', () async {
-      final result =
-          await index.search(ServiceSearchQuery.parse(updatedInDays: 1));
+      final result = index.search(ServiceSearchQuery.parse(updatedInDays: 1));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 0,
@@ -497,7 +494,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     test('filter with updatedInDays', () async {
       final days = clock.now().difference(lastPackageUpdated).inDays;
       final result1 =
-          await index.search(ServiceSearchQuery.parse(updatedInDays: days - 1));
+          index.search(ServiceSearchQuery.parse(updatedInDays: days - 1));
       expect(json.decode(json.encode(result1)), {
         'timestamp': isNotNull,
         'totalCount': 0,
@@ -506,7 +503,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
 
       final result2 =
-          await index.search(ServiceSearchQuery.parse(updatedInDays: days + 1));
+          index.search(ServiceSearchQuery.parse(updatedInDays: days + 1));
       expect(json.decode(json.encode(result2)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -518,7 +515,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('multiword query: implicit AND', () async {
-      final PackageSearchResult composable = await index.search(
+      final PackageSearchResult composable = index.search(
           ServiceSearchQuery.parse(
               query: 'composable', order: SearchOrder.text));
       expect(json.decode(json.encode(composable)), {
@@ -530,7 +527,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         ],
       });
 
-      final PackageSearchResult library = await index.search(
+      final PackageSearchResult library = index.search(
           ServiceSearchQuery.parse(query: 'library', order: SearchOrder.text));
       expect(json.decode(json.encode(library)), {
         'timestamp': isNotNull,
@@ -545,9 +542,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
       // Without the implicit AND, the end result would be close to the result
       // of the `library` search.
-      final PackageSearchResult both = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'composable library', order: SearchOrder.text));
+      final PackageSearchResult both = index.search(ServiceSearchQuery.parse(
+          query: 'composable library', order: SearchOrder.text));
       expect(json.decode(json.encode(both)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -559,12 +555,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('non-word query with default order', () async {
-      final rs = await index.search(ServiceSearchQuery.parse(query: '='));
+      final rs = index.search(ServiceSearchQuery.parse(query: '='));
       expect(rs.isEmpty, isTrue);
     });
 
     test('non-word query with text order', () async {
-      final rs = await index.search(
+      final rs = index.search(
           ServiceSearchQuery.parse(query: '=', order: SearchOrder.text));
       expect(rs.isEmpty, isTrue);
     });
@@ -579,13 +575,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       await index.addPackage(PackageDocument(
         package: 'apps',
       ));
-      final match = await index.search(
+      final match = index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.packageHits.map((e) => e.toJson()), [
         {'package': 'app', 'score': 1.0},
         {'package': 'apps', 'score': 1.0},
       ]);
-      final match2 = await index.search(
+      final match2 = index.search(
           ServiceSearchQuery.parse(query: 'apps', order: SearchOrder.text));
       expect(match2.packageHits.map((e) => e.toJson()), [
         {'package': 'app', 'score': 1.0},
@@ -601,13 +597,13 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       await index.addPackage(PackageDocument(
         package: 'appz',
       ));
-      final match = await index.search(
+      final match = index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.packageHits.map((e) => e.toJson()), [
         {'package': 'app', 'score': 1.0},
         {'package': 'appz', 'score': 1.0},
       ]);
-      final match2 = await index.search(
+      final match2 = index.search(
           ServiceSearchQuery.parse(query: 'appz', order: SearchOrder.text));
       expect(match2.packageHits.map((e) => e.toJson()), [
         {'package': 'appz', 'score': 1.0},
@@ -637,7 +633,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
         // default order
         expect(
-          (await index.search(ServiceSearchQuery.parse(query: 'xyz'))).toJson(),
+          (index.search(ServiceSearchQuery.parse(query: 'xyz'))).toJson(),
           {
             'timestamp': isNotEmpty,
             'totalCount': 2,
@@ -650,22 +646,19 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         );
         // exact name match without tags
         expect(
-            (await index.search(ServiceSearchQuery.parse(query: 'abc')))
-                .toJson(),
-            {
-              'timestamp': isNotEmpty,
-              'totalCount': 2,
-              'sdkLibraryHits': [],
-              'packageHits': [
-                // `abc` is first, despite its lower score
-                {'package': 'abc', 'score': closeTo(0.48, 0.01)},
-                {'package': 'def', 'score': closeTo(0.69, 0.01)},
-              ]
-            });
+            (index.search(ServiceSearchQuery.parse(query: 'abc'))).toJson(), {
+          'timestamp': isNotEmpty,
+          'totalCount': 2,
+          'sdkLibraryHits': [],
+          'packageHits': [
+            // `abc` is first, despite its lower score
+            {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+            {'package': 'def', 'score': closeTo(0.69, 0.01)},
+          ]
+        });
         // exact name match with tags
         expect(
-            (await index
-                    .search(ServiceSearchQuery.parse(query: 'abc sdk:dart')))
+            (index.search(ServiceSearchQuery.parse(query: 'abc sdk:dart')))
                 .toJson(),
             {
               'timestamp': isNotEmpty,
@@ -694,7 +687,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         description:
             'Smart project structure with dependency injection and route management',
       ));
-      final rs = await index.search(
+      final rs = index.search(
           ServiceSearchQuery.parse(query: 'modular', order: SearchOrder.text));
       expect(
         rs.toJson(),

@@ -29,9 +29,8 @@ void main() {
 
     // should find full word
     test('stacktrace', () async {
-      final PackageSearchResult result = await index.search(
-          ServiceSearchQuery.parse(
-              query: 'stacktrace', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
+          query: 'stacktrace', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,

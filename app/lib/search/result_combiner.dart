@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/tags.dart';
@@ -24,18 +23,17 @@ class SearchResultCombiner {
     required this.flutterSdkMemIndex,
   });
 
-  Future<PackageSearchResult> search(ServiceSearchQuery query) async {
+  PackageSearchResult search(ServiceSearchQuery query) {
     if (!query.includeSdkResults) {
       return primaryIndex.search(query);
     }
 
-    final primaryResult = await primaryIndex.search(query);
+    final primaryResult = primaryIndex.search(query);
     final queryFlutterSdk = query.tagsPredicate.hasNoTagPrefix('sdk:') ||
         query.tagsPredicate.hasTag(SdkTag.sdkFlutter);
     final sdkLibraryHits = [
-      ...await dartSdkMemIndex.search(query.query!, limit: 2),
-      if (queryFlutterSdk)
-        ...await flutterSdkMemIndex.search(query.query!, limit: 2),
+      ...dartSdkMemIndex.search(query.query!, limit: 2),
+      if (queryFlutterSdk) ...flutterSdkMemIndex.search(query.query!, limit: 2),
     ];
     if (sdkLibraryHits.isNotEmpty) {
       // Do not display low SDK scores if all the first page package hits are more relevant.
