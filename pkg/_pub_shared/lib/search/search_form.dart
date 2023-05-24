@@ -118,11 +118,7 @@ class TagsPredicate {
       } else if (tag.startsWith('+')) {
         tag = tag.substring(1);
       }
-      if (required) {
-        p._values[tag] = true;
-      } else {
-        p._values[tag] = false;
-      }
+      p._values[tag] = required;
     }
     return p;
   }
@@ -142,9 +138,10 @@ class TagsPredicate {
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
   bool matches(List<String> tags) {
-    for (String? tag in _values.keys) {
+    for (final entry in _values.entries) {
+      final tag = entry.key;
+      final required = entry.value;
       final present = tags.contains(tag);
-      final required = _values[tag]!;
       if (required && !present) return false;
       if (!required && present) return false;
     }
@@ -162,7 +159,7 @@ class TagsPredicate {
     if (current == value) {
       return this;
     }
-    final newValues = Map<String, bool>.from(_values);
+    final newValues = Map<String, bool>.of(_values);
     if (value == null) {
       newValues.remove(tag);
     } else {
