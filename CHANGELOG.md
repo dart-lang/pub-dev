@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20230523t155100-all`
  * Note: removed unused-looking code in publisher creation, we need to check if it is still working after deployment.
 
 ## `20230523t102500-all`
