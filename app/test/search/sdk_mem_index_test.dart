@@ -85,7 +85,7 @@ void main() {
     });
 
     test('AsyncError', () async {
-      final rs = await index.search('AsyncError');
+      final rs = index.search('AsyncError');
       expect(
         json.decode(json.encode(rs)),
         [
@@ -118,7 +118,7 @@ void main() {
     });
 
     test('stack trace', () async {
-      final rs = await index.search('stack trace');
+      final rs = index.search('stack trace');
       expect(
         json.decode(json.encode(rs)),
         [
@@ -142,7 +142,7 @@ void main() {
     });
 
     test('defaultStackTrace', () async {
-      final rs = await index.search('defaultStackTrace');
+      final rs = index.search('defaultStackTrace');
       expect(
         json.decode(json.encode(rs)),
         [
@@ -167,21 +167,21 @@ void main() {
 
     test('reduced score with library', () async {
       // qualified query gets higher score
-      final rs1 = await index.search('window');
-      final rs2 = await index.search('html window');
+      final rs1 = index.search('window');
+      final rs2 = index.search('html window');
       expect(rs1.single.library, 'dart:html');
       expect(rs2.single.library, 'dart:html');
       expect(rs1.single.score < rs2.single.score * 0.8, isTrue);
 
       // the keyword would match dart:html too, but the low score will be removed from the list
-      final rs3 = await index.search('dart');
+      final rs3 = index.search('dart');
       expect(rs3.single.library, 'dart:async');
     });
 
     test('reduced score with api page', () async {
       // qualified query gets higher score
-      final rs1 = await index.search('flame');
-      final rs2 = await index.search('html flame');
+      final rs1 = index.search('flame');
+      final rs2 = index.search('html flame');
       expect(rs1.single.library, 'dart:html');
       expect(rs2.single.library, 'dart:html');
       expect(rs1.single.score < rs2.single.score * 0.8, isTrue);

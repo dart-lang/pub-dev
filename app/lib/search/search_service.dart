@@ -52,7 +52,7 @@ abstract class PackageIndex {
   Future<void> addPackage(PackageDocument doc);
   Future<void> addPackages(Iterable<PackageDocument> documents);
   Future<void> removePackage(String package);
-  Future<PackageSearchResult> search(ServiceSearchQuery query);
+  PackageSearchResult search(ServiceSearchQuery query);
 
   /// A package index may be accessed while the initialization phase is still
   /// running. Once the initialization is done (either via a snapshot or a

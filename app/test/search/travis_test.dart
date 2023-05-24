@@ -52,7 +52,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     });
 
     test('travis', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'travis', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,

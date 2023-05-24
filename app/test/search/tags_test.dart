@@ -16,7 +16,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'pkg1'));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate(requiredTags: ['is:a']),
       ));
       expect(rs.toJson(), {
@@ -32,7 +32,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'pkg1'));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -51,7 +51,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -70,7 +70,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -91,7 +91,7 @@ void main() {
           PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -113,7 +113,7 @@ void main() {
           PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', 'is:b']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -134,7 +134,7 @@ void main() {
           PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -154,8 +154,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
       await index.markReady();
 
-      final rs =
-          await index.search(ServiceSearchQuery.parse(query: 'is:b -is:a'));
+      final rs = index.search(ServiceSearchQuery.parse(query: 'is:b -is:a'));
       expect(json.decode(json.encode(rs.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -173,7 +172,7 @@ void main() {
       await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:a']));
       await index.markReady();
 
-      final rs = await index.search(ServiceSearchQuery.parse(
+      final rs = index.search(ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:b']),
           query: 'is:a is:b'));
       expect(json.decode(json.encode(rs.toJson())), {

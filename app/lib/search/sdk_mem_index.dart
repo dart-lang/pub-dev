@@ -82,10 +82,10 @@ class SdkMemIndex {
     _apiPageDirWeights.addAll(apiPageDirWeights);
   }
 
-  Future<List<SdkLibraryHit>> search(
+  List<SdkLibraryHit> search(
     String query, {
     int? limit,
-  }) async {
+  }) {
     limit ??= 2;
     final words = query.split(' ').where((e) => e.isNotEmpty).toList();
     if (words.isEmpty) return <SdkLibraryHit>[];

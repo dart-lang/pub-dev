@@ -81,7 +81,7 @@ void main() {
     });
 
     test('non-text ranking', () async {
-      final results = await combiner
+      final results = combiner
           .search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
@@ -95,7 +95,7 @@ void main() {
 
     test('no actual text query', () async {
       final results =
-          await combiner.search(ServiceSearchQuery.parse(query: 'package:s'));
+          combiner.search(ServiceSearchQuery.parse(query: 'package:s'));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -108,7 +108,7 @@ void main() {
 
     test('search: substring', () async {
       final results =
-          await combiner.search(ServiceSearchQuery.parse(query: 'substring'));
+          combiner.search(ServiceSearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,

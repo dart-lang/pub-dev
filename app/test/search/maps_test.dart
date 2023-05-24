@@ -21,7 +21,7 @@ void main() {
     });
 
     test('maps', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'maps', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('map', () async {
-      final PackageSearchResult result = await index.search(
+      final PackageSearchResult result = index.search(
           ServiceSearchQuery.parse(query: 'map', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
