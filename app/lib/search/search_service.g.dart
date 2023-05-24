@@ -43,7 +43,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'created': instance.created?.toIso8601String(),
       'updated': instance.updated?.toIso8601String(),
       'readme': instance.readme,
-      'tags': instance.tags.toList(),
+      'tags': instance.tags,
       'likeCount': instance.likeCount,
       'grantedPoints': instance.grantedPoints,
       'maxPoints': instance.maxPoints,
