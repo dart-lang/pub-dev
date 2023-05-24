@@ -315,15 +315,30 @@ class InMemoryPackageIndex implements PackageIndex {
         return aborted;
       }
 
+      // Multiple words are scored separately, and then the individual scores
+      // are multiplied. We can use a package filter that is applied after each
+      // word to reduce the scope of the later words based on the previous results.
+      // We cannot update the main `packages` variable yet, as the dartdoc API
+      // symbols are added on top of the core results, and `packages` is used
+      // there too.
       final coreScores = <Score>[];
+      var wordScopedPackages = packages;
       for (final word in words) {
         final nameScore =
-            _packageNameIndex.searchWord(word, packages: packages);
-        final descr =
-            _descrIndex.searchWords([word], weight: 0.90, limitToIds: packages);
+            _packageNameIndex.searchWord(word, packages: wordScopedPackages);
+        final descr = _descrIndex
+            .searchWords([word], weight: 0.90, limitToIds: wordScopedPackages);
         final readme = _readmeIndex
-            .searchWords([word], weight: 0.75, limitToIds: packages);
-        coreScores.add(Score.max([nameScore, descr, readme]));
+            .searchWords([word], weight: 0.75, limitToIds: wordScopedPackages);
+        final score = Score.max([nameScore, descr, readme]);
+        coreScores.add(score);
+        // don't update if the query is single-word
+        if (words.length > 1) {
+          wordScopedPackages = score.getKeys();
+          if (wordScopedPackages.isEmpty) {
+            break;
+          }
+        }
       }
 
       final core = Score.multiply(coreScores);
