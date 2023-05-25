@@ -338,6 +338,10 @@ void _wrapper(List fnAndMessage) {
   final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
   final logger = Logger('isolate.wrapper');
+  // NOTE: This timer triggers active "work" and prevents the VM to run compaction GC.
+  //       https://github.com/dart-lang/sdk/issues/52513
+  Timer.periodic(Duration(milliseconds: 250), (_) {});
+
   withServices(() async {
     await Chain.capture(() async {
       try {
