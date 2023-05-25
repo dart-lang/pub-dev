@@ -2,7 +2,7 @@ FROM gcr.io/google-containers/debian-base-amd64:v2.0.0
 
 RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y unzip ca-certificates curl bash git webp && \
+  apt-get install -y unzip ca-certificates curl bash git && \
   rm -rf /var/lib/apt/lists/*
 
 ENV PUB_ENVIRONMENT="bot.pub_dev.pub_worker"
@@ -21,6 +21,7 @@ WORKDIR /home/worker/pub-dev
 RUN tool/setup-dart.sh /home/worker/dart 3.0.0
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
 RUN tool/setup-dart.sh /home/worker/dart 3.1.0-63.1.beta
+RUN tool/setup-webp.sh /home/worker/bin
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
@@ -34,7 +35,8 @@ ENV DART_SDK="/home/worker/dart/stable"
 ENV FLUTTER_ROOT="/home/worker/flutter/stable"
 
 # Use stable Dart-SDK in PATH
-ENV PATH="/home/worker/dart/stable/bin:${PATH}"
+ENV PATH="/home/worker/bin:/home/worker/dart/stable/bin:${PATH}"
+
 
 # Install dependencies for pub_worker
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
