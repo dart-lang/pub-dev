@@ -96,7 +96,7 @@ class IntegrityChecker {
   Stream<String> _checkUsers() async* {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
-    await for (User user in _db.query<User>().run()) {
+    yield* _queryWithPool<User>((user) async* {
       if (!isValidUserId(user.userId)) {
         yield 'User has invalid userId: "${user.userId}".';
       }
@@ -135,12 +135,12 @@ class IntegrityChecker {
           user.created!.isAfter(DateTime(2022, 1, 1))) {
         yield 'User "${user.userId}" is recently created, but has no `oauthUserId`.';
       }
-    }
+    });
   }
 
   Stream<String> _checkOAuthUserIDs() async* {
     _logger.info('Scanning OAuthUserIDs...');
-    await for (OAuthUserID mapping in _db.query<OAuthUserID>().run()) {
+    yield* _queryWithPool<OAuthUserID>((mapping) async* {
       if (mapping.userIdKey == null) {
         yield 'OAuthUserID "${mapping.oauthUserId}" has no `userId`.';
       } else {
@@ -149,7 +149,7 @@ class IntegrityChecker {
         }
         _oauthToUser[mapping.oauthUserId] = mapping.userId;
       }
-    }
+    });
 
     for (final userId in _userToOauth.keys) {
       final oauthUserId = _userToOauth[userId];
@@ -185,7 +185,7 @@ class IntegrityChecker {
 
   Stream<String> _checkPublishers() async* {
     _logger.info('Scanning Publishers...');
-    await for (final p in _db.query<Publisher>().run()) {
+    yield* _queryWithPool<Publisher>((p) async* {
       _publishers.add(p.publisherId);
       final members =
           await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
@@ -208,12 +208,12 @@ class IntegrityChecker {
           yield 'Publisher "${p.publisherId}" has no members, but it is not marked as abandoned.';
         }
       }
-    }
+    });
   }
 
   Stream<String> _checkPublisherMembers() async* {
     _logger.info('Scanning PublisherMembers...');
-    await for (final pm in _db.query<PublisherMember>().run()) {
+    yield* _queryWithPool<PublisherMember>((pm) async* {
       if (pm.id != pm.userId) {
         yield 'PublisherMember "${pm.id}" has bad `userId` value: "${pm.userId}".';
       }
@@ -233,16 +233,12 @@ class IntegrityChecker {
           entityId: '${pm.publisherId} / ${pm.userId}',
         );
       }
-    }
+    });
   }
 
   Stream<String> _checkPackages() async* {
     _logger.info('Scanning Packages...');
-    yield* _withPool((queue) async {
-      await for (final p in _db.query<Package>().run()) {
-        queue(() => _checkPackage(p));
-      }
-    });
+    yield* _queryWithPool<Package>(_checkPackage);
 
     for (final r in _packageReplacedBys.entries) {
       if (await _packageMissing(r.value)) {
@@ -477,11 +473,7 @@ class IntegrityChecker {
 
   Stream<String> _checkVersions() async* {
     _logger.info('Scanning PackageVersions...');
-    yield* _withPool((queue) async {
-      await for (PackageVersion pv in _db.query<PackageVersion>().run()) {
-        queue(() => _checkPackageVersion(pv));
-      }
-    });
+    yield* _queryWithPool<PackageVersion>(_checkPackageVersion);
 
     for (final package in _packages
         .where((package) => !_packagesWithVersion.contains(package))) {
@@ -587,7 +579,7 @@ class IntegrityChecker {
     _logger.info('Scanning Likes...');
 
     final counts = <String, int>{};
-    await for (final like in _db.query<Like>().run()) {
+    yield* _queryWithPool<Like>((like) async* {
       if (like.packageName == null) {
         yield 'Like entity for user "${like.userId}" and package "${like.package}" has a '
             '`packageName` property which is not a string.';
@@ -603,7 +595,7 @@ class IntegrityChecker {
       }
 
       counts[like.package] = (counts[like.package] ?? 0) + 1;
-    }
+    });
 
     final allPackages = <String>{
       ..._packageLikes.keys,
@@ -637,7 +629,7 @@ class IntegrityChecker {
   Stream<String> _checkModeratedPackages() async* {
     _logger.info('Scanning ModeratedPackages...');
 
-    await for (final pkg in _db.query<ModeratedPackage>().run()) {
+    yield* _queryWithPool<ModeratedPackage>((pkg) async* {
       final packageName = pkg.name!;
       _moderatedPackages.add(packageName);
       if (await _packageExists(packageName)) {
@@ -647,17 +639,12 @@ class IntegrityChecker {
           yield 'Moderated package "$packageName" also present in active packages.';
         }
       }
-    }
+    });
   }
 
   Stream<String> _checkAuditLogs() async* {
     _logger.info('Scanning AuditLogRecords...');
-
-    yield* _withPool((queue) async {
-      await for (final record in _db.query<AuditLogRecord>().run()) {
-        queue(() => _checkAuditLogRecord(record));
-      }
-    });
+    yield* _queryWithPool<AuditLogRecord>(_checkAuditLogRecord);
   }
 
   Stream<String> _checkAuditLogRecord(AuditLogRecord r) async* {
@@ -798,15 +785,16 @@ class IntegrityChecker {
     }
   }
 
-  Stream<String> _withPool(
-      FutureOr<void> Function(StreamingIssuesFnCallback queue) fn) async* {
+  Stream<String> _queryWithPool<R extends Model>(
+      Stream<String> Function(R model) fn) async* {
+    final query = _db.query<R>();
     final pool = Pool(_concurrency);
     final futures = <Future<List<String>>>[];
     try {
-      await fn((StreamingIssuesFn fn) {
-        final f = pool.withResource(() => fn().toList());
+      await for (final m in query.run()) {
+        final f = pool.withResource(() => fn(m).toList());
         futures.add(f);
-      });
+      }
       for (final f in futures) {
         for (final item in await f) {
           yield item;
