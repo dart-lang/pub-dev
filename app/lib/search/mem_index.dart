@@ -397,18 +397,25 @@ class InMemoryPackageIndex implements PackageIndex {
     Map<String, double> values, {
     String? priorityPackageName,
   }) {
-    final list = values.entries
-        .map((e) => PackageHit(package: e.key, score: e.value))
-        .toList();
+    PackageHit? priorityHit;
+    final list = <PackageHit>[];
+    for (final e in values.entries) {
+      final hit = PackageHit(package: e.key, score: e.value);
+      if (priorityPackageName != null &&
+          priorityHit != null &&
+          hit.package == priorityPackageName) {
+        priorityHit = hit;
+      } else {
+        list.add(hit);
+      }
+    }
     list.sort((a, b) {
-      if (a.package == priorityPackageName) return -1;
-      if (b.package == priorityPackageName) return 1;
-      final int scoreCompare = -a.score!.compareTo(b.score!);
+      final scoreCompare = -a.score!.compareTo(b.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
       return _compareUpdated(_packages[a.package]!, _packages[b.package]!);
     });
-    return list;
+    return priorityHit == null ? list : [priorityHit, ...list];
   }
 
   List<PackageHit> _rankWithComparator(Set<String> packages,
