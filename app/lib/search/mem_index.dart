@@ -402,7 +402,7 @@ class InMemoryPackageIndex implements PackageIndex {
     for (final e in values.entries) {
       final hit = PackageHit(package: e.key, score: e.value);
       if (priorityPackageName != null &&
-          priorityHit != null &&
+          priorityHit == null &&
           hit.package == priorityPackageName) {
         priorityHit = hit;
       } else {
