@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20230526t075200-all`
  * Reduced `search` isolate count to 1.
  * Reduced `search` instance count to 6-12.
  * Added a periodic 250ms `Timer` in every isolate to prevent compaction GC.
