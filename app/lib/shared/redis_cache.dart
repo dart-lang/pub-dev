@@ -246,7 +246,7 @@ class CachePatterns {
       .withTTL(Duration(hours: 2))['-'];
 
   Entry<List<int>> packageNameCompletitionDataJsonGz() => _cache
-      .withPrefix('api-package-name-completition-data-json-gz/')
+      .withPrefix('api-package-name-completion-data-json-gz/')
       .withTTL(Duration(hours: 8))['-'];
 
   Entry<PublisherPage> allPublishersPage() => publisherPage('-');
