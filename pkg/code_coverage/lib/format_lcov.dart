@@ -16,6 +16,10 @@ Future main() async {
       .toList();
   for (File file in files) {
     final coverage = await file.readAsString();
+    if (coverage.isEmpty) {
+      print('${file.path} is empty.');
+      continue;
+    }
     final report = Report.fromCoverage(coverage);
 
     for (final record in report.records) {
