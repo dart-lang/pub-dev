@@ -272,6 +272,8 @@ void expectGoldenFile(
 
 final _goldenReplacements = <Pattern, String>{
   'Pana <code>$panaVersion</code>,': 'Pana <code>%%pana-version%%</code>,',
+  'Dart <code>$runtimeSdkVersion</code>':
+      'Dart <code>%%stable-dart-version%%</code>',
   'Dart <code>$toolStableDartSdkVersion</code>':
       'Dart <code>%%stable-dart-version%%</code>',
   '/static/hash-${staticFileCache.etag}/': '/static/hash-%%etag%%/',
