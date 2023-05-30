@@ -52,12 +52,13 @@ Future<shelf.Response> apiDocumentationHandler(
       'versions': status.versions.entries
           .map((e) => {
                 'version': e.key,
-                'status': e.value == PackageVersionStatus.pending ||
-                        e.value == PackageVersionStatus.running
+                'status': e.value.status == PackageVersionStatus.pending ||
+                        e.value.status == PackageVersionStatus.running
                     ? 'pending'
-                    : (e.value == PackageVersionStatus.failed
+                    : (e.value.status == PackageVersionStatus.failed
                         ? 'failed'
                         : 'completed'),
+                'hasDocumentation': e.value.docs,
               })
           .toList(),
     });
