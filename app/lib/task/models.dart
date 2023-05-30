@@ -283,6 +283,10 @@ class PackageVersionStateInfo {
     this.pana = false,
   });
 
+  factory PackageVersionStateInfo.fromJson(Map<String, dynamic> m) =>
+      _$PackageVersionStateInfoFromJson(m);
+  Map<String, dynamic> toJson() => _$PackageVersionStateInfoToJson(this);
+
   @override
   String toString() =>
       'PackageVersionState(' +
@@ -343,7 +347,7 @@ class PackageStateInfo {
   /// If a version is not represented by an entry in this map, then it is not
   /// selected for analysis. Either because, it haven't been discovered yet, or
   /// because we only analyse a limited number of versions.
-  final Map<String, PackageVersionStatus> versions;
+  final Map<String, PackageVersionStateInfo> versions;
 
   PackageStateInfo({
     required this.package,

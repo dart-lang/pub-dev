@@ -34,20 +34,13 @@ PackageStateInfo _$PackageStateInfoFromJson(Map<String, dynamic> json) =>
     PackageStateInfo(
       package: json['package'] as String,
       versions: (json['versions'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, $enumDecode(_$PackageVersionStatusEnumMap, e)),
+        (k, e) => MapEntry(
+            k, PackageVersionStateInfo.fromJson(e as Map<String, dynamic>)),
       ),
     );
 
 Map<String, dynamic> _$PackageStateInfoToJson(PackageStateInfo instance) =>
     <String, dynamic>{
       'package': instance.package,
-      'versions': instance.versions
-          .map((k, e) => MapEntry(k, _$PackageVersionStatusEnumMap[e]!)),
+      'versions': instance.versions,
     };
-
-const _$PackageVersionStatusEnumMap = {
-  PackageVersionStatus.pending: 'pending',
-  PackageVersionStatus.running: 'running',
-  PackageVersionStatus.completed: 'completed',
-  PackageVersionStatus.failed: 'failed',
-};

@@ -912,11 +912,9 @@ class TaskBackend {
       final state = await dbService.lookupOrNull<PackageState>(key);
 
       return PackageStateInfo(
-          package: package,
-          versions: (state?.versions ?? {}).map((key, value) => MapEntry(
-                key,
-                value.status,
-              )));
+        package: package,
+        versions: state?.versions ?? {},
+      );
     });
     return status ?? PackageStateInfo(package: package, versions: {});
   }
