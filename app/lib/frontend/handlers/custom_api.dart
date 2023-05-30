@@ -145,7 +145,8 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
     shelf.Request request) async {
   // only accept requests which allow gzip content encoding
   if (!request.acceptsGzipEncoding()) {
-    throw NotAcceptableException('Client must accept gzip content.');
+    throw NotAcceptableException(
+        'Client must send "Accept-Encoding: gzip" header');
   }
 
   final bytes = await cache.packageNameCompletitionDataJsonGz().get(() async {
