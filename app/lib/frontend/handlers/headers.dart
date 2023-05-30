@@ -51,6 +51,10 @@ class CacheHeaders {
   /// The package names API endpoint serves the cached names of all packages.
   static final packageNames = CacheHeaders._(Duration(hours: 2));
 
+  /// The topic name completion API endpoint serves the cached topic names of
+  /// all topics.
+  static final topicNameCompletion = CacheHeaders._(Duration(hours: 8));
+
   /// Everything under the /static/ endpoint.
   static final staticAsset = CacheHeaders._(
     Duration(days: 7),

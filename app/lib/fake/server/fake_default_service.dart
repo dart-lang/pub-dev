@@ -9,6 +9,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
+import 'package:pub_dev/fake/backend/fake_topics.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/service/entrypoint/frontend.dart';
@@ -48,6 +49,7 @@ class FakePubServer {
           }
 
           await generateFakePopularityValues();
+          await generateFakeTopicValues();
           await nameTracker.startTracking();
 
           final appHandler = createAppHandler();

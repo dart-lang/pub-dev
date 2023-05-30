@@ -1,0 +1,16 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:gcloud/storage.dart';
+
+import '../../shared/configuration.dart';
+import '../../shared/count_topics.dart';
+import '../../shared/utils.dart';
+
+Future<void> generateFakeTopicValues() async {
+  await storageService
+      .bucket(activeConfiguration.reportsBucketName!)
+      .writeBytes(topicsJsonFileName,
+          jsonUtf8Encoder.convert({'ffi': 7, 'ui': 5, 'network': 6}));
+}
