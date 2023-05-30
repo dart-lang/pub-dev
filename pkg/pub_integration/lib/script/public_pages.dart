@@ -87,8 +87,8 @@ class PublicPagesScript {
       throw Exception('Expected "retry" in the list of package names.');
     }
 
-    final completitionData = await _pubClient.apiPackageNameCompletionData();
-    if (!completitionData.contains('retry')) {
+    final completionData = await _pubClient.apiPackageNameCompletionData();
+    if (!completionData.contains('retry')) {
       throw Exception('Expected "retry" in the package name completion data.');
     }
 
