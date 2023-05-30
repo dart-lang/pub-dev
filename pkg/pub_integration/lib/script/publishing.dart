@@ -198,11 +198,11 @@ class PublishingScript {
   }
 
   Future<void> _verifyDummyDocumentation() async {
-    final pageHtml = await _pubHttpClient.getDocumentationPage('_dummy_pkg');
+    final pageHtml = await _pubHttpClient.getDocumentationPage('retry');
     if (!pageHtml.contains('made with love by dartdoc')) {
       throw Exception('Documentation page is not the output of dartdoc.');
     }
-    if (!pageHtml.contains('<a href="_dummy_pkg/_dummy_pkg-library.html">')) {
+    if (!pageHtml.contains('<a href="retry/retry-library.html">')) {
       throw Exception('Documentation page does not contain main library.');
     }
   }
