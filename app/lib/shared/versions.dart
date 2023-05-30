@@ -22,10 +22,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.05.16',
+  '2023.05.30',
   // Fallback runtime versions.
+  '2023.05.16',
   '2023.05.10',
-  '2023.05.09', // Dart 3 analysis with beta Flutter
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
