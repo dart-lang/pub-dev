@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20230530t100200-all`
+
 ## `20230526t075200-all`
  * Reduced `search` isolate count to 1.
  * Reduced `search` instance count to 6-12.
