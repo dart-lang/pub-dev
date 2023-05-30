@@ -48,9 +48,7 @@ void main() {
         for (final url in urls.toList()..sort()) {
           if (onlyWithVersion && !url.contains('<version>')) continue;
           final u = fn(url);
-          final rs = await issueGet(u, headers: {
-            'Cookie': 'PUB_EXPERIMENTAL_INSECURE=nosandbox',
-          });
+          final rs = await issueGet(u);
           statusCodes.add(rs.statusCode);
           expect(rs.statusCode, lessThan(500), reason: '$u ${rs.statusCode}');
           expect(rs.statusCode,

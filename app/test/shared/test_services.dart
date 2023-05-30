@@ -11,9 +11,7 @@ import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/search/handlers.dart';
@@ -67,8 +65,6 @@ void testWithProfile(
         if (processJobsWithFakeRunners) {
           await processJobsWithFakePanaRunner();
           await processJobsWithFakeDartdocRunner();
-          registerRequestContext(RequestContext(
-              experimentalFlags: ExperimentalFlags({'nosandbox'})));
         }
         await indexUpdater.updateAllPackages();
         fakeEmailSender.sentMessages.clear();

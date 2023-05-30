@@ -340,20 +340,14 @@ void main() {
     );
 
     // package analysis was intentionally left out for this template
-    testWithProfile(
-      'package show page with publisher',
-      fn: () async {
-        final data =
-            await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
-        final html = renderPkgShowPage(data);
-        expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.package!.lastVersionPublished,
-        });
-      },
-      skip:
-          true, // TODO: Enable when/if sandbox gets support for detecting pending analysis
-    );
+    testWithProfile('package show page with publisher', fn: () async {
+      final data = await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
+      final html = renderPkgShowPage(data);
+      expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
+        'published': data.package!.created,
+        'updated': data.package!.lastVersionPublished,
+      });
+    });
 
     scopedTest('no content for analysis tab', () async {
       // no content
@@ -557,7 +551,6 @@ void main() {
           'package-created': data.package!.created,
         });
       },
-      skip: true, // skip, until we've fixed fake job data for sandboxing
     );
 
     testWithProfile('publisher list page', fn: () async {

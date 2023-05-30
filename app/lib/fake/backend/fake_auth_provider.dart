@@ -476,7 +476,6 @@ Future<R> withFakeAuthRequestContext<R>(
   final sessionId = await _acquireFakeSessionId(email: email);
   final csrfToken = await _acquireCsrfToken(sessionId: sessionId);
   final sessionData = await accountBackend.getSessionData(sessionId);
-  final experimentalFlags = requestContext.experimentalFlags;
   return await ss.fork(() async {
     registerRequestContext(RequestContext(
       clientSessionCookieStatus: ClientSessionCookieStatus(
@@ -485,7 +484,6 @@ Future<R> withFakeAuthRequestContext<R>(
       ),
       sessionData: sessionData,
       csrfToken: csrfToken,
-      experimentalFlags: experimentalFlags,
     ));
     return await fn();
   }) as R;
