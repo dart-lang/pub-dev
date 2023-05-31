@@ -37,8 +37,9 @@ class SearchCommand extends Command {
     await startIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
+      workerEntryPoint: _worker,
       frontendCount: 1,
-      workerCount: 0,
+      workerCount: 1,
     );
   }
 }
@@ -50,7 +51,6 @@ Future _main(FrontendEntryMessage message) async {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  setupSearchPeriodicTasks();
   await popularityStorage.start();
 
   final ReceivePort taskReceivePort = ReceivePort();
@@ -71,4 +71,11 @@ Future _main(FrontendEntryMessage message) async {
   });
 
   await runHandler(_logger, searchServiceHandler);
+}
+
+Future _worker(WorkerEntryMessage message) async {
+  message.protocolSendPort.send(WorkerProtocolMessage());
+  await popularityStorage.start();
+  setupSearchPeriodicTasks();
+  await Completer().future; // never completes
 }

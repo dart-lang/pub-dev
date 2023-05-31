@@ -52,7 +52,6 @@ class IndexUpdater implements TaskRunner {
       await _packageIndex.markReady();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
-    snapshotStorage.startTimer();
   }
 
   /// Updates all packages in the index.

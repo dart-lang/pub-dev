@@ -207,6 +207,12 @@ void setupDartdocPeriodicTasks() {
 
 /// Setup the tasks that we are running in the search service.
 void setupSearchPeriodicTasks() {
+  // Creates a fresh search snapshot.
+  _15mins(
+    name: 'update-search-snapshot',
+    isRuntimeVersioned: true,
+    task: () => searchBackend.createSnapshotAndUploadToStorageBucket(),
+  );
   // Deletes the old search snapshots
   _weekly(
     name: 'delete-old-search-snapshots',

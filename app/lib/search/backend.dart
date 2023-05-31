@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
@@ -19,6 +18,7 @@ import '../dartdoc/backend.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
+import '../package/name_tracker.dart';
 import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
@@ -60,9 +60,27 @@ void registerPackageIndex(PackageIndex index) =>
 /// Datastore-related access methods for the search service
 class SearchBackend {
   final DatastoreDB _db;
+  final VersionedJsonStorage _snapshotStorage;
   final _http = httpRetryClient();
 
-  SearchBackend(this._db);
+  SearchBackend(this._db, Bucket snapshotBucket)
+      : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
+
+  /// Creates a new snapshot by loading all visible package data
+  /// and uploads it into the snapshot storage.
+  Future<void> createSnapshotAndUploadToStorageBucket() async {
+    final snapshot = SearchSnapshot();
+    final packageNames = await nameTracker.getVisiblePackageNames();
+    for (final package in packageNames) {
+      try {
+        final doc = await loadDocument(package);
+        snapshot.add(doc);
+      } on RemovedPackageException catch (_) {
+        continue;
+      }
+    }
+    await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
+  }
 
   /// Loads the latest stable version, its analysis results and extracted
   /// dartdoc content, and returns a [PackageDocument] objects for search.
@@ -304,7 +322,6 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 class SnapshotStorage {
   final VersionedJsonStorage _storage;
   SearchSnapshot? _snapshot;
-  Timer? _snapshotWriteTimer;
 
   SnapshotStorage(Bucket bucket)
       : _storage = VersionedJsonStorage(bucket, 'snapshot/');
@@ -317,13 +334,6 @@ class SnapshotStorage {
 
   void remove(String package) {
     _snapshot!.remove(package);
-  }
-
-  void startTimer() {
-    _snapshotWriteTimer ??= Timer.periodic(
-        Duration(hours: 6, minutes: Random.secure().nextInt(120)), (_) {
-      _updateSnapshotIfNeeded();
-    });
   }
 
   Future<void> fetch() async {
@@ -358,26 +368,7 @@ class SnapshotStorage {
         'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
   }
 
-  Future<void> _updateSnapshotIfNeeded() async {
-    // TODO: make the catch-all block narrower
-    try {
-      final wasUpdatedRecently =
-          await _storage.hasCurrentData(maxAge: Duration(hours: 24));
-      if (wasUpdatedRecently) {
-        _logger.info('Snapshot update skipped (found recent snapshot).');
-      } else {
-        _logger.info('Updating search snapshot...');
-        await _storage.uploadDataAsJsonMap(_snapshot!.toJson());
-        _logger.info('Search snapshot update completed.');
-      }
-    } catch (e, st) {
-      _logger.warning('Unable to update search snapshot.', e, st);
-    }
-  }
-
   Future<void> close() async {
-    _snapshotWriteTimer?.cancel();
-    _snapshotWriteTimer = null;
     _storage.close();
   }
 }
