@@ -966,7 +966,7 @@ dev_dependencies:
       );
     });
 
-   test('invalid name: uppercase', () {
+    test('invalid name: uppercase', () {
       final pubspec = '''
       name: package
       topics:
