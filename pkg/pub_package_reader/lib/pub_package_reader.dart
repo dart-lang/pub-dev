@@ -268,6 +268,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(checkScreenshots(pubspec, tar.fileNames));
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
   issues.addAll(checkFunding(pubspecContent));
+  issues.addAll(checkTopics(pubspecContent));
 
   return PackageSummary(
     issues: issues,
