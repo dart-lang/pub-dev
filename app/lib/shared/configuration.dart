@@ -503,16 +503,12 @@ class ToolsConfiguration {
   final String? stableFlutterSdkPath;
   final String? previewDartSdkPath;
   final String? previewFlutterSdkPath;
-  final String? futureDartSdkPath;
-  final String? futureFlutterSdkPath;
 
   ToolsConfiguration({
     required this.stableDartSdkPath,
     required this.stableFlutterSdkPath,
     required this.previewDartSdkPath,
     required this.previewFlutterSdkPath,
-    required this.futureDartSdkPath,
-    required this.futureFlutterSdkPath,
   });
 
   factory ToolsConfiguration.fromJson(Map<String, dynamic> json) =>

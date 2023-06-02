@@ -219,9 +219,7 @@ ToolsConfiguration _$ToolsConfigurationFromJson(Map<String, dynamic> json) =>
             'stableDartSdkPath',
             'stableFlutterSdkPath',
             'previewDartSdkPath',
-            'previewFlutterSdkPath',
-            'futureDartSdkPath',
-            'futureFlutterSdkPath'
+            'previewFlutterSdkPath'
           ],
         );
         final val = ToolsConfiguration(
@@ -233,10 +231,6 @@ ToolsConfiguration _$ToolsConfigurationFromJson(Map<String, dynamic> json) =>
               $checkedConvert('previewDartSdkPath', (v) => v as String?),
           previewFlutterSdkPath:
               $checkedConvert('previewFlutterSdkPath', (v) => v as String?),
-          futureDartSdkPath:
-              $checkedConvert('futureDartSdkPath', (v) => v as String?),
-          futureFlutterSdkPath:
-              $checkedConvert('futureFlutterSdkPath', (v) => v as String?),
         );
         return val;
       },
@@ -248,8 +242,6 @@ Map<String, dynamic> _$ToolsConfigurationToJson(ToolsConfiguration instance) =>
       'stableFlutterSdkPath': instance.stableFlutterSdkPath,
       'previewDartSdkPath': instance.previewDartSdkPath,
       'previewFlutterSdkPath': instance.previewFlutterSdkPath,
-      'futureDartSdkPath': instance.futureDartSdkPath,
-      'futureFlutterSdkPath': instance.futureFlutterSdkPath,
     };
 
 RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
