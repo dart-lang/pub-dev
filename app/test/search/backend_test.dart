@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
+import 'package:pub_dev/task/global_lock.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
@@ -23,5 +25,34 @@ void main() {
             'Support for asynchronous programming, with classes such as Future and Stream.',
       });
     });
+
+    testWithProfile('updates snapshot storage', fn: () async {
+      await snapshotStorage.fetch();
+      expect(snapshotStorage.documents, isEmpty);
+      await searchBackend.doCreateAndUpdateSnapshot(
+        _GlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+        sleepDuration: Duration(milliseconds: 300),
+      );
+      await snapshotStorage.fetch();
+      expect(snapshotStorage.documents, isNotEmpty);
+    });
   });
+}
+
+class _GlobalLockClaim implements GlobalLockClaim {
+  @override
+  DateTime expires;
+
+  _GlobalLockClaim(this.expires);
+
+  @override
+  Future<bool> refresh() async {
+    return true;
+  }
+
+  @override
+  Future<void> release() async {}
+
+  @override
+  bool get valid => expires.isAfter(clock.now());
 }

@@ -13,6 +13,7 @@ import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/task/global_lock.dart';
 import 'package:test/test.dart';
 
 import '../frontend/handlers/_utils.dart' as _utils;
@@ -200,7 +201,13 @@ class MockSearchBackend implements SearchBackend {
   }
 
   @override
-  Future<SearchSnapshot> createSnapshotAndUploadToStorageBucket() {
+  Future<SearchSnapshot> updateSnapshotInForeverLoop() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> doCreateAndUpdateSnapshot(GlobalLockClaim claim,
+      {Duration sleepDuration = const Duration(minutes: 2)}) {
     throw UnimplementedError();
   }
 }

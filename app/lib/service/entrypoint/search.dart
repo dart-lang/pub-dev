@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/search/backend.dart';
 
 import '../../search/dart_sdk_mem_index.dart';
 import '../../search/flutter_sdk_mem_index.dart';
@@ -77,5 +78,6 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
   await popularityStorage.start();
   setupSearchPeriodicTasks();
+  unawaited(searchBackend.updateSnapshotInForeverLoop());
   await Completer().future; // never completes
 }
