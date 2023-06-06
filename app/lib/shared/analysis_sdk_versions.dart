@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final String toolStableDartSdkVersion = '3.0.0';
-final String toolStableFlutterSdkVersion = '3.10.0';
+final String toolStableDartSdkVersion = '3.0.2';
+final String toolStableFlutterSdkVersion = '3.10.2';
 final String toolPreviewDartSdkVersion = '3.1.0-63.1.beta';
-final String toolPreviewFlutterSdkVersion = '3.11.0-0.0.pre';
+final String toolPreviewFlutterSdkVersion = '3.11.0-0.1.pre';
 
 /// Prints the commands needed to setup analysis SDKs in the containerized environment.
 void main(List<String> args) {
