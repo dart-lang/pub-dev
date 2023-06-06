@@ -966,6 +966,20 @@ dev_dependencies:
       );
     });
 
+    test('invalid name: uppercase', () {
+      final pubspec = '''
+      name: package
+      topics:
+        - copyWith
+      ''';
+      expect(
+        checkTopics(pubspec)
+            .map((e) => e.message)
+            .every((e) => e.contains('must consist')),
+        isTrue,
+      );
+    });
+
     test('OK', () {
       final pubspec = '''
       name: package
