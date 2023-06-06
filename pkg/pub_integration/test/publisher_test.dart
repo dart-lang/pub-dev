@@ -4,17 +4,17 @@
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/script/publisher.dart';
-import 'package:pub_integration/src/fake_test_scenario.dart';
+import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('publisher', () {
-    late final FakeTestScenario fakeTestScenario;
+    late final TestContextProvider fakeTestScenario;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakeTestScenario = await FakeTestScenario.start();
+      fakeTestScenario = await TestContextProvider.start();
     });
 
     tearDownAll(() async {

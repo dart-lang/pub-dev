@@ -6,20 +6,20 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_integration/src/fake_credentials.dart';
-import 'package:pub_integration/src/fake_test_scenario.dart';
+import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_tool_client.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('reject based on description', () {
-    late final FakeTestScenario fakeTestScenario;
+    late final TestContextProvider fakeTestScenario;
     late String pubHostedUrl;
     late DartToolClient globalDartTool;
     late DartToolClient localDartTool;
 
     setUpAll(() async {
       globalDartTool = await DartToolClient.withPubDev();
-      fakeTestScenario = await FakeTestScenario.start();
+      fakeTestScenario = await TestContextProvider.start();
       pubHostedUrl = fakeTestScenario.pubHostedUrl;
       localDartTool = await DartToolClient.withServer(
         pubHostedUrl: pubHostedUrl,

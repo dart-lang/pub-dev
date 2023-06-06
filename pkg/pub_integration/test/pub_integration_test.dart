@@ -4,16 +4,16 @@
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/pub_integration.dart';
-import 'package:pub_integration/src/fake_test_scenario.dart';
+import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Integration test using pkg/fake_pub_server', () {
-    late final FakeTestScenario fakeTestScenario;
+    late final TestContextProvider fakeTestScenario;
     final httpClient = http.Client();
 
     setUpAll(() async {
-      fakeTestScenario = await FakeTestScenario.start();
+      fakeTestScenario = await TestContextProvider.start();
     });
 
     tearDownAll(() async {

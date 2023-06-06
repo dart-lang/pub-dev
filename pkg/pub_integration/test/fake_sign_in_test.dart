@@ -5,16 +5,16 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:pub_integration/src/fake_test_scenario.dart';
+import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/headless_env.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('fake sign in', () {
-    late final FakeTestScenario fakeTestScenario;
+    late final TestContextProvider fakeTestScenario;
 
     setUpAll(() async {
-      fakeTestScenario = await FakeTestScenario.start();
+      fakeTestScenario = await TestContextProvider.start();
     });
 
     tearDownAll(() async {

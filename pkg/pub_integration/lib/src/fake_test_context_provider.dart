@@ -16,15 +16,15 @@ import 'test_scenario.dart';
 /// The timeout factor that should be used in integration tests.
 final testTimeoutFactor = 6;
 
-class FakeTestScenario {
+class TestContextProvider {
   final String pubHostedUrl;
   final FakePubServerProcess _fakePubServerProcess;
   final HeadlessGroup _headlessGroup;
 
-  FakeTestScenario._(
+  TestContextProvider._(
       this.pubHostedUrl, this._fakePubServerProcess, this._headlessGroup);
 
-  static Future<FakeTestScenario> start() async {
+  static Future<TestContextProvider> start() async {
     final fakePubServerProcess = await FakePubServerProcess.start();
     await fakePubServerProcess.started;
     final origin = 'http://localhost:${fakePubServerProcess.port}';
@@ -40,7 +40,7 @@ class FakeTestScenario {
       origin: origin,
       testName: testName,
     );
-    return FakeTestScenario._(origin, fakePubServerProcess, headlessGroup);
+    return TestContextProvider._(origin, fakePubServerProcess, headlessGroup);
   }
 
   Future<void> close() async {
