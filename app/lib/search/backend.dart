@@ -82,20 +82,14 @@ class SearchBackend {
       expiration: Duration(minutes: 20),
     );
     for (;;) {
-      final claim = await lock.tryClaim();
-      if (claim == null) {
-        await Future.delayed(Duration(minutes: 1));
-        continue;
-      }
-
       try {
-        await doCreateAndUpdateSnapshot(claim);
+        await lock.withClaim((claim) async {
+          await doCreateAndUpdateSnapshot(claim);
+        });
       } catch (e, st) {
         _logger.warning('Snapshot update failed.', e, st);
       }
-
-      // cleanup
-      await claim.release();
+      await Future.delayed(Duration(minutes: 1));
     }
   }
 
@@ -104,22 +98,13 @@ class SearchBackend {
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
   }) async {
-    final claimUpdateBefore = Duration(minutes: 10);
     final firstClaimed = clock.now();
-    final workUntil = firstClaimed.add(Duration(days: 1));
 
-    Future<void> refreshClaimIfNeeded() async {
-      final now = clock.now();
-      if (now.isAfter(workUntil)) {
-        // not updating claim anymore
-        return;
-      }
-      if (claim.expires.difference(now) < claimUpdateBefore) {
-        await claim.refresh();
-      }
-    }
+    // The claim will be released after a day, another process may
+    // start to build the snapshot from scratch again.
+    final workUntil = clock.now().add(Duration(days: 1));
 
-    // create snapshot from scratch
+    // creating snapshot from scratch
     final snapshot = SearchSnapshot();
     Future<void> updatePackage(String package, DateTime? updated) async {
       // Skip if the last document timestamp is before [updated].
@@ -143,14 +128,10 @@ class SearchBackend {
     // initial scan of packages
     await for (final package in dbService.query<Package>().run()) {
       if (package.isNotVisible) continue;
-      await refreshClaimIfNeeded();
-      if (!claim.valid) {
-        break;
-      }
+      if (!claim.valid) break;
       await updatePackage(package.name!, null);
     }
     if (!claim.valid) {
-      await claim.release();
       return;
     }
 
@@ -160,14 +141,17 @@ class SearchBackend {
 
     // start monitoring
     var lastQueryStarted = firstClaimed;
-    await refreshClaimIfNeeded();
     while (claim.valid) {
-      lastQueryStarted = clock.now().toUtc();
+      final now = clock.now().toUtc();
+      if (now.isAfter(workUntil)) {
+        break;
+      }
+
+      lastQueryStarted = now;
 
       // query updates
       final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
       for (final e in recentlyUpdated.entries) {
-        await refreshClaimIfNeeded();
         if (!claim.valid) {
           break;
         }
@@ -179,11 +163,7 @@ class SearchBackend {
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
 
-      await refreshClaimIfNeeded();
-      if (claim.valid) {
-        await Future.delayed(sleepDuration);
-      }
-      await refreshClaimIfNeeded();
+      await Future.delayed(sleepDuration);
     }
   }
 
