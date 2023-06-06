@@ -289,6 +289,9 @@ Future<T> _retry<T>(Future<T> Function() fn) async {
         (e is ApiRequestError && e is! DetailedApiRequestError) ||
         // If there is a timeout, we also retry.
         e is TimeoutException ||
+        // If there is an HTTP client exception, often the case for timed out
+        // TCP connections.
+        e is http.ClientException ||
         // Finally, we retry all I/O issues.
         e is IOException,
   );
