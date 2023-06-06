@@ -64,16 +64,24 @@ void main() {
         expect(indexHtml == libraryHtml, isFalse);
 
         final rs = await issueGet(
-            '/documentation/retry/latest/retry/retry-library.html');
+            '/documentation/retry/latest/retry/retry-library.html',
+            headers: {
+              'Cookie': 'PUB_EXPERIMENTAL_INSECURE=nosandbox',
+            });
         expect(rs.statusCode, 200);
         expect(await rs.readAsString(), libraryHtml);
 
-        final rs2 = await issueGet('/documentation/retry/latest/log.txt');
+        final rs2 =
+            await issueGet('/documentation/retry/latest/log.txt', headers: {
+          'Cookie': 'PUB_EXPERIMENTAL_INSECURE=nosandbox',
+        });
         expect(rs2.statusCode, 200);
         expect(await rs2.readAsString(), contains('entry created:'));
 
-        final rs3 =
-            await issueGet('/documentation/retry/latest/package.tar.gz');
+        final rs3 = await issueGet('/documentation/retry/latest/package.tar.gz',
+            headers: {
+              'Cookie': 'PUB_EXPERIMENTAL_INSECURE=nosandbox',
+            });
         expect(rs3.statusCode, 200);
         final body3 = await rs3.read().toList();
         final body3Length = body3.map((e) => e.length).reduce((a, b) => a + b);
