@@ -105,6 +105,7 @@ void testWithFakeTime(
       setupDebugEnvBasedLogging();
       await withFakeServices(
         fn: () async {
+          registerStaticFileCacheForTest(StaticFileCache.forTests());
           registerSearchClient(SearchClient(
               httpClientToShelfHandler(handler: searchServiceHandler)));
           registerScopeExitCallback(searchClient.close);
