@@ -5,6 +5,9 @@
 import 'package:pana/pana.dart' as pana;
 import 'package:pub_semver/pub_semver.dart';
 
+import 'analysis_sdk_versions.dart';
+export 'analysis_sdk_versions.dart';
+
 /// The pattern of [runtimeVersion], should be updated to reflect the current
 /// date the change happened, e.g. `2020.02.18`
 ///
@@ -54,10 +57,6 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '3.0.0';
-final String toolStableDartSdkVersion = '3.0.2';
-final String toolStableFlutterSdkVersion = '3.10.2';
-final String toolPreviewDartSdkVersion = '3.1.0-63.1.beta';
-final String toolPreviewFlutterSdkVersion = '3.11.0-0.1.pre';
 
 final semanticToolStableDartSdkVersion =
     Version.parse(toolStableDartSdkVersion);
