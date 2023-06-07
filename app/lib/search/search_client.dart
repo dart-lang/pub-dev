@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
 
 import '../scorecard/backend.dart';
 import '../shared/configuration.dart';
@@ -16,8 +15,6 @@ import '../shared/utils.dart';
 import '../tool/utils/http.dart';
 
 import 'search_service.dart';
-
-final _logger = Logger('pub.search.client');
 
 /// Sets the search client.
 void registerSearchClient(SearchClient client) =>
@@ -36,13 +33,8 @@ class SearchClient {
       : _httpClient = client ?? httpRetryClient(retries: 3);
 
   /// Calls the search service (or uses cache) to serve the [query].
-  ///
-  /// If the [updateCacheAfter] is set, and the currently cached value is older
-  /// than the specified value, the client will do a non-cached request to the
-  /// search service and update the cached value.
   Future<PackageSearchResult> search(
     ServiceSearchQuery query, {
-    Duration? updateCacheAfter,
     bool skipCache = false,
   }) async {
     // check validity first
@@ -84,18 +76,6 @@ class SearchClient {
     } else {
       final cacheEntry = cache.packageSearchResult(serviceUrl);
       result = await cacheEntry.get(searchFn);
-
-      if (updateCacheAfter != null &&
-          result != null &&
-          result.timestamp != null &&
-          result.age > updateCacheAfter) {
-        _logger.info('Updating stale cache entry.');
-        final value = await searchFn();
-        if (value != null) {
-          await cacheEntry.set(value);
-          result = value;
-        }
-      }
     }
 
     return result ??
