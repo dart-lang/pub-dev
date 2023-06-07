@@ -55,14 +55,10 @@ class SearchAdapter {
   }
 
   Future<PackageSearchResult?> _searchOrFallback(
-    SearchForm searchForm,
-    bool fallbackToNames, {
-    Duration? updateCacheAfter,
-  }) async {
+      SearchForm searchForm, bool fallbackToNames) async {
     PackageSearchResult? result;
     try {
-      result = await searchClient.search(searchForm.toServiceQuery(),
-          updateCacheAfter: updateCacheAfter);
+      result = await searchClient.search(searchForm.toServiceQuery());
     } catch (e, st) {
       if (envConfig.isRunningLocally) {
         // The fake server will start up the different instances with a slight
