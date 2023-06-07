@@ -20,6 +20,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'reportsBucketName',
             'projectId',
             'searchServicePrefix',
+            'fallbackSearchServicePrefix',
             'defaultServiceBaseUrl',
             'dartdocStorageBucketName',
             'popularityDumpBucketName',
@@ -83,6 +84,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('taskWorkerServiceAccount', (v) => v as String?),
           searchServicePrefix:
               $checkedConvert('searchServicePrefix', (v) => v as String),
+          fallbackSearchServicePrefix: $checkedConvert(
+              'fallbackSearchServicePrefix', (v) => v as String?),
           storageBaseUrl:
               $checkedConvert('storageBaseUrl', (v) => v as String?),
           pubClientAudience:
@@ -140,6 +143,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'reportsBucketName': instance.reportsBucketName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,
+      'fallbackSearchServicePrefix': instance.fallbackSearchServicePrefix,
       'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
       'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,

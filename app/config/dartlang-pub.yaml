@@ -8,6 +8,7 @@ publicPackagesBucketName: dartlang-pub-public-packages
 incomingPackagesBucketName: dartlang-pub-incoming-packages
 projectId: dartlang-pub
 searchServicePrefix: https://{{GAE_VERSION}}-dot-search-dot-dartlang-pub.appspot.com
+fallbackSearchServicePrefix: https://search-dot-dartlang-pub.appspot.com
 defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
 dartdocStorageBucketName: dartlang-pub--dartdoc-storage
 popularityDumpBucketName: dartlang-pub--popularity
