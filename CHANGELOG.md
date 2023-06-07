@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Switch to use task backend for output.
+ * Bumped runtimeVersion to `2023.06.07`.
 
 ## `20230606t110900-all`
  * Bumped runtimeVersion to `2023.05.31`.
