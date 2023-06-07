@@ -19,10 +19,10 @@ final testTimeoutFactor = 6;
 class TestContextProvider {
   final String pubHostedUrl;
   final FakePubServerProcess _fakePubServerProcess;
-  final HeadlessGroup _headlessGroup;
+  final HeadlessEnv _headlessEnv;
 
   TestContextProvider._(
-      this.pubHostedUrl, this._fakePubServerProcess, this._headlessGroup);
+      this.pubHostedUrl, this._fakePubServerProcess, this._headlessEnv);
 
   static Future<TestContextProvider> start() async {
     final fakePubServerProcess = await FakePubServerProcess.start();
@@ -36,25 +36,25 @@ class TestContextProvider {
       Isolate.current.hashCode,
     ].join('-');
 
-    final headlessGroup = HeadlessGroup(
+    final headlessEnv = HeadlessEnv(
       origin: origin,
       testName: testName,
     );
-    return TestContextProvider._(origin, fakePubServerProcess, headlessGroup);
+    await headlessEnv.startBrowser();
+    return TestContextProvider._(origin, fakePubServerProcess, headlessEnv);
   }
 
   Future<void> close() async {
-    await _headlessGroup.close();
+    await _headlessEnv.close();
     await _fakePubServerProcess.kill();
   }
 
   Future<TestUser> createAnonymousTestUser() async {
-    final headlessEnv = await _headlessGroup.createNewProfile();
     return TestUser(
       email: '',
       api: PubApiClient(pubHostedUrl),
       withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-        return await headlessEnv.withPage<T>(fn: fn);
+        return await _headlessEnv.withPage<T>(fn: fn);
       },
       readLatestEmail: () async => throw UnimplementedError(),
       createCredentials: () async => throw UnimplementedError(),
@@ -67,7 +67,7 @@ class TestContextProvider {
   }) async {
     return await createFakeTestUser(
       email: email,
-      headlessEnv: await _headlessGroup.createNewProfile(),
+      headlessEnv: _headlessEnv,
       fakeEmailReader: _fakePubServerProcess.fakeEmailReader,
       scopes: scopes,
     );

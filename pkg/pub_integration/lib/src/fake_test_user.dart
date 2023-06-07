@@ -32,7 +32,10 @@ Future<TestUser> createFakeTestUser({
       return map['bodyText'] as String;
     },
     withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-      return await headlessEnv.withPage<T>(fn: fn);
+      return await headlessEnv.withPage<T>(fn: (page) async {
+        await page.fakeAuthSignIn(email: email, scopes: scopes);
+        return await fn(page);
+      });
     },
   );
 }
