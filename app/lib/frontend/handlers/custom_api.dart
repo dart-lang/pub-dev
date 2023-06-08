@@ -153,7 +153,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
         'Client must send "Accept-Encoding: gzip" header');
   }
 
-  final bytes = await cache.packageNameCompletitionDataJsonGz().get(() async {
+  final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
     final rs = await searchClient.search(
       ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.regularSearch(),
