@@ -52,11 +52,12 @@ Future<shelf.Response> handleDartDoc(
   // Handle HTML requests
   final isHtml = ext == 'html' || ext == 'htm';
   if (isHtml) {
-    final html = await cache.dartdocHtml(package, version, path).get(() async {
+    final htmlBytes =
+        await cache.dartdocHtmlBytes(package, version, path).get(() async {
       try {
         final dataGz = await taskBackend.dartdocFile(package, version, path);
         if (dataGz == null) {
-          return ''; // store empty string for missing data
+          return const <int>[]; // store empty string for missing data
         }
         final latestVersion = await packageBackend.getLatestVersion(package);
         final page = DartDocPage.parse(_utf8gzip.decode(dataGz));
@@ -66,18 +67,18 @@ Future<shelf.Response> handleDartDoc(
           isLatestStable: version == latestVersion,
           path: path,
         ));
-        return html.toString();
+        return utf8.encode(html.toString());
       } on FormatException {
         // store empty string for invalid data, we treat it as a bug in
         // the documentation generation.
-        return '';
+        return const <int>[];
       }
     });
     // We use empty string to indicate missing file or bug in the file
-    if (html == null || html.isEmpty) {
+    if (htmlBytes == null || htmlBytes.isEmpty) {
       return notFoundHandler(request);
     }
-    return htmlResponse(html);
+    return htmlResponse(htmlBytes);
   }
 
   // Handle any non-HTML request

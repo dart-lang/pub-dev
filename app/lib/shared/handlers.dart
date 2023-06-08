@@ -64,11 +64,12 @@ shelf.Response jsonResponse(
 }
 
 shelf.Response htmlResponse(
-  String content, {
+  Object /* String | List<int> */ content, {
   int status = 200,
   Map<String, Object>? headers,
   bool noReferrer = false,
 }) {
+  assert(content is String || content is List<int>);
   headers ??= <String, String>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
   headers['referrer-policy'] =
