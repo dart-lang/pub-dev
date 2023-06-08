@@ -78,7 +78,7 @@ Future<shelf.Response> handleDartDoc(
     if (htmlBytes == null || htmlBytes.isEmpty) {
       return notFoundHandler(request);
     }
-    return htmlResponse(htmlBytes);
+    return htmlBytesResponse(htmlBytes);
   }
 
   // Handle any non-HTML request

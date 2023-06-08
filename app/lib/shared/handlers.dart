@@ -27,6 +27,15 @@ const jsonResponseHeaders = <String, String>{
   'x-content-type-options': 'nosniff',
 };
 
+Map<String, Object> _htmlResponseHeaders(
+    Map<String, Object>? headers, bool noReferrer) {
+  headers ??= <String, Object>{};
+  headers['content-type'] = 'text/html; charset="utf-8"';
+  headers['referrer-policy'] =
+      noReferrer ? 'no-referrer' : 'no-referrer-when-downgrade';
+  return headers;
+}
+
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
@@ -64,17 +73,29 @@ shelf.Response jsonResponse(
 }
 
 shelf.Response htmlResponse(
-  Object /* String | List<int> */ content, {
+  String content, {
   int status = 200,
   Map<String, Object>? headers,
   bool noReferrer = false,
 }) {
-  assert(content is String || content is List<int>);
-  headers ??= <String, String>{};
-  headers['content-type'] = 'text/html; charset="utf-8"';
-  headers['referrer-policy'] =
-      noReferrer ? 'no-referrer' : 'no-referrer-when-downgrade';
-  return shelf.Response(status, body: content, headers: headers);
+  return shelf.Response(
+    status,
+    body: content,
+    headers: _htmlResponseHeaders(headers, noReferrer),
+  );
+}
+
+shelf.Response htmlBytesResponse(
+  List<int> content, {
+  int status = 200,
+  Map<String, Object>? headers,
+  bool noReferrer = false,
+}) {
+  return shelf.Response(
+    status,
+    body: content,
+    headers: _htmlResponseHeaders(headers, noReferrer),
+  );
 }
 
 shelf.Response badRequestHandler(shelf.Request request) =>
