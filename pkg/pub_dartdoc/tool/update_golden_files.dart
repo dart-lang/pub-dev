@@ -11,11 +11,11 @@ import 'package:tar/tar.dart';
 Future<void> main() async {
   final tempDir = await Directory.systemTemp.createTemp();
   try {
-    final panaVersion = '0.12.2';
+    final panaVersion = '0.21.32';
 
     // download
     final rs = await http.get(Uri.parse(
-        'https://storage.googleapis.com/pub-packages/packages/pana-$panaVersion.tar.gz'));
+        'https://pub.dev/packages/pana/versions/$panaVersion.tar.gz'));
     if (rs.statusCode != 200) {
       throw AssertionError('Failed to fetch archive.');
     }
@@ -64,7 +64,7 @@ Future<void> main() async {
         'pana_${panaVersion}_license_file_constructor.html');
     await copy('models/LicenseFile/name.html',
         'pana_${panaVersion}_license_file_name_field.html');
-    await copy('pana/prettyJson.html', 'pana_${panaVersion}_pretty_json.html');
+    await copy('pana/runProc.html', 'pana_${panaVersion}_run_proc.html');
   } finally {
     await tempDir.delete(recursive: true);
   }
