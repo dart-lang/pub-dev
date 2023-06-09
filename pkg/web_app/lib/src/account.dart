@@ -53,7 +53,7 @@ void _initSessionMonitor() {
     String? displayMessage;
     if (expires == null || authenticatedAt == null) {
       displayMessage =
-          'Your session has expired: you may need to reload the page to resume editing.';
+          'Your session has expired: reload the page before making further administrative actions.';
     } else if (expires.isBefore(now.add(sessionExpiresThreshold)) ||
         authenticatedAt.isBefore(now.subtract(authenticationThreshold))) {
       displayMessage =
