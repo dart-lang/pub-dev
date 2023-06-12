@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 
@@ -29,6 +30,11 @@ class SearchClient {
   /// The HTTP client used for making calls to our search service.
   final http.Client _httpClient;
 
+  /// Before this timestamp we may use the fallback search service URL, which
+  /// is the unversioned service URL, potentially getting responses from an
+  /// older instance.
+  final _fallbackSearchThreshold = clock.now().add(Duration(minutes: 10));
+
   SearchClient([http.Client? client])
       : _httpClient = client ?? httpRetryClient(retries: 3);
 
@@ -45,42 +51,52 @@ class SearchClient {
       );
     }
 
-    final String httpHostPort = activeConfiguration.searchServicePrefix;
     final serviceUrlParams = Uri(queryParameters: query.toUriQueryParameters());
-    final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
-    Future<PackageSearchResult?> searchFn() async {
-      final response = await _httpClient
+    Future<http.Response> doCallHttpServiceEndpoint({String? prefix}) async {
+      final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
+      final serviceUrl = '$httpHostPort/search$serviceUrlParams';
+      return await _httpClient
           .get(Uri.parse(serviceUrl), headers: cloudTraceHeaders())
           .timeout(Duration(seconds: 5));
-      if (response.statusCode == searchIndexNotReadyCode) {
-        // Search request before the service initialization completed.
-        // TODO: retry request, maybe another search instance will be able to serve it
-        return null;
-      }
-      if (response.statusCode != 200) {
-        // There has been an issue with the service
-        // TODO: retry request, maybe another search instance will be able to serve it
-        throw Exception('Service returned status code ${response.statusCode}');
-      }
-      final result = PackageSearchResult.fromJson(
-        json.decode(response.body) as Map<String, dynamic>,
-      );
-      return result;
     }
 
-    PackageSearchResult? result;
+    Future<PackageSearchResult> searchFn() async {
+      // calling versioned endpoint
+      final response = await doCallHttpServiceEndpoint();
+      if (response.statusCode == 200) {
+        return PackageSearchResult.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      }
+      // calling fallback request to unversioned endpoint
+      final serviceIsInStartup = clock.now().isBefore(_fallbackSearchThreshold);
+      if (serviceIsInStartup &&
+          activeConfiguration.fallbackSearchServicePrefix != null) {
+        final fallbackRs = await doCallHttpServiceEndpoint(
+            prefix: activeConfiguration.fallbackSearchServicePrefix);
+        if (fallbackRs.statusCode == 200) {
+          return PackageSearchResult.fromJson(
+            json.decode(fallbackRs.body) as Map<String, dynamic>,
+          );
+        }
+      }
+      // Search request before the service initialization completed.
+      if (response.statusCode == searchIndexNotReadyCode) {
+        return PackageSearchResult.empty(
+            message: 'Search is temporarily unavailable.');
+      }
+      // There has been a generic issue with the service.
+      return PackageSearchResult.empty(
+          message: 'Service returned status code ${response.statusCode}.');
+    }
 
     if (skipCache) {
-      result = await searchFn();
+      return await searchFn();
     } else {
-      final cacheEntry = cache.packageSearchResult(serviceUrl);
-      result = await cacheEntry.get(searchFn);
+      final cacheEntry = cache.packageSearchResult(serviceUrlParams.toString());
+      return (await cacheEntry.get(searchFn))!;
     }
-
-    return result ??
-        PackageSearchResult.empty(
-            message: 'Search is temporarily unavailable.');
   }
 
   /// Search service maintains a separate index in each of the running instances.

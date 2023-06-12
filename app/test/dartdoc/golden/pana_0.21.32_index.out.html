@@ -10,7 +10,7 @@
     <meta name="description" content="pana API docs, for the Dart programming language."/>
     <title>pana - Dart API docs</title>
     <link rel="alternate" href="/documentation/pana/latest/"/>
-    <link rel="canonical" href="https://pub.dev/documentation/pana/0.12.2/"/>
+    <link rel="canonical" href="https://pub.dev/documentation/pana/0.21.32/"/>
     <link rel="preconnect" href="https://fonts.gstatic.com"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/github-markdown.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;display=swap" rel="stylesheet"/>
@@ -31,7 +31,7 @@
       </a>
       <ol class="breadcrumbs gt-separated dark hidden-xs">
         <li>
-          <a href="/packages/pana/versions/0.12.2">pana package</a>
+          <a href="/packages/pana/versions/0.21.32">pana package</a>
         </li>
         <li class="self-crumb">documentation</li>
       </ol>
@@ -51,35 +51,43 @@
       <div id="dartdoc-main-content" class="main-content">
         <section class="desc markdown markdown-body">
           <p>
-            <a href="https://travis-ci.org/dart-lang/pana" rel="ugc">
-              <img src="https://travis-ci.org/dart-lang/pana.svg?branch=master" alt="Build Status"/>
+            <a href="https://github.com/dart-lang/pana/actions?query=workflow:%22Dart+CI%22+branch:master" rel="ugc">
+              <img src="https://github.com/dart-lang/pana/workflows/Dart%20CI/badge.svg" alt="Build Status"/>
             </a>
           </p>
-          <p>A library for analyzing Dart packages.</p>
+          <p>A library for analyzing Dart packages. It invokes executables from the Dart SDK (or from the Flutter SDK if the package uses Flutter).</p>
+          <p>Reports are created in the following categories:</p>
           <ul>
             <li>
-              Validates the code using
-              <a href="https://www.dartlang.org/tools/analyzer" rel="ugc">Dart Analyzer</a>
-              .
+              <a href="https://pub.dev/help/scoring#follow-dart-file-conventions">Follow Dart conventions</a>
             </li>
-            <li>Checks code formatting.</li>
-            <li>Checks for outdated dependencies.</li>
-            <li>Infers supported platforms: Flutter, web, and/or server.</li>
+            <li>
+              <a href="https://pub.dev/help/scoring#provide-documentation">Provide documentation</a>
+            </li>
+            <li>
+              <a href="https://pub.dev/help/scoring#support-multiple-platforms">Support multiple platforms</a>
+            </li>
+            <li>
+              <a href="https://pub.dev/help/scoring#pass-static-analysis">Pass static analysis</a>
+            </li>
+            <li>
+              <a href="https://pub.dev/help/scoring#support-up-to-date-dependencies">Support up-to-date dependencies</a>
+            </li>
           </ul>
           <p>
             Used by the
-            <a href="https://pub.dartlang.org/" rel="ugc">Dart Package site</a>
+            <a href="https://pub.dev/">Dart Package site</a>
             .
           </p>
           <h2 id="use-as-an-executable">Use as an executable</h2>
           <h3 id="installation">Installation</h3>
           <pre class="language-console">
-            <code class="language-console">> pub global activate pana</code>
+            <code class="language-console">dart pub global activate pana</code>
           </pre>
           <h3 id="usage">Usage</h3>
           <p>You can specify either a package (+ version) or a local directory to analyze:</p>
           <pre class="language-dart">
-            <code>Usage: pana [&lt;options>] &lt;published package name> [&lt;version>] pana [&lt;options>] --source path &lt;local directory> Options: --flutter-sdk The directory of the Flutter SDK. -j, --json Output log items as JSON. -s, --source The source where the package is located (hosted on https://pub.dartlang.org, or local directory path). [hosted (default), path] --hosted-url The server that hosts &lt;package>. (defaults to "https://pub.dartlang.org") --verbosity Configure the details in the output. [compact, normal (default), verbose] --[no-]warning Shows the warning message before potentially destructive operation. (defaults to on)</code>
+            <code>Usage: pana [&lt;options>] --hosted &lt;published package name> [&lt;version>] pana [&lt;options>] &lt;local directory> Options: --dart-sdk The directory of the Dart SDK. --flutter-sdk The directory of the Flutter SDK. --exit-code-threshold The exit code will indicate if (max - granted points) &lt;= threshold. -j, --json Output log records and full report as JSON. --hosted-url The server that hosts &lt;package>. (defaults to "https://pub.dev") -l, --line-length The line length to use with dartfmt. --hosted Download and analyze a hosted package (from https://pub.dev). --[no-]warning Shows the warning message before potentially destructive operation. (defaults to on)</code>
           </pre>
         </section>
         <section class="summary">
@@ -109,7 +117,7 @@
         </header>
         <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
           <li>
-            <a href="/packages/pana/versions/0.12.2">pana package</a>
+            <a href="/packages/pana/versions/0.21.32">pana package</a>
           </li>
           <li class="self-crumb">documentation</li>
         </ol>
@@ -130,7 +138,7 @@
       <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right"></div>
     </main>
     <footer>
-      <span class="no-break">pana 0.12.2</span>
+      <span class="no-break">pana 0.21.32</span>
     </footer>
     <script src="static-assets/highlight.pack.js?v1"/>
     <script src="static-assets/docs.dart.js"/>

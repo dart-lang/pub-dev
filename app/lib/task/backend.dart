@@ -971,17 +971,14 @@ List<Version> _versionsToTrack(
         .where((pv) => !pv.isRetracted && !pv.semanticVersion.isPreRelease)
         .map((pv) => pv.semanticVersion)
         // Create a map from major version to latest version in series.
-        .fold<Map<int, Version>>({}, (map, version) {
-          final key = version.major;
-          final existing = map[key];
-          return {
-            ...map,
-            if (existing == null || existing < version) key: version,
-          };
-        })
+        .groupFoldBy<int, Version>(
+          (v) => v.major,
+          (a, b) => a == null || a < b ? b : a,
+        )
         // Just take the latest version for each major version, sort and take 5
         .values
         .sorted(Comparable.compare)
+        .reversed
         .take(5)
   }.whereNotNull().toList();
 }

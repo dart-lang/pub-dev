@@ -4,9 +4,11 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2023.06.12`.
  * Store sanitized dartdoc HTML as JSON files.
+ * Switch to not use task backend for output.
 
 ## `20230607t103700-all`
  * Switch to use task backend for output.
+ * Bumped runtimeVersion to `2023.06.07`.
 
 ## `20230606t110900-all`
  * Bumped runtimeVersion to `2023.05.31`.

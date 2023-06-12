@@ -1,0 +1,372 @@
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex"/>
+    <script async="async" src="https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9"/>
+    <script src="/static/hash-%%etag%%/js/gtm.js"/>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no"/>
+    <meta name="description" content="API docs for the runProc function from the pana library, for the Dart programming language."/>
+    <title>runProc function - pana library - Dart API</title>
+    <link rel="alternate" href="/documentation/pana/latest/"/>
+    <link rel="canonical" href="https://pub.dev/documentation/pana/0.21.32/pana/runProc.html"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/github-markdown.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet"/>
+    <link rel="stylesheet" href="../static-assets/github.css?v1"/>
+    <link rel="stylesheet" href="../static-assets/styles.css?v1"/>
+    <link rel="icon" href="../static-assets/favicon.png?v1"/>
+    <link rel="stylesheet" type="text/css" href="https://www.gstatic.com/glue/v25_0/ccb.min.css"/>
+    <script defer="defer" src="https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js" data-autoload-cookie-consent-bar="true"/>
+  </head>
+  <body data-base-href="../" data-using-base-href="false" class="light-theme">
+    <noscript>&lt;iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden">&lt;/iframe></noscript>
+    <div id="overlay-under-drawer"/>
+    <header id="title">
+      <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+      <a class="hidden-xs" href="/">
+        <img src="/static/hash-%%etag%%/img/dart-logo.svg" style="height: 30px; margin-right: 1em;"/>
+      </a>
+      <ol class="breadcrumbs gt-separated dark hidden-xs">
+        <li>
+          <a href="/packages/pana/versions/0.21.32">pana package</a>
+        </li>
+        <li>
+          <a href="../index.html">documentation</a>
+        </li>
+        <li>
+          <a href="../pana/pana-library.html">pana</a>
+        </li>
+        <li class="self-crumb">runProc function</li>
+      </ol>
+      <div class="self-name">runProc</div>
+      <form class="search navbar-right" role="search">
+        <input type="text" id="search-box" autocomplete="off" disabled="" class="form-control typeahead" placeholder="Loading search..."/>
+      </form>
+      <div class="toggle" id="theme-button">
+        <label for="theme">
+          <input type="checkbox" id="theme" value="light-theme"/>
+          <span id="dark-theme-button" class="material-symbols-outlined">brightness_4</span>
+          <span id="light-theme-button" class="material-symbols-outlined">brightness_5</span>
+        </label>
+      </div>
+    </header>
+    <main>
+      <div id="dartdoc-main-content" class="main-content">
+        <div>
+          <h1>
+            <span class="kind-function">runProc</span>
+            function
+          </h1>
+        </div>
+        <section class="multi-line-signature">
+          <span class="returntype">
+            <a href="https://api.dart.dev/stable/3.0.0/dart-async/Future-class.html">Future</a>
+            <span class="signature">
+              &lt;
+              <wbr/>
+              <span class="type-parameter">PanaProcessResult</span>
+              >
+            </span>
+          </span>
+          <span class="name ">runProc</span>
+          (
+          <wbr/>
+          <ol class="parameter-list">
+            <li>
+              <span class="parameter" id="runProc-param-arguments">
+                <span class="type-annotation">
+                  <a href="https://api.dart.dev/stable/3.0.0/dart-core/List-class.html">List</a>
+                  <span class="signature">
+                    &lt;
+                    <wbr/>
+                    <span class="type-parameter">
+                      <a href="https://api.dart.dev/stable/3.0.0/dart-core/String-class.html">String</a>
+                    </span>
+                    >
+                  </span>
+                </span>
+                <span class="parameter-name">arguments</span>
+                ,
+              </span>
+            </li>
+            <li>
+              <span class="parameter" id="runProc-param-workingDirectory">
+                {
+                <span class="type-annotation">
+                  <a href="https://api.dart.dev/stable/3.0.0/dart-core/String-class.html">String</a>
+                  ?
+                </span>
+                <span class="parameter-name">workingDirectory</span>
+                ,
+              </span>
+            </li>
+            <li>
+              <span class="parameter" id="runProc-param-environment">
+                <span class="type-annotation">
+                  <a href="https://api.dart.dev/stable/3.0.0/dart-core/Map-class.html">Map</a>
+                  <span class="signature">
+                    &lt;
+                    <wbr/>
+                    <span class="type-parameter">
+                      <a href="https://api.dart.dev/stable/3.0.0/dart-core/String-class.html">String</a>
+                    </span>
+                    ,
+                    <span class="type-parameter">
+                      <a href="https://api.dart.dev/stable/3.0.0/dart-core/String-class.html">String</a>
+                    </span>
+                    >
+                  </span>
+                  ?
+                </span>
+                <span class="parameter-name">environment</span>
+                ,
+              </span>
+            </li>
+            <li>
+              <span class="parameter" id="runProc-param-timeout">
+                <span class="type-annotation">
+                  <a href="https://api.dart.dev/stable/3.0.0/dart-core/Duration-class.html">Duration</a>
+                  ?
+                </span>
+                <span class="parameter-name">timeout</span>
+                ,
+              </span>
+            </li>
+            <li>
+              <span class="parameter" id="runProc-param-maxOutputBytes">
+                <span class="type-annotation">
+                  <a href="https://api.dart.dev/stable/3.0.0/dart-core/int-class.html">int</a>
+                  ?
+                </span>
+                <span class="parameter-name">maxOutputBytes</span>
+                }
+              </span>
+            </li>
+          </ol>
+          )
+        </section>
+        <section class="desc markdown markdown-body">
+          <p>
+            Runs the
+            <code>arguments</code>
+            as a program|script + its argument list.
+          </p>
+          <p>
+            Kills the process after
+            <code>timeout</code>
+            (2 minutes if not specified). Kills the process if its output is more than
+            <code>maxOutputBytes</code>
+            (10 MiB if not specified).
+          </p>
+          <p>
+            If the process is killed, it returns only the first 1000 lines of both
+            <code>stdout</code>
+            and
+            <code>stderr</code>
+            .
+          </p>
+        </section>
+        <section class="summary source-code" id="source">
+          <h2>
+            <span>Implementation</span>
+          </h2>
+          <pre class="language-dart">
+            <code class="language-dart">Future&lt;PanaProcessResult> runProc( List&lt;String> arguments, { String? workingDirectory, Map&lt;String, String>? environment, Duration? timeout, int? maxOutputBytes, }) async { timeout ??= _timeout; maxOutputBytes ??= _maxOutputBytes; log.info('Running `${[...arguments].join(' ')}`...'); var process = await Process.start(arguments.first, arguments.skip(1).toList(), workingDirectory: workingDirectory, environment: environment); var stdoutLines = &lt;List&lt;int>>[]; var stderrLines = &lt;List&lt;int>>[]; var remainingBytes = maxOutputBytes; var killed = false; var wasTimeout = false; var wasOutputExceeded = false; String? killMessage; void killProc(String message) { if (!killed) { killMessage = message; log.severe('Killing `${arguments.join(' ')}` $killMessage'); killed = process.kill(ProcessSignal.sigkill); log.info('killed `${arguments.join(' ')}` - $killed'); } } var timer = Timer(timeout, () { wasTimeout = true; killProc('Exceeded timeout of $timeout'); }); var items = await Future.wait(&lt;Future>[ process.exitCode, process.stdout.forEach((outLine) { stdoutLines.add(outLine); remainingBytes -= outLine.length; if (remainingBytes &lt; 0) { wasOutputExceeded = true; killProc('Output exceeded $maxOutputBytes bytes.'); } }), process.stderr.forEach((errLine) { stderrLines.add(errLine); remainingBytes -= errLine.length; if (remainingBytes &lt; 0) { wasOutputExceeded = true; killProc('Output exceeded $maxOutputBytes bytes.'); } }) ]); timer.cancel(); final exitCode = items[0] as int; if (killed) { final encoding = systemEncoding; return PanaProcessResult( process.pid, exitCode, stdoutLines .map(encoding.decode) .expand(const LineSplitter().convert) .take(_maxOutputLinesWhenKilled) .join('\n'), [ if (killMessage != null) killMessage, ...stderrLines .map(encoding.decode) .expand(const LineSplitter().convert) .take(_maxOutputLinesWhenKilled), ].join('\n'), wasTimeout: wasTimeout, wasOutputExceeded: wasOutputExceeded, wasError: true, ); } return PanaProcessResult( process.pid, exitCode, stdoutLines, stderrLines, wasTimeout: wasTimeout, wasOutputExceeded: wasOutputExceeded, ); }</code>
+          </pre>
+        </section>
+      </div>
+      <!-- /.main-content -->
+      <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+        <header id="header-search-sidebar" class="hidden-l">
+          <form class="search-sidebar" role="search">
+            <input type="text" id="search-sidebar" autocomplete="off" disabled="" class="form-control typeahead" placeholder="Loading search..."/>
+          </form>
+        </header>
+        <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+          <li>
+            <a href="/packages/pana/versions/0.21.32">pana package</a>
+          </li>
+          <li>
+            <a href="../index.html">documentation</a>
+          </li>
+          <li>
+            <a href="../pana/pana-library.html">pana</a>
+          </li>
+          <li class="self-crumb">runProc function</li>
+        </ol>
+        <h5>pana library</h5>
+        <ol>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#classes">Classes</a>
+          </li>
+          <li>
+            <a href="../models/AnalysisResult-class.html">AnalysisResult</a>
+          </li>
+          <li>
+            <a href="../pana/DartdocResult-class.html">DartdocResult</a>
+          </li>
+          <li>
+            <a href="../pana/DartSdkInfo-class.html">DartSdkInfo</a>
+          </li>
+          <li>
+            <a href="../pana/InspectOptions-class.html">InspectOptions</a>
+          </li>
+          <li>
+            <a href="../models/License-class.html">License</a>
+          </li>
+          <li>
+            <a href="../models/LicenseFile-class.html">LicenseFile</a>
+          </li>
+          <li>
+            <a href="../models/LicenseNames-class.html">LicenseNames</a>
+          </li>
+          <li>
+            <a href="../pana/PackageAnalyzer-class.html">PackageAnalyzer</a>
+          </li>
+          <li>
+            <a href="../models/PanaRuntimeInfo-class.html">PanaRuntimeInfo</a>
+          </li>
+          <li>
+            <a href="../pana/PanaTags-class.html">PanaTags</a>
+          </li>
+          <li>
+            <a href="../models/ProcessedScreenshot-class.html">ProcessedScreenshot</a>
+          </li>
+          <li>
+            <a href="../pana/Pubspec-class.html">Pubspec</a>
+          </li>
+          <li>
+            <a href="../models/Report-class.html">Report</a>
+          </li>
+          <li>
+            <a href="../models/ReportSection-class.html">ReportSection</a>
+          </li>
+          <li>
+            <a href="../models/ReportSectionId-class.html">ReportSectionId</a>
+          </li>
+          <li>
+            <a href="../models/Repository-class.html">Repository</a>
+          </li>
+          <li>
+            <a href="../pana/SdkConstraintStatus-class.html">SdkConstraintStatus</a>
+          </li>
+          <li>
+            <a href="../models/Summary-class.html">Summary</a>
+          </li>
+          <li>
+            <a href="../pana/ToolEnvironment-class.html">ToolEnvironment</a>
+          </li>
+          <li>
+            <a href="../pana/UrlChecker-class.html">UrlChecker</a>
+          </li>
+          <li>
+            <a href="../models/UrlProblem-class.html">UrlProblem</a>
+          </li>
+          <li>
+            <a href="../models/UrlProblemCodes-class.html">UrlProblemCodes</a>
+          </li>
+          <li>
+            <a href="../pana/UrlStatus-class.html">UrlStatus</a>
+          </li>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#extensions">Extensions</a>
+          </li>
+          <li>
+            <a href="../models/RepositoryUrlResolverExt.html">RepositoryUrlResolverExt</a>
+          </li>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#constants">Constants</a>
+          </li>
+          <li>
+            <a href="../pana/changelogFileNames-constant.html">changelogFileNames</a>
+          </li>
+          <li>
+            <a href="../pana/currentAnalysisOptionsFileName-constant.html">currentAnalysisOptionsFileName</a>
+          </li>
+          <li>
+            <a href="../pana/documentationSectionTitle-constant.html">documentationSectionTitle</a>
+          </li>
+          <li>
+            <a href="../pana/licenseFileNames-constant.html">licenseFileNames</a>
+          </li>
+          <li>
+            <a href="../pana/packageVersion-constant.html">packageVersion</a>
+          </li>
+          <li>
+            <a href="../pana/readmeFileNames-constant.html">readmeFileNames</a>
+          </li>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#properties">Properties</a>
+          </li>
+          <li>
+            <a href="../pana/analysisOptionsFiles.html">analysisOptionsFiles</a>
+          </li>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#functions">Functions</a>
+          </li>
+          <li>
+            <a href="../pana/dartdocFailedSection.html">dartdocFailedSection</a>
+          </li>
+          <li>
+            <a href="../pana/documentationCoverageSection.html">documentationCoverageSection</a>
+          </li>
+          <li>
+            <a href="../pana/downloadPackage.html">downloadPackage</a>
+          </li>
+          <li>
+            <a href="../pana/exampleFileCandidates.html">exampleFileCandidates</a>
+          </li>
+          <li>
+            <a href="../pana/firstFileFromNames.html">firstFileFromNames</a>
+          </li>
+          <li>
+            <a class="deprecated" href="../pana/getRepositoryUrl.html">getRepositoryUrl</a>
+          </li>
+          <li>
+            <a href="../models/minStatus.html">minStatus</a>
+          </li>
+          <li>
+            <a href="../pana/pubspecParseError.html">pubspecParseError</a>
+          </li>
+          <li>
+            <a href="../pana/renderSimpleSectionSummary.html">renderSimpleSectionSummary</a>
+          </li>
+          <li>
+            <a href="../pana/runProc.html">runProc</a>
+          </li>
+          <li>
+            <a href="../models/summarizeStatuses.html">summarizeStatuses</a>
+          </li>
+          <li>
+            <a href="../pana/yamlToJson.html">yamlToJson</a>
+          </li>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#enums">Enums</a>
+          </li>
+          <li>
+            <a href="../models/ReportStatus.html">ReportStatus</a>
+          </li>
+          <li>
+            <a href="../models/RepositoryProvider.html">RepositoryProvider</a>
+          </li>
+          <li class="section-title">
+            <a href="../pana/pana-library.html#exceptions">Exceptions</a>
+          </li>
+          <li>
+            <a href="../pana/ToolException-class.html">ToolException</a>
+          </li>
+        </ol>
+      </div>
+      <!--/.sidebar-offcanvas-left-->
+      <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right"></div>
+      <!--/.sidebar-offcanvas-->
+    </main>
+    <footer>
+      <span class="no-break">pana 0.21.32</span>
+    </footer>
+    <script src="../static-assets/highlight.pack.js?v1"/>
+    <script src="../static-assets/docs.dart.js"/>
+  </body>
+</html>

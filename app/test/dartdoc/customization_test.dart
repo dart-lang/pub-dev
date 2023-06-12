@@ -82,11 +82,11 @@ void main() {
   }
 
   group('pana 0.12.2', () {
-    expectMatch('pana', '0.12.2', 'index');
-    expectMatch('pana', '0.12.2', 'license_file_class');
-    expectMatch('pana', '0.12.2', 'license_file_constructor');
-    expectMatch('pana', '0.12.2', 'license_file_name_field');
-    expectMatch('pana', '0.12.2', 'pretty_json');
+    expectMatch('pana', '0.21.32', 'index');
+    expectMatch('pana', '0.21.32', 'license_file_class');
+    expectMatch('pana', '0.21.32', 'license_file_constructor');
+    expectMatch('pana', '0.21.32', 'license_file_name_field');
+    expectMatch('pana', '0.21.32', 'run_proc');
   });
 
   group('Misc packages', () {
