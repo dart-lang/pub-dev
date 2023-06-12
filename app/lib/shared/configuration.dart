@@ -92,6 +92,9 @@ class Configuration {
   /// The scheme://host:port prefix for the search service.
   final String searchServicePrefix;
 
+  /// The scheme://host:port prefix for the search service.
+  final String? fallbackSearchServicePrefix;
+
   /// The `scheme://host:port baseUrl for the default service with same
   /// AppEngine version as this instance.
   ///
@@ -281,6 +284,7 @@ class Configuration {
     required this.cosImage,
     required this.taskWorkerServiceAccount,
     required this.searchServicePrefix,
+    required this.fallbackSearchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
     required this.pubSiteAudience,
@@ -346,6 +350,7 @@ class Configuration {
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:$searchPort',
+      fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
@@ -396,6 +401,7 @@ class Configuration {
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
       searchServicePrefix: 'http://localhost:0',
+      fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,
       pubSiteAudience: _fakeSiteAudience,
