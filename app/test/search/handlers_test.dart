@@ -10,7 +10,6 @@ import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
-import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/global_lock.dart';
@@ -201,7 +200,7 @@ class MockSearchBackend implements SearchBackend {
   }
 
   @override
-  Future<SearchSnapshot> updateSnapshotInForeverLoop() {
+  Future<Never> updateSnapshotInForeverLoop() {
     throw UnimplementedError();
   }
 

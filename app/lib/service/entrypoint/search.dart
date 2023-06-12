@@ -78,6 +78,5 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
   await popularityStorage.start();
   setupSearchPeriodicTasks();
-  unawaited(searchBackend.updateSnapshotInForeverLoop());
-  await Completer().future; // never completes
+  await searchBackend.updateSnapshotInForeverLoop();
 }
