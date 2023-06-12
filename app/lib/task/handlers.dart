@@ -36,7 +36,7 @@ const _safeMimeTypes = {
   // should not add it here.
 };
 
-final _utf8gzip = const Utf8Codec(allowMalformed: true).fuse(gzip);
+final _jsongzip = json.fuse(utf8).fuse(gzip);
 
 Future<shelf.Response> handleDartDoc(
   shelf.Request request,
@@ -50,7 +50,7 @@ Future<shelf.Response> handleDartDoc(
   final ext = path.split('.').last;
 
   // Handle HTML requests
-  final isHtml = ext == 'html' || ext == 'htm';
+  final isHtml = ext == 'html';
   if (isHtml) {
     final html = await cache.dartdocHtml(package, version, path).get(() async {
       try {
@@ -59,7 +59,8 @@ Future<shelf.Response> handleDartDoc(
           return ''; // store empty string for missing data
         }
         final latestVersion = await packageBackend.getLatestVersion(package);
-        final page = DartDocPage.parse(_utf8gzip.decode(dataGz));
+        final dataJson = _jsongzip.decode(dataGz);
+        final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
         final html = page.render(DartDocPageOptions(
           package: package,
           version: version,

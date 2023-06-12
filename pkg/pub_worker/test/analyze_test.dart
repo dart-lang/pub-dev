@@ -6,11 +6,26 @@ import 'dart:async' show FutureOr;
 import 'dart:convert' show json, utf8;
 import 'dart:io' show gzip;
 import 'package:_pub_shared/data/task_payload.dart';
+import 'package:clock/clock.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_worker/src/analyze.dart' show analyze;
 import 'package:pub_worker/src/testing/server.dart';
 import 'package:test/test.dart';
 
 void main() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((rec) {
+    final time = clock.now();
+    for (final line in rec.message.split('\n')) {
+      print('$time [${rec.loggerName}] ${rec.level.name}: $line');
+    }
+    if (rec.error != null) {
+      for (final line in '${rec.error}, ${rec.stackTrace}'.split('\n')) {
+        print('$time [${rec.loggerName}] ${rec.level.name}: ERROR: $line');
+      }
+    }
+  });
+
   void testWithServer(
     String name,
     FutureOr<void> Function(PubWorkerTestServer server) fn,
