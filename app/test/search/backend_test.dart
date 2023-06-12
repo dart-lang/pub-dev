@@ -30,7 +30,7 @@ void main() {
       await snapshotStorage.fetch();
       expect(snapshotStorage.documents, isEmpty);
       await searchBackend.doCreateAndUpdateSnapshot(
-        _GlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+        _FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
         sleepDuration: Duration(milliseconds: 300),
       );
       await snapshotStorage.fetch();
@@ -39,11 +39,11 @@ void main() {
   });
 }
 
-class _GlobalLockClaim implements GlobalLockClaim {
+class _FakeGlobalLockClaim implements GlobalLockClaim {
   @override
   DateTime expires;
 
-  _GlobalLockClaim(this.expires);
+  _FakeGlobalLockClaim(this.expires);
 
   @override
   Future<bool> refresh() async {
