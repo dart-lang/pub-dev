@@ -47,14 +47,14 @@ abstract class DomContext {
   Node unsafeRawHtml(String value);
 }
 
-bool _verifyElementTag(String tag) {
+bool _isValidElementTag(String tag) {
   if (_elementRegExp.matchAsPrefix(tag) == null) {
     throw FormatException('Invalid element tag "$tag".');
   }
   return true;
 }
 
-bool _verifyAttributeKeys(String tag, Iterable<String>? keys) {
+bool _isValidAttributeKeys(String tag, Iterable<String>? keys) {
   if (keys == null) return true;
   for (final key in keys) {
     if (_attributeRegExp.matchAsPrefix(key) != null) continue;
@@ -840,8 +840,8 @@ class _StringDomContext extends DomContext {
     Map<String, String>? attributes,
     Object? children,
   }) {
-    assert(_verifyElementTag(tag));
-    assert(_verifyAttributeKeys(tag, attributes?.keys));
+    assert(_isValidElementTag(tag));
+    assert(_isValidAttributeKeys(tag, attributes?.keys));
     assert(children == null || children is Node || children is Iterable<Node>);
     return _StringElement(
         tag, _mergeAttributes(id, classes, attributes), children);
