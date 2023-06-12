@@ -81,7 +81,7 @@ class SearchBackend {
       'update-search-snapshot',
       expiration: Duration(minutes: 20),
     );
-    for (;;) {
+    while (true) {
       try {
         await lock.withClaim((claim) async {
           await doCreateAndUpdateSnapshot(claim);
