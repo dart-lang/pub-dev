@@ -14,12 +14,12 @@ import 'test_scenario.dart';
 
 Future<TestUser> createFakeTestUser({
   required String email,
-  required HeadlessEnv headlessEnv,
+  required TestBrowser testBrowser,
   required FakeEmailReaderFromOutputDirectory fakeEmailReader,
   List<String>? scopes,
 }) async {
   late PubApiClient api;
-  await headlessEnv.withPage(fn: (page) async {
+  await testBrowser.withPage(fn: (page) async {
     await page.fakeAuthSignIn(email: email, scopes: scopes);
     api = await _apiClientHttpHeadersFromSignedInSession(page);
   });
@@ -32,7 +32,7 @@ Future<TestUser> createFakeTestUser({
       return map['bodyText'] as String;
     },
     withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-      return await headlessEnv.withPage<T>(fn: (page) async {
+      return await testBrowser.withPage<T>(fn: (page) async {
         await page.fakeAuthSignIn(email: email, scopes: scopes);
         return await fn(page);
       });

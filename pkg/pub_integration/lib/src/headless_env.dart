@@ -11,7 +11,7 @@ import 'package:puppeteer/puppeteer.dart';
 
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
-class HeadlessEnv {
+class TestBrowser {
   final String? _testName;
   final String _origin;
   final String? _coverageDir;
@@ -28,7 +28,7 @@ class HeadlessEnv {
   /// The coverage report of CSS files.
   final _cssCoverages = <String, _Coverage>{};
 
-  HeadlessEnv({
+  TestBrowser({
     required String origin,
     String? testName,
     String? coverageDir,
