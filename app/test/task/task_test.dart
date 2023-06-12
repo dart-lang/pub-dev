@@ -230,7 +230,7 @@ void main() {
         ],
       ));
 
-  testWithFakeTime('Limit on number of versions analyzed', (fakeTime) async {
+  testWithFakeTime('Limit to 5 latest major versions', (fakeTime) async {
     await taskBackend.backfillTrackingState();
     await fakeTime.elapse(minutes: 1);
     await taskBackend.start();
@@ -240,7 +240,20 @@ void main() {
     // analyzed, this even though there really is 20 versions.
     final instances = await cloud.listInstances().toList();
     expect(instances, hasLength(1));
-    expect(instances.first.payload.versions.length, lessThan(10));
+    expect(
+      instances.first.payload.versions.map((vt) => vt.version),
+      containsAll([
+        '6.0.0',
+        '5.1.0',
+        '4.0.0',
+        '3.2.0',
+        '2.0.0',
+      ]),
+    );
+    expect(
+      instances.first.payload.versions.map((vt) => vt.version).toList(),
+      hasLength(5),
+    );
 
     await taskBackend.stop();
 
@@ -252,7 +265,15 @@ void main() {
           TestPackage(
             name: 'neon',
             versions: [
-              for (var i = 0; i < 20; i++) TestVersion(version: '1.0.$i'),
+              TestVersion(version: '6.0.0'),
+              TestVersion(version: '5.1.0'),
+              TestVersion(version: '5.0.0'),
+              TestVersion(version: '4.0.0'),
+              TestVersion(version: '3.2.0'),
+              TestVersion(version: '3.1.0'),
+              TestVersion(version: '3.0.0'),
+              TestVersion(version: '2.0.0'),
+              TestVersion(version: '1.0.0'),
             ],
             publisher: 'example.com',
             isDiscontinued: true,
