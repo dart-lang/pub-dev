@@ -110,9 +110,9 @@ class SearchBackend {
       // Skip if the last document timestamp is before [updated].
       // 1-minute window is kept to reduce clock-skew.
       if (updated != null) {
-        final lastTimestamp = snapshot.documents![package]?.timestamp;
-        if (lastTimestamp != null &&
-            updated.isBefore(lastTimestamp.subtract(Duration(minutes: 1)))) {
+        final lastRefreshed = snapshot.documents![package]?.timestamp;
+        if (lastRefreshed != null &&
+            updated.isBefore(lastRefreshed.subtract(Duration(minutes: 1)))) {
           return;
         }
       }
@@ -129,6 +129,8 @@ class SearchBackend {
     await for (final package in dbService.query<Package>().run()) {
       if (package.isNotVisible) continue;
       if (!claim.valid) break;
+      // This is the first scan, there isn't any existing document that we
+      // can compare to, ignoring the updated field.
       await updatePackage(package.name!, null);
     }
     if (!claim.valid) {
