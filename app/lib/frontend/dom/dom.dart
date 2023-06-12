@@ -37,7 +37,9 @@ abstract class DomContext {
     String? id,
     Iterable<String>? classes,
     Map<String, String>? attributes,
-    Object? children,
+    Node? child,
+    Iterable<Node>? children,
+    String? text,
   });
 
   /// Creates a DOM Text node.
@@ -82,7 +84,9 @@ Node element(
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a DOM Text node using the default [DomContext].
@@ -212,7 +216,9 @@ Node a({
       if (title != null) 'title': title,
       if (attributes != null) ...attributes,
     },
-    children: _children(children, child, text),
+    children: children,
+    child: child,
+    text: text,
   );
 }
 
@@ -230,7 +236,9 @@ Node b({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<br>` Element using the default [DomContext].
@@ -254,7 +262,9 @@ Node button({
         if (ariaLabel != null) 'aria-label': ariaLabel,
         ...?attributes,
       },
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<code>` Element using the default [DomContext].
@@ -271,7 +281,9 @@ Node code({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<details>` Element using the default [DomContext].
@@ -314,7 +326,9 @@ Node div({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates an `<form>` Element using the default [DomContext].
@@ -337,7 +351,9 @@ Node form({
       if (method != null) 'method': method,
       if (attributes != null) ...attributes,
     },
-    children: _children(children, child, text),
+    children: children,
+    child: child,
+    text: text,
   );
 }
 
@@ -355,7 +371,9 @@ Node h1({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<h1>` Element using the default [DomContext].
@@ -372,7 +390,9 @@ Node h2({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<h1>` Element using the default [DomContext].
@@ -389,7 +409,9 @@ Node h3({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates an `<i>` Element using the default [DomContext].
@@ -406,7 +428,9 @@ Node i({
     id: id,
     classes: classes,
     attributes: attributes,
-    children: _children(children, child, text),
+    children: children,
+    child: child,
+    text: text,
   );
 }
 
@@ -481,7 +505,9 @@ Node input({
       if (disabled) 'disabled': 'disabled',
       if (attributes != null) ...attributes,
     },
-    children: _children(children, child, text),
+    children: children,
+    child: child,
+    text: text,
   );
 }
 
@@ -499,7 +525,9 @@ Node label({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<li>` Element using the default [DomContext].
@@ -516,7 +544,9 @@ Node li({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<link>` Element using the default [DomContext].
@@ -545,7 +575,9 @@ Node link({
         if (as != null) 'as': as,
         if (attributes != null) ...attributes,
       },
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<meta>` Element using the default [DomContext].
@@ -578,7 +610,9 @@ Node meta({
         if (href != null) 'href': href,
         if (attributes != null) ...attributes,
       },
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates an `<option>` Element using the default [DomContext].
@@ -603,7 +637,9 @@ Node option({
       if (selected) 'selected': 'selected',
       if (attributes != null) ...attributes,
     },
-    children: _children(children, child, text),
+    children: children,
+    child: child,
+    text: text,
   );
 }
 
@@ -621,7 +657,9 @@ Node p({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<pre>` Element using the default [DomContext].
@@ -638,7 +676,9 @@ Node pre({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<script>` Element using the default [DomContext].
@@ -667,7 +707,9 @@ Node script({
         if (onload != null) 'onload': onload,
         if (attributes != null) ...attributes,
       },
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates an `<select>` Element using the default [DomContext].
@@ -684,7 +726,9 @@ Node select({
     id: id,
     classes: classes,
     attributes: attributes,
-    children: _children(children, child, text),
+    children: children,
+    child: child,
+    text: text,
   );
 }
 
@@ -702,7 +746,9 @@ Node span({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<strong>` Element using the default [DomContext].
@@ -719,7 +765,9 @@ Node strong({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<table>` Element using the default [DomContext].
@@ -755,7 +803,9 @@ Node td({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<th>` Element using the default [DomContext].
@@ -772,7 +822,9 @@ Node th({
       id: id,
       classes: classes,
       attributes: attributes,
-      children: _children(children, child, text),
+      children: children,
+      child: child,
+      text: text,
     );
 
 /// Creates a `<tr>` Element using the default [DomContext].
@@ -838,13 +890,17 @@ class _StringDomContext extends DomContext {
     String? id,
     Iterable<String>? classes,
     Map<String, String>? attributes,
-    Object? children,
+    Iterable<Node>? children,
+    Node? child,
+    String? text,
   }) {
     assert(_isValidElementTag(tag));
     assert(_isValidAttributeKeys(tag, attributes?.keys));
-    assert(children == null || children is Node || children is Iterable<Node>);
     return _StringElement(
-        tag, _mergeAttributes(id, classes, attributes), children);
+      tag,
+      _mergeAttributes(id, classes, attributes),
+      _children(children, child, text),
+    );
   }
 
   @override
