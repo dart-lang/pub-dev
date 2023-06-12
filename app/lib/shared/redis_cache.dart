@@ -316,15 +316,14 @@ class CachePatterns {
       ))[package];
 
   /// Cache for sanitized and re-rendered dartdoc HTML files.
-  Entry<String> dartdocHtml(
+  Entry<List<int>> dartdocHtmlBytes(
     String package,
     String version,
     String path,
   ) =>
       _cache
           .withPrefix('dartdoc-html/')
-          .withTTL(Duration(minutes: 10))
-          .withCodec(utf8)['$package-$version/$path'];
+          .withTTL(Duration(minutes: 10))['$package-$version/$path'];
 
   /// Stores the OpenID Data (including the JSON Web Key list).
   ///

@@ -52,10 +52,12 @@ void _initSessionMonitor() {
     final authenticatedAt = status.authenticatedAt;
     String? displayMessage;
     if (expires == null || authenticatedAt == null) {
-      displayMessage = 'Your session has expired.';
+      displayMessage =
+          'Your session has expired: reload the page before making further administrative actions.';
     } else if (expires.isBefore(now.add(sessionExpiresThreshold)) ||
         authenticatedAt.isBefore(now.subtract(authenticationThreshold))) {
-      displayMessage = 'Your session will expire soon.';
+      displayMessage =
+          'Your session will expire soon: finish editing soon or reload the page.';
     }
     if (lastMessage != displayMessage) {
       removeLast();
