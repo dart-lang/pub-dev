@@ -86,6 +86,9 @@ class PackageDocument {
   /// The creation timestamp of this document.
   final DateTime timestamp;
 
+  /// The last updated timestamp of the source entities.
+  final DateTime? sourceUpdated;
+
   PackageDocument({
     required this.package,
     this.version,
@@ -100,6 +103,7 @@ class PackageDocument {
     this.dependencies = const {},
     this.apiDocPages = const [],
     DateTime? timestamp,
+    this.sourceUpdated,
   })  : tags = tags ?? const <String>[],
         timestamp = timestamp ?? clock.now();
 

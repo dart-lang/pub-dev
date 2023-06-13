@@ -256,7 +256,8 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     );
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
-    registerSearchBackend(SearchBackend(dbService));
+    registerSearchBackend(SearchBackend(dbService,
+        storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
     registerSecretBackend(SecretBackend(dbService));

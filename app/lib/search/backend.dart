@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
@@ -12,8 +11,10 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+import 'package:pub_dev/task/global_lock.dart';
 
 import '../dartdoc/backend.dart';
 import '../package/backend.dart';
@@ -60,9 +61,144 @@ void registerPackageIndex(PackageIndex index) =>
 /// Datastore-related access methods for the search service
 class SearchBackend {
   final DatastoreDB _db;
+  final VersionedJsonStorage _snapshotStorage;
   final _http = httpRetryClient();
 
-  SearchBackend(this._db);
+  SearchBackend(this._db, Bucket snapshotBucket)
+      : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
+
+  /// Runs a forever loop and tries to get a global lock.
+  ///
+  /// Once it has the claim, it creates a new snapshot by loading
+  /// all visible package data and uploads it into the snapshot storage.
+  /// Tracks the package updates for the next up-to 24 hours and writes
+  /// the snapshot after every 10 minutes.
+  ///
+  /// When other process has the claim, the loop waits a minute before
+  /// attempting to get the claim.
+  Future<Never> updateSnapshotInForeverLoop() async {
+    final lock = GlobalLock.create(
+      'update-search-snapshot',
+      expiration: Duration(minutes: 20),
+    );
+    while (true) {
+      try {
+        await lock.withClaim((claim) async {
+          await doCreateAndUpdateSnapshot(claim);
+        });
+      } catch (e, st) {
+        _logger.warning('Snapshot update failed.', e, st);
+      }
+      // Wait for 1 minutes for sanity, before trying again.
+      await Future.delayed(Duration(minutes: 1));
+    }
+  }
+
+  @visibleForTesting
+  Future<void> doCreateAndUpdateSnapshot(
+    GlobalLockClaim claim, {
+    Duration sleepDuration = const Duration(minutes: 2),
+  }) async {
+    final firstClaimed = clock.now();
+
+    // The claim will be released after a day, another process may
+    // start to build the snapshot from scratch again.
+    final workUntil = clock.now().add(Duration(days: 1));
+
+    // creating snapshot from scratch
+    final snapshot = SearchSnapshot();
+    Future<void> updatePackage(String package, DateTime? updated) async {
+      // Skip if the last document timestamp is before [updated].
+      // 1-minute window is kept to reduce clock-skew.
+      if (updated != null) {
+        final currentDoc = snapshot.documents![package];
+        final lastRefreshed =
+            currentDoc?.sourceUpdated ?? currentDoc?.timestamp;
+        if (lastRefreshed != null &&
+            updated.isBefore(lastRefreshed.subtract(Duration(minutes: 1)))) {
+          return;
+        }
+      }
+      // update or remove the document
+      try {
+        final doc = await loadDocument(package);
+        snapshot.add(doc);
+      } on RemovedPackageException catch (_) {
+        snapshot.remove(package);
+      }
+    }
+
+    // initial scan of packages
+    await for (final package in dbService.query<Package>().run()) {
+      if (package.isNotVisible) continue;
+      if (!claim.valid) break;
+      // This is the first scan, there isn't any existing document that we
+      // can compare to, ignoring the updated field.
+      await updatePackage(package.name!, null);
+    }
+    if (!claim.valid) {
+      return;
+    }
+
+    // first complete snapshot, uploading it
+    await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
+    var lastUploadedSnapshotTimestamp = snapshot.updated!;
+
+    // start monitoring
+    var lastQueryStarted = firstClaimed;
+    while (claim.valid) {
+      final now = clock.now().toUtc();
+      if (now.isAfter(workUntil)) {
+        break;
+      }
+
+      lastQueryStarted = now;
+
+      // query updates
+      final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
+      for (final e in recentlyUpdated.entries) {
+        if (!claim.valid) {
+          break;
+        }
+        await updatePackage(e.key, e.value);
+      }
+
+      if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
+        await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
+        lastUploadedSnapshotTimestamp = snapshot.updated!;
+      }
+
+      await Future.delayed(sleepDuration);
+    }
+  }
+
+  Future<Map<String, DateTime>> _queryRecentlyUpdated(
+      DateTime lastQueryStarted) async {
+    final updatedThreshold = lastQueryStarted.subtract(Duration(minutes: 5));
+    final results = <String, DateTime>{};
+    void addResult(String pkg, DateTime updated) {
+      final current = results[pkg];
+      if (current == null || current.isBefore(updated)) {
+        results[pkg] = updated;
+      }
+    }
+
+    final q1 = _db.query<Package>()
+      ..filter('updated >=', updatedThreshold)
+      ..order('-updated');
+    await for (final p in q1.run()) {
+      addResult(p.name!, p.updated!);
+    }
+
+    final q2 = _db.query<ScoreCard>()
+      ..filter('updated >=', updatedThreshold)
+      ..order('-updated');
+    await for (final sc in q2.run()) {
+      addResult(sc.packageName!, sc.updated!);
+    }
+
+    return results;
+  }
 
   /// Loads the latest stable version, its analysis results and extracted
   /// dartdoc content, and returns a [PackageDocument] objects for search.
@@ -143,6 +279,19 @@ class SearchBackend {
       ...?pv.pubspec!.topics,
     ].join(' ');
 
+    // select the latest entity updated timestamp (when available)
+    final sourceUpdated = [
+      p.updated,
+      scoreCard?.updated,
+    ].fold<DateTime?>(
+      null,
+      (p, v) {
+        if (v == null) return p;
+        if (p == null) return v;
+        return v.isAfter(p) ? v : p;
+      },
+    );
+
     return PackageDocument(
       package: pv.package,
       version: pv.version!,
@@ -157,6 +306,7 @@ class SearchBackend {
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
+      sourceUpdated: sourceUpdated,
     );
   }
 
@@ -304,7 +454,6 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 class SnapshotStorage {
   final VersionedJsonStorage _storage;
   SearchSnapshot? _snapshot;
-  Timer? _snapshotWriteTimer;
 
   SnapshotStorage(Bucket bucket)
       : _storage = VersionedJsonStorage(bucket, 'snapshot/');
@@ -317,13 +466,6 @@ class SnapshotStorage {
 
   void remove(String package) {
     _snapshot!.remove(package);
-  }
-
-  void startTimer() {
-    _snapshotWriteTimer ??= Timer.periodic(
-        Duration(hours: 6, minutes: Random.secure().nextInt(120)), (_) {
-      _updateSnapshotIfNeeded();
-    });
   }
 
   Future<void> fetch() async {
@@ -358,26 +500,7 @@ class SnapshotStorage {
         'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
   }
 
-  Future<void> _updateSnapshotIfNeeded() async {
-    // TODO: make the catch-all block narrower
-    try {
-      final wasUpdatedRecently =
-          await _storage.hasCurrentData(maxAge: Duration(hours: 24));
-      if (wasUpdatedRecently) {
-        _logger.info('Snapshot update skipped (found recent snapshot).');
-      } else {
-        _logger.info('Updating search snapshot...');
-        await _storage.uploadDataAsJsonMap(_snapshot!.toJson());
-        _logger.info('Search snapshot update completed.');
-      }
-    } catch (e, st) {
-      _logger.warning('Unable to update search snapshot.', e, st);
-    }
-  }
-
   Future<void> close() async {
-    _snapshotWriteTimer?.cancel();
-    _snapshotWriteTimer = null;
     _storage.close();
   }
 }
