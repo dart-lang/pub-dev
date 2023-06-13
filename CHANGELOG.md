@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Switch to not use task backend for output.
+ * Note: search snapshot is now updated in a separate isolate.
 
 ## `20230607t103700-all`
  * Switch to use task backend for output.
