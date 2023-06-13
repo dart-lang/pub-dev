@@ -43,11 +43,14 @@ void main() {
         ),
       );
 
+      // This should normally be used as a test user in higher-level tests.
+      // However, this integration test is to verify the lower-level details
+      // of the fake sign-in, and the relation cookie and redirect handling.
       final browserSession = await fakeTestScenario.createAnonymousTestUser();
       String? firstSessionId;
       // sign-in page
-      await browserSession.withBrowserPage(
-        (page) async {
+      await browserSession.withBrowserPage((page) async {
+        {
           final rs = await page.gotoOrigin('/sign-in?fake-email=user@pub.dev');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();
@@ -59,12 +62,10 @@ void main() {
 
           firstSessionId =
               cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value;
-        },
-      );
+        }
 
-      // same user sign-in with redirect
-      await browserSession.withBrowserPage(
-        (page) async {
+        // same user sign-in with redirect
+        {
           await page.gotoOrigin('/sign-in?fake-email=user@pub.dev&go=/help');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();
@@ -76,12 +77,10 @@ void main() {
             cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value,
             firstSessionId,
           );
-        },
-      );
+        }
 
-      // visiting unauthorized admin page fails
-      await browserSession.withBrowserPage(
-        (page) async {
+        // visiting unauthorized admin page fails
+        {
           final rs1 = await page.gotoOrigin('/packages/admin_pkg/admin');
           expect(await rs1.content,
               contains('You have insufficient permissions to view this page.'));
@@ -93,12 +92,10 @@ void main() {
               isNot(contains(
                   'You have insufficient permissions to view this page.')));
           expect(await rs2.content, contains('Automated publishing'));
-        },
-      );
+        }
 
-      // sign-in with different user selected - session id changes
-      await browserSession.withBrowserPage(
-        (page) async {
+        // sign-in with different user selected - session id changes
+        {
           await page.gotoOrigin('/sign-in?fake-email=admin@pub.dev&go=/');
           final cookies = await page.cookies();
           final cookieNames = cookies.map((e) => e.name).toSet();
@@ -110,41 +107,40 @@ void main() {
             cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value,
             isNot(firstSessionId),
           );
-        },
-      );
+        }
+        // sign-out with button
+        {
+          await page.gotoOrigin('/');
+          expect(await page.content, contains('admin@pub.dev'));
+          await page.hover('.nav-profile-img');
+          await Future.wait([
+            page.waitForNavigation(),
+            page.click('#-account-logout'),
+          ]);
+          final cookies = await page.cookies();
+          final cookieNames = cookies.map((e) => e.name).toSet();
+          expect(cookieNames, isNot(contains('PUB_SID_INSECURE')));
+          expect(cookieNames, isNot(contains('PUB_SSID_INSECURE')));
+          expect(await page.content, isNot(contains('admin@pub.dev')));
+        }
 
-      // sign-out with button
-      await browserSession.withBrowserPage((page) async {
-        await page.gotoOrigin('/');
-        expect(await page.content, contains('admin@pub.dev'));
-        await page.hover('.nav-profile-img');
-        await Future.wait([
-          page.waitForNavigation(),
-          page.click('#-account-logout'),
-        ]);
-        final cookies = await page.cookies();
-        final cookieNames = cookies.map((e) => e.name).toSet();
-        expect(cookieNames, isNot(contains('PUB_SID_INSECURE')));
-        expect(cookieNames, isNot(contains('PUB_SSID_INSECURE')));
-        expect(await page.content, isNot(contains('admin@pub.dev')));
-      });
-
-      // sign-in with button
-      await browserSession.withBrowserPage((page) async {
-        await page.gotoOrigin('/help');
-        expect(await page.content, isNot(contains('user@pub.dev')));
-        final handle = await page.$('#-account-login');
-        await handle.evaluate(
-            'node => node.setAttribute("data-fake-email", "user@pub.dev")');
-        await Future.wait([
-          page.waitForNavigation(),
-          page.click('#-account-login'),
-        ]);
-        final cookies = await page.cookies();
-        final cookieNames = cookies.map((e) => e.name).toSet();
-        expect(cookieNames, contains('PUB_SID_INSECURE'));
-        expect(cookieNames, contains('PUB_SSID_INSECURE'));
-        expect(await page.content, contains('user@pub.dev'));
+        // sign-in with button
+        {
+          await page.gotoOrigin('/help');
+          expect(await page.content, isNot(contains('user@pub.dev')));
+          final handle = await page.$('#-account-login');
+          await handle.evaluate(
+              'node => node.setAttribute("data-fake-email", "user@pub.dev")');
+          await Future.wait([
+            page.waitForNavigation(),
+            page.click('#-account-login'),
+          ]);
+          final cookies = await page.cookies();
+          final cookieNames = cookies.map((e) => e.name).toSet();
+          expect(cookieNames, contains('PUB_SID_INSECURE'));
+          expect(cookieNames, contains('PUB_SSID_INSECURE'));
+          expect(await page.content, contains('user@pub.dev'));
+        }
       });
     });
   });
