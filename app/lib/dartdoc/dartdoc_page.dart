@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
-import 'package:html/dom.dart' show Element;
-import 'package:html/parser.dart' as html_parser;
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:sanitize_html/sanitize_html.dart';
 
 import '../shared/urls.dart';
 
-class DartDocPageOptions {
+export 'package:pub_dartdoc_data/dartdoc_page.dart';
+
+final class DartDocPageOptions {
   final String package;
   final String version;
   final bool isLatestStable;
@@ -54,139 +54,7 @@ class DartDocPageOptions {
   }
 }
 
-class Breadcrumb {
-  final String title;
-
-  /// Link to the breadcrumb, `null` if this the current page
-  final String? href;
-
-  Breadcrumb({required this.title, required this.href});
-}
-
-/// A dartdoc page parsed as sanitized html.
-///
-///
-/// This assumes a page layout along the lines of:
-/// ```
-///           [header]
-/// ------------------------------
-///        |           |
-/// [left] | [content] | [right]
-///        |           |
-/// ------------------------------
-///           [footer]
-/// ```
-class DartDocPage {
-  final String title;
-  final String description;
-  final List<Breadcrumb> breadcrumbs;
-
-  /// Sanitized HTML for the [left] pane.
-  final String left;
-
-  /// Sanitized HTML for the [right] pane.
-  final String right;
-
-  /// Sanitized HTML for the [content] pane.
-  final String content;
-
-  DartDocPage({
-    required this.title,
-    required this.description,
-    required this.breadcrumbs,
-    required this.left,
-    required this.right,
-    required this.content,
-  });
-
-  static DartDocPage parse(String rawHtml) {
-    final document = html_parser.parse(rawHtml);
-
-    // TODO: Create a variant of sanitizeHtml that consumes nodes from
-    //       package:html, so that we don't have re-parse everything :/
-    String sanitize(String? html) => sanitizeHtml(
-          html ?? '',
-          allowClassName: (_) => true,
-          allowElementId: (_) => true,
-          addLinkRel: (href) {
-            final u = Uri.tryParse(href);
-            if (u != null && !u.shouldIndicateUgc) {
-              // TODO: Determine if there is a better way to do this.
-              //       It's probably reasonable that internal links don't
-              //       required ugc + nofollow.
-              return [];
-            }
-            // Add ugc and nofollow if the host isn't one of ours.
-            return ['ugc', 'nofollow'];
-          },
-        );
-
-    // HACK: Adding markdown-body style
-    final body = document.body;
-    if (body != null) {
-      // TODO: Modify our CSS to accomodate the styles output from dartdoc
-      body.querySelectorAll('.markdown').forEach((elem) {
-        if (!elem.classes.contains('markdown-body')) {
-          elem.classes.add('markdown-body');
-        }
-      });
-    }
-
-    // Extract breadcrumbs, because we need to tweak these on pub.dev
-    final breadcrumbs = document
-            .querySelector('header#title')
-            ?.querySelector('ol.breadcrumbs')
-            ?.children
-            .map((crumb) {
-          var href = crumb.querySelector('a')?.attributes['href'];
-          if (href != null && !_validLink(href)) {
-            href = null;
-          }
-          if (href != null) {
-            final u = Uri.tryParse(href);
-            if (u == null || u.shouldIndicateUgc) {
-              href = null; // breadcrumbs should never link externally!
-            }
-          }
-          return Breadcrumb(
-            title: crumb.text,
-            href: href,
-          );
-        }).toList() ??
-        <Breadcrumb>[];
-
-    final rawLeft = document.querySelector('#dartdoc-sidebar-left');
-    rawLeft?.querySelector('header')?.remove();
-    rawLeft?.querySelector('.breadcrumbs')?.remove();
-    final left = rawLeft?.innerHtml;
-
-    final rawRight = document.querySelector('#dartdoc-sidebar-right');
-    final right = rawRight?.innerHtml;
-
-    final rawContent = document.querySelector('#dartdoc-main-content');
-    // HACK: Replace <section> with <div> to make sanitizeHtml happy
-    for (final section
-        in rawContent?.querySelectorAll('section') ?? <Element>[]) {
-      final div = Element.tag('div');
-      div.attributes = section.attributes;
-      section.reparentChildren(div);
-      section.replaceWith(div);
-    }
-    final content = rawContent?.innerHtml;
-
-    return DartDocPage(
-      title: document.querySelector('head > title')?.text ?? '',
-      description: document
-              .querySelector('head > meta[name=description]')
-              ?.attributes['content'] ??
-          '',
-      breadcrumbs: breadcrumbs,
-      left: sanitize(left),
-      right: sanitize(right),
-      content: sanitize(content),
-    );
-  }
-
+extension DartDocPageRender on DartDocPage {
   d.Node get _left => d.unsafeRawHtml(left);
   d.Node get _right => d.unsafeRawHtml(right);
   d.Node get _content => d.unsafeRawHtml(content);
@@ -413,17 +281,4 @@ class DartDocPage {
           _renderBody(options),
         ]),
       ]);
-}
-
-// Copy/pasted from sanitize_html
-bool _validLink(String url) {
-  try {
-    final uri = Uri.parse(url);
-    return uri.isScheme('https') ||
-        uri.isScheme('http') ||
-        uri.isScheme('mailto') ||
-        !uri.hasScheme;
-  } on FormatException {
-    return false;
-  }
 }

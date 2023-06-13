@@ -72,7 +72,7 @@ class PubWorkerTestServer {
       return;
     }
 
-    await server.close();
+    await server.close(force: true);
     _server = null;
     _baseUrl = null;
 

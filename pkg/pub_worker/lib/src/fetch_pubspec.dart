@@ -40,7 +40,8 @@ Future<Pubspec> fetchPubspec({
           e is _IntermittentHttpException ||
           e is FormatException || // should never happen assume transmission bug
           e is IOException ||
-          e is TimeoutException,
+          e is TimeoutException ||
+          e is http.ClientException,
     );
 
     final versions = result['versions'] as List? ?? [];

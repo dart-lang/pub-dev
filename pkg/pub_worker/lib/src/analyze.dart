@@ -11,7 +11,7 @@ import 'dart:isolate' show Isolate;
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/pubapi.dart';
 import 'package:clock/clock.dart' show clock;
-import 'package:http/http.dart' show Client;
+import 'package:http/http.dart' show Client, ClientException;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:path/path.dart' as p;
@@ -33,7 +33,10 @@ List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
 /// Retry request if it fails because of an [IOException] or status is 5xx.
 bool _retryIf(Exception e) =>
-    e is IOException || (e is RequestException && e.status >= 500);
+    e is IOException ||
+    (e is RequestException && e.status >= 500) ||
+    e is ClientException ||
+    e is TimeoutException;
 
 Future<void> analyze(Payload payload) async {
   _log.info('Running analyze for payload with package:${payload.package}');

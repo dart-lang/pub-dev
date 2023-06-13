@@ -3,17 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
+import 'dart:convert' show json, utf8, Utf8Codec;
 import 'dart:io';
 
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dartdoc/pub_dartdoc.dart';
+import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 final _log = Logger('dartdoc');
+
+final _utf8 = Utf8Codec(allowMalformed: true);
+
+final _jsonUtf8 = json.fuse(utf8);
 
 /// Program to be used as subprocess for running dartdoc, ensuring that we
 /// capture all the output, and only run dartdoc in a subprocess that can
@@ -104,15 +110,17 @@ Future<void> _dartdoc({
     useGlobalDartdoc: false,
   );
 
+  final pkgDir = p.join(workDir, 'pkg');
+  await Directory(pkgDir).create(recursive: true);
   await downloadPackage(
     package,
     version,
-    destination: workDir,
+    destination: pkgDir,
     pubHostedUrl: pubHostedUrl,
   );
 
   _log.info('Running pub upgrade');
-  final ret = await toolEnv.runUpgrade(workDir, pubspec.usesFlutter);
+  final ret = await toolEnv.runUpgrade(pkgDir, pubspec.usesFlutter);
   print(ret.asJoinedOutput);
   if (ret.exitCode != 0) {
     _log.shout('Failed to run pub upgrade');
@@ -120,7 +128,7 @@ Future<void> _dartdoc({
   }
 
   // Create and/or customize dartdoc_options.yaml
-  final optionsFile = File(p.join(workDir, 'dartdoc_options.yaml'));
+  final optionsFile = File(p.join(pkgDir, 'dartdoc_options.yaml'));
   Map<String, dynamic>? originalContent;
   try {
     originalContent = yamlToJson(await optionsFile.readAsString());
@@ -132,11 +140,13 @@ Future<void> _dartdoc({
   final updatedContent = _customizeDartdocOptions(originalContent);
   await optionsFile.writeAsString(json.encode(updatedContent));
 
+  final docDir = p.join(workDir, 'doc');
+  await Directory(docDir).create(recursive: true);
   await pubDartDoc([
     '--input',
-    workDir,
+    pkgDir,
     '--output',
-    p.join(outputFolder, 'doc'),
+    docDir,
     '--no-validate-links',
     '--sanitize-html',
     if (pubspec.usesFlutter) ...[
@@ -148,6 +158,25 @@ Future<void> _dartdoc({
     ]
   ]);
   _log.info('Finished running dartdoc');
+
+  _log.info('Running post-processing');
+  final outDir = p.join(outputFolder, 'doc');
+  await Directory(outDir).create(recursive: true);
+  final files = Directory(docDir)
+      .list(recursive: true, followLinks: false)
+      .whereType<File>();
+  await for (final file in files) {
+    final suffix = file.path.substring(docDir.length + 1);
+    final targetFile = File(p.join(outDir, suffix));
+    await targetFile.parent.create(recursive: true);
+    if (file.path.endsWith('.html')) {
+      final page = DartDocPage.parse(await file.readAsString(encoding: _utf8));
+      await targetFile.writeAsBytes(_jsonUtf8.encode(page.toJson()));
+    } else {
+      await file.copy(targetFile.path);
+    }
+  }
+  _log.info('Finished post-processing');
 }
 
 /// Returns a new, pub-specific dartdoc options based on [original].
