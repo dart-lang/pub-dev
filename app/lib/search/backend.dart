@@ -89,6 +89,7 @@ class SearchBackend {
       } catch (e, st) {
         _logger.warning('Snapshot update failed.', e, st);
       }
+      // Wait for 1 minutes for sanity, before trying again.
       await Future.delayed(Duration(minutes: 1));
     }
   }
@@ -110,7 +111,9 @@ class SearchBackend {
       // Skip if the last document timestamp is before [updated].
       // 1-minute window is kept to reduce clock-skew.
       if (updated != null) {
-        final lastRefreshed = snapshot.documents![package]?.timestamp;
+        final currentDoc = snapshot.documents![package];
+        final lastRefreshed =
+            currentDoc?.sourceUpdated ?? currentDoc?.timestamp;
         if (lastRefreshed != null &&
             updated.isBefore(lastRefreshed.subtract(Duration(minutes: 1)))) {
           return;
@@ -171,7 +174,7 @@ class SearchBackend {
 
   Future<Map<String, DateTime>> _queryRecentlyUpdated(
       DateTime lastQueryStarted) async {
-    final updatedThreshold = lastQueryStarted.subtract(Duration(minutes: 1));
+    final updatedThreshold = lastQueryStarted.subtract(Duration(minutes: 5));
     final results = <String, DateTime>{};
     void addResult(String pkg, DateTime updated) {
       final current = results[pkg];
@@ -276,6 +279,19 @@ class SearchBackend {
       ...?pv.pubspec!.topics,
     ].join(' ');
 
+    // select the latest entity updated timestamp (when available)
+    final sourceUpdated = [
+      p.updated,
+      scoreCard?.updated,
+    ].fold<DateTime?>(
+      null,
+      (p, v) {
+        if (v == null) return p;
+        if (p == null) return v;
+        return v.isAfter(p) ? v : p;
+      },
+    );
+
     return PackageDocument(
       package: pv.package,
       version: pv.version!,
@@ -290,6 +306,7 @@ class SearchBackend {
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
+      sourceUpdated: sourceUpdated,
     );
   }
 

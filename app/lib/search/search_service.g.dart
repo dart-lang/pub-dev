@@ -33,6 +33,9 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       timestamp: json['timestamp'] == null
           ? null
           : DateTime.parse(json['timestamp'] as String),
+      sourceUpdated: json['sourceUpdated'] == null
+          ? null
+          : DateTime.parse(json['sourceUpdated'] as String),
     );
 
 Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
@@ -50,6 +53,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'dependencies': instance.dependencies,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp.toIso8601String(),
+      'sourceUpdated': instance.sourceUpdated?.toIso8601String(),
     };
 
 ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) => ApiDocPage(
