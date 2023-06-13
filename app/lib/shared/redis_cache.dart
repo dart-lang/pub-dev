@@ -245,7 +245,7 @@ class CachePatterns {
       .withPrefix('api-package-names-data-json-gz/')
       .withTTL(Duration(hours: 2))['-'];
 
-  Entry<List<int>> packageNameCompletitionDataJsonGz() => _cache
+  Entry<List<int>> packageNameCompletionDataJsonGz() => _cache
       .withPrefix('api-package-name-completion-data-json-gz/')
       .withTTL(Duration(hours: 8))['-'];
 
