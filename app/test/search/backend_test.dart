@@ -31,6 +31,7 @@ void main() {
       expect(snapshotStorage.documents, isEmpty);
       await searchBackend.doCreateAndUpdateSnapshot(
         _FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+        concurrency: 2,
         sleepDuration: Duration(milliseconds: 300),
       );
       await snapshotStorage.fetch();

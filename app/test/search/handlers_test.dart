@@ -205,8 +205,11 @@ class MockSearchBackend implements SearchBackend {
   }
 
   @override
-  Future<void> doCreateAndUpdateSnapshot(GlobalLockClaim claim,
-      {Duration sleepDuration = const Duration(minutes: 2)}) {
+  Future<void> doCreateAndUpdateSnapshot(
+    GlobalLockClaim claim, {
+    Duration sleepDuration = const Duration(minutes: 2),
+    int concurrency = 1,
+  }) {
     throw UnimplementedError();
   }
 }
