@@ -8,7 +8,7 @@ import 'script/public_pages.dart';
 import 'script/publishing.dart';
 
 export 'package:_pub_shared/pubapi.dart';
-export 'package:pub_integration/src/fake_test_user.dart'
+export 'package:pub_integration/src/fake_test_context_provider.dart'
     show createHttpClientWithHeaders;
 export 'package:pub_integration/src/test_scenario.dart';
 
