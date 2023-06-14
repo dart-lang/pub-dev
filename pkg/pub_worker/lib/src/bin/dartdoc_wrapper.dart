@@ -160,14 +160,14 @@ Future<void> _dartdoc({
   _log.info('Finished running dartdoc');
 
   _log.info('Running post-processing');
-  final outDir = p.join(outputFolder, 'doc');
-  await Directory(outDir).create(recursive: true);
+  final tmpOutDir = p.join(outputFolder, '_doc');
+  await Directory(tmpOutDir).create(recursive: true);
   final files = Directory(docDir)
       .list(recursive: true, followLinks: false)
       .whereType<File>();
   await for (final file in files) {
     final suffix = file.path.substring(docDir.length + 1);
-    final targetFile = File(p.join(outDir, suffix));
+    final targetFile = File(p.join(tmpOutDir, suffix));
     await targetFile.parent.create(recursive: true);
     if (file.path.endsWith('.html')) {
       final page = DartDocPage.parse(await file.readAsString(encoding: _utf8));
@@ -176,6 +176,10 @@ Future<void> _dartdoc({
       await file.copy(targetFile.path);
     }
   }
+  // Move from temporary output directory to final one, ensuring that
+  // documentation files won't be present unless all files have been processed.
+  // This helps if there is a timeout along the way.
+  await Directory(tmpOutDir).rename(p.join(outputFolder, 'doc'));
   _log.info('Finished post-processing');
 }
 
