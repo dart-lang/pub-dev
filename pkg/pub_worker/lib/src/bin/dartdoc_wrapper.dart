@@ -37,7 +37,7 @@ Future<void> main(List<String> args) async {
   final pubCache = Platform.environment['PUB_CACHE']!;
 
   // Setup logging
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
     if (rec.error != null) {
@@ -121,7 +121,6 @@ Future<void> _dartdoc({
 
   _log.info('Running pub upgrade');
   final ret = await toolEnv.runUpgrade(pkgDir, pubspec.usesFlutter);
-  print(ret.asJoinedOutput);
   if (ret.exitCode != 0) {
     _log.shout('Failed to run pub upgrade');
     return;
