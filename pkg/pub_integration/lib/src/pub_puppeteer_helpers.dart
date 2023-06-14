@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:puppeteer/puppeteer.dart';
 
-import 'headless_env.dart';
+import 'test_browser.dart';
 
 const webmastersReadonlyScope =
     'https://www.googleapis.com/auth/webmasters.readonly';

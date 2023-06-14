@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
-import 'package:pub_integration/src/headless_env.dart';
+import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
 void main() {

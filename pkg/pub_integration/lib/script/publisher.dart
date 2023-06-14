@@ -6,8 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:pub_integration/src/fake_pub_server_process.dart';
-import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/test_browser.dart';
 import 'package:pub_integration/src/test_scenario.dart';
 
 import '../src/pub_http_client.dart';
