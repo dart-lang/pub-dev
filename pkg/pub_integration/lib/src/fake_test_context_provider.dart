@@ -52,11 +52,12 @@ class TestContextProvider {
   }
 
   Future<TestUser> createAnonymousTestUser() async {
+    final session = await _testBrowser.createSession();
     return TestUser(
       email: '',
       api: PubApiClient(pubHostedUrl),
       withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-        return await _testBrowser.withPage<T>(fn: fn);
+        return await session.withPage<T>(fn: fn);
       },
       readLatestEmail: () async => throw UnimplementedError(),
       createCredentials: () async => throw UnimplementedError(),
@@ -67,41 +68,28 @@ class TestContextProvider {
     required String email,
     List<String>? scopes,
   }) async {
-    return await _createFakeTestUser(
+    late PubApiClient api;
+    final session = await _testBrowser.createSession();
+    await session.withPage(fn: (page) async {
+      await page.fakeAuthSignIn(email: email, scopes: scopes);
+      api = await _apiClientHttpHeadersFromSignedInSession(page);
+    });
+    return TestUser(
       email: email,
-      testBrowser: _testBrowser,
-      fakeEmailReader: _fakePubServerProcess.fakeEmailReader,
-      scopes: scopes,
+      api: api,
+      createCredentials: () => fakeCredentialsMap(email: email),
+      readLatestEmail: () async {
+        final map = await _fakePubServerProcess.fakeEmailReader
+            .readLatestEmail(recipient: email);
+        return map['bodyText'] as String;
+      },
+      withBrowserPage: <T>(Future<T> Function(Page) fn) async {
+        return await session.withPage<T>(fn: (page) async {
+          return await fn(page);
+        });
+      },
     );
   }
-}
-
-Future<TestUser> _createFakeTestUser({
-  required String email,
-  required TestBrowser testBrowser,
-  required FakeEmailReaderFromOutputDirectory fakeEmailReader,
-  List<String>? scopes,
-}) async {
-  late PubApiClient api;
-  await testBrowser.withPage(fn: (page) async {
-    await page.fakeAuthSignIn(email: email, scopes: scopes);
-    api = await _apiClientHttpHeadersFromSignedInSession(page);
-  });
-  return TestUser(
-    email: email,
-    api: api,
-    createCredentials: () => fakeCredentialsMap(email: email),
-    readLatestEmail: () async {
-      final map = await fakeEmailReader.readLatestEmail(recipient: email);
-      return map['bodyText'] as String;
-    },
-    withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-      return await testBrowser.withPage<T>(fn: (page) async {
-        await page.fakeAuthSignIn(email: email, scopes: scopes);
-        return await fn(page);
-      });
-    },
-  );
 }
 
 /// Extracts the HTTP headers required for pub.dev API client (session cookies and CSRF token).
