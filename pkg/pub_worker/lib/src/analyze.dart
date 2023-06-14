@@ -26,8 +26,8 @@ final _log = Logger('pub_worker.process_payload');
 /// processing takes more than 45 minutes.
 const _workerTimeout = Duration(minutes: 45);
 
-/// Stop analysis if it takes more than 15 minutes.
-const _analysisTimeout = Duration(minutes: 15);
+/// Stop analysis if it takes more than 25 minutes.
+const _analysisTimeout = Duration(minutes: 25);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
