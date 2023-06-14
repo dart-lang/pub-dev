@@ -235,19 +235,6 @@ class VersionedJsonStorage {
     }
   }
 
-  /// Whether the storage bucket has a data file for the current runtime version.
-  Future<bool> hasCurrentData({Duration? maxAge}) async {
-    final info = await _bucket.tryInfo(_objectName());
-    if (info == null) {
-      return false;
-    }
-    final now = clock.now();
-    if (maxAge != null && now.difference(info.updated) > maxAge) {
-      return false;
-    }
-    return true;
-  }
-
   /// Upload the current data to the storage bucket.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();
@@ -260,8 +247,11 @@ class VersionedJsonStorage {
   }
 
   /// Gets the content of the data file decoded as JSON Map.
-  Future<Map<String, dynamic>> getContentAsJsonMap([String? version]) async {
-    version ??= versions.runtimeVersion;
+  Future<Map<String, dynamic>?> getContentAsJsonMap([String? version]) async {
+    version ??= await _detectLatestVersion();
+    if (version == null) {
+      return null;
+    }
     final objectName = _objectName(version);
     _logger.info('Loading snapshot: $objectName');
     final map = await _bucket
@@ -275,7 +265,15 @@ class VersionedJsonStorage {
 
   /// Returns the latest version of the data file matching the current version
   /// or created earlier.
-  Future<String?> detectLatestVersion() async {
+  Future<String?> _detectLatestVersion() async {
+    // checking accepted runtimes first
+    for (final version in versions.acceptedRuntimeVersions) {
+      final info = await _bucket.tryInfo(_objectName(version));
+      if (info != null) {
+        return version;
+      }
+    }
+    // fallback to earlier runtimes
     final currentPath = _objectName();
     final list = await _bucket
         .list(prefix: _prefix)
@@ -329,9 +327,6 @@ class VersionedJsonStorage {
     }
     return DeleteCounts(found, deleted);
   }
-
-  String getBucketUri([String? version]) =>
-      bucketUri(_bucket, _objectName(version ?? versions.runtimeVersion));
 
   String _objectName([String? version]) {
     version ??= versions.runtimeVersion;

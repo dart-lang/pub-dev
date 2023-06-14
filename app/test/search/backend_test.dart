@@ -27,15 +27,15 @@ void main() {
     });
 
     testWithProfile('updates snapshot storage', fn: () async {
-      await snapshotStorage.fetch();
-      expect(snapshotStorage.documents, isEmpty);
+      var documents = await searchBackend.fetchSnapshotDocuments();
+      expect(documents, isNull);
       await searchBackend.doCreateAndUpdateSnapshot(
         _FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
         concurrency: 2,
         sleepDuration: Duration(milliseconds: 300),
       );
-      await snapshotStorage.fetch();
-      expect(snapshotStorage.documents, isNotEmpty);
+      documents = await searchBackend.fetchSnapshotDocuments();
+      expect(documents, isNotEmpty);
     });
   });
 }

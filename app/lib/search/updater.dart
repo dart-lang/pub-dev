@@ -74,9 +74,11 @@ class IndexUpdater implements TaskRunner {
   Future<bool> _initSnapshot() async {
     try {
       _logger.info('Loading snapshot...');
-      await snapshotStorage.fetch();
-      final documents = snapshotStorage.documents;
-      await _packageIndex.addPackages(documents.values);
+      final documents = await searchBackend.fetchSnapshotDocuments();
+      if (documents == null) {
+        return false;
+      }
+      await _packageIndex.addPackages(documents);
       // Arbitrary sanity check that the snapshot is not entirely bogus.
       // Index merge will enable search.
       if (documents.length > 10) {
@@ -126,22 +128,21 @@ class IndexUpdater implements TaskRunner {
   @override
   Future<void> runTask(Task task) async {
     try {
-      final sd = snapshotStorage.documents[task.package];
-
       // Skip tasks that originate before the current document in the snapshot
       // was created (e.g. the index and the snapshot was updated since the task
       // was created).
       // This preempts unnecessary work at startup (scanned Packages are updated
       // only if the index was not updated since the last snapshot), and also
       // deduplicates the periodic-updates which may not complete in 2 hours.
-      if (sd != null && sd.timestamp.isAfter(task.updated)) return;
+      final updated = _packageIndex.getPackageSourceLastUpdated(task.package);
+      if (updated != null && updated.isAfter(task.updated)) {
+        return;
+      }
 
       final doc = await searchBackend.loadDocument(task.package);
-      snapshotStorage.add(doc);
       await _packageIndex.addPackage(doc);
     } on RemovedPackageException catch (_) {
       _logger.info('Removing: ${task.package}');
-      snapshotStorage.remove(task.package);
       await _packageIndex.removePackage(task.package);
     }
   }
@@ -157,14 +158,12 @@ class _PeriodicUpdateTaskSource implements TaskSource {
     for (;;) {
       await Future.delayed(Duration(hours: 2));
       final now = clock.now();
-      final tasks = snapshotStorage.documents.values
-          .where((pd) => now.difference(pd.timestamp).inDays >= 5)
-          .map((pd) => Task(pd.package, pd.version!, now))
-          .toList();
-      _logger
-          .info('Periodic scheduler found ${tasks.length} packages to update.');
-      for (Task task in tasks) {
-        yield task;
+      final toBeUpdated =
+          packageIndex.getPackageNamesNotRecentlyUpdated(Duration(days: 5));
+      _logger.info(
+          'Periodic scheduler found ${toBeUpdated.length} packages to update.');
+      for (final e in toBeUpdated.entries) {
+        yield Task(e.key, e.value, now);
       }
     }
   }

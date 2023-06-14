@@ -262,8 +262,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
     registerSecretBackend(SecretBackend(dbService));
-    registerSnapshotStorage(SnapshotStorage(
-        storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerImageStorage(ImageStorage(
         storageService.bucket(activeConfiguration.imageBucketName!)));
     registerTopPackages(TopPackages());
@@ -290,7 +288,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
-    registerScopeExitCallback(snapshotStorage.close);
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
