@@ -90,10 +90,7 @@ class SearchBackend {
     while (true) {
       try {
         await lock.withClaim((claim) async {
-          await doCreateAndUpdateSnapshot(
-            claim,
-            concurrency: _defaultSnapshotBuildConcurrency,
-          );
+          await doCreateAndUpdateSnapshot(claim);
         });
       } catch (e, st) {
         _logger.warning('Snapshot update failed.', e, st);
