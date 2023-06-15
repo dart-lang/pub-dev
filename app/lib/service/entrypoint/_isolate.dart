@@ -343,14 +343,28 @@ void _wrapper(List fnAndMessage) {
   Timer.periodic(Duration(milliseconds: 250), (_) {});
 
   withServices(() async {
-    await Chain.capture(() async {
-      try {
-        _setupServiceIsolate();
-        return await fn(message);
-      } catch (e, st) {
+    await Chain.capture(
+      () async {
+        try {
+          _setupServiceIsolate();
+          return await fn(message);
+        } catch (e, st) {
+          print('Uncaught exception in isolate. $e $st');
+          logger.severe('Uncaught exception in isolate.', e, st);
+          rethrow;
+        }
+      },
+      onError: (e, st) {
+        print('Uncaught exception in isolate. $e $st');
         logger.severe('Uncaught exception in isolate.', e, st);
-        rethrow;
-      }
-    });
+        if (e is Exception) {
+          throw e;
+        }
+        if (e is Error) {
+          throw e;
+        }
+        throw Exception('Uncaught exception: $e $st');
+      },
+    );
   });
 }
