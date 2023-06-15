@@ -7,11 +7,13 @@ import 'dart:convert';
 
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/task/global_lock.dart';
@@ -34,6 +36,10 @@ import 'search_service.dart';
 import 'text_utils.dart';
 
 final Logger _logger = Logger('pub.search.backend');
+
+/// The number of concurrent datastore/bucket fetch operations while
+/// building or updating the snapshot.
+const _defaultSnapshotBuildConcurrency = 8;
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -98,6 +104,7 @@ class SearchBackend {
   Future<void> doCreateAndUpdateSnapshot(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
+    int concurrency = _defaultSnapshotBuildConcurrency,
   }) async {
     final firstClaimed = clock.now();
 
@@ -108,6 +115,9 @@ class SearchBackend {
     // creating snapshot from scratch
     final snapshot = SearchSnapshot();
     Future<void> updatePackage(String package, DateTime? updated) async {
+      if (!claim.valid) {
+        return;
+      }
       // Skip if the last document timestamp is before [updated].
       // 1-minute window is kept to reduce clock-skew.
       if (updated != null) {
@@ -129,13 +139,22 @@ class SearchBackend {
     }
 
     // initial scan of packages
+    final pool = Pool(concurrency);
+    final futures = <Future>[];
     await for (final package in dbService.query<Package>().run()) {
-      if (package.isNotVisible) continue;
-      if (!claim.valid) break;
+      if (package.isNotVisible) {
+        continue;
+      }
+      if (!claim.valid) {
+        break;
+      }
       // This is the first scan, there isn't any existing document that we
       // can compare to, ignoring the updated field.
-      await updatePackage(package.name!, null);
+      final f = pool.withResource(() => updatePackage(package.name!, null));
+      futures.add(f);
     }
+    await Future.wait(futures);
+    futures.clear();
     if (!claim.valid) {
       return;
     }
@@ -160,8 +179,11 @@ class SearchBackend {
         if (!claim.valid) {
           break;
         }
-        await updatePackage(e.key, e.value);
+        final f = pool.withResource(() => updatePackage(e.key, e.value));
+        futures.add(f);
       }
+      await Future.wait(futures);
+      futures.clear();
 
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
@@ -170,6 +192,7 @@ class SearchBackend {
 
       await Future.delayed(sleepDuration);
     }
+    await pool.close();
   }
 
   Future<Map<String, DateTime>> _queryRecentlyUpdated(
@@ -283,14 +306,7 @@ class SearchBackend {
     final sourceUpdated = [
       p.updated,
       scoreCard?.updated,
-    ].fold<DateTime?>(
-      null,
-      (p, v) {
-        if (v == null) return p;
-        if (p == null) return v;
-        return v.isAfter(p) ? v : p;
-      },
-    );
+    ].whereNotNull().maxOrNull;
 
     return PackageDocument(
       package: pv.package,
