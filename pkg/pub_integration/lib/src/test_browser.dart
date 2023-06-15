@@ -20,7 +20,7 @@ class TestBrowser {
   Browser? _browser;
   late final _trackCoverage =
       _coverageDir != null || Platform.environment.containsKey('COVERAGE');
-  final _trackedPages = <Page>[];
+  final _trackedSessions = <TestBrowserSession>[];
 
   /// The coverage report of JavaScript files.
   final _jsCoverages = <String, _Coverage>{};
@@ -83,20 +83,77 @@ class TestBrowser {
         .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
   }
 
+  Future<TestBrowserSession> createSession() async {
+    final incognito = await _browser!.createIncognitoBrowserContext();
+    await incognito
+        .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
+    final session = TestBrowserSession(this, incognito);
+    _trackedSessions.add(session);
+    return session;
+  }
+
+  Future<void> close() async {
+    for (final s in _trackedSessions) {
+      await s.close();
+    }
+    await _browser!.close();
+
+    _printCoverage();
+    if (_coverageDir != null) {
+      await _saveCoverage(p.join(_coverageDir!, 'puppeteer'));
+    }
+    await _tempDir.delete(recursive: true);
+  }
+
+  void _printCoverage() {
+    for (final c in _jsCoverages.values) {
+      print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
+    }
+    for (final c in _cssCoverages.values) {
+      print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
+    }
+  }
+
+  Future<void> _saveCoverage(String outputDir) async {
+    Future<void> saveToFile(Map<String, _Coverage> map, String path) async {
+      if (map.isNotEmpty) {
+        final file = File(path);
+        await file.parent.create(recursive: true);
+        await file.writeAsString(json.encode(map.map(
+          (k, v) => MapEntry<String, dynamic>(
+            v.url,
+            {
+              'textLength': v.textLength,
+              'ranges': v._coveredRanges.map((r) => r.toJson()).toList(),
+            },
+          ),
+        )));
+      }
+    }
+
+    final outputFileName = _testName ?? _generateTestName();
+    await saveToFile(_jsCoverages, '$outputDir/$outputFileName.js.json');
+    await saveToFile(_cssCoverages, '$outputDir/$outputFileName.css.json');
+  }
+}
+
+class TestBrowserSession {
+  final TestBrowser _browser;
+  final BrowserContext _context;
+  final _trackedPages = <Page>[];
+
+  TestBrowserSession(this._browser, this._context);
+
   /// Creates a new page and setup overrides and tracking.
   Future<R> withPage<R>({
     required Future<R> Function(Page page) fn,
   }) async {
-    await startBrowser();
     final clientErrors = <ClientError>[];
     final serverErrors = <String>[];
-    final incognito = await _browser!.createIncognitoBrowserContext();
-    await incognito
-        .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
-    final page = await incognito.newPage();
-    _pageOriginExpando[page] = _origin;
+    final page = await _context.newPage();
+    _pageOriginExpando[page] = _browser._origin;
     await page.setRequestInterception(true);
-    if (_trackCoverage) {
+    if (_browser._trackCoverage) {
       await page.coverage.startJSCoverage(resetOnNavigation: false);
       await page.coverage.startCSSCoverage(resetOnNavigation: false);
     }
@@ -201,25 +258,24 @@ class TestBrowser {
       return r;
     } finally {
       await _closePage(page);
-      await incognito.close();
     }
   }
 
   /// Gets tracking results of [page] and closes it.
   Future<void> _closePage(Page page) async {
-    if (_trackCoverage) {
+    if (_browser._trackCoverage) {
       final jsEntries = await page.coverage.stopJSCoverage();
       for (final e in jsEntries) {
-        _jsCoverages[e.url] ??= _Coverage(e.url);
-        _jsCoverages[e.url]!.textLength = e.text.length;
-        _jsCoverages[e.url]!.addRanges(e.ranges);
+        _browser._jsCoverages[e.url] ??= _Coverage(e.url);
+        _browser._jsCoverages[e.url]!.textLength = e.text.length;
+        _browser._jsCoverages[e.url]!.addRanges(e.ranges);
       }
 
       final cssEntries = await page.coverage.stopCSSCoverage();
       for (final e in cssEntries) {
-        _cssCoverages[e.url] ??= _Coverage(e.url);
-        _cssCoverages[e.url]!.textLength = e.text.length;
-        _cssCoverages[e.url]!.addRanges(e.ranges);
+        _browser._cssCoverages[e.url] ??= _Coverage(e.url);
+        _browser._cssCoverages[e.url]!.textLength = e.text.length;
+        _browser._cssCoverages[e.url]!.addRanges(e.ranges);
       }
     }
 
@@ -231,44 +287,7 @@ class TestBrowser {
     if (_trackedPages.isNotEmpty) {
       throw StateError('There are tracked pages with pending coverage report.');
     }
-    await _browser!.close();
-
-    _printCoverage();
-    if (_coverageDir != null) {
-      await _saveCoverage(p.join(_coverageDir!, 'puppeteer'));
-    }
-    await _tempDir.delete(recursive: true);
-  }
-
-  void _printCoverage() {
-    for (final c in _jsCoverages.values) {
-      print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
-    }
-    for (final c in _cssCoverages.values) {
-      print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
-    }
-  }
-
-  Future<void> _saveCoverage(String outputDir) async {
-    Future<void> saveToFile(Map<String, _Coverage> map, String path) async {
-      if (map.isNotEmpty) {
-        final file = File(path);
-        await file.parent.create(recursive: true);
-        await file.writeAsString(json.encode(map.map(
-          (k, v) => MapEntry<String, dynamic>(
-            v.url,
-            {
-              'textLength': v.textLength,
-              'ranges': v._coveredRanges.map((r) => r.toJson()).toList(),
-            },
-          ),
-        )));
-      }
-    }
-
-    final outputFileName = _testName ?? _generateTestName();
-    await saveToFile(_jsCoverages, '$outputDir/$outputFileName.js.json');
-    await saveToFile(_cssCoverages, '$outputDir/$outputFileName.css.json');
+    await _context.close();
   }
 }
 
