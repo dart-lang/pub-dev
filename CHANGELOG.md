@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Switch on task backend for output.
 
 ## `20230613t121200-all`
  * Bumped runtimeVersion to `2023.06.12`.
