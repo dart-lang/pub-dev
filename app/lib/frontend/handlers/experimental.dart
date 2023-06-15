@@ -12,7 +12,7 @@ const _publicFlags = <String>{
 
 const _allFlags = <String>{
   ..._publicFlags,
-  'sandbox',
+  'nosandbox',
 };
 
 /// The name of the experimental cookie.
@@ -49,7 +49,7 @@ class ExperimentalFlags {
   }
 
   /// Whether to return dartdoc from sandboxing output.
-  bool get showSandboxedOutput => _enabled.contains('sandbox');
+  bool get showSandboxedOutput => !_enabled.contains('nosandbox');
 
   /// Whether to show topics associated with a package.
   bool get showTopics => true;
