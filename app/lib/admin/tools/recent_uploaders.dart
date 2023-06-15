@@ -9,11 +9,11 @@ import 'dart:convert';
 
 import 'package:args/args.dart';
 import 'package:clock/clock.dart';
-import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 Future<String> executeRecentUploaders(List<String> args) async {
   final parser = ArgParser()
@@ -26,32 +26,23 @@ Future<String> executeRecentUploaders(List<String> args) async {
   final byUploaders = <String, List<String>>{};
   final byPublishers = <String, List<String>>{};
 
-  final pool = Pool(10);
-
   final updatedAfter = clock.now().subtract(Duration(days: maxAgeDays));
   final query = dbService.query<Package>()..filter('updated >=', updatedAfter);
-  final futures = <Future>[];
-  await for (final p in query.run()) {
-    Future<void> process() async {
-      if (p.publisherId != null) {
-        byPublishers
-            .putIfAbsent(p.publisherId!, () => <String>[])
+  await query.run().boundedForEach(10, (p) async {
+    if (p.publisherId != null) {
+      byPublishers
+          .putIfAbsent(p.publisherId!, () => <String>[])
+          .add(p.name ?? '');
+    } else {
+      final uploaderEmails =
+          await accountBackend.getEmailsOfUserIds(p.uploaders!);
+      uploaderEmails.forEach((email) {
+        byUploaders
+            .putIfAbsent(email ?? '', () => <String>[])
             .add(p.name ?? '');
-      } else {
-        final uploaderEmails =
-            await accountBackend.getEmailsOfUserIds(p.uploaders!);
-        uploaderEmails.forEach((email) {
-          byUploaders
-              .putIfAbsent(email ?? '', () => <String>[])
-              .add(p.name ?? '');
-        });
-      }
+      });
     }
-
-    futures.add(pool.withResource(process));
-  }
-  await Future.wait(futures);
-  await pool.close();
+  });
 
   Map<String, List<String>> sortByCountAndTrim(Map<String, List<String>> map) {
     final keys = map.keys.toList();

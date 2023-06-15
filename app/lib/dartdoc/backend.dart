@@ -11,7 +11,7 @@ import 'package:gcloud/storage.dart';
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:retry/retry.dart';
 
 import '../package/backend.dart';
@@ -139,14 +139,7 @@ class DartdocBackend {
     }
 
     final sw = Stopwatch()..start();
-    final uploadPool = Pool(_concurrentUploads);
-    final List<Future> uploadFutures = [];
-    await for (File file in fileStream) {
-      final pooledUpload = uploadPool.withResource(() => upload(file));
-      uploadFutures.add(pooledUpload);
-    }
-    await Future.wait(uploadFutures);
-    await uploadPool.close();
+    await fileStream.boundedForEach(_concurrentUploads, upload);
     sw.stop();
     _logger.info('${entry.packageName} ${entry.packageVersion}: '
         '$count files uploaded in ${sw.elapsed}.');
@@ -188,15 +181,14 @@ class DartdocBackend {
       String package, List<String> versions) async {
     final entries = <String, DartdocEntry>{};
 
-    final pool = Pool(8);
-    await Future.wait(versions.map((v) => pool.withResource(() async {
-          final cachedEntry = await cache.dartdocEntry(package, v).get();
-          if (cachedEntry != null) {
-            entries[v] = cachedEntry;
-          }
-        })));
+    await versions.boundedForEach(8, (v) async {
+      final cachedEntry = await cache.dartdocEntry(package, v).get();
+      if (cachedEntry != null) {
+        entries[v] = cachedEntry;
+      }
+    });
 
-    final cacheUpdateFutures = <Future>[];
+    final cacheUpdates = <Function>[];
     for (final rv in shared_versions.acceptedRuntimeVersions) {
       final queryVersions =
           versions.where((v) => !entries.containsKey(v)).toList();
@@ -214,14 +206,13 @@ class DartdocBackend {
           final entry = r.dartdocReport?.dartdocEntry;
           if (entry != null) {
             entries[version] = entry;
-            cacheUpdateFutures.add(pool.withResource(
-                () => cache.dartdocEntry(package, version).set(entry)));
+            cacheUpdates
+                .add(() => cache.dartdocEntry(package, version).set(entry));
           }
         }
       }
     }
-    await Future.wait(cacheUpdateFutures);
-    await pool.close();
+    await cacheUpdates.boundedForEach(8, (fn) => fn());
     return versions.map((v) => entries[v]).toList();
   }
 

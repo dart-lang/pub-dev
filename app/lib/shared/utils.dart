@@ -16,6 +16,7 @@ import 'package:logging/logging.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
+import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
@@ -360,4 +361,39 @@ bool fixedTimeEquals(String a, String b) {
     result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
   }
   return result == 0;
+}
+
+extension StreamBoundedForEach<T> on Stream<T> {
+  /// Executes items using [eachFn] with maximum [concurrency].
+  Future<void> boundedForEach(
+    int concurrency,
+    FutureOr<void> Function(T) eachFn,
+  ) async {
+    final pool = Pool(concurrency);
+    final futures = Queue<Future>();
+    // keeps the size of the futures limited, allows some difference in the run times
+    final maxQueueSize = concurrency * 2;
+    try {
+      await for (final item in this) {
+        final f = pool.withResource(() => eachFn(item));
+        futures.add(f);
+        while (futures.length > maxQueueSize) {
+          await futures.removeFirst();
+        }
+      }
+      await Future.wait(futures);
+    } finally {
+      await pool.close();
+    }
+  }
+}
+
+extension IterableBoundedForEach<T> on Iterable<T> {
+  /// Executes items using [eachFn] with maximum [concurrency].
+  Future<void> boundedForEach(
+    int concurrency,
+    FutureOr<void> Function(T) eachFn,
+  ) async {
+    await Stream.fromIterable(this).boundedForEach(concurrency, eachFn);
+  }
 }

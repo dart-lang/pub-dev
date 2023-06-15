@@ -14,7 +14,6 @@ import 'package:googleapis/storage/v1.dart'
     show DetailedApiRequestError, ApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:retry/retry.dart';
 
@@ -25,7 +24,8 @@ import 'utils.dart'
         jsonUtf8Encoder,
         retryAsync,
         ByteArrayEqualsExt,
-        DeleteCounts;
+        DeleteCounts,
+        IterableBoundedForEach;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
@@ -205,17 +205,10 @@ Future<int> deleteBucketFolderRecursively(
       retryIf: (e) =>
           e is DetailedApiRequestError && _retryStatusCodes.contains(e.status),
     );
-    final futures = <Future>[];
-    final pool = Pool(concurrency ?? 1);
-    for (final entry in page!.items) {
-      final f = pool.withResource(() async {
-        final deleted = await deleteFromBucket(bucket, entry.name);
-        if (deleted) count++;
-      });
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    await pool.close();
+    await page!.items.boundedForEach(concurrency ?? 1, (entry) async {
+      final deleted = await deleteFromBucket(bucket, entry.name);
+      if (deleted) count++;
+    });
   }
   return count;
 }

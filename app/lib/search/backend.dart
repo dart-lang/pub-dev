@@ -13,7 +13,6 @@ import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pool/pool.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/search/mem_index.dart';
@@ -29,6 +28,7 @@ import '../scorecard/models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/storage.dart';
+import '../shared/utils.dart';
 import '../shared/versions.dart';
 import '../tool/utils/http.dart';
 
@@ -143,22 +143,17 @@ class SearchBackend {
     }
 
     // initial scan of packages
-    final pool = Pool(concurrency);
-    final futures = <Future>[];
-    await for (final package in dbService.query<Package>().run()) {
-      if (package.isNotVisible) {
-        continue;
-      }
-      if (!claim.valid) {
-        break;
-      }
-      // This is the first scan, there isn't any existing document that we
-      // can compare to, ignoring the updated field.
-      final f = pool.withResource(() => updatePackage(package.name!, null));
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    futures.clear();
+    await dbService.query<Package>().run().boundedForEach(
+      concurrency,
+      (package) async {
+        if (package.isNotVisible) {
+          return;
+        }
+        // This is the first scan, there isn't any existing document that we
+        // can compare to, ignoring the updated field.
+        await updatePackage(package.name!, null);
+      },
+    );
     if (!claim.valid) {
       return;
     }
@@ -179,15 +174,9 @@ class SearchBackend {
 
       // query updates
       final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
-      for (final e in recentlyUpdated.entries) {
-        if (!claim.valid) {
-          break;
-        }
-        final f = pool.withResource(() => updatePackage(e.key, e.value));
-        futures.add(f);
-      }
-      await Future.wait(futures);
-      futures.clear();
+      await recentlyUpdated.entries.boundedForEach(concurrency, (e) async {
+        await updatePackage(e.key, e.value);
+      });
 
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
@@ -196,7 +185,6 @@ class SearchBackend {
 
       await Future.delayed(sleepDuration);
     }
-    await pool.close();
   }
 
   Future<Map<String, DateTime>> _queryRecentlyUpdated(

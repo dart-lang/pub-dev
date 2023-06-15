@@ -11,7 +11,6 @@ import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:pool/pool.dart';
 import 'package:pub_dev/publisher/backend.dart';
 
 import '../account/agent.dart';
@@ -29,7 +28,8 @@ import 'email.dart' show looksLikeEmail;
 import 'env_config.dart';
 import 'storage.dart';
 import 'urls.dart' as urls;
-import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
+import 'utils.dart'
+    show canonicalizeVersion, ByteArrayEqualsExt, StreamBoundedForEach;
 
 final _logger = Logger('integrity.check');
 final _random = math.Random.secure();
@@ -807,22 +807,12 @@ class IntegrityChecker {
 
   Stream<String> _queryWithPool<R extends Model>(
       Stream<String> Function(R model) fn) async* {
-    final query = _db.query<R>();
-    final pool = Pool(_concurrency);
-    final futures = <Future<List<String>>>[];
-    try {
-      await for (final m in query.run()) {
-        final f = pool.withResource(() => fn(m).toList());
-        futures.add(f);
-      }
-      for (final f in futures) {
-        for (final item in await f) {
-          yield item;
-        }
-      }
-    } finally {
-      await pool.close();
-    }
+    final results = <String>[];
+    await _db.query<R>().run().boundedForEach(_concurrency, (m) async {
+      final s = fn(m);
+      results.addAll(await s.toList());
+    });
+    yield* Stream.fromIterable(results);
   }
 }
 

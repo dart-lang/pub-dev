@@ -16,7 +16,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pool/pool.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -340,20 +339,13 @@ class PackageBackend {
   /// Return the number of updated packages.
   Future<int> updateAllPackageVersions(
       {Version? dartSdkVersion, int? concurrency}) async {
-    final pool = Pool(concurrency ?? 1);
     var count = 0;
-    final futures = <Future>[];
-    await for (final p in db.query<Package>().run()) {
+    await db.query<Package>().run().boundedForEach(concurrency ?? 1, (p) async {
       final package = p.name!;
-      final f = pool.withResource(() async {
-        final updated = await updatePackageVersions(package,
-            dartSdkVersion: dartSdkVersion);
-        if (updated) count++;
-      });
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    await pool.close();
+      final updated =
+          await updatePackageVersions(package, dartSdkVersion: dartSdkVersion);
+      if (updated) count++;
+    });
     return count;
   }
 

@@ -119,4 +119,17 @@ void main() {
       expect(createUuid(), matches(uuidRegexp));
     });
   });
+
+  group('StreamBoundedForEach', () {
+    test('completes', () async {
+      final stream = Stream.fromIterable(List.generate(100, (i) => i));
+      final outputs = <int>[];
+      await stream.boundedForEach(10, (item) async {
+        await Future.delayed(Duration(milliseconds: item % 2 == 0 ? 0 : item));
+        outputs.add(item);
+      });
+      expect(outputs, hasLength(100));
+      expect(outputs.indexOf(10), lessThan(outputs.indexOf(9)));
+    });
+  });
 }

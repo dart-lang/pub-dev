@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 
@@ -10,6 +9,7 @@ import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
+import '../shared/utils.dart';
 import 'datastore.dart';
 
 /// Utility class to merge user data.
@@ -241,13 +241,6 @@ class UserMerger {
 
   Future<void> _processConcurrently<T extends Model>(
       Query<T> query, Future<void> Function(T) fn) async {
-    final pool = Pool(_concurrency!);
-    final futures = <Future>[];
-    await for (final m in query.run()) {
-      final f = pool.withResource(() => fn(m));
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    await pool.close();
+    await query.run().boundedForEach(_concurrency!, fn);
   }
 }

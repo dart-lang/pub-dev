@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pool/pool.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
@@ -15,7 +14,7 @@ import '../shared/datastore.dart' as db;
 import '../shared/redis_cache.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
-import '../shared/utils.dart' show DurationTracker;
+import '../shared/utils.dart' show DurationTracker, IterableBoundedForEach;
 
 import 'backend.dart';
 
@@ -199,16 +198,11 @@ class JobMaintenance {
     await cache
         .jobHistoryLatestScanned(jobServiceAsString(_processor.service))
         .get(() async {
-      final pool = Pool(4);
-      final futures = <Future>[];
-      for (final package in packageNames) {
+      await packageNames.boundedForEach(4, (package) async {
         final p = packages[package]!;
-        final f = pool.withResource(() => updateJob(
-            package, p.latestVersion!, p.lastVersionPublished!, false));
-        futures.add(f);
-      }
-      await Future.wait(futures);
-      await pool.close();
+        await updateJob(
+            package, p.latestVersion!, p.lastVersionPublished!, false);
+      });
       return true;
     });
 
@@ -217,18 +211,12 @@ class JobMaintenance {
           jobServiceAsString(_processor.service), package);
 
       await cacheEntry.get(() async {
-        final pool = Pool(4);
-        final futures = <Future>[];
         final info = await packageBackend.listVersionsCached(package);
         final versions = [...info.versions];
         versions.shuffle();
-        for (final pv in versions) {
-          final f = pool.withResource(
-              () => updateJob(package, pv.version, pv.published!, true));
-          futures.add(f);
-        }
-        await Future.wait(futures);
-        await pool.close();
+        await versions.boundedForEach(4, (pv) async {
+          await updateJob(package, pv.version, pv.published!, true);
+        });
         return true;
       });
     }
