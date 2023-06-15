@@ -107,7 +107,7 @@ class SearchBackend {
   Future<void> doCreateAndUpdateSnapshot(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
-    required int concurrency,
+    int concurrency = _defaultSnapshotBuildConcurrency,
   }) async {
     final firstClaimed = clock.now();
 
