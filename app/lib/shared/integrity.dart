@@ -15,7 +15,6 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/publisher/backend.dart';
 
 import '../account/agent.dart';
-import '../account/backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
@@ -44,13 +43,12 @@ class IntegrityChecker {
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
   final _invalidUsers = <String>{};
+  final _blockedUsers = <String>{};
   final _packages = <String>{};
   final _packageLikes = <String, int>{};
   final _moderatedPackages = <String>{};
   final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
-  final _publishers = <String>{};
-  final _publishersAbandoned = <String>{};
   // package name -> versions
   final _badVersionInPubspec = <String, Set<String>>{};
   int _packageChecked = 0;
@@ -79,9 +77,14 @@ class IntegrityChecker {
     try {
       yield* _checkUsers();
       yield* _checkOAuthUserIDs();
-      yield* _checkPublishers();
-      yield* _checkPublisherMembers();
-      yield* _checkPackages();
+
+      final publisherAttributes = _PublisherAttributes();
+      yield* _checkPublishers(publisherAttributes);
+      yield* _checkPublisherMembers(publisherAttributes);
+      yield* _checkPublishersAfterMembers(publisherAttributes);
+      yield* _checkPackages(publisherAttributes: publisherAttributes);
+      publisherAttributes.clear(); // no longer used
+
       yield* _checkVersions();
       yield* _checkLikes();
       yield* _checkModeratedPackages();
@@ -135,6 +138,10 @@ class IntegrityChecker {
           user.created!.isAfter(DateTime(2022, 1, 1))) {
         yield 'User "${user.userId}" is recently created, but has no `oauthUserId`.';
       }
+
+      if (user.isBlocked) {
+        _blockedUsers.add(user.userId);
+      }
     });
   }
 
@@ -183,41 +190,43 @@ class IntegrityChecker {
     }
   }
 
-  Stream<String> _checkPublishers() async* {
+  Stream<String> _checkPublishers(
+    _PublisherAttributes publisherAttributes,
+  ) async* {
     _logger.info('Scanning Publishers...');
     yield* _queryWithPool<Publisher>((p) async* {
-      _publishers.add(p.publisherId);
-      final members =
-          await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
-      if (p.isAbandoned) {
-        _publishersAbandoned.add(p.publisherId);
-        // all members must be blocked
-        for (final member in members) {
-          final user = await accountBackend.lookupUserById(member.userId!);
-          if (user != null && !user.isBlocked) {
-            yield 'Publisher "${p.publisherId}" is marked as abandoned, '
-                'but has non-blocked member ("${member.userId}" - "${user.email}").';
-          }
-        }
-        if (members.isEmpty && p.contactEmail != null) {
-          yield 'Publisher "${p.publisherId}" is marked as abandoned, has no members, '
-              'but still has contact email ("${p.contactEmail}").';
-        }
-      } else {
-        if (members.isEmpty) {
-          yield 'Publisher "${p.publisherId}" has no members, but it is not marked as abandoned.';
-        }
-      }
+      publisherAttributes.addPublisher(p);
     });
   }
 
-  Stream<String> _checkPublisherMembers() async* {
+  Stream<String> _checkPublishersAfterMembers(
+    _PublisherAttributes publisherAttributes,
+  ) async* {
+    for (final publisherId in publisherAttributes.publisherIds) {
+      if (publisherAttributes.isAbandoned(publisherId)) {
+        if (publisherAttributes.hasContact(publisherId) &&
+            publisherAttributes.hasNoMember(publisherId)) {
+          yield 'Publisher "$publisherId" is marked as abandoned, has no members, '
+              'but still has contact email.';
+        }
+      } else {
+        if (publisherAttributes.hasNoMember(publisherId)) {
+          yield 'Publisher "$publisherId" has no members, but it is not marked as abandoned.';
+        }
+      }
+    }
+  }
+
+  Stream<String> _checkPublisherMembers(
+    _PublisherAttributes publisherAttributes,
+  ) async* {
     _logger.info('Scanning PublisherMembers...');
     yield* _queryWithPool<PublisherMember>((pm) async* {
       if (pm.id != pm.userId) {
         yield 'PublisherMember "${pm.id}" has bad `userId` value: "${pm.userId}".';
       }
-      if (!_publishers.contains(pm.publisherId)) {
+      publisherAttributes.increaseMemberCount(pm.publisherId);
+      if (!publisherAttributes.publisherIds.contains(pm.publisherId)) {
         // double check actual status to prevent misreports on cache race conditions
         final p = await publisherBackend.getPublisher(pm.publisherId);
         if (p == null) {
@@ -232,13 +241,21 @@ class IntegrityChecker {
           entityType: 'PublisherMember',
           entityId: '${pm.publisherId} / ${pm.userId}',
         );
+
+        if (_blockedUsers.contains(pm.userId!) &&
+            publisherAttributes.isAbandoned(pm.publisherId)) {
+          yield 'Publisher "${pm.publisherId}" is marked as abandoned, but has non-blocked member ("${pm.userId}").';
+        }
       }
     });
   }
 
-  Stream<String> _checkPackages() async* {
+  Stream<String> _checkPackages({
+    required _PublisherAttributes publisherAttributes,
+  }) async* {
     _logger.info('Scanning Packages...');
-    yield* _queryWithPool<Package>(_checkPackage);
+    yield* _queryWithPool<Package>(
+        (p) => _checkPackage(p, publisherAttributes: publisherAttributes));
 
     for (final r in _packageReplacedBys.entries) {
       if (await _packageMissing(r.value)) {
@@ -247,7 +264,10 @@ class IntegrityChecker {
     }
   }
 
-  Stream<String> _checkPackage(Package p) async* {
+  Stream<String> _checkPackage(
+    Package p, {
+    required _PublisherAttributes publisherAttributes,
+  }) async* {
     if (p.name == null) {
       yield 'Package "${p.id}" has a `name` property which is null.';
     } else if (p.name != p.id) {
@@ -270,7 +290,7 @@ class IntegrityChecker {
       }
 
       if (p.publisherId != null &&
-          _publishersAbandoned.contains(p.publisherId) &&
+          publisherAttributes.isAbandoned(p.publisherId!) &&
           !p.isBlocked &&
           !p.isDiscontinued) {
         yield 'Package "${p.name}" has an abandoned publisher, must be marked discontinued.';
@@ -808,3 +828,42 @@ class IntegrityChecker {
 
 typedef StreamingIssuesFn = Stream<String> Function();
 typedef StreamingIssuesFnCallback = void Function(StreamingIssuesFn fn);
+
+class _PublisherAttributes {
+  final publisherIds = <String>{};
+  final _abandoned = <String>{};
+  final _withoutContact = <String>{};
+  final _memberCount = <String, int>{};
+
+  void addPublisher(Publisher p) {
+    publisherIds.add(p.publisherId);
+    if (p.isAbandoned) {
+      _abandoned.add(p.publisherId);
+    }
+    if (!p.hasContactEmail) {
+      _withoutContact.add(p.publisherId);
+    }
+  }
+
+  bool isAbandoned(String publisherId) {
+    return _abandoned.contains(publisherId);
+  }
+
+  bool hasContact(String publisherId) {
+    return !_withoutContact.contains(publisherId);
+  }
+
+  bool hasNoMember(String publisherId) {
+    return (_memberCount[publisherId] ?? 0) == 0;
+  }
+
+  void increaseMemberCount(String publisherId) {
+    _memberCount[publisherId] = (_memberCount[publisherId] ?? 0) + 1;
+  }
+
+  void clear() {
+    _abandoned.clear();
+    _withoutContact.clear();
+    _memberCount.clear();
+  }
+}
