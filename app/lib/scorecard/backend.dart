@@ -321,14 +321,11 @@ class ScoreCardBackend {
       tx.insert(scoreCard);
     });
 
-    final isLatest = package.latestVersion == version.version;
-    await Future.wait([
-      cache.scoreCardData(packageName, packageVersion).purge(),
-      cache.scoreCardData2(packageName, packageVersion).purge(),
-      cache.uiPackagePage(packageName, packageVersion).purge(),
-      if (isLatest) cache.uiPackagePage(packageName, null).purge(),
-      if (isLatest) cache.packageView(packageName).purge(),
-    ]);
+    await purgeScorecardData(
+      package.name!,
+      version.version!,
+      isLatest: package.latestVersion == version.version,
+    );
   }
 
   /// Load and deserialize a [ScoreCardData] for the given package's versions.
@@ -448,6 +445,20 @@ class ScoreCardBackend {
       throw AssertionError('Unknown report type: $reportType.');
     }
   }
+}
+
+Future<void> purgeScorecardData(
+  String package,
+  String version, {
+  required bool isLatest,
+}) async {
+  await Future.wait([
+    cache.scoreCardData(package, version).purge(),
+    cache.scoreCardData2(package, version).purge(),
+    cache.uiPackagePage(package, version).purge(),
+    if (isLatest) cache.uiPackagePage(package, null).purge(),
+    if (isLatest) cache.packageView(package).purge(),
+  ]);
 }
 
 class PackageStatus {
