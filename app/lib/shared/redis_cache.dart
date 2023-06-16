@@ -211,6 +211,17 @@ class CachePatterns {
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
       .withPrefix('scorecarddata/')
+      .withTTL(Duration(hours: 2))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (ScoreCardData d) => d.toJson(),
+        decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
+      ))['$package-$version'];
+
+  Entry<ScoreCardData> scoreCardData2(String package, String version) => _cache
+      .withPrefix('scorecarddata/')
+      .withTTL(Duration(hours: 2))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(

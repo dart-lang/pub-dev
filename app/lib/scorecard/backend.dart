@@ -124,9 +124,11 @@ class ScoreCardBackend {
         return null;
       }
     }
-    final cacheEntry = onlyCurrent || showSandboxedOutput
+    final cacheEntry = onlyCurrent
         ? null
-        : cache.scoreCardData(packageName, packageVersion);
+        : (showSandboxedOutput
+            ? cache.scoreCardData2(packageName, packageVersion)
+            : cache.scoreCardData(packageName, packageVersion));
     if (cacheEntry != null) {
       final cached = await cacheEntry.get();
       if (cached != null && cached.hasAllReports) {
@@ -322,6 +324,7 @@ class ScoreCardBackend {
     final isLatest = package.latestVersion == version.version;
     await Future.wait([
       cache.scoreCardData(packageName, packageVersion).purge(),
+      cache.scoreCardData2(packageName, packageVersion).purge(),
       cache.uiPackagePage(packageName, packageVersion).purge(),
       if (isLatest) cache.uiPackagePage(packageName, null).purge(),
       if (isLatest) cache.packageView(packageName).purge(),
