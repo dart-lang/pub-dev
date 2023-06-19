@@ -151,7 +151,7 @@ class ScoreCardBackend {
       final summary =
           await taskBackend.panaSummary(packageName, packageVersion);
 
-      return ScoreCardData(
+      final data = ScoreCardData(
         packageName: packageName,
         packageVersion: packageVersion,
         runtimeVersion: null, // this is unused outside scorecard backend
@@ -168,6 +168,11 @@ class ScoreCardBackend {
         ),
         panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       );
+      // only full cards will be stored in cache
+      if (cacheEntry != null && data.isCurrent && data.hasAllReports) {
+        await cacheEntry.set(data);
+      }
+      return data;
     }
 
     final key = scoreCardKey(packageName, packageVersion);
