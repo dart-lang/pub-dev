@@ -10,17 +10,24 @@ import '../../shared/datastore.dart' as db;
 
 part 'models.g.dart';
 
+/// [SecurityAdvisory] is used to store a security advisory.
+///
+///  * `id`, is a unique identifier for the advisory.
+///  * `SecurityAdvisory` entities never have a parent (`_db.emptyKey`).
 @db.Kind(name: 'SecurityAdvisory', idType: db.IdType.String)
 class SecurityAdvisory extends db.Model<String> {
   String get name => id!;
 
   /// A list of IDs of the same vulnerability in other databases, including
   /// the main id.
+  ///
+  /// Whether an ID is a primary ID or an alias is not important. So long as there is
+  /// a unique primary ID, and aliases do not conflict with other advisories.
   @db.StringListProperty()
   List<String> aliases = <String>[];
 
   /// The time this entry was published.
-  /// If no date is provided, we use the injestion date.
+  /// If no date is provided, we use [modified].
   @db.DateTimeProperty(required: true)
   DateTime? published;
 
@@ -58,6 +65,9 @@ class OSVProperty extends db.Property {
   }
 }
 
+/// Representation of an advisory in [Open Source Vulnerability format][1] version 1.5
+///
+/// [1]: https://ossf.github.io/osv-schema/
 @JsonSerializable(includeIfNull: false)
 class OSV {
   /// The version number of the OSV schema that this particular vulnerability
@@ -85,7 +95,8 @@ class OSV {
 
   /// A list of IDs of the same vulnerability in other databases, in the form of
   /// the [id] field.
-  List<String>? aliases;
+  @JsonKey(defaultValue: <String>[])
+  List<String> aliases;
 
   /// A list of IDs of closely related vulnerabilities, such as the same problem
   /// in alternate ecosystems.
@@ -122,7 +133,7 @@ class OSV {
     required this.modified,
     this.published,
     this.withdrawn,
-    this.aliases,
+    this.aliases = const <String>[],
     this.related,
     this.summary,
     this.details,

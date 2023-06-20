@@ -3,10 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:basics/basics.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+
+final _logger = Logger('security_advisories.backend');
 
 /// Sets the security advisory backend service.
 void registerSecurityAdvisoryBackend(SecurityAdvisoryBackend backend) =>
@@ -35,36 +40,58 @@ class SecurityAdvisoryBackend {
     return _db.lookupOrNull<SecurityAdvisory>(key);
   }
 
-  Future<SecurityAdvisory> injestSecurityAdvisory(OSV vulnerability) async {
-    return await withRetryTransaction(_db, (tx) async {
-      final modified = DateTime.parse(vulnerability.modified);
-      final oldAdvisory = await lookupById(vulnerability.id);
+  List<String> validateAdvisoryErrors(OSV osv) {
+    final errors = <String>[];
 
-      if (oldAdvisory != null && oldAdvisory.modified!.isAfter(modified)) {
+    if (DateTime.parse(osv.modified)
+        .isAfter(DateTime.now().add(Duration(hours: 1)))) {
+      errors.add('Invalid modified date, cannot be a future date.');
+    }
+
+    if (osv.id.length > 255) {
+      errors.add('Invalid id, id too long (over 255 characters).');
+    }
+
+    osv.id.runes.forEach((element) {
+      if (element < 32 || element > 126) {
+        errors.add('Invalid id, contains non-printable ASCII: $element.');
+      }
+    });
+
+    if (json.encode(osv.toJson()).length > 1024 * 500) {
+      errors.add('OSV too large (larger than 500 kB)');
+    }
+
+    return errors;
+  }
+
+  bool validateAdvisory(OSV osv) {
+    final errors = validateAdvisoryErrors(osv);
+    errors.forEach((error) => _logger.shout('[advisory-malformed]: $error'));
+    return errors.isEmpty;
+  }
+
+  Future<SecurityAdvisory?> ingestSecurityAdvisory(OSV osv) async {
+    return await withRetryTransaction(_db, (tx) async {
+      final modified = DateTime.parse(osv.modified);
+      final oldAdvisory = await lookupById(osv.id);
+
+      if (oldAdvisory != null && oldAdvisory.modified!.isAtOrAfter(modified)) {
         return oldAdvisory;
       }
 
+      if (!validateAdvisory(osv)) return null;
+
       final newAdvisory = SecurityAdvisory()
-        ..id = vulnerability.id
+        ..id = osv.id
         ..modified = modified
         ..parentKey = _db.emptyKey
-        ..osvJsonBlob = vulnerability;
-
-      newAdvisory.aliases = [vulnerability.id];
-      if (vulnerability.aliases != null) {
-        newAdvisory.aliases.addAll(vulnerability.aliases!);
-      }
-
-      if (vulnerability.published != null) {
-        newAdvisory.published = DateTime.parse(vulnerability.published!);
-      } else {
-        newAdvisory.published = DateTime.now();
-      }
-
-      if (vulnerability.affected != null) {
-        newAdvisory.affectedPackages =
-            vulnerability.affected!.map((a) => a.package.name).toList();
-      }
+        ..osvJsonBlob = osv
+        ..aliases = [osv.id, ...osv.aliases]
+        ..affectedPackages =
+            (osv.affected ?? []).map((a) => a.package.name).toList()
+        ..published =
+            osv.published != null ? DateTime.parse(osv.published!) : modified;
 
       tx.queueMutations(
         // This is an upsert

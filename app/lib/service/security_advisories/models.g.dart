@@ -12,8 +12,10 @@ OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
       modified: json['modified'] as String,
       published: json['published'] as String?,
       withdrawn: json['withdrawn'] as String?,
-      aliases:
-          (json['aliases'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      aliases: (json['aliases'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       related:
           (json['related'] as List<dynamic>?)?.map((e) => e as String).toList(),
       summary: json['summary'] as String?,
@@ -47,7 +49,7 @@ Map<String, dynamic> _$OSVToJson(OSV instance) {
   val['modified'] = instance.modified;
   writeNotNull('published', instance.published);
   writeNotNull('withdrawn', instance.withdrawn);
-  writeNotNull('aliases', instance.aliases);
+  val['aliases'] = instance.aliases;
   writeNotNull('related', instance.related);
   writeNotNull('summary', instance.summary);
   writeNotNull('details', instance.details);

@@ -36,7 +36,7 @@ void main() {
       affected: [affectedA, affectedB],
     );
 
-    await securityAdvisoryBackend.injestSecurityAdvisory(osv);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
 
     final advisory = await securityAdvisoryBackend.lookupById(id);
     expect(advisory, isNotNull);
@@ -61,7 +61,7 @@ void main() {
       affected: [affectedA, affectedC],
     );
 
-    await securityAdvisoryBackend.injestSecurityAdvisory(updatedOsv);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(updatedOsv);
 
     final updatedAdvisory = await securityAdvisoryBackend.lookupById(id);
     expect(updatedAdvisory, isNotNull);
