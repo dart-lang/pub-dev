@@ -168,8 +168,7 @@ class ScoreCardBackend {
         ),
         panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       );
-      // only full cards will be stored in cache
-      if (cacheEntry != null && data.isCurrent && data.hasAllReports) {
+      if (cacheEntry != null) {
         await cacheEntry.set(data);
       }
       return data;
@@ -178,8 +177,7 @@ class ScoreCardBackend {
     final key = scoreCardKey(packageName, packageVersion);
     final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
     if (current != null) {
-      // only full cards will be stored in cache
-      if (cacheEntry != null && current.isCurrent && current.hasAllReports) {
+      if (cacheEntry != null) {
         await cacheEntry.set(current);
       }
       if (onlyCurrent || current.hasAllReports) {
