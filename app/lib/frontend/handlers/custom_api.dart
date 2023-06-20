@@ -302,8 +302,8 @@ Future<VersionScore> packageVersionScoreHandler(
 
     var updated = pkg.updated;
     final card = await scoreCardBackend.getScoreCardData(package, v);
-    if (card != null && card.updated!.isAfter(updated!)) {
-      updated = card.updated;
+    if (updated == null || card?.updated?.isAfter(updated) == true) {
+      updated = card?.updated;
     }
 
     final tags = <String>{
