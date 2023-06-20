@@ -14,6 +14,7 @@ import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:tar/tar.dart';
 
 final _log = Logger('dartdoc');
 
@@ -180,6 +181,35 @@ Future<void> _dartdoc({
   // This helps if there is a timeout along the way.
   await Directory(tmpOutDir).rename(p.join(outputFolder, 'doc'));
   _log.info('Finished post-processing');
+
+  _log.info('Creating .tar.gz archive');
+  Stream<TarEntry> _list() async* {
+    final finalDocDir = Directory(p.join(outputFolder, 'doc'));
+    final finalFiles =
+        finalDocDir.list(recursive: true, followLinks: false).whereType<File>();
+    await for (final file in finalFiles) {
+      // inside the archive prefix the name with <package>/version/
+      final relativePath = p.relative(file.path, from: finalDocDir.path);
+      final tarEntryPath = p.join(package, packageVersion, relativePath);
+      final data = await file.readAsBytes();
+      yield TarEntry.data(
+        TarHeader(
+          name: tarEntryPath,
+          size: data.length,
+        ),
+        data,
+      );
+    }
+  }
+
+  final tmpTar = File(p.join(outputFolder, '_package.tar.gz'));
+  await _list()
+      .transform(tarWriter)
+      .transform(gzip.encoder)
+      .pipe(tmpTar.openWrite());
+  await tmpTar.rename(p.join(outputFolder, 'package.tar.gz'));
+
+  _log.info('Finished .tar.gz archive');
 }
 
 /// Returns a new, pub-specific dartdoc options based on [original].
