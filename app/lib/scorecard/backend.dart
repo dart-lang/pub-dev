@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 
 import '../package/backend.dart';
@@ -154,12 +155,13 @@ class ScoreCardBackend {
       final data = ScoreCardData(
         packageName: packageName,
         packageVersion: packageVersion,
-        runtimeVersion: null, // this is unused outside scorecard backend
-        updated: null,
+        // this is unused outside scorecard backend, and a bit wrong:
+        runtimeVersion: runtimeVersion,
+        updated: summary?.createdAt ?? version.created,
         packageCreated: package.created,
         packageVersionCreated: version.created,
         dartdocReport: DartdocReport(
-          timestamp: summary?.createdAt,
+          timestamp: summary?.createdAt ?? version.created,
           // TODO: Embed dartdoc success status in summary, unclear if we need it
           reportStatus:
               summary == null ? ReportStatus.failed : ReportStatus.success,
