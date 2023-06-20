@@ -20,6 +20,7 @@ import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
@@ -740,11 +741,13 @@ class TaskBackend {
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
-  Future<void> _purgeCache(String package, String version) async =>
-      await Future.wait([
-        cache.taskPackageStatus(package).purge(),
-        cache.taskResultIndex(package, version).purge(),
-      ]);
+  Future<void> _purgeCache(String package, String version) async {
+    await Future.wait([
+      cache.taskPackageStatus(package).purge(),
+      cache.taskResultIndex(package, version).purge(),
+    ]);
+    await purgeScorecardData(package, package, isLatest: true);
+  }
 
   /// Fetch and cache `index.json` for [package] and [version].
   ///

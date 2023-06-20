@@ -124,9 +124,11 @@ class ScoreCardBackend {
         return null;
       }
     }
-    final cacheEntry = onlyCurrent || showSandboxedOutput
+    final cacheEntry = onlyCurrent
         ? null
-        : cache.scoreCardData(packageName, packageVersion);
+        : (showSandboxedOutput
+            ? cache.scoreCardData2(packageName, packageVersion)
+            : cache.scoreCardData(packageName, packageVersion));
     if (cacheEntry != null) {
       final cached = await cacheEntry.get();
       if (cached != null && cached.hasAllReports) {
@@ -149,7 +151,7 @@ class ScoreCardBackend {
       final summary =
           await taskBackend.panaSummary(packageName, packageVersion);
 
-      return ScoreCardData(
+      final data = ScoreCardData(
         packageName: packageName,
         packageVersion: packageVersion,
         runtimeVersion: null, // this is unused outside scorecard backend
@@ -166,13 +168,16 @@ class ScoreCardBackend {
         ),
         panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       );
+      if (cacheEntry != null) {
+        await cacheEntry.set(data);
+      }
+      return data;
     }
 
     final key = scoreCardKey(packageName, packageVersion);
     final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
     if (current != null) {
-      // only full cards will be stored in cache
-      if (cacheEntry != null && current.isCurrent && current.hasAllReports) {
+      if (cacheEntry != null) {
         await cacheEntry.set(current);
       }
       if (onlyCurrent || current.hasAllReports) {
@@ -319,13 +324,11 @@ class ScoreCardBackend {
       tx.insert(scoreCard);
     });
 
-    final isLatest = package.latestVersion == version.version;
-    await Future.wait([
-      cache.scoreCardData(packageName, packageVersion).purge(),
-      cache.uiPackagePage(packageName, packageVersion).purge(),
-      if (isLatest) cache.uiPackagePage(packageName, null).purge(),
-      if (isLatest) cache.packageView(packageName).purge(),
-    ]);
+    await purgeScorecardData(
+      package.name!,
+      version.version!,
+      isLatest: package.latestVersion == version.version,
+    );
   }
 
   /// Load and deserialize a [ScoreCardData] for the given package's versions.
@@ -445,6 +448,20 @@ class ScoreCardBackend {
       throw AssertionError('Unknown report type: $reportType.');
     }
   }
+}
+
+Future<void> purgeScorecardData(
+  String package,
+  String version, {
+  required bool isLatest,
+}) async {
+  await Future.wait([
+    cache.scoreCardData(package, version).purge(),
+    cache.scoreCardData2(package, version).purge(),
+    cache.uiPackagePage(package, version).purge(),
+    if (isLatest) cache.uiPackagePage(package, null).purge(),
+    if (isLatest) cache.packageView(package).purge(),
+  ]);
 }
 
 class PackageStatus {
