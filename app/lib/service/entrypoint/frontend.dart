@@ -23,7 +23,6 @@ import '../../shared/datastore.dart' as db;
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../../task/backend.dart';
 
 import '_isolate.dart';
 
@@ -104,8 +103,6 @@ Future<void> watchForResourceChanges() async {
 
 Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
-
-  await taskBackend.start();
 
   // Updates job entries for analyzer and dartdoc.
   Future<void> triggerDependentAnalysis(

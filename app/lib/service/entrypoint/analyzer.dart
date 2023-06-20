@@ -17,6 +17,7 @@ import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
+import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '_isolate.dart';
@@ -55,6 +56,8 @@ Future _frontendMain(FrontendEntryMessage message) async {
 
 Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
+
+  await taskBackend.start();
 
   setupAnalyzerPeriodicTasks();
   await popularityStorage.start();
