@@ -9,7 +9,7 @@ dependencies:
     path: ../_pub_shared
   api_builder:
     path: ../api_builder
-  http: ^0.13.0
+  http: ^1.0.0
   js: ^0.6.1
   markdown: ^7.0.2
   mdc_web: ^0.6.0

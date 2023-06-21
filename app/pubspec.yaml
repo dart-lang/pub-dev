@@ -22,7 +22,7 @@ dependencies:
   googleapis: ^10.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
-  http: ^0.13.0
+  http: ^1.0.0
   http_parser: ^4.0.0
   indexed_blob:
     path: ../pkg/indexed_blob
@@ -53,7 +53,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.32'
+  pana: '0.21.33'
   # 3rd-party packages with pinned versions
   mailer: '6.0.1'
   ulid: '2.0.0'
@@ -70,3 +70,6 @@ dev_dependencies:
   source_gen: '^1.0.0'
   test: ^1.16.5
   xml: ^6.0.0
+
+dependency_overrides:
+  http: ^1.0.0

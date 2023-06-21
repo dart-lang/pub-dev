@@ -16,12 +16,6 @@ import 'package:test/test.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  test('static analysis options is available', () async {
-    final content = await getDefaultAnalysisOptionsYaml();
-    expect(content.trim(), isNotEmpty);
-    expect(content, contains('void_checks'));
-  });
-
   group('pana runner', () {
     testWithProfile(
       'end2end test',

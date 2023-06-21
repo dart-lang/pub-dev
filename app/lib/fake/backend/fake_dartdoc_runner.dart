@@ -30,7 +30,7 @@ class FakeDartdocRunner implements DartdocRunner {
   }
 
   @override
-  Future<ProcessResult> runPubUpgrade({
+  Future<PanaProcessResult> runPubUpgrade({
     required ToolEnvironment toolEnv,
     required String package,
     required String version,
@@ -38,7 +38,7 @@ class FakeDartdocRunner implements DartdocRunner {
     required bool usesFlutter,
   }) async {
     // no-op
-    return ProcessResult(0, 0, 'OK', '');
+    return PanaProcessResult(0, 0, 'OK', '');
   }
 
   @override
@@ -71,7 +71,7 @@ class FakeDartdocRunner implements DartdocRunner {
 
     return DartdocRunnerResult(
       args: ['fake_dartdoc', '--input', pkgPath, '--output', outputDir],
-      processResult: ProcessResult(0, 0, 'OK', ''),
+      processResult: PanaProcessResult(0, 0, 'OK', ''),
     );
   }
 }

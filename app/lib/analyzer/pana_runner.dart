@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' hide ReportStatus;
@@ -22,18 +19,6 @@ import '../shared/datastore.dart';
 import '../shared/tool_env.dart';
 
 final Logger _logger = Logger('pub.analyzer.pana');
-String? _defaultAnalysisOptionsYaml;
-
-@visibleForTesting
-Future<String> getDefaultAnalysisOptionsYaml() async {
-  if (_defaultAnalysisOptionsYaml == null) {
-    final resource =
-        await Isolate.resolvePackageUri(Uri.parse('package:lints/core.yaml'));
-    final file = File.fromUri(resource!);
-    _defaultAnalysisOptionsYaml = await file.readAsString();
-  }
-  return _defaultAnalysisOptionsYaml!;
-}
 
 /// Generic interface to run pana for package-analysis.
 // ignore: one_member_abstracts
@@ -84,11 +69,7 @@ class _PanaRunner implements PanaRunner {
           version: version,
           options: InspectOptions(
             pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
-            analysisOptionsYaml: packageStatus.usesFlutter
-                ? null
-                : await getDefaultAnalysisOptionsYaml(),
             checkRemoteRepository: isInternal,
-            futureSdkTag: PackageVersionTags.isDart3Compatible,
           ),
           logger: Logger.detached('pana/$package/$version'),
           storeResource: store,

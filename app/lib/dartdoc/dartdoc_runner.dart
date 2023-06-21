@@ -37,6 +37,8 @@ import 'customizer_config_provider.dart';
 import 'dartdoc_options.dart';
 import 'models.dart';
 
+export '../shared/tool_env.dart' show PanaProcessResult;
+
 final Logger _logger = Logger('pub.dartdoc.runner');
 
 const _packageTimeout = Duration(minutes: 10);
@@ -52,7 +54,7 @@ abstract class DartdocRunner {
     required String destination,
   });
 
-  Future<ProcessResult> runPubUpgrade({
+  Future<PanaProcessResult> runPubUpgrade({
     required ToolEnvironment toolEnv,
     required String package,
     required String version,
@@ -74,7 +76,7 @@ abstract class DartdocRunner {
 
 class DartdocRunnerResult {
   final List<String> args;
-  final ProcessResult processResult;
+  final PanaProcessResult processResult;
 
   DartdocRunnerResult({
     required this.args,
@@ -109,7 +111,7 @@ class _DartdocRunner implements DartdocRunner {
   }
 
   @override
-  Future<ProcessResult> runPubUpgrade({
+  Future<PanaProcessResult> runPubUpgrade({
     required ToolEnvironment toolEnv,
     required String package,
     required String version,
@@ -605,7 +607,7 @@ class DartdocJobProcessor extends JobProcessor {
         .writeAsString(buffer.toString());
   }
 
-  void _appendLog(StringBuffer buffer, ProcessResult pr) {
+  void _appendLog(StringBuffer buffer, PanaProcessResult pr) {
     buffer.write('STDOUT:\n${pr.stdout}\n\n');
     buffer.write('STDERR:\n${pr.stderr}\n\n');
     buffer.write('exit code: ${pr.exitCode}\n');
@@ -718,7 +720,7 @@ bool _isKnownFailurePattern(String output) {
 /// can be used in log messages. For long output, set [compress] to true,
 /// keeping only the beginning and the end of stdout/stderr, and also returning
 /// only the beginning of long lines.
-String _mergeOutput(ProcessResult pr, {bool compress = false}) {
+String _mergeOutput(PanaProcessResult pr, {bool compress = false}) {
   String doCompress(String input) {
     if (compress) {
       final lines = input
