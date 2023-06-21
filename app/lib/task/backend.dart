@@ -336,8 +336,16 @@ class TaskBackend {
       return; // assume package was deleted!
     }
     final lastVersionCreated = package.lastVersionPublished ?? initialTimestamp;
-    final packageVersions =
-        await packageBackend.listVersionsCached(packageName);
+
+    // try to use cached version, purge cache and repopulate if it seems obsolete
+    var packageVersions = await packageBackend.listVersionsCached(packageName);
+    final lastCachedPublished =
+        packageVersions.versions.map((e) => e.published!).maxOrNull;
+    if (lastCachedPublished == null ||
+        lastCachedPublished.isBefore(lastVersionCreated)) {
+      await purgePackageCache(packageName);
+      packageVersions = await packageBackend.listVersionsCached(packageName);
+    }
     // Determined the set of versions to track
     final trackedVersions =
         _versionsToTrack(package, packageVersions.versions).map(
