@@ -18,16 +18,16 @@ COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN tool/setup-dart.sh /home/worker/dart 3.0.2
+RUN tool/setup-dart.sh /home/worker/dart 3.0.5
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
-RUN tool/setup-dart.sh /home/worker/dart 3.1.0-63.1.beta
+RUN tool/setup-dart.sh /home/worker/dart 3.1.0-163.1.beta
 RUN tool/setup-webp.sh /home/worker/bin
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN tool/setup-flutter.sh /home/worker/flutter 3.10.2
+RUN tool/setup-flutter.sh /home/worker/flutter 3.10.5
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/stable
-RUN tool/setup-flutter.sh /home/worker/flutter 3.11.0-0.1.pre
+RUN tool/setup-flutter.sh /home/worker/flutter 3.12.0
 RUN mv /home/worker/flutter/flutter /home/worker/flutter/preview
 
 # Configure SDKs to be used for analysis
