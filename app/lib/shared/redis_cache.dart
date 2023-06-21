@@ -220,7 +220,7 @@ class CachePatterns {
       ))['$package-$version'];
 
   Entry<ScoreCardData> scoreCardData2(String package, String version) => _cache
-      .withPrefix('scorecarddata/')
+      .withPrefix('scorecarddata2/')
       .withTTL(Duration(hours: 2))
       .withCodec(utf8)
       .withCodec(json)
