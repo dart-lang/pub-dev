@@ -26,6 +26,8 @@ const _safeMimeTypes = {
   'webp': 'image/webp',
   // JSON files are generally safe to serve
   'json': 'application/json',
+  // .tar.gz archive of dartdoc contents
+  'gz': 'application/octet-stream',
 
   // Following mimetypes can contain scripts and contents should be sanitized
   // before we serve contents of such files.
