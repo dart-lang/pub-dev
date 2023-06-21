@@ -11,6 +11,8 @@ import 'package:pool/pool.dart';
 
 import '../shared/configuration.dart';
 
+export 'package:pana/src/utils.dart' show PanaProcessResult;
+
 final _logger = Logger('tool_env');
 
 /// Subsequent calls of the analyzer or dartdoc job can use the same [_ToolEnvRef]

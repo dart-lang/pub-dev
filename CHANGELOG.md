@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.10.5`.
  * Upgraded preview Dart analysis SDK to `3.1.0-163.1.beta`.
  * Upgraded preview Flutter analysis SDK to `3.12.0`.
+ * Upgraded pana to `0.21.33`.
 
 ## `20230615t111100-all`
  * Switch on task backend for output.
