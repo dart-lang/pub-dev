@@ -184,12 +184,13 @@ Future<void> _dartdoc({
 
   _log.info('Creating .tar.gz archive');
   Stream<TarEntry> _list() async* {
-    final finalDocDir = Directory(p.join(outputFolder, 'doc'));
-    final finalFiles =
-        finalDocDir.list(recursive: true, followLinks: false).whereType<File>();
-    await for (final file in finalFiles) {
+    final originalDocDir = Directory(docDir);
+    final originalFiles = originalDocDir
+        .list(recursive: true, followLinks: false)
+        .whereType<File>();
+    await for (final file in originalFiles) {
       // inside the archive prefix the name with <package>/version/
-      final relativePath = p.relative(file.path, from: finalDocDir.path);
+      final relativePath = p.relative(file.path, from: originalDocDir.path);
       final tarEntryPath = p.join(package, packageVersion, relativePath);
       final data = await file.readAsBytes();
       yield TarEntry.data(
