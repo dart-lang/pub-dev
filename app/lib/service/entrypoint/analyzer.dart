@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/deps_graph.dart';
 
 import '../../analyzer/handlers.dart';
 import '../../analyzer/pana_runner.dart';
@@ -61,6 +62,8 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   setupAnalyzerPeriodicTasks();
   await popularityStorage.start();
+  await _setupDependencyTracker();
+
   final jobProcessor = AnalyzerJobProcessor(
       aliveCallback: () => message.aliveSendPort.send(null));
   final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
@@ -70,4 +73,22 @@ Future _workerMain(WorkerEntryMessage message) async {
   });
 
   await jobMaintenance.run();
+}
+
+Future<void> _setupDependencyTracker() async {
+  // Updates job entries for analyzer and dartdoc.
+  Future<void> triggerDependentAnalysis(
+      String package, String version, Set<String> affected) async {
+    await jobBackend.triggerAnalysis(package, version);
+    for (final p in affected) {
+      await jobBackend.triggerAnalysis(p, null);
+    }
+    // TODO: re-enable this after we have added some stop-gaps on the frequency
+    // await dartdocClient.triggerDartdoc(package, version,
+    //    dependentPackages: affected);
+  }
+
+  final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
+      db.dbService, triggerDependentAnalysis);
+  unawaited(pdb.monitorInBackground());
 }
