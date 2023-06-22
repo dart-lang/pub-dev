@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
@@ -62,7 +63,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   setupAnalyzerPeriodicTasks();
   await popularityStorage.start();
-  await _setupDependencyTracker();
+  unawaited(_setupDependencyTracker());
 
   final jobProcessor = AnalyzerJobProcessor(
       aliveCallback: () => message.aliveSendPort.send(null));
@@ -77,9 +78,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
 Future<void> _setupDependencyTracker() async {
   // Updates job entries for analyzer and dartdoc.
-  Future<void> triggerDependentAnalysis(
-      String package, String version, Set<String> affected) async {
-    await jobBackend.triggerAnalysis(package, version);
+  Future<void> triggerDependentAnalysis(Set<String> affected) async {
     for (final p in affected) {
       await jobBackend.triggerAnalysis(p, null);
     }
@@ -88,7 +87,17 @@ Future<void> _setupDependencyTracker() async {
     //    dependentPackages: affected);
   }
 
+  // random delay to reduce race conditions
+  final random = Random.secure();
+  await Future.delayed(Duration(minutes: random.nextInt(60)));
+
   final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
-      db.dbService, triggerDependentAnalysis);
-  unawaited(pdb.monitorInBackground());
+    db.dbService,
+    triggerDependentAnalysis,
+    // We don't need to scan for updates frequenty.
+    // Furthermore, scanning runs on all analyzer instances, triggering
+    // changes more often than the expected value of 6 hours.
+    pollingInterval: Duration(hours: 5, minutes: random.nextInt(120)),
+  );
+  await pdb.monitorInBackground();
 }

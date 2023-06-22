@@ -72,15 +72,14 @@ class TransitiveDependencyGraph {
 
 /// Callback function to be called when a new [PackageVersion] should trigger the
 /// re-analysis of a package that depends on it.
-typedef OnAffected = Future<void> Function(
-    String package, String version, Set<String> affected);
+typedef OnAffected = Future<void> Function(Set<String> affected);
 
 class PackageDependencyBuilder {
-  static const Duration _pollingInterval = Duration(minutes: 1);
   static const String _devPrefix = 'dev/';
 
   final DatastoreDB _db;
   final OnAffected _onAffected;
+  final Duration _pollingInterval;
 
   final _reverseDeps = TransitiveDependencyGraph();
 
@@ -89,17 +88,20 @@ class PackageDependencyBuilder {
   /// The future will complete once the initial database has been scanned and a
   /// graph has been built.
   static Future<PackageDependencyBuilder> loadInitialGraphFromDb(
-      DatastoreDB db, OnAffected onAffected) async {
+    DatastoreDB db,
+    OnAffected onAffected, {
+    required Duration pollingInterval,
+  }) async {
     final sw = Stopwatch()..start();
-    final builder = PackageDependencyBuilder._(db, onAffected);
-    await builder.scanExistingPackageGraph();
+    final builder = PackageDependencyBuilder._(db, onAffected, pollingInterval);
+    await builder._scanExistingPackageGraph();
     _logger.info('Scanned initial dependency graph in ${sw.elapsed}.');
     return builder;
   }
 
-  PackageDependencyBuilder._(this._db, this._onAffected);
+  PackageDependencyBuilder._(this._db, this._onAffected, this._pollingInterval);
 
-  Future<void> scanExistingPackageGraph() async {
+  Future<void> _scanExistingPackageGraph() async {
     final sw = Stopwatch()..start();
     for (;;) {
       _logger.info('Scanning existing package graph');
@@ -130,27 +132,24 @@ class PackageDependencyBuilder {
           ..filter('created >', _lastTs)
           ..order('created');
         var updated = false;
-        await for (PackageVersion pv in query.run()) {
+        final affected = <String>{};
+        await for (final pv in query.run()) {
           addPackageVersion(pv);
           updated = true;
-
-          final affected = affectedPackages(pv.package);
+          affected.addAll(_affectedPackages(pv.package));
           _logger.info(
               'Found ${affected.length} dependent packages for ${pv.package}.');
-
-          if (affected.isNotEmpty) {
-            try {
-              await _onAffected(pv.package, pv.version!, affected);
-            } catch (e, st) {
-              _logger.warning(
-                  'Error triggering action for ${pv.qualifiedVersionKey}',
-                  e,
-                  st);
-            }
-          }
-
           _lastTs = pv.created;
         }
+
+        if (affected.isNotEmpty) {
+          try {
+            await _onAffected(affected);
+          } catch (e, st) {
+            _logger.warning('Error triggering action', e, st);
+          }
+        }
+
         if (updated) {
           _reverseDeps._logStats();
         }
@@ -172,7 +171,7 @@ class PackageDependencyBuilder {
     _add(pv.package, depsSet, devDepsSet);
   }
 
-  Set<String> affectedPackages(String package) {
+  Set<String> _affectedPackages(String package) {
     // Due to the constraints in the new [pubspec] it might cause a number of
     // packages to get new transitive dependencies during a `dart pub get` and
     // therefore might cause new analysis results.
