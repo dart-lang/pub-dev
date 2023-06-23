@@ -40,7 +40,7 @@ class SecurityAdvisory extends db.Model<String> {
   List<String>? affectedPackages = <String>[];
 
   @OSVProperty(required: true)
-  OSV? osvJsonBlob;
+  OSV? osv;
 }
 
 class OSVProperty extends db.Property {

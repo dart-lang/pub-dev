@@ -9,6 +9,7 @@ import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -34,7 +35,7 @@ class SecurityAdvisoryBackend {
     return (await cache.securityAdvisories(package).get(() async {
       final query = _db.query<SecurityAdvisory>()
         ..filter('affectedPackages =', package);
-      return query.run().map((e) => e.osvJsonBlob!).toList();
+      return query.run().map((e) => e.osv!).toList();
     }))!;
   }
 
@@ -43,7 +44,8 @@ class SecurityAdvisoryBackend {
     return _db.lookupOrNull<SecurityAdvisory>(key);
   }
 
-  List<String> validateAdvisoryErrors(OSV osv) {
+  // TODO(zarah): add unit test for this.
+  List<String> _validateAdvisoryErrors(OSV osv) {
     final errors = <String>[];
 
     if (DateTime.parse(osv.modified)
@@ -56,7 +58,7 @@ class SecurityAdvisoryBackend {
     }
 
     final invalids = <int>[];
-
+    // Check that [osv.id] consists of printable ASCII.
     osv.id.runes.forEach((element) {
       if (element < 32 || element > 126) {
         invalids.add(element);
@@ -64,8 +66,7 @@ class SecurityAdvisoryBackend {
     });
 
     if (invalids.isNotEmpty) {
-      errors.add(
-          'Invalid id, contains non-printable ASCII code points: $invalids.');
+      errors.add('Invalid id, the "id" property must be printable ASCII.');
     }
 
     if (json.encode(osv.toJson()).length > 1024 * 500) {
@@ -75,28 +76,46 @@ class SecurityAdvisoryBackend {
     return errors;
   }
 
-  bool validateAdvisory(OSV osv) {
-    final errors = validateAdvisoryErrors(osv);
+  /// Sanity checks to ensure that we can store, lookup and update the advisory.
+  ///
+  /// We don't validate all fields, instead we aim to simply ensure that the
+  /// advisory is sufficiently sound that we can store it, look it up and update
+  /// it in the future.
+  bool _isValidAdvisory(OSV osv) {
+    final errors = _validateAdvisoryErrors(osv);
     errors.forEach((error) => _logger.shout('[advisory-malformed]: $error'));
     return errors.isEmpty;
   }
 
+  /// Overwrites existing advisory with the same id, if [osv] is newer.
+  ///
+  /// If id is already listed as `alias` for another advisory, no action will be
+  /// taken to resolve this. Instead both advisories will be stored and served.
+  /// It's assumed that security advisory database owners take care to keep the
+  /// security advisories sound, and that inconsistencies are intentional.
   Future<SecurityAdvisory?> ingestSecurityAdvisory(OSV osv) async {
     return await withRetryTransaction(_db, (tx) async {
-      final modified = DateTime.parse(osv.modified);
+      DateTime modified;
+      try {
+        modified = DateTime.parse(osv.modified);
+      } on FormatException {
+        logger.severe('Failed to parse osv.modified: "${osv.modified}".');
+        return null;
+      }
+
       final oldAdvisory = await lookupById(osv.id);
 
       if (oldAdvisory != null && oldAdvisory.modified!.isAtOrAfter(modified)) {
         return oldAdvisory;
       }
 
-      if (!validateAdvisory(osv)) return null;
+      if (!_isValidAdvisory(osv)) return null;
 
       final newAdvisory = SecurityAdvisory()
         ..id = osv.id
         ..modified = modified
         ..parentKey = _db.emptyKey
-        ..osvJsonBlob = osv
+        ..osv = osv
         ..aliases = [osv.id, ...osv.aliases]
         ..affectedPackages =
             (osv.affected ?? []).map((a) => a.package.name).toList()
