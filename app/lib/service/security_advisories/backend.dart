@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:basics/basics.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
@@ -46,7 +47,7 @@ class SecurityAdvisoryBackend {
     final errors = <String>[];
 
     if (DateTime.parse(osv.modified)
-        .isAfter(DateTime.now().add(Duration(hours: 1)))) {
+        .isAfter(clock.now().add(Duration(hours: 1)))) {
       errors.add('Invalid modified date, cannot be a future date.');
     }
 
