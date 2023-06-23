@@ -23,6 +23,7 @@ import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
+import '../service/security_advisories/models.dart';
 import '../task/models.dart';
 import 'convert.dart';
 import 'versions.dart';
@@ -217,6 +218,18 @@ class CachePatterns {
         encode: (ScoreCardData d) => d.toJson(),
         decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
+
+  Entry<List<OSV>> securityAdvisories(String package) => _cache
+      .withPrefix('security-advisory/')
+      .withTTL(Duration(hours: 8))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (List<OSV> l) => l.map((OSV osv) => osv.toJson()).toList(),
+        decode: (d) => (d as List)
+            .map((d) => OSV.fromJson(d as Map<String, dynamic>))
+            .toList(),
+      ))[package];
 
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
       .withPrefix('user-package-likes/')

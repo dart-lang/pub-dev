@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 
 final _logger = Logger('security_advisories.backend');
 
@@ -26,13 +27,14 @@ class SecurityAdvisoryBackend {
 
   SecurityAdvisoryBackend(this._db);
 
-  Future<List<SecurityAdvisory?>> lookupSecurityAdvisories(
-      String package) async {
-    return await withRetryTransaction(_db, (tx) async {
+  Future<List<OSV>> lookupSecurityAdvisories(
+    String package,
+  ) async {
+    return (await cache.securityAdvisories(package).get(() async {
       final query = _db.query<SecurityAdvisory>()
         ..filter('affectedPackages =', package);
-      return query.run().toList();
-    });
+      return query.run().map((e) => e.osvJsonBlob!).toList();
+    }))!;
   }
 
   Future<SecurityAdvisory?> lookupById(String id) async {
@@ -52,11 +54,18 @@ class SecurityAdvisoryBackend {
       errors.add('Invalid id, id too long (over 255 characters).');
     }
 
+    final invalids = <int>[];
+
     osv.id.runes.forEach((element) {
       if (element < 32 || element > 126) {
-        errors.add('Invalid id, contains non-printable ASCII: $element.');
+        invalids.add(element);
       }
     });
+
+    if (invalids.isNotEmpty) {
+      errors.add(
+          'Invalid id, contains non-printable ASCII code points: $invalids.');
+    }
 
     if (json.encode(osv.toJson()).length > 1024 * 500) {
       errors.add('OSV too large (larger than 500 kB)');
