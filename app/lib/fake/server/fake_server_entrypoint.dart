@@ -134,7 +134,7 @@ class FakeServerCommand extends Command {
       if (rq.requestedUri.path == '/fake-update-search') {
         return await _updateUpstream(searchPort);
       }
-      return shelf.Response.notFound('Not Found.');
+      return shelf.Response.notFound('Not Found (main server endpoint).');
     }
 
     await updateLocalBuiltFilesIfNeeded();

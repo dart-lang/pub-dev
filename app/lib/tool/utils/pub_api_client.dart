@@ -126,10 +126,10 @@ extension PubApiClientExt on PubApiClient {
       ..fields.addAll(uploadInfo.fields!)
       ..files.add(http.MultipartFile.fromBytes('file', bytes))
       ..followRedirects = false;
-    final uploadRs = await request.send();
+    final uploadRs = await request.send().timeout(Duration(seconds: 15));
     if (uploadRs.statusCode != 303) {
       throw AssertionError(
-          'Expected HTTP redirect, got ${uploadRs.statusCode}.');
+          'Expected HTTP redirect from ${uploadInfo.url}, got ${uploadRs.statusCode} ${await uploadRs.stream.bytesToString()}.');
     }
 
     final callbackUri =

@@ -49,14 +49,15 @@ class FakeStorageServer {
       _logger.info('Requested: ${request.requestedUri.path}');
       final segments = request.requestedUri.pathSegments;
       if (segments.length < 2) {
-        return Response.notFound('404 Not Found');
+        return Response.notFound('404 Not Found (SL: $segments)');
       }
       final bucketName = segments.first;
       final objectName = segments.skip(1).join('/');
       final bucket = _storage.bucket(bucketName);
       final exists = await bucket.tryInfo(objectName);
       if (exists == null) {
-        return Response.notFound('404 Not Found');
+        return Response.notFound(
+            '404 Not Found $objectName does not exists in $bucketName.');
       }
       final contentType = lookupMimeType(objectName);
       return Response.ok(bucket.read(objectName),
@@ -66,7 +67,7 @@ class FakeStorageServer {
       final contentHeader = _parse(request.headers['content-type']);
       final segments = request.requestedUri.pathSegments;
       if (segments.length < 2) {
-        return Response.notFound('404 Not Found');
+        return Response.notFound('404 Not Found (SL: $segments)');
       }
       String bucketName = segments.first;
       String objectName = segments.skip(1).join('/');
@@ -99,7 +100,7 @@ class FakeStorageServer {
       }
       return Response.seeOther(redirectUrl);
     }
-    return Response.notFound('404 Not Found');
+    return Response.notFound('404 Not Found (generic)');
   }
 }
 

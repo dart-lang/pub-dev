@@ -344,6 +344,7 @@ Future<String> _acquireFakeSessionId({
       Uri.parse(pubHostedUrl ?? activeConfiguration.primarySiteUri.toString());
   final client = http.Client();
   try {
+    late Map<String, String> rsHeaders;
     final rs = await client.send(http.Request(
       'GET',
       Uri(
@@ -359,10 +360,12 @@ Future<String> _acquireFakeSessionId({
       ),
     )..followRedirects = false);
     if (rs.statusCode != 303) {
-      throw Exception('Unexpected status code: ${rs.statusCode}');
+      final body = await rs.stream.bytesToString();
+      throw Exception('Unexpected status code: ${rs.statusCode} $body');
     }
+    rsHeaders = rs.headers;
     final cookieHeaders =
-        rs.headers['set-cookie']?.split(',').map((e) => e.trim()) ?? <String>[];
+        rsHeaders['set-cookie']?.split(',').map((e) => e.trim()) ?? <String>[];
     final cookies = cookieHeaders.map((h) => h.split(';').first).toList();
     final sessionId = cookies
         .firstWhere((e) => e.startsWith('$clientSessionLaxCookieName='))
@@ -372,7 +375,7 @@ Future<String> _acquireFakeSessionId({
     // complete sign-in
     final completeRequest = http.Request(
       'GET',
-      Uri.parse(rs.headers['location']!),
+      Uri.parse(rsHeaders['location']!),
     );
     completeRequest.headers['cookie'] = cookies.join('; ');
     final rs2 = await client.send(completeRequest);
