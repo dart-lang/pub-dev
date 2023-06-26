@@ -325,11 +325,12 @@ String fakeOauthUserIdFromEmail(String email) =>
     email.replaceAll('@', '-').replaceAll('.', '-');
 
 Map<String, dynamic> _jwtPayloadTimestamps() {
-  final now = clock.now();
+  final now = clock.now().toUtc();
+  final iat = now.subtract(Duration(minutes: 1));
   return <String, dynamic>{
-    'iat': now.millisecondsSinceEpoch ~/ 1000,
-    'nbf': now.millisecondsSinceEpoch ~/ 1000,
-    'exp': now.add(Duration(minutes: 1)).millisecondsSinceEpoch ~/ 1000,
+    'iat': iat.millisecondsSinceEpoch ~/ 1000,
+    'nbf': iat.millisecondsSinceEpoch ~/ 1000,
+    'exp': now.add(Duration(minutes: 5)).millisecondsSinceEpoch ~/ 1000,
   };
 }
 
