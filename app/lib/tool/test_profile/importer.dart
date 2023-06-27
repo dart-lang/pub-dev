@@ -70,6 +70,8 @@ Future<void> importProfile({
   var published = true;
   var pending = <ResolvedVersion>[...resolvedVersions];
   final pendingBytes = <String, List<int>>{};
+  Object? lastException;
+  StackTrace? lastStackTrace;
   while (published && pending.isNotEmpty) {
     published = false;
     final nextPending = <ResolvedVersion>[];
@@ -91,7 +93,9 @@ Future<void> importProfile({
           fn: (client) => client.uploadPackageBytes(bytes),
         );
         published = true;
-      } catch (_) {
+      } catch (e, st) {
+        lastException = e;
+        lastStackTrace = st;
         nextPending.add(rv);
         pendingBytes['${rv.package}/${rv.version}'] = bytes;
       }
@@ -100,7 +104,8 @@ Future<void> importProfile({
   }
   if (pending.isNotEmpty) {
     throw Exception(
-        'Unable to publish ${pending.length} packages (first: ${pending.first.toJson()}).');
+        'Unable to publish ${pending.length} packages (first: ${pending.first.toJson()}).'
+        '\n$lastException\n$lastStackTrace');
   }
 
   for (final testPackage in profile.packages) {

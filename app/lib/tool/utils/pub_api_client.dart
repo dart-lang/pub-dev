@@ -128,8 +128,12 @@ extension PubApiClientExt on PubApiClient {
       ..followRedirects = false;
     final uploadRs = await request.send();
     if (uploadRs.statusCode != 303) {
-      throw AssertionError(
-          'Expected HTTP redirect, got ${uploadRs.statusCode}.');
+      // NOTE: There are tests that fail with this on CI.
+      // TODO: figure out what is causing these issues.
+      final body = await uploadRs.stream.bytesToString();
+      final headers = uploadRs.headers;
+      throw AssertionError('Expected HTTP redirect, got ${uploadRs.statusCode}.'
+          '\nbody: $body\nheaders: $headers');
     }
 
     final callbackUri =
