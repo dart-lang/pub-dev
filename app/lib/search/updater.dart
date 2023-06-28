@@ -92,11 +92,10 @@ class IndexUpdater implements TaskRunner {
   }
 
   /// Starts the scheduler to update the package index.
-  void runScheduler({required Stream<Task> manualTriggerTasks}) {
+  void runScheduler() {
     final scheduler = TaskScheduler(
       this,
       [
-        ManualTriggerTaskSource(manualTriggerTasks),
         DatastoreHeadTaskSource(
           _db,
           TaskSourceModel.package,

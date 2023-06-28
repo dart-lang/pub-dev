@@ -17,8 +17,6 @@ import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
-import '../../shared/task_client.dart';
-import '../../shared/task_scheduler.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '_isolate.dart';
@@ -54,9 +52,6 @@ Future _main(FrontendEntryMessage message) async {
 
   await popularityStorage.start();
 
-  final ReceivePort taskReceivePort = ReceivePort();
-  registerTaskSendPort(taskReceivePort.sendPort);
-
   // Don't block on init, we need to serve liveliness and readiness checks.
   scheduleMicrotask(() async {
     await dartSdkMemIndex.start();
@@ -68,7 +63,7 @@ Future _main(FrontendEntryMessage message) async {
       rethrow;
     }
 
-    indexUpdater.runScheduler(manualTriggerTasks: taskReceivePort.cast<Task>());
+    indexUpdater.runScheduler();
   });
 
   await runHandler(_logger, searchServiceHandler);
