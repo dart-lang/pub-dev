@@ -26,16 +26,6 @@ abstract class TaskSource {
   Stream<Task> startStreaming();
 }
 
-/// Tasks coming from through the isolate's receivePort, originating from a
-/// HTTP handler that received a ping after a new upload.
-class ManualTriggerTaskSource implements TaskSource {
-  final Stream<Task> _taskReceivePort;
-  ManualTriggerTaskSource(this._taskReceivePort);
-
-  @override
-  Stream<Task> startStreaming() => _taskReceivePort;
-}
-
 /// Schedules and executes tasks.
 ///
 /// The execution of the tasks are prioritized in the order of the task sources:
