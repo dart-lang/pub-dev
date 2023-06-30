@@ -35,7 +35,7 @@ class DefaultCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await startIsolates(
+    await runIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
       frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
@@ -44,9 +44,8 @@ class DefaultCommand extends Command {
   }
 }
 
-Future _main(FrontendEntryMessage message) async {
-  message.protocolSendPort
-      .send(FrontendProtocolMessage(statsConsumerPort: null));
+Future _main(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
 
   await updateLocalBuiltFilesIfNeeded();
   final appHandler = createAppHandler();

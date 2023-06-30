@@ -36,7 +36,7 @@ class AnalyzerCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await startIsolates(
+    await runIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,
       workerEntryPoint: _workerMain,
@@ -47,17 +47,17 @@ class AnalyzerCommand extends Command {
   }
 }
 
-Future _frontendMain(FrontendEntryMessage message) async {
+Future _frontendMain(EntryMessage message) async {
   final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(FrontendProtocolMessage(
+  message.protocolSendPort.send(ReadyMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));
   await runHandler(logger, analyzerServiceHandler);
 }
 
-Future _workerMain(WorkerEntryMessage message) async {
-  message.protocolSendPort.send(WorkerProtocolMessage());
+Future _workerMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
 
   await taskBackend.start();
 
