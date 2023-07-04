@@ -364,7 +364,8 @@ Future<PackagePageData> loadPackagePageData(
   final scoreCard = await scoreCardBackend.getScoreCardData(
     selectedVersion.package,
     selectedVersion.version!,
-    showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
+    showSandboxedOutput:
+        requestContext.experimentalFlags.showSandboxedScoreCard,
   );
 
   final isAdmin = requestContext.isNotAuthenticated
