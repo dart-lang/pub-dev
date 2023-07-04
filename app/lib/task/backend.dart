@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/task_api.dart' as api;
 import 'package:chunked_stream/chunked_stream.dart'
     show readByteStream, MaximumSizeExceeded;
@@ -18,6 +19,7 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -329,26 +331,30 @@ class TaskBackend {
     String packageName, {
     bool updateDependants = false,
   }) async {
-    var lastVersionCreated = initialTimestamp;
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      return; // assume package was deleted!
+    }
+    final lastVersionCreated = package.lastVersionPublished ?? initialTimestamp;
+
+    // try to use cached version, purge cache and repopulate if it seems obsolete
+    var packageVersions = await packageBackend.listVersionsCached(packageName);
+    final lastCachedPublished =
+        packageVersions.versions.map((e) => e.published!).maxOrNull;
+    if (lastCachedPublished == null ||
+        lastCachedPublished.isBefore(lastVersionCreated)) {
+      await purgePackageCache(packageName);
+      packageVersions = await packageBackend.listVersionsCached(packageName);
+    }
+    // Determined the set of versions to track
+    final trackedVersions =
+        _versionsToTrack(package, packageVersions.versions).map(
+      (v) => v.canonicalizedVersion, // add extra sanity!
+    );
+
     await withRetryTransaction(_db, (tx) async {
-      final pkgKey = _db.emptyKey.append(Package, id: packageName);
-
       final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
-      // Lookup Package and PackageVersion in the same transaction.
-      // Await results later to ensure concurrent lookups!
-      final packageFuture = tx.lookupOrNull<Package>(pkgKey);
-      final packageVersionsFuture =
-          tx.query<PackageVersion>(pkgKey).run().toList();
       final state = await tx.lookupOrNull<PackageState>(stateKey);
-      final package = await packageFuture;
-      final packageVersions = await packageVersionsFuture;
-      if (package == null) {
-        return; // assume package was deleted!
-      }
-
-      // Update the timestamp for when the last version was published.
-      // This is used if we need to update dependants.
-      lastVersionCreated = packageVersions.map((pv) => pv.created!).max;
 
       // If package is not visible, we should remove it!
       if (package.isNotVisible) {
@@ -357,11 +363,6 @@ class TaskBackend {
         }
         return;
       }
-
-      // Determined the set of versions to track
-      final versions = _versionsToTrack(package, packageVersions).map(
-        (v) => v.canonicalizedVersion, // add extra sanity!
-      );
 
       // Ensure we have PackageState entity
       if (state == null) {
@@ -372,7 +373,7 @@ class TaskBackend {
             ..setId(runtimeVersion, packageName)
             ..runtimeVersion = runtimeVersion
             ..versions = {
-              for (final version in versions)
+              for (final version in trackedVersions)
                 version: PackageVersionStateInfo(
                   scheduled: initialTimestamp,
                   attempts: 0,
@@ -387,13 +388,13 @@ class TaskBackend {
 
       // List versions that not tracked, but should be
       final untrackedVersions = [
-        ...versions.whereNot(state.versions!.containsKey),
+        ...trackedVersions.whereNot(state.versions!.containsKey),
       ];
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deselected by _versionsToTrack.
       final deselectedVersions = [
-        ...state.versions!.keys.whereNot(versions.contains),
+        ...state.versions!.keys.whereNot(trackedVersions.contains),
       ];
 
       // There should never be an overlap between versions untracked and
@@ -957,7 +958,7 @@ String? _extractBearerToken(shelf.Request request) {
 ///  * 5 latest major versions (if any).
 List<Version> _versionsToTrack(
   Package package,
-  List<PackageVersion> packageVersions,
+  List<VersionInfo> packageVersions,
 ) {
   return {
     // Always analyze latest stable version
@@ -971,8 +972,9 @@ List<Version> _versionsToTrack(
     // Consider 5 latest major versions, if any:
     ...packageVersions
         // Ignore prereleases and retracted versions
-        .where((pv) => !pv.isRetracted && !pv.semanticVersion.isPreRelease)
-        .map((pv) => pv.semanticVersion)
+        .where((pv) => !(pv.retracted ?? false))
+        .map((pv) => Version.parse(pv.version))
+        .where((v) => !v.isPreRelease)
         // Create a map from major version to latest version in series.
         .groupFoldBy<int, Version>(
           (v) => v.major,
