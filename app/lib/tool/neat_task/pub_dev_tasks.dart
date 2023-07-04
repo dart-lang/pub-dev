@@ -211,7 +211,7 @@ void setupSearchPeriodicTasks() {
   _weekly(
     name: 'delete-old-search-snapshots',
     isRuntimeVersioned: true,
-    task: () => snapshotStorage.deleteOldData(),
+    task: () => searchBackend.deleteOldData(),
   );
 }
 

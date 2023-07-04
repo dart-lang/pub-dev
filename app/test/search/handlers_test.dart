@@ -212,4 +212,14 @@ class MockSearchBackend implements SearchBackend {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> deleteOldData() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<PackageDocument>?> fetchSnapshotDocuments() {
+    throw UnimplementedError();
+  }
 }

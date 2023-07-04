@@ -48,14 +48,6 @@ void registerSearchBackend(SearchBackend backend) =>
 /// The active backend service.
 SearchBackend get searchBackend => ss.lookup(#_searchBackend) as SearchBackend;
 
-/// Sets the snapshot storage
-void registerSnapshotStorage(SnapshotStorage storage) =>
-    ss.register(#_snapshotStorage, storage);
-
-/// The active snapshot storage
-SnapshotStorage get snapshotStorage =>
-    ss.lookup(#_snapshotStorage) as SnapshotStorage;
-
 /// The [PackageIndex] registered in the current service scope.
 PackageIndex get packageIndex =>
     ss.lookup(#packageIndexService) as PackageIndex;
@@ -419,7 +411,37 @@ class SearchBackend {
     return values;
   }
 
+  Future<List<PackageDocument>?> fetchSnapshotDocuments() async {
+    try {
+      final map = await _snapshotStorage.getContentAsJsonMap();
+      if (map == null) {
+        _logger.info('No snaptshot to fetch.');
+        return null;
+      }
+      final snapshot = SearchSnapshot.fromJson(map);
+      snapshot.documents!
+          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
+
+      final count = snapshot.documents!.length;
+      _logger.info('Got $count packages from snapshot at ${snapshot.updated}');
+      return snapshot.documents?.values.toList();
+    } catch (e, st) {
+      _logger.shout('Unable to load search snapshot.', e, st);
+    }
+    return null;
+  }
+
+  /// Deletes old data files in snapshot storage (for old runtimes that are more
+  /// than half a year old).
+  Future<void> deleteOldData() async {
+    final counts = await _snapshotStorage.deleteOldData(
+        minAgeThreshold: Duration(days: 182));
+    _logger.info(
+        'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
+  }
+
   Future<void> close() async {
+    _snapshotStorage.close();
     _http.close();
   }
 }
@@ -465,58 +487,4 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }).toList();
   results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
   return results;
-}
-
-class SnapshotStorage {
-  final VersionedJsonStorage _storage;
-  SearchSnapshot? _snapshot;
-
-  SnapshotStorage(Bucket bucket)
-      : _storage = VersionedJsonStorage(bucket, 'snapshot/');
-
-  Map<String, PackageDocument> get documents => _snapshot!.documents!;
-
-  void add(PackageDocument doc) {
-    _snapshot!.add(doc);
-  }
-
-  void remove(String package) {
-    _snapshot!.remove(package);
-  }
-
-  Future<void> fetch() async {
-    final version = await _storage.detectLatestVersion();
-    if (version == null) {
-      _logger.shout('Unable to detect the latest search snapshot file.');
-    }
-    try {
-      final map = await _storage.getContentAsJsonMap(version);
-      _snapshot = SearchSnapshot.fromJson(map);
-      _snapshot!.documents!
-          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-
-      final count = _snapshot!.documents!.length;
-      _logger
-          .info('Got $count packages from snapshot at ${_snapshot!.updated}');
-    } catch (e, st) {
-      final uri = _storage.getBucketUri(version);
-      _logger.shout('Unable to load search snapshot: $uri', e, st);
-    }
-    // Create an empty snapshot if the above failed. This will be populated with
-    // package data via a separate update process.
-    _snapshot ??= SearchSnapshot();
-  }
-
-  /// Deletes old data files in snapshot storage (for old runtimes that are more
-  /// than half a year old).
-  Future<void> deleteOldData() async {
-    final counts =
-        await _storage.deleteOldData(minAgeThreshold: Duration(days: 182));
-    _logger.info(
-        'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
-  }
-
-  Future<void> close() async {
-    _storage.close();
-  }
 }

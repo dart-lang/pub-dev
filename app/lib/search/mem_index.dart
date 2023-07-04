@@ -66,6 +66,20 @@ class InMemoryPackageIndex implements PackageIndex {
   }
 
   @override
+  DateTime? getPackageSourceLastUpdated(String package) {
+    final doc = _packages[package];
+    return doc?.sourceUpdated ?? doc?.timestamp;
+  }
+
+  @override
+  Map<String, String> getPackageNamesNotRecentlyUpdated(Duration threshold) {
+    final now = clock.now();
+    return Map.fromEntries(_packages.values
+        .where((doc) => now.difference(doc.timestamp) > threshold)
+        .map((doc) => MapEntry(doc.package, doc.version!)));
+  }
+
+  @override
   Future<void> markReady() async {
     _isReady = true;
   }
