@@ -13,13 +13,10 @@ import 'package:watcher/watcher.dart';
 
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
-import '../../job/backend.dart';
-import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
 import '../../search/top_packages.dart';
 import '../../service/announcement/backend.dart';
 import '../../service/youtube/backend.dart';
-import '../../shared/datastore.dart' as db;
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -41,7 +38,6 @@ class DefaultCommand extends Command {
     await startIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
-      workerEntryPoint: _worker,
       frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
       workerCount: 1,
     );
@@ -99,24 +95,4 @@ Future<void> watchForResourceChanges() async {
   // watch /static files
   setupWatcher('/static', resolveStaticDirPath(),
       () => registerStaticFileCacheForTest(StaticFileCache.withDefaults()));
-}
-
-Future _worker(WorkerEntryMessage message) async {
-  message.protocolSendPort.send(WorkerProtocolMessage());
-
-  // Updates job entries for analyzer and dartdoc.
-  Future<void> triggerDependentAnalysis(
-      String package, String version, Set<String> affected) async {
-    await jobBackend.triggerAnalysis(package, version);
-    for (final p in affected) {
-      await jobBackend.triggerAnalysis(p, null);
-    }
-    // TODO: re-enable this after we have added some stop-gaps on the frequency
-    // await dartdocClient.triggerDartdoc(package, version,
-    //    dependentPackages: affected);
-  }
-
-  final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
-      db.dbService, triggerDependentAnalysis);
-  await pdb.monitorInBackground(); // never returns
 }
