@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20230704t125500-all`
  * Displaying sandboxed `ScoreCard` data.
 
 ## `20230623t075300-all`
