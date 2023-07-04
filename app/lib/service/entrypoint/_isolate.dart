@@ -21,6 +21,7 @@ import 'tools.dart';
 
 final _random = Random.secure();
 
+/// Initializing message send from the controller isolate to the new one.
 class EntryMessage {
   final SendPort protocolSendPort;
   final SendPort aliveSendPort;
