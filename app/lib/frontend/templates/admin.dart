@@ -218,7 +218,7 @@ Tab _myActivityLogLink() => Tab.withLink(
 
 d.Node _accountDetailHeader(User user, SessionData userSessionData) {
   return renderDetailHeader(
-    title: userSessionData.name,
+    titleNode: d.text(userSessionData.name ?? ''),
     image: d.Image(
       src: userSessionData.imageUrlOfSize(200),
       alt: 'user profile picture',
