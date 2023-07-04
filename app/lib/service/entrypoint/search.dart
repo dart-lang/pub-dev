@@ -33,7 +33,7 @@ class SearchCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await startIsolates(
+    await runIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
       workerEntryPoint: _worker,
@@ -43,10 +43,10 @@ class SearchCommand extends Command {
   }
 }
 
-Future _main(FrontendEntryMessage message) async {
+Future _main(EntryMessage message) async {
   final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(FrontendProtocolMessage(
+  message.protocolSendPort.send(ReadyMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
@@ -69,8 +69,8 @@ Future _main(FrontendEntryMessage message) async {
   await runHandler(_logger, searchServiceHandler);
 }
 
-Future _worker(WorkerEntryMessage message) async {
-  message.protocolSendPort.send(WorkerProtocolMessage());
+Future _worker(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
   setupSearchPeriodicTasks();
   await searchBackend.updateSnapshotInForeverLoop();
