@@ -612,6 +612,9 @@ class TaskBackend {
 
     String? zone, instance;
     bool isInstanceDone = false;
+    final summaryFuture = panaSummary(package, version);
+    final dartdocIndex = await dartdocFile(package, version, 'index.html');
+    final summary = await summaryFuture;
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
@@ -632,7 +635,6 @@ class TaskBackend {
       await _purgeCache(package, version);
 
       // Update dependencies, if pana summary has dependencies
-      final summary = await panaSummary(package, version);
       if (summary != null && summary.allDependencies != null) {
         final updatedDependencies = _updatedDependencies(
           state.dependencies,
@@ -648,7 +650,6 @@ class TaskBackend {
           state.dependencies = updatedDependencies;
         }
       }
-      final dartdocIndex = await dartdocFile(package, version, 'index.html');
 
       zone = versionState.zone!;
       instance = versionState.instance!;
