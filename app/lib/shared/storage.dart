@@ -121,7 +121,7 @@ extension BucketExt on Bucket {
           if (maxSize != null && builder.length > maxSize) {
             throw MaximumSizeExceeded(maxSize);
           }
-          if (deadline.isAfter(clock.now())) {
+          if (deadline.isBefore(clock.now())) {
             throw TimeoutException('Reading $objectName timed out.', timeout);
           }
         }
