@@ -4,16 +4,14 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/task_api.dart' as api;
-import 'package:chunked_stream/chunked_stream.dart'
-    show readByteStream, MaximumSizeExceeded;
+import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
-import 'package:googleapis/storage/v1.dart'
-    show DetailedApiRequestError, ApiRequestError;
+import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
@@ -24,6 +22,7 @@ import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart' show cache;
+import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
 import 'package:pub_dev/shared/versions.dart'
     show
@@ -43,7 +42,6 @@ import 'package:pub_dev/task/models.dart'
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
-import 'package:retry/retry.dart' show retry;
 import 'package:shelf/shelf.dart' as shelf;
 
 final _log = Logger('pub.task.backend');
@@ -703,41 +701,22 @@ class TaskBackend {
     String path, {
     int? offset,
     int? length,
-  }) async =>
-      await retry(
-        () async {
-          try {
-            return await readByteStream(
-              _bucket.read(path, offset: offset, length: length),
-              maxSize: 10 * 1024 * 1024, // sanity limit
-            ).timeout(Duration(seconds: 30));
-          } on MaximumSizeExceeded catch (e, st) {
-            _log.shout(
-              'max size exceeded path: $path',
-              e,
-              st,
-            );
-            return null;
-          }
-        },
-        maxAttempts: 3,
-        retryIf: (e) {
-          if (e is TimeoutException) {
-            return true; // Timeouts we can retry
-          }
-          if (e is IOException) {
-            return true; // I/O issues are worth retrying
-          }
-          if (e is DetailedApiRequestError) {
-            final status = e.status;
-            return status == null || status >= 500; // 5xx errors are retried
-          }
-          return e is ApiRequestError; // Unknown API errors are retried
-        },
-      ).catchError(
-        (_) => null,
-        test: (e) => e is DetailedApiRequestError && e.status == 404,
+  }) async {
+    try {
+      return await _bucket.readAsBytes(
+        path, offset: offset, length: length,
+        maxSize: 10 * 1024 * 1024, // sanity limit
       );
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        return null;
+      }
+      rethrow;
+    } on MaximumSizeExceeded catch (e, st) {
+      _log.shout('max size exceeded path: $path', e, st);
+      return null;
+    }
+  }
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].

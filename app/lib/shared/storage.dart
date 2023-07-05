@@ -7,10 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
-    show DetailedApiRequestError;
+import 'package:chunked_stream/chunked_stream.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart'
+    show DetailedApiRequestError, ApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
@@ -95,20 +96,46 @@ extension BucketExt on Bucket {
     String objectName, {
     int? offset,
     int? length,
+    int? maxSize,
   }) async {
+    if (offset != null && offset < 0) {
+      throw ArgumentError.value(offset, 'offset must be positive, if given');
+    }
+    if (length != null && length < 0) {
+      throw ArgumentError.value(length, 'length must be positive, if given');
+    }
+    if (maxSize != null && maxSize < 0) {
+      throw ArgumentError.value(maxSize, 'maxSize must be positive, if given');
+    }
+    if (maxSize != null && length != null && maxSize > length) {
+      throw MaximumSizeExceeded(maxSize);
+    }
     return retry(
       () async {
         final builder = BytesBuilder(copy: false);
-        await for (final chunk
-            in read(objectName, offset: offset, length: length)) {
+        final stream = read(objectName, offset: offset, length: length)
+            .timeout(Duration(seconds: 30));
+        await for (final chunk in stream) {
           builder.add(chunk);
+          if (maxSize != null && builder.length > maxSize) {
+            throw MaximumSizeExceeded(maxSize);
+          }
         }
         return builder.toBytes();
       },
+      maxAttempts: 3,
       retryIf: (e) {
-        return e is DetailedApiRequestError &&
-            e.status != null &&
-            e.status! >= 500;
+        if (e is TimeoutException) {
+          return true; // Timeouts we can retry
+        }
+        if (e is IOException) {
+          return true; // I/O issues are worth retrying
+        }
+        if (e is DetailedApiRequestError) {
+          final status = e.status;
+          return status == null || status >= 500; // 5xx errors are retried
+        }
+        return e is ApiRequestError; // Unknown API errors are retried
       },
     );
   }
