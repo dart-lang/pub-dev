@@ -112,13 +112,17 @@ extension BucketExt on Bucket {
     }
     return retry(
       () async {
+        final timeout = Duration(seconds: 30);
+        final deadline = clock.now().add(timeout);
         final builder = BytesBuilder(copy: false);
-        final stream = read(objectName, offset: offset, length: length)
-            .timeout(Duration(seconds: 30));
+        final stream = read(objectName, offset: offset, length: length);
         await for (final chunk in stream) {
           builder.add(chunk);
           if (maxSize != null && builder.length > maxSize) {
             throw MaximumSizeExceeded(maxSize);
+          }
+          if (deadline.isAfter(clock.now())) {
+            throw TimeoutException('Reading $objectName timed out.', timeout);
           }
         }
         return builder.toBytes();
