@@ -107,7 +107,7 @@ extension BucketExt on Bucket {
     if (maxSize != null && maxSize < 0) {
       throw ArgumentError.value(maxSize, 'maxSize must be positive, if given');
     }
-    if (maxSize != null && length != null && maxSize > length) {
+    if (maxSize != null && length != null && maxSize < length) {
       throw MaximumSizeExceeded(maxSize);
     }
     return retry(
