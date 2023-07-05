@@ -52,6 +52,8 @@ final _log = Logger('pub.task.backend');
 /// Larger content will be still served, but not from the cache.
 const _gzippedTaskResultCacheSizeThreshold = 1 * 1024 * 1024;
 
+final gzippedUtf8JsonCodec = json.fuse(utf8).fuse(gzip);
+
 /// Register a [CloudCompute] pool for task workers in the current
 /// service scope.
 ///
@@ -875,7 +877,7 @@ class TaskBackend {
     }
     try {
       return Summary.fromJson(
-        json.fuse(utf8).fuse(gzip).decode(data) as Map<String, dynamic>,
+        gzippedUtf8JsonCodec.decode(data) as Map<String, dynamic>,
       );
     } on FormatException catch (e, st) {
       _log.shout('Summary for $package/$version is malformed', e, st);
