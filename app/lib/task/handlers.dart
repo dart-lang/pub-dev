@@ -38,8 +38,6 @@ const _safeMimeTypes = {
   // should not add it here.
 };
 
-final _jsongzip = json.fuse(utf8).fuse(gzip);
-
 Future<shelf.Response> handleDartDoc(
   shelf.Request request,
   String package,
@@ -62,7 +60,7 @@ Future<shelf.Response> handleDartDoc(
           return const <int>[]; // store empty string for missing data
         }
         final latestVersion = await packageBackend.getLatestVersion(package);
-        final dataJson = _jsongzip.decode(dataGz);
+        final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
         final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
         final html = page.render(DartDocPageOptions(
           package: package,
