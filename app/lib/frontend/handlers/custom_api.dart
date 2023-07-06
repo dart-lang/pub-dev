@@ -45,7 +45,7 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse({}, status: 404);
   }
 
-  if (requestContext.experimentalFlags.showSandboxedOutput) {
+  if (requestContext.experimentalFlags.showSandboxedDartdoc) {
     final status = await taskBackend.packageStatus(package);
     return jsonResponse({
       'name': package,

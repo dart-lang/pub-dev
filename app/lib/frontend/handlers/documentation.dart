@@ -46,7 +46,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   final String requestMethod = request.method.toUpperCase();
 
-  if (requestContext.experimentalFlags.showSandboxedOutput) {
+  if (requestContext.experimentalFlags.showSandboxedDartdoc) {
     if (requestMethod != 'HEAD' && requestMethod != 'GET') {
       // TODO: Should probably be "method not supported"!
       return notFoundHandler(request);
