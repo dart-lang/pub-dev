@@ -45,19 +45,22 @@ void _setupGenericPeriodicTasks() {
         aquireAbort.complete();
       });
 
-      final lock = GlobalLock.create(
-        'send-outgoing-emails',
-        expiration: Duration(minutes: 20),
-      );
-      await lock.withClaim(
-        (claim) async {
-          await emailBackend.trySendAllOutgoingEmails(
-            stopAfter: Duration(minutes: 10),
-          );
-        },
-        abort: aquireAbort,
-      );
-      aquireTimer.cancel();
+      try {
+        final lock = GlobalLock.create(
+          'send-outgoing-emails',
+          expiration: Duration(minutes: 20),
+        );
+        await lock.withClaim(
+          (claim) async {
+            await emailBackend.trySendAllOutgoingEmails(
+              stopAfter: Duration(minutes: 10),
+            );
+          },
+          abort: aquireAbort,
+        );
+      } finally {
+        aquireTimer.cancel();
+      }
     },
   );
 
