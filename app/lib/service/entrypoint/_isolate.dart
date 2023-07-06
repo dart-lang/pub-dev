@@ -21,8 +21,11 @@ import 'tools.dart';
 
 final _random = Random.secure();
 
+/// Marker class for inter-isolate messages.
+sealed class Message {}
+
 /// Initializing message send from the controller isolate to the new one.
-class EntryMessage {
+class EntryMessage extends Message {
   final SendPort protocolSendPort;
   final SendPort aliveSendPort;
   final SendPort statsSendPort;
@@ -35,7 +38,7 @@ class EntryMessage {
 }
 
 /// Message sent from the isolate to indicate that it is ready with the initialization.
-class ReadyMessage {
+class ReadyMessage extends Message {
   final SendPort? statsConsumerPort;
 
   ReadyMessage({
@@ -44,7 +47,7 @@ class ReadyMessage {
 }
 
 /// Message sent from the isolate with arbitrary text.
-class DebugMessage {
+class DebugMessage extends Message {
   final String text;
 
   DebugMessage(this.text);
@@ -241,8 +244,7 @@ class _Isolate {
       if (e is ReadyMessage && !ready.isCompleted) {
         _readyMessage = e;
         ready.complete();
-      }
-      if (e is DebugMessage) {
+      } else if (e is DebugMessage) {
         logger.info('Debug message from $id: ${e.text}');
       }
     });
