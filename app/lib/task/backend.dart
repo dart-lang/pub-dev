@@ -581,7 +581,7 @@ class TaskBackend {
         .encode(sha256.convert(utf8.encode(versionState.instance!)).bytes)
         .substring(0, 32);
 
-    final uploadInfos = await Future.wait([
+    final [blobUploadInfo, indexUploadInfo] = await Future.wait([
       '$blobId.blob',
       'index.json',
     ].map(
@@ -591,12 +591,11 @@ class TaskBackend {
         expiration,
       ),
     ));
-    assert(uploadInfos.length == 2);
 
     return api.UploadTaskResultResponse(
-      blobId: '$blobId.blob',
-      blob: uploadInfos[0],
-      index: uploadInfos[1],
+      blobId: '$runtimeVersion/$package/$version/$blobId.blob',
+      blob: blobUploadInfo,
+      index: indexUploadInfo,
     );
   }
 
@@ -750,21 +749,16 @@ class TaskBackend {
         }
         final index = BlobIndex.fromBytes(bytes);
         final blobId = index.blobId;
-        if (!_blobIdPattern.hasMatch(blobId)) {
+        // We must check that the blobId points to a file under:
+        //  `$runtimeVersion/$package/$version/`
+        // Technically, the blob index is produced by the sandbox and we cannot
+        // trust it to not be malformed.
+        if (!_blobIdPattern.hasMatch(blobId) ||
+            !blobId.startsWith('$runtimeVersion/$package/$version/')) {
           _log.warning('invalid blobId: "$blobId" in index in "$path"');
           return BlobIndex.empty(blobId: '');
         }
-        // We change the [blobId] when we store in the cache, because this frees
-        // us from having to cache the selected [runtimeVersion] next to the
-        // [BlobIndex].
-        // We don't store the full path of the blob as blobId, when creating the
-        // initial [BlobIndex], because it is created by `pub_worker` inside the
-        // untrusted sandboxed environment. And we do want to allow the worker
-        // to point at other files, than what is under:
-        //  `$runtimeVersion/$package/$version/`
-        return index.update(
-          blobId: '$runtimeVersion/$package/$version/$blobId',
-        );
+        return index;
       });
 
   /// Return gzipped result from task for the given [package]/[version] or
@@ -912,7 +906,7 @@ class TaskBackend {
       '/packages/$package/versions/$version/gen-res/$path';
 }
 
-final _blobIdPattern = RegExp(r'^[0-9a-fA-F]+\.blob$');
+final _blobIdPattern = RegExp(r'^[^/]+/[^/]+/[^/]+/[0-9a-fA-F]+\.blob$');
 
 /// Extract `<token>` from `Authorization: Bearer <token>`.
 String? _extractBearerToken(shelf.Request request) {
