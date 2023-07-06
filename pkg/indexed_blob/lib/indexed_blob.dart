@@ -124,6 +124,17 @@ class IndexedBlobBuilder {
     _finished = true;
     await _blob.close();
 
+    final bytes = _buildIndexBytes(
+      blobId: blobId,
+      index: _index,
+    );
+    return BlobIndex.fromBytes(bytes);
+  }
+
+  static Uint8List _buildIndexBytes({
+    required String blobId,
+    required Map<String, dynamic> index,
+  }) {
     final out = StringBuffer();
     final w = jsonStringWriter(out);
     w.startObject();
@@ -143,13 +154,11 @@ class IndexedBlobBuilder {
 
     // Add index
     w.addKey('index');
-    _addMap(w, _index);
+    _addMap(w, index);
 
     w.endObject();
 
-    final bytes = utf8.encoder.convert(out.toString());
-
-    return BlobIndex.fromBytes(bytes);
+    return utf8.encoder.convert(out.toString());
   }
 }
 
@@ -231,6 +240,10 @@ class BlobIndex {
   BlobIndex.fromBytes(List<int> indexFile)
       : _indexFile =
             indexFile is Uint8List ? indexFile : Uint8List.fromList(indexFile);
+
+  BlobIndex.empty({required String blobId})
+      : _indexFile =
+            IndexedBlobBuilder._buildIndexBytes(blobId: blobId, index: {});
 
   /// Get the free-form [String] given as `blobId` when the blob was built.
   ///

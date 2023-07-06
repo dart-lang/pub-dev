@@ -767,13 +767,13 @@ class TaskBackend {
           if (bytes != null) break;
         }
         if (bytes == null) {
-          return null;
+          return BlobIndex.empty(blobId: '');
         }
         final index = BlobIndex.fromBytes(bytes);
         final blobId = index.blobId;
         if (!_blobIdPattern.hasMatch(blobId)) {
           _log.warning('invalid blobId: "$blobId" in index in "$path"');
-          return null;
+          return BlobIndex.empty(blobId: '');
         }
         // We change the [blobId] when we store in the cache, because this frees
         // us from having to cache the selected [runtimeVersion] next to the
