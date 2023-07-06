@@ -328,16 +328,18 @@ class CachePatterns {
           .withTTL(Duration(hours: 4))['$blobId/$path'];
 
   /// Cache for task status.
-  Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
-      .withPrefix('task-status/')
-      .withTTL(Duration(hours: 3))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PackageStateInfo s) => s.toJson(),
-        decode: (data) =>
-            PackageStateInfo.fromJson(data as Map<String, dynamic>),
-      ))[package];
+  Entry<PackageStateInfo> taskPackageStatus(
+          String package, String runtimeVersion) =>
+      _cache
+          .withPrefix('task-status/')
+          .withTTL(Duration(hours: 3))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (PackageStateInfo s) => s.toJson(),
+            decode: (data) =>
+                PackageStateInfo.fromJson(data as Map<String, dynamic>),
+          ))['$package/$runtimeVersion'];
 
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<List<int>> dartdocHtmlBytes(

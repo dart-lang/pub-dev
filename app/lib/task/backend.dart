@@ -38,6 +38,7 @@ import 'package:pub_dev/task/models.dart'
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
+        PackageVersionStatus,
         initialTimestamp,
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
@@ -724,7 +725,7 @@ class TaskBackend {
   /// [package] and [version].
   Future<void> _purgeCache(String package, String version) async {
     await Future.wait([
-      cache.taskPackageStatus(package).purge(),
+      cache.taskPackageStatus(package, runtimeVersion).purge(),
       cache.taskResultIndex(package, version).purge(),
     ]);
     await purgeScorecardData(package, package, isLatest: true);
@@ -739,6 +740,13 @@ class TaskBackend {
       await cache.taskResultIndex(package, version).get(() async {
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
+          // check package status whether we had any non-failed index for the version
+          final ps = await packageStatus(package, forRuntimeVersion: rt);
+          final vs = ps.versions[version];
+          if (vs == null || vs.status == PackageVersionStatus.failed) {
+            return BlobIndex.empty(blobId: '');
+          }
+          // try to load the index
           final pathPrefix = '$rt/$package/$version';
           final path = '$pathPrefix/index.json';
           final bytes = await _readFromBucket(path);
@@ -883,17 +891,21 @@ class TaskBackend {
   }
 
   /// Get status information for a package being analyzed.
-  Future<PackageStateInfo> packageStatus(String package) async {
-    final status = await cache.taskPackageStatus(package).get(() async {
-      final key = PackageState.createKey(_db, runtimeVersion, package);
+  Future<PackageStateInfo> packageStatus(
+    String package, {
+    String? forRuntimeVersion,
+  }) async {
+    final rv = forRuntimeVersion ?? runtimeVersion;
+    final status = await cache.taskPackageStatus(package, rv).get(() async {
+      final key = PackageState.createKey(_db, rv, package);
       final state = await dbService.lookupOrNull<PackageState>(key);
 
       return PackageStateInfo(
         package: package,
-        versions: state?.versions ?? {},
+        versions: state?.versions ?? const {},
       );
     });
-    return status ?? PackageStateInfo(package: package, versions: {});
+    return status ?? PackageStateInfo(package: package, versions: const {});
   }
 
   /// Create a URL for getting a resource created in pana.

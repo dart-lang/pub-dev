@@ -207,7 +207,7 @@ Future<void> schedule(
         return;
       }
       assert(description != null);
-      await cache.taskPackageStatus(state.package).purge();
+      await cache.taskPackageStatus(state.package, runtimeVersion).purge();
 
       scheduleMicrotask(() async {
         var rollbackPackageState = true;
@@ -281,7 +281,9 @@ Future<void> schedule(
               s.derivePendingAt();
               tx.insert(s);
             });
-            await cache.taskPackageStatus(state.package).purge();
+            await cache
+                .taskPackageStatus(state.package, runtimeVersion)
+                .purge();
           }
         }
       });
