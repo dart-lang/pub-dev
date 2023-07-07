@@ -49,11 +49,14 @@ class ExperimentalFlags {
     return ExperimentalFlags(_allFlags);
   }
 
-  /// Whether to return content from sandboxed output.
-  bool get showSandboxedOutput => _enabled.contains('sandbox');
+  /// Whether to return screenshots from sandboxed output.
+  bool get showSandboxedScreenshot => !_enabled.contains('nosandbox');
 
   /// Whether to return ScoreCard data from sandboxed output.
-  bool get showSandboxedScoreCard => !_enabled.contains('nosandbox');
+  bool get showSandboxedDartdoc => !_enabled.contains('nosandbox');
+
+  /// Whether to return ScoreCard data from sandboxed output.
+  bool get showSandboxedScoreCard => _enabled.contains('sandbox');
 
   /// Whether to show topics associated with a package.
   bool get showTopics => true;

@@ -4,7 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2023.07.06`.
  * Removing all fallback runtimeVersions.
- * Displaying sandboxed `ScoreCard` data.
+ * Displaying sandboxed screenshots and dartdoc.
 
 ## `20230623t075300-all`
  * Bumped runtimeVersion to `2023.06.21`.

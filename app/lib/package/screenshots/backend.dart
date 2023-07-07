@@ -71,7 +71,7 @@ class ImageStorage {
   // TODO(zarah) add functionality to garbage collect bucket entries.
 
   String getImageUrl(String package, String version, String imageFilePath) {
-    if (requestContext.experimentalFlags.showSandboxedOutput) {
+    if (requestContext.experimentalFlags.showSandboxedScreenshot) {
       return taskBackend.resourceUrl(package, version, imageFilePath);
     }
     return bucket.objectUrl([package, version, imageFilePath].join('/'));
