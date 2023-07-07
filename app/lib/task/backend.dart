@@ -743,14 +743,18 @@ class TaskBackend {
         if (!status.versions.containsKey(version)) {
           return BlobIndex.empty(blobId: '');
         }
+        final versionStatus = status.versions[version]!.status;
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
           // skip current runtime if it is a know failure or hasn't been started yet.
-          if (rt == runtimeVersion) {
-            final versionStatus = status.versions[version]!.status;
-            if (versionStatus == PackageVersionStatus.failed) {
-              continue;
-            }
+          if (rt == runtimeVersion &&
+              versionStatus == PackageVersionStatus.failed) {
+            continue;
+          }
+          // skip old runtime(s) when current status is not pending
+          if (rt != runtimeVersion &&
+              versionStatus != PackageVersionStatus.pending) {
+            continue;
           }
           final pathPrefix = '$rt/$package/$version';
           final path = '$pathPrefix/index.json';
