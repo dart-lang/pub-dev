@@ -38,6 +38,7 @@ import 'package:pub_dev/task/models.dart'
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
+        PackageVersionStatus,
         initialTimestamp,
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
@@ -744,6 +745,13 @@ class TaskBackend {
         }
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
+          // skip current runtime if it is a know failure or hasn't been started yet.
+          if (rt == runtimeVersion) {
+            final versionStatus = status.versions[version]!.status;
+            if (versionStatus == PackageVersionStatus.failed) {
+              continue;
+            }
+          }
           final pathPrefix = '$rt/$package/$version';
           final path = '$pathPrefix/index.json';
           final bytes = await _readFromBucket(path);
