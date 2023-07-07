@@ -744,13 +744,12 @@ class TaskBackend {
           return BlobIndex.empty(blobId: '');
         }
         final versionStatus = status.versions[version]!.status;
+        // if current version is failed, don't load earlier results
+        if (versionStatus == PackageVersionStatus.failed) {
+          return BlobIndex.empty(blobId: '');
+        }
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
-          // skip current runtime if it is a know failure or hasn't been started yet.
-          if (rt == runtimeVersion &&
-              versionStatus == PackageVersionStatus.failed) {
-            continue;
-          }
           // skip old runtime(s) when current status is not pending
           if (rt != runtimeVersion &&
               versionStatus != PackageVersionStatus.pending) {
