@@ -737,6 +737,11 @@ class TaskBackend {
   /// package name, version and randomized blobId.
   Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
       await cache.taskResultIndex(package, version).get(() async {
+        // Don't try to load index if we don't consider the version for analysis.
+        final status = await packageStatus(package);
+        if (!status.versions.containsKey(version)) {
+          return BlobIndex.empty(blobId: '');
+        }
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
           final pathPrefix = '$rt/$package/$version';
