@@ -738,28 +738,27 @@ class TaskBackend {
   Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
       await cache.taskResultIndex(package, version).get(() async {
         // Try runtimeVersions in order of age
-        var path = '$runtimeVersion/$package/$version/index.json';
-        List<int>? bytes;
         for (final rt in acceptedRuntimeVersions) {
-          path = '$rt/$package/$version/index.json';
-          bytes = await _readFromBucket(path);
-          if (bytes != null) break;
+          final pathPrefix = '$rt/$package/$version';
+          final path = '$pathPrefix/index.json';
+          final bytes = await _readFromBucket(path);
+          if (bytes == null) {
+            continue;
+          }
+          final index = BlobIndex.fromBytes(bytes);
+          final blobId = index.blobId;
+          // We must check that the blobId points to a file under:
+          //  `$runtimeVersion/$package/$version/`
+          // Technically, the blob index is produced by the sandbox and we cannot
+          // trust it to not be malformed.
+          if (!_blobIdPattern.hasMatch(blobId) ||
+              !blobId.startsWith('$pathPrefix/')) {
+            _log.warning('invalid blobId: "$blobId" in index in "$path"');
+            return BlobIndex.empty(blobId: '');
+          }
+          return index;
         }
-        if (bytes == null) {
-          return BlobIndex.empty(blobId: '');
-        }
-        final index = BlobIndex.fromBytes(bytes);
-        final blobId = index.blobId;
-        // We must check that the blobId points to a file under:
-        //  `$runtimeVersion/$package/$version/`
-        // Technically, the blob index is produced by the sandbox and we cannot
-        // trust it to not be malformed.
-        if (!_blobIdPattern.hasMatch(blobId) ||
-            !blobId.startsWith('$runtimeVersion/$package/$version/')) {
-          _log.warning('invalid blobId: "$blobId" in index in "$path"');
-          return BlobIndex.empty(blobId: '');
-        }
-        return index;
+        return BlobIndex.empty(blobId: '');
       });
 
   /// Return gzipped result from task for the given [package]/[version] or
