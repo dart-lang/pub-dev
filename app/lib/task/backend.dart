@@ -742,20 +742,21 @@ class TaskBackend {
           final pathPrefix = '$rt/$package/$version';
           final path = '$pathPrefix/index.json';
           final bytes = await _readFromBucket(path);
-          if (bytes != null) {
-            final index = BlobIndex.fromBytes(bytes);
-            final blobId = index.blobId;
-            // We must check that the blobId points to a file under:
-            //  `$runtimeVersion/$package/$version/`
-            // Technically, the blob index is produced by the sandbox and we cannot
-            // trust it to not be malformed.
-            if (!_blobIdPattern.hasMatch(blobId) ||
-                !blobId.startsWith('$pathPrefix/')) {
-              _log.warning('invalid blobId: "$blobId" in index in "$path"');
-              return BlobIndex.empty(blobId: '');
-            }
-            return index;
+          if (bytes == null) {
+            continue;
           }
+          final index = BlobIndex.fromBytes(bytes);
+          final blobId = index.blobId;
+          // We must check that the blobId points to a file under:
+          //  `$runtimeVersion/$package/$version/`
+          // Technically, the blob index is produced by the sandbox and we cannot
+          // trust it to not be malformed.
+          if (!_blobIdPattern.hasMatch(blobId) ||
+              !blobId.startsWith('$pathPrefix/')) {
+            _log.warning('invalid blobId: "$blobId" in index in "$path"');
+            return BlobIndex.empty(blobId: '');
+          }
+          return index;
         }
         return BlobIndex.empty(blobId: '');
       });
