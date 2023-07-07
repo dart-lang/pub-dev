@@ -22,8 +22,9 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.07.06',
+  '2023.07.10',
   // Fallback runtime versions.
+  '2023.07.06',
   // NOTE: 2 previous runtimeVersions are disabled, enable as 2023.07.06 ages
   // TODO: Update gcBeforeRuntimeVersion later
 ];

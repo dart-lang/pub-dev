@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2023.07.10`.
+ * Upgraded pana to `0.21.35`.
 
 ## `20230710t123000-all`
  * Enable sandboxed output for sandboxed screenshots, dartdoc and ScoreCard.
