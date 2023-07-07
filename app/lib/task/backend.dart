@@ -38,6 +38,7 @@ import 'package:pub_dev/task/models.dart'
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
+        PackageVersionStatus,
         initialTimestamp,
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
@@ -737,8 +738,23 @@ class TaskBackend {
   /// package name, version and randomized blobId.
   Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
       await cache.taskResultIndex(package, version).get(() async {
+        // Don't try to load index if we don't consider the version for analysis.
+        final status = await packageStatus(package);
+        if (!status.versions.containsKey(version)) {
+          return BlobIndex.empty(blobId: '');
+        }
+        final versionStatus = status.versions[version]!.status;
+        // if current version is failed, don't load earlier results
+        if (versionStatus == PackageVersionStatus.failed) {
+          return BlobIndex.empty(blobId: '');
+        }
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
+          // skip old runtime(s) when current status is not pending
+          if (rt != runtimeVersion &&
+              versionStatus != PackageVersionStatus.pending) {
+            continue;
+          }
           final pathPrefix = '$rt/$package/$version';
           final path = '$pathPrefix/index.json';
           final bytes = await _readFromBucket(path);
