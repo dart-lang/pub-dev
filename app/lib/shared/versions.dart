@@ -25,6 +25,7 @@ const acceptedRuntimeVersions = <String>[
   '2023.07.06',
   // Fallback runtime versions.
   // NOTE: 2 previous runtimeVersions are disabled, enable as 2023.07.06 ages
+  // TODO: Update gcBeforeRuntimeVersion later
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -44,7 +45,7 @@ final fallbackRuntimeVersions = acceptedRuntimeVersions.skip(1).toList();
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-final gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
+final gcBeforeRuntimeVersion = '2023.06.21'; // acceptedRuntimeVersions.last;
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
