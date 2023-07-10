@@ -772,6 +772,10 @@ class TaskBackend {
             _log.warning('invalid blobId: "$blobId" in index in "$path"');
             return BlobIndex.empty(blobId: '');
           }
+          if (bytes.length > 1024 * 1024) {
+            _log.info(
+                '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
+          }
           return index;
         }
         return BlobIndex.empty(blobId: '');
