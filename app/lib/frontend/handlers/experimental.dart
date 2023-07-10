@@ -50,10 +50,10 @@ class ExperimentalFlags {
   }
 
   /// Whether to return screenshots from sandboxed output.
-  bool get showSandboxedScreenshot => _enabled.contains('sandbox');
+  bool get showSandboxedScreenshot => !_enabled.contains('nosandbox');
 
   /// Whether to return ScoreCard data from sandboxed output.
-  bool get showSandboxedDartdoc => _enabled.contains('sandbox');
+  bool get showSandboxedDartdoc => !_enabled.contains('nosandbox');
 
   /// Whether to return ScoreCard data from sandboxed output.
   bool get showSandboxedScoreCard => _enabled.contains('sandbox');
