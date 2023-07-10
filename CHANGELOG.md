@@ -4,6 +4,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Disable sandboxed output for sandboxed screenshots and dartdoc
 
+## `20230709t025700-all`
+ * Disable sandboxed output for sandboxed screenshots and dartdoc
+
 ## `20230707t103900-all`
  * Bumped runtimeVersion to `2023.07.06`.
  * Removing all fallback runtimeVersions.
