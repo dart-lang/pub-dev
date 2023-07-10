@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20230710t085200-all`
  * Enable sandboxed output for sandboxed screenshots and dartdoc
 
 ## `20230709t025700-all`
