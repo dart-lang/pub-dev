@@ -2,7 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Enable sandboxed output for sandboxed screenshots and dartdoc
+ * Enable sandboxed output for sandboxed screenshots, dartdoc and ScoreCard.
 
 ## `20230709t025700-all`
  * Disable sandboxed output for sandboxed screenshots and dartdoc
