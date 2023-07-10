@@ -46,7 +46,11 @@ void main() {
           ),
         );
 
-        final card = await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
+        final card = await scoreCardBackend.getScoreCardData(
+          'oxygen',
+          '1.0.0',
+          skipSandboxedOutput: true,
+        );
         expect(json.decode(json.encode(card!.toJson())), {
           'packageName': 'oxygen',
           'packageVersion': '1.0.0',
@@ -103,7 +107,11 @@ void main() {
           ),
         );
 
-        final card = await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
+        final card = await scoreCardBackend.getScoreCardData(
+          'oxygen',
+          '1.0.0',
+          skipSandboxedOutput: true,
+        );
         expect(json.decode(json.encode(card!.dartdocReport!.toJson())), {
           'timestamp': isNotNull,
           'reportStatus': 'aborted',

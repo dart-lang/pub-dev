@@ -27,7 +27,11 @@ void main() {
       fn: () async {
         await processJobsWithFakePanaRunner();
         await processJobsWithDartdocRunner();
-        final card = await scoreCardBackend.getScoreCardData('retry', '3.1.0');
+        final card = await scoreCardBackend.getScoreCardData(
+          'retry',
+          '3.1.0',
+          skipSandboxedOutput: true,
+        );
 
         expect(card!.grantedPubPoints, greaterThan(25));
         expect(card.maxPubPoints, greaterThan(60));

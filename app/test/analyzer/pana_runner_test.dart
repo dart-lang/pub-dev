@@ -29,7 +29,11 @@ void main() {
       fn: () async {
         await processJobsWithPanaRunner();
         await processJobsWithFakeDartdocRunner();
-        final card = await scoreCardBackend.getScoreCardData('retry', '3.1.1');
+        final card = await scoreCardBackend.getScoreCardData(
+          'retry',
+          '3.1.1',
+          skipSandboxedOutput: true,
+        );
 
         expect(card!.grantedPubPoints, greaterThan(120));
         expect(card.maxPubPoints, card.grantedPubPoints);
@@ -83,8 +87,11 @@ void main() {
         await processJobsWithPanaRunner();
         await processJobsWithFakeDartdocRunner();
 
-        final card =
-            await scoreCardBackend.getScoreCardData(package, packageVersion);
+        final card = await scoreCardBackend.getScoreCardData(
+          package,
+          packageVersion,
+          skipSandboxedOutput: true,
+        );
 
         if (!tryWebpTool()) {
           expect(card!.panaReport!.screenshots, isEmpty);

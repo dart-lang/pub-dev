@@ -8,8 +8,10 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -116,8 +118,10 @@ class ScoreCardBackend {
     String packageName,
     String? packageVersion, {
     bool onlyCurrent = false,
-    bool showSandboxedOutput = false,
+    @visibleForTesting bool skipSandboxedOutput = false,
   }) async {
+    final showSandboxedOutput = !skipSandboxedOutput &&
+        requestContext.experimentalFlags.showSandboxedScoreCard;
     if (packageVersion == null || packageVersion == 'latest') {
       packageVersion = await packageBackend.getLatestVersion(packageName);
       if (packageVersion == null) {
