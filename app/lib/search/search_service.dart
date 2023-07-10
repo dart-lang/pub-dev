@@ -49,23 +49,8 @@ class IndexInfo {
 
 /// Package search index and lookup.
 abstract class PackageIndex {
-  Future<void> addPackage(PackageDocument doc);
-  Future<void> addPackages(Iterable<PackageDocument> documents);
-  Future<void> removePackage(String package);
   PackageSearchResult search(ServiceSearchQuery query);
-
-  /// A package index may be accessed while the initialization phase is still
-  /// running. Once the initialization is done (either via a snapshot or a
-  /// `Package`-scan completes), the updater should call this method to indicate
-  /// to the frontend load-balancer that the instance now accepts requests.
-  Future<void> markReady();
   Future<IndexInfo> indexInfo();
-
-  /// Returns the source update timestamp of the [package].
-  DateTime? getPackageSourceLastUpdated(String package);
-
-  /// Returns the map of package names and their versions in the index.
-  Map<String, String> getPackageNamesNotRecentlyUpdated(Duration threshold);
 }
 
 /// A summary information about a package that goes into the search index.

@@ -247,10 +247,11 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerJobBackend(JobBackend(dbService));
     registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
-    registerPackageIndex(InMemoryPackageIndex(
+    final inMemoryPackageIndex = InMemoryPackageIndex(
       popularityValueFn: (p) => popularityStorage.lookup(p),
-    ));
-    registerIndexUpdater(IndexUpdater(dbService, packageIndex));
+    );
+    registerPackageIndex(inMemoryPackageIndex);
+    registerIndexUpdater(IndexUpdater(dbService, inMemoryPackageIndex));
     registerPopularityStorage(
       PopularityStorage(
           storageService.bucket(activeConfiguration.popularityDumpBucketName!)),

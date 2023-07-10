@@ -65,13 +65,13 @@ class InMemoryPackageIndex implements PackageIndex {
     _updatedPackages.addLast(package);
   }
 
-  @override
+  /// Returns the source update timestamp of the [package].
   DateTime? getPackageSourceLastUpdated(String package) {
     final doc = _packages[package];
     return doc?.sourceUpdated ?? doc?.timestamp;
   }
 
-  @override
+  /// Returns the map of package names and their versions in the index.
   Map<String, String> getPackageNamesNotRecentlyUpdated(Duration threshold) {
     final now = clock.now();
     return Map.fromEntries(_packages.values
@@ -79,12 +79,14 @@ class InMemoryPackageIndex implements PackageIndex {
         .map((doc) => MapEntry(doc.package, doc.version!)));
   }
 
-  @override
+  /// A package index may be accessed while the initialization phase is still
+  /// running. Once the initialization is done (either via a snapshot or a
+  /// `Package`-scan completes), the updater should call this method to indicate
+  /// to the frontend load-balancer that the instance now accepts requests.
   Future<void> markReady() async {
     _isReady = true;
   }
 
-  @override
   Future<void> addPackage(PackageDocument doc) async {
     _packages[doc.package] = doc;
 
@@ -122,7 +124,6 @@ class InMemoryPackageIndex implements PackageIndex {
     _invalidateHitCaches();
   }
 
-  @override
   Future<void> addPackages(Iterable<PackageDocument> documents) async {
     for (PackageDocument doc in documents) {
       await addPackage(doc);
@@ -130,7 +131,6 @@ class InMemoryPackageIndex implements PackageIndex {
     await _likeTracker._updateScores();
   }
 
-  @override
   Future<void> removePackage(String package) async {
     final doc = _packages.remove(package);
     if (doc == null) return;
