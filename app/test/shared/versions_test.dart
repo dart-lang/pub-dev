@@ -162,6 +162,20 @@ and do not format to also bump the runtimeVersion.''',
     }
   });
 
+  test('gcBeforeRuntimeVersion != runtimeVersion', () {
+    // gcBeforeRuntimeVersion must not be runtimeVersion
+    // It is okay that acceptedRuntimeVersions only contains the current
+    // runtimeVersion. This usually happens when we have breaking changes in
+    // the data versioned by runtimeVersion.
+    // BUT: gcBeforeRuntimeVersion MUST NOT BE EQUAL to runtimeVersion!
+    // Otherwise, we will essentially have the latest version deleting the
+    // runtimeVersion used by older versions. This will make it impossible to
+    // roll traffic backwards.
+    // Avoid this by temporarily hardcoding gcBeforeRuntimeVersion to not be
+    // the last version of acceptedRuntimeVersions.
+    expect(gcBeforeRuntimeVersion != runtimeVersion, isTrue);
+  });
+
   test('GC is returning correct values for known versions', () {
     expect(shouldGCVersion('2000.01.01'), isTrue);
     expect(shouldGCVersion('3000.01.01'), isFalse);
