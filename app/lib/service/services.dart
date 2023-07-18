@@ -62,6 +62,7 @@ import '../task/cloudcompute/fakecloudcompute.dart';
 import '../task/cloudcompute/googlecloudcompute.dart';
 import '../tool/utils/http.dart';
 import 'announcement/backend.dart';
+import 'entrypoint/logging.dart';
 import 'secret/backend.dart';
 
 final _logger = Logger('pub.services');
@@ -77,6 +78,9 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     throw StateError('Already in withServices scope.');
   }
   return withAppEngineServices(() async {
+    if (envConfig.isRunningInAppengine) {
+      setupAppEngineLogging();
+    }
     return await fork(() async {
       // retrying Datastore client
       final origDbService = dbService;

@@ -16,7 +16,6 @@ import '../../shared/env_config.dart';
 import '../../shared/scheduler_stats.dart';
 
 import '../services.dart';
-import 'logging.dart';
 import 'tools.dart';
 
 final _random = Random.secure();
@@ -139,7 +138,6 @@ Future runIsolates({
   required int workerCount,
 }) async {
   await withServices(() async {
-    _setupServiceIsolate();
     _verifyStampFile();
     try {
       final runner = IsolateRunner(logger: logger);
@@ -344,12 +342,6 @@ class _Isolate {
   }
 }
 
-void _setupServiceIsolate() {
-  if (envConfig.isRunningInAppengine) {
-    setupAppEngineLogging();
-  }
-}
-
 Future<void> _wrapper(List fnAndMessage) async {
   final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
@@ -362,7 +354,6 @@ Future<void> _wrapper(List fnAndMessage) async {
     return await Chain.capture(
       () async {
         try {
-          _setupServiceIsolate();
           return await fn(message);
         } catch (e, st) {
           print('Uncaught exception in isolate. $e $st');

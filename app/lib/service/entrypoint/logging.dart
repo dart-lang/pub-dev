@@ -28,63 +28,46 @@ void setupAppEngineLogging() {
       try {
         logging = loggingService;
       } on StateError {
-        final level = _loggingLevel2AppengineLoggingLevel[record.level];
-        if (level != null) {
-          var message = record.message;
-
-          if (record.loggerName.isNotEmpty) {
-            message = '${record.loggerName}: $message';
-          }
-
-          void addBlock(String header, String body) {
-            body = body.replaceAll('\n', '\n    ');
-            message = '$message\n\n$header:\n    $body';
-          }
-
-          if (record.error != null) addBlock('Error', '${record.error}');
-          if (record.stackTrace != null) {
-            addBlock('Stack', '${record.stackTrace}');
-          }
-
-          print(jsonEncode({
-            'severity': level.name.toUpperCase(),
-            'message': message,
-            'logging.googleapis.com/labels': {
-              'logger': record.loggerName,
-            },
-            'time': record.time.toUtc().toIso8601String(),
-          }));
-          return;
-        }
+        // pass
       }
 
-      if (logging != null) {
-        final level = _loggingLevel2AppengineLoggingLevel[record.level];
-        if (level != null) {
-          var message = record.message;
+      final level = _loggingLevel2AppengineLoggingLevel[record.level];
+      if (level == null) {
+        return;
+      }
+      var message = record.message;
 
-          if (record.loggerName.isNotEmpty) {
-            message = '${record.loggerName}: $message';
-          }
+      if (record.loggerName.isNotEmpty) {
+        message = '${record.loggerName}: $message';
+      }
 
-          void addBlock(String header, String body) {
-            body = body.replaceAll('\n', '\n    ');
-            message = '$message\n\n$header:\n    $body';
-          }
+      void addBlock(String header, String body) {
+        body = body.replaceAll('\n', '\n    ');
+        message = '$message\n\n$header:\n    $body';
+      }
 
-          if (record.error != null) addBlock('Error', '${record.error}');
-          if (record.stackTrace != null) {
-            addBlock('Stack', '${record.stackTrace}');
-          }
+      if (record.error != null) addBlock('Error', '${record.error}');
+      if (record.stackTrace != null) {
+        addBlock('Stack', '${record.stackTrace}');
+      }
 
-          logging.log(
-            level,
-            message,
-            timestamp: record.time,
-          );
-          if (record.error != null && record.stackTrace != null) {
-            logging.reportError(level, record.error!, record.stackTrace!);
-          }
+      if (logging == null) {
+        print(jsonEncode({
+          'severity': level.name.toUpperCase(),
+          'message': message,
+          'logging.googleapis.com/labels': {
+            'logger': record.loggerName,
+          },
+          'time': record.time.toUtc().toIso8601String(),
+        }));
+      } else {
+        logging.log(
+          level,
+          message,
+          timestamp: record.time,
+        );
+        if (record.error != null && record.stackTrace != null) {
+          logging.reportError(level, record.error!, record.stackTrace!);
         }
       }
     });
