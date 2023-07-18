@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -17,6 +16,7 @@ import '../../shared/env_config.dart';
 import '../../shared/scheduler_stats.dart';
 
 import '../services.dart';
+import 'logging.dart';
 import 'tools.dart';
 
 final _random = Random.secure();
@@ -346,7 +346,7 @@ class _Isolate {
 
 void _setupServiceIsolate() {
   if (envConfig.isRunningInAppengine) {
-    useLoggingPackageAdaptor();
+    setupAppEngineLogging();
   }
 }
 
