@@ -134,9 +134,9 @@ Future runIsolates({
   required Logger logger,
   Future<void> Function(EntryMessage message)? frontendEntryPoint,
   Future<void> Function(EntryMessage message)? workerEntryPoint,
+  Future<void> Function(EntryMessage message)? jobEntryPoint,
   Duration? deadWorkerTimeout,
   required int frontendCount,
-  required int workerCount,
 }) async {
   await withServices(() async {
     _setupServiceIsolate();
@@ -155,7 +155,15 @@ Future runIsolates({
         await runner.startIsolates(
           kind: 'worker',
           entryPoint: workerEntryPoint,
-          count: workerCount,
+          count: 1,
+          deadTimeout: deadWorkerTimeout,
+        );
+      }
+      if (jobEntryPoint != null) {
+        await runner.startIsolates(
+          kind: 'job',
+          entryPoint: jobEntryPoint,
+          count: 1,
           deadTimeout: deadWorkerTimeout,
         );
       }

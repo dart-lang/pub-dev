@@ -39,10 +39,10 @@ class AnalyzerCommand extends Command {
     await runIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,
+      jobEntryPoint: _jobMain,
       workerEntryPoint: _workerMain,
       deadWorkerTimeout: Duration(hours: 1),
       frontendCount: 1,
-      workerCount: 1,
     );
   }
 }
@@ -56,6 +56,16 @@ Future _frontendMain(EntryMessage message) async {
   await runHandler(logger, analyzerServiceHandler);
 }
 
+Future _jobMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+
+  await popularityStorage.start();
+  final jobProcessor = AnalyzerJobProcessor(
+      aliveCallback: () => message.aliveSendPort.send(null));
+  final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
+  await jobMaintenance.run();
+}
+
 Future _workerMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
 
@@ -65,10 +75,8 @@ Future _workerMain(EntryMessage message) async {
   await popularityStorage.start();
   unawaited(_setupDependencyTracker());
 
-  final jobProcessor = AnalyzerJobProcessor(
-      aliveCallback: () => message.aliveSendPort.send(null));
-  final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
-  await jobMaintenance.run();
+  // wait indefinitely
+  await Completer().future;
 }
 
 Future<void> _setupDependencyTracker() async {

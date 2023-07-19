@@ -36,10 +36,10 @@ class DartdocCommand extends Command {
     await runIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,
+      jobEntryPoint: _jobMain,
       workerEntryPoint: _workerMain,
       deadWorkerTimeout: Duration(hours: 1),
       frontendCount: 1,
-      workerCount: 1,
     );
   }
 }
@@ -53,12 +53,10 @@ Future _frontendMain(EntryMessage message) async {
   await runHandler(logger, dartdocServiceHandler);
 }
 
-Future _workerMain(EntryMessage message) async {
+Future _jobMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
 
-  setupDartdocPeriodicTasks();
   await popularityStorage.start();
-
   final jobProcessor = DartdocJobProcessor(
     aliveCallback: () => message.aliveSendPort.send(null),
   );
@@ -72,4 +70,14 @@ Future _workerMain(EntryMessage message) async {
   });
 
   await jobMaintenance.run();
+}
+
+Future _workerMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+
+  setupDartdocPeriodicTasks();
+  await popularityStorage.start();
+
+  // wait indefinitely
+  await Completer().future;
 }
