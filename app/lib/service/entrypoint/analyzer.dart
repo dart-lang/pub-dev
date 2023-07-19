@@ -68,11 +68,6 @@ Future _workerMain(EntryMessage message) async {
   final jobProcessor = AnalyzerJobProcessor(
       aliveCallback: () => message.aliveSendPort.send(null));
   final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
-
-  Timer.periodic(const Duration(minutes: 15), (_) async {
-    message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
-  });
-
   await jobMaintenance.run();
 }
 
