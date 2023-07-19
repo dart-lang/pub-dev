@@ -137,7 +137,6 @@ Future runIsolates({
   Future<void> Function(EntryMessage message)? jobEntryPoint,
   Duration? deadWorkerTimeout,
   required int frontendCount,
-  required int workerCount,
 }) async {
   await withServices(() async {
     _setupServiceIsolate();
@@ -156,7 +155,7 @@ Future runIsolates({
         await runner.startIsolates(
           kind: 'worker',
           entryPoint: workerEntryPoint,
-          count: workerCount,
+          count: 1,
           deadTimeout: deadWorkerTimeout,
         );
       }

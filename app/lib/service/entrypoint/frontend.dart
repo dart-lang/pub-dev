@@ -39,7 +39,6 @@ class DefaultCommand extends Command {
       logger: _logger,
       frontendEntryPoint: _main,
       frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
-      workerCount: 1,
     );
   }
 }

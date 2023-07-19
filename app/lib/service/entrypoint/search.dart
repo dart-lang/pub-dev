@@ -38,7 +38,6 @@ class SearchCommand extends Command {
       frontendEntryPoint: _main,
       workerEntryPoint: _worker,
       frontendCount: 1,
-      workerCount: 1,
     );
   }
 }
