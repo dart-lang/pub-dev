@@ -89,8 +89,6 @@ Future<void> main(List<String> args) async {
   final toolEnv = await ToolEnvironment.create(
     dartSdkDir: dartSdk?.path,
     flutterSdkDir: flutterSdk?.path,
-    futureDartSdkDir: InstalledSdk.futureSdk(dartSdks)?.path,
-    futureFlutterSdkDir: InstalledSdk.futureSdk(flutterSdks)?.path,
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
     environment: {'CI': 'true'},
