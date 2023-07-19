@@ -53,6 +53,11 @@ void setupAppEngineLogging() {
         addBlock('Stack', '${record.stackTrace}');
       }
 
+      // Truncated messages over 200kb
+      if (message.length > 200 * 1024) {
+        message = message.substring(0, 200 * 1024) + '\n[truncted due to size]';
+      }
+
       // Unless logging a request, we just log directly to stdout
       if (logging == null || logging is! LoggingImpl) {
         print(jsonEncode({
