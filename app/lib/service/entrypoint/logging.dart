@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
+// ignore: implementation_imports
+import 'package:appengine/src/logging_impl.dart' show LoggingImpl;
 import 'package:logging/logging.dart';
 
 final Map<Level, LogLevel?> _loggingLevel2AppengineLoggingLevel = {
@@ -51,7 +53,8 @@ void setupAppEngineLogging() {
         addBlock('Stack', '${record.stackTrace}');
       }
 
-      if (logging == null) {
+      // Unless logging a request, we just log directly to stdout
+      if (logging == null || logging is! LoggingImpl) {
         print(jsonEncode({
           'severity': level.name.toUpperCase(),
           'message': message,
