@@ -4,6 +4,7 @@ import 'package:appengine/appengine.dart';
 // ignore: implementation_imports
 import 'package:appengine/src/logging_impl.dart' show LoggingImpl;
 import 'package:logging/logging.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 final Map<Level, LogLevel?> _loggingLevel2AppengineLoggingLevel = {
   Level.OFF: null,
@@ -48,14 +49,21 @@ void setupAppEngineLogging() {
         message = '$message\n\n$header:\n    $body';
       }
 
-      if (record.error != null) addBlock('Error', '${record.error}');
-      if (record.stackTrace != null) {
-        addBlock('Stack', '${record.stackTrace}');
+      final error = record.error;
+      if (error != null) addBlock('Error', '$error');
+      var stackTrace = record.stackTrace;
+      if (stackTrace is Chain) {
+        stackTrace = stackTrace.terse;
+      }
+      if (stackTrace != null) {
+        addBlock('Stack', '$stackTrace');
       }
 
       // Truncated messages over 200kb
       if (message.length > 200 * 1024) {
-        message = message.substring(0, 200 * 1024) + '\n[truncted due to size]';
+        message = message.substring(0, 190 * 1024) +
+            '...\n[truncated due to size]\n...' +
+            message.substring(190 * 1024, 200 * 1024);
       }
 
       // Unless logging a request, we just log directly to stdout
@@ -69,13 +77,16 @@ void setupAppEngineLogging() {
           'time': record.time.toUtc().toIso8601String(),
         }));
       } else {
+        // If inside a request, we'll log using appengine logging service, this
+        // ensures that our logs works with existing metrics. Eventually, we
+        // can consider migrating to structured logging on stdout.
         logging.log(
           level,
           message,
           timestamp: record.time,
         );
-        if (record.error != null && record.stackTrace != null) {
-          logging.reportError(level, record.error!, record.stackTrace!);
+        if (error != null && stackTrace != null) {
+          logging.reportError(level, error, stackTrace);
         }
       }
     });
