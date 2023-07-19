@@ -17,7 +17,7 @@ import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
 import 'backend.dart';
-import 'search_service.dart';
+import 'mem_index.dart';
 
 final Logger _logger = Logger('pub.search.updater');
 
@@ -30,7 +30,7 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
-  final PackageIndex _packageIndex;
+  final InMemoryPackageIndex _packageIndex;
   Timer? _statsTimer;
 
   IndexUpdater(this._db, this._packageIndex);
@@ -109,7 +109,7 @@ class IndexUpdater implements TaskRunner {
           sleep: const Duration(minutes: 10),
           skipHistory: true,
         ),
-        _PeriodicUpdateTaskSource(),
+        _PeriodicUpdateTaskSource(_packageIndex),
       ],
     );
     scheduler.run();
@@ -153,13 +153,16 @@ class IndexUpdater implements TaskRunner {
 /// It scans the current search snapshot every two hours, and selects the
 /// packages that have not been updated in the last 5 days.
 class _PeriodicUpdateTaskSource implements TaskSource {
+  final InMemoryPackageIndex _packageIndex;
+  _PeriodicUpdateTaskSource(this._packageIndex);
+
   @override
   Stream<Task> startStreaming() async* {
     for (;;) {
       await Future.delayed(Duration(hours: 2));
       final now = clock.now();
       final toBeUpdated =
-          packageIndex.getPackageNamesNotRecentlyUpdated(Duration(days: 5));
+          _packageIndex.getPackageNamesNotRecentlyUpdated(Duration(days: 5));
       _logger.info(
           'Periodic scheduler found ${toBeUpdated.length} packages to update.');
       for (final e in toBeUpdated.entries) {
