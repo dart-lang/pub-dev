@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
@@ -139,7 +138,6 @@ Future runIsolates({
   required int frontendCount,
 }) async {
   await withServices(() async {
-    _setupServiceIsolate();
     _verifyStampFile();
     try {
       final runner = IsolateRunner(logger: logger);
@@ -352,12 +350,6 @@ class _Isolate {
   }
 }
 
-void _setupServiceIsolate() {
-  if (envConfig.isRunningInAppengine) {
-    useLoggingPackageAdaptor();
-  }
-}
-
 Future<void> _wrapper(List fnAndMessage) async {
   final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
@@ -366,28 +358,16 @@ Future<void> _wrapper(List fnAndMessage) async {
   //       https://github.com/dart-lang/sdk/issues/52513
   final timer = Timer.periodic(Duration(milliseconds: 250), (_) {});
 
-  Future run() async {
+  Future<void> run() async {
     return await Chain.capture(
       () async {
-        try {
-          _setupServiceIsolate();
-          return await fn(message);
-        } catch (e, st) {
-          print('Uncaught exception in isolate. $e $st');
-          logger.severe('Uncaught exception in isolate.', e, st);
-          rethrow;
-        }
+        return await fn(message);
       },
       onError: (e, st) {
-        print('Uncaught exception in isolate. $e $st');
-        logger.severe('Uncaught exception in isolate.', e, st);
-        if (e is Exception) {
-          throw e;
-        }
-        if (e is Error) {
-          throw e;
-        }
-        throw Exception('Uncaught exception: $e $st');
+        // TODO: Enable, if we undo the hack for logging:
+        // print('Uncaught exception in isolate. $e $st');
+        logger.severe('Uncaught exception in isolate.', e, st.terse);
+        throw Exception('Crashing isolate due to uncaught exception: $e');
       },
     );
   }
