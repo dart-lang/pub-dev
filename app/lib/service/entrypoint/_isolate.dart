@@ -14,7 +14,6 @@ import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../../shared/env_config.dart';
-import '../../shared/scheduler_stats.dart';
 
 import '../services.dart';
 import 'tools.dart';
@@ -28,22 +27,16 @@ sealed class Message {}
 class EntryMessage extends Message {
   final SendPort protocolSendPort;
   final SendPort aliveSendPort;
-  final SendPort statsSendPort;
 
   EntryMessage({
     required this.protocolSendPort,
     required this.aliveSendPort,
-    required this.statsSendPort,
   });
 }
 
 /// Message sent from the isolate to indicate that it is ready with the initialization.
 class ReadyMessage extends Message {
-  final SendPort? statsConsumerPort;
-
-  ReadyMessage({
-    this.statsConsumerPort,
-  });
+  ReadyMessage();
 }
 
 /// Message sent from the isolate with arbitrary text.
@@ -202,20 +195,17 @@ class _Isolate {
   late Isolate _isolate;
 
   final _aliveReceivePort = ReceivePort();
-  final _statsReceivePort = ReceivePort();
   final _errorReceivePort = ReceivePort();
   final _exitReceivePort = ReceivePort();
   final _protocolReceivePort = ReceivePort();
 
   ReadyMessage? _readyMessage;
   bool get isReady => _readyMessage != null;
-  SendPort? get statsConsumerPort => _readyMessage?.statsConsumerPort;
 
   StreamSubscription? _protocolSubscription;
   StreamSubscription? _errorSubscription;
   StreamSubscription? _exitSubscription;
   StreamSubscription? _aliveSubscription;
-  StreamSubscription? _statsSubscription;
   Timer? _autokillTimer;
 
   final _doneCompleter = Completer();
@@ -238,7 +228,6 @@ class _Isolate {
         EntryMessage(
           protocolSendPort: _protocolReceivePort.sendPort,
           aliveSendPort: _aliveReceivePort.sendPort,
-          statsSendPort: _statsReceivePort.sendPort,
         ),
       ],
       onError: _errorReceivePort.sendPort,
@@ -288,13 +277,6 @@ class _Isolate {
       await close();
     });
 
-    _statsSubscription = _statsReceivePort.cast<Map>().listen((Map stats) {
-      updateLatestStats(stats);
-      for (final i in runner._isolates) {
-        i.statsConsumerPort?.send(stats);
-      }
-    });
-
     _setupAutokillTimer(deadTimeout);
 
     await ready.future;
@@ -334,7 +316,6 @@ class _Isolate {
       logger.info('About to close $id ...');
       _autokillTimer?.cancel();
       await _protocolSubscription?.cancel();
-      await _statsSubscription?.cancel();
       await _aliveSubscription?.cancel();
       await _errorSubscription?.cancel();
       await _exitSubscription?.cancel();

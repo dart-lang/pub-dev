@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 
 import '../../dartdoc/dartdoc_runner.dart';
 import '../../dartdoc/handlers.dart';
-import '../../job/backend.dart';
 import '../../job/job.dart';
 import '../../shared/datastore.dart';
 import '../../shared/env_config.dart';
@@ -47,9 +46,7 @@ class DartdocCommand extends Command {
 Future _frontendMain(EntryMessage message) async {
   final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(ReadyMessage(
-    statsConsumerPort: statsConsumer.sendPort,
-  ));
+  message.protocolSendPort.send(ReadyMessage());
   await runHandler(logger, dartdocServiceHandler);
 }
 
@@ -61,14 +58,6 @@ Future _jobMain(EntryMessage message) async {
     aliveCallback: () => message.aliveSendPort.send(null),
   );
   final jobMaintenance = JobMaintenance(dbService, jobProcessor);
-
-  Timer.periodic(const Duration(minutes: 15), (_) async {
-    message.statsSendPort.send({
-      'backend': await jobBackend.stats(JobService.dartdoc),
-      'processor': jobProcessor.stats(),
-    });
-  });
-
   await jobMaintenance.run();
 }
 

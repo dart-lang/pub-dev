@@ -50,9 +50,7 @@ class AnalyzerCommand extends Command {
 Future _frontendMain(EntryMessage message) async {
   final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(ReadyMessage(
-    statsConsumerPort: statsConsumer.sendPort,
-  ));
+  message.protocolSendPort.send(ReadyMessage());
   await runHandler(logger, analyzerServiceHandler);
 }
 
