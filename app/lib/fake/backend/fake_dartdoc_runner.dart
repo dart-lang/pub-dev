@@ -52,26 +52,29 @@ class FakeDartdocRunner implements DartdocRunner {
     required bool useLongerTimeout,
     required String outputDir,
   }) async {
-    final random = Random('$package/$version'.hashCode);
-
-    // basic content, existence checked by the job processor
-    await File(p.join(outputDir, 'index.html'))
-        .writeAsString('<html><head></head><body>index.html</body></html>');
-    // JS search index, existence checked by the job processor
-    await File(p.join(outputDir, 'index.json')).writeAsString(json.encode({}));
-    // pub search data
-    final pubData = PubDartdocData(
-      coverage: Coverage(documented: random.nextInt(21), total: 20),
-      apiElements: [
-        // TODO: add fake library elements
-      ],
-    );
-    await File(p.join(outputDir, 'pub-data.json'))
-        .writeAsString(json.encode(pubData));
+    final files = fakeDartdocFiles(package, version);
+    for (final e in files.entries) {
+      await File(p.join(outputDir, e.key)).writeAsString(e.value);
+    }
 
     return DartdocRunnerResult(
       args: ['fake_dartdoc', '--input', pkgPath, '--output', outputDir],
       processResult: PanaProcessResult(0, 0, 'OK', ''),
     );
   }
+}
+
+Map<String, String> fakeDartdocFiles(String package, version) {
+  final random = Random('$package/$version'.hashCode);
+  final pubData = PubDartdocData(
+    coverage: Coverage(documented: random.nextInt(21), total: 20),
+    apiElements: [
+      // TODO: add fake library elements
+    ],
+  );
+  return {
+    'index.html': '<html><head></head><body>index.html</body></html>',
+    'index.json': '{}',
+    'pub-data.json': json.encode(pubData),
+  };
 }
