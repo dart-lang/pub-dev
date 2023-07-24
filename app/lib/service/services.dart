@@ -8,7 +8,6 @@ import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
-import 'package:gcloud/datastore.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -152,7 +151,7 @@ Future<R> withFakeServices<R>({
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
-    registerDbService(DatastoreDB(Datastore.withRetry(datastore!)));
+    registerDbService(DatastoreDB(datastore!));
     registerStorageService(storage!);
     IOServer? frontendServer;
     if (configuration == null) {

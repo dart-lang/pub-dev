@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: gcloud
-      sha256: d58dc34430387b1994f471ab531072e3cdf9694dcdf69e51dceafe5761546cb7
+      sha256: "6dfe75e6b9c04211f21d6f737ec581683c8f9c1fa11fbd8c04469b4aa8fe82ca"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.8"
+    version: "0.8.10"
   glob:
     dependency: transitive
     description:
@@ -233,6 +233,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  retry:
+    dependency: transitive
+    description:
+      name: retry
+      sha256: "822e118d5b3aafed083109c72d5f484c6dc66707885e07c0fbcb8b986bba7efc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   shelf:
     dependency: transitive
     description:
