@@ -117,7 +117,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       );
       registerCloudComputeClient(gceClient);
       registerScopeExitCallback(gceClient.close);
-      registertaskWorkerCloudCompute(createGoogleCloudCompute(
+      registerTaskWorkerCloudCompute(createGoogleCloudCompute(
         project: activeConfiguration.taskWorkerProject!,
         network: activeConfiguration.taskWorkerNetwork!,
         poolLabel:
@@ -187,7 +187,7 @@ Future<R> withFakeServices<R>({
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
 
-    registertaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
+    registerTaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 
     return await _withPubServices(() async {
       await topPackages.start();

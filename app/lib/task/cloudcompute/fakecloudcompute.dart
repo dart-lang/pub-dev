@@ -16,10 +16,16 @@ import 'cloudcompute.dart';
 
 final _log = Logger('pub.fakecloudcompute');
 
+typedef InstanceRunner = Future<void> Function(FakeCloudInstance instance);
+
 @sealed
 class FakeCloudCompute extends CloudCompute {
   var _nextInstanceId = 1;
   final _instances = <FakeCloudInstance>{};
+  final InstanceRunner _instanceRunner;
+
+  FakeCloudCompute({InstanceRunner? instanceRunner})
+      : _instanceRunner = instanceRunner ?? _defaultInstanceRunner;
 
   @override
   final List<String> zones = const ['zone-a', 'zone-b'];
@@ -127,6 +133,14 @@ class FakeCloudCompute extends CloudCompute {
     _instances.add(instance._copyWith(state: InstanceState.terminated));
   }
 
+  Future<void> _deleteTerminatedInstances() async {
+    for (final i in [..._instances]) {
+      if (i.state == InstanceState.terminated) {
+        await delete(i.zone, i.instanceName);
+      }
+    }
+  }
+
   var _running = false;
   Completer<void> _doneRunningInstance = Completer()..complete();
 
@@ -148,6 +162,7 @@ class FakeCloudCompute extends CloudCompute {
     // If not running, there are no pending instance, or an instance is already
     // running, then we're done.
     if (!_running || instance == null || !_doneRunningInstance.isCompleted) {
+      await _deleteTerminatedInstances();
       return;
     }
 
@@ -157,14 +172,7 @@ class FakeCloudCompute extends CloudCompute {
     scheduleMicrotask(() async {
       _log.info('Starting to run ${instance.instanceName}');
       try {
-        final proc = await Process.start(
-          Platform.resolvedExecutable,
-          ['run', 'pub_worker', ...instance.arguments],
-          workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
-          mode: ProcessStartMode.inheritStdio,
-        );
-        final exitCode = await proc.exitCode;
-        _log.info('pub_worker exit code: $exitCode');
+        await _instanceRunner(instance);
       } finally {
         // Don't terminate the instance if it's already deleted.
         if (_instances.any((i) => i.instanceName == instance.instanceName)) {
@@ -200,6 +208,17 @@ class FakeCloudCompute extends CloudCompute {
     _running = false;
     await _doneRunningInstance.future;
   }
+}
+
+Future<void> _defaultInstanceRunner(FakeCloudInstance instance) async {
+  final proc = await Process.start(
+    Platform.resolvedExecutable,
+    ['run', 'pub_worker', ...instance.arguments],
+    workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
+    mode: ProcessStartMode.inheritStdio,
+  );
+  final exitCode = await proc.exitCode;
+  _log.info('pub_worker exit code: $exitCode');
 }
 
 @sealed

@@ -57,7 +57,7 @@ final gzippedUtf8JsonCodec = json.fuse(utf8).fuse(gzip);
 /// service scope.
 ///
 /// This is mainly used to inject a fake [CloudCompute] for testing.
-void registertaskWorkerCloudCompute(CloudCompute workerPool) =>
+void registerTaskWorkerCloudCompute(CloudCompute workerPool) =>
     ss.register(#_taskWorkerCloudCompute, workerPool);
 
 /// Get the active [CloudCompute] pool for task workers.

@@ -4,11 +4,10 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' show HtmlParser;
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/task/backend.dart';
-import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
@@ -20,9 +19,6 @@ const String goldenDir = 'test/task/testdata/goldens';
 
 // TODO: generalize golden testing, use env var for regenerating all goldens.
 final _regenerateGoldens = false;
-
-/// Get hold of the [FakeCloudCompute]
-FakeCloudCompute get cloud => taskWorkerCloudCompute as FakeCloudCompute;
 
 // We use a small test profile without flutter packages, because we have to
 // run pana+dartdoc for all these package versions, naturally this is slow.
@@ -46,28 +42,7 @@ final _testProfile = TestProfile(
 
 void main() {
   testWithProfile('output of oxygen', testProfile: _testProfile, fn: () async {
-    // Backfill tracking state
-    await taskBackend.backfillTrackingState();
-
-    /// Start instance execution
-    cloud.startInstanceExecution();
-
-    // Start listening for instances, before we create any. This avoids any
-    // race conditions.
-    final instancesCreated = cloud.onCreated.take(1).toList();
-    final instancesDeleted = cloud.onDeleted.take(1).toList();
-
-    // Start the taskbackend, this will scheduled instances and track state
-    // driving scheduling.
-    await taskBackend.start();
-
-    // Wait for instances to be created.
-    await instancesCreated;
-
-    // Wait for instances to be deleted, this indicates that they are done
-    // doing whatever work they planned to do.
-    await instancesDeleted;
-
+    await processTasksLocallyWithPubWorker();
     // Make assertions about generated documentation
     final doc = await _fetchHtmlDocument(
       '/documentation/oxygen/latest/oxygen/oxygen-library.html',
@@ -95,12 +70,6 @@ void main() {
         '/documentation/',
       },
     );
-
-    // Stop the task backend, and instance execution
-    await Future.wait([
-      taskBackend.stop(),
-      cloud.stopInstanceExecution(),
-    ]);
   }, timeout: Timeout(Duration(minutes: 15)));
 }
 
