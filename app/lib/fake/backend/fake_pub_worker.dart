@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/task_payload.dart';
@@ -16,8 +17,8 @@ import 'package:indexed_blob/indexed_blob.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
-import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -87,7 +88,8 @@ Future<void> processTasksWithFakePanaAndDartdoc() async {
               final packageStatus = await scoreCardBackend.getPackageStatus(
                   payload.package, v.version);
 
-              final dartdocFiles = fakeDartdocFiles(payload.package, v.version);
+              final dartdocFiles =
+                  _fakeDartdocFiles(payload.package, v.version);
               final docData = PubDartdocData.fromJson(json.decode(
                 dartdocFiles['pub-data.json']!,
               ) as Map<String, dynamic>);
@@ -168,6 +170,28 @@ Future<void> processTasksWithFakePanaAndDartdoc() async {
     registerTaskWorkerCloudCompute(fakeCloudCompute);
     await processTasksLocallyWithPubWorker();
   });
+}
+
+Map<String, String> _fakeDartdocFiles(String package, String version) {
+  final random = Random('$package/$version'.hashCode);
+  final pubData = PubDartdocData(
+    coverage: Coverage(documented: random.nextInt(21), total: 20),
+    apiElements: [
+      // TODO: add fake library elements
+    ],
+  );
+  return {
+    'index.html': json.encode(DartDocPage(
+      title: 'index',
+      description: 'index description',
+      breadcrumbs: [],
+      content: 'content',
+      left: 'left',
+      right: 'right',
+    ).toJson()),
+    'index.json': '{}',
+    'pub-data.json': json.encode(pubData),
+  };
 }
 
 /// Upload [content] to [destination] as returned from pub.dev task API.

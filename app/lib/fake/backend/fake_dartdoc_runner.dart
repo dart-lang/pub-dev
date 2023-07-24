@@ -52,7 +52,7 @@ class FakeDartdocRunner implements DartdocRunner {
     required bool useLongerTimeout,
     required String outputDir,
   }) async {
-    final files = fakeDartdocFiles(package, version);
+    final files = _fakeDartdocFiles(package, version);
     for (final e in files.entries) {
       await File(p.join(outputDir, e.key)).writeAsString(e.value);
     }
@@ -64,7 +64,7 @@ class FakeDartdocRunner implements DartdocRunner {
   }
 }
 
-Map<String, String> fakeDartdocFiles(String package, version) {
+Map<String, String> _fakeDartdocFiles(String package, String version) {
   final random = Random('$package/$version'.hashCode);
   final pubData = PubDartdocData(
     coverage: Coverage(documented: random.nextInt(21), total: 20),
