@@ -82,10 +82,6 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       setupAppEngineLogging();
     }
     return await fork(() async {
-      // retrying Datastore client
-      final origDbService = dbService;
-      registerDbService(RetryDatastoreDB(origDbService));
-
       // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
@@ -155,7 +151,7 @@ Future<R> withFakeServices<R>({
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
-    registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
+    registerDbService(DatastoreDB(datastore!));
     registerStorageService(storage!);
     IOServer? frontendServer;
     if (configuration == null) {

@@ -50,10 +50,10 @@ packages:
     dependency: "direct main"
     description:
       name: appengine
-      sha256: "16eb4d01b4fa399b31180eaf7371f16095b3f8d7e8f0b40e96c0565ea2d10d02"
+      sha256: "1aadf5a9e97279fbc6392514ef6162112ebda52a768d77486008e351b94e2536"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.5"
+    version: "0.13.6"
   archive:
     dependency: transitive
     description:
@@ -305,10 +305,10 @@ packages:
     dependency: "direct main"
     description:
       name: gcloud
-      sha256: d58dc34430387b1994f471ab531072e3cdf9694dcdf69e51dceafe5761546cb7
+      sha256: "6dfe75e6b9c04211f21d6f737ec581683c8f9c1fa11fbd8c04469b4aa8fe82ca"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.8"
+    version: "0.8.10"
   glob:
     dependency: transitive
     description:
