@@ -7,7 +7,7 @@ dependencies:
     path: ../pkg/_popularity
   _pub_shared:
     path: ../pkg/_pub_shared
-  appengine: '^0.13.2'
+  appengine: ^0.13.6
   args: '^2.0.0'
   basics: ^0.10.0
   chunked_stream: ^1.1.0
@@ -30,7 +30,7 @@ dependencies:
   json_annotation: '^4.3.0'
   lints: ^2.0.0
   logging: '>=0.9.3 <2.0.0'
-  markdown: ^7.1.0
+  markdown: ^7.1.1
   meta: ^1.1.2
   mime: '>=0.9.3 <2.0.0'
   neat_cache: ^2.0.1
