@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
+import 'package:gcloud/datastore.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -82,10 +83,6 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       setupAppEngineLogging();
     }
     return await fork(() async {
-      // retrying Datastore client
-      final origDbService = dbService;
-      registerDbService(RetryDatastoreDB(origDbService));
-
       // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
@@ -155,7 +152,7 @@ Future<R> withFakeServices<R>({
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
-    registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
+    registerDbService(DatastoreDB(Datastore.withRetry(datastore!)));
     registerStorageService(storage!);
     IOServer? frontendServer;
     if (configuration == null) {
