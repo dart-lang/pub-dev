@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/task_api.dart' as api;
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -73,7 +74,6 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 class TaskBackend {
   final DatastoreDB _db;
-  final CloudCompute _cloudCompute;
   final Bucket _bucket;
 
   /// If [stop] has been called to stop background processes.
@@ -87,7 +87,7 @@ class TaskBackend {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
-  TaskBackend(this._db, this._cloudCompute, this._bucket);
+  TaskBackend(this._db, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///
@@ -146,7 +146,8 @@ class TaskBackend {
           // kill overdue VMs.
           try {
             await lock.withClaim((claim) async {
-              await schedule(claim, _cloudCompute, _db, abort: aborted);
+              await schedule(claim, taskWorkerCloudCompute, _db,
+                  abort: aborted);
             }, abort: aborted);
           } catch (e, st) {
             // Log this as very bad, and then move on. Nothing good can come
@@ -706,7 +707,7 @@ class TaskBackend {
       _log.info('instance $instance is done, calling APIs to terminate it!');
       scheduleMicrotask(() async {
         try {
-          await _cloudCompute.delete(zone!, instance!);
+          await taskWorkerCloudCompute.delete(zone!, instance!);
         } catch (e, st) {
           _log.severe(
             'failed to delete task-worker w. zone/instance: $zone/$instance',
@@ -966,6 +967,29 @@ class TaskBackend {
   /// This is handled by [handleTaskResource].
   String resourceUrl(String package, String version, String path) =>
       '/packages/$package/versions/$version/gen-res/$path';
+
+  /// Backfills the tracking state and then processes in all packages with
+  /// calling [processPayload].
+  ///
+  /// TODO: rework the callback method into Future<TaskResult> Function(String package, String version);
+  ///       to handle the upload boilerplate inside this method.
+  Future<void> backfillAndProcessAllPackages(
+    Future<void> Function(Payload payload) processPayload,
+  ) async {
+    await backfillTrackingState();
+    await for (final state in dbService.query<PackageState>().run()) {
+      final zone = taskWorkerCloudCompute.zones.first;
+      // ignore: invalid_use_of_visible_for_testing_member
+      final payload = await schedulePackageInZone(
+        dbService,
+        state,
+        zone,
+        taskWorkerCloudCompute.generateInstanceName(),
+      );
+      if (payload == null) continue;
+      await processPayload(payload);
+    }
+  }
 }
 
 final _blobIdPattern = RegExp(r'^[^/]+/[^/]+/[^/]+/[0-9a-fA-F]+\.blob$');

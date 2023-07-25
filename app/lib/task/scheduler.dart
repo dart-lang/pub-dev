@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
+import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -154,60 +155,18 @@ Future<void> schedule(
         .map<Future<void>>((state) async {
       pendingPackagesReviewed += 1;
 
-      String? payload;
-      String? description;
       final instanceName = compute.generateInstanceName();
       final zone = pickZone();
 
-      await withRetryTransaction(db, (tx) async {
-        final s = await tx.lookupOrNull<PackageState>(state.key);
-        if (s == null) {
-          payload = null; // presumably the package was deleted.
-          return;
-        }
-
-        final now = clock.now();
-        final pendingVersions = s.pendingVersions(at: now);
-        if (pendingVersions.isEmpty) {
-          payload = null; // do not schedule anything
-          return;
-        }
-
-        // Update PackageState
-        s.versions!.addAll({
-          for (final v in pendingVersions)
-            v: PackageVersionStateInfo(
-              scheduled: now,
-              attempts: s.versions![v]!.attempts + 1,
-              zone: zone,
-              instance: instanceName,
-              secretToken: createUuid(),
-            ),
-        });
-        s.derivePendingAt();
-        tx.insert(s);
-
-        // Create payload
-        payload = json.encode(Payload(
-          package: s.package,
-          pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
-          versions: pendingVersions.map((v) => VersionTokenPair(
-                version: v,
-                token: s.versions![v]!.secretToken!,
-              )),
-        ));
-
-        // Create human readable description for GCP console.
-        description =
-            'package:${s.package} analysis of ${pendingVersions.length} '
-            'versions.';
-      });
-
+      final payload =
+          await schedulePackageInZone(db, state, zone, instanceName);
       if (payload == null) {
         return;
       }
-      assert(description != null);
-      await cache.taskPackageStatus(state.package).purge();
+      // Create human readable description for GCP console.
+      final description =
+          'package:${payload.package} analysis of ${payload.versions.length} '
+          'versions.';
 
       scheduleMicrotask(() async {
         var rollbackPackageState = true;
@@ -220,8 +179,8 @@ Future<void> schedule(
             zone: zone,
             instanceName: instanceName,
             dockerImage: activeConfiguration.taskWorkerImage!,
-            arguments: [payload!],
-            description: description!,
+            arguments: [json.encode(payload)],
+            description: description,
           );
           rollbackPackageState = false;
         } on ZoneExhaustedException catch (e, st) {
@@ -304,4 +263,51 @@ Future<void> schedule(
     // If we are waiting for quota, then we sleep a minute before checking again
     await sleepOrAborted(Duration(minutes: 1), since: iterationStart);
   }
+}
+
+@visibleForTesting
+Future<Payload?> schedulePackageInZone(DatastoreDB db, PackageState state,
+    String zone, String instanceName) async {
+  final payload = await withRetryTransaction(db, (tx) async {
+    final s = await tx.lookupOrNull<PackageState>(state.key);
+    if (s == null) {
+      // presumably the package was deleted.
+      return null;
+    }
+
+    final now = clock.now();
+    final pendingVersions = s.pendingVersions(at: now);
+    if (pendingVersions.isEmpty) {
+      // do not schedule anything
+      return null;
+    }
+
+    // Update PackageState
+    s.versions!.addAll({
+      for (final v in pendingVersions)
+        v: PackageVersionStateInfo(
+          scheduled: now,
+          attempts: s.versions![v]!.attempts + 1,
+          zone: zone,
+          instance: instanceName,
+          secretToken: createUuid(),
+        ),
+    });
+    s.derivePendingAt();
+    tx.insert(s);
+
+    // Create payload
+    return Payload(
+      package: s.package,
+      pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
+      versions: pendingVersions.map((v) => VersionTokenPair(
+            version: v,
+            token: s.versions![v]!.secretToken!,
+          )),
+    );
+  });
+  if (payload != null) {
+    await cache.taskPackageStatus(payload.package).purge();
+  }
+  return payload;
 }
