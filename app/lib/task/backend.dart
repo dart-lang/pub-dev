@@ -749,17 +749,12 @@ class TaskBackend {
           return BlobIndex.empty(blobId: '');
         }
         final versionStatus = status.versions[version]!.status;
-        // if current version is failed, don't load earlier results
+        // if analysis has failed, don't try to load results
         if (versionStatus == PackageVersionStatus.failed) {
           return BlobIndex.empty(blobId: '');
         }
         // Try runtimeVersions in order of age
         for (final rt in acceptedRuntimeVersions) {
-          // skip old runtime(s) when current status is not pending
-          if (rt != runtimeVersion &&
-              versionStatus != PackageVersionStatus.pending) {
-            continue;
-          }
           final pathPrefix = '$rt/$package/$version';
           final path = '$pathPrefix/index.json';
           final bytes = await _readFromBucket(path);
@@ -911,13 +906,17 @@ class TaskBackend {
   /// Get status information for a package being analyzed.
   Future<PackageStateInfo> packageStatus(String package) async {
     final status = await cache.taskPackageStatus(package).get(() async {
-      final key = PackageState.createKey(_db, runtimeVersion, package);
-      final state = await dbService.lookupOrNull<PackageState>(key);
-
-      return PackageStateInfo(
-        package: package,
-        versions: state?.versions ?? {},
-      );
+      for (final rt in acceptedRuntimeVersions) {
+        final key = PackageState.createKey(_db, rt, package);
+        final state = await dbService.lookupOrNull<PackageState>(key);
+        if (state != null) {
+          return PackageStateInfo(
+            package: package,
+            versions: state.versions ?? {},
+          );
+        }
+      }
+      return PackageStateInfo(package: package, versions: {});
     });
     return status ?? PackageStateInfo(package: package, versions: {});
   }
