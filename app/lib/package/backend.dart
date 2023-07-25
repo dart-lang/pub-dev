@@ -1161,13 +1161,13 @@ class PackageBackend {
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
     // automatically.
-    unawaited(_postUploadTasks(
+    await _postUploadTasks(
       package,
       newVersion,
       outgoingEmail,
       prevLatestStableVersion: prevLatestStableVersion,
       prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
-    ));
+    );
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
