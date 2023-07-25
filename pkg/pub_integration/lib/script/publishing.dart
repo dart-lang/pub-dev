@@ -133,7 +133,7 @@ class PublishingScript {
       }
 
       if (expectLiveSite) {
-        await _verifyDummyDocumentation();
+        await _verifyRetryDocumentation();
       }
     } finally {
       await _temp.delete(recursive: true);
@@ -197,7 +197,7 @@ class PublishingScript {
     }
   }
 
-  Future<void> _verifyDummyDocumentation() async {
+  Future<void> _verifyRetryDocumentation() async {
     final pageHtml = await _pubHttpClient.getDocumentationPage('retry');
     if (!pageHtml.contains('made with love by dartdoc')) {
       throw Exception('Documentation page is not the output of dartdoc.');
