@@ -336,13 +336,16 @@ class TaskBackend {
 
       final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
       // Lookup Package and PackageVersion in the same transaction.
-      // Await results later to ensure concurrent lookups!
       final packageFuture = tx.lookupOrNull<Package>(pkgKey);
       final packageVersionsFuture =
           tx.query<PackageVersion>(pkgKey).run().toList();
-      final state = await tx.lookupOrNull<PackageState>(stateKey);
+      final stateFuture = tx.lookupOrNull<PackageState>(stateKey);
+      // Ensure we await all futures!
+      await Future.wait([packageFuture, packageVersionsFuture, stateFuture]);
+      final state = await stateFuture;
       final package = await packageFuture;
       final packageVersions = await packageVersionsFuture;
+
       if (package == null) {
         return; // assume package was deleted!
       }
@@ -613,7 +616,9 @@ class TaskBackend {
     String? zone, instance;
     bool isInstanceDone = false;
     final summaryFuture = panaSummary(package, version);
-    final dartdocIndex = await dartdocFile(package, version, 'index.html');
+    final dartdocIndexFuture = dartdocFile(package, version, 'index.html');
+    await Future.wait([summaryFuture, dartdocIndexFuture]);
+    final dartdocIndex = await dartdocIndexFuture;
     final summary = await summaryFuture;
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
