@@ -242,7 +242,7 @@ class IntegrityChecker {
           entityId: '${pm.publisherId} / ${pm.userId}',
         );
 
-        if (_blockedUsers.contains(pm.userId!) &&
+        if (!_blockedUsers.contains(pm.userId!) &&
             publisherAttributes.isAbandoned(pm.publisherId)) {
           yield 'Publisher "${pm.publisherId}" is marked as abandoned, but has non-blocked member ("${pm.userId}").';
         }
