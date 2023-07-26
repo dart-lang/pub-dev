@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
@@ -534,6 +535,10 @@ void main() {
       ));
 
   testWithFakeTime('re-analyzes when dependency is updated', (fakeTime) async {
+    final fakeCloudCompute =
+        FakeCloudCompute(instanceRunner: fakeCloudComputeInstanceRunner);
+    registerTaskWorkerCloudCompute(fakeCloudCompute);
+
     await taskBackend.backfillTrackingState();
     await taskBackend.start();
     await fakeTime.elapse(minutes: 15);

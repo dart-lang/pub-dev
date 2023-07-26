@@ -73,7 +73,7 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 class TaskBackend {
   final DatastoreDB _db;
-  final CloudCompute _cloudCompute;
+  CloudCompute get _cloudCompute => taskWorkerCloudCompute;
   final Bucket _bucket;
 
   /// If [stop] has been called to stop background processes.
@@ -87,7 +87,7 @@ class TaskBackend {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
-  TaskBackend(this._db, this._cloudCompute, this._bucket);
+  TaskBackend(this._db, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///

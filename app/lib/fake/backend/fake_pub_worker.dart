@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
@@ -69,7 +70,6 @@ Future<void> processTasksLocallyWithPubWorker() async {
 Future<void> processTasksWithFakePanaAndDartdoc() async {
   await taskBackend.backfillTrackingState();
   final zone = taskWorkerCloudCompute.zones.first;
-  final fakePanaRunner = FakePanaRunner();
   await for (final state in dbService.query<PackageState>().run()) {
     // ignore: invalid_use_of_visible_for_testing_member
     final payload = await schedulePackageInZone(
@@ -79,90 +79,100 @@ Future<void> processTasksWithFakePanaAndDartdoc() async {
       taskWorkerCloudCompute.generateInstanceName(),
     );
     if (payload == null) continue;
-    for (final v in payload.versions) {
-      final client = httpClientWithAuthorization(
-        tokenProvider: () async => v.token,
-        sessionIdProvider: () async => null,
-        csrfTokenProvider: () async => null,
-      );
-      try {
-        final api = PubApiClient(payload.pubHostedUrl, client: client);
-        await withTempDirectory((tempDir) async {
-          final packageStatus = await scoreCardBackend.getPackageStatus(
-              payload.package, v.version);
+    await _processPayload(payload);
+  }
+}
 
-          final dartdocFiles = _fakeDartdocFiles(payload.package, v.version);
-          final docData = PubDartdocData.fromJson(json.decode(
-            dartdocFiles['pub-data.json']!,
-          ) as Map<String, dynamic>);
-          final docSection = documentationCoverageSection(
-            documented: docData.coverage?.documented ?? 0,
-            total: docData.coverage?.total ?? 0,
+Future<void> _processPayload(Payload payload) async {
+  final fakePanaRunner = FakePanaRunner();
+  for (final v in payload.versions) {
+    final client = httpClientWithAuthorization(
+      tokenProvider: () async => v.token,
+      sessionIdProvider: () async => null,
+      csrfTokenProvider: () async => null,
+    );
+    try {
+      final api = PubApiClient(payload.pubHostedUrl, client: client);
+      await withTempDirectory((tempDir) async {
+        final packageStatus =
+            await scoreCardBackend.getPackageStatus(payload.package, v.version);
+
+        final dartdocFiles = _fakeDartdocFiles(payload.package, v.version);
+        final docData = PubDartdocData.fromJson(json.decode(
+          dartdocFiles['pub-data.json']!,
+        ) as Map<String, dynamic>);
+        final docSection = documentationCoverageSection(
+          documented: docData.coverage?.documented ?? 0,
+          total: docData.coverage?.total ?? 0,
+        );
+
+        late Summary summary;
+        if (packageStatus.isObsolete ||
+            packageStatus.isLegacy ||
+            packageStatus.isDiscontinued) {
+          summary = _emptySummary(payload.package, v.version);
+          dartdocFiles.clear();
+        } else {
+          final s = await fakePanaRunner.analyze(
+            package: payload.package,
+            version: v.version,
+            packageStatus: packageStatus,
           );
+          final updatedReport = s.report?.joinSection(docSection);
+          summary = s.change(report: updatedReport);
+        }
 
-          late Summary summary;
-          if (packageStatus.isObsolete ||
-              packageStatus.isLegacy ||
-              packageStatus.isDiscontinued) {
-            summary = _emptySummary(payload.package, v.version);
-            dartdocFiles.clear();
-          } else {
-            final s = await fakePanaRunner.analyze(
-              package: payload.package,
-              version: v.version,
-              packageStatus: packageStatus,
-            );
-            final updatedReport = s.report?.joinSection(docSection);
-            summary = s.change(report: updatedReport);
-          }
+        final r = await api.taskUploadResult(payload.package, v.version);
 
-          final r = await api.taskUploadResult(payload.package, v.version);
+        final blobFile = File(p.join(tempDir.path, 'files.blob'));
+        final builder = IndexedBlobBuilder(blobFile.openWrite());
 
-          final blobFile = File(p.join(tempDir.path, 'files.blob'));
-          final builder = IndexedBlobBuilder(blobFile.openWrite());
+        Future<void> addFileAsStringGzipped(String path, String content) async {
+          final stream =
+              Stream.fromIterable([gzip.encode(utf8.encode(content))]);
+          await builder.addFile(path, stream);
+        }
 
-          Future<void> addFileAsStringGzipped(
-              String path, String content) async {
-            final stream =
-                Stream.fromIterable([gzip.encode(utf8.encode(content))]);
-            await builder.addFile(path, stream);
-          }
+        for (final e in dartdocFiles.entries) {
+          await addFileAsStringGzipped(e.key, e.value);
+        }
+        await addFileAsStringGzipped(
+            'summary.json', json.encode(summary.toJson()));
+        final index = await builder.buildIndex(r.blobId);
 
-          for (final e in dartdocFiles.entries) {
-            await addFileAsStringGzipped(e.key, e.value);
-          }
-          await addFileAsStringGzipped(
-              'summary.json', json.encode(summary.toJson()));
-          final index = await builder.buildIndex(r.blobId);
+        // Upload blob and index
+        await _upload(
+          client,
+          r.blob,
+          () => blobFile.openRead(),
+          blobFile.statSync().size,
+          filename: r.blobId,
+          contentType: 'application/octet-stream',
+        );
+        // Always upload the index last, this references the blobId, and when we
+        // upload this we will overwrite the previous value. So we have atomicity
+        // even though we're uploading two files.
+        await _upload(
+          client,
+          r.index,
+          () => Stream.value(index.asBytes()),
+          index.asBytes().length,
+          filename: 'index.json',
+          contentType: 'application/json',
+        );
 
-          // Upload blob and index
-          await _upload(
-            client,
-            r.blob,
-            () => blobFile.openRead(),
-            blobFile.statSync().size,
-            filename: r.blobId,
-            contentType: 'application/octet-stream',
-          );
-          // Always upload the index last, this references the blobId, and when we
-          // upload this we will overwrite the previous value. So we have atomicity
-          // even though we're uploading two files.
-          await _upload(
-            client,
-            r.index,
-            () => Stream.value(index.asBytes()),
-            index.asBytes().length,
-            filename: 'index.json',
-            contentType: 'application/json',
-          );
-
-          await api.taskUploadFinished(payload.package, v.version);
-        });
-      } finally {
-        client.close();
-      }
+        await api.taskUploadFinished(payload.package, v.version);
+      });
+    } finally {
+      client.close();
     }
   }
+}
+
+Future<void> fakeCloudComputeInstanceRunner(FakeCloudInstance instance) async {
+  final payload = Payload.fromJson(
+      json.decode(instance.arguments.first) as Map<String, dynamic>);
+  await _processPayload(payload);
 }
 
 Map<String, String> _fakeDartdocFiles(String package, String version) {
