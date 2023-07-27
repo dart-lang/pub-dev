@@ -534,9 +534,9 @@ extension EntryPurgeExt<T> on Entry<T> {
       return value;
     }
     if (ttl != null) {
-      return (await get(create, ttl))!;
+      return await get(create, ttl);
     }
-    return (await get(create))!;
+    return await get(create);
   }
 }
 
