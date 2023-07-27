@@ -22,11 +22,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.07.24',
+  '2023.07.27',
   // Fallback runtime versions.
+  '2023.07.24',
   '2023.07.06',
-  // NOTE: 2 previous runtimeVersions are disabled, enable as 2023.07.06 ages
-  // TODO: Update gcBeforeRuntimeVersion later
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -46,7 +45,7 @@ final fallbackRuntimeVersions = acceptedRuntimeVersions.skip(1).toList();
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-final gcBeforeRuntimeVersion = '2023.06.21'; // acceptedRuntimeVersions.last;
+final gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
