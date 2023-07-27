@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/search/mem_index.dart';
 
 import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
@@ -13,7 +14,7 @@ import 'search_service.dart';
 /// Combines the results from the primary package index and the optional Dart
 /// SDK index.
 class SearchResultCombiner {
-  final PackageIndex primaryIndex;
+  final InMemoryPackageIndex primaryIndex;
   final DartSdkMemIndex dartSdkMemIndex;
   final FlutterSdkMemIndex flutterSdkMemIndex;
 
@@ -24,11 +25,11 @@ class SearchResultCombiner {
   });
 
   PackageSearchResult search(ServiceSearchQuery query) {
+    final primaryResult = primaryIndex.search(query);
     if (!query.includeSdkResults) {
-      return primaryIndex.search(query);
+      return primaryResult;
     }
 
-    final primaryResult = primaryIndex.search(query);
     final queryFlutterSdk = query.tagsPredicate.hasNoTagPrefix('sdk:') ||
         query.tagsPredicate.hasTag(SdkTag.sdkFlutter);
     final sdkLibraryHits = [

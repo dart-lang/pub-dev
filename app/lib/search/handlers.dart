@@ -5,15 +5,12 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/env_config.dart';
 import '../shared/handlers.dart';
 
 import 'backend.dart';
-import 'flutter_sdk_mem_index.dart';
-import 'result_combiner.dart';
 import 'search_service.dart';
 
 final Logger _logger = Logger('pub.search.handlers');
@@ -44,7 +41,7 @@ Future<shelf.Response> _livenessCheckHandler(shelf.Request request) async {
 
 /// Handles /readiness_check requests.
 Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
-  final info = await packageIndex.indexInfo();
+  final info = await searchIndex.indexInfo();
   if (info.isReady) {
     return htmlResponse('OK');
   } else {
@@ -54,25 +51,20 @@ Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
 
 /// Handler /debug requests
 Future<shelf.Response> _debugHandler(shelf.Request request) async {
-  final info = await packageIndex.indexInfo();
+  final info = await searchIndex.indexInfo();
   return debugResponse(info.toJson());
 }
 
 /// Handles /search requests.
 Future<shelf.Response> _searchHandler(shelf.Request request) async {
-  final info = await packageIndex.indexInfo();
+  final info = await searchIndex.indexInfo();
   if (!info.isReady) {
     return htmlResponse(searchIndexNotReadyText,
         status: searchIndexNotReadyCode);
   }
   final Stopwatch sw = Stopwatch()..start();
   final query = ServiceSearchQuery.fromServiceUrl(request.requestedUri);
-  final combiner = SearchResultCombiner(
-    primaryIndex: packageIndex,
-    dartSdkMemIndex: dartSdkMemIndex,
-    flutterSdkMemIndex: flutterSdkMemIndex,
-  );
-  final result = combiner.search(query);
+  final result = await searchIndex.search(query);
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
     _logger.info(
@@ -81,7 +73,6 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   }
 
   if (request.requestedUri.queryParameters['debug-drift'] == '1') {
-    final info = await packageIndex.indexInfo();
     return jsonResponse({
       'gae': envConfig.debugMap(includeInstanceHash: true),
       'index': info.toJson(),

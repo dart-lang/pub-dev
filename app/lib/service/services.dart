@@ -250,7 +250,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     final inMemoryPackageIndex = InMemoryPackageIndex(
       popularityValueFn: (p) => popularityStorage.lookup(p),
     );
-    registerPackageIndex(inMemoryPackageIndex);
+    registerInMemoryPackageIndex(inMemoryPackageIndex);
     registerIndexUpdater(IndexUpdater(dbService, inMemoryPackageIndex));
     registerPopularityStorage(
       PopularityStorage(

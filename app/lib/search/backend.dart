@@ -16,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/task/global_lock.dart';
 
 import '../dartdoc/backend.dart';
@@ -31,7 +32,10 @@ import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../tool/utils/http.dart';
 
+import 'dart_sdk_mem_index.dart';
+import 'flutter_sdk_mem_index.dart';
 import 'models.dart';
+import 'result_combiner.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 
@@ -48,13 +52,21 @@ void registerSearchBackend(SearchBackend backend) =>
 /// The active backend service.
 SearchBackend get searchBackend => ss.lookup(#_searchBackend) as SearchBackend;
 
-/// The [PackageIndex] registered in the current service scope.
-PackageIndex get packageIndex =>
-    ss.lookup(#packageIndexService) as PackageIndex;
+/// The in-memory (primary) [InMemoryPackageIndex] registered in the current service scope.
+InMemoryPackageIndex get _inMemoryPackageIndex =>
+    ss.lookup(#_inMemoryPackageIndex) as InMemoryPackageIndex;
 
-/// Register a new [PackageIndex] in the current service scope.
-void registerPackageIndex(PackageIndex index) =>
-    ss.register(#packageIndexService, index);
+/// Register a new [InMemoryPackageIndex] in the current service scope.
+void registerInMemoryPackageIndex(InMemoryPackageIndex index) =>
+    ss.register(#_inMemoryPackageIndex, index);
+
+/// The combined or delegated [SearchIndex] registered in the current service scope.
+SearchIndex get searchIndex =>
+    (ss.lookup(#_searchIndex) as SearchIndex?) ?? const _CombinedSearchIndex();
+
+/// Register a new combined or delegated [SearchIndex] in the current service scope.
+void registerSearchIndex(SearchIndex index) =>
+    ss.register(#_searchIndex, index);
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
@@ -487,4 +499,21 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }).toList();
   results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
   return results;
+}
+
+class _CombinedSearchIndex implements SearchIndex {
+  const _CombinedSearchIndex();
+
+  @override
+  IndexInfo indexInfo() => _inMemoryPackageIndex.indexInfo();
+
+  @override
+  PackageSearchResult search(ServiceSearchQuery query) {
+    final combiner = SearchResultCombiner(
+      primaryIndex: _inMemoryPackageIndex,
+      dartSdkMemIndex: dartSdkMemIndex,
+      flutterSdkMemIndex: flutterSdkMemIndex,
+    );
+    return combiner.search(query);
+  }
 }
