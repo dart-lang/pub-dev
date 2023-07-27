@@ -508,7 +508,7 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
       .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
 }
 
-extension EntryPurgeExt on Entry {
+extension EntryPurgeExt<T> on Entry<T> {
   /// Datastore.query is only eventually consistent, and when we are changing
   /// entries that are then fetched via query, the cache may store the old values.
   /// Running a repeated purge after a reasonable delay will make sure that the
@@ -516,6 +516,27 @@ extension EntryPurgeExt on Entry {
   Future purgeAndRepeat({int retries = 0, Duration? delay}) async {
     await purge(retries: retries);
     _delayedCachePurger!.add(this, delay);
+  }
+
+// Get or create a value.
+  Future<T?> obtain(
+    Future<T?> Function() create, {
+    Duration? ttl,
+    bool purgeCache = false,
+  }) async {
+    if (purgeCache) {
+      final value = await create();
+      if (ttl != null) {
+        await set(value, ttl);
+      } else {
+        await set(value);
+      }
+      return value;
+    }
+    if (ttl != null) {
+      return await get(create, ttl);
+    }
+    return await get(create);
   }
 }
 

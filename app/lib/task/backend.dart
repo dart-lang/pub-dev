@@ -21,7 +21,7 @@ import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/redis_cache.dart' show cache;
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
 import 'package:pub_dev/shared/versions.dart'
@@ -615,8 +615,17 @@ class TaskBackend {
 
     String? zone, instance;
     bool isInstanceDone = false;
-    final summaryFuture = panaSummary(package, version);
-    final dartdocIndexFuture = dartdocFile(package, version, 'index.html');
+    final summaryFuture = panaSummary(
+      package,
+      version,
+      purgeCache: true,
+    );
+    final dartdocIndexFuture = dartdocFile(
+      package,
+      version,
+      'index.html',
+      purgeCache: true,
+    );
     await Future.wait([summaryFuture, dartdocIndexFuture]);
     final dartdocIndex = await dartdocIndexFuture;
     final summary = await summaryFuture;
@@ -635,9 +644,6 @@ class TaskBackend {
       assert(versionState.scheduled != initialTimestamp);
       assert(versionState.instance != null);
       assert(versionState.zone != null);
-
-      // Clear cache entries for package / version
-      await _purgeCache(package, version);
 
       // Update dependencies, if pana summary has dependencies
       if (summary != null && summary.allDependencies != null) {
@@ -681,6 +687,9 @@ class TaskBackend {
 
       tx.insert(state);
     });
+
+    // Clearing the state cache after the update.
+    await _purgeCache(package, version);
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down
@@ -741,8 +750,10 @@ class TaskBackend {
   /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
-  Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
-      await cache.taskResultIndex(package, version).get(() async {
+  Future<BlobIndex?> _taskResultIndex(String package, String version,
+      {bool purgeCache = false}) async {
+    return await cache.taskResultIndex(package, version).obtain(
+      () async {
         // Don't try to load index if we don't consider the version for analysis.
         final status = await packageStatus(package);
         if (!status.versions.containsKey(version)) {
@@ -779,18 +790,26 @@ class TaskBackend {
           return index;
         }
         return BlobIndex.empty(blobId: '');
-      });
+      },
+      purgeCache: purgeCache,
+    );
+  }
 
   /// Return gzipped result from task for the given [package]/[version] or
   /// `null`.
   Future<List<int>?> gzippedTaskResult(
     String package,
     String version,
-    String path,
-  ) async {
+    String path, {
+    bool purgeCache = false,
+  }) async {
     version = canonicalizeVersion(version)!;
 
-    final index = await _taskResultIndex(package, version);
+    final index = await _taskResultIndex(
+      package,
+      version,
+      purgeCache: purgeCache,
+    );
     if (index == null) {
       return null;
     }
@@ -819,13 +838,14 @@ class TaskBackend {
     // blobId that is the path to the blob within the task-result bucket.
     final length = range.end - range.start;
     if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache
-          .gzippedTaskResult(range.blobId, path)
-          .get(() => _readFromBucket(
-                range.blobId,
-                offset: range.start,
-                length: length,
-              ));
+      return cache.gzippedTaskResult(range.blobId, path).obtain(
+            () => _readFromBucket(
+              range.blobId,
+              offset: range.start,
+              length: length,
+            ),
+            purgeCache: purgeCache,
+          );
     } else {
       return _readFromBucket(
         range.blobId,
@@ -839,9 +859,16 @@ class TaskBackend {
   Future<List<int>?> dartdocFile(
     String package,
     String version,
-    String path,
-  ) async =>
-      await gzippedTaskResult(package, version, 'doc/$path');
+    String path, {
+    bool purgeCache = false,
+  }) async {
+    return await gzippedTaskResult(
+      package,
+      version,
+      'doc/$path',
+      purgeCache: purgeCache,
+    );
+  }
 
   /// Return gzipped dartdoc page or `null`.
   // TODO: Remove this in favor of dartdocFile
@@ -863,8 +890,13 @@ class TaskBackend {
   /// Even, if the [Summary] from pana is missing, it's possible that the
   /// [taskLog] is present. This happens if the analysis failed gracefully or
   /// allocated time was exhausted before the worker completed all versions.
-  Future<Summary?> panaSummary(String package, String version) async {
-    final data = await gzippedTaskResult(package, version, 'summary.json');
+  Future<Summary?> panaSummary(
+    String package,
+    String version, {
+    bool purgeCache = false,
+  }) async {
+    final data = await gzippedTaskResult(package, version, 'summary.json',
+        purgeCache: purgeCache);
     if (data == null) {
       return null;
     }
