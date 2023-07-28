@@ -49,76 +49,145 @@ class IsolateRunner {
   final Logger logger;
   var _closing = false;
 
-  /// The duration while errors won't cause frontend isolates to restart.
-  var _restartProtectionOffset = Duration.zero;
-  var _lastStarted = clock.now();
-  final _isolates = <_Isolate>[];
+  final _groups = <IsolateGroup>[];
 
   IsolateRunner({
     required this.logger,
   });
 
-  Future<void> startIsolates({
+  Future<IsolateGroup> startGroup({
     required String kind,
     required Future<void> Function(EntryMessage message) entryPoint,
     required int count,
     required Duration? deadTimeout,
   }) async {
-    int started = 0;
-
-    Future<void> start() async {
-      if (_closing) return;
-      started++;
-      final id = '$kind isolate #$started';
-      logger.info('About to start $id ...');
-      final isolate = _Isolate(
-        runner: this,
-        logger: logger,
-        id: id,
-        entryPoint: entryPoint,
-      );
-      _isolates.add(isolate);
-      await isolate.init(deadTimeout: deadTimeout);
-      logger.info('$id started.');
-      _lastStarted = clock.now();
-
-      // automatic restart logic
-      unawaited(isolate.done.then((_) async {
-        _isolates.remove(isolate);
-        if (_closing) return;
-        // Restart the isolate after a pause, increasing the pause duration at
-        // each restart.
-        //
-        // NOTE: As this wait period increases, the service may miss /liveness_check
-        //       requests, and eventually AppEngine may just kill the instance
-        //       marking it unreachable.
-        var waitSeconds = 5 + started;
-        while (waitSeconds > 0) {
-          if (_closing) return;
-          await Future.delayed(Duration(seconds: 1));
-          waitSeconds--;
-        }
-        await start();
-      }));
+    if (_closing) {
+      throw AssertionError('Runner is closed.');
     }
-
-    for (int i = 0; i < count; i++) {
-      await start();
-    }
+    final group = IsolateGroup(
+      runner: this,
+      kind: kind,
+      entryPoint: entryPoint,
+      deadTimeout: deadTimeout,
+    );
+    _groups.add(group);
+    await group.start(count);
+    return group;
   }
 
-  Future<void> _closeIsolates() async {
-    while (_isolates.isNotEmpty) {
-      await _isolates.last.close();
+  Future<void> _closeGroups() async {
+    while (_groups.isNotEmpty) {
+      await _groups.removeLast().close();
     }
   }
 
   Future<void> close() async {
     _closing = true;
-    await _closeIsolates();
-    // A small wait to allow already pending isolates to be created.
-    await Future.delayed(Duration(seconds: 5));
-    await _closeIsolates();
+    await _closeGroups();
+  }
+}
+
+class IsolateGroup {
+  final IsolateRunner runner;
+  final String kind;
+  final Future<void> Function(EntryMessage message) entryPoint;
+  final Duration? deadTimeout;
+  final bool skipWaitBetweenRestarts;
+
+  int started = 0;
+  final _isolates = <_Isolate>[];
+  bool get _closing => runner._closing;
+  Logger get logger => runner.logger;
+
+  /// The duration while internal errors won't cause isolates to restart.
+  var _restartProtectionOffset = Duration.zero;
+  var _lastStarted = clock.now();
+
+  IsolateGroup({
+    required this.runner,
+    required this.kind,
+    required this.entryPoint,
+    required this.deadTimeout,
+    this.skipWaitBetweenRestarts = false,
+  });
+
+  /// Starts [count] new isolates.
+  Future<void> start(int count) async {
+    for (var i = 0; i < count; i++) {
+      await _startOne();
+    }
+  }
+
+  /// Starts [count] new isolates, and after a [wait] duration,
+  /// closes the old ones.
+  Future<void> renew({
+    required int count,
+    required Duration wait,
+  }) async {
+    final isolatesToClose = [..._isolates];
+    for (final i in isolatesToClose) {
+      i.shouldRestart = false;
+    }
+    await start(count);
+    await Future.delayed(wait);
+    for (final i in isolatesToClose) {
+      await i.close();
+    }
+  }
+
+  Future<void> _startOne() async {
+    if (_closing) return;
+    started++;
+    final id = '$kind isolate #$started';
+    logger.info('About to start $id ...');
+    final isolate = _Isolate(
+      runner: runner,
+      group: this,
+      logger: logger,
+      id: id,
+      entryPoint: entryPoint,
+    );
+    _isolates.add(isolate);
+    await isolate.init(deadTimeout: deadTimeout);
+    if (_closing) {
+      await isolate.close();
+      return;
+    }
+    logger.info('$id started.');
+    _lastStarted = clock.now();
+
+    // automatic restart logic
+    unawaited(isolate.done.then((_) async {
+      _isolates.remove(isolate);
+      if (_closing) {
+        return;
+      }
+      if (!isolate.shouldRestart) {
+        return;
+      }
+      if (!skipWaitBetweenRestarts) {
+        // Restart the isolate after a wait, increasing the duration with each restart.
+        //
+        // NOTE: As this wait period increases, the service may miss /liveness_check
+        //       requests, and eventually AppEngine may just kill the instance
+        //       marking it unreachable (if it is a frontend isolate).
+        var waitSeconds = 5 + started;
+        while (waitSeconds > 0) {
+          if (_closing) {
+            return;
+          }
+          await Future.delayed(Duration(seconds: 1));
+          waitSeconds--;
+        }
+      }
+      await _startOne();
+    }));
+  }
+
+  Future<void> close() async {
+    while (_isolates.isNotEmpty) {
+      await _isolates.removeLast().close();
+    }
   }
 }
 
@@ -135,7 +204,7 @@ Future runIsolates({
     try {
       final runner = IsolateRunner(logger: logger);
       if (frontendEntryPoint != null) {
-        await runner.startIsolates(
+        await runner.startGroup(
           kind: 'frontend',
           entryPoint: frontendEntryPoint,
           count: frontendCount,
@@ -143,7 +212,7 @@ Future runIsolates({
         );
       }
       if (workerEntryPoint != null) {
-        await runner.startIsolates(
+        await runner.startGroup(
           kind: 'worker',
           entryPoint: workerEntryPoint,
           count: 1,
@@ -151,7 +220,7 @@ Future runIsolates({
         );
       }
       if (jobEntryPoint != null) {
-        await runner.startIsolates(
+        await runner.startGroup(
           kind: 'job',
           entryPoint: jobEntryPoint,
           count: 1,
@@ -186,6 +255,7 @@ void _verifyStampFile() {
 
 class _Isolate {
   final IsolateRunner runner;
+  final IsolateGroup group;
   final Logger logger;
   final String id;
   final Future<void> Function(EntryMessage message) entryPoint;
@@ -208,9 +278,11 @@ class _Isolate {
 
   final _doneCompleter = Completer();
   late final done = _doneCompleter.future;
+  var shouldRestart = true;
 
   _Isolate({
     required this.runner,
+    required this.group,
     required this.logger,
     required this.id,
     required this.entryPoint,
@@ -251,19 +323,19 @@ class _Isolate {
       final now = clock.now();
       // If the last isolate was started more than an hour ago, we can reset
       // the protection.
-      if (now.isAfter(runner._lastStarted.add(Duration(hours: 1)))) {
-        runner._restartProtectionOffset = Duration.zero;
+      if (now.isAfter(group._lastStarted.add(Duration(hours: 1)))) {
+        group._restartProtectionOffset = Duration.zero;
       }
 
       // If we have recently restarted an isolate, let's keep it running.
       if (now
-          .isBefore(runner._lastStarted.add(runner._restartProtectionOffset))) {
+          .isBefore(group._lastStarted.add(group._restartProtectionOffset))) {
         return;
       }
 
       // Extend restart protection for up to 20 minutes.
-      if (runner._restartProtectionOffset.inMinutes < 20) {
-        runner._restartProtectionOffset += Duration(minutes: 4);
+      if (group._restartProtectionOffset.inMinutes < 20) {
+        group._restartProtectionOffset += Duration(minutes: 4);
       }
 
       await close();
