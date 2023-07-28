@@ -121,7 +121,8 @@ extension PubApiClientExt on PubApiClient {
   Future<String> preparePackageUpload(List<int> bytes) async {
     final uploadInfo = await getPackageUploadUrl();
 
-    final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
+    final uri = Uri.parse(uploadInfo.url);
+    final request = http.MultipartRequest('POST', uri)
       ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
       ..fields.addAll(uploadInfo.fields!)
       ..files.add(http.MultipartFile.fromBytes('file', bytes))
@@ -132,8 +133,17 @@ extension PubApiClientExt on PubApiClient {
       // TODO: figure out what is causing these issues.
       final body = await uploadRs.stream.bytesToString();
       final headers = uploadRs.headers;
+
+      var debugContent = '';
+      try {
+        final rs2 = await http.get(uri.replace(path: '/', queryParameters: {}));
+        debugContent += '\nROOT: ${rs2.body}';
+      } catch (e, st) {
+        debugContent += '$e\n$st';
+      }
+
       throw AssertionError('Expected HTTP redirect, got ${uploadRs.statusCode}.'
-          '\nbody: $body\nheaders: $headers');
+          '\nbody: $body\nheaders: $headers\n$debugContent');
     }
 
     final callbackUri =
