@@ -358,8 +358,7 @@ void main() {
           'updated': data.package!.lastVersionPublished,
         });
       },
-      skip:
-          true, // TODO: Enable when/if sandbox gets support for detecting pending analysis
+      processJobsWithFakeRunners: true,
     );
 
     scopedTest('no content for analysis tab', () async {
