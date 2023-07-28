@@ -563,7 +563,6 @@ void main() {
           'package-created': data.package!.created,
         });
       },
-      skip: true, // skip, until we've fixed fake job data for sandboxing
     );
 
     testWithProfile('publisher list page', fn: () async {
