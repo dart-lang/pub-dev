@@ -11,7 +11,6 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/urls.dart' as urls;
-import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
@@ -200,14 +199,13 @@ void main() {
         defaultUser: 'user@pub.dev',
       ),
       fn: () async {
-        await taskBackend.backfillTrackingState();
         final rs = await issueGet('/api/documentation/pkg');
         expect(rs.statusCode, 200);
         final body = await rs.readAsString();
         expect(body, contains('1.98.0'));
       },
+      processJobsWithFakeRunners: true,
       timeout: Timeout(Duration(minutes: 2)),
-      skip: true, // Until we have figure out how to make fake task analysis
     );
   });
 }
