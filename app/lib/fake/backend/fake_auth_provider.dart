@@ -344,22 +344,33 @@ Future<String> _acquireFakeSessionId({
       Uri.parse(pubHostedUrl ?? activeConfiguration.primarySiteUri.toString());
   final client = http.Client();
   try {
-    final rs = await client.send(http.Request(
-      'GET',
-      Uri(
-        scheme: baseUri.scheme,
-        host: baseUri.host,
-        port: baseUri.port,
-        path: '/sign-in',
-        queryParameters: {
-          'fake-email': email,
-          'go': '/',
-          if (scopes != null) 'scope': scopes.join(' '),
-        },
-      ),
-    )..followRedirects = false);
+    final uri = Uri(
+      scheme: baseUri.scheme,
+      host: baseUri.host,
+      port: baseUri.port,
+      path: '/sign-in',
+      queryParameters: {
+        'fake-email': email,
+        'go': '/',
+        if (scopes != null) 'scope': scopes.join(' '),
+      },
+    );
+    final rs =
+        await client.send(http.Request('GET', uri)..followRedirects = false);
     if (rs.statusCode != 303) {
-      throw Exception('Unexpected status code: ${rs.statusCode}');
+      var debugContent = '';
+      try {
+        debugContent = await rs.stream.bytesToString();
+
+        final rs2 = await client.send(
+            http.Request('GET', uri.replace(path: '/', queryParameters: {})));
+        debugContent += '\nROOT: ${await rs2.stream.bytesToString()}';
+      } catch (e, st) {
+        debugContent += '$e\n$st';
+      }
+
+      throw Exception(
+          'Unexpected status code: ${rs.statusCode} ${rs.reasonPhrase} $debugContent');
     }
     final cookieHeaders =
         rs.headers['set-cookie']?.split(',').map((e) => e.trim()) ?? <String>[];
