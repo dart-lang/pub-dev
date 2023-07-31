@@ -2,28 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:pub_dartdoc/src/pub_hooks.dart';
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 void main() {
-  test('limit number of files', () {
-    final provider =
-        PubResourceProvider(MemoryResourceProvider(), maxFileCount: 1000);
+  group('file limits', () {
+    test('--max-file-count', () async {
+      final tempDir = await Directory.systemTemp.createTemp();
+      try {
+        final pr = await Process.run('dart', [
+          'pub',
+          'run',
+          'pub_dartdoc',
+          '--input',
+          Directory.current.absolute.path,
+          '--output',
+          tempDir.absolute.path,
+          '--max-file-count',
+          '2',
+        ]);
+        expect(pr.stderr.toString(), contains('Maximum file count reached: 2'));
+      } finally {
+        await tempDir.delete(recursive: true);
+      }
+    });
 
-    for (var i = 0; i < 1000; i++) {
-      provider.getFile('/tmp/$i.txt').writeAsStringSync('x');
-    }
-
-    expect(() => provider.getFile('/tmp/next.txt').writeAsStringSync('next'),
-        throwsA(isA<DocumentationTooBigException>()));
-  });
-
-  test('limit total bytes', () {
-    final provider = PubResourceProvider(MemoryResourceProvider(),
-        maxTotalLengthBytes: 1024);
-    provider.getFile('/tmp/1').writeAsBytesSync(List<int>.filled(1024, 0));
-    expect(() => provider.getFile('/tmp/2').writeAsBytesSync(<int>[0]),
-        throwsA(isA<DocumentationTooBigException>()));
-  });
+    test('--max-total-size', () async {
+      final tempDir = await Directory.systemTemp.createTemp();
+      try {
+        final pr = await Process.run('dart', [
+          'pub',
+          'run',
+          'pub_dartdoc',
+          '--input',
+          Directory.current.absolute.path,
+          '--output',
+          tempDir.absolute.path,
+          '--max-total-size',
+          '200000',
+        ]);
+        expect(pr.stderr.toString(),
+            contains('Maximum total size reached: 200000 bytes'));
+      } finally {
+        await tempDir.delete(recursive: true);
+      }
+    });
+  }, timeout: Timeout(const Duration(minutes: 5)));
 }

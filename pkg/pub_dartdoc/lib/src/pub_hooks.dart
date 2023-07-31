@@ -15,22 +15,6 @@ import 'package:dartdoc/dartdoc.dart';
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 
-const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
-
-// TODO (sigurdm): reduce this back to 2 GiB when
-// https://github.com/dart-lang/dartdoc/issues/3311 is resolved.
-const _defaultMaxTotalLengthBytes =
-    2 * 1024 * 1024 * 1024 + 300 * 1024 * 1024; // 2 GiB + 300 MiB
-
-/// Thrown when current output exceeds limits.
-class DocumentationTooBigException implements Exception {
-  final String _message;
-  DocumentationTooBigException(this._message);
-
-  @override
-  String toString() => 'DocumentationTooBigException: $_message';
-}
-
 /// Creates an overlay file system with binary file support on top
 /// of the input sources.
 ///
@@ -38,37 +22,11 @@ class DocumentationTooBigException implements Exception {
 ///       instead of overriding file writes in the output path.
 class PubResourceProvider implements ResourceProvider {
   final ResourceProvider _defaultProvider;
-  final int _maxFileCount;
-  final int _maxTotalLengthBytes;
-  int _fileCount = 0;
-  int _totalLengthBytes = 0;
-  final _paths = <String>[];
 
-  PubResourceProvider(
-    this._defaultProvider, {
-    int? maxFileCount,
-    int? maxTotalLengthBytes,
-  })  : _maxFileCount = maxFileCount ?? _defaultMaxFileCount,
-        _maxTotalLengthBytes =
-            maxTotalLengthBytes ?? _defaultMaxTotalLengthBytes;
-
-  /// Checks if we have reached any file write limit before storing the bytes.
-  void _aboutToWriteBytes(String path, int length) {
-    _paths.add(path);
-    _fileCount++;
-    _totalLengthBytes += length;
-    if (_fileCount > _maxFileCount) {
-      throw DocumentationTooBigException(
-          'Reached $_maxFileCount files in the output directory.');
-    }
-    if (_totalLengthBytes > _maxTotalLengthBytes) {
-      throw DocumentationTooBigException(
-          'Reached $_maxTotalLengthBytes bytes in the output directory.');
-    }
-  }
+  PubResourceProvider(this._defaultProvider);
 
   @override
-  File getFile(String path) => _File(this, _defaultProvider.getFile(path));
+  File getFile(String path) => _File(_defaultProvider.getFile(path));
 
   @override
   Folder getFolder(String path) => _defaultProvider.getFolder(path);
@@ -86,9 +44,8 @@ class PubResourceProvider implements ResourceProvider {
 }
 
 class _File implements File {
-  final PubResourceProvider _provider;
   final File _delegate;
-  _File(this._provider, this._delegate);
+  _File(this._delegate);
 
   @override
   Stream<WatchEvent> get changes => _delegate.watch().changes;
@@ -146,7 +103,6 @@ class _File implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    _provider._aboutToWriteBytes(path, bytes.length);
     _delegate.writeAsBytesSync(bytes);
   }
 
