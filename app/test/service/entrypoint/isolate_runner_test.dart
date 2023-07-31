@@ -17,8 +17,8 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner(logger: logger);
-      await runner.startIsolates(
+      final runner = IsolateCollection(logger: logger);
+      await runner.startGroup(
         kind: 'test',
         entryPoint: _main1,
         count: 2,
@@ -60,8 +60,8 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner(logger: logger);
-      await runner.startIsolates(
+      final runner = IsolateCollection(logger: logger);
+      await runner.startGroup(
         kind: 'test',
         entryPoint: _main2,
         count: 1,
@@ -95,14 +95,54 @@ void main() {
       await subs.cancel();
     });
 
+    test('renew', () async {
+      final logger = Logger.detached('test');
+      final messages = <String>[];
+      final subs = logger.onRecord.listen((event) {
+        messages.add(event.message);
+      });
+      final runner = IsolateCollection(logger: logger);
+      final group = await runner.startGroup(
+        kind: 'test',
+        entryPoint: _main4,
+        count: 1,
+        deadTimeout: Duration(minutes: 1),
+      );
+
+      await Future.delayed(Duration(seconds: 1));
+      expect(
+        messages,
+        [
+          'About to start test isolate #1 ...',
+          'test isolate #1 started.',
+        ],
+      );
+      // renew isolate
+      await group.renew(count: 1, wait: Duration(seconds: 1));
+      await Future.delayed(Duration(seconds: 1));
+      expect(
+          messages,
+          containsAll([
+            'About to start test isolate #1 ...',
+            'test isolate #1 started.',
+            'About to start test isolate #2 ...',
+            'test isolate #2 started.',
+            'About to close test isolate #1 ...',
+            'test isolate #1 closed.'
+          ]));
+
+      await runner.close();
+      await subs.cancel();
+    });
+
     test('throws', () async {
       final logger = Logger.detached('test');
       final messages = <String>[];
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner(logger: logger);
-      await runner.startIsolates(
+      final runner = IsolateCollection(logger: logger);
+      await runner.startGroup(
         kind: 'test',
         entryPoint: _main3,
         count: 1,
@@ -152,4 +192,9 @@ Future<void> _main2(EntryMessage message) async {
 Future<void> _main3(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   throw Exception('ex');
+}
+
+Future<void> _main4(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+  await Completer().future;
 }
