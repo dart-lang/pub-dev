@@ -23,7 +23,7 @@ final _textSearchTimeout = Duration(milliseconds: 500);
 typedef PopularityValueFn = double Function(String packageName);
 double _noPopularityScoreFn(String packageName) => 0.0;
 
-class InMemoryPackageIndex implements PackageIndex {
+class InMemoryPackageIndex {
   final PopularityValueFn _popularityValueFn;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final _packageNameIndex = PackageNameIndex();
@@ -48,8 +48,7 @@ class InMemoryPackageIndex implements PackageIndex {
   })  : _popularityValueFn = popularityValueFn,
         _alwaysUpdateLikeScores = alwaysUpdateLikeScores;
 
-  @override
-  Future<IndexInfo> indexInfo() async {
+  IndexInfo indexInfo() {
     return IndexInfo(
       isReady: _isReady,
       packageCount: _packages.length,
@@ -147,7 +146,6 @@ class InMemoryPackageIndex implements PackageIndex {
     _invalidateHitCaches();
   }
 
-  @override
   PackageSearchResult search(ServiceSearchQuery query) {
     final packages = Set<String>.of(_packages.keys);
 

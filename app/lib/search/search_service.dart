@@ -48,9 +48,9 @@ class IndexInfo {
 }
 
 /// Package search index and lookup.
-abstract class PackageIndex {
-  PackageSearchResult search(ServiceSearchQuery query);
-  Future<IndexInfo> indexInfo();
+abstract class SearchIndex {
+  FutureOr<PackageSearchResult> search(ServiceSearchQuery query);
+  FutureOr<IndexInfo> indexInfo();
 }
 
 /// A summary information about a package that goes into the search index.
