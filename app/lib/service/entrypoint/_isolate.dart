@@ -50,13 +50,14 @@ class DebugMessage extends Message {
 /// isolate execute the same code).
 ///
 /// TODO: The runner will handle the cross-group communication of the isolates.
-class IsolateRunner {
+@visibleForTesting
+class IsolateCollection {
   final Logger logger;
   var _closing = false;
 
   final _groups = <IsolateGroup>[];
 
-  IsolateRunner({
+  IsolateCollection({
     required this.logger,
   });
 
@@ -99,7 +100,7 @@ class IsolateRunner {
 /// Once an isolate starts, it is expected to run indefinitely. When it exits,
 /// either by completion or uncaught exception, a new isolate will be started.
 class IsolateGroup {
-  final IsolateRunner runner;
+  final IsolateCollection runner;
   final String kind;
   final Future<void> Function(EntryMessage message) entryPoint;
   final Duration? deadTimeout;
@@ -202,7 +203,7 @@ class IsolateGroup {
   }
 }
 
-/// Starts an [IsolateRunner] with the default isolate configuration
+/// Starts an [IsolateCollection] with the default isolate configuration
 /// (when specified).
 ///
 /// After starting the isolates, the method waits for terminating
@@ -219,7 +220,7 @@ Future runIsolates({
   await withServices(() async {
     _verifyStampFile();
     try {
-      final runner = IsolateRunner(logger: logger);
+      final runner = IsolateCollection(logger: logger);
       if (frontendEntryPoint != null) {
         await runner.startGroup(
           kind: 'frontend',
@@ -274,7 +275,7 @@ void _verifyStampFile() {
 /// autokill timer.
 class _Isolate {
   /// Parent runner that owns this group
-  final IsolateRunner parent;
+  final IsolateCollection parent;
   final IsolateGroup group;
   final Logger logger;
   final String id;
