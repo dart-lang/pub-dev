@@ -151,6 +151,12 @@ class ScoreCardBackend {
       final status = PackageStatus.fromModels(package, version);
       final summary =
           await taskBackend.panaSummary(packageName, packageVersion);
+      // TODO: check existence of the dartdoc index.html by loading only the index
+      final dartdocFile = summary == null
+          ? null
+          : await taskBackend.dartdocFile(
+              packageName, packageVersion, 'index.html');
+      final hasDartdocFile = dartdocFile != null;
 
       final data = ScoreCardData(
         packageName: packageName,
@@ -162,9 +168,8 @@ class ScoreCardBackend {
         packageVersionCreated: version.created,
         dartdocReport: DartdocReport(
           timestamp: summary?.createdAt ?? version.created,
-          // TODO: Embed dartdoc success status in summary, unclear if we need it
           reportStatus:
-              summary == null ? ReportStatus.failed : ReportStatus.success,
+              hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
           dartdocEntry: null, // unused
           documentationSection: null, // already embedded in summary
         ),
