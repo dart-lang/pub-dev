@@ -9,6 +9,7 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
@@ -45,6 +46,10 @@ class DebugMessage extends Message {
   DebugMessage(this.text);
 }
 
+/// Runs the collection of different isolate groups (where a group of
+/// isolate execute the same code).
+///
+/// TODO: The runner will handle the cross-group communication of the isolates.
 class IsolateRunner {
   final Logger logger;
   var _closing = false;
@@ -55,6 +60,8 @@ class IsolateRunner {
     required this.logger,
   });
 
+  /// Starts a new isolate group with [count] running instances.
+  @visibleForTesting
   Future<IsolateGroup> startGroup({
     required String kind,
     required Future<void> Function(EntryMessage message) entryPoint,
@@ -87,6 +94,10 @@ class IsolateRunner {
   }
 }
 
+/// Starts, monitors, stops or restarts isolates that run the same code.
+///
+/// Once an isolate starts, it is expected to run indefinitely. When it exits,
+/// either by completion or uncaught exception, a new isolate will be started.
 class IsolateGroup {
   final IsolateRunner runner;
   final String kind;
@@ -191,6 +202,12 @@ class IsolateGroup {
   }
 }
 
+/// Starts an [IsolateRunner] with the default isolate configuration
+/// (when specified).
+///
+/// After starting the isolates, the method waits for terminating
+/// process signals (e.g. SIGTERM), and when recieved, closes the
+/// isolates and returns.
 Future runIsolates({
   required Logger logger,
   Future<void> Function(EntryMessage message)? frontendEntryPoint,
@@ -253,6 +270,8 @@ void _verifyStampFile() {
   }
 }
 
+/// Represents a running isolate, with its current status, subscriptions and
+/// autokill timer.
 class _Isolate {
   final IsolateRunner runner;
   final IsolateGroup group;
