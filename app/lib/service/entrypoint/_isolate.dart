@@ -152,7 +152,7 @@ class IsolateGroup {
     final id = '$kind isolate #$started';
     logger.info('About to start $id ...');
     final isolate = _Isolate(
-      runner: runner,
+      parent: runner,
       group: this,
       logger: logger,
       id: id,
@@ -273,7 +273,8 @@ void _verifyStampFile() {
 /// Represents a running isolate, with its current status, subscriptions and
 /// autokill timer.
 class _Isolate {
-  final IsolateRunner runner;
+  /// Parent runner that owns this group
+  final IsolateRunner parent;
   final IsolateGroup group;
   final Logger logger;
   final String id;
@@ -300,7 +301,7 @@ class _Isolate {
   var shouldRestart = true;
 
   _Isolate({
-    required this.runner,
+    required this.parent,
     required this.group,
     required this.logger,
     required this.id,
