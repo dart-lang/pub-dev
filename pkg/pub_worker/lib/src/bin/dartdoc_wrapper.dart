@@ -17,10 +17,15 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:tar/tar.dart';
 
 final _log = Logger('dartdoc');
-
 final _utf8 = Utf8Codec(allowMalformed: true);
-
 final _jsonUtf8 = json.fuse(utf8);
+
+const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
+
+// TODO (sigurdm): reduce this back to 2 GiB when
+// https://github.com/dart-lang/dartdoc/issues/3311 is resolved.
+const _defaultMaxTotalLengthBytes =
+    2 * 1024 * 1024 * 1024 + 300 * 1024 * 1024; // 2 GiB + 300 MiB
 
 /// Program to be used as subprocess for running dartdoc, ensuring that we
 /// capture all the output, and only run dartdoc in a subprocess that can
@@ -149,6 +154,10 @@ Future<void> _dartdoc({
     docDir,
     '--no-validate-links',
     '--sanitize-html',
+    '--max-file-count',
+    '$_defaultMaxFileCount',
+    '--max-total-size',
+    '$_defaultMaxTotalLengthBytes',
     if (pubspec.usesFlutter) ...[
       '--sdk-dir',
       p.join(flutterSdk!.path, 'bin', 'cache', 'dart-sdk')

@@ -46,6 +46,13 @@ final _packageTimeoutExtended = _packageTimeout * 2;
 const _pubDataFileName = 'pub-data.json';
 final Duration _twoYears = const Duration(days: 2 * 365);
 
+const _defaultMaxFileCount = 10 * 1000 * 1000; // 10 million files
+
+// TODO (sigurdm): reduce this back to 2 GiB when
+// https://github.com/dart-lang/dartdoc/issues/3311 is resolved.
+const _defaultMaxTotalLengthBytes =
+    2 * 1024 * 1024 * 1024 + 300 * 1024 * 1024; // 2 GiB + 300 MiB
+
 /// Generic interface to run dartdoc for SDK- and package-documentation.
 abstract class DartdocRunner {
   Future<void> downloadAndExtract({
@@ -135,7 +142,7 @@ class _DartdocRunner implements DartdocRunner {
     required String outputDir,
   }) async {
     await _initializeIfNeeded();
-    final args = [
+    final args = <String>[
       '--input',
       pkgPath,
       '--output',
@@ -144,6 +151,10 @@ class _DartdocRunner implements DartdocRunner {
       canonicalUrl,
       '--no-validate-links',
       '--sanitize-html',
+      '--max-file-count',
+      '$_defaultMaxFileCount',
+      '--max-total-size',
+      '$_defaultMaxTotalLengthBytes',
     ];
     if (toolEnv.dartSdkDir != null) {
       args.addAll(['--sdk-dir', toolEnv.dartSdkDir!]);
