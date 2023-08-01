@@ -586,15 +586,21 @@ class TaskBackend {
         .substring(0, 32);
 
     final [blobUploadInfo, indexUploadInfo] = await Future.wait([
-      '$blobId.blob',
-      'index.json',
-    ].map(
-      (name) => uploadSigner.buildUpload(
+      uploadSigner.buildUpload(
         _bucket.bucketName,
-        '$runtimeVersion/$package/$version/$name',
+        '$runtimeVersion/$package/$version/$blobId.blob',
         expiration,
+        // Allow up to 300 MB, keep in mind that 1.6GB dartdoc compressed to 92MB.
+        maxUploadSize: 300 * 1024 * 1024,
       ),
-    ));
+      uploadSigner.buildUpload(
+        _bucket.bucketName,
+        '$runtimeVersion/$package/$version/index.json',
+        expiration,
+        // Allow up to 64 MB just a sanity limit!
+        maxUploadSize: 64 * 1024 * 1024,
+      )
+    ]);
 
     return api.UploadTaskResultResponse(
       blobId: '$runtimeVersion/$package/$version/$blobId.blob',
