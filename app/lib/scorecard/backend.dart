@@ -151,12 +151,9 @@ class ScoreCardBackend {
       final status = PackageStatus.fromModels(package, version);
       final summary =
           await taskBackend.panaSummary(packageName, packageVersion);
-      // TODO: check existence of the dartdoc index.html by loading only the index
-      final dartdocFile = summary == null
-          ? null
-          : await taskBackend.dartdocFile(
-              packageName, packageVersion, 'index.html');
-      final hasDartdocFile = dartdocFile != null;
+      final stateInfo = await taskBackend.packageStatus(packageName);
+      final versionInfo = stateInfo.versions[packageVersion];
+      final hasDartdocFile = versionInfo?.docs ?? false;
 
       final data = ScoreCardData(
         packageName: packageName,
