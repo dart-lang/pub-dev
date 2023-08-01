@@ -980,7 +980,7 @@ class TaskBackend {
     await for (final state in dbService.query<PackageState>().run()) {
       final zone = taskWorkerCloudCompute.zones.first;
       // ignore: invalid_use_of_visible_for_testing_member
-      final payload = await schedulePackageInZone(
+      final payload = await updatePackageStateWithPendingVersions(
         dbService,
         state,
         zone,

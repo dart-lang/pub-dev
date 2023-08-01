@@ -158,8 +158,8 @@ Future<void> schedule(
       final instanceName = compute.generateInstanceName();
       final zone = pickZone();
 
-      final payload =
-          await schedulePackageInZone(db, state, zone, instanceName);
+      final payload = await updatePackageStateWithPendingVersions(
+          db, state, zone, instanceName);
       if (payload == null) {
         return;
       }
@@ -265,9 +265,15 @@ Future<void> schedule(
   }
 }
 
+/// Updates the package state with versions that are already pending or
+/// will be pending soon.
 @visibleForTesting
-Future<Payload?> schedulePackageInZone(DatastoreDB db, PackageState state,
-    String zone, String instanceName) async {
+Future<Payload?> updatePackageStateWithPendingVersions(
+  DatastoreDB db,
+  PackageState state,
+  String zone,
+  String instanceName,
+) async {
   final payload = await withRetryTransaction(db, (tx) async {
     final s = await tx.lookupOrNull<PackageState>(state.key);
     if (s == null) {
