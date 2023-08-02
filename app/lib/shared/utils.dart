@@ -370,18 +370,19 @@ extension StreamBoundedForEach<T> on Stream<T> {
     FutureOr<void> Function(T) eachFn,
   ) async {
     final pool = Pool(concurrency);
-    final futures = Queue<Future>();
-    // keeps the size of the futures limited, allows some difference in the run times
-    final maxQueueSize = concurrency * 2;
+    final futures = <Future>[];
     try {
       await for (final item in this) {
         final f = pool.withResource(() => eachFn(item));
         futures.add(f);
-        while (futures.length > maxQueueSize) {
-          await futures.removeFirst();
+        if (futures.length >= concurrency) {
+          await Future.wait(futures);
+          futures.clear();
         }
       }
-      await Future.wait(futures);
+      if (futures.isNotEmpty) {
+        await Future.wait(futures);
+      }
     } finally {
       await pool.close();
     }
