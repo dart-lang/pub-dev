@@ -151,6 +151,9 @@ class ScoreCardBackend {
       final status = PackageStatus.fromModels(package, version);
       final summary =
           await taskBackend.panaSummary(packageName, packageVersion);
+      final stateInfo = await taskBackend.packageStatus(packageName);
+      final versionInfo = stateInfo.versions[packageVersion];
+      final hasDartdocFile = versionInfo?.docs ?? false;
 
       final data = ScoreCardData(
         packageName: packageName,
@@ -162,9 +165,8 @@ class ScoreCardBackend {
         packageVersionCreated: version.created,
         dartdocReport: DartdocReport(
           timestamp: summary?.createdAt ?? version.created,
-          // TODO: Embed dartdoc success status in summary, unclear if we need it
           reportStatus:
-              summary == null ? ReportStatus.failed : ReportStatus.success,
+              hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
           dartdocEntry: null, // unused
           documentationSection: null, // already embedded in summary
         ),

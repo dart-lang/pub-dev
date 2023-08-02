@@ -127,7 +127,7 @@ Future<void> processTasksWithFakePanaAndDartdoc() async {
               }
 
               for (final e in dartdocFiles.entries) {
-                await addFileAsStringGzipped(e.key, e.value);
+                await addFileAsStringGzipped('doc/${e.key}', e.value);
               }
               await addFileAsStringGzipped(
                   'summary.json', json.encode(summary.toJson()));
