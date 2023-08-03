@@ -268,8 +268,6 @@ Future<shelf.Response> apiPackageMetricsHandler(
     packageName,
     packageVersion,
     onlyCurrent: current,
-    showSandboxedOutput:
-        requestContext.experimentalFlags.showSandboxedScoreCard,
   );
   if (data == null) {
     return jsonResponse({}, status: 404);
