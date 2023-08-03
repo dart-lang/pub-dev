@@ -278,7 +278,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     ));
     registerTaskBackend(TaskBackend(
       dbService,
-      taskWorkerCloudCompute,
       storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));
     registerSecurityAdvisoryBackend(SecurityAdvisoryBackend(dbService));
