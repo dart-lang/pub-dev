@@ -749,7 +749,7 @@ class TaskBackend {
       cache.taskPackageStatus(package).purge(),
       cache.taskResultIndex(package, version).purge(),
     ]);
-    await purgeScorecardData(package, package, isLatest: true);
+    await purgeScorecardData(package, version, isLatest: true);
   }
 
   /// Fetch and cache `index.json` for [package] and [version].
