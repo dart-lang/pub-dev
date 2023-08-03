@@ -117,8 +117,9 @@ class ScoreCardBackend {
     String packageName,
     String? packageVersion, {
     bool onlyCurrent = false,
+    bool skipSandboxOutput = false,
   }) async {
-    final showSandboxedOutput =
+    final showSandboxedOutput = !skipSandboxOutput &&
         requestContext.experimentalFlags.showSandboxedScoreCard;
     if (packageVersion == null || packageVersion == 'latest') {
       packageVersion = await packageBackend.getLatestVersion(packageName);
