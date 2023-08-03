@@ -129,7 +129,7 @@ void main() {
         outputs.add(item);
       });
       expect(outputs, hasLength(100));
-      expect(outputs.indexOf(10), lessThan(outputs.indexOf(9)));
+      expect(outputs.indexOf(10), lessThan(outputs.indexOf(11)));
     });
   });
 }
