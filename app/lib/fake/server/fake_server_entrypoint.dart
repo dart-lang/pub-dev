@@ -8,6 +8,7 @@ import 'package:args/command_runner.dart';
 import 'package:http/http.dart';
 import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/fake/server/fake_analyzer_service.dart';
 import 'package:pub_dev/fake/server/fake_dartdoc_service.dart';
 import 'package:pub_dev/fake/server/fake_default_service.dart';
@@ -180,6 +181,7 @@ Future<shelf.Response> _testProfile(shelf.Request rq) async {
   );
   await processJobsWithFakePanaRunner();
   await processJobsWithFakeDartdocRunner();
+  await processTasksWithFakePanaAndDartdoc();
   return shelf.Response.ok('{}');
 }
 
