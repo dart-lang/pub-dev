@@ -81,6 +81,7 @@ void main() {
             },
             'urlProblems': []
           },
+          'taskStatus': null,
         });
       },
       processJobsWithFakeRunners: true,

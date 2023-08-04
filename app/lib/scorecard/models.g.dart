@@ -27,6 +27,8 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       panaReport: json['panaReport'] == null
           ? null
           : PanaReport.fromJson(json['panaReport'] as Map<String, dynamic>),
+      taskStatus: $enumDecodeNullable(
+          _$PackageVersionStatusEnumMap, json['taskStatus']),
     );
 
 Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
@@ -40,7 +42,15 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
           instance.packageVersionCreated?.toIso8601String(),
       'dartdocReport': instance.dartdocReport,
       'panaReport': instance.panaReport,
+      'taskStatus': _$PackageVersionStatusEnumMap[instance.taskStatus],
     };
+
+const _$PackageVersionStatusEnumMap = {
+  PackageVersionStatus.pending: 'pending',
+  PackageVersionStatus.running: 'running',
+  PackageVersionStatus.completed: 'completed',
+  PackageVersionStatus.failed: 'failed',
+};
 
 PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       timestamp: json['timestamp'] == null

@@ -174,6 +174,7 @@ class ScoreCardBackend {
           documentationSection: null, // already embedded in summary
         ),
         panaReport: PanaReport.fromSummary(summary, packageStatus: status),
+        taskStatus: versionInfo?.status,
       );
       if (cacheEntry != null) {
         await cacheEntry.set(data);

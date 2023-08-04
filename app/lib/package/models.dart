@@ -11,7 +11,6 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/model_properties.dart';
@@ -20,8 +19,10 @@ import '../search/search_service.dart' show ApiPageRef;
 import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
+import '../shared/popularity_storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import '../task/models.dart';
 
 part 'models.g.dart';
 
@@ -949,14 +950,20 @@ class PackageView extends Object with FlagMixin {
     List<ApiPageRef>? apiPages,
   }) {
     final hasPanaReport = scoreCard?.hasPanaReport ?? false;
-    final isPending =
-        // Job processing has not created any card yet.
-        (scoreCard == null) ||
-            // The uploader has recently removed the "discontinued" flag, but the
-            // analysis did not complete yet.
-            (scoreCard.isDiscontinued && !package.isDiscontinued) ||
-            // No blocker for analysis, but no results yet.
-            (!scoreCard.isSkipped && !hasPanaReport);
+    final taskStatus = scoreCard?.taskStatus;
+    bool isPending = false;
+    if (taskStatus != null) {
+      isPending = taskStatus == PackageVersionStatus.pending;
+    } else {
+      isPending =
+          // Job processing has not created any card yet.
+          (scoreCard == null) ||
+              // The uploader has recently removed the "discontinued" flag, but the
+              // analysis did not complete yet.
+              (scoreCard.isDiscontinued && !package.isDiscontinued) ||
+              // No blocker for analysis, but no results yet.
+              (!scoreCard.isSkipped && !hasPanaReport);
+    }
 
     final tags = <String>{
       ...package.getTags(),

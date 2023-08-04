@@ -9,6 +9,7 @@ import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/task/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
@@ -159,6 +160,7 @@ class ScoreCardData extends Object with FlagMixin {
   final DateTime? packageVersionCreated;
   final DartdocReport? dartdocReport;
   final PanaReport? panaReport;
+  final PackageVersionStatus? taskStatus;
 
   ScoreCardData({
     this.packageName,
@@ -169,6 +171,7 @@ class ScoreCardData extends Object with FlagMixin {
     this.packageVersionCreated,
     this.dartdocReport,
     this.panaReport,
+    this.taskStatus,
   });
 
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
