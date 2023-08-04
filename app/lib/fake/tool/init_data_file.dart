@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/task_payload.dart';
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
@@ -15,6 +17,7 @@ import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -41,7 +44,7 @@ class FakeInitDataFileCommand extends Command {
       )
       ..addOption(
         'analysis',
-        allowed: ['none', 'fake', 'real'],
+        allowed: ['none', 'fake', 'real', 'worker'],
         help: 'Analyze the package with fake or real analysis.',
         defaultsTo: 'none',
       )
@@ -89,6 +92,8 @@ class FakeInitDataFileCommand extends Command {
 
           if (analysis == 'real') {
             await _analyze();
+          } else if (analysis == 'worker') {
+            await _analyzeWorker();
           } else if (analysis == 'fake') {
             await processJobsWithFakePanaRunner();
             await processJobsWithFakeDartdocRunner();
@@ -104,5 +109,21 @@ Future<void> _analyze() async {
     await processJobsWithPanaRunner();
     // ignore: invalid_use_of_visible_for_testing_member
     await processJobsWithDartdocRunner();
+  });
+}
+
+Future<void> _analyzeWorker() async {
+  await fork(() async {
+    await taskBackend.backfillAndProcessAllPackages((Payload payload) async {
+      final arguments = [json.encode(payload.toJson())];
+      final pr = await Process.run(
+        Platform.resolvedExecutable,
+        ['run', 'pub_worker', ...arguments],
+        workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
+      );
+      if (pr.exitCode != 0) {
+        throw Exception('Unexpected status code: ${pr.exitCode} ${pr.stdout}');
+      }
+    });
   });
 }
