@@ -9,6 +9,7 @@ import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -44,8 +45,8 @@ class SecurityAdvisoryBackend {
     return _db.lookupOrNull<SecurityAdvisory>(key);
   }
 
-  // TODO(zarah): add unit test for this.
-  List<String> _validateAdvisoryErrors(OSV osv) {
+  @visibleForTesting
+  List<String> validateAdvisoryErrors(OSV osv) {
     final errors = <String>[];
 
     if (DateTime.parse(osv.modified)
@@ -82,7 +83,7 @@ class SecurityAdvisoryBackend {
   /// advisory is sufficiently sound that we can store it, look it up and update
   /// it in the future.
   bool _isValidAdvisory(OSV osv) {
-    final errors = _validateAdvisoryErrors(osv);
+    final errors = validateAdvisoryErrors(osv);
     errors.forEach((error) => _logger.shout('[advisory-malformed]: $error'));
     return errors.isEmpty;
   }

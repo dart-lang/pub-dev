@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:test/test.dart';
@@ -78,5 +79,78 @@ void main() {
     expect(list3, isNotNull);
     expect(list3.length, 1);
     expect(list3.first.id, id);
+  });
+  group('Validate osv', () {
+    testWithProfile('Modified date should not be in the future', fn: () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final futureTime = clock.now().add(Duration(days: 1)).toIso8601String();
+      final id = '123';
+      final osv = OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: futureTime,
+        published: firstTime,
+        affected: [],
+      );
+
+      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('Invalid modified date'));
+    });
+
+    testWithProfile('Id should be less than 255 characters', fn: () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final longid =
+          '0123456789012345678901234567890123456789012345678901234567890123456789'
+          '0123456789012345678901234567890123456789012345678901234567890123456789'
+          '0123456789012345678901234567890123456789012345678901234567890123456789'
+          '01234567890123456789012345678901234567890123456789';
+      final osv2 = OSV(
+        schemaVersion: '1.2.3',
+        id: longid,
+        modified: firstTime,
+        published: firstTime,
+        affected: [],
+      );
+      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv2);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('Invalid id'));
+    });
+
+    testWithProfile('Id should be printable ASCII', fn: () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final invalidId = '\n';
+      final osv3 = OSV(
+        schemaVersion: '1.2.3',
+        id: invalidId,
+        modified: firstTime,
+        published: firstTime,
+        affected: [],
+      );
+      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv3);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('Invalid id'));
+    });
+
+    testWithProfile('OSV size should be less than 500 kB', fn: () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final id = '123';
+      final largeMap = <String, String>{};
+      for (int i = 0; i < 35000; i++) {
+        largeMap['$i'] = '$i';
+      }
+      final osv4 = OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: firstTime,
+        published: firstTime,
+        affected: [],
+        databaseSpecific: largeMap,
+      );
+
+      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv4);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('OSV too large'));
+    });
   });
 }
