@@ -375,9 +375,10 @@ extension StreamBoundedForEach<T> on Stream<T> {
       await for (final item in this) {
         final f = pool.withResource(() => eachFn(item));
         futures.add(f);
-        if (futures.length >= concurrency) {
-          await Future.wait(futures);
-          futures.clear();
+        while (futures.length > concurrency) {
+          await Future.any(futures.map(
+            (e) => e.whenComplete(() => futures.remove(e)),
+          ));
         }
       }
       if (futures.isNotEmpty) {
