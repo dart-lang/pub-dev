@@ -17,7 +17,10 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(logger: logger);
+      final runner = IsolateCollection(
+        logger: logger,
+        servicesWrapperFn: (fn) => fn(),
+      );
       await runner.startGroup(
         kind: 'test',
         entryPoint: _main1,
@@ -60,7 +63,10 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(logger: logger);
+      final runner = IsolateCollection(
+        logger: logger,
+        servicesWrapperFn: (fn) => fn(),
+      );
       await runner.startGroup(
         kind: 'test',
         entryPoint: _main2,
@@ -101,7 +107,10 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(logger: logger);
+      final runner = IsolateCollection(
+        logger: logger,
+        servicesWrapperFn: (fn) => fn(),
+      );
       final group = await runner.startGroup(
         kind: 'test',
         entryPoint: _main4,
@@ -141,7 +150,10 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(logger: logger);
+      final runner = IsolateCollection(
+        logger: logger,
+        servicesWrapperFn: (fn) => fn(),
+      );
       await runner.startGroup(
         kind: 'test',
         entryPoint: _main3,
