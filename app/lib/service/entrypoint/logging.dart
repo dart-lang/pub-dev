@@ -59,11 +59,11 @@ void setupAppEngineLogging() {
         addBlock('Stack', '$stackTrace');
       }
 
-      // Truncated messages over 200kb
-      if (message.length > 200 * 1024) {
-        message = message.substring(0, 190 * 1024) +
+      // Truncated messages over 64kb
+      if (message.length > 64 * 1024) {
+        message = message.substring(0, 32 * 1024) +
             '...\n[truncated due to size]\n...' +
-            message.substring(190 * 1024, 200 * 1024);
+            message.substring(message.length - 16 * 1024);
       }
 
       // Unless logging a request, we just log directly to stdout
