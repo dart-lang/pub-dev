@@ -44,45 +44,8 @@ class SecurityAdvisoryBackend {
     return _db.lookupOrNull<SecurityAdvisory>(key);
   }
 
-  // TODO(zarah): add unit test for this.
-  List<String> _validateAdvisoryErrors(OSV osv) {
-    final errors = <String>[];
-
-    if (DateTime.parse(osv.modified)
-        .isAfter(clock.now().add(Duration(hours: 1)))) {
-      errors.add('Invalid modified date, cannot be a future date.');
-    }
-
-    if (osv.id.length > 255) {
-      errors.add('Invalid id, id too long (over 255 characters).');
-    }
-
-    final invalids = <int>[];
-    // Check that [osv.id] consists of printable ASCII.
-    osv.id.runes.forEach((element) {
-      if (element < 32 || element > 126) {
-        invalids.add(element);
-      }
-    });
-
-    if (invalids.isNotEmpty) {
-      errors.add('Invalid id, the "id" property must be printable ASCII.');
-    }
-
-    if (json.encode(osv.toJson()).length > 1024 * 500) {
-      errors.add('OSV too large (larger than 500 kB)');
-    }
-
-    return errors;
-  }
-
-  /// Sanity checks to ensure that we can store, lookup and update the advisory.
-  ///
-  /// We don't validate all fields, instead we aim to simply ensure that the
-  /// advisory is sufficiently sound that we can store it, look it up and update
-  /// it in the future.
   bool _isValidAdvisory(OSV osv) {
-    final errors = _validateAdvisoryErrors(osv);
+    final errors = sanityCheckOSV(osv);
     errors.forEach((error) => _logger.shout('[advisory-malformed]: $error'));
     return errors.isEmpty;
   }
@@ -130,4 +93,40 @@ class SecurityAdvisoryBackend {
       return newAdvisory;
     });
   }
+}
+
+/// Sanity checks to ensure that we can store, lookup and update the advisory.
+///
+/// We don't validate all fields, instead we aim to simply ensure that the
+/// advisory is sufficiently sound that we can store it, look it up and update
+/// it in the future.
+List<String> sanityCheckOSV(OSV osv) {
+  final errors = <String>[];
+
+  if (DateTime.parse(osv.modified)
+      .isAfter(clock.now().add(Duration(hours: 1)))) {
+    errors.add('Invalid modified date, cannot be a future date.');
+  }
+
+  if (osv.id.length > 255) {
+    errors.add('Invalid id, id too long (over 255 characters).');
+  }
+
+  final invalids = <int>[];
+  // Check that [osv.id] consists of printable ASCII.
+  osv.id.runes.forEach((element) {
+    if (element < 32 || element > 126) {
+      invalids.add(element);
+    }
+  });
+
+  if (invalids.isNotEmpty) {
+    errors.add('Invalid id, the "id" property must be printable ASCII.');
+  }
+
+  if (json.encode(osv.toJson()).length > 1024 * 500) {
+    errors.add('OSV too large (larger than 500 kB)');
+  }
+
+  return errors;
 }
