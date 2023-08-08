@@ -17,6 +17,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -1207,6 +1208,7 @@ class PackageBackend {
           jobBackend.triggerDartdoc(
               newVersion.package, prevLatestPrereleaseVersion,
               shouldProcess: false),
+        taskBackend.trackPackage(newVersion.package, updateDependants: true),
       ]);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
