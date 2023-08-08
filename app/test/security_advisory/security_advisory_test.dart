@@ -81,7 +81,7 @@ void main() {
     expect(list3.first.id, id);
   });
   group('Validate osv', () {
-    testWithProfile('Modified date should not be in the future', fn: () async {
+    test('Modified date should not be in the future', () async {
       final firstTime = DateTime(2022).toIso8601String();
       final futureTime = clock.now().add(Duration(days: 1)).toIso8601String();
       final id = '123';
@@ -93,12 +93,12 @@ void main() {
         affected: [],
       );
 
-      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv);
+      final errors = sanityCheckOSV(osv);
       expect(errors, isNotEmpty);
       expect(errors.first, contains('Invalid modified date'));
     });
 
-    testWithProfile('Id should be less than 255 characters', fn: () async {
+    test('Id should be less than 255 characters', () async {
       final firstTime = DateTime(2022).toIso8601String();
       final longid =
           '0123456789012345678901234567890123456789012345678901234567890123456789'
@@ -112,12 +112,12 @@ void main() {
         published: firstTime,
         affected: [],
       );
-      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv2);
+      final errors = sanityCheckOSV(osv2);
       expect(errors, isNotEmpty);
       expect(errors.first, contains('Invalid id'));
     });
 
-    testWithProfile('Id should be printable ASCII', fn: () async {
+    test('Id should be printable ASCII', () async {
       final firstTime = DateTime(2022).toIso8601String();
       final invalidId = '\n';
       final osv3 = OSV(
@@ -127,12 +127,12 @@ void main() {
         published: firstTime,
         affected: [],
       );
-      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv3);
+      final errors = sanityCheckOSV(osv3);
       expect(errors, isNotEmpty);
       expect(errors.first, contains('Invalid id'));
     });
 
-    testWithProfile('OSV size should be less than 500 kB', fn: () async {
+    test('OSV size should be less than 500 kB', () async {
       final firstTime = DateTime(2022).toIso8601String();
       final id = '123';
       final largeMap = <String, String>{};
@@ -148,7 +148,7 @@ void main() {
         databaseSpecific: largeMap,
       );
 
-      final errors = securityAdvisoryBackend.validateAdvisoryErrors(osv4);
+      final errors = sanityCheckOSV(osv4);
       expect(errors, isNotEmpty);
       expect(errors.first, contains('OSV too large'));
     });
