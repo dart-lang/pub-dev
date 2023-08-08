@@ -23,11 +23,14 @@ import 'package:retry/retry.dart';
 final _log = Logger('pub_worker.process_payload');
 
 /// Gracefully shutdown and report versions as done without results, if
-/// processing takes more than 45 minutes.
-const _workerTimeout = Duration(minutes: 45);
+/// processing takes more than 55 minutes.
+const _workerTimeout = Duration(minutes: 55);
 
-/// Stop analysis if it takes more than 25 minutes.
-const _analysisTimeout = Duration(minutes: 25);
+/// Stop dartdoc if it takes more than 45 minutes.
+const _dartdocTimeout = Duration(minutes: 45);
+
+/// Stop pana if it takes more than 15 minutes.
+const _panaTimeout = Duration(minutes: 15);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
@@ -152,7 +155,7 @@ Future<void> _analyzePackage(
       await Future.wait<void>([
         proc.stderr.forEach(log.add),
         proc.stdout.forEach(log.add),
-        proc.exitOrTimeout(_analysisTimeout, () {
+        proc.exitOrTimeout(_dartdocTimeout, () {
           log.writeln('TIMEOUT: dartdoc sending SIGTERM/SIGKILL');
         }),
       ]).catchError((e) => const [/* ignore */]);
@@ -190,7 +193,7 @@ Future<void> _analyzePackage(
       await Future.wait<void>([
         pana.stderr.forEach(log.add),
         pana.stdout.forEach(log.add),
-        pana.exitOrTimeout(_analysisTimeout, () {
+        pana.exitOrTimeout(_panaTimeout, () {
           log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
         }),
       ]).catchError((e) => const [/* ignore */]);
