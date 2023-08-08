@@ -20,6 +20,10 @@ import 'tools.dart';
 
 final _random = Random.secure();
 
+/// Wrapper method to replace [withServices] into [withFakeServices] for
+/// local tests and development.
+typedef ServicesWrapperFn = Future<void> Function(Future Function() fn);
+
 /// Marker class for inter-isolate messages.
 sealed class Message {}
 
@@ -53,12 +57,14 @@ class DebugMessage extends Message {
 @visibleForTesting
 class IsolateCollection {
   final Logger logger;
+  final ServicesWrapperFn servicesWrapperFn;
   var _closing = false;
 
   final _groups = <IsolateGroup>[];
 
   IsolateCollection({
     required this.logger,
+    required this.servicesWrapperFn,
   });
 
   /// Starts a new isolate group with [count] running instances.
@@ -75,6 +81,7 @@ class IsolateCollection {
     final group = IsolateGroup(
       runner: this,
       kind: kind,
+      servicesWrapperFn: servicesWrapperFn,
       entryPoint: entryPoint,
       deadTimeout: deadTimeout,
     );
@@ -102,6 +109,7 @@ class IsolateCollection {
 class IsolateGroup {
   final IsolateCollection runner;
   final String kind;
+  final ServicesWrapperFn servicesWrapperFn;
   final Future<void> Function(EntryMessage message) entryPoint;
   final Duration? deadTimeout;
   final bool skipWaitBetweenRestarts;
@@ -118,6 +126,7 @@ class IsolateGroup {
   IsolateGroup({
     required this.runner,
     required this.kind,
+    required this.servicesWrapperFn,
     required this.entryPoint,
     required this.deadTimeout,
     this.skipWaitBetweenRestarts = false,
@@ -157,6 +166,7 @@ class IsolateGroup {
       group: this,
       logger: logger,
       id: id,
+      servicesWrapperFn: servicesWrapperFn,
       entryPoint: entryPoint,
     );
     _isolates.add(isolate);
@@ -216,11 +226,15 @@ Future runIsolates({
   Future<void> Function(EntryMessage message)? jobEntryPoint,
   Duration? deadWorkerTimeout,
   required int frontendCount,
+  ServicesWrapperFn? servicesWrapperFn,
 }) async {
-  await withServices(() async {
+  final runner = IsolateCollection(
+    logger: logger,
+    servicesWrapperFn: servicesWrapperFn ?? withServices,
+  );
+  await runner.servicesWrapperFn(() async {
     _verifyStampFile();
     try {
-      final runner = IsolateCollection(logger: logger);
       if (frontendEntryPoint != null) {
         await runner.startGroup(
           kind: 'frontend',
@@ -279,6 +293,7 @@ class _Isolate {
   final IsolateGroup group;
   final Logger logger;
   final String id;
+  final ServicesWrapperFn servicesWrapperFn;
   final Future<void> Function(EntryMessage message) entryPoint;
 
   late Isolate _isolate;
@@ -306,6 +321,7 @@ class _Isolate {
     required this.group,
     required this.logger,
     required this.id,
+    required this.servicesWrapperFn,
     required this.entryPoint,
   });
 
@@ -315,6 +331,7 @@ class _Isolate {
     _isolate = await Isolate.spawn(
       _wrapper,
       [
+        servicesWrapperFn,
         entryPoint,
         EntryMessage(
           protocolSendPort: _protocolReceivePort.sendPort,
@@ -424,19 +441,18 @@ class _Isolate {
   }
 }
 
-Future<void> _wrapper(List fnAndMessage) async {
-  final fn = fnAndMessage[0] as Function;
-  final message = fnAndMessage[1];
+Future<void> _wrapper(List args) async {
+  final serviceFn = args[0] as ServicesWrapperFn;
+  final fn = args[1] as Function;
+  final message = args[2];
   final logger = Logger('isolate.wrapper');
   // NOTE: This timer triggers active "work" and prevents the VM to run compaction GC.
   //       https://github.com/dart-lang/sdk/issues/52513
   final timer = Timer.periodic(Duration(milliseconds: 250), (_) {});
 
-  Future<void> run() async {
+  try {
     return await Chain.capture(
-      () async {
-        return await fn(message);
-      },
+      () => serviceFn(() async => await fn(message)),
       onError: (e, st) {
         // TODO: Enable, if we undo the hack for logging:
         // print('Uncaught exception in isolate. $e $st');
@@ -444,16 +460,6 @@ Future<void> _wrapper(List fnAndMessage) async {
         throw Exception('Crashing isolate due to uncaught exception: $e');
       },
     );
-  }
-
-  try {
-    if (envConfig.isRunningInAppengine) {
-      return await withServices(() async {
-        return await run();
-      });
-    } else {
-      return await run();
-    }
   } finally {
     timer.cancel();
   }

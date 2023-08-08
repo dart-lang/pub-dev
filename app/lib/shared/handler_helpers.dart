@@ -6,9 +6,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/frontend/templates/misc.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -37,9 +40,29 @@ Future<void> runHandler(
   int port = 8080,
 }) async {
   handler = wrapHandler(logger, handler, sanitize: sanitize);
-  await runAppEngine((HttpRequest request) {
-    shelf_io.handleRequest(request, handler);
-  }, shared: true, port: port);
+  if (envConfig.isRunningInAppengine) {
+    await runAppEngine(
+      (HttpRequest request) {
+        shelf_io.handleRequest(request, handler);
+      },
+      shared: true,
+      port: port,
+    );
+  } else {
+    final server = await shelf_io.serve(
+      (request) async {
+        final rs = await fork(() async {
+          return await handler(request);
+        });
+        return rs as shelf.Response;
+      },
+      InternetAddress.anyIPv4,
+      port,
+      shared: true,
+    );
+    await waitForProcessSignalTermination();
+    await server.close();
+  }
 }
 
 /// Wraps the app handler with useful wrappers.
