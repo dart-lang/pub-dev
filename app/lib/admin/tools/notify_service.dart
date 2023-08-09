@@ -5,14 +5,14 @@
 import 'dart:async';
 
 import 'package:pub_dev/job/backend.dart';
-import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/task/backend.dart';
 
 String _printHelp() {
   return 'Notifies the auxilliary services about a new package or version.\n'
       'Syntax:\n'
       '  <tool-command> analyzer [package] [version]\n'
       '  <tool-command> dartdoc [package] [version]\n'
-      '  <tool-command> search [package] [version]\n';
+      '  <tool-command> task [package]\n';
 }
 
 /// Notifies the analyzer or the search service.
@@ -26,8 +26,8 @@ Future<String> executeNotifyService(List<String> args) async {
     await jobBackend.triggerAnalysis(args[1], args[2], isHighPriority: true);
   } else if (service == 'dartdoc' && args.length == 3) {
     await jobBackend.triggerDartdoc(args[1], args[2], isHighPriority: true);
-  } else if (service == 'search' && args.length == 3) {
-    await searchClient.triggerReindex(args[1], args[2]);
+  } else if (service == 'task' && args.length == 2) {
+    await taskBackend.adminBumpPriority(args[1]);
   } else {
     return _printHelp();
   }

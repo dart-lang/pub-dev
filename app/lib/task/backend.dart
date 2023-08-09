@@ -1000,6 +1000,23 @@ class TaskBackend {
       await processPayload(payload);
     }
   }
+
+  /// Trigger a one-off priority bump for [packageName].
+  ///
+  /// Intended to be used for admin actions, not intended for normal operations.
+  Future<void> adminBumpPriority(String packageName) async {
+    // Ensure we're up-to-date.
+    await trackPackage(packageName);
+
+    await withRetryTransaction(_db, (tx) async {
+      final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
+      final state = await tx.lookupOrNull<PackageState>(stateKey);
+      if (state != null) {
+        state.pendingAt = initialTimestamp;
+        tx.insert(state);
+      }
+    });
+  }
 }
 
 final _blobIdPattern = RegExp(r'^[^/]+/[^/]+/[^/]+/[0-9a-fA-F]+\.blob$');
