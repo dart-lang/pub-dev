@@ -46,6 +46,7 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
   final objectNamesInPublicBucket = <String>{};
 
+  var errCount = 0;
   await for (final pv in dbService.query<PackageVersion>().run()) {
     // ignore: invalid_use_of_visible_for_testing_member
     final objectName = tarballObjectName(pv.package, pv.version!);
@@ -53,11 +54,19 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
     if (publicInfo == null) {
       _logger.warning('Updating missing object in public bucket: $objectName');
-      await storageService.copyObject(
-        canonicalBucket.absoluteObjectName(objectName),
-        publicBucket.absoluteObjectName(objectName),
-      );
-      updatedCount++;
+      try {
+        await storageService.copyObject(
+          canonicalBucket.absoluteObjectName(objectName),
+          publicBucket.absoluteObjectName(objectName),
+        );
+        updatedCount++;
+      } on Exception catch (e, st) {
+        _logger.shout(
+          'Failed to copy $objectName from canonical to public bucket',
+          e,
+          st,
+        );
+      }
     }
     objectNamesInPublicBucket.add(objectName);
   }
