@@ -46,7 +46,6 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
   final objectNamesInPublicBucket = <String>{};
 
-  var errCount = 0;
   await for (final pv in dbService.query<PackageVersion>().run()) {
     // ignore: invalid_use_of_visible_for_testing_member
     final objectName = tarballObjectName(pv.package, pv.version!);
