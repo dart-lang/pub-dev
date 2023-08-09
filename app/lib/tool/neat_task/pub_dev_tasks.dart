@@ -110,7 +110,7 @@ void _setupGenericPeriodicTasks() {
   // Updates the public archive bucket from the canonical bucket, for the
   // unlikely case where an archive may be missing.
   _daily(
-    name: 'update-public-archive-bucket',
+    name: 'sync-public-bucket-from-canonical-bucket',
     isRuntimeVersioned: false,
     task: updatePublicArchiveBucket,
   );
