@@ -9,7 +9,6 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 
-import '../scorecard/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
@@ -97,13 +96,6 @@ class SearchClient {
       final cacheEntry = cache.packageSearchResult(serviceUrlParams.toString());
       return (await cacheEntry.get(searchFn))!;
     }
-  }
-
-  /// Search service maintains a separate index in each of the running instances.
-  /// This method will update the ScoreCard entry of the package, and it will
-  /// be picked up by each search index individually, within a few minutes.
-  Future<void> triggerReindex(String package, String version) async {
-    await scoreCardBackend.markScoreCardUpdated(package, version);
   }
 
   Future<void> close() async {
