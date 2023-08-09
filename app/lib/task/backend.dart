@@ -332,7 +332,7 @@ class TaskBackend {
     bool updateDependants = false,
   }) async {
     var lastVersionCreated = initialTimestamp;
-    await withRetryTransaction(_db, (tx) async {
+    final changed = await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
 
       final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
@@ -348,7 +348,7 @@ class TaskBackend {
       final packageVersions = await packageVersionsFuture;
 
       if (package == null) {
-        return; // assume package was deleted!
+        return false; // assume package was deleted!
       }
 
       // Update the timestamp for when the last version was published.
@@ -360,7 +360,7 @@ class TaskBackend {
         if (state != null) {
           tx.delete(state.key);
         }
-        return;
+        return true;
       }
 
       // Determined the set of versions to track
@@ -387,7 +387,7 @@ class TaskBackend {
             ..lastDependencyChanged = initialTimestamp
             ..derivePendingAt(),
         );
-        return; // no more work for this package, state is sync'ed
+        return true; // no more work for this package, state is sync'ed
       }
 
       // List versions that not tracked, but should be
@@ -412,7 +412,7 @@ class TaskBackend {
 
       // Stop transaction, if there is no changes to be made!
       if (untrackedVersions.isEmpty && deselectedVersions.isEmpty) {
-        return;
+        return false;
       }
 
       // Make changes!
@@ -431,7 +431,12 @@ class TaskBackend {
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
+      return true;
     });
+
+    if (changed) {
+      await cache.taskPackageStatus(packageName).purge();
+    }
 
     if (updateDependants &&
         !lastVersionCreated.isAtSameMomentAs(initialTimestamp)) {
@@ -522,7 +527,7 @@ class TaskBackend {
       // and logs any failures before always releasing the [r].
       scheduleMicrotask(() async {
         try {
-          await withRetryTransaction(_db, (tx) async {
+          final changed = await withRetryTransaction(_db, (tx) async {
             // Reload [state] within a transaction to avoid overwriting changes
             // made by others trying to update state for another package.
             final s = await tx.lookupValue<PackageState>(state.key);
@@ -532,8 +537,13 @@ class TaskBackend {
                   ..lastDependencyChanged = publishedAt
                   ..derivePendingAt(),
               );
+              return true;
             }
+            return false;
           });
+          if (changed) {
+            await cache.taskPackageStatus(state.package).purge();
+          }
         } catch (e, st) {
           _log.warning(
             'failed to propagate lastDependencyChanged for ${state.package}',
