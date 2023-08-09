@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/action/action.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/task/backend.dart';
 
 final taskBumpPriority = AdminAction(
@@ -23,10 +23,8 @@ This is intended for debugging, or solving one-off issues.
     'package': 'Name of package whose priority should be bumped',
   },
   invoke: (options) async {
-    final package = options['package'];
-    if (package is! String || package.isEmpty) {
-      throw AdminActionFailedException('"package" option must be a string');
-    }
+    final package = options['package']!;
+    InvalidInputException.checkPackageName(package);
 
     await taskBackend.bumpPriority(package);
 

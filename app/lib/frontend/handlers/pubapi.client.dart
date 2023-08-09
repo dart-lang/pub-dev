@@ -471,6 +471,20 @@ class PubApiClient {
     );
   }
 
+  Future<_i7.AdminListActionsResponse> adminListActions() async {
+    return _i7.AdminListActionsResponse.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/admin/actions',
+    ));
+  }
+
+  Future<_i7.AdminInvokeActionResponse> adminInvokeAction(String action) async {
+    return _i7.AdminInvokeActionResponse.fromJson(await _client.requestJson(
+      verb: 'post',
+      path: '/api/admin/actions/$action',
+    ));
+  }
+
   Future<_i7.AdminListUsersResponse> adminListUsers({
     String? email,
     String? ouid,

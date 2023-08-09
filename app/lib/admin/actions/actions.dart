@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/actions/publisher_block.dart';
+import 'package:pub_dev/admin/actions/publisher_members_list.dart';
+import 'package:pub_dev/admin/actions/tool_execute.dart';
+import 'package:pub_dev/admin/actions/tool_list.dart';
+
 import '../../shared/exceptions.dart';
 import 'task_bump_priority.dart';
 
 export '../../shared/exceptions.dart';
-
-/// Exception thrown when the invocation of an [AdminAction] fails.
-final class AdminActionFailedException implements Exception {
-  final String message;
-  AdminActionFailedException(this.message);
-  @override
-  String toString() => message;
-}
 
 final class AdminAction {
   /// Name of the action is an identifier to be specified when the action is triggered.
@@ -38,8 +35,8 @@ final class AdminAction {
   ///
   /// This function is passed an `arguments` Map where keys match the keys in
   /// [options].
-  /// Returns a JSON response, a failed invocation should throw
-  /// [AdminActionFailedException], or a [ResponseException].
+  /// Returns a JSON response, a failed invocation should throw a
+  /// [ResponseException].
   /// Any other exception will be considered an internal error.
   final Future<Map<String, Object?>> Function(
     Map<String, String> arguments,
@@ -64,6 +61,10 @@ final class AdminAction {
   }
 
   static List<AdminAction> actions = [
+    publisherBlock,
+    publisherMembersList,
     taskBumpPriority,
+    toolExecute,
+    toolList,
   ];
 }

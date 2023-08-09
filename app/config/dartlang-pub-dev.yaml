@@ -39,6 +39,7 @@ admins:
   email: istvan.soos@gmail.com
   permissions:
   - executeTool
+  - invokeAction
   - listUsers
   - manageAssignedTags
   - managePackageOwnership
@@ -49,6 +50,7 @@ admins:
   email: pub-moderation-admin@dartlang-pub-dev.iam.gserviceaccount.com
   permissions:
   - executeTool
+  - invokeAction
   - listUsers
   - manageAssignedTags
   - managePackageOwnership

@@ -459,6 +459,19 @@ class PubApi {
     return Response.ok(await adminBackend.executeTool(tool, parsedArgs));
   }
 
+  @EndPoint.get('/api/admin/actions')
+  Future<AdminListActionsResponse> adminListActions(Request request) {
+    return adminBackend.listActions();
+  }
+
+  @EndPoint.post('/api/admin/actions/<action>')
+  Future<AdminInvokeActionResponse> adminInvokeAction(
+    Request request,
+    String action,
+  ) {
+    return adminBackend.invokeAction(action, request.url.queryParameters);
+  }
+
   @EndPoint.get('/api/admin/users')
   Future<AdminListUsersResponse> adminListUsers(
     Request request, {

@@ -8,6 +8,7 @@ import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -31,7 +32,7 @@ import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../tool/utils/dart_sdk_version.dart';
-import 'tools/block_publisher_and_all_members.dart';
+import 'actions/actions.dart' show AdminAction;
 import 'tools/create_publisher.dart';
 import 'tools/delete_all_staging.dart';
 import 'tools/delete_publisher.dart';
@@ -71,7 +72,6 @@ final Map<String, Tool> availableTools = {
   'package-publisher': executeSetPackagePublisher,
   'update-package-versions': executeUpdatePackageVersions,
   'recent-uploaders': executeRecentUploaders,
-  'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
   'publisher-member': executePublisherMember,
   'publisher-invite-member': executePublisherInviteMember,
   'set-package-blocked': executeSetPackageBlocked,
@@ -687,5 +687,48 @@ class AdminBackend {
       }
     });
     return await handleGetPackageUploaders(packageName);
+  }
+
+  Future<api.AdminListActionsResponse> listActions() async {
+    return api.AdminListActionsResponse(
+      actions: AdminAction.actions
+          .map(
+            (action) => api.AdminAction(
+              name: action.name,
+              summary: action.summary,
+              description: action.description,
+              options: action.options,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Future<api.AdminInvokeActionResponse> invokeAction(
+    String actionName,
+    Map<String, String> args,
+  ) async {
+    await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+
+    final action = AdminAction.actions.firstWhereOrNull(
+      (a) => a.name == actionName,
+    );
+    if (action == null) {
+      throw NotFoundException.resource(actionName);
+    }
+
+    // Don't allow unknown arguments
+    final unknownArgs =
+        args.keys.toSet().difference(action.options.keys.toSet());
+    InvalidInputException.check(
+      unknownArgs.isEmpty,
+      'Unknown options: ${unknownArgs.join(',')}',
+    );
+
+    final result = await action.invoke({
+      for (final k in action.options.keys) k: args[k] ?? '',
+    });
+
+    return api.AdminInvokeActionResponse(output: result);
   }
 }

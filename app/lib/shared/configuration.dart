@@ -479,6 +479,9 @@ enum AdminPermission {
   /// Permission to execute a tool.
   executeTool,
 
+  /// Permission to invoke admin actions.
+  invokeAction,
+
   /// Permission to list all users.
   listUsers,
 
