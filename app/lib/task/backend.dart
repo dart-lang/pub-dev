@@ -332,6 +332,7 @@ class TaskBackend {
     bool updateDependants = false,
   }) async {
     var lastVersionCreated = initialTimestamp;
+    String? latestVersion;
     final changed = await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
 
@@ -350,6 +351,7 @@ class TaskBackend {
       if (package == null) {
         return false; // assume package was deleted!
       }
+      latestVersion = package.latestVersion;
 
       // Update the timestamp for when the last version was published.
       // This is used if we need to update dependants.
@@ -435,7 +437,7 @@ class TaskBackend {
     });
 
     if (changed) {
-      await cache.taskPackageStatus(packageName).purge();
+      await _purgeCache(packageName, latestVersion);
     }
 
     if (updateDependants &&
@@ -754,12 +756,12 @@ class TaskBackend {
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
-  Future<void> _purgeCache(String package, String version) async {
+  Future<void> _purgeCache(String package, String? version) async {
     await Future.wait([
       cache.taskPackageStatus(package).purge(),
-      cache.taskResultIndex(package, version).purge(),
+      if (version != null) cache.taskResultIndex(package, version).purge(),
+      if (version != null) purgeScorecardData(package, version, isLatest: true),
     ]);
-    await purgeScorecardData(package, version, isLatest: true);
   }
 
   /// Fetch and cache `index.json` for [package] and [version].
