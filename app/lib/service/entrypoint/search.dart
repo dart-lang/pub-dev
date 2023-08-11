@@ -6,18 +6,17 @@ import 'dart:async';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/search/backend.dart';
 
-import '../../search/dart_sdk_mem_index.dart';
-import '../../search/flutter_sdk_mem_index.dart';
+import '../../search/backend.dart';
 import '../../search/handlers.dart';
-import '../../search/updater.dart';
+import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '_isolate.dart';
+import 'search_index.dart';
 
 final Logger _logger = Logger('pub.search');
 
@@ -30,33 +29,25 @@ class SearchCommand extends Command {
 
   @override
   Future<void> run() async {
+    final servicesWrapperFn =
+        envConfig.isRunningInAppengine ? withServices : fakeServicesWrapper;
     envConfig.checkServiceEnvironment(name);
     await runIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
       workerEntryPoint: _worker,
+      indexSpawnUri:
+          Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
+      indexRenewTrigger: Stream.periodic(Duration(minutes: 15)),
       frontendCount: 1,
+      servicesWrapperFn: servicesWrapperFn,
     );
   }
 }
 
 Future _main(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
-  await popularityStorage.start();
-
-  // Don't block on init, we need to serve liveliness and readiness checks.
-  scheduleMicrotask(() async {
-    await dartSdkMemIndex.start();
-    await flutterSdkMemIndex.start();
-    try {
-      await indexUpdater.init();
-    } catch (e, st) {
-      _logger.shout('Error initializing search service.', e, st);
-      rethrow;
-    }
-    indexUpdater.runScheduler();
-  });
-
+  registerSearchIndex(IsolateSearchIndex(message.protocolSendPort));
   await runHandler(_logger, searchServiceHandler);
 }
 
