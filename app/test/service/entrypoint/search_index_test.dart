@@ -24,7 +24,7 @@ void main() {
       await collection.close();
     });
 
-    test('index isolate started', () async {
+    test('start and work with index', () async {
       indexGroup = await collection.startGroup(
         kind: 'index',
         count: 1,
@@ -32,9 +32,7 @@ void main() {
         spawnUri:
             Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
       );
-    }, timeout: Timeout(Duration(minutes: 5)));
 
-    test('work with the index', () async {
       // forward port to isolate group
       final delegatePort = ReceivePort();
       final subscription = delegatePort.listen((m) {
