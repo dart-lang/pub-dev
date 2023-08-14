@@ -64,7 +64,7 @@ void main() {
         'existing package',
         (url) => url
             .replaceAll('<package>', 'oxygen')
-            .replaceAll('<version>', '1.0.0'),
+            .replaceAll('<version>', '1.2.0'),
         <int>{200, 303, 401},
       );
 

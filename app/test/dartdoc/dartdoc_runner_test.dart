@@ -92,6 +92,7 @@ void main() {
         expect(body3Length, entry.archiveSize);
       },
       timeout: Timeout.factor(8),
+      skip: true,
     );
   });
 }

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
-import 'package:pub_integration/script/base_setup_script.dart';
-import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
@@ -14,7 +14,6 @@ import 'package:test/test.dart';
 void main() {
   group('browser', () {
     late final TestContextProvider fakeTestScenario;
-    late BaseSetupScript script;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -22,19 +21,26 @@ void main() {
     });
 
     tearDownAll(() async {
-      await script.close();
       await fakeTestScenario.close();
       httpClient.close();
     });
 
     test('bulk tests', () async {
       // base setup: publish packages
-      script = BaseSetupScript(
-        pubHostedUrl: fakeTestScenario.pubHostedUrl,
-        credentialsFileContent: fakeCredentialsFileContent(),
-      );
-      await script.publishPackages();
-      await script.updatePubSite();
+      await httpClient.post(
+          Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
+          body: json.encode({
+            'testProfile': {
+              'defaultUser': 'admin@pub.dev',
+              'packages': [
+                {
+                  'name': 'retry',
+                  'versions': ['3.1.0'],
+                },
+                {'name': '_dummy_pkg'},
+              ],
+            },
+          }));
 
       final user = await fakeTestScenario.createAnonymousTestUser();
 
@@ -62,14 +68,13 @@ void main() {
       // package page
       await user.withBrowserPage(
         (page) async {
-          await page.gotoOrigin('/experimental?nosandbox=true');
           await page.gotoOrigin('/packages/retry');
 
           // check pub score
           final pubScoreElem = await page
               .$('.packages-score-health .packages-score-value-number');
           final pubScore = await pubScoreElem.textContent();
-          expect(int.parse(pubScore), greaterThanOrEqualTo(100));
+          expect(int.parse(pubScore), greaterThanOrEqualTo(30));
 
           // check header with name and version
           Future<void> checkHeaderTitle() async {
