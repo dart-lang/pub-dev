@@ -4,11 +4,10 @@
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
-import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
-import 'urls.dart' show getRepositoryUrl, UriExt;
+import 'urls.dart' show UriExt;
 
 /// Resolves [reference] relative to a repository URL.
 typedef UrlResolverFn = String Function(
@@ -36,7 +35,6 @@ const _whitelistedClassNames = <String>[
 String markdownToHtml(
   String text, {
   UrlResolverFn? urlResolverFn,
-  String? baseUrl,
   String? baseDir,
   bool isChangelog = false,
   bool disableHashIds = false,
@@ -48,7 +46,6 @@ String markdownToHtml(
     nodes = _rewriteRelativeUrls(
       nodes,
       urlResolverFn: urlResolverFn,
-      baseUrl: baseUrl,
       baseDir: baseDir,
     );
     if (isChangelog) {
@@ -71,16 +68,13 @@ List<m.Node> _parseMarkdownSource(String source) {
   return document.parseLines(lines);
 }
 
-/// Rewrites relative URLs, re-basing them on [baseUrl].
+/// Rewrites relative URLs, re-basing them on the repository URL.
 List<m.Node> _rewriteRelativeUrls(
   List<m.Node> nodes, {
   required UrlResolverFn? urlResolverFn,
-  required String? baseUrl,
   required String? baseDir,
 }) {
-  final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
-  final urlRewriter =
-      _RelativeUrlRewriter(urlResolverFn, sanitizedBaseUrl, baseDir);
+  final urlRewriter = _RelativeUrlRewriter(urlResolverFn, baseDir);
   nodes.forEach((node) => node.accept(urlRewriter));
   return nodes;
 }
@@ -185,13 +179,12 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
   }
 }
 
-/// Rewrites relative URLs with the provided [baseUrl]
+/// Rewrites relative URLs with the provided repository URL resolver.
 class _RelativeUrlRewriter implements m.NodeVisitor {
   final UrlResolverFn? urlResolverFn;
-  final String? baseUrl;
   final String? baseDir;
   final _elementsToRemove = <m.Element>{};
-  _RelativeUrlRewriter(this.urlResolverFn, this.baseUrl, this.baseDir);
+  _RelativeUrlRewriter(this.urlResolverFn, this.baseDir);
 
   @override
   void visitText(m.Text text) {}
@@ -245,81 +238,17 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
       if (urlResolverFn != null) {
         return urlResolverFn!(
           url,
-          relativeFrom: baseDir,
+          relativeFrom: (baseDir == null || baseDir!.isEmpty)
+              ? null
+              : '$baseDir/README.md',
           isEmbeddedObject: raw,
         );
       }
-      // TODO: remove the rest of the rewrites after repository verification is launched
-      String newUrl = url;
-      if (baseUrl != null && !_isAbsolute(newUrl)) {
-        newUrl = _rewriteRelativeUrl(newUrl);
-      }
-      if (raw && _isAbsolute(newUrl)) {
-        newUrl = _rewriteAbsoluteUrl(newUrl);
-      }
-      return newUrl;
     } catch (e, st) {
       _logger.warning('Link rewrite failed: $url', e, st);
     }
     return url;
   }
-
-  bool _isAbsolute(String url) => url.contains(':');
-
-  String _rewriteAbsoluteUrl(String url) {
-    final uri = Uri.parse(url);
-    if (uri.host == 'github.com') {
-      final segments = uri.pathSegments;
-      if (segments.length > 3 && segments[2] == 'blob') {
-        final newSegments = List<String>.from(segments);
-        newSegments[2] = 'raw';
-        return uri.replace(pathSegments: newSegments).toString();
-      }
-    }
-    return url;
-  }
-
-  String _rewriteRelativeUrl(String url) {
-    final uri = Uri.parse(url);
-    final linkPath = uri.path;
-    final linkFragment = uri.fragment;
-    if (linkPath.isEmpty) {
-      return url;
-    }
-    String newUrl;
-    if (linkPath.startsWith('/')) {
-      newUrl = Uri.parse(baseUrl!).replace(path: linkPath).toString();
-    } else {
-      final adjustedLinkPath = p.normalize(p.join(baseDir ?? '.', linkPath));
-      final repoUrl = getRepositoryUrl(baseUrl, adjustedLinkPath);
-      if (repoUrl == null) {
-        return url;
-      }
-      newUrl = repoUrl;
-    }
-    if (linkFragment.isNotEmpty) {
-      newUrl = '$newUrl#$linkFragment';
-    }
-    return newUrl;
-  }
-}
-
-/// Returns null if the [url] looks invalid.
-String? _pruneBaseUrl(String? url) {
-  if (url == null) return null;
-  try {
-    final Uri uri = Uri.parse(url);
-    if (uri.scheme != 'http' && uri.scheme != 'https') {
-      return null;
-    }
-    if (uri.host.isEmpty || !uri.host.contains('.')) {
-      return null;
-    }
-    return uri.toString();
-  } catch (e) {
-    // url is user-provided, may be malicious, ignoring errors.
-  }
-  return null;
 }
 
 /// Group corresponding changelog nodes together, if it matches the following

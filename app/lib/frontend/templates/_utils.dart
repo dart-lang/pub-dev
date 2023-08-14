@@ -12,7 +12,6 @@ import '../dom/dom.dart' as d;
 d.Node renderFile(
   PackageVersionAsset asset, {
   UrlResolverFn? urlResolverFn,
-  String? baseUrl,
   bool isChangelog = false,
 }) {
   final filename = asset.path!;
@@ -22,7 +21,6 @@ d.Node renderFile(
       markdownToHtml(
         content,
         urlResolverFn: urlResolverFn,
-        baseUrl: baseUrl,
         baseDir: p.dirname(filename),
         isChangelog: isChangelog,
       ),

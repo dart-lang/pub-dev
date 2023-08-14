@@ -5,6 +5,7 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:pana/models.dart';
 
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
@@ -29,9 +30,9 @@ import 'views/pkg/title_content.dart';
 /// from pubspec.yaml).
 d.Node renderPkgInfoBox(PackagePageData data) {
   final package = data.package!;
-  final packageLinks = data.packageLinks;
+  final repository = data.analysisResult?.repository;
 
-  String? documentationUrl = packageLinks.documentationUrl;
+  String? documentationUrl = data.analysisResult?.documentationUrl;
   if (urls.hideUserProvidedDocUrl(documentationUrl)) {
     documentationUrl = null;
   }
@@ -47,7 +48,6 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   void addLink(
     String? href,
     String label, {
-    bool detectServiceProvider = false,
     bool documentation = false,
   }) {
     final uri = urls.parseValidUrl(href);
@@ -56,12 +56,6 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     final problemCode = urlProblems == null
         ? null
         : urlProblems.firstWhereOrNull((p) => p.url == uri.toString())?.problem;
-    if (detectServiceProvider && problemCode == null) {
-      final providerName = urls.inferServiceProviderName(href);
-      if (providerName != null) {
-        label += ' ($providerName)';
-      }
-    }
     final linkData = InfoBoxLink(
       uri.toString(),
       label,
@@ -77,12 +71,22 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     }
   }
 
-  if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
-    addLink(packageLinks.homepageUrl, 'Homepage');
+  String repositoryProviderLabel() {
+    final provider = repository?.provider;
+    final label = 'Repository';
+    switch (provider ?? RepositoryProvider.unknown) {
+      case RepositoryProvider.github:
+        return '$label (GitHub)';
+      case RepositoryProvider.gitlab:
+        return '$label (GitLab)';
+      default:
+        return label;
+    }
   }
-  addLink(packageLinks.repositoryUrl, 'Repository',
-      detectServiceProvider: true);
-  addLink(packageLinks.issueTrackerUrl, 'View/report issues');
+
+  addLink(data.analysisResult?.homepageUrl, 'Homepage');
+  addLink(data.analysisResult?.repositoryUrl, repositoryProviderLabel());
+  addLink(data.analysisResult?.issueTrackerUrl, 'View/report issues');
   addLink(data.contributingUrl, 'Contributing');
 
   addLink(documentationUrl, 'Documentation', documentation: true);
@@ -298,14 +302,12 @@ PageData pkgPageData(
 }
 
 Tab _readmeTab(PackagePageData data) {
-  final baseUrl = data.repositoryBaseUrl;
   final content = data.hasReadme &&
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
       ? renderFile(
           data.asset!,
           urlResolverFn: data.urlResolverFn,
-          baseUrl: baseUrl,
         )
       : d.text('');
   return Tab.withContent(
@@ -322,7 +324,6 @@ Tab? _changelogTab(PackagePageData data) {
   final content = renderFile(
     data.asset!,
     urlResolverFn: data.urlResolverFn,
-    baseUrl: data.repositoryBaseUrl,
     isChangelog: true,
   );
   return Tab.withContent(
@@ -336,15 +337,13 @@ Tab? _changelogTab(PackagePageData data) {
 Tab? _exampleTab(PackagePageData data) {
   if (!data.hasExample) return null;
   if (data.asset?.kind != AssetKind.example) return null;
-  final baseUrl = data.repositoryBaseUrl;
 
-  final exampleFilename = data.asset!.path;
+  final exampleFilename = data.asset!.path!;
   final renderedExample = renderFile(
     data.asset!,
     urlResolverFn: data.urlResolverFn,
-    baseUrl: baseUrl,
   );
-  final url = urls.getRepositoryUrl(baseUrl, exampleFilename!);
+  final url = data.urlResolverFn?.call(exampleFilename);
 
   return Tab.withContent(
     id: 'example',
@@ -388,7 +387,6 @@ Tab _licenseTab(PackagePageData data) {
       ? renderFile(
           data.asset!,
           urlResolverFn: data.urlResolverFn,
-          baseUrl: data.repositoryBaseUrl,
         )
       : d.text('No license file found.');
   return Tab.withContent(
@@ -407,7 +405,6 @@ Tab _pubspecTab(PackagePageData data) {
       ? renderFile(
           data.asset!,
           urlResolverFn: data.urlResolverFn,
-          baseUrl: data.repositoryBaseUrl,
         )
       : d.text('No pubspec file found.');
   return Tab.withContent(

@@ -20,7 +20,6 @@ import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
 import '../shared/popularity_storage.dart';
-import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import '../task/models.dart';
 
@@ -1030,55 +1029,6 @@ void sortPackageVersionsDesc(List<PackageVersion> versions,
           a.semanticVersion, b.semanticVersion, decreasing, pubSorting));
 }
 
-/// The URLs provided by the package's pubspec or inferred from the homepage.
-class PackageLinks {
-  /// `homepage` property in `pubspec.yaml`
-  final String? homepageUrl;
-
-  /// `documentation` property in `pubspec.yaml`
-  final String? documentationUrl;
-
-  /// `repository` property in `pubspec.yaml`, or if not specified, an inferred
-  /// URL from [homepageUrl].
-  final String? repositoryUrl;
-
-  /// `issue_tracker` property in `pubspec.yaml`, or if not specified, an
-  /// inferred URL from [repositoryUrl].
-  final String? issueTrackerUrl;
-
-  /// The inferred base URL that can be used to link files from.
-  final String? _baseUrl;
-
-  PackageLinks._(
-    this._baseUrl, {
-    this.homepageUrl,
-    this.documentationUrl,
-    this.repositoryUrl,
-    this.issueTrackerUrl,
-  });
-
-  factory PackageLinks.infer({
-    String? homepageUrl,
-    String? documentationUrl,
-    String? repositoryUrl,
-    String? issueTrackerUrl,
-  }) {
-    repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
-    issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
-    final baseUrl = urls.inferBaseUrl(
-      homepageUrl: homepageUrl,
-      repositoryUrl: repositoryUrl,
-    );
-    return PackageLinks._(
-      baseUrl,
-      homepageUrl: homepageUrl,
-      documentationUrl: documentationUrl,
-      repositoryUrl: repositoryUrl,
-      issueTrackerUrl: issueTrackerUrl,
-    );
-  }
-}
-
 /// Common data structure shared between package pages.
 class PackagePageData {
   final Package? package;
@@ -1124,44 +1074,9 @@ class PackagePageData {
   bool get isLatestStable => version!.version == package!.latestVersion;
   int get popularity => popularityStorage.lookupAsScore(package!.name!);
 
-  late final packageLinks = () {
-    // Trying to use verfied URLs
-    final result = scoreCard?.panaReport?.result;
-    if (result != null) {
-      final baseUrl = urls.inferBaseUrl(
-        homepageUrl: result.homepageUrl,
-        repositoryUrl: result.repositoryUrl,
-      );
-      return PackageLinks._(
-        baseUrl,
-        homepageUrl: result.homepageUrl,
-        repositoryUrl: result.repositoryUrl,
-        issueTrackerUrl: result.issueTrackerUrl,
-        documentationUrl: result.documentationUrl,
-      );
-    }
-    // Falling back to use URLs from pubspec.yaml.
-    // TODO: Remove this and return `null` after this release gets stable.
-    final pubspec = version!.pubspec!;
-    return PackageLinks.infer(
-      homepageUrl: pubspec.homepage,
-      documentationUrl: pubspec.documentation,
-      repositoryUrl: pubspec.repository,
-      issueTrackerUrl: pubspec.issueTracker,
-    );
-  }();
-
-  late final contributingUrl = scoreCard?.panaReport?.result?.contributingUrl;
-
-  /// The inferred base URL that can be used to link files from.
-  late final repositoryBaseUrl = () {
-    // TODO: use pana's verified repository instead
-    return packageLinks._baseUrl;
-  }();
-
-  /// The verified repository (or homepage).
-  late final urlResolverFn =
-      scoreCard?.panaReport?.result?.repository?.resolveUrl;
+  late final analysisResult = scoreCard?.panaReport?.result;
+  late final contributingUrl = analysisResult?.contributingUrl;
+  late final urlResolverFn = analysisResult?.repository?.resolveUrl;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
