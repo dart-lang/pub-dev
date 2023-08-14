@@ -89,7 +89,7 @@ abstract class PackageVersionTags {
   ///
   /// Other version-specific tags are not included to prevent search
   /// regressions where we would downrank and/or hide the package in
-  /// search results (e.g. a version may have compatibilty errors or
+  /// search results (e.g. a version may have compatibility errors or
   /// get `is:legacy` classification).
   static const _futurePackageVersionTags = {
     PackageVersionTags.isNullSafe,
