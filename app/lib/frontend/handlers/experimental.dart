@@ -6,9 +6,7 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{
-  'topics',
-};
+const _publicFlags = <String>{};
 
 const _allFlags = <String>{
   ..._publicFlags,
@@ -57,9 +55,6 @@ class ExperimentalFlags {
 
   /// Whether to return ScoreCard data from sandboxed output.
   bool get showSandboxedScoreCard => !_enabled.contains('nosandbox');
-
-  /// Whether to show topics associated with a package.
-  bool get showTopics => true;
 
   bool get isEmpty => _enabled.isEmpty;
 
