@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -84,8 +83,7 @@ d.Node packageInfoBoxNode({
       description: version.pubspec!.description,
       metaLinks: metaLinks,
     ),
-    if (topics != null && requestContext.experimentalFlags.showTopics)
-      _block('Topics', topics),
+    if (topics != null) _block('Topics', topics),
     if (docLinks.isNotEmpty)
       _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
     if (fundingLinks.isNotEmpty)
