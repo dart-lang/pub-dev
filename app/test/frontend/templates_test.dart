@@ -15,7 +15,6 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/request_context.dart';
@@ -278,9 +277,6 @@ void main() {
           defaultUser: 'admin@pub.dev',
         ),
         processJobsWithFakeRunners: true, fn: () async {
-      // TODO: remove after sandbox scheduling gets stable
-      registerRequestContext(
-          RequestContext(experimentalFlags: ExperimentalFlags({'nosandbox'})));
       final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
       final html = renderPkgShowPage(data);
       expectGoldenFile(html, 'pkg_show_page_retracted.html', timestamps: {
@@ -334,9 +330,6 @@ void main() {
       ),
       processJobsWithFakeRunners: true,
       fn: () async {
-        // TODO: remove after sandbox scheduling gets stable
-        registerRequestContext(RequestContext(
-            experimentalFlags: ExperimentalFlags({'nosandbox'})));
         final data = await loadPackagePageData('pkg', '1.0.0-legacy', null);
         final html = renderPkgScorePage(data);
         expectGoldenFile(html, 'pkg_show_page_legacy.html', timestamps: {

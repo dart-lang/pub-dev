@@ -6,14 +6,10 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{
-  'topics',
-};
+const _publicFlags = <String>{};
 
 const _allFlags = <String>{
   ..._publicFlags,
-  'sandbox',
-  'nosandbox',
 };
 
 /// The name of the experimental cookie.
@@ -50,16 +46,13 @@ class ExperimentalFlags {
   }
 
   /// Whether to return screenshots from sandboxed output.
-  bool get showSandboxedScreenshot => !_enabled.contains('nosandbox');
+  bool get showSandboxedScreenshot => true;
 
   /// Whether to return ScoreCard data from sandboxed output.
-  bool get showSandboxedDartdoc => !_enabled.contains('nosandbox');
+  bool get showSandboxedDartdoc => true;
 
   /// Whether to return ScoreCard data from sandboxed output.
-  bool get showSandboxedScoreCard => !_enabled.contains('nosandbox');
-
-  /// Whether to show topics associated with a package.
-  bool get showTopics => true;
+  bool get showSandboxedScoreCard => true;
 
   bool get isEmpty => _enabled.isEmpty;
 
