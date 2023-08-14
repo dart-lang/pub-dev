@@ -54,7 +54,8 @@ img {
 :root {
   --mdc-theme-primary: #0175C2;
   --mdc-theme-secondary: #0066D9;
-  --mdc-typography-font-family: $font-family-google-sans-text;
+  // Represents $font-family-google-sans-text, but breaks generated CSS.
+  --mdc-typography-font-family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
 }
 
 summary {
