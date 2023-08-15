@@ -6,10 +6,26 @@ import 'dart:isolate';
 
 /// Base class for inter-isolate messages.
 sealed class Message {
+  /// Decode message from JSON-like [map], this is JSON + [SendPort] objects.
+  ///
+  /// ## Supported messages
+  /// 
+  /// ### `entry` message
+  /// ```js
+  /// {
+  ///   entry: {
+  ///     protocolSendPort: <port>,
+  ///     aliveSendPort: <port>,
+  ///   },
+  /// }
+  /// ```
+  ///
+  /// ### `ready` message
+  /// TODO: documentation
   static Message decodeFromMap(Map<String, dynamic> map) {
     if (map.keys.length != 1) {
       throw FormatException(
-          'Expected only a single key, got "${map.keys.join(' ')}"');
+          'Expected only a single key, got "${map.keys.join(', ')}"');
     }
     final key = map.keys.single;
     final inner = map[key] as Map<String, dynamic>;
@@ -43,9 +59,18 @@ sealed class Message {
   Map<String, dynamic> encodeAsJson();
 }
 
-/// Initializing message send from the controller isolate to the new one.
+/// Initializing message send from the controller isolate to the new isolate.
 class EntryMessage extends Message {
+  /// Port to which ??? must be sent when ???
+  ///
+  /// This message is used to ???
   final SendPort protocolSendPort;
+  
+  /// Port to which ??? must be sent periodically (Approximatically every ??? seconds).
+  ///
+  /// This message tells the isolate owner that the isolate isn't stuck.
+  /// In particular, this aims to allow the [IsolateRunner???] to terminate
+  /// the isolate if it gets stuck in an infinite-loop.
   final SendPort aliveSendPort;
 
   EntryMessage({
@@ -64,7 +89,9 @@ class EntryMessage extends Message {
   }
 }
 
-/// Message sent from the isolate to indicate that it is ready with the initialization.
+/// Message sent from the isolate to indicate that it is ready.
+///
+/// This message indicates that initialization has completed successfully.
 class ReadyMessage extends Message {
   final SendPort? requestSendPort;
 
@@ -90,7 +117,10 @@ class RequestMessage extends Message {
   /// The payload (request) object.
   final Object payload;
 
-  /// The port where we expect the respnse.
+  /// Port to which a [ReplyMessage] must be sent when the request is processed.
+  ///
+  /// The sender of the request may close the [replyPort], if the sender has decided
+  /// timeout and not wait any further.
   final SendPort replyPort;
 
   RequestMessage(this.kind, this.payload, this.replyPort);
@@ -152,9 +182,10 @@ class DebugMessage extends Message {
   }
 }
 
-/// Wraps the request/reply message sending logic.
-Future<Object?> handleRequestReply({
-  required SendPort requestSendPort,
+/// Send [RequestMessage] and wait for [ReplyMessage] returning
+/// [ReplyMessage.result], or throws [IsolateRequestException]
+Future<Object?> sendRequest({
+  required SendPort target,
   required String kind,
   required Object payload,
   required Duration timeout,
@@ -166,7 +197,7 @@ Future<Object?> handleRequestReply({
   final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
   final reply = Message.decodeFromMap(first) as ReplyMessage;
   if (reply.isError) {
-    throw Exception(reply.error);
+    throw IsolateRequestException(reply.error, kind);
   }
   return reply.result;
 }
