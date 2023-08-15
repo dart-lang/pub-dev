@@ -14,12 +14,6 @@ import '../../package/backend.dart';
 import '../../scorecard/backend.dart' show PackageStatus;
 import '../../shared/versions.dart';
 
-/// Runs package analysis for all packages with fake pana runner.
-Future<void> processJobsWithFakePanaRunner() async {
-  // ignore: invalid_use_of_visible_for_testing_member
-  await processJobsWithPanaRunner(runner: FakePanaRunner());
-}
-
 /// Generates pana analysis result based on a deterministic random seed.
 class FakePanaRunner implements PanaRunner {
   @override

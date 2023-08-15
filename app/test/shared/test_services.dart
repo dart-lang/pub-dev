@@ -7,9 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
-import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/fake/backend/fake_popularity.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
@@ -64,8 +62,6 @@ void testWithProfile(
         await nameTracker.reloadFromDatastore();
         await generateFakePopularityValues();
         if (processJobsWithFakeRunners) {
-          await processJobsWithFakePanaRunner();
-          await processJobsWithFakeDartdocRunner();
           await processTasksWithFakePanaAndDartdoc();
         }
         await indexUpdater.updateAllPackages();
