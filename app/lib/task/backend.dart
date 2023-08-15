@@ -327,23 +327,6 @@ class TaskBackend {
     }
   }
 
-  /// Trigger a one-off priority bump for [packageName].
-  ///
-  /// Intended to be used for admin actions, not intended for normal operations.
-  Future<void> bumpPriority(String packageName) async {
-    // Ensure we're up-to-date.
-    await trackPackage(packageName);
-
-    await withRetryTransaction(_db, (tx) async {
-      final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
-      final state = await tx.lookupOrNull<PackageState>(stateKey);
-      if (state != null) {
-        state.pendingAt = initialTimestamp;
-        tx.insert(state);
-      }
-    });
-  }
-
   Future<void> trackPackage(
     String packageName, {
     bool updateDependants = false,

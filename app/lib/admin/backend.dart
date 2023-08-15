@@ -690,6 +690,8 @@ class AdminBackend {
   }
 
   Future<api.AdminListActionsResponse> listActions() async {
+    await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+
     return api.AdminListActionsResponse(
       actions: AdminAction.actions
           .map(

@@ -26,7 +26,7 @@ This is intended for debugging, or solving one-off issues.
     final package = options['package']!;
     InvalidInputException.checkPackageName(package);
 
-    await taskBackend.bumpPriority(package);
+    await taskBackend.adminBumpPriority(package);
 
     return {'message': 'Priority may have been bumped, good luck!'};
   },
