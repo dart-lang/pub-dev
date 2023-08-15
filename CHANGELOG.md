@@ -2,6 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: Upgraded `package:gcloud`.
+
+## `20230810t094700-all`
  * Bumped runtimeVersion to `2023.08.08`.
  * Upgraded stable Dart analysis SDK to `3.0.7`.
  * Upgraded stable Flutter analysis SDK to `3.10.6`.
