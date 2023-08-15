@@ -13,8 +13,6 @@ import 'package:path/path.dart' as p;
 
 import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
-import 'package:pub_dev/fake/backend/fake_dartdoc_runner.dart';
-import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -44,7 +42,7 @@ class FakeInitDataFileCommand extends Command {
       )
       ..addOption(
         'analysis',
-        allowed: ['none', 'fake', 'real', 'worker'],
+        allowed: ['none', 'real', 'worker'],
         help: 'Analyze the package with fake or real analysis.',
         defaultsTo: 'none',
       )
@@ -94,9 +92,6 @@ class FakeInitDataFileCommand extends Command {
             await _analyze();
           } else if (analysis == 'worker') {
             await _analyzeWorker();
-          } else if (analysis == 'fake') {
-            await processJobsWithFakePanaRunner();
-            await processJobsWithFakeDartdocRunner();
           }
         });
     await state.save(dataFile);
