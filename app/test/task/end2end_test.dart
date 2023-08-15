@@ -70,6 +70,11 @@ void main() {
         '/documentation/',
       },
     );
+
+    // Check if the documentation package.tar.gz exists.
+    final packageRs =
+        await issueGet('/documentation/oxygen/latest/package.tar.gz');
+    expect(packageRs.statusCode, 200);
   }, timeout: Timeout(Duration(minutes: 15)));
 }
 

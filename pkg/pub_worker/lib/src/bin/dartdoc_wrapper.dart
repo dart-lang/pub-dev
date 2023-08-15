@@ -217,7 +217,7 @@ Future<void> _dartdoc({
       .transform(tarWriter)
       .transform(gzip.encoder)
       .pipe(tmpTar.openWrite());
-  await tmpTar.rename(p.join(outputFolder, 'package.tar.gz'));
+  await tmpTar.rename(p.join(outputFolder, 'doc', 'package.tar.gz'));
 
   _log.info('Finished .tar.gz archive');
 }
