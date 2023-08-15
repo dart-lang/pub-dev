@@ -11,9 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/package/deps_graph.dart';
 
 import '../../analyzer/handlers.dart';
-import '../../analyzer/pana_runner.dart';
 import '../../job/backend.dart';
-import '../../job/job.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
@@ -39,7 +37,6 @@ class AnalyzerCommand extends Command {
     await runIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,
-      jobEntryPoint: _jobMain,
       workerEntryPoint: _workerMain,
       deadWorkerTimeout: Duration(hours: 1),
       frontendCount: 1,
@@ -52,16 +49,6 @@ Future _frontendMain(EntryMessage message) async {
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
   message.protocolSendPort.send(ReadyMessage());
   await runHandler(logger, analyzerServiceHandler);
-}
-
-Future _jobMain(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-
-  await popularityStorage.start();
-  final jobProcessor = AnalyzerJobProcessor(
-      aliveCallback: () => message.aliveSendPort.send(null));
-  final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
-  await jobMaintenance.run();
 }
 
 Future _workerMain(EntryMessage message) async {
