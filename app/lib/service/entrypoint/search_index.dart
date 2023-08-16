@@ -43,11 +43,11 @@ Future<void> main(List<String> args, var message) async {
       await indexUpdater.init();
 
       final requestReceivePort = ReceivePort();
-      final entryMessage = Message.decode(message) as EntryMessage;
+      final entryMessage = Message.fromObject(message) as EntryMessage;
 
       final subs = requestReceivePort.listen((e) async {
         try {
-          final msg = Message.decode(e) as RequestMessage;
+          final msg = Message.fromObject(e) as RequestMessage;
           final payload = msg.payload;
           if (payload is String && payload == 'info') {
             final info = await searchIndex.indexInfo();

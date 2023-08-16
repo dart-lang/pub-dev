@@ -36,7 +36,7 @@ void main() {
       // forward port to isolate group
       final delegatePort = ReceivePort();
       final subscription = delegatePort.listen((m) {
-        final msg = Message.decode(m) as RequestMessage;
+        final msg = Message.fromObject(m) as RequestMessage;
         indexGroup.processRequestMessage(msg);
       });
 

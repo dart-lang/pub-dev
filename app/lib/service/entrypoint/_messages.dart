@@ -63,7 +63,7 @@ sealed class Message {
   ///   }
   /// }
   /// ```
-  static Message decode(value) {
+  static Message fromObject(Object? value) {
     if (value is Message) {
       return value;
     }
@@ -252,7 +252,7 @@ Future<Object?> sendRequest({
     target.send(RequestMessage(kind, payload, replyRecievePort.sendPort)
         .encodeAsJson());
     final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
-    final reply = Message.decode(first) as ReplyMessage;
+    final reply = Message.fromObject(first) as ReplyMessage;
     if (reply.isError) {
       throw IsolateRequestException(reply.error!, kind);
     }
