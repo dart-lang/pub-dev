@@ -37,6 +37,16 @@ class IndexInfo {
     required this.updatedPackages,
   });
 
+  factory IndexInfo.fromJson(Map<String, dynamic> map) {
+    final lastUpdated = map['lastUpdated'] as String?;
+    return IndexInfo(
+      isReady: map['isReady'] == true,
+      packageCount: map['packageCount'] as int,
+      lastUpdated: lastUpdated == null ? null : DateTime.parse(lastUpdated),
+      updatedPackages: (map['updatedPackages'] as List).cast<String>(),
+    );
+  }
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'isReady': isReady,
         'packageCount': packageCount,
@@ -49,6 +59,7 @@ class IndexInfo {
 
 /// Package search index and lookup.
 abstract class SearchIndex {
+  FutureOr<bool> isReady();
   FutureOr<PackageSearchResult> search(ServiceSearchQuery query);
   FutureOr<IndexInfo> indexInfo();
 }
