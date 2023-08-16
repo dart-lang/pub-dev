@@ -51,9 +51,6 @@ class ExperimentalFlags {
   /// Whether to return ScoreCard data from sandboxed output.
   bool get showSandboxedDartdoc => true;
 
-  /// Whether to return ScoreCard data from sandboxed output.
-  bool get showSandboxedScoreCard => true;
-
   bool get isEmpty => _enabled.isEmpty;
 
   bool isEnabled(String flag) {
