@@ -287,14 +287,13 @@ class SearchBackend {
       ...previewTags,
     };
 
-    final pubDataBytes = await taskBackend.gzippedTaskResult(
-        packageName, pv.version!, 'doc/pub-data.json');
-    final pubDataContent = pubDataBytes == null
-        ? null
-        : utf8.decode(gzip.decode(pubDataBytes), allowMalformed: true);
-
     List<ApiDocPage>? apiDocPages;
     try {
+      final pubDataBytes = await taskBackend.gzippedTaskResult(
+          packageName, pv.version!, 'doc/pub-data.json');
+      final pubDataContent = pubDataBytes == null
+          ? null
+          : utf8.decode(gzip.decode(pubDataBytes), allowMalformed: true);
       if (pubDataContent == null || pubDataContent.isEmpty) {
         _logger.info('Got empty pub-data.json for package $packageName.');
       } else {
