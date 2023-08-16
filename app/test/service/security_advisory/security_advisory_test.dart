@@ -1,15 +1,26 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
 
 void main() {
+  testWithProfile('Parse advisory', fn: () async {
+    try {
+      final file = File(path.join(Directory.current.path, 'test', 'service',
+              'security_advisory', 'testdata', 'example_advisory.json'))
+          .readAsBytesSync();
+      OSV.fromJson(utf8JsonDecoder.convert(file) as Map<String, dynamic>);
+    } catch (e, st) {
+      fail('Parsing advisory failed with \n$e\n$st');
+    }
+  });
+
   testWithProfile('List all advisories and delete advisory', fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(

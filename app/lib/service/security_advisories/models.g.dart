@@ -62,12 +62,12 @@ Map<String, dynamic> _$OSVToJson(OSV instance) {
 }
 
 Severity _$SeverityFromJson(Map<String, dynamic> json) => Severity(
-      severityType: json['severityType'] as String,
+      type: json['type'] as String,
       score: json['score'] as String,
     );
 
 Map<String, dynamic> _$SeverityToJson(Severity instance) => <String, dynamic>{
-      'severityType': instance.severityType,
+      'type': instance.type,
       'score': instance.score,
     };
 

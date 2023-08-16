@@ -151,15 +151,15 @@ class OSV {
 @JsonSerializable()
 class Severity {
   /// Either 'CVSS_V2' or 'CVSS_V3'.
-  String severityType;
+  String type;
 
   /// A CVSS vector string representing the unique characteristics and severity
   /// of the vulnerability using the Common Vulnerability Scoring System
-  /// notation, either V2 or V3 depending on the value of [severityType].
+  /// notation, either V2 or V3 depending on the value of [type].
   String score;
 
   Severity({
-    required this.severityType,
+    required this.type,
     required this.score,
   });
 
