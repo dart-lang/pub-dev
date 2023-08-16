@@ -68,10 +68,11 @@ class IsolateCollection {
       kind: kind,
       entryPoint: entryPoint,
       spawnUri: spawnUri,
+      count: count,
       deadTimeout: deadTimeout,
     );
     _groups.add(group);
-    await group.start(count);
+    await group.start();
     return group;
   }
 
@@ -96,6 +97,7 @@ class IsolateGroup {
   final String kind;
   final EntryPointFn? entryPoint;
   final Uri? spawnUri;
+  final int count;
   final Duration? deadTimeout;
   final bool skipWaitBetweenRestarts;
 
@@ -113,12 +115,13 @@ class IsolateGroup {
     required this.kind,
     required this.entryPoint,
     required this.spawnUri,
+    required this.count,
     required this.deadTimeout,
     this.skipWaitBetweenRestarts = false,
   });
 
   /// Starts [count] new isolates.
-  Future<void> start(int count) async {
+  Future<void> start() async {
     for (var i = 0; i < count; i++) {
       await _startOne();
     }
@@ -127,7 +130,6 @@ class IsolateGroup {
   /// Starts [count] new isolates, waits for the pending requests to get processed,
   /// and after a maximum [wait] duration, closes the old ones.
   Future<void> renew({
-    required int count,
     required Duration wait,
   }) async {
     final isolatesToClose = [..._isolates];
@@ -136,7 +138,7 @@ class IsolateGroup {
       i.markedForReplace = true;
     }
     // start new isolates
-    await start(count);
+    await start();
 
     await Future.delayed(wait);
 
@@ -292,8 +294,7 @@ Future runIsolates({
           deadTimeout: null,
         );
         indexRenewSubscription = indexRenewTrigger?.listen((_) {
-          indexGroup.renew(
-              count: 1, wait: indexRenewTimeout ?? Duration(minutes: 5));
+          indexGroup.renew(wait: indexRenewTimeout ?? Duration(minutes: 5));
         });
       }
 
