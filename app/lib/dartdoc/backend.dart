@@ -163,7 +163,6 @@ class DartdocBackend {
     await Future.wait([
       cache.dartdocEntry(entry.packageName, entry.packageVersion).purge(),
       cache.dartdocEntry(entry.packageName, 'latest').purge(),
-      cache.dartdocApiSummary(entry.packageName).purge(),
     ]);
 
     // Mark old content as expired.

@@ -77,17 +77,6 @@ class CachePatterns {
       .withPrefix('dartdoc-blob-index-v1/')
       .withTTL(Duration(minutes: 60))[objectName];
 
-  /// Cache for API summaries used by dartdoc.
-  Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
-      .withPrefix('dartdoc-apisummary/')
-      .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (Map<String, dynamic> map) => map,
-        decode: (obj) => obj as Map<String, dynamic>,
-      ))[package];
-
   Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage/')
       .withTTL(Duration(minutes: 10))
