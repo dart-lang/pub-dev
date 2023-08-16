@@ -45,9 +45,6 @@ class ExperimentalFlags {
     return ExperimentalFlags(_allFlags);
   }
 
-  /// Whether to return screenshots from sandboxed output.
-  bool get showSandboxedScreenshot => true;
-
   /// Whether to return ScoreCard data from sandboxed output.
   bool get showSandboxedDartdoc => true;
 
