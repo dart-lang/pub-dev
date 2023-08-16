@@ -16,7 +16,6 @@ import 'package:logging/logging.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
-import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
@@ -369,23 +368,48 @@ extension StreamBoundedForEach<T> on Stream<T> {
     int concurrency,
     FutureOr<void> Function(T) eachFn,
   ) async {
-    final pool = Pool(concurrency);
-    final futures = <Future>[];
-    try {
-      await for (final item in this) {
-        final f = pool.withResource(() => eachFn(item));
-        futures.add(f);
-        while (futures.length > concurrency) {
-          await Future.any(futures.map(
-            (e) => e.whenComplete(() => futures.remove(e)),
-          ));
+    final condition = Condition();
+
+    Object? firstError;
+    StackTrace? firstStackTrace;
+    var active = 0;
+    await for (final item in this) {
+      // early exit on the first error
+      if (firstError != null) {
+        break;
+      }
+
+      // create a microtask with the processing
+      active += 1;
+      scheduleMicrotask(() async {
+        try {
+          await eachFn(item);
+        } catch (e, st) {
+          if (firstError == null) {
+            firstError = e;
+            firstStackTrace = st;
+          }
+        } finally {
+          active -= 1;
+          condition.notify();
         }
+      });
+
+      // Don't create more tasks, if we've reached concurrency limit
+      if (active >= concurrency) {
+        // Next time a task completed, it'll decrease [active] count
+        // and it'll notify the condition.
+        await condition.wait;
       }
-      if (futures.isNotEmpty) {
-        await Future.wait(futures);
-      }
-    } finally {
-      await pool.close();
+    }
+
+    // Wait for all tasks to finish.
+    while (active > 0) {
+      await condition.wait;
+    }
+
+    if (firstError != null) {
+      return Future.error(firstError!, firstStackTrace);
     }
   }
 }
@@ -397,5 +421,39 @@ extension IterableBoundedForEach<T> on Iterable<T> {
     FutureOr<void> Function(T) eachFn,
   ) async {
     await Stream.fromIterable(this).boundedForEach(concurrency, eachFn);
+  }
+}
+
+/// A [Condition] allows micro-tasks to [wait] for other micro-tasks to
+/// [notify].
+///
+/// [Condition] is a concurrency primitive that allows one micro-task to
+/// wait for notification from another micro-task. The [Future] return from
+/// [wait] will be completed the next time [notify] is called.
+final class Condition {
+  var _completer = Completer<void>();
+
+  /// Complete all futures previously returned by [wait].
+  ///
+  /// Calls to [wait] after this call, will not be resolved, until the next time
+  /// [notify] is called.
+  void notify() {
+    if (!_completer.isCompleted) {
+      _completer.complete();
+    }
+  }
+
+  /// Returns a [Future] that will complete the next time [notify] is called.
+  ///
+  /// This will always return an unresolved [Future]. Once [notify] is called
+  /// the future will be completed, and any new calls to [wait] will return a
+  /// new future. This future will also be unresolved, until [notify] is called.
+  ///
+  /// The [Future] return from this condition will never throw.
+  Future<void> get wait {
+    if (_completer.isCompleted) {
+      _completer = Completer();
+    }
+    return _completer.future;
   }
 }
