@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  testWithProfile('Parse advisory', fn: () async {
+  test('Parse advisory', () async {
     try {
       final file = File(path.join(Directory.current.path, 'test', 'service',
               'security_advisory', 'testdata', 'example_advisory.json'))
