@@ -52,6 +52,7 @@ class IsolateCollection {
 
   /// Starts a new isolate group with [count] running instances.
   @visibleForTesting
+  // TODO: rename *Group to *Kind
   Future<IsolateGroup> startGroup({
     required String kind,
     EntryPointFn? entryPoint,
@@ -137,16 +138,7 @@ class IsolateGroup {
     // start new isolates
     await start(count);
 
-    // with short breaks close the isolates that have no pending requests
-    final sw = Stopwatch()..start();
-    while (isolatesToClose.isNotEmpty && sw.elapsed < wait) {
-      if (isolatesToClose.last._pendingRequests == 0) {
-        final last = isolatesToClose.removeLast();
-        await last.close();
-      } else {
-        await Future.delayed(Duration(milliseconds: 100));
-      }
-    }
+    await Future.delayed(wait);
 
     // close the remaining ones
     for (final i in isolatesToClose) {
@@ -156,6 +148,7 @@ class IsolateGroup {
 
   /// Process a request message by delegating it to one if the running isolates,
   /// preferably one that is not under renewal.
+  @visibleForTesting
   void processRequestMessage(RequestMessage e) {
     if (_isolates.isEmpty) {
       logger.warning('No isolate to process request.');
@@ -173,15 +166,7 @@ class IsolateGroup {
       return;
     }
 
-    final intermediatePort = ReceivePort();
-    last._pendingRequests++;
-    intermediatePort.first.then((m) {
-      e.replyPort.send(m);
-      last._pendingRequests--;
-    });
-    final isolateMessage =
-        RequestMessage(e.kind, e.payload, intermediatePort.sendPort);
-    last._readyMessage!.requestSendPort!.send(isolateMessage.encodeAsJson());
+    last._readyMessage!.requestSendPort!.send(e.encodeAsJson());
   }
 
   Future<void> _startOne() async {
@@ -365,7 +350,6 @@ class _Isolate {
   final _doneCompleter = Completer();
   late final done = _doneCompleter.future;
   var markedForReplace = false;
-  var _pendingRequests = 0;
 
   _Isolate({
     required this.parent,

@@ -18,6 +18,7 @@ import 'package:pub_dev/service/entrypoint/logging.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/logging.dart';
+import 'package:pub_dev/shared/monitoring.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 
 final _logger = Logger('search_index');
@@ -63,12 +64,14 @@ Future<void> main(List<String> args, var message) async {
                 ReplyMessage.result(json.encode(rs.toJson())).encodeAsJson());
             return;
           } else {
-            _logger.severe('Unrecognized payload: $msg');
+            _logger.pubNoticeShout(
+                'unknown-isolate-message', 'Unrecognized payload: $msg');
             msg.replyPort.send(ReplyMessage.error('Unrecognized payload: $msg')
                 .encodeAsJson());
           }
         } catch (e, st) {
-          _logger.warning('Error processing message: $e', e, st);
+          _logger.pubNoticeShout(
+              'isolate-message-error', 'Error processing message: $e', e, st);
         }
       });
       entryMessage.protocolSendPort.send(
@@ -77,6 +80,7 @@ Future<void> main(List<String> args, var message) async {
       );
 
       await Completer().future;
+      requestReceivePort.close();
       await subs.cancel();
     });
   });
