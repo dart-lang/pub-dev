@@ -405,9 +405,7 @@ class _Isolate {
   }) async {
     final ready = Completer();
     _protocolSubscription = _protocolReceivePort.listen((event) {
-      final e = event is Map<String, dynamic>
-          ? Message.decodeFromMap(event)
-          : event as Message;
+      final e = Message.decode(event);
       if (e is ReadyMessage && !ready.isCompleted) {
         _readyMessage = e;
         ready.complete();

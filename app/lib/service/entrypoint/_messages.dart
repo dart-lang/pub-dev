@@ -6,7 +6,7 @@ import 'dart:isolate';
 
 /// Base class for inter-isolate messages.
 sealed class Message {
-  /// Decode message from JSON-like [map], this is JSON + [SendPort] objects.
+  /// Decode message from JSON-like map, this is JSON + [SendPort] objects.
   ///
   /// ## Supported messages
   ///
@@ -63,38 +63,44 @@ sealed class Message {
   ///   }
   /// }
   /// ```
-  static Message decodeFromMap(Map<String, dynamic> map) {
-    if (map.keys.length != 1) {
-      throw FormatException(
-          'Expected only a single key, got "${map.keys.join(', ')}"');
+  static Message decode(value) {
+    if (value is Message) {
+      return value;
     }
-    final key = map.keys.single;
-    final inner = map[key] as Map<String, dynamic>;
-    switch (key) {
-      case 'entry':
-        return EntryMessage(
-          protocolSendPort: inner['protocolSendPort'] as SendPort,
-          aliveSendPort: inner['aliveSendPort'] as SendPort,
-        );
-      case 'ready':
-        return ReadyMessage(
-          requestSendPort: inner['requestSendPort'] as SendPort?,
-        );
-      case 'request':
-        return RequestMessage(
-          inner['kind'] as String,
-          inner['payload'] as Object,
-          inner['replyPort'] as SendPort,
-        );
-      case 'reply':
-        return ReplyMessage._(
-          error: inner['error'] as String?,
-          result: inner['result'],
-        );
-      case 'debug':
-        return DebugMessage(inner['text'] as String);
+    if (value is Map) {
+      if (value.keys.length != 1) {
+        throw FormatException(
+            'Expected only a single key, got "${value.keys.join(', ')}"');
+      }
+      final key = value.keys.single;
+      final inner = value[key] as Map<String, dynamic>;
+      switch (key) {
+        case 'entry':
+          return EntryMessage(
+            protocolSendPort: inner['protocolSendPort'] as SendPort,
+            aliveSendPort: inner['aliveSendPort'] as SendPort,
+          );
+        case 'ready':
+          return ReadyMessage(
+            requestSendPort: inner['requestSendPort'] as SendPort?,
+          );
+        case 'request':
+          return RequestMessage(
+            inner['kind'] as String,
+            inner['payload'] as Object,
+            inner['replyPort'] as SendPort,
+          );
+        case 'reply':
+          return ReplyMessage._(
+            error: inner['error'] as String?,
+            result: inner['result'],
+          );
+        case 'debug':
+          return DebugMessage(inner['text'] as String);
+      }
+      throw FormatException('Unknown key: "$key".');
     }
-    throw FormatException('Unknown key: "$key".');
+    throw ArgumentError('Unknown argument: "$value"');
   }
 
   Map<String, dynamic> encodeAsJson();
@@ -246,7 +252,7 @@ Future<Object?> sendRequest({
     target.send(RequestMessage(kind, payload, replyRecievePort.sendPort)
         .encodeAsJson());
     final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
-    final reply = Message.decodeFromMap(first) as ReplyMessage;
+    final reply = Message.decode(first) as ReplyMessage;
     if (reply.isError) {
       throw IsolateRequestException(reply.error!, kind);
     }

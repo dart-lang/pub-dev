@@ -36,10 +36,7 @@ void main() {
       // forward port to isolate group
       final delegatePort = ReceivePort();
       final subscription = delegatePort.listen((m) {
-        final msg = m is RequestMessage
-            ? m
-            : Message.decodeFromMap(m as Map<String, dynamic>)
-                as RequestMessage;
+        final msg = Message.decode(m) as RequestMessage;
         indexGroup.processRequestMessage(msg);
       });
 
