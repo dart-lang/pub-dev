@@ -105,8 +105,8 @@ class IsolateSearchIndex implements SearchIndex {
   @override
   FutureOr<IndexInfo> indexInfo() async {
     try {
-      final info = await handleRequestReply(
-        requestSendPort: _requestSendPort,
+      final info = await sendRequest(
+        target: _requestSendPort,
         kind: 'index',
         payload: 'info',
         timeout: Duration(seconds: 5),
@@ -126,8 +126,8 @@ class IsolateSearchIndex implements SearchIndex {
   @override
   FutureOr<PackageSearchResult> search(ServiceSearchQuery query) async {
     try {
-      final rs = await handleRequestReply(
-        requestSendPort: _requestSendPort,
+      final rs = await sendRequest(
+        target: _requestSendPort,
         kind: 'index',
         payload: Uri(queryParameters: query.toUriQueryParameters()).toString(),
         timeout: Duration(minutes: 1),

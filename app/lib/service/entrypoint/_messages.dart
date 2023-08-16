@@ -9,8 +9,9 @@ sealed class Message {
   /// Decode message from JSON-like [map], this is JSON + [SendPort] objects.
   ///
   /// ## Supported messages
-  /// 
-  /// ### `entry` message
+  ///
+  /// ### `entry` message, converted to [EntryMessage]
+  ///
   /// ```js
   /// {
   ///   entry: {
@@ -20,8 +21,48 @@ sealed class Message {
   /// }
   /// ```
   ///
-  /// ### `ready` message
-  /// TODO: documentation
+  /// ### `ready` message, converted to [ReadyMessage]
+  ///
+  /// ```js
+  /// {
+  ///   ready: {
+  ///     requestSendPort: <port>,
+  ///   },
+  /// }
+  /// ```
+  ///
+  /// ### `debug` message, converted to [DebugMessage]
+  ///
+  /// ```js
+  /// {
+  ///   debug: {
+  ///     text: <string>,
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// ### `request` message, converted to [RequestMessage]
+  ///
+  /// ```js
+  /// {
+  ///   request: {
+  ///     kind: <string>,
+  ///     payload: <object>,
+  ///     replyPort: <port>,
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// ### `reply` message, converted to [ReplyMessage]
+  ///
+  /// ```js
+  /// {
+  ///   reply: {
+  ///     error: <string>,
+  ///     result: <object>,
+  ///   }
+  /// }
+  /// ```
   static Message decodeFromMap(Map<String, dynamic> map) {
     if (map.keys.length != 1) {
       throw FormatException(
@@ -61,15 +102,24 @@ sealed class Message {
 
 /// Initializing message send from the controller isolate to the new isolate.
 class EntryMessage extends Message {
-  /// Port to which ??? must be sent when ???
+  /// Port to which the isolate must be send its messages, starting with the
+  /// [ReadyMessage] when all the initialization is done after starting it.
   ///
-  /// This message is used to ???
+  /// The isolate must use this port to send [RequestMessage] for cross-isolate
+  /// communication.
+  ///
+  /// The isolate may use this port to send [DebugMessage] when special logging
+  /// is needed.
   final SendPort protocolSendPort;
-  
-  /// Port to which ??? must be sent periodically (Approximatically every ??? seconds).
+
+  /// Port to which any object may be sent periodically. After the first message
+  /// is sent, on each message, a timer will be set, and if no other message arrives,
+  /// the isolate will be killed and a new one will be started. The Timer's duration
+  /// is set at the isolate initialization and may depend on the task that the isolate
+  /// is doing.
   ///
-  /// This message tells the isolate owner that the isolate isn't stuck.
-  /// In particular, this aims to allow the [IsolateRunner???] to terminate
+  /// These message tell the isolate owner that the isolate isn't stuck.
+  /// In particular, this aims to allow the `IsolateRunner` to terminate
   /// the isolate if it gets stuck in an infinite-loop.
   final SendPort aliveSendPort;
 
@@ -191,13 +241,25 @@ Future<Object?> sendRequest({
   required Duration timeout,
 }) async {
   final replyRecievePort = ReceivePort();
-  final firstFuture = replyRecievePort.first;
-  requestSendPort.send(
-      RequestMessage(kind, payload, replyRecievePort.sendPort).encodeAsJson());
-  final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
-  final reply = Message.decodeFromMap(first) as ReplyMessage;
-  if (reply.isError) {
-    throw IsolateRequestException(reply.error, kind);
+  try {
+    final firstFuture = replyRecievePort.first;
+    target.send(RequestMessage(kind, payload, replyRecievePort.sendPort)
+        .encodeAsJson());
+    final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
+    final reply = Message.decodeFromMap(first) as ReplyMessage;
+    if (reply.isError) {
+      throw IsolateRequestException(reply.error!, kind);
+    }
+    return reply.result;
+  } finally {
+    replyRecievePort.close();
   }
-  return reply.result;
+}
+
+/// Thrown when an isolate requests is returning an error.
+class IsolateRequestException implements Exception {
+  final String kind;
+  final String message;
+
+  IsolateRequestException(this.message, this.kind);
 }
