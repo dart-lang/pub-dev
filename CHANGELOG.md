@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Note: Upgraded `package:gcloud`.
+ * Note: `analyzer` and `dartdoc` processing is turned off.
 
 ## `20230810t094700-all`
  * Bumped runtimeVersion to `2023.08.08`.
