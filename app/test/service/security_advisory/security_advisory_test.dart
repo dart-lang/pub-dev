@@ -7,9 +7,54 @@ import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:test/test.dart';
 
-import '../shared/test_services.dart';
+import '../../shared/test_services.dart';
 
 void main() {
+  testWithProfile('List all advisories and delete advisory', fn: () async {
+    final firstTime = DateTime(2022).toIso8601String();
+    final affectedA = Affected(
+      package: Package(ecosystem: 'pub', name: 'a'),
+      versions: ['1'],
+    );
+    final id = '123';
+    final id2 = '456';
+
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: id,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv2 = OSV(
+      schemaVersion: '1.2.3',
+      id: id2,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2);
+
+    final all = await securityAdvisoryBackend.listAdvisories();
+    expect(all, isNotNull);
+    expect(all.length, 2);
+    expect(all.first.id, id);
+    expect(all.last.id, id2);
+
+    await securityAdvisoryBackend.deleteAdvisory(id);
+
+    final reduced = await securityAdvisoryBackend.listAdvisories();
+    expect(reduced, isNotNull);
+    expect(reduced.length, 1);
+    expect(reduced.first.id, id2);
+
+    final advisory = await securityAdvisoryBackend.lookupById(id);
+    expect(advisory, isNull);
+  });
+
   testWithProfile('Insert, lookup and update advisory', fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
