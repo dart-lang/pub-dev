@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.13.0`.
  * Upgraded preview Dart analysis SDK to `3.2.0-42.1.beta`.
  * Upgraded preview Flutter analysis SDK to `3.13.0`.
+ * Upgraded pana to `0.21.35`.
  * Note: Upgraded `package:gcloud`.
  * Note: `analyzer` and `dartdoc` processing is turned off.
  * Note: `search` has now a separate index in an isolate that is renewed every 15 minutes.
