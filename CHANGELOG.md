@@ -5,7 +5,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2023.08.16`.
  * Note: Upgraded `package:gcloud`.
  * Note: `analyzer` and `dartdoc` processing is turned off.
- * Note: `search` has now a separate index in an isolate that is renewed every 15 minutes.
 
 ## `20230810t094700-all`
  * Bumped runtimeVersion to `2023.08.08`.

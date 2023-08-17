@@ -507,9 +507,6 @@ class _CombinedSearchIndex implements SearchIndex {
   const _CombinedSearchIndex();
 
   @override
-  bool isReady() => indexInfo().isReady;
-
-  @override
   IndexInfo indexInfo() => _inMemoryPackageIndex.indexInfo();
 
   @override

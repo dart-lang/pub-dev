@@ -8,30 +8,47 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
-import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../../shared/env_config.dart';
-import '../../shared/logging.dart';
 
 import '../services.dart';
-import '_messages.dart';
 import 'tools.dart';
 
-export '_messages.dart';
-
 final _random = Random.secure();
-
-/// The main method to run in the new isolate.
-typedef EntryPointFn = Future<void> Function(EntryMessage message);
 
 /// Wrapper method to replace [withServices] into [withFakeServices] for
 /// local tests and development.
 typedef ServicesWrapperFn = Future<void> Function(Future Function() fn);
+
+/// Marker class for inter-isolate messages.
+sealed class Message {}
+
+/// Initializing message send from the controller isolate to the new one.
+class EntryMessage extends Message {
+  final SendPort protocolSendPort;
+  final SendPort aliveSendPort;
+
+  EntryMessage({
+    required this.protocolSendPort,
+    required this.aliveSendPort,
+  });
+}
+
+/// Message sent from the isolate to indicate that it is ready with the initialization.
+class ReadyMessage extends Message {
+  ReadyMessage();
+}
+
+/// Message sent from the isolate with arbitrary text.
+class DebugMessage extends Message {
+  final String text;
+
+  DebugMessage(this.text);
+}
 
 /// Runs the collection of different isolate groups (where a group of
 /// isolate execute the same code).
@@ -52,11 +69,9 @@ class IsolateCollection {
 
   /// Starts a new isolate group with [count] running instances.
   @visibleForTesting
-  // TODO: rename *Group to *Kind
   Future<IsolateGroup> startGroup({
     required String kind,
-    EntryPointFn? entryPoint,
-    Uri? spawnUri,
+    required Future<void> Function(EntryMessage message) entryPoint,
     required int count,
     required Duration? deadTimeout,
   }) async {
@@ -66,13 +81,12 @@ class IsolateCollection {
     final group = IsolateGroup(
       runner: this,
       kind: kind,
+      servicesWrapperFn: servicesWrapperFn,
       entryPoint: entryPoint,
-      spawnUri: spawnUri,
-      count: count,
       deadTimeout: deadTimeout,
     );
     _groups.add(group);
-    await group.start();
+    await group.start(count);
     return group;
   }
 
@@ -95,9 +109,8 @@ class IsolateCollection {
 class IsolateGroup {
   final IsolateCollection runner;
   final String kind;
-  final EntryPointFn? entryPoint;
-  final Uri? spawnUri;
-  final int count;
+  final ServicesWrapperFn servicesWrapperFn;
+  final Future<void> Function(EntryMessage message) entryPoint;
   final Duration? deadTimeout;
   final bool skipWaitBetweenRestarts;
 
@@ -113,62 +126,34 @@ class IsolateGroup {
   IsolateGroup({
     required this.runner,
     required this.kind,
+    required this.servicesWrapperFn,
     required this.entryPoint,
-    required this.spawnUri,
-    required this.count,
     required this.deadTimeout,
     this.skipWaitBetweenRestarts = false,
   });
 
   /// Starts [count] new isolates.
-  Future<void> start() async {
+  Future<void> start(int count) async {
     for (var i = 0; i < count; i++) {
       await _startOne();
     }
   }
 
-  /// Starts [count] new isolates, waits for the pending requests to get processed,
-  /// and after a maximum [wait] duration, closes the old ones.
+  /// Starts [count] new isolates, and after a [wait] duration,
+  /// closes the old ones.
   Future<void> renew({
+    required int count,
     required Duration wait,
   }) async {
     final isolatesToClose = [..._isolates];
-    // mark the current isolates, so that they don't trigger automatic restart
     for (final i in isolatesToClose) {
-      i.markedForReplace = true;
+      i.shouldRestart = false;
     }
-    // start new isolates
-    await start();
-
+    await start(count);
     await Future.delayed(wait);
-
-    // close the remaining ones
     for (final i in isolatesToClose) {
       await i.close();
     }
-  }
-
-  /// Process a request message by delegating it to one if the running isolates,
-  /// preferably one that is not under renewal.
-  @visibleForTesting
-  void processRequestMessage(RequestMessage e) {
-    if (_isolates.isEmpty) {
-      logger.warning('No isolate to process request.');
-      e.replyPort.send(
-          ReplyMessage.error('No isolate to process request.').encodeAsJson());
-      return;
-    }
-    final last = _isolates.lastWhereOrNull((i) =>
-        i.markedForReplace == false &&
-        i._readyMessage?.requestSendPort != null);
-    if (last == null) {
-      logger.warning('No active isolate to process request.');
-      e.replyPort.send(
-          ReplyMessage.error('No isolate to process request.').encodeAsJson());
-      return;
-    }
-
-    last._readyMessage!.requestSendPort!.send(e.encodeAsJson());
   }
 
   Future<void> _startOne() async {
@@ -181,19 +166,11 @@ class IsolateGroup {
       group: this,
       logger: logger,
       id: id,
+      servicesWrapperFn: servicesWrapperFn,
+      entryPoint: entryPoint,
     );
     _isolates.add(isolate);
-    if (entryPoint != null) {
-      await isolate.initFunction(
-        entryPoint: entryPoint!,
-        deadTimeout: deadTimeout,
-      );
-    } else {
-      await isolate.initUri(
-        spawnUri: spawnUri!,
-        deadTimeout: deadTimeout,
-      );
-    }
+    await isolate.init(deadTimeout: deadTimeout);
     if (_closing) {
       await isolate.close();
       return;
@@ -207,7 +184,7 @@ class IsolateGroup {
       if (_closing) {
         return;
       }
-      if (isolate.markedForReplace) {
+      if (!isolate.shouldRestart) {
         return;
       }
       if (!skipWaitBetweenRestarts) {
@@ -244,12 +221,9 @@ class IsolateGroup {
 /// isolates and returns.
 Future runIsolates({
   required Logger logger,
-  EntryPointFn? frontendEntryPoint,
-  EntryPointFn? workerEntryPoint,
-  EntryPointFn? jobEntryPoint,
-  Uri? indexSpawnUri,
-  Stream? indexRenewTrigger,
-  Duration? indexRenewTimeout,
+  Future<void> Function(EntryMessage message)? frontendEntryPoint,
+  Future<void> Function(EntryMessage message)? workerEntryPoint,
+  Future<void> Function(EntryMessage message)? jobEntryPoint,
   Duration? deadWorkerTimeout,
   required int frontendCount,
   ServicesWrapperFn? servicesWrapperFn,
@@ -285,22 +259,9 @@ Future runIsolates({
           deadTimeout: deadWorkerTimeout,
         );
       }
-      StreamSubscription? indexRenewSubscription;
-      if (indexSpawnUri != null) {
-        final indexGroup = await runner.startGroup(
-          kind: 'index',
-          spawnUri: indexSpawnUri,
-          count: 1,
-          deadTimeout: null,
-        );
-        indexRenewSubscription = indexRenewTrigger?.listen((_) {
-          indexGroup.renew(wait: indexRenewTimeout ?? Duration(minutes: 5));
-        });
-      }
 
       await waitForProcessSignalTermination();
 
-      await indexRenewSubscription?.cancel();
       await runner.close();
     } catch (e, st) {
       logger.shout('Failed to start server.', e, st);
@@ -332,6 +293,8 @@ class _Isolate {
   final IsolateGroup group;
   final Logger logger;
   final String id;
+  final ServicesWrapperFn servicesWrapperFn;
+  final Future<void> Function(EntryMessage message) entryPoint;
 
   late Isolate _isolate;
 
@@ -341,6 +304,7 @@ class _Isolate {
   final _protocolReceivePort = ReceivePort();
 
   ReadyMessage? _readyMessage;
+  bool get isReady => _readyMessage != null;
 
   StreamSubscription? _protocolSubscription;
   StreamSubscription? _errorSubscription;
@@ -350,23 +314,24 @@ class _Isolate {
 
   final _doneCompleter = Completer();
   late final done = _doneCompleter.future;
-  var markedForReplace = false;
+  var shouldRestart = true;
 
   _Isolate({
     required this.parent,
     required this.group,
     required this.logger,
     required this.id,
+    required this.servicesWrapperFn,
+    required this.entryPoint,
   });
 
-  Future<void> initFunction({
-    required EntryPointFn entryPoint,
+  Future<void> init({
     required Duration? deadTimeout,
   }) async {
     _isolate = await Isolate.spawn(
       _wrapper,
       [
-        parent.servicesWrapperFn,
+        servicesWrapperFn,
         entryPoint,
         EntryMessage(
           protocolSendPort: _protocolReceivePort.sendPort,
@@ -378,48 +343,12 @@ class _Isolate {
       errorsAreFatal: true,
       debugName: id,
     );
-    await _init(deadTimeout: deadTimeout);
-  }
 
-  Future<void> initUri({
-    required Uri spawnUri,
-    required Duration? deadTimeout,
-  }) async {
-    _isolate = await Isolate.spawnUri(
-      spawnUri,
-      [],
-      EntryMessage(
-        protocolSendPort: _protocolReceivePort.sendPort,
-        aliveSendPort: _aliveReceivePort.sendPort,
-      ).encodeAsJson(),
-      onError: _errorReceivePort.sendPort,
-      onExit: _exitReceivePort.sendPort,
-      errorsAreFatal: true,
-      debugName: id,
-    );
-    await _init(deadTimeout: deadTimeout);
-  }
-
-  Future<void> _init({
-    required Duration? deadTimeout,
-  }) async {
     final ready = Completer();
-    _protocolSubscription = _protocolReceivePort.listen((event) {
-      final e = Message.fromObject(event);
+    _protocolSubscription = _protocolReceivePort.listen((e) {
       if (e is ReadyMessage && !ready.isCompleted) {
         _readyMessage = e;
         ready.complete();
-      } else if (e is RequestMessage) {
-        final group = parent._groups.firstWhereOrNull((g) => g.kind == e.kind);
-        if (group == null) {
-          logger.warning('Isolate group "${e.kind}" does not exist.');
-          e.replyPort.send(
-              ReplyMessage.error('Isolate group "${e.kind}" does not exist.')
-                  .encodeAsJson());
-          return;
-        } else {
-          group.processRequestMessage(e);
-        }
       } else if (e is DebugMessage) {
         logger.info('Debug message from $id: ${e.text}');
       }
@@ -534,10 +463,4 @@ Future<void> _wrapper(List args) async {
   } finally {
     timer.cancel();
   }
-}
-
-/// Exposes [withFakeServices] as [ServicesWrapperFn].
-Future<void> fakeServicesWrapper(Future Function() fn) async {
-  setupDebugEnvBasedLogging();
-  await fork(() => withFakeServices(fn: fn));
 }
