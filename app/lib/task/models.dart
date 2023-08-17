@@ -187,6 +187,13 @@ class PackageState extends db.ExpandoModel<String> {
         'dependencies: [' + (dependencies ?? []).join(', ') + ']',
       ].join('\n  ') +
       '\n)';
+
+  /// The last time the entry was updated.
+  ///
+  /// This field is optional until runtimeVersion `2023.08.08`
+  /// have been fully garbage collected.
+  @db.DateTimeProperty(required: false, indexed: true)
+  DateTime? updated;
 }
 
 /// State of a given `version` within a [PackageState].

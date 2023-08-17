@@ -238,6 +238,7 @@ Future<void> schedule(
                     .map((e) => MapEntry(e.key, state.versions![e.key]!)),
               );
               s.derivePendingAt();
+              s.updated = clock.now().toUtc();
               tx.insert(s);
             });
             await cache.taskPackageStatus(state.package).purge();
@@ -300,6 +301,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
         ),
     });
     s.derivePendingAt();
+    s.updated = clock.now().toUtc();
     tx.insert(s);
 
     // Create payload

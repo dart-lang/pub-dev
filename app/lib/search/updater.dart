@@ -109,6 +109,11 @@ class IndexUpdater implements TaskRunner {
           sleep: const Duration(minutes: 10),
           skipHistory: true,
         ),
+        DatastoreHeadTaskSource(
+          _db,
+          TaskSourceModel.packageState,
+          sleep: const Duration(minutes: 10),
+        ),
         _PeriodicUpdateTaskSource(_packageIndex),
       ],
     );
