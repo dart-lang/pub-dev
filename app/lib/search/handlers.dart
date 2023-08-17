@@ -41,7 +41,8 @@ Future<shelf.Response> _livenessCheckHandler(shelf.Request request) async {
 
 /// Handles /readiness_check requests.
 Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
-  if (await searchIndex.isReady()) {
+  final info = await searchIndex.indexInfo();
+  if (info.isReady) {
     return htmlResponse('OK');
   } else {
     return htmlResponse('Service Unavailable', status: 503);

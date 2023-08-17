@@ -127,7 +127,7 @@ void main() {
         ],
       );
       // renew isolate
-      await group.renew(wait: Duration(seconds: 1));
+      await group.renew(count: 1, wait: Duration(seconds: 1));
       await Future.delayed(Duration(seconds: 1));
       expect(
           messages,
