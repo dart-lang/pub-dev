@@ -181,11 +181,8 @@ class PackageState extends db.ExpandoModel<String> {
   }
 
   /// Returns true if the current [PackageState] instance is new, its tasks
-  /// are not schedule or completed yet.
-  bool get hasNeverFinished =>
-      versions != null &&
-      versions!.isNotEmpty &&
-      !versions!.values.any((v) => v.finished);
+  /// are not completed yet (with neither success nor failure).
+  bool get hasNeverFinished => finished == initialTimestamp;
 
   @override
   String toString() =>
