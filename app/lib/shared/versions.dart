@@ -24,8 +24,6 @@ const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
   '2023.08.18',
   // Fallback runtime versions.
-  '2023.08.17',
-  '2023.08.08',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -38,14 +36,11 @@ const acceptedRuntimeVersions = <String>[
 /// up by the analysis ASAP.
 final String runtimeVersion = acceptedRuntimeVersions.first;
 
-/// The list of runtime versions to use when looking for past version-specific
-/// data.
-final fallbackRuntimeVersions = acceptedRuntimeVersions.skip(1).toList();
-
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-final gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
+/// TODO: use acceptedRuntimeVersions.last after we have more versions to fall back to
+final gcBeforeRuntimeVersion = '2023.08.08';
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
