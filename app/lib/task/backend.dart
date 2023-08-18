@@ -387,7 +387,7 @@ class TaskBackend {
             }
             ..dependencies = <String>[]
             ..lastDependencyChanged = initialTimestamp
-            ..updated = clock.now().toUtc()
+            ..finished = initialTimestamp
             ..derivePendingAt(),
         );
         return true; // no more work for this package, state is sync'ed
@@ -431,7 +431,6 @@ class TaskBackend {
             ),
         });
       state.derivePendingAt();
-      state.updated = clock.now().toUtc();
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
@@ -539,7 +538,6 @@ class TaskBackend {
               tx.insert(
                 s
                   ..lastDependencyChanged = publishedAt
-                  ..updated = clock.now().toUtc()
                   ..derivePendingAt(),
               );
               return true;
@@ -706,7 +704,7 @@ class TaskBackend {
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
       state.derivePendingAt();
-      state.updated = clock.now().toUtc();
+      state.finished = clock.now().toUtc();
 
       tx.insert(state);
     });

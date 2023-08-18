@@ -227,11 +227,11 @@ class SearchBackend {
     }
 
     final q3 = _db.query<PackageState>()
-      ..filter('updated >=', updatedThreshold)
-      ..order('-updated');
+      ..filter('finished >=', updatedThreshold)
+      ..order('-finished');
     await for (final s in q3.run()) {
-      if (s.updated != null) {
-        addResult(s.package, s.updated!);
+      if (s.finished != null) {
+        addResult(s.package, s.finished!);
       }
     }
 

@@ -113,7 +113,7 @@ class DatastoreHeadTaskSource implements TaskSource {
 
   Task? _packageStateToTask(PackageState s) {
     if (s.runtimeVersion == runtimeVersion) {
-      return Task(s.package, null, s.updated ?? clock.now());
+      return Task(s.package, null, s.finished ?? clock.now());
     } else {
       return null;
     }

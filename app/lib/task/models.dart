@@ -121,6 +121,10 @@ class PackageState extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? lastDependencyChanged;
 
+  /// The last time the a worker completed the task with a failure or success.
+  @db.DateTimeProperty(required: true, indexed: true)
+  DateTime? finished;
+
   /// Derive [pendingAt] using [versions] and [lastDependencyChanged].
   ///
   /// When updating PackageState the pendingAt property is set to the minimum of:
@@ -185,15 +189,9 @@ class PackageState extends db.ExpandoModel<String> {
         'pendingAt: $pendingAt',
         'lastDependencyChanged: $lastDependencyChanged',
         'dependencies: [' + (dependencies ?? []).join(', ') + ']',
+        'finished: $finished',
       ].join('\n  ') +
       '\n)';
-
-  /// The last time the entry was updated.
-  ///
-  /// This field is optional until runtimeVersion `2023.08.08`
-  /// have been fully garbage collected.
-  @db.DateTimeProperty(required: false, indexed: true)
-  DateTime? updated;
 }
 
 /// State of a given `version` within a [PackageState].
