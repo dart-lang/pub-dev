@@ -182,12 +182,10 @@ class PackageState extends db.ExpandoModel<String> {
 
   /// Returns true if the current [PackageState] instance is new, its tasks
   /// are not schedule or completed yet.
-  ///
-  /// TODO: handle periodic re-schedule, where every version gets into pending status again
-  bool get hasNotCompletedYet =>
-      versions == null ||
-      versions!.isEmpty ||
-      versions!.values.every((v) => v.status == PackageVersionStatus.pending);
+  bool get hasNeverFinished =>
+      versions != null &&
+      versions!.isNotEmpty &&
+      !versions!.values.any((v) => v.finished);
 
   @override
   String toString() =>
@@ -233,6 +231,12 @@ class PackageVersionStateInfo {
 
   /// True, if pana summary is available.
   final bool pana;
+
+  /// True, if results have been previously reported on this version.
+  ///
+  /// This is true regardless whether pana or dartdoc ran successfully, just
+  /// indicates that the worker reported back a result.
+  final bool finished;
 
   /// [DateTime] this version of the package was last scheduled for analysis.
   ///
@@ -297,6 +301,7 @@ class PackageVersionStateInfo {
     this.instance,
     this.docs = false,
     this.pana = false,
+    this.finished = false,
   });
 
   factory PackageVersionStateInfo.fromJson(Map<String, dynamic> m) =>

@@ -16,6 +16,7 @@ PackageVersionStateInfo _$PackageVersionStateInfoFromJson(
       instance: json['instance'] as String?,
       docs: json['docs'] as bool? ?? false,
       pana: json['pana'] as bool? ?? false,
+      finished: json['finished'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$PackageVersionStateInfoToJson(
@@ -23,6 +24,7 @@ Map<String, dynamic> _$PackageVersionStateInfoToJson(
     <String, dynamic>{
       'docs': instance.docs,
       'pana': instance.pana,
+      'finished': instance.finished,
       'scheduled': instance.scheduled.toIso8601String(),
       'attempts': instance.attempts,
       'zone': instance.zone,

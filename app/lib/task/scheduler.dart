@@ -297,6 +297,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           zone: zone,
           instance: instanceName,
           secretToken: createUuid(),
+          finished: s.versions![v]!.finished,
         ),
     });
     s.derivePendingAt();

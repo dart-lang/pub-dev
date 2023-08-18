@@ -690,6 +690,7 @@ class TaskBackend {
         scheduled: versionState.scheduled,
         docs: dartdocIndex != null,
         pana: summary != null,
+        finished: true,
         attempts: 0,
         instance: null, // version is no-longer running on this instance
         secretToken: null, // TODO: Consider retaining this for idempotency
@@ -785,7 +786,6 @@ class TaskBackend {
         if (versionStatus == PackageVersionStatus.failed) {
           return BlobIndex.empty(blobId: '');
         }
-        // Try runtimeVersions in order of age
         final pathPrefix = '${status.runtimeVersion}/$package/$version';
         final path = '$pathPrefix/index.json';
         final bytes = await _readFromBucket(path);
@@ -953,14 +953,14 @@ class TaskBackend {
     }
   }
 
-  /// Get status information for a package being analyzed.
+  /// Get the most up-to-date status information for a package that has already been analyzed.
   Future<PackageStateInfo> packageStatus(String package) async {
     final status = await cache.taskPackageStatus(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
         final state = await dbService.lookupOrNull<PackageState>(key);
-        // skip states where the entry was created, but no analysis was completed yet
-        if (state == null || state.hasNotCompletedYet) {
+        // skip states where the entry was created, but no analysis has not finished yet
+        if (state == null || state.hasNeverFinished) {
           continue;
         }
         return PackageStateInfo(
