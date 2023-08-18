@@ -123,7 +123,7 @@ class PackageState extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? lastDependencyChanged;
 
-  /// The last time the a worker completed the task with a failure or success.
+  /// The last time the a worker completed with a failure or success.
   @db.DateTimeProperty(required: true, indexed: true)
   DateTime? finished;
 
@@ -180,8 +180,8 @@ class PackageState extends db.ExpandoModel<String> {
         .toList();
   }
 
-  /// Returns true if the current [PackageState] instance is new, its tasks
-  /// are not completed yet (with neither success nor failure).
+  /// Returns true if the current [PackageState] instance is new, no version analysis
+  /// has not completed yet (with neither success nor failure).
   bool get hasNeverFinished => finished == initialTimestamp;
 
   @override
