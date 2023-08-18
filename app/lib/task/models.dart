@@ -6,7 +6,9 @@ import 'dart:convert' show json;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pub_dev/shared/datastore.dart' as db;
+
+import '../shared/datastore.dart' as db;
+import '../shared/versions.dart' as shared_versions;
 
 part 'models.g.dart';
 
@@ -178,6 +180,15 @@ class PackageState extends db.ExpandoModel<String> {
         .toList();
   }
 
+  /// Returns true if the current [PackageState] instance is new, its tasks
+  /// are not schedule or completed yet.
+  ///
+  /// TODO: handle periodic re-schedule, where every version gets into pending status again
+  bool get hasNotCompletedYet =>
+      versions == null ||
+      versions!.isEmpty ||
+      versions!.values.every((v) => v.status == PackageVersionStatus.pending);
+
   @override
   String toString() =>
       'PackageState(' +
@@ -345,6 +356,7 @@ class PackageVersionStateMapProperty extends db.Property {
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
+  final String runtimeVersion;
   final String package;
 
   /// Status for versions.
@@ -355,9 +367,20 @@ class PackageStateInfo {
   final Map<String, PackageVersionStateInfo> versions;
 
   PackageStateInfo({
+    required this.runtimeVersion,
     required this.package,
     required this.versions,
   });
+
+  factory PackageStateInfo.empty({
+    required String package,
+  }) {
+    return PackageStateInfo(
+      runtimeVersion: shared_versions.runtimeVersion,
+      package: package,
+      versions: {},
+    );
+  }
 
   factory PackageStateInfo.fromJson(Map<String, dynamic> m) =>
       _$PackageStateInfoFromJson(m);

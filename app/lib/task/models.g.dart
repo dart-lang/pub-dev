@@ -32,6 +32,7 @@ Map<String, dynamic> _$PackageVersionStateInfoToJson(
 
 PackageStateInfo _$PackageStateInfoFromJson(Map<String, dynamic> json) =>
     PackageStateInfo(
+      runtimeVersion: json['runtimeVersion'] as String,
       package: json['package'] as String,
       versions: (json['versions'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(
@@ -41,6 +42,7 @@ PackageStateInfo _$PackageStateInfoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PackageStateInfoToJson(PackageStateInfo instance) =>
     <String, dynamic>{
+      'runtimeVersion': instance.runtimeVersion,
       'package': instance.package,
       'versions': instance.versions,
     };

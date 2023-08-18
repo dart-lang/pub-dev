@@ -786,31 +786,28 @@ class TaskBackend {
           return BlobIndex.empty(blobId: '');
         }
         // Try runtimeVersions in order of age
-        for (final rt in acceptedRuntimeVersions) {
-          final pathPrefix = '$rt/$package/$version';
-          final path = '$pathPrefix/index.json';
-          final bytes = await _readFromBucket(path);
-          if (bytes == null) {
-            continue;
-          }
-          final index = BlobIndex.fromBytes(bytes);
-          final blobId = index.blobId;
-          // We must check that the blobId points to a file under:
-          //  `$runtimeVersion/$package/$version/`
-          // Technically, the blob index is produced by the sandbox and we cannot
-          // trust it to not be malformed.
-          if (!_blobIdPattern.hasMatch(blobId) ||
-              !blobId.startsWith('$pathPrefix/')) {
-            _log.warning('invalid blobId: "$blobId" in index in "$path"');
-            return BlobIndex.empty(blobId: '');
-          }
-          if (bytes.length > 1024 * 1024) {
-            _log.info(
-                '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
-          }
-          return index;
+        final pathPrefix = '${status.runtimeVersion}/$package/$version';
+        final path = '$pathPrefix/index.json';
+        final bytes = await _readFromBucket(path);
+        if (bytes == null) {
+          return BlobIndex.empty(blobId: '');
         }
-        return BlobIndex.empty(blobId: '');
+        final index = BlobIndex.fromBytes(bytes);
+        final blobId = index.blobId;
+        // We must check that the blobId points to a file under:
+        //  `$runtimeVersion/$package/$version/`
+        // Technically, the blob index is produced by the sandbox and we cannot
+        // trust it to not be malformed.
+        if (!_blobIdPattern.hasMatch(blobId) ||
+            !blobId.startsWith('$pathPrefix/')) {
+          _log.warning('invalid blobId: "$blobId" in index in "$path"');
+          return BlobIndex.empty(blobId: '');
+        }
+        if (bytes.length > 1024 * 1024) {
+          _log.info(
+              '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
+        }
+        return index;
       },
       purgeCache: purgeCache,
     );
@@ -962,16 +959,19 @@ class TaskBackend {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
         final state = await dbService.lookupOrNull<PackageState>(key);
-        if (state != null) {
-          return PackageStateInfo(
-            package: package,
-            versions: state.versions ?? {},
-          );
+        // skip states where the entry was created, but no analysis was completed yet
+        if (state == null || state.hasNotCompletedYet) {
+          continue;
         }
+        return PackageStateInfo(
+          runtimeVersion: state.runtimeVersion!,
+          package: package,
+          versions: state.versions ?? {},
+        );
       }
-      return PackageStateInfo(package: package, versions: {});
+      return PackageStateInfo.empty(package: package);
     });
-    return status ?? PackageStateInfo(package: package, versions: {});
+    return status ?? PackageStateInfo.empty(package: package);
   }
 
   /// Create a URL for getting a resource created in pana.

@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 
 import '../package/backend.dart';
@@ -148,7 +147,7 @@ class ScoreCardBackend {
       packageName: packageName,
       packageVersion: packageVersion,
       // this is unused outside scorecard backend, and a bit wrong:
-      runtimeVersion: runtimeVersion,
+      runtimeVersion: stateInfo.runtimeVersion,
       updated: summary?.createdAt ?? version.created,
       packageCreated: package.created,
       packageVersionCreated: version.created,
