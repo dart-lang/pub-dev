@@ -387,6 +387,7 @@ class TaskBackend {
             }
             ..dependencies = <String>[]
             ..lastDependencyChanged = initialTimestamp
+            ..finished = initialTimestamp
             ..derivePendingAt(),
         );
         return true; // no more work for this package, state is sync'ed
@@ -703,6 +704,7 @@ class TaskBackend {
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
       state.derivePendingAt();
+      state.finished = clock.now().toUtc();
 
       tx.insert(state);
     });

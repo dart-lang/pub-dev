@@ -139,7 +139,7 @@ class TaskScheduler {
 /// A task for a given package and version.
 class Task {
   final String package;
-  final String version;
+  final String? version;
   final DateTime updated;
 
   Task(this.package, this.version, this.updated);

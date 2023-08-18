@@ -31,6 +31,7 @@ import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/global_lock.dart';
+import '../task/models.dart';
 import '../tool/utils/http.dart';
 
 import 'dart_sdk_mem_index.dart';
@@ -223,6 +224,15 @@ class SearchBackend {
       ..order('-updated');
     await for (final sc in q2.run()) {
       addResult(sc.packageName!, sc.updated!);
+    }
+
+    final q3 = _db.query<PackageState>()
+      ..filter('finished >=', updatedThreshold)
+      ..order('-finished');
+    await for (final s in q3.run()) {
+      if (s.finished != null) {
+        addResult(s.package, s.finished!);
+      }
     }
 
     return results;
