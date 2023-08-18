@@ -40,7 +40,7 @@ final String runtimeVersion = acceptedRuntimeVersions.first;
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
 /// TODO: use acceptedRuntimeVersions.last after we have more versions to fall back to
-final gcBeforeRuntimeVersion = '2023.08.08';
+final gcBeforeRuntimeVersion = '2023.08.04';
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
