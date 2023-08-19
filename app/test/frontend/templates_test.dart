@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/validation/html/html_validation.dart';
@@ -36,7 +37,7 @@ import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
-import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;
+import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
