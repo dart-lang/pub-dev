@@ -109,6 +109,7 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
     attributes: {
       'aria-label': 'Switch between date and elapsed time.',
       'aria-role': 'button',
+      'data-timestamp': timestamp.toUtc().toIso8601String(),
     },
     text: formatXAgo(clock.now().difference(timestamp)),
   );

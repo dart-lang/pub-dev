@@ -15,6 +15,7 @@ import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';
 import 'src/scroll.dart';
 import 'src/search.dart';
+import 'src/x_ago.dart';
 
 void main() {
   window.onLoad.listen((_) => mdc.autoInit());
@@ -40,4 +41,5 @@ void _setupAllEvents() {
   setupLikes();
   setupLikesList();
   setupScreenshotCarousel();
+  setupXAgo();
 }
