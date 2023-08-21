@@ -308,7 +308,7 @@ class CachePatterns {
 
   /// Cache for task status.
   Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
-      .withPrefix('task-status/')
+      .withPrefix('task-status-v2/')
       .withTTL(Duration(hours: 3))
       .withCodec(utf8)
       .withCodec(json)
