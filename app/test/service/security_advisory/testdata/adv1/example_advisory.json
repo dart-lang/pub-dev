@@ -1,0 +1,46 @@
+{
+  "id": "GHSA-1234-1234-1234",
+  "summary": "Example",
+  "details": "This is a dummy example.",
+  "aliases": [
+    "CVE-1111"
+  ],
+  "modified": "2013-04-11T01:46:51.549596Z",
+  "published": "2012-05-24T17:37:16Z",
+  "database_specific": {
+    "severity": "MODERATE",
+    "github_reviewed": true
+  },
+  "affected": [
+    {
+      "package": {
+        "name": "dummy",
+        "ecosystem": "Pub"
+      },
+      "ranges": [
+        {
+          "type": "ECOSYSTEM",
+          "events": [
+            {
+              "introduced": "0"
+            },
+            {
+              "fixed": "0.5.0"
+            }
+          ]
+        }
+      ],
+      "versions": [
+        "0.2.0",
+        "0.3.0"
+      ]
+    }
+  ],
+  "schema_version": "1.4.0",
+  "severity": [
+    {
+      "type": "CVSS_V3",
+      "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+    }
+  ]
+}
