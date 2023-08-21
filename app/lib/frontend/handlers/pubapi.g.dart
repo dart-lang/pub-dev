@@ -1093,6 +1093,8 @@ Router _$PubApiRouter(PubApi service) {
         final _$result = await service.adminInvokeAction(
           request,
           action,
+          await $utilities.decodeJson<AdminInvokeActionArguments>(
+              request, (o) => AdminInvokeActionArguments.fromJson(o)),
         );
         return $utilities.jsonResponse(_$result.toJson());
       } on ApiResponseException catch (e) {

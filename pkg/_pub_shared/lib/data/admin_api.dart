@@ -79,6 +79,17 @@ class AdminAction {
 }
 
 @JsonSerializable()
+class AdminInvokeActionArguments {
+  /// Arguments for the [AdminAction.options] when invoking an admin action.
+  final Map<String, String> arguments;
+
+  AdminInvokeActionArguments({required this.arguments});
+  factory AdminInvokeActionArguments.fromJson(Map<String, dynamic> json) =>
+      _$AdminInvokeActionArgumentsFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminInvokeActionArgumentsToJson(this);
+}
+
+@JsonSerializable()
 class AdminInvokeActionResponse {
   /// Output from running the action.
   final Map<String, Object?> output;

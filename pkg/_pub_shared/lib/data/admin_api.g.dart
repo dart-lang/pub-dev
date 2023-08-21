@@ -51,6 +51,18 @@ Map<String, dynamic> _$AdminActionToJson(AdminAction instance) =>
       'description': instance.description,
     };
 
+AdminInvokeActionArguments _$AdminInvokeActionArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    AdminInvokeActionArguments(
+      arguments: Map<String, String>.from(json['arguments'] as Map),
+    );
+
+Map<String, dynamic> _$AdminInvokeActionArgumentsToJson(
+        AdminInvokeActionArguments instance) =>
+    <String, dynamic>{
+      'arguments': instance.arguments,
+    };
+
 AdminInvokeActionResponse _$AdminInvokeActionResponseFromJson(
         Map<String, dynamic> json) =>
     AdminInvokeActionResponse(

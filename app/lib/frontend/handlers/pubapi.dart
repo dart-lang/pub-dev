@@ -468,8 +468,9 @@ class PubApi {
   Future<AdminInvokeActionResponse> adminInvokeAction(
     Request request,
     String action,
+    AdminInvokeActionArguments args,
   ) {
-    return adminBackend.invokeAction(action, request.url.queryParameters);
+    return adminBackend.invokeAction(action, args.arguments);
   }
 
   @EndPoint.get('/api/admin/users')
