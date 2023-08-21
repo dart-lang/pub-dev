@@ -690,7 +690,6 @@ class TaskBackend {
         scheduled: versionState.scheduled,
         docs: dartdocIndex != null,
         pana: summary != null,
-        finished: true,
         attempts: 0,
         instance: null, // version is no-longer running on this instance
         secretToken: null, // TODO: Consider retaining this for idempotency

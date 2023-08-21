@@ -229,12 +229,6 @@ class PackageVersionStateInfo {
   /// True, if pana summary is available.
   final bool pana;
 
-  /// True, if results have been previously reported on this version.
-  ///
-  /// This is true regardless whether pana or dartdoc ran successfully, just
-  /// indicates that the worker reported back a result.
-  final bool finished;
-
   /// [DateTime] this version of the package was last scheduled for analysis.
   ///
   /// This is [initialTimestamp] if never scheduled.
@@ -298,7 +292,6 @@ class PackageVersionStateInfo {
     this.instance,
     this.docs = false,
     this.pana = false,
-    this.finished = false,
   });
 
   factory PackageVersionStateInfo.fromJson(Map<String, dynamic> m) =>
