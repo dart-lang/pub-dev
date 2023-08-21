@@ -10,7 +10,6 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
-import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
@@ -240,7 +239,6 @@ Future<void> schedule(
               s.derivePendingAt();
               tx.insert(s);
             });
-            await taskBackend.purgeCache(state.package);
           }
         }
       });
@@ -274,7 +272,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
   String zone,
   String instanceName,
 ) async {
-  final payload = await withRetryTransaction(db, (tx) async {
+  return await withRetryTransaction(db, (tx) async {
     final s = await tx.lookupOrNull<PackageState>(state.key);
     if (s == null) {
       // presumably the package was deleted.
@@ -312,8 +310,4 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           )),
     );
   });
-  if (payload != null) {
-    await taskBackend.purgeCache(payload.package);
-  }
-  return payload;
 }

@@ -438,7 +438,7 @@ class TaskBackend {
     });
 
     if (changed) {
-      await purgeCache(packageName, latestVersion);
+      await _purgeCache(packageName, latestVersion);
     }
 
     if (updateDependants &&
@@ -545,7 +545,7 @@ class TaskBackend {
             return false;
           });
           if (changed) {
-            await purgeCache(state.package);
+            await _purgeCache(state.package);
           }
         } catch (e, st) {
           _log.warning(
@@ -707,7 +707,7 @@ class TaskBackend {
     });
 
     // Clearing the state cache after the update.
-    await purgeCache(package, version);
+    await _purgeCache(package, version);
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down
@@ -755,7 +755,7 @@ class TaskBackend {
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
-  Future<void> purgeCache(String package, [String? version]) async {
+  Future<void> _purgeCache(String package, [String? version]) async {
     await Future.wait([
       cache.taskPackageStatus(package).purge(),
       if (version != null) cache.taskResultIndex(package, version).purge(),
