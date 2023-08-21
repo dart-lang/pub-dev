@@ -6,7 +6,9 @@ import 'dart:convert' show json;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pub_dev/shared/datastore.dart' as db;
+
+import '../shared/datastore.dart' as db;
+import '../shared/versions.dart' as shared_versions;
 
 part 'models.g.dart';
 
@@ -121,7 +123,7 @@ class PackageState extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? lastDependencyChanged;
 
-  /// The last time the a worker completed the task with a failure or success.
+  /// The last time the a worker completed with a failure or success.
   @db.DateTimeProperty(required: true, indexed: true)
   DateTime? finished;
 
@@ -177,6 +179,10 @@ class PackageState extends db.ExpandoModel<String> {
         .map((e) => e.key)
         .toList();
   }
+
+  /// Returns true if the current [PackageState] instance is new, no version analysis
+  /// has not completed yet (with neither success nor failure).
+  bool get hasNeverFinished => finished == initialTimestamp;
 
   @override
   String toString() =>
@@ -345,6 +351,7 @@ class PackageVersionStateMapProperty extends db.Property {
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
+  final String runtimeVersion;
   final String package;
 
   /// Status for versions.
@@ -355,9 +362,20 @@ class PackageStateInfo {
   final Map<String, PackageVersionStateInfo> versions;
 
   PackageStateInfo({
+    required this.runtimeVersion,
     required this.package,
     required this.versions,
   });
+
+  factory PackageStateInfo.empty({
+    required String package,
+  }) {
+    return PackageStateInfo(
+      runtimeVersion: shared_versions.runtimeVersion,
+      package: package,
+      versions: {},
+    );
+  }
 
   factory PackageStateInfo.fromJson(Map<String, dynamic> m) =>
       _$PackageStateInfoFromJson(m);
