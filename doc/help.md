@@ -8,7 +8,7 @@ The following help pages are available:
  - [`pub.dev` API for developers](/help/api)
 
 To report issues or bugs in a package, please use the
-'View/report issues' link on the invidual package page.
+**View/report issues** link on the individual package page.
 
 To report concerns over potential [policy issues](/policy),
 please send an email to `support@pub.dev`.
