@@ -784,7 +784,7 @@ class TaskBackend {
         return await _loadTaskResultIndex(
           package: package,
           version: version,
-          runtimeVersion: runtimeVersion,
+          runtimeVersion: status.runtimeVersion ?? runtimeVersion,
         );
       },
     );

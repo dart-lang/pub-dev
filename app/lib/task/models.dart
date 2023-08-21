@@ -351,7 +351,8 @@ class PackageVersionStateMapProperty extends db.Property {
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
-  final String runtimeVersion;
+  // TODO: make this non-nullable after we are past 2023.08.18 as accepted runtimeVersion.
+  final String? runtimeVersion;
   final String package;
 
   /// Status for versions.
