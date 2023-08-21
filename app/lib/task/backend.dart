@@ -438,7 +438,7 @@ class TaskBackend {
     });
 
     if (changed) {
-      await _purgeCache(packageName, latestVersion);
+      await purgeCache(packageName, latestVersion);
     }
 
     if (updateDependants &&
@@ -545,7 +545,7 @@ class TaskBackend {
             return false;
           });
           if (changed) {
-            await cache.taskPackageStatus(state.package).purge();
+            await purgeCache(state.package);
           }
         } catch (e, st) {
           _log.warning(
@@ -711,7 +711,7 @@ class TaskBackend {
     });
 
     // Clearing the state cache after the update.
-    await _purgeCache(package, version);
+    await purgeCache(package, version);
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down
@@ -759,9 +759,10 @@ class TaskBackend {
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
-  Future<void> _purgeCache(String package, String? version) async {
+  Future<void> purgeCache(String package, [String? version]) async {
     await Future.wait([
-      cache.taskPackageStatus(package).purge(),
+      cache.taskPackageStatus(package, false).purge(),
+      cache.taskPackageStatus(package, true).purge(),
       if (version != null) cache.taskResultIndex(package, version).purge(),
       if (version != null) purgeScorecardData(package, version, isLatest: true),
     ]);
@@ -777,7 +778,8 @@ class TaskBackend {
     return await cache.taskResultIndex(package, version).obtain(
       () async {
         // Don't try to load index if we don't consider the version for analysis.
-        final status = await packageStatus(package);
+        final status =
+            await packageStatus(package, acceptUnfinished: purgeCache);
         if (!status.versions.containsKey(version)) {
           return BlobIndex.empty(blobId: '');
         }
@@ -954,13 +956,20 @@ class TaskBackend {
   }
 
   /// Get the most up-to-date status information for a package that has already been analyzed.
-  Future<PackageStateInfo> packageStatus(String package) async {
-    final status = await cache.taskPackageStatus(package).get(() async {
+  Future<PackageStateInfo> packageStatus(
+    String package, {
+    bool acceptUnfinished = false,
+  }) async {
+    final status =
+        await cache.taskPackageStatus(package, acceptUnfinished).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
         final state = await dbService.lookupOrNull<PackageState>(key);
+        if (state == null) {
+          continue;
+        }
         // skip states where the entry was created, but no analysis has not finished yet
-        if (state == null || state.hasNeverFinished) {
+        if (state.hasNeverFinished && !acceptUnfinished) {
           continue;
         }
         return PackageStateInfo(

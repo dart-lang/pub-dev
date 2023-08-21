@@ -8,9 +8,9 @@ import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
@@ -240,7 +240,7 @@ Future<void> schedule(
               s.derivePendingAt();
               tx.insert(s);
             });
-            await cache.taskPackageStatus(state.package).purge();
+            await taskBackend.purgeCache(state.package);
           }
         }
       });
@@ -314,7 +314,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     );
   });
   if (payload != null) {
-    await cache.taskPackageStatus(payload.package).purge();
+    await taskBackend.purgeCache(payload.package);
   }
   return payload;
 }
