@@ -147,7 +147,7 @@ class ScoreCardBackend {
       packageName: packageName,
       packageVersion: packageVersion,
       // this is unused outside scorecard backend, and a bit wrong:
-      runtimeVersion: stateInfo.runtimeVersion,
+      runtimeVersion: versions.runtimeVersion,
       updated: summary?.createdAt ?? version.created,
       packageCreated: package.created,
       packageVersionCreated: version.created,

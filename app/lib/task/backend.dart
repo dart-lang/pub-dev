@@ -965,7 +965,6 @@ class TaskBackend {
           continue;
         }
         return PackageStateInfo(
-          runtimeVersion: state.runtimeVersion!,
           package: package,
           versions: state.versions ?? {},
         );

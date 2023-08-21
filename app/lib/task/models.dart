@@ -8,7 +8,6 @@ import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
-import '../shared/versions.dart' as shared_versions;
 
 part 'models.g.dart';
 
@@ -351,7 +350,6 @@ class PackageVersionStateMapProperty extends db.Property {
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
-  final String runtimeVersion;
   final String package;
 
   /// Status for versions.
@@ -362,7 +360,6 @@ class PackageStateInfo {
   final Map<String, PackageVersionStateInfo> versions;
 
   PackageStateInfo({
-    required this.runtimeVersion,
     required this.package,
     required this.versions,
   });
@@ -371,7 +368,6 @@ class PackageStateInfo {
     required String package,
   }) {
     return PackageStateInfo(
-      runtimeVersion: shared_versions.runtimeVersion,
       package: package,
       versions: {},
     );
