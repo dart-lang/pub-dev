@@ -387,6 +387,7 @@ class TaskBackend {
             }
             ..dependencies = <String>[]
             ..lastDependencyChanged = initialTimestamp
+            ..finished = initialTimestamp
             ..derivePendingAt(),
         );
         return true; // no more work for this package, state is sync'ed
@@ -544,7 +545,7 @@ class TaskBackend {
             return false;
           });
           if (changed) {
-            await cache.taskPackageStatus(state.package).purge();
+            await _purgeCache(state.package);
           }
         } catch (e, st) {
           _log.warning(
@@ -634,20 +635,17 @@ class TaskBackend {
 
     String? zone, instance;
     bool isInstanceDone = false;
-    final summaryFuture = panaSummary(
+    final index = await _loadTaskResultIndex(
+      package: package,
+      version: version,
+      runtimeVersion: runtimeVersion,
+    );
+    final summary = _panaSummaryFromGzippedBytes(
       package,
       version,
-      purgeCache: true,
+      await _gzippedTaskResult(index, 'summary.json'),
     );
-    final dartdocIndexFuture = dartdocFile(
-      package,
-      version,
-      'index.html',
-      purgeCache: true,
-    );
-    await Future.wait([summaryFuture, dartdocIndexFuture]);
-    final dartdocIndex = await dartdocIndexFuture;
-    final summary = await summaryFuture;
+    final hasDocIndexHtml = index.lookup('doc/index.html') != null;
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
@@ -687,7 +685,7 @@ class TaskBackend {
       // Remove instanceName, zone, secretToken, and set attempts = 0
       state.versions![version] = PackageVersionStateInfo(
         scheduled: versionState.scheduled,
-        docs: dartdocIndex != null,
+        docs: hasDocIndexHtml,
         pana: summary != null,
         attempts: 0,
         instance: null, // version is no-longer running on this instance
@@ -703,6 +701,7 @@ class TaskBackend {
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
       state.derivePendingAt();
+      state.finished = clock.now().toUtc();
 
       tx.insert(state);
     });
@@ -756,7 +755,7 @@ class TaskBackend {
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
-  Future<void> _purgeCache(String package, String? version) async {
+  Future<void> _purgeCache(String package, [String? version]) async {
     await Future.wait([
       cache.taskPackageStatus(package).purge(),
       if (version != null) cache.taskResultIndex(package, version).purge(),
@@ -769,9 +768,8 @@ class TaskBackend {
   /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
-  Future<BlobIndex?> _taskResultIndex(String package, String version,
-      {bool purgeCache = false}) async {
-    return await cache.taskResultIndex(package, version).obtain(
+  Future<BlobIndex?> _taskResultIndex(String package, String version) async {
+    return await cache.taskResultIndex(package, version).get(
       () async {
         // Don't try to load index if we don't consider the version for analysis.
         final status = await packageStatus(package);
@@ -783,35 +781,42 @@ class TaskBackend {
         if (versionStatus == PackageVersionStatus.failed) {
           return BlobIndex.empty(blobId: '');
         }
-        // Try runtimeVersions in order of age
-        for (final rt in acceptedRuntimeVersions) {
-          final pathPrefix = '$rt/$package/$version';
-          final path = '$pathPrefix/index.json';
-          final bytes = await _readFromBucket(path);
-          if (bytes == null) {
-            continue;
-          }
-          final index = BlobIndex.fromBytes(bytes);
-          final blobId = index.blobId;
-          // We must check that the blobId points to a file under:
-          //  `$runtimeVersion/$package/$version/`
-          // Technically, the blob index is produced by the sandbox and we cannot
-          // trust it to not be malformed.
-          if (!_blobIdPattern.hasMatch(blobId) ||
-              !blobId.startsWith('$pathPrefix/')) {
-            _log.warning('invalid blobId: "$blobId" in index in "$path"');
-            return BlobIndex.empty(blobId: '');
-          }
-          if (bytes.length > 1024 * 1024) {
-            _log.info(
-                '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
-          }
-          return index;
-        }
-        return BlobIndex.empty(blobId: '');
+        return await _loadTaskResultIndex(
+          package: package,
+          version: version,
+          runtimeVersion: status.runtimeVersion ?? runtimeVersion,
+        );
       },
-      purgeCache: purgeCache,
     );
+  }
+
+  Future<BlobIndex> _loadTaskResultIndex({
+    required String package,
+    required String version,
+    required String runtimeVersion,
+  }) async {
+    final pathPrefix = '$runtimeVersion/$package/$version';
+    final path = '$pathPrefix/index.json';
+    final bytes = await _readFromBucket(path);
+    if (bytes == null) {
+      return BlobIndex.empty(blobId: '');
+    }
+    final index = BlobIndex.fromBytes(bytes);
+    final blobId = index.blobId;
+    // We must check that the blobId points to a file under:
+    //  `$runtimeVersion/$package/$version/`
+    // Technically, the blob index is produced by the sandbox and we cannot
+    // trust it to not be malformed.
+    if (!_blobIdPattern.hasMatch(blobId) ||
+        !blobId.startsWith('$pathPrefix/')) {
+      _log.warning('invalid blobId: "$blobId" in index in "$path"');
+      return BlobIndex.empty(blobId: '');
+    }
+    if (bytes.length > 1024 * 1024) {
+      _log.info(
+          '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
+    }
+    return index;
   }
 
   /// Return gzipped result from task for the given [package]/[version] or
@@ -819,20 +824,18 @@ class TaskBackend {
   Future<List<int>?> gzippedTaskResult(
     String package,
     String version,
-    String path, {
-    bool purgeCache = false,
-  }) async {
+    String path,
+  ) async {
     version = canonicalizeVersion(version)!;
-
-    final index = await _taskResultIndex(
-      package,
-      version,
-      purgeCache: purgeCache,
-    );
+    final index = await _taskResultIndex(package, version);
     if (index == null) {
       return null;
     }
+    return await _gzippedTaskResult(index, path);
+  }
 
+  /// Return gzipped result of [path] from an [index] or `null` if it does not exists.
+  Future<List<int>?> _gzippedTaskResult(BlobIndex index, String path) async {
     // Normalize // and remove initial slash
     if (path.startsWith('/') || path.contains('//')) {
       path = path.split('/').where((s) => s.isNotEmpty).join('/');
@@ -857,13 +860,12 @@ class TaskBackend {
     // blobId that is the path to the blob within the task-result bucket.
     final length = range.end - range.start;
     if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache.gzippedTaskResult(range.blobId, path).obtain(
+      return cache.gzippedTaskResult(range.blobId, path).get(
             () => _readFromBucket(
               range.blobId,
               offset: range.start,
               length: length,
             ),
-            purgeCache: purgeCache,
           );
     } else {
       return _readFromBucket(
@@ -878,14 +880,12 @@ class TaskBackend {
   Future<List<int>?> dartdocFile(
     String package,
     String version,
-    String path, {
-    bool purgeCache = false,
-  }) async {
+    String path,
+  ) async {
     return await gzippedTaskResult(
       package,
       version,
       'doc/$path',
-      purgeCache: purgeCache,
     );
   }
 
@@ -909,13 +909,13 @@ class TaskBackend {
   /// Even, if the [Summary] from pana is missing, it's possible that the
   /// [taskLog] is present. This happens if the analysis failed gracefully or
   /// allocated time was exhausted before the worker completed all versions.
-  Future<Summary?> panaSummary(
-    String package,
-    String version, {
-    bool purgeCache = false,
-  }) async {
-    final data = await gzippedTaskResult(package, version, 'summary.json',
-        purgeCache: purgeCache);
+  Future<Summary?> panaSummary(String package, String version) async {
+    final data = await gzippedTaskResult(package, version, 'summary.json');
+    return _panaSummaryFromGzippedBytes(package, version, data);
+  }
+
+  Summary? _panaSummaryFromGzippedBytes(
+      String package, String version, List<int>? data) {
     if (data == null) {
       return null;
     }
@@ -954,22 +954,25 @@ class TaskBackend {
     }
   }
 
-  /// Get status information for a package being analyzed.
+  /// Get the most up-to-date status information for a package that has already been analyzed.
   Future<PackageStateInfo> packageStatus(String package) async {
     final status = await cache.taskPackageStatus(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
         final state = await dbService.lookupOrNull<PackageState>(key);
-        if (state != null) {
-          return PackageStateInfo(
-            package: package,
-            versions: state.versions ?? {},
-          );
+        // skip states where the entry was created, but no analysis has not finished yet
+        if (state == null || state.hasNeverFinished) {
+          continue;
         }
+        return PackageStateInfo(
+          runtimeVersion: state.runtimeVersion!,
+          package: package,
+          versions: state.versions ?? {},
+        );
       }
-      return PackageStateInfo(package: package, versions: {});
+      return PackageStateInfo.empty(package: package);
     });
-    return status ?? PackageStateInfo(package: package, versions: {});
+    return status ?? PackageStateInfo.empty(package: package);
   }
 
   /// Create a URL for getting a resource created in pana.

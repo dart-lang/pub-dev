@@ -77,17 +77,6 @@ class CachePatterns {
       .withPrefix('dartdoc-blob-index-v1/')
       .withTTL(Duration(minutes: 60))[objectName];
 
-  /// Cache for API summaries used by dartdoc.
-  Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
-      .withPrefix('dartdoc-apisummary/')
-      .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (Map<String, dynamic> map) => map,
-        decode: (obj) => obj as Map<String, dynamic>,
-      ))[package];
-
   Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage/')
       .withTTL(Duration(minutes: 10))
@@ -211,17 +200,7 @@ class CachePatterns {
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
-      .withPrefix('scorecarddata/')
-      .withTTL(Duration(hours: 2))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (ScoreCardData d) => d.toJson(),
-        decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
-      ))['$package-$version'];
-
-  Entry<ScoreCardData> scoreCardData2(String package, String version) => _cache
-      .withPrefix('scorecarddata2/')
+      .withPrefix('scorecard-data/')
       .withTTL(Duration(hours: 2))
       .withCodec(utf8)
       .withCodec(json)
@@ -329,7 +308,7 @@ class CachePatterns {
 
   /// Cache for task status.
   Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
-      .withPrefix('task-status/')
+      .withPrefix('task-status-v2/')
       .withTTL(Duration(hours: 3))
       .withCodec(utf8)
       .withCodec(json)

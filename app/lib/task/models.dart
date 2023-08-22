@@ -6,7 +6,9 @@ import 'dart:convert' show json;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pub_dev/shared/datastore.dart' as db;
+
+import '../shared/datastore.dart' as db;
+import '../shared/versions.dart' as shared_versions;
 
 part 'models.g.dart';
 
@@ -121,6 +123,11 @@ class PackageState extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true)
   DateTime? lastDependencyChanged;
 
+  /// The last time the a worker completed with a failure or success.
+  /// TODO: make it `required: true` after the acceptable runtimes are after 2023.08.18.
+  @db.DateTimeProperty(required: false, indexed: true)
+  DateTime? finished;
+
   /// Derive [pendingAt] using [versions] and [lastDependencyChanged].
   ///
   /// When updating PackageState the pendingAt property is set to the minimum of:
@@ -174,6 +181,10 @@ class PackageState extends db.ExpandoModel<String> {
         .toList();
   }
 
+  /// Returns true if the current [PackageState] instance is new, no version analysis
+  /// has not completed yet (with neither success nor failure).
+  bool get hasNeverFinished => finished == initialTimestamp;
+
   @override
   String toString() =>
       'PackageState(' +
@@ -185,6 +196,7 @@ class PackageState extends db.ExpandoModel<String> {
         'pendingAt: $pendingAt',
         'lastDependencyChanged: $lastDependencyChanged',
         'dependencies: [' + (dependencies ?? []).join(', ') + ']',
+        'finished: $finished',
       ].join('\n  ') +
       '\n)';
 }
@@ -340,6 +352,8 @@ class PackageVersionStateMapProperty extends db.Property {
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
+  // TODO: make this non-nullable after we are past 2023.08.18 as accepted runtimeVersion.
+  final String? runtimeVersion;
   final String package;
 
   /// Status for versions.
@@ -350,9 +364,20 @@ class PackageStateInfo {
   final Map<String, PackageVersionStateInfo> versions;
 
   PackageStateInfo({
+    required this.runtimeVersion,
     required this.package,
     required this.versions,
   });
+
+  factory PackageStateInfo.empty({
+    required String package,
+  }) {
+    return PackageStateInfo(
+      runtimeVersion: shared_versions.runtimeVersion,
+      package: package,
+      versions: {},
+    );
+  }
 
   factory PackageStateInfo.fromJson(Map<String, dynamic> m) =>
       _$PackageStateInfoFromJson(m);

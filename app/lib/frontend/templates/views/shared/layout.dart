@@ -78,7 +78,7 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'stylesheet',
               href:
-                  'https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700&display=swap',
+                  'https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400&family=Google+Sans+Text:wght@400;500;700&family=Google+Sans+Mono:wght@400;700&display=swap',
             ),
             d.link(rel: 'shortcut icon', href: faviconUrl),
             d.link(
@@ -199,8 +199,7 @@ d.Node pageLayoutNode({
                         d.img(
                           classes: ['logo'],
                           image: d.Image(
-                            src: staticUrls
-                                .getAssetUrl('/static/img/pub-dev-logo.svg'),
+                            src: staticUrls.pubDevLogoSvg,
                             alt: 'pub.dev package manager',
                             width: 328,
                             height: 70,

@@ -5,14 +5,11 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pool/pool.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 
 import '../package/backend.dart';
@@ -31,10 +28,6 @@ final _logger = Logger('pub.scorecard.backend');
 final Duration _deleteThreshold = const Duration(days: 182);
 final _reportSizeWarnThreshold = 16 * 1024;
 final _reportSizeDropThreshold = 32 * 1024;
-
-/// The minimum age of the [PackageVersion] which will trigger a fallback to
-/// older scorecards. Below this age we only display the current [ScoreCard].
-final _fallbackMinimumAge = const Duration(hours: 4);
 
 /// The maximum number of keys we'll try to lookup when we need to load the
 /// scorecard or the report information for multiple versions.
@@ -117,10 +110,7 @@ class ScoreCardBackend {
     String packageName,
     String? packageVersion, {
     bool onlyCurrent = false,
-    bool skipSandboxOutput = false,
   }) async {
-    final showSandboxedOutput = !skipSandboxOutput &&
-        requestContext.experimentalFlags.showSandboxedScoreCard;
     if (packageVersion == null || packageVersion == 'latest') {
       packageVersion = await packageBackend.getLatestVersion(packageName);
       if (packageVersion == null) {
@@ -128,11 +118,8 @@ class ScoreCardBackend {
         return null;
       }
     }
-    final cacheEntry = onlyCurrent
-        ? null
-        : (showSandboxedOutput
-            ? cache.scoreCardData2(packageName, packageVersion)
-            : cache.scoreCardData(packageName, packageVersion));
+    final cacheEntry =
+        onlyCurrent ? null : cache.scoreCardData(packageName, packageVersion);
     if (cacheEntry != null) {
       final cached = await cacheEntry.get();
       if (cached != null && cached.hasAllReports) {
@@ -140,94 +127,44 @@ class ScoreCardBackend {
       }
     }
 
-    if (showSandboxedOutput) {
-      final package = await packageBackend.lookupPackage(packageName);
-      if (package == null) {
-        throw NotFoundException('Package "$packageName" does not exist.');
-      }
-      final version = await packageBackend.lookupPackageVersion(
-          packageName, packageVersion);
-      if (version == null) {
-        throw NotFoundException(
-            'Package version "$packageName $packageVersion" does not exist.');
-      }
-      final status = PackageStatus.fromModels(package, version);
-      final summary =
-          await taskBackend.panaSummary(packageName, packageVersion);
-      final stateInfo = await taskBackend.packageStatus(packageName);
-      final versionInfo = stateInfo.versions[packageVersion];
-      final hasDartdocFile = versionInfo?.docs ?? false;
-
-      final data = ScoreCardData(
-        packageName: packageName,
-        packageVersion: packageVersion,
-        // this is unused outside scorecard backend, and a bit wrong:
-        runtimeVersion: runtimeVersion,
-        updated: summary?.createdAt ?? version.created,
-        packageCreated: package.created,
-        packageVersionCreated: version.created,
-        dartdocReport: DartdocReport(
-          timestamp: summary?.createdAt ?? version.created,
-          reportStatus:
-              hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
-          dartdocEntry: null, // unused
-          documentationSection: null, // already embedded in summary
-        ),
-        panaReport: PanaReport.fromSummary(summary, packageStatus: status),
-        taskStatus: versionInfo?.status,
-      );
-      if (cacheEntry != null) {
-        await cacheEntry.set(data);
-      }
-      return data;
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      throw NotFoundException('Package "$packageName" does not exist.');
     }
-
-    final key = scoreCardKey(packageName, packageVersion);
-    final current = (await _db.lookupOrNull<ScoreCard>(key))?.tryDecodeData();
-    if (current != null) {
-      if (cacheEntry != null) {
-        await cacheEntry.set(current);
-      }
-      if (onlyCurrent || current.hasAllReports) {
-        return current;
-      }
+    final version =
+        await packageBackend.lookupPackageVersion(packageName, packageVersion);
+    if (version == null) {
+      throw NotFoundException(
+          'Package version "$packageName $packageVersion" does not exist.');
     }
+    final status = PackageStatus.fromModels(package, version);
+    final summary = await taskBackend.panaSummary(packageName, packageVersion);
+    final stateInfo = await taskBackend.packageStatus(packageName);
+    final versionInfo = stateInfo.versions[packageVersion];
+    final hasDartdocFile = versionInfo?.docs ?? false;
 
-    if (onlyCurrent) return null;
-
-    // List cards that at minimum have a pana report.
-    final fallbackKeys = versions.fallbackRuntimeVersions
-        .map((v) =>
-            scoreCardKey(packageName, packageVersion!, runtimeVersion: v))
-        .toList();
-    final fallbackCards = await _db.lookup<ScoreCard>(fallbackKeys);
-    final fallbackCardData = fallbackCards
-        .whereNotNull()
-        .map((c) => c.tryDecodeData())
-        .whereNotNull()
-        .toList();
-
-    if (fallbackCardData.isEmpty) return null;
-
-    final fallbackCard =
-        fallbackCardData.firstWhereOrNull((d) => d.hasAllReports) ??
-            fallbackCardData.firstWhereOrNull((d) => d.hasPanaReport);
-
-    // For recently uploaded version, we don't want to fallback to an analysis
-    // coming from an older running deployment too early. A new analysis may
-    // come soon from the current runtime, and if it is different in significant
-    // ways (e.g. score or success status differs), it may confuse users looking
-    // at it in the interim period.
-    //
-    // However, once the upload is above the specified age, it is better to
-    // display and old analysis than to keep waiting on a new one.
-    if (fallbackCard != null) {
-      final age = clock.now().difference(fallbackCard.packageVersionCreated!);
-      if (age < _fallbackMinimumAge) {
-        return null;
-      }
+    final data = ScoreCardData(
+      packageName: packageName,
+      packageVersion: packageVersion,
+      // this is unused outside scorecard backend, and a bit wrong:
+      runtimeVersion: stateInfo.runtimeVersion,
+      updated: summary?.createdAt ?? version.created,
+      packageCreated: package.created,
+      packageVersionCreated: version.created,
+      dartdocReport: DartdocReport(
+        timestamp: summary?.createdAt ?? version.created,
+        reportStatus:
+            hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
+        dartdocEntry: null, // unused
+        documentationSection: null, // already embedded in summary
+      ),
+      panaReport: PanaReport.fromSummary(summary, packageStatus: status),
+      taskStatus: versionInfo?.status,
+    );
+    if (cacheEntry != null) {
+      await cacheEntry.set(data);
     }
-    return fallbackCard;
+    return data;
   }
 
   /// Creates or updates a [ScoreCard] entry with the provided [panaReport] and/or [dartdocReport].
@@ -465,7 +402,6 @@ Future<void> purgeScorecardData(
 }) async {
   await Future.wait([
     cache.scoreCardData(package, version).purge(),
-    cache.scoreCardData2(package, version).purge(),
     cache.uiPackagePage(package, version).purge(),
     if (isLatest) cache.uiPackagePage(package, null).purge(),
     if (isLatest) cache.packageView(package).purge(),

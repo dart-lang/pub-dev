@@ -8,10 +8,7 @@ import 'dart:isolate';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
-import '../../dartdoc/dartdoc_runner.dart';
 import '../../dartdoc/handlers.dart';
-import '../../job/job.dart';
-import '../../shared/datastore.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -35,7 +32,6 @@ class DartdocCommand extends Command {
     await runIsolates(
       logger: logger,
       frontendEntryPoint: _frontendMain,
-      jobEntryPoint: _jobMain,
       workerEntryPoint: _workerMain,
       deadWorkerTimeout: Duration(hours: 1),
       frontendCount: 1,
@@ -48,17 +44,6 @@ Future _frontendMain(EntryMessage message) async {
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
   message.protocolSendPort.send(ReadyMessage());
   await runHandler(logger, dartdocServiceHandler);
-}
-
-Future _jobMain(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-
-  await popularityStorage.start();
-  final jobProcessor = DartdocJobProcessor(
-    aliveCallback: () => message.aliveSendPort.send(null),
-  );
-  final jobMaintenance = JobMaintenance(dbService, jobProcessor);
-  await jobMaintenance.run();
 }
 
 Future _workerMain(EntryMessage message) async {

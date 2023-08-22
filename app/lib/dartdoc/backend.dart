@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
@@ -163,7 +162,6 @@ class DartdocBackend {
     await Future.wait([
       cache.dartdocEntry(entry.packageName, entry.packageVersion).purge(),
       cache.dartdocEntry(entry.packageName, 'latest').purge(),
-      cache.dartdocApiSummary(entry.packageName).purge(),
     ]);
 
     // Mark old content as expired.
@@ -325,48 +323,6 @@ class DartdocBackend {
       offset: info.blobOffset!,
       length: info.blobLength!,
     );
-  }
-
-  /// Returns the text content of a file inside the dartdoc archive.
-  ///
-  /// Returns `null` if the file does not exists, or its content can't be parsed as String.
-  /// Returns `null` if the file exceeds [maxSize].
-  Future<String?> getTextContent(
-    String package,
-    String version,
-    String relativePath, {
-    required Duration timeout,
-    int maxSize = -1,
-  }) async {
-    try {
-      final entry =
-          await dartdocBackend.getEntry(package, version).timeout(timeout);
-      if (entry == null || !entry.hasContent) {
-        return null;
-      }
-      final index = await _getBlobIndex(entry);
-      if (index != null) {
-        final range = index.lookup(relativePath);
-        if (range == null) return null;
-        if (maxSize != -1 && range.length > maxSize) {
-          return null;
-        }
-        final bytes = await _storage.readAsBytes(entry.objectName(blobFilePath),
-            offset: range.start, length: range.length);
-        final decompressed = gzip.decode(bytes);
-        if (maxSize != -1 && decompressed.length > maxSize) {
-          return null;
-        }
-        return utf8.decode(decompressed);
-      }
-      // TODO: remove this once all the accepted runtimes use blobs
-      final stream = readContent(entry, relativePath).transform(utf8.decoder);
-      return (await stream.toList().timeout(timeout)).join();
-    } catch (e, st) {
-      _logger.info(
-          'Unable to read content for $package $version $relativePath', e, st);
-    }
-    return null;
   }
 
   /// Removes all files related to a package.

@@ -8,14 +8,12 @@ import 'dart:io';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:gcloud/storage.dart';
-import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/shared/count_topics.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../dartdoc/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -45,69 +43,22 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse({}, status: 404);
   }
 
-  if (requestContext.experimentalFlags.showSandboxedDartdoc) {
-    final status = await taskBackend.packageStatus(package);
-    return jsonResponse({
-      'name': package,
-      'versions': status.versions.entries
-          .map((e) => {
-                'version': e.key,
-                'status': e.value.status == PackageVersionStatus.pending ||
-                        e.value.status == PackageVersionStatus.running
-                    ? 'pending'
-                    : (e.value.status == PackageVersionStatus.failed
-                        ? 'failed'
-                        : 'completed'),
-                'hasDocumentation': e.value.docs,
-              })
-          .toList(),
-    });
-  }
-
-  final cachedData = await cache.dartdocApiSummary(package).get();
-  if (cachedData != null) {
-    return jsonResponse(cachedData);
-  }
-
-  final versions = await packageBackend.listVersionsCached(package);
-  if (versions.versions.isEmpty) {
-    return jsonResponse({}, status: 404);
-  }
-
-  // Limit versions to the latest few (sorted semantically).
-  final versionsToQuery = <String>{
-    versions.latest.version,
-    ...versions.versions.map((e) => e.version).toList().reversed.take(30),
-  };
-
-  final dartdocEntries = await dartdocBackend.getEntriesForVersions(
-      package, versionsToQuery.toList());
-  final dartdocEntriesMap = <String, DartdocEntry>{};
-  for (final entry in dartdocEntries) {
-    if (entry == null) continue;
-    dartdocEntriesMap[entry.packageVersion] = entry;
-  }
-
-  final versionsData = [];
-  for (int i = 0; i < versions.versions.length; i++) {
-    final version = versions.versions[i].version;
-    final entry = dartdocEntriesMap[version];
-    final hasDocumentation = entry != null && entry.hasContent;
-    final status =
-        entry == null ? 'pending' : (entry.hasContent ? 'success' : 'failed');
-    versionsData.add({
-      'version': version,
-      'status': status,
-      'hasDocumentation': hasDocumentation,
-    });
-  }
-  final data = {
+  final status = await taskBackend.packageStatus(package);
+  return jsonResponse({
     'name': package,
-    'latestStableVersion': versions.latest.version,
-    'versions': versionsData,
-  };
-  await cache.dartdocApiSummary(package).set(data);
-  return jsonResponse(data);
+    'versions': status.versions.entries
+        .map((e) => {
+              'version': e.key,
+              'status': e.value.status == PackageVersionStatus.pending ||
+                      e.value.status == PackageVersionStatus.running
+                  ? 'pending'
+                  : (e.value.status == PackageVersionStatus.failed
+                      ? 'failed'
+                      : 'completed'),
+              'hasDocumentation': e.value.docs,
+            })
+        .toList(),
+  });
 }
 
 /// Handles requests for

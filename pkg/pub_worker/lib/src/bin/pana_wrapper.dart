@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
-import 'dart:io' show Directory, File, Platform, exit;
+import 'dart:convert' show json, utf8;
+import 'dart:io' show Directory, File, Platform, exit, gzip;
 
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
@@ -14,6 +14,10 @@ import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 
 final _log = Logger('pana');
+
+/// The maximum of the compressed pana report. Larger reports will be dropped and
+/// replaced with a placeholder report.
+final _reportSizeDropThreshold = 32 * 1024;
 
 /// Program to be used as subprocess for running pana, ensuring that we capture
 /// all the output, and only run analysis in a subprocess that can timeout and
@@ -102,7 +106,7 @@ Future<void> main(List<String> args) async {
   final pana = PackageAnalyzer(toolEnv);
   // TODO: add a cache purge + retry if the download would fail
   //       (e.g. the package version cache wasn't invalidated).
-  final summary = await pana.inspectPackage(
+  var summary = await pana.inspectPackage(
     package,
     version: version,
     options: InspectOptions(
@@ -137,6 +141,30 @@ Future<void> main(List<String> args) async {
 
   final updatedReport = summary.report?.joinSection(docSection);
   final updatedSummary = summary.change(report: updatedReport);
+
+  // sanity check on pana report size
+  final reportSize =
+      gzip.encode(utf8.encode(json.encode(summary.toJson()))).length;
+  if (reportSize > _reportSizeDropThreshold) {
+    summary = Summary(
+      createdAt: summary.createdAt,
+      runtimeInfo: summary.runtimeInfo,
+      tags: ['has:pana-report-exceeds-size-threshold'],
+      report: Report(
+        sections: [
+          ReportSection(
+            id: 'error',
+            title: 'Report exceeded size limit.',
+            grantedPoints: summary.report?.grantedPoints ?? 0,
+            maxPoints: summary.report?.maxPoints ?? 0,
+            status: ReportStatus.partial,
+            summary: 'The `pana` report exceeded size limit. '
+                'Please review pana logs or contact the site admins.',
+          )
+        ],
+      ),
+    );
+  }
 
   _log.info('Writing summary.json');
   await File(

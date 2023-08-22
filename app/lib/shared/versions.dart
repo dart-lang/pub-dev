@@ -22,10 +22,8 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.08.08',
+  '2023.08.18',
   // Fallback runtime versions.
-  '2023.08.04',
-  '2023.07.24',
 ];
 
 /// Represents a combined version of the overall toolchain and processing,
@@ -38,14 +36,11 @@ const acceptedRuntimeVersions = <String>[
 /// up by the analysis ASAP.
 final String runtimeVersion = acceptedRuntimeVersions.first;
 
-/// The list of runtime versions to use when looking for past version-specific
-/// data.
-final fallbackRuntimeVersions = acceptedRuntimeVersions.skip(1).toList();
-
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-final gcBeforeRuntimeVersion = acceptedRuntimeVersions.last;
+/// TODO: use acceptedRuntimeVersions.last after we have more versions to fall back to
+final gcBeforeRuntimeVersion = '2023.08.04';
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
@@ -54,10 +49,10 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '3.0.0';
-final String toolStableDartSdkVersion = '3.0.7';
-final String toolStableFlutterSdkVersion = '3.10.6';
-final String toolPreviewDartSdkVersion = '3.1.0-262.3.beta';
-final String toolPreviewFlutterSdkVersion = '3.13.0-0.3.pre';
+final String toolStableDartSdkVersion = '3.1.0';
+final String toolStableFlutterSdkVersion = '3.13.0';
+final String toolPreviewDartSdkVersion = '3.2.0-42.1.beta';
+final String toolPreviewFlutterSdkVersion = '3.13.0';
 
 final semanticToolStableDartSdkVersion =
     Version.parse(toolStableDartSdkVersion);

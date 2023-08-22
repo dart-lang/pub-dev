@@ -2,7 +2,21 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20230821t132100-all`
+
+## `20230818t145900-all`
+ * Bumped runtimeVersion to `2023.08.18`.
+
+## `20230817t142000-all`
+ * Bumped runtimeVersion to `2023.08.17`.
+ * Upgraded stable Dart analysis SDK to `3.1.0`.
+ * Upgraded stable Flutter analysis SDK to `3.13.0`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-42.1.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.13.0`.
+ * Upgraded pana to `0.21.36`.
  * Note: Upgraded `package:gcloud`.
+ * Note: `analyzer` and `dartdoc` processing is turned off.
 
 ## `20230810t094700-all`
  * Bumped runtimeVersion to `2023.08.08`.

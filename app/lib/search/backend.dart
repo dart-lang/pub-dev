@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
@@ -16,20 +17,21 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
-import 'package:pub_dev/search/mem_index.dart';
-import 'package:pub_dev/task/global_lock.dart';
 
-import '../dartdoc/backend.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
+import '../search/mem_index.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart';
+import '../task/backend.dart';
+import '../task/global_lock.dart';
+import '../task/models.dart';
 import '../tool/utils/http.dart';
 
 import 'dart_sdk_mem_index.dart';
@@ -224,6 +226,15 @@ class SearchBackend {
       addResult(sc.packageName!, sc.updated!);
     }
 
+    final q3 = _db.query<PackageState>()
+      ..filter('finished >=', updatedThreshold)
+      ..order('-finished');
+    await for (final s in q3.run()) {
+      if (s.finished != null) {
+        addResult(s.package, s.finished!);
+      }
+    }
+
     return results;
   }
 
@@ -286,12 +297,13 @@ class SearchBackend {
       ...previewTags,
     };
 
-    final pubDataContent = await dartdocBackend.getTextContent(
-        packageName, 'latest', 'pub-data.json',
-        timeout: const Duration(minutes: 1), maxSize: 10 * 1014);
-
     List<ApiDocPage>? apiDocPages;
     try {
+      final pubDataBytes = await taskBackend.gzippedTaskResult(
+          packageName, pv.version!, 'doc/pub-data.json');
+      final pubDataContent = pubDataBytes == null
+          ? null
+          : utf8.decode(gzip.decode(pubDataBytes), allowMalformed: true);
       if (pubDataContent == null || pubDataContent.isEmpty) {
         _logger.info('Got empty pub-data.json for package $packageName.');
       } else {

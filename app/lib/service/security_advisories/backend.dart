@@ -29,6 +29,11 @@ class SecurityAdvisoryBackend {
 
   SecurityAdvisoryBackend(this._db);
 
+  Future<List<SecurityAdvisory>> listAdvisories() async {
+    final query = _db.query<SecurityAdvisory>();
+    return query.run().toList();
+  }
+
   Future<List<OSV>> lookupSecurityAdvisories(
     String package,
   ) async {
@@ -92,6 +97,13 @@ class SecurityAdvisoryBackend {
 
       return newAdvisory;
     });
+  }
+
+  Future<void> deleteAdvisory(String id) async {
+    final key = _db.emptyKey.append(SecurityAdvisory, id: id);
+    // If necessary this can be optimized by deleting up to 500 at once.
+    // At this point we don't expect many deletes so we keep it simple.
+    await _db.commit(deletes: [key]);
   }
 }
 
