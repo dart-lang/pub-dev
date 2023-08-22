@@ -73,7 +73,7 @@ Future<void> updateAdvisories(Map<String, OSV> osvs) async {
 /// Synchronizes the security advisory backend with security advisories from
 /// osv.dev.
 Future<void> syncSecurityAdvisories() async {
-  final tempDir = Directory.systemTemp.createTempSync();
+  final tempDir = await Directory.systemTemp.createTemp();
   try {
     await fetchAdvisories(tempDir);
     final (osvs, failedFiles) = await loadAdvisoriesFromDir(tempDir);
