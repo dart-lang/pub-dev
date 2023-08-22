@@ -12,28 +12,26 @@ import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 
-/// Loads security advisories from osv.dev
-Future<Directory> fetchAdvisories() async {
+/// Loads security advisories from osv.dev into [targetDir].
+Future<void> fetchAdvisories(Directory targetDir) async {
   final bucketName = 'osv-vulnerabilities';
   final allPubAdvisoriesPath = 'Pub/all.zip';
   final storage = Storage(Client(), 'project');
   final bucket = storage.bucket(bucketName);
-  final tempDir = Directory.systemTemp.createTempSync();
-  final zipFile = File(path.join(tempDir.path, 'all.zip'));
+  final zipFile = File(path.join(targetDir.path, 'all.zip'));
 
   final bytes = await bucket.readAsBytes(allPubAdvisoriesPath);
   zipFile.writeAsBytesSync(bytes);
 
   ProcessResult processResult;
   processResult = await Process.run('unzip', [zipFile.path],
-      workingDirectory: tempDir.path);
+      workingDirectory: targetDir.path);
 
   if (processResult.exitCode != 0) {
     throw Exception(
         'Unzipping advisories failed with exitcode ${processResult.exitCode}.\n'
         '${processResult.stdout}\n${processResult.stderr}');
   }
-  return tempDir;
 }
 
 Future<(Map<String, OSV>, List<String>)> loadAdvisoriesFromDir(
@@ -75,13 +73,18 @@ Future<void> updateAdvisories(Map<String, OSV> osvs) async {
 /// Synchronizes the security advisory backend with security advisories from
 /// osv.dev.
 Future<void> syncSecurityAdvisories() async {
-  final tempDir = await fetchAdvisories();
-  final (osvs, failedFiles) = await loadAdvisoriesFromDir(tempDir);
-  await updateAdvisories(osvs);
+  final tempDir = Directory.systemTemp.createTempSync();
+  try {
+    await fetchAdvisories(tempDir);
+    final (osvs, failedFiles) = await loadAdvisoriesFromDir(tempDir);
+    await updateAdvisories(osvs);
 
-  if (failedFiles.isNotEmpty) {
-    throw Exception(
-        'Advisory ingestion was partial. The following advisories failed '
-        '$failedFiles');
+    if (failedFiles.isNotEmpty) {
+      throw Exception(
+          'Advisory ingestion was partial. The following advisories failed '
+          '$failedFiles');
+    }
+  } finally {
+    tempDir.deleteSync(recursive: true);
   }
 }
