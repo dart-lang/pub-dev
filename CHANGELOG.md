@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20230822t075300-all`
+
 ## `20230821t132100-all`
 
 ## `20230818t145900-all`
