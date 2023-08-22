@@ -81,7 +81,7 @@ Future<SdkMemIndex?> _createFlutterSdkMemIndex() async {
     final content = DartdocIndex.parseJsonText(
       await searchBackend.fetchSdkIndexContentAsString(
         baseUri: index.baseUri,
-        relativePath: 'flutter/index.json',
+        relativePath: 'index.json',
       ),
     );
     await index.addDartdocIndex(content, allowedLibraries: _allowedLibraries);
