@@ -219,13 +219,6 @@ class SearchBackend {
       addResult(p.name!, p.updated!);
     }
 
-    final q2 = _db.query<ScoreCard>()
-      ..filter('updated >=', updatedThreshold)
-      ..order('-updated');
-    await for (final sc in q2.run()) {
-      addResult(sc.packageName!, sc.updated!);
-    }
-
     final q3 = _db.query<PackageState>()
       ..filter('finished >=', updatedThreshold)
       ..order('-finished');

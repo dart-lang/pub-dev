@@ -13,9 +13,7 @@ import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
-import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion;
-import '../scorecard/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
@@ -176,91 +174,6 @@ class DartdocBackend {
         }
       });
     }
-  }
-
-  /// Return the latest entries that should be used to serve the content.
-  ///
-  /// If the entry is missing for the current runtimeVersion, the method will
-  /// try to load the relevant entry for earlier runtimeVersions.
-  Future<List<DartdocEntry?>> getEntriesForVersions(
-      String package, List<String> versions) async {
-    final entries = <String, DartdocEntry>{};
-
-    final pool = Pool(8);
-    await Future.wait(versions.map((v) => pool.withResource(() async {
-          final cachedEntry = await cache.dartdocEntry(package, v).get();
-          if (cachedEntry != null) {
-            entries[v] = cachedEntry;
-          }
-        })));
-
-    final cacheUpdateFutures = <Future>[];
-    for (final rv in shared_versions.acceptedRuntimeVersions) {
-      final queryVersions =
-          versions.where((v) => !entries.containsKey(v)).toList();
-      if (queryVersions.isEmpty) break;
-
-      final cards = await scoreCardBackend.getScoreCardDataForAllVersions(
-        package,
-        queryVersions,
-        runtimeVersion: rv,
-      );
-      for (var i = 0; i < queryVersions.length; i++) {
-        final r = cards[i];
-        if (r != null) {
-          final version = queryVersions[i];
-          final entry = r.dartdocReport?.dartdocEntry;
-          if (entry != null) {
-            entries[version] = entry;
-            cacheUpdateFutures.add(pool.withResource(
-                () => cache.dartdocEntry(package, version).set(entry)));
-          }
-        }
-      }
-    }
-    await Future.wait(cacheUpdateFutures);
-    await pool.close();
-    return versions.map((v) => entries[v]).toList();
-  }
-
-  /// Return the latest entry that should be used to serve the content.
-  Future<DartdocEntry?> getEntry(String package, String version) async {
-    final cachedEntry = await cache.dartdocEntry(package, version).get();
-    if (cachedEntry != null) {
-      return cachedEntry;
-    }
-
-    Future<DartdocEntry?> loadVersion(String v) async {
-      final entries = await getEntriesForVersions(package, [v]);
-      return entries.single;
-    }
-
-    DartdocEntry? entry;
-    if (version != 'latest') {
-      entry = await loadVersion(version);
-    } else {
-      final latestVersion = await packageBackend.getLatestVersion(package);
-      if (latestVersion == null) {
-        return null;
-      }
-      entry = await loadVersion(latestVersion);
-
-      if (entry == null) {
-        final versions = await dartdocBackend.getLatestVersions(package);
-        versions.remove(latestVersion);
-        for (String v in versions.take(2)) {
-          entry = await loadVersion(v);
-          if (entry != null) break;
-        }
-      }
-    }
-
-    // Only cache, if this is the latest runtime version
-    if (entry != null &&
-        entry.runtimeVersion == shared_versions.runtimeVersion) {
-      await cache.dartdocEntry(package, version).set(entry);
-    }
-    return entry;
   }
 
   /// Returns the file's header from the storage bucket

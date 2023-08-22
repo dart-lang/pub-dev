@@ -69,7 +69,6 @@ Future<void> processTasksWithFakePanaAndDartdoc() async {
 }
 
 Future<void> _processPayload(Payload payload) async {
-  final fakePanaRunner = FakePanaRunner();
   for (final v in payload.versions) {
     final client = httpClientWithAuthorization(
       tokenProvider: () async => v.token,
@@ -98,7 +97,7 @@ Future<void> _processPayload(Payload payload) async {
           summary = _emptySummary(payload.package, v.version);
           dartdocFiles.clear();
         } else {
-          final s = await fakePanaRunner.analyze(
+          final s = await fakePanaSummary(
             package: payload.package,
             version: v.version,
             packageStatus: packageStatus,

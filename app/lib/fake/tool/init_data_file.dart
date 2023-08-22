@@ -10,9 +10,8 @@ import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 
-import 'package:pub_dev/analyzer/pana_runner.dart';
-import 'package:pub_dev/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -42,7 +41,7 @@ class FakeInitDataFileCommand extends Command {
       )
       ..addOption(
         'analysis',
-        allowed: ['none', 'real', 'worker'],
+        allowed: ['none', 'fake', 'real'],
         help: 'Analyze the package with fake or real analysis.',
         defaultsTo: 'none',
       )
@@ -89,22 +88,13 @@ class FakeInitDataFileCommand extends Command {
           );
 
           if (analysis == 'real') {
-            await _analyze();
-          } else if (analysis == 'worker') {
             await _analyzeWorker();
+          } else if (analysis == 'fake') {
+            await processTasksWithFakePanaAndDartdoc();
           }
         });
     await state.save(dataFile);
   }
-}
-
-Future<void> _analyze() async {
-  await fork(() async {
-    // ignore: invalid_use_of_visible_for_testing_member
-    await processJobsWithPanaRunner();
-    // ignore: invalid_use_of_visible_for_testing_member
-    await processJobsWithDartdocRunner();
-  });
 }
 
 Future<void> _analyzeWorker() async {

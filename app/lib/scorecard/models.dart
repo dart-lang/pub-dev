@@ -7,10 +7,8 @@ import 'dart:io';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:logging/logging.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/task/models.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../dartdoc/models.dart';
 import '../scorecard/backend.dart';
@@ -19,17 +17,9 @@ import '../shared/popularity_storage.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 import '../shared/versions.dart' as versions;
 
-import 'helpers.dart';
-
 part 'models.g.dart';
 
 final _gzipCodec = GZipCodec();
-final _logger = Logger('scorecard.model');
-
-abstract class ReportType {
-  static const String pana = 'pana';
-  static const String dartdoc = 'dartdoc';
-}
 
 abstract class ReportStatus {
   static const String success = 'success';
@@ -68,69 +58,6 @@ class ScoreCard extends db.ExpandoModel<String> {
   /// Compressed, json-encoded content of [DartdocReport].
   @db.BlobProperty()
   List<int>? dartdocReportJsonGz;
-
-  ScoreCard();
-
-  ScoreCard.init({
-    required this.packageName,
-    required this.packageVersion,
-    required this.packageCreated,
-    required this.packageVersionCreated,
-  }) {
-    runtimeVersion = versions.runtimeVersion;
-    final key = scoreCardKey(packageName!, packageVersion!);
-    parentKey = key.parent;
-    id = key.id;
-    updated = clock.now().toUtc();
-  }
-
-  /// Tries to decode and return the data stored on the [ScoreCard].
-  ///
-  /// May return `null` when the stored data from an older runtime
-  /// is not compatible with the current runtime.
-  ScoreCardData? tryDecodeData() {
-    try {
-      return _toData();
-    } catch (e, st) {
-      if (runtimeVersion == versions.runtimeVersion) {
-        final msg =
-            'Unable to decode current ScoreCard data ($packageName/$packageVersion).';
-        _logger.shout(msg, e, st);
-        rethrow;
-      }
-      _logger.info('Unable to decode old ScoreCard data.', e, st);
-    }
-    return null;
-  }
-
-  ScoreCardData _toData() => ScoreCardData(
-        packageName: packageName!,
-        packageVersion: packageVersion!,
-        runtimeVersion: runtimeVersion!,
-        updated: updated!,
-        packageCreated: packageCreated!,
-        packageVersionCreated: packageVersionCreated!,
-        dartdocReport: DartdocReport.fromBytes(dartdocReportJsonGz),
-        panaReport: PanaReport.fromBytes(panaReportJsonGz),
-      );
-
-  Version get semanticRuntimeVersion => Version.parse(runtimeVersion!);
-
-  void updateReports({
-    PanaReport? panaReport,
-    DartdocReport? dartdocReport,
-  }) {
-    if (panaReport != null) {
-      panaReportJsonGz = panaReport.asBytes;
-    } else if (panaReportJsonGz != null && panaReportJsonGz!.isNotEmpty) {
-      panaReport = PanaReport.fromBytes(panaReportJsonGz);
-    }
-    if (dartdocReport != null) {
-      dartdocReportJsonGz = dartdocReport.asBytes;
-    } else if (dartdocReportJsonGz != null && dartdocReportJsonGz!.isNotEmpty) {
-      dartdocReport = DartdocReport.fromBytes(dartdocReportJsonGz);
-    }
-  }
 }
 
 mixin FlagMixin {
