@@ -24,7 +24,8 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/storage.dart';
-import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
+import 'package:pub_dev/shared/utils.dart'
+    show canonicalizeVersion, compareSemanticVersionsDesc;
 import 'package:pub_dev/shared/versions.dart'
     show
         runtimeVersion,
@@ -689,6 +690,7 @@ class TaskBackend {
         scheduled: versionState.scheduled,
         docs: hasDocIndexHtml,
         pana: summary != null,
+        finished: true,
         attempts: 0,
         instance: null, // version is no-longer running on this instance
         secretToken: null, // TODO: Consider retaining this for idempotency
@@ -760,6 +762,7 @@ class TaskBackend {
   Future<void> _purgeCache(String package, [String? version]) async {
     await Future.wait([
       cache.taskPackageStatus(package).purge(),
+      cache.latestFinishedVersion(package).purge(),
       if (version != null) cache.taskResultIndex(package, version).purge(),
       if (version != null) purgeScorecardData(package, version, isLatest: true),
     ]);
@@ -1023,6 +1026,40 @@ class TaskBackend {
         tx.insert(state);
       }
     });
+  }
+
+  /// Returns the latest version of the [package] which has a finished analysis.
+  ///
+  /// Returns `null` if no such version exists.
+  Future<String?> latestFinishedVersion(String package) async {
+    final cachedValue =
+        await cache.latestFinishedVersion(package).get(() async {
+      for (final rt in acceptedRuntimeVersions) {
+        final key = PackageState.createKey(_db, rt, package);
+        final state = await dbService.lookupOrNull<PackageState>(key);
+        // skip states where the entry was created, but no analysis has not finished yet
+        if (state == null || state.hasNeverFinished) {
+          continue;
+        }
+        final finishedVersions = state.versions?.entries
+            .where((e) => e.value.finished)
+            .map((e) => e.key)
+            .toList();
+        if (finishedVersions == null || finishedVersions.isEmpty) {
+          continue;
+        }
+        if (finishedVersions.length == 1) {
+          return finishedVersions.single;
+        }
+        final bestVersion = finishedVersions
+            .map((e) => Version.parse(e))
+            .reduce((a, b) =>
+                compareSemanticVersionsDesc(a, b, true, true) <= 0 ? a : b);
+        return bestVersion.toString();
+      }
+      return '';
+    });
+    return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
   }
 }
 
