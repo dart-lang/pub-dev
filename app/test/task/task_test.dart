@@ -675,6 +675,19 @@ void main() {
           TestUser(email: 'admin@pub.dev', likes: []),
         ],
       ));
+
+  group('latest analyzed version', () {
+    testWithProfile(
+      'without fallback',
+      fn: () async {
+        expect(await taskBackend.latestFinishedVersion('oxygen'), '1.2.0');
+        expect(await taskBackend.latestFinishedVersion('neon'), '1.0.0');
+      },
+      processJobsWithFakeRunners: true,
+    );
+  });
+
+  // TODO: add tests with runtime fallbacks
 }
 
 extension<T> on Stream<T> {

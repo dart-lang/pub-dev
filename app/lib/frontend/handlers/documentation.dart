@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
 import 'package:pub_package_reader/src/names.dart';
@@ -59,7 +60,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   // Find the latest version
   if (version == 'latest') {
-    final latestVersion = await packageBackend.getLatestVersion(package);
+    final latestVersion = await taskBackend.latestFinishedVersion(package) ??
+        await packageBackend.getLatestVersion(package);
     if (latestVersion == null) {
       return notFoundHandler(request);
     }
