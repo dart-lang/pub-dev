@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart';
-import '../scorecard/models.dart';
 import '../task/models.dart';
 
 import 'datastore.dart';
@@ -23,7 +22,7 @@ final Logger _logger = Logger('pub.shared.task_sources');
 const Duration _defaultWindow = Duration(minutes: 5);
 const Duration _defaultSleep = Duration(minutes: 1);
 
-enum TaskSourceModel { package, version, scorecard, packageState }
+enum TaskSourceModel { package, version, packageState }
 
 /// Creates tasks by polling the datastore for new versions.
 class DatastoreHeadTaskSource implements TaskSource {
@@ -72,9 +71,6 @@ class DatastoreHeadTaskSource implements TaskSource {
       case TaskSourceModel.version:
         yield* _pollModel<PackageVersion>('created', _versionToTask);
         break;
-      case TaskSourceModel.scorecard:
-        yield* _pollModel<ScoreCard>('updated', _scoreCardToTask);
-        break;
       case TaskSourceModel.packageState:
         yield* _pollModel<PackageState>('updated', _packageStateToTask);
         break;
@@ -102,14 +98,6 @@ class DatastoreHeadTaskSource implements TaskSource {
 
   Task _versionToTask(PackageVersion pv) =>
       Task(pv.package, pv.version!, pv.created!);
-
-  Task? _scoreCardToTask(ScoreCard s) {
-    if (s.runtimeVersion == runtimeVersion) {
-      return Task(s.packageName!, s.packageVersion!, s.updated!);
-    } else {
-      return null;
-    }
-  }
 
   Task? _packageStateToTask(PackageState s) {
     if (s.runtimeVersion == runtimeVersion) {
