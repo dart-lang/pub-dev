@@ -85,6 +85,6 @@ Future<void> syncSecurityAdvisories() async {
           '$failedFiles');
     }
   } finally {
-    tempDir.deleteSync(recursive: true);
+    await tempDir.delete(recursive: true);
   }
 }
