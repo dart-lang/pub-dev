@@ -67,22 +67,6 @@ class JobBackend {
     );
   }
 
-  /// Triggers dartdoc job.
-  Future<void> triggerDartdoc(
-    String package,
-    String? version, {
-    bool? shouldProcess,
-    bool isHighPriority = false,
-  }) async {
-    await jobBackend.trigger(
-      JobService.dartdoc,
-      package,
-      version: version,
-      shouldProcess: shouldProcess,
-      isHighPriority: isHighPriority,
-    );
-  }
-
   /// Triggers analysis/dartdoc for [package]/[version] if older than [updated].
   Future<void> trigger(
     JobService service,

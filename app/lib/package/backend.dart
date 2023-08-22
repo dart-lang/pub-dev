@@ -1186,28 +1186,8 @@ class PackageBackend {
     String? prevLatestPrereleaseVersion,
   }) async {
     try {
-      final latestVersionChanged = prevLatestStableVersion != null &&
-          package!.latestVersion != prevLatestStableVersion;
-      final latestPrereleaseVersionChanged =
-          prevLatestPrereleaseVersion != null &&
-              package!.latestPrereleaseVersion != prevLatestPrereleaseVersion;
       await Future.wait([
         emailBackend.trySendOutgoingEmail(outgoingEmail),
-        // Trigger analysis and dartdoc generation. Dependent packages can be left
-        // out here, because the dependency graph's background polling will pick up
-        // the new upload, and will trigger analysis for the dependent packages.
-        jobBackend.triggerAnalysis(newVersion.package, newVersion.version),
-        jobBackend.triggerDartdoc(newVersion.package, newVersion.version),
-        // Trigger a new doc generation for the previous latest stable version
-        // in order to update the dartdoc entry and the canonical-urls.
-        if (latestVersionChanged)
-          jobBackend.triggerDartdoc(newVersion.package, prevLatestStableVersion,
-              shouldProcess: true),
-        // Reset the priority of the previous pre-release version.
-        if (latestPrereleaseVersionChanged)
-          jobBackend.triggerDartdoc(
-              newVersion.package, prevLatestPrereleaseVersion,
-              shouldProcess: false),
         taskBackend.trackPackage(newVersion.package, updateDependants: true),
       ]);
     } catch (e, st) {
