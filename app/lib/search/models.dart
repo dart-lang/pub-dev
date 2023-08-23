@@ -54,10 +54,12 @@ class DartdocIndex {
   }
 
   late final libraryRelativeUrls = Map<String, String>.fromEntries(
-    entries.where((e) => e.type == 'library').map(
+    entries
+        .where((e) => e.isLibrary && e.qualifiedName != null && e.href != null)
+        .map(
           (e) => MapEntry<String, String>(
-            e.qualifiedName.split('.').first,
-            e.href,
+            e.qualifiedName!.split('.').first,
+            e.href!,
           ),
         ),
   );
@@ -67,10 +69,11 @@ class DartdocIndex {
 
 @JsonSerializable(includeIfNull: false)
 class DartdocIndexEntry {
-  final String name;
-  final String qualifiedName;
-  final String href;
-  final String? type;
+  final String? name;
+  final String? qualifiedName;
+  final String? href;
+  final int? kind;
+  final int? packageRank;
   final int? overriddenDepth;
   final String? packageName;
   final String? desc;
@@ -80,7 +83,8 @@ class DartdocIndexEntry {
     required this.name,
     required this.qualifiedName,
     required this.href,
-    this.type,
+    this.kind,
+    this.packageRank,
     this.overriddenDepth,
     this.packageName,
     this.desc,
@@ -91,17 +95,20 @@ class DartdocIndexEntry {
       _$DartdocIndexEntryFromJson(json);
 
   Map<String, dynamic> toJson() => _$DartdocIndexEntryToJson(this);
+
+  /// Wether the entry is a top-level library.
+  bool get isLibrary => kind == 8;
 }
 
 @JsonSerializable(includeIfNull: false)
 class DartdocIndexEntryEnclosedBy {
   final String? name;
-  final String? type;
+  final int? kind;
   final String? href;
 
   DartdocIndexEntryEnclosedBy({
     this.name,
-    this.type,
+    this.kind,
     this.href,
   });
 
