@@ -190,6 +190,7 @@ Future<R> withFakeServices<R>({
     registerTaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 
     return await _withPubServices(() async {
+      await nameTracker.startTracking();
       await topPackages.start();
       await youtubeBackend.start();
       if (frontendServer != null) {
