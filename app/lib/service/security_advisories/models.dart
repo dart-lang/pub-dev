@@ -72,6 +72,7 @@ class OSVProperty extends db.Property {
 class OSV {
   /// The version number of the OSV schema that this particular vulnerability
   /// was exported with.
+  @JsonKey(name: 'schema_version')
   final String? schemaVersion;
 
   /// The unique identifier for this particular vulnerability.
@@ -125,6 +126,7 @@ class OSV {
   /// A map holding additional information about the vulnerability as defined by
   /// the database from which the record was obtained. The meaning of the values
   ///  within the object is entirely defined by the database.
+  @JsonKey(name: 'database_specific')
   Map<String, dynamic>? databaseSpecific;
 
   OSV({
@@ -190,6 +192,7 @@ class Package {
 class Event {
   String? introduced;
   String? fixed;
+  @JsonKey(name: 'last_affected')
   String? lastAffected;
   String? limit;
 
@@ -208,6 +211,7 @@ class Range {
   String type;
   String? repo;
   List<Event>? events;
+  @JsonKey(name: 'database_specific')
   Map<String, dynamic>? databaseSpecific;
 
   Range({
@@ -225,7 +229,9 @@ class Affected {
   Package package;
   List<Range>? ranges;
   List<String>? versions;
+  @JsonKey(name: 'database_specific')
   Map<String, dynamic>? databaseSpecific;
+  @JsonKey(name: 'ecosystem_specific')
   Map<String, dynamic>? ecosystemSpecific;
 
   Affected(

@@ -7,7 +7,7 @@ part of 'models.dart';
 // **************************************************************************
 
 OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
-      schemaVersion: json['schemaVersion'] as String?,
+      schemaVersion: json['schema_version'] as String?,
       id: json['id'] as String,
       modified: json['modified'] as String,
       published: json['published'] as String?,
@@ -32,7 +32,7 @@ OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
       credits: (json['credits'] as List<dynamic>?)
           ?.map((e) => Credit.fromJson(e as Map<String, dynamic>))
           .toList(),
-      databaseSpecific: json['databaseSpecific'] as Map<String, dynamic>?,
+      databaseSpecific: json['database_specific'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$OSVToJson(OSV instance) {
@@ -44,7 +44,7 @@ Map<String, dynamic> _$OSVToJson(OSV instance) {
     }
   }
 
-  writeNotNull('schemaVersion', instance.schemaVersion);
+  writeNotNull('schema_version', instance.schemaVersion);
   val['id'] = instance.id;
   val['modified'] = instance.modified;
   writeNotNull('published', instance.published);
@@ -57,7 +57,7 @@ Map<String, dynamic> _$OSVToJson(OSV instance) {
   writeNotNull('affected', instance.affected);
   writeNotNull('references', instance.references);
   writeNotNull('credits', instance.credits);
-  writeNotNull('databaseSpecific', instance.databaseSpecific);
+  writeNotNull('database_specific', instance.databaseSpecific);
   return val;
 }
 
@@ -86,14 +86,14 @@ Map<String, dynamic> _$PackageToJson(Package instance) => <String, dynamic>{
 Event _$EventFromJson(Map<String, dynamic> json) => Event(
       introduced: json['introduced'] as String?,
       fixed: json['fixed'] as String?,
-      lastAffected: json['lastAffected'] as String?,
+      lastAffected: json['last_affected'] as String?,
       limit: json['limit'] as String?,
     );
 
 Map<String, dynamic> _$EventToJson(Event instance) => <String, dynamic>{
       'introduced': instance.introduced,
       'fixed': instance.fixed,
-      'lastAffected': instance.lastAffected,
+      'last_affected': instance.lastAffected,
       'limit': instance.limit,
     };
 
@@ -103,14 +103,14 @@ Range _$RangeFromJson(Map<String, dynamic> json) => Range(
       events: (json['events'] as List<dynamic>?)
           ?.map((e) => Event.fromJson(e as Map<String, dynamic>))
           .toList(),
-      databaseSpecific: json['databaseSpecific'] as Map<String, dynamic>?,
+      databaseSpecific: json['database_specific'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$RangeToJson(Range instance) => <String, dynamic>{
       'type': instance.type,
       'repo': instance.repo,
       'events': instance.events,
-      'databaseSpecific': instance.databaseSpecific,
+      'database_specific': instance.databaseSpecific,
     };
 
 Affected _$AffectedFromJson(Map<String, dynamic> json) => Affected(
@@ -121,16 +121,16 @@ Affected _$AffectedFromJson(Map<String, dynamic> json) => Affected(
       versions: (json['versions'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      databaseSpecific: json['databaseSpecific'] as Map<String, dynamic>?,
-      ecosystemSpecific: json['ecosystemSpecific'] as Map<String, dynamic>?,
+      databaseSpecific: json['database_specific'] as Map<String, dynamic>?,
+      ecosystemSpecific: json['ecosystem_specific'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$AffectedToJson(Affected instance) => <String, dynamic>{
       'package': instance.package,
       'ranges': instance.ranges,
       'versions': instance.versions,
-      'databaseSpecific': instance.databaseSpecific,
-      'ecosystemSpecific': instance.ecosystemSpecific,
+      'database_specific': instance.databaseSpecific,
+      'ecosystem_specific': instance.ecosystemSpecific,
     };
 
 Credit _$CreditFromJson(Map<String, dynamic> json) => Credit(

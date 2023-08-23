@@ -15,7 +15,48 @@ void main() {
       final file = File(path.join(Directory.current.path, 'test', 'service',
               'security_advisory', 'testdata', 'example_advisory.json'))
           .readAsBytesSync();
-      OSV.fromJson(utf8JsonDecoder.convert(file) as Map<String, dynamic>);
+      final osv =
+          OSV.fromJson(utf8JsonDecoder.convert(file) as Map<String, dynamic>);
+
+      expect(osv.id, 'GHSA-4rgh-jx4f-qfcq');
+      expect(osv.summary, contains('vulnerable to header injection'));
+      expect(osv.details, contains('issue was discovered in the http package'));
+      expect(osv.aliases, contains('CVE-2020-35669'));
+      expect(osv.modified, '2023-04-11T01:46:51.549596Z');
+      expect(osv.published, '2022-05-24T17:37:16Z');
+      expect(osv.schemaVersion, '1.4.0');
+
+      expect(osv.databaseSpecific, isNotNull);
+      expect(osv.databaseSpecific!.length, 5);
+      expect(osv.databaseSpecific!.keys.first, 'nvd_published_at');
+      expect(osv.databaseSpecific!['github_reviewed'], isTrue);
+      expect(osv.databaseSpecific!.keys.last, 'cwe_ids');
+      expect(osv.databaseSpecific!['cwe_ids'].first, 'CWE-74');
+
+      expect(osv.references!.length, 7);
+      expect(osv.references![4].type, 'PACKAGE');
+      expect(osv.references![4].url, 'https://github.com/dart-lang/http');
+
+      expect(osv.affected!.length, 1);
+      expect(osv.affected!.first.package.name, 'http');
+      expect(osv.affected!.first.package.ecosystem, 'Pub');
+      expect(osv.affected!.first.package.purl, 'pkg:pub/http');
+      expect(osv.affected!.first.ranges!.length, 1);
+      expect(osv.affected!.first.ranges!.first.type, 'ECOSYSTEM');
+      expect(osv.affected!.first.ranges!.first.events!.length, 2);
+      expect(osv.affected!.first.ranges!.first.events!.first.introduced, '0');
+      expect(osv.affected!.first.ranges!.first.events!.first.fixed, isNull);
+      expect(osv.affected!.first.ranges!.first.events!.last.introduced, isNull);
+      expect(osv.affected!.first.ranges!.first.events!.last.fixed, '0.13.3');
+      expect(osv.affected!.first.versions!.length, 113);
+      expect(osv.affected!.first.versions![100], '0.8.2');
+      expect(osv.affected!.first.databaseSpecific!['source'],
+          'https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2022/05/GHSA-4rgh-jx4f-qfcq/GHSA-4rgh-jx4f-qfcq.json');
+
+      expect(osv.severity!.length, 1);
+      expect(osv.severity!.first.type, 'CVSS_V3');
+      expect(osv.severity!.first.score,
+          'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N');
     } catch (e, st) {
       fail('Parsing advisory failed with \n$e\n$st');
     }
