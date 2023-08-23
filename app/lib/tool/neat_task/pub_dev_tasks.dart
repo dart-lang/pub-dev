@@ -18,6 +18,7 @@ import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../service/email/backend.dart';
+import '../../service/security_advisories/sync_security_advisories.dart';
 import '../../shared/configuration.dart';
 import '../../shared/count_topics.dart';
 import '../../shared/datastore.dart';
@@ -161,6 +162,11 @@ void _setupGenericPeriodicTasks() {
   );
 
   _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics);
+
+  _daily(
+      name: 'sync-security-advisories',
+      isRuntimeVersioned: false,
+      task: syncSecurityAdvisories);
 
   // TODO: setup tasks to remove known obsolete (but now unmapped) fields from entities
 }
