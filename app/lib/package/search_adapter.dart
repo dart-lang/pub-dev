@@ -79,12 +79,7 @@ class SearchAdapter {
   /// `search` service.
   Future<PackageSearchResult> _fallbackSearch(SearchForm form) async {
     // Some search queries must not be served with the fallback search.
-    // HACK: Don't fallback when running locally as this doesn't work and
-    //       creates a timeout that is then ignored!
-    // TODO: Figure out if this can work locally, maybe nameTracker have to
-    //       be started before topPackages.start()
-    if (form.parsedQuery.tagsPredicate.isNotEmpty ||
-        envConfig.isRunningLocally) {
+    if (form.parsedQuery.tagsPredicate.isNotEmpty) {
       return PackageSearchResult.empty(
           message: 'Search is temporarily unavailable.');
     }
