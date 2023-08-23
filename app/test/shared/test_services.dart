@@ -34,6 +34,13 @@ import 'test_models.dart';
 
 export 'package:pub_dev/tool/utils/pub_api_client.dart';
 
+/// Create a [StaticFileCache] for reuse when testing.
+// TODO: Find out if there are any downsides to doing this, and make forTests()
+//       a factory constructor that always returns the same value.
+//       Further consider cleanup of [StaticFileCache] to avoid computing hashes
+//       when they are discarded during tests. And always load concurrently!
+final _staticFileCacheForTesting = StaticFileCache.forTests();
+
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
 /// with [testProfile] data.
 void testWithProfile(
@@ -50,7 +57,7 @@ void testWithProfile(
     setupDebugEnvBasedLogging();
     await withFakeServices(
       fn: () async {
-        registerStaticFileCacheForTest(StaticFileCache.forTests());
+        registerStaticFileCacheForTest(_staticFileCacheForTesting);
         registerSearchClient(SearchClient(
             httpClientToShelfHandler(handler: searchServiceHandler)));
         registerScopeExitCallback(searchClient.close);

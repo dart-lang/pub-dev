@@ -72,6 +72,8 @@ Future<void> importProfile({
   final pendingBytes = <String, List<int>>{};
   Object? lastException;
   StackTrace? lastStackTrace;
+  // TODO: Fix this slow hack, sort the package versions topographically and
+  //       publish in that order! This can do unnecessary rounds and loop!
   while (published && pending.isNotEmpty) {
     published = false;
     final nextPending = <ResolvedVersion>[];
