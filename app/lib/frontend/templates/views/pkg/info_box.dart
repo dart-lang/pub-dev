@@ -100,7 +100,8 @@ d.Node packageInfoBoxNode({
       ),
     if (license != null) _block('License', license),
     if (dependencies != null) _block('Dependencies', dependencies),
-    _more(package.name!),
+    _more(package.name!,
+        version: data.isLatestStable ? null : data.version?.version),
   ]);
 }
 
@@ -134,14 +135,21 @@ d.Node _metadata({
   ]);
 }
 
-d.Node _more(String packageName) {
+d.Node _more(String packageName, {String? version}) {
   return _block(
     'More',
-    d.a(
-      href: urls.searchUrl(q: 'dependency:$packageName'),
-      rel: 'nofollow',
-      text: 'Packages that depend on $packageName',
-    ),
+    d.fragment([
+      d.a(
+          href: urls.pkgPubspecUrl(packageName, version: version),
+          text: 'pubspec.yaml'),
+      d.br(),
+      d.br(),
+      d.a(
+        href: urls.searchUrl(q: 'dependency:$packageName'),
+        rel: 'nofollow',
+        text: 'Packages that depend on $packageName',
+      ),
+    ]),
   );
 }
 
