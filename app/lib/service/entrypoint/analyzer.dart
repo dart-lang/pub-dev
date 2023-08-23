@@ -4,15 +4,11 @@
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/deps_graph.dart';
 
 import '../../analyzer/handlers.dart';
-import '../../job/backend.dart';
-import '../../shared/datastore.dart' as db;
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -58,34 +54,7 @@ Future _workerMain(EntryMessage message) async {
 
   setupAnalyzerPeriodicTasks();
   await popularityStorage.start();
-  unawaited(_setupDependencyTracker());
 
   // wait indefinitely
   await Completer().future;
-}
-
-Future<void> _setupDependencyTracker() async {
-  // Updates job entries for analyzer and dartdoc.
-  Future<void> triggerDependentAnalysis(Set<String> affected) async {
-    for (final p in affected) {
-      await jobBackend.triggerAnalysis(p, null);
-    }
-    // TODO: re-enable this after we have added some stop-gaps on the frequency
-    // await dartdocClient.triggerDartdoc(package, version,
-    //    dependentPackages: affected);
-  }
-
-  // random delay to reduce race conditions
-  final random = Random.secure();
-  await Future.delayed(Duration(minutes: random.nextInt(60)));
-
-  final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
-    db.dbService,
-    triggerDependentAnalysis,
-    // We don't need to scan for updates frequenty.
-    // Furthermore, scanning runs on all analyzer instances, triggering
-    // changes more often than the expected value of 6 hours.
-    pollingInterval: Duration(hours: 5, minutes: random.nextInt(120)),
-  );
-  await pdb.monitorInBackground();
 }
