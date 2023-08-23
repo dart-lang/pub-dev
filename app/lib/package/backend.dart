@@ -26,7 +26,6 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
 import '../audit/models.dart';
-import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
 import '../service/email/models.dart';
@@ -378,10 +377,8 @@ class PackageBackend {
     }
 
     final pkg = await _requirePackageAdmin(package, user.userId);
-    String? latestVersion;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
-      latestVersion = p.latestVersion;
 
       final optionsChanges = <String>[];
       if (options.isDiscontinued != null &&
@@ -419,8 +416,7 @@ class PackageBackend {
       ));
     });
     await purgePackageCache(package);
-    await jobBackend.trigger(JobService.analyzer, package,
-        version: latestVersion);
+    await taskBackend.trackPackage(package);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user

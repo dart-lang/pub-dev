@@ -5,10 +5,10 @@
 import 'package:args/args.dart';
 import 'package:clock/clock.dart';
 
-import 'package:pub_dev/job/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/task/backend.dart';
 
 final _argParser = ArgParser()
   ..addOption('package', help: 'The package to update.')
@@ -50,7 +50,6 @@ Future<String> executeSetPackageDiscontinued(List<String> args) async {
     tx.insert(pkg);
   });
   await purgePackageCache(packageName);
-  await jobBackend.trigger(JobService.analyzer, packageName,
-      version: package.latestVersion);
+  await taskBackend.trackPackage(packageName);
   return 'Done.';
 }
