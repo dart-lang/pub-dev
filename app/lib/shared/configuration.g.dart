@@ -204,6 +204,7 @@ Map<String, dynamic> _$AdminIdToJson(AdminId instance) => <String, dynamic>{
 
 const _$AdminPermissionEnumMap = {
   AdminPermission.executeTool: 'executeTool',
+  AdminPermission.invokeAction: 'invokeAction',
   AdminPermission.listUsers: 'listUsers',
   AdminPermission.manageAssignedTags: 'manageAssignedTags',
   AdminPermission.managePackageOwnership: 'managePackageOwnership',

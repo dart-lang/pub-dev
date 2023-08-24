@@ -22,6 +22,59 @@ Map<String, dynamic> _$AdminListUsersResponseToJson(
       'continuationToken': instance.continuationToken,
     };
 
+AdminListActionsResponse _$AdminListActionsResponseFromJson(
+        Map<String, dynamic> json) =>
+    AdminListActionsResponse(
+      actions: (json['actions'] as List<dynamic>)
+          .map((e) => AdminAction.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$AdminListActionsResponseToJson(
+        AdminListActionsResponse instance) =>
+    <String, dynamic>{
+      'actions': instance.actions,
+    };
+
+AdminAction _$AdminActionFromJson(Map<String, dynamic> json) => AdminAction(
+      name: json['name'] as String,
+      options: Map<String, String>.from(json['options'] as Map),
+      summary: json['summary'] as String,
+      description: json['description'] as String,
+    );
+
+Map<String, dynamic> _$AdminActionToJson(AdminAction instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'options': instance.options,
+      'summary': instance.summary,
+      'description': instance.description,
+    };
+
+AdminInvokeActionArguments _$AdminInvokeActionArgumentsFromJson(
+        Map<String, dynamic> json) =>
+    AdminInvokeActionArguments(
+      arguments: Map<String, String>.from(json['arguments'] as Map),
+    );
+
+Map<String, dynamic> _$AdminInvokeActionArgumentsToJson(
+        AdminInvokeActionArguments instance) =>
+    <String, dynamic>{
+      'arguments': instance.arguments,
+    };
+
+AdminInvokeActionResponse _$AdminInvokeActionResponseFromJson(
+        Map<String, dynamic> json) =>
+    AdminInvokeActionResponse(
+      output: json['output'] as Map<String, dynamic>,
+    );
+
+Map<String, dynamic> _$AdminInvokeActionResponseToJson(
+        AdminInvokeActionResponse instance) =>
+    <String, dynamic>{
+      'output': instance.output,
+    };
+
 AdminUserEntry _$AdminUserEntryFromJson(Map<String, dynamic> json) =>
     AdminUserEntry(
       userId: json['userId'] as String?,
