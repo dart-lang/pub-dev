@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: `Job` and `ScoreCard` entities will be deleted in Datastore.
 
 ## `20230822t112400-all`
 
