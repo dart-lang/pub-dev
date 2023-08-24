@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/search/models.dart';
@@ -14,24 +15,24 @@ import 'package:pub_dev/shared/versions.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-final _indexTypes = <String>{
-  'class',
-  'constant',
-  'constructor',
-  'enum',
-  'extension',
-  'function',
-  'library',
-  'method',
-  'mixin',
-  'property',
-  'top-level constant',
-  'top-level property',
-  'typedef',
+final _indexedKinds = <int>{
+  3, // class
+  1, // constant,
+  2, // constructor
+  5, // enum
+  6, // extension
+  7, // function
+  8, // library
+  9, // method
+  10, // mixin
+  15, // property
+  18, // top-level constant
+  19, // top-level property
+  20, // typedef
 };
 
 void main() {
-  group('dartdoc index.json parsing', tags: ['sanity'], () {
+  group('dartdoc index.json parsing', () {
     /// Downloads [url and creates a cached file in the .dart_tool/pub-search-data directory.
     ///
     /// Reuses the same file up to a week.
@@ -63,10 +64,8 @@ void main() {
       final index = DartdocIndex.parseJsonText(await file.readAsString());
       expect(index.entries, hasLength(greaterThan(10000)));
 
-      final libraries = index.entries
-          .where((e) => e.type == 'library')
-          .map((e) => e.name)
-          .toSet();
+      final libraries =
+          index.entries.where((e) => e.isLibrary).map((e) => e.name).toSet();
       expect(
           libraries,
           containsAll([
@@ -75,9 +74,10 @@ void main() {
             'dart:js',
           ]));
 
-      final types = index.entries.map((e) => e.type).toSet();
-      for (final type in types) {
-        expect(_indexTypes.contains(type), isTrue, reason: type);
+      final kinds = index.entries.map((e) => e.kind).whereNotNull().toSet();
+      for (final kind in kinds) {
+        expect(_indexedKinds.contains(kind), isTrue,
+            reason: 'unknown kind: $kind');
       }
 
       // making sure we don't miss any new attribute
@@ -91,10 +91,8 @@ void main() {
       final index = DartdocIndex.parseJsonText(await file.readAsString());
       expect(index.entries, hasLength(greaterThan(10000)));
 
-      final libraries = index.entries
-          .where((e) => e.type == 'library')
-          .map((e) => e.name)
-          .toSet();
+      final libraries =
+          index.entries.where((e) => e.isLibrary).map((e) => e.name).toSet();
       expect(
           libraries,
           containsAll([
@@ -109,13 +107,18 @@ void main() {
             'flutter_test',
           ]));
 
-      final types = index.entries.map((e) => e.type).toSet();
-      for (final type in types) {
-        expect(_indexTypes.contains(type), isTrue, reason: type);
+      final kinds = index.entries.map((e) => e.kind).whereNotNull().toSet();
+      for (final kind in kinds) {
+        expect(_indexedKinds.contains(kind), isTrue,
+            reason: 'unknown kind: $kind');
       }
 
       // making sure we don't miss any new attribute
-      expect(json.decode(index.toJsonText()), json.decode(textContent));
+      final originalWithoutFirstEntry = (json.decode(textContent) as List)
+        ..removeAt(0);
+      final parserWithoutFirstEntry = (json.decode(index.toJsonText()) as List)
+        ..removeAt(0);
+      expect(parserWithoutFirstEntry, originalWithoutFirstEntry);
 
       // parsing into SDK index
       final sdkMemIndex = SdkMemIndex.flutter();

@@ -42,7 +42,7 @@ void main() {
             'name': 'dart:core',
             'qualifiedName': 'dart:core',
             'href': 'dart-core/dart-core-library.html',
-            'type': 'library',
+            'kind': 8,
             'overriddenDepth': 0,
             'packageName': 'Dart'
           },
@@ -50,29 +50,29 @@ void main() {
             'name': 'String',
             'qualifiedName': 'dart:core.String',
             'href': 'dart-core/String-class.html',
-            'type': 'class',
+            'kind': 3,
             'overriddenDepth': 0,
             'packageName': 'Dart',
-            'enclosedBy': {'name': 'dart:core', 'type': 'library'}
+            'enclosedBy': {'name': 'dart:core', 'kind': 8}
           },
           {
             'name': 'substring',
             'qualifiedName': 'dart:core.String.substring',
             'href': 'dart-core/String/substring.html',
-            'type': 'method',
+            'kind': 9,
             'overriddenDepth': 0,
             'packageName': 'Dart',
-            'enclosedBy': {'name': 'String', 'type': 'class'}
+            'enclosedBy': {'name': 'String', 'kind': 3}
           },
           {
             // fake method for checking the package name matches
             'name': 'stringutils',
             'qualifiedName': 'dart:core.String.stringutils',
             'href': 'dart-core/String/stringutils.html',
-            'type': 'method',
+            'kind': 9,
             'overriddenDepth': 0,
             'packageName': 'Dart',
-            'enclosedBy': {'name': 'String', 'type': 'class'}
+            'enclosedBy': {'name': 'String', 'kind': 3}
           },
         ]),
         version: '2.0.0',

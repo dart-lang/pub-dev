@@ -52,19 +52,21 @@ class SdkMemIndex {
     Set<String>? allowedLibraries,
   }) async {
     for (final f in index.entries) {
-      final library = f.qualifiedName.split('.').first;
+      final library = f.qualifiedName?.split('.').first;
+      if (library == null) continue;
+      if (f.href == null) continue;
       if (allowedLibraries != null &&
           allowedLibraries.isNotEmpty &&
           !allowedLibraries.contains(library)) {
         continue;
       }
-      if (f.type == 'library') {
-        _baseUriPerLibrary[library] = _baseUri.resolve(f.href).toString();
+      if (f.isLibrary) {
+        _baseUriPerLibrary[library] = _baseUri.resolve(f.href!).toString();
       }
       final tokens = _tokensPerLibrary.putIfAbsent(library, () => TokenIndex());
 
-      final text = f.qualifiedName.replaceAll('.', ' ').replaceAll(':', ' ');
-      tokens.add(f.href, text);
+      final text = f.qualifiedName?.replaceAll('.', ' ').replaceAll(':', ' ');
+      tokens.add(f.href!, text);
     }
   }
 
