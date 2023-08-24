@@ -287,7 +287,9 @@ class TaskBackend {
     // Map from package to updated that has been seen.
     final seen = <String, DateTime>{};
 
-    var since = clock.ago(minutes: 30);
+    // In theory 30 minutes overlap should be enough. In practice we should
+    // allow an ample room for missed windows, and 3 days seems to be large enough.
+    var since = clock.ago(days: 3);
     while (claim.valid && !abort.isCompleted) {
       // Look at all packages changed in [since]
       final q = _db.query<Package>()
