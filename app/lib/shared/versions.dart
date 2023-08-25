@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:gcloud/service_scope.dart' as ss;
+import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' as pana;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -20,11 +22,22 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens.
-const acceptedRuntimeVersions = <String>[
+const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2023.08.18',
+  '2023.08.24',
   // Fallback runtime versions.
+  '2023.08.18',
 ];
+
+/// Sets the current runtime versions.
+@visibleForTesting
+void registerAcceptedRuntimeVersions(List<String> versions) =>
+    ss.register(#_accepted_runtime_versions, versions);
+
+/// The active runtime versions.
+List<String> get acceptedRuntimeVersions =>
+    ss.lookup(#_accepted_runtime_versions) as List<String>? ??
+    _acceptedRuntimeVersions;
 
 /// Represents a combined version of the overall toolchain and processing,
 /// allowing easy check for data compatibility, age comparison and also reflects
@@ -34,13 +47,12 @@ const acceptedRuntimeVersions = <String>[
 /// reprocessing, including: risk of data corruption in analysis, version change
 /// in pana, dartdoc, or the SDKs, or when an feature or bugfix should be picked
 /// up by the analysis ASAP.
-final String runtimeVersion = acceptedRuntimeVersions.first;
+String get runtimeVersion => acceptedRuntimeVersions.first;
 
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-/// TODO: use acceptedRuntimeVersions.last after we have more versions to fall back to
-final gcBeforeRuntimeVersion = '2023.08.04';
+String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.last;
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
@@ -64,10 +76,3 @@ final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
 final String dartdocVersion = '6.2.2';
-
-/// Whether the given runtime version (stored with the dartdoc entry) should
-/// be displayed on the live site (or a coordinated upgrade is in progress).
-bool shouldServeDartdoc(String? storedRuntimeVersion) {
-  if (storedRuntimeVersion == null) return false;
-  return acceptedRuntimeVersions.contains(storedRuntimeVersion);
-}

@@ -130,7 +130,6 @@ class ScoreCardBackend {
     final data = ScoreCardData(
       packageName: packageName,
       packageVersion: packageVersion,
-      // this is unused outside scorecard backend, and a bit wrong:
       runtimeVersion: stateInfo.runtimeVersion,
       updated: summary?.createdAt ?? version.created,
       packageCreated: package.created,

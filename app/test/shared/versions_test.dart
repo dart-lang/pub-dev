@@ -11,8 +11,10 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'utils.dart';
+
 void main() {
-  test('runtime pattern', () {
+  scopedTest('runtime pattern', () {
     expect(runtimeVersionPattern.hasMatch(runtimeVersion), isTrue);
     expect(runtimeVersionPattern.hasMatch('2018.09.13'), isTrue);
     expect(runtimeVersionPattern.hasMatch('2018 09 13'), isFalse);
@@ -22,7 +24,7 @@ void main() {
     expect(runtimeVersionPattern.hasMatch('x.json'), isFalse);
   });
 
-  test('do not forget to update CHANGELOG.md', () async {
+  scopedTest('do not forget to update CHANGELOG.md', () async {
     final lines = await File('../CHANGELOG.md').readAsLines();
     final nextRelease = lines
         .skipWhile((line) => !line.startsWith('##'))
@@ -56,7 +58,8 @@ void main() {
     check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
   });
 
-  test('accepted runtime versions should be lexicographically ordered', () {
+  scopedTest('accepted runtime versions should be lexicographically ordered',
+      () {
     for (final version in acceptedRuntimeVersions) {
       expect(runtimeVersionPattern.hasMatch(version), isTrue);
     }
@@ -65,7 +68,7 @@ void main() {
     expect(acceptedRuntimeVersions, sorted);
   });
 
-  test('No more than 5 accepted runtimeVersions', () {
+  scopedTest('No more than 5 accepted runtimeVersions', () {
     expect(acceptedRuntimeVersions, hasLength(lessThan(6)));
   });
 
@@ -156,13 +159,13 @@ and do not format to also bump the runtimeVersion.''',
     expect(dependency.version.toString(), dartdocVersion);
   });
 
-  test('GC is not deleting currently accepted versions', () {
+  scopedTest('GC is not deleting currently accepted versions', () {
     for (final version in acceptedRuntimeVersions) {
       expect(shouldGCVersion(version), isFalse);
     }
   });
 
-  test('gcBeforeRuntimeVersion != runtimeVersion', () {
+  scopedTest('gcBeforeRuntimeVersion != runtimeVersion', () {
     // gcBeforeRuntimeVersion must not be runtimeVersion
     // It is okay that acceptedRuntimeVersions only contains the current
     // runtimeVersion. This usually happens when we have breaking changes in
@@ -176,23 +179,8 @@ and do not format to also bump the runtimeVersion.''',
     expect(gcBeforeRuntimeVersion != runtimeVersion, isTrue);
   });
 
-  test('GC is returning correct values for known versions', () {
+  scopedTest('GC is returning correct values for known versions', () {
     expect(shouldGCVersion('2000.01.01'), isTrue);
     expect(shouldGCVersion('3000.01.01'), isFalse);
-  });
-
-  group('dartdoc serving', () {
-    test('old versions are no longer serving', () {
-      expect(shouldServeDartdoc(null), isFalse);
-      expect(shouldServeDartdoc('2017.1.1'), isFalse);
-    });
-
-    test('current version is serving', () {
-      expect(shouldServeDartdoc(runtimeVersion), isTrue);
-    });
-
-    test('next version is not serving', () {
-      expect(shouldServeDartdoc('2099.12.31'), isFalse);
-    });
   });
 }
