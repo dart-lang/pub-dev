@@ -106,7 +106,7 @@ class ScoreCardBackend {
         onlyCurrent ? null : cache.scoreCardData(packageName, packageVersion);
     if (cacheEntry != null) {
       final cached = await cacheEntry.get();
-      if (cached != null && cached.hasAllReports) {
+      if (cached != null) {
         return cached;
       }
     }
@@ -132,14 +132,9 @@ class ScoreCardBackend {
       packageVersion: packageVersion,
       runtimeVersion: stateInfo.runtimeVersion,
       updated: summary?.createdAt ?? version.created,
-      packageCreated: package.created,
-      packageVersionCreated: version.created,
       dartdocReport: DartdocReport(
-        timestamp: summary?.createdAt ?? version.created,
         reportStatus:
             hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
-        dartdocEntry: null, // unused
-        documentationSection: null, // already embedded in summary
       ),
       panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       taskStatus: versionInfo?.status,

@@ -5,17 +5,14 @@
 import 'dart:io';
 
 import 'package:_pub_shared/search/tags.dart';
-import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/task/models.dart';
 
-import '../dartdoc/models.dart';
 import '../scorecard/backend.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/popularity_storage.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
-import '../shared/versions.dart' as versions;
 
 part 'models.g.dart';
 
@@ -83,8 +80,6 @@ class ScoreCardData extends Object with FlagMixin {
   final String? packageVersion;
   final String? runtimeVersion;
   final DateTime? updated;
-  final DateTime? packageCreated;
-  final DateTime? packageVersionCreated;
   final DartdocReport? dartdocReport;
   final PanaReport? panaReport;
   final PackageVersionStatus? taskStatus;
@@ -94,8 +89,6 @@ class ScoreCardData extends Object with FlagMixin {
     this.packageVersion,
     this.runtimeVersion,
     this.updated,
-    this.packageCreated,
-    this.packageVersionCreated,
     this.dartdocReport,
     this.panaReport,
     this.taskStatus,
@@ -115,16 +108,12 @@ class ScoreCardData extends Object with FlagMixin {
   /// List of tags computed by `pana` or other analyzer.
   List<String>? get derivedTags => panaReport?.derivedTags;
 
-  bool get isNew => clock.now().difference(packageCreated!).inDays <= 30;
-  bool get isCurrent => runtimeVersion == versions.runtimeVersion;
   bool get hasApiDocs => dartdocReport?.reportStatus == ReportStatus.success;
   bool get hasPanaReport => panaReport != null;
-  bool get hasAllReports => panaReport != null && dartdocReport != null;
 
   Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
 
-  late final report =
-      joinReport(panaReport: panaReport, dartdocReport: dartdocReport);
+  late final report = panaReport?.report;
 
   @override
   List<String>? get tags => panaReport?.derivedTags;
@@ -214,20 +203,10 @@ class PanaReport {
 
 @JsonSerializable()
 class DartdocReport {
-  final DateTime? timestamp;
   final String? reportStatus;
 
-  /// The latest dartdoc entry's UUID.
-  final DartdocEntry? dartdocEntry;
-
-  /// The dartdoc part of the documentation report section.
-  final ReportSection? documentationSection;
-
   DartdocReport({
-    required this.timestamp,
     required this.reportStatus,
-    required this.dartdocEntry,
-    required this.documentationSection,
   });
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>
@@ -243,12 +222,4 @@ class DartdocReport {
   Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
 
   late final asBytes = _gzipCodec.encode(jsonUtf8Encoder.convert(toJson()));
-}
-
-Report? joinReport({PanaReport? panaReport, DartdocReport? dartdocReport}) {
-  var report = panaReport?.report;
-  if (report != null && dartdocReport?.documentationSection != null) {
-    report = report.joinSection(dartdocReport!.documentationSection!);
-  }
-  return report;
 }
