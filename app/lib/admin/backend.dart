@@ -20,7 +20,6 @@ import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
-import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
@@ -365,9 +364,6 @@ class AdminBackend {
     await Future.wait(futures);
     await pool.close();
 
-    _logger.info('Removing package from dartdoc backend ...');
-    await dartdocBackend.removeAll(packageName, concurrency: 32);
-
     _logger.info('Removing package from PackageVersion ...');
     await _db
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
@@ -486,8 +482,6 @@ class AdminBackend {
 
     print('Removing GCS objects ...');
     await packageBackend.removePackageTarball(packageName, version);
-
-    await dartdocBackend.removeAll(packageName, version: version);
 
     await _db.deleteWithQuery(
       _db.query<PackageVersionInfo>()..filter('package =', packageName),
