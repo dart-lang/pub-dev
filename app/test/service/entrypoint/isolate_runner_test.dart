@@ -25,7 +25,6 @@ void main() {
         kind: 'test',
         entryPoint: _main1,
         count: 2,
-        deadTimeout: Duration(minutes: 1),
       );
 
       await Future.delayed(Duration(seconds: 2));
@@ -71,7 +70,6 @@ void main() {
         kind: 'test',
         entryPoint: _main2,
         count: 1,
-        deadTimeout: Duration(minutes: 1),
       );
 
       await Future.delayed(Duration(seconds: 1));
@@ -115,7 +113,6 @@ void main() {
         kind: 'test',
         entryPoint: _main4,
         count: 1,
-        deadTimeout: Duration(minutes: 1),
       );
 
       await Future.delayed(Duration(seconds: 1));
@@ -158,7 +155,6 @@ void main() {
         kind: 'test',
         entryPoint: _main3,
         count: 1,
-        deadTimeout: Duration(minutes: 1),
       );
 
       await Future.delayed(Duration(seconds: 1));

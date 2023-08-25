@@ -34,7 +34,6 @@ class AnalyzerCommand extends Command {
       logger: logger,
       frontendEntryPoint: _frontendMain,
       workerEntryPoint: _workerMain,
-      deadWorkerTimeout: Duration(hours: 1),
       frontendCount: 1,
     );
   }
