@@ -55,7 +55,7 @@ Future<void> analyze(Payload payload) async {
   await panaCacheDir.create(recursive: true);
 
   final workerDeadline = clock.now().add(_workerTimeout);
-  final client = Client();
+  final client = Client().withUserAgent(pubWorkerUserAgent);
   try {
     for (final p in payload.versions) {
       final api = PubApiClient(

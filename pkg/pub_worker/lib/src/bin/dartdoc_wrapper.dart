@@ -118,6 +118,7 @@ Future<void> _dartdoc({
 
   final pkgDir = p.join(workDir, 'pkg');
   await Directory(pkgDir).create(recursive: true);
+  // TODO: Ensure that we set User-Agent correctly here!
   await downloadPackage(
     package,
     version,
