@@ -223,7 +223,6 @@ Future runIsolates({
   required Logger logger,
   Future<void> Function(EntryMessage message)? frontendEntryPoint,
   Future<void> Function(EntryMessage message)? workerEntryPoint,
-  Future<void> Function(EntryMessage message)? jobEntryPoint,
   Duration? deadWorkerTimeout,
   required int frontendCount,
   ServicesWrapperFn? servicesWrapperFn,
@@ -247,14 +246,6 @@ Future runIsolates({
         await runner.startGroup(
           kind: 'worker',
           entryPoint: workerEntryPoint,
-          count: 1,
-          deadTimeout: deadWorkerTimeout,
-        );
-      }
-      if (jobEntryPoint != null) {
-        await runner.startGroup(
-          kind: 'job',
-          entryPoint: jobEntryPoint,
           count: 1,
           deadTimeout: deadWorkerTimeout,
         );
