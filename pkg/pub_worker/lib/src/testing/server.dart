@@ -170,6 +170,9 @@ class PubWorkerTestServer {
     String package,
     String version,
   ) async {
+    if (!(request.headers['User-Agent'] ?? '').contains('pub_worker')) {
+      return Response.badRequest(body: 'User-Agent must say pub_worker');
+    }
     return Response.ok(json.encode(UploadTaskResultResponse(
       blobId: 'files.blob',
       blob: UploadInfo(

@@ -9,6 +9,7 @@ import 'dart:io' show IOException;
 import 'package:http/http.dart' as http;
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
+import 'package:pub_worker/src/http.dart';
 import 'package:retry/retry.dart';
 
 /// Fetch pubspec for the given version
@@ -17,7 +18,7 @@ Future<Pubspec> fetchPubspec({
   required String version,
   required String pubHostedUrl,
 }) async {
-  final c = http.Client();
+  final c = http.Client().withUserAgent(pubWorkerUserAgent);
   try {
     final result = await retry(
       () async {
