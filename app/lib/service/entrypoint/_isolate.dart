@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
@@ -18,8 +17,6 @@ import '../../shared/env_config.dart';
 import '../services.dart';
 import 'tools.dart';
 
-final _random = Random.secure();
-
 /// Wrapper method to replace [withServices] into [withFakeServices] for
 /// local tests and development.
 typedef ServicesWrapperFn = Future<void> Function(Future Function() fn);
@@ -30,11 +27,9 @@ sealed class Message {}
 /// Initializing message send from the controller isolate to the new one.
 class EntryMessage extends Message {
   final SendPort protocolSendPort;
-  final SendPort aliveSendPort;
 
   EntryMessage({
     required this.protocolSendPort,
-    required this.aliveSendPort,
   });
 }
 
@@ -73,7 +68,6 @@ class IsolateCollection {
     required String kind,
     required Future<void> Function(EntryMessage message) entryPoint,
     required int count,
-    required Duration? deadTimeout,
   }) async {
     if (_closing) {
       throw AssertionError('Runner is closed.');
@@ -83,7 +77,6 @@ class IsolateCollection {
       kind: kind,
       servicesWrapperFn: servicesWrapperFn,
       entryPoint: entryPoint,
-      deadTimeout: deadTimeout,
     );
     _groups.add(group);
     await group.start(count);
@@ -111,7 +104,6 @@ class IsolateGroup {
   final String kind;
   final ServicesWrapperFn servicesWrapperFn;
   final Future<void> Function(EntryMessage message) entryPoint;
-  final Duration? deadTimeout;
   final bool skipWaitBetweenRestarts;
 
   int started = 0;
@@ -128,7 +120,6 @@ class IsolateGroup {
     required this.kind,
     required this.servicesWrapperFn,
     required this.entryPoint,
-    required this.deadTimeout,
     this.skipWaitBetweenRestarts = false,
   });
 
@@ -170,7 +161,7 @@ class IsolateGroup {
       entryPoint: entryPoint,
     );
     _isolates.add(isolate);
-    await isolate.init(deadTimeout: deadTimeout);
+    await isolate.init();
     if (_closing) {
       await isolate.close();
       return;
@@ -223,7 +214,6 @@ Future runIsolates({
   required Logger logger,
   Future<void> Function(EntryMessage message)? frontendEntryPoint,
   Future<void> Function(EntryMessage message)? workerEntryPoint,
-  Duration? deadWorkerTimeout,
   required int frontendCount,
   ServicesWrapperFn? servicesWrapperFn,
 }) async {
@@ -239,7 +229,6 @@ Future runIsolates({
           kind: 'frontend',
           entryPoint: frontendEntryPoint,
           count: frontendCount,
-          deadTimeout: Duration(minutes: 1),
         );
       }
       if (workerEntryPoint != null) {
@@ -247,7 +236,6 @@ Future runIsolates({
           kind: 'worker',
           entryPoint: workerEntryPoint,
           count: 1,
-          deadTimeout: deadWorkerTimeout,
         );
       }
 
@@ -289,7 +277,6 @@ class _Isolate {
 
   late Isolate _isolate;
 
-  final _aliveReceivePort = ReceivePort();
   final _errorReceivePort = ReceivePort();
   final _exitReceivePort = ReceivePort();
   final _protocolReceivePort = ReceivePort();
@@ -301,7 +288,6 @@ class _Isolate {
   StreamSubscription? _errorSubscription;
   StreamSubscription? _exitSubscription;
   StreamSubscription? _aliveSubscription;
-  Timer? _autokillTimer;
 
   final _doneCompleter = Completer();
   late final done = _doneCompleter.future;
@@ -316,9 +302,7 @@ class _Isolate {
     required this.entryPoint,
   });
 
-  Future<void> init({
-    required Duration? deadTimeout,
-  }) async {
+  Future<void> init() async {
     _isolate = await Isolate.spawn(
       _wrapper,
       [
@@ -326,7 +310,6 @@ class _Isolate {
         entryPoint,
         EntryMessage(
           protocolSendPort: _protocolReceivePort.sendPort,
-          aliveSendPort: _aliveReceivePort.sendPort,
         ),
       ],
       onError: _errorReceivePort.sendPort,
@@ -376,49 +359,17 @@ class _Isolate {
       await close();
     });
 
-    _setupAutokillTimer(deadTimeout);
-
     await ready.future;
-  }
-
-  /// Resets (and starts) autokill timer on alive messages.
-  /// Returns the [Function] that should be called on isolate closing,
-  /// cancelling the stream listener and the timer that may be active.
-  ///
-  /// NOTE: The timer will NOT be initialized when [timeout] is not specified or negative.
-  void _setupAutokillTimer(Duration? timeout) {
-    void resetAutokillTimer() {
-      if (timeout == null || timeout <= Duration.zero) {
-        return;
-      }
-      _autokillTimer?.cancel();
-
-      /// Randomize TTL so that isolate restarts do not happen at the same time.
-      final ttl = timeout + Duration(seconds: _random.nextInt(30));
-      _autokillTimer = Timer(ttl, () {
-        logger.shout('Killing "$id", because it is not sending alive pings');
-        close();
-      });
-    }
-
-    // We DO NOT initialize `autokillTimer` at this point, allowing the isolate
-    // to do arbitrary-length setup. Once the first message comes in, we can
-    // start the auto-kill timer.
-    _aliveSubscription = _aliveReceivePort.listen((_) {
-      resetAutokillTimer();
-    });
   }
 
   Future<void> close() async {
     try {
       if (_doneCompleter.isCompleted) return;
       logger.info('About to close $id ...');
-      _autokillTimer?.cancel();
       await _protocolSubscription?.cancel();
       await _aliveSubscription?.cancel();
       await _errorSubscription?.cancel();
       await _exitSubscription?.cancel();
-      _aliveReceivePort.close();
       _errorReceivePort.close();
       _exitReceivePort.close();
       _protocolReceivePort.close();
