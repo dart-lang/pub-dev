@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2023.08.24`.
+ * Upgraded dependencies.
  * Note: `DartdocRun`, `Job` and `ScoreCard` entities will be deleted in Datastore.
  * Note: `dartdoc` backend no longer deletes entries from `Configuraiton.dartdocStorageBucketName`.
          TODO: delete the bucket after this release becomes obsolete.
