@@ -113,6 +113,8 @@ class _IamBasedUploadSigner extends UploadSignerService {
     final request = iam.SignBlobRequest()..bytesToSignAsBytes = bytes;
     final name = 'projects/$projectId/serviceAccounts/$email';
     final iam.SignBlobResponse response =
+        // TODO: figure out what new API we should use.
+        // ignore: deprecated_member_use
         await iamApi.projects.serviceAccounts.signBlob(request, name);
     return SigningResult(email, response.signatureAsBytes);
   }
