@@ -190,27 +190,12 @@ void setupAnalyzerPeriodicTasks() {
 void setupDartdocPeriodicTasks() {
   _setupJobCleanupPeriodicTasks();
 
-  // Deletes the extracted dartdoc data from old SDKs.
-  _weekly(
-    name: 'delete-old-dartdoc-sdks',
-    isRuntimeVersioned: true,
-    task: () => dartdocBackend.deleteOldData(),
-  );
-
   // Deletes DartdocRun entities and their storage content that are older
   // than the accepted runtime versions.
   _weekly(
     name: 'delete-old-dartdoc-runs',
     isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteOldRuns(),
-  );
-
-  // Deletes DartdocRun entities and their storage content that are expired,
-  // and have newer version with content.
-  _weekly(
-    name: 'delete-expired-dartdoc-runs',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteExpiredRuns(),
+    task: () async => await dartdocBackend.deleteDartdocRuns(),
   );
 }
 

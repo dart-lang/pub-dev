@@ -237,10 +237,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(
-      DartdocBackend(
-        dbService,
-        storageService.bucket(activeConfiguration.dartdocStorageBucketName!),
-      ),
+      DartdocBackend(dbService),
     );
     registerDartSdkMemIndex(DartSdkMemIndex());
     registerEmailBackend(EmailBackend(dbService));

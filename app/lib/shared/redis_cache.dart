@@ -16,7 +16,6 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 import '../account/models.dart' show LikeData, SessionData;
-import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
@@ -53,29 +52,6 @@ class CachePatterns {
         encode: (SessionData data) => data.toJson(),
         decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
-
-  /// Cache for [DartdocEntry] objects.
-  Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache
-      .withPrefix('dartdoc-entry/')
-      .withTTL(Duration(hours: 24))
-      .withCodec(wrapAsCodec(
-        encode: (DartdocEntry entry) => entry.asBytes(),
-        decode: (data) => DartdocEntry.fromBytes(data),
-      ))['$package-$version'];
-
-  /// Cache for [FileInfo] objects used by dartdoc.
-  Entry<FileInfo> dartdocFileInfo(String objectName) => _cache
-      .withPrefix('dartdoc-fileinfo/')
-      .withTTL(Duration(minutes: 60))
-      .withCodec(wrapAsCodec(
-        encode: (FileInfo info) => info.asBytes(),
-        decode: (data) => FileInfo.fromBytes(data),
-      ))[objectName];
-
-  /// Cache for the binary content of the blob index (v1).
-  Entry<List<int>> dartdocBlobIndexV1(String objectName) => _cache
-      .withPrefix('dartdoc-blob-index-v1/')
-      .withTTL(Duration(minutes: 60))[objectName];
 
   Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage/')
