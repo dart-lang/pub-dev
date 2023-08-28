@@ -475,6 +475,9 @@ runcmd:
           // Enable logging with Google Cloud Logging, see:
           // https://cloud.google.com/container-optimized-os/docs/how-to/logging
           MetadataItems(key: 'google-logging-enabled', value: 'true'),
+          // TODO: Remove this when upgrading to COS 109, where this is
+          //       the expected default (also check that it is the default)
+          MetadataItems(key: 'google-logging-use-fluentbit', value: 'true'),
           // These VMs are intended to be short-lived, we should update the
           // image, hence, automatic updates shouldn't be necessary.
           // https://cloud.google.com/container-optimized-os/docs/concepts/auto-update#disabling_automatic_updates
