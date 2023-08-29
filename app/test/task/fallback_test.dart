@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/service_scope.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/scorecard/backend.dart';
-import 'package:pub_dev/shared/redis_cache.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -20,7 +17,7 @@ void main() {
     testWithProfile(
       'analysis fallback',
       fn: () async {
-        await _withRuntimeVersions(
+        await withRuntimeVersions(
           ['2023.08.24'],
           () async {
             await importProfile(
@@ -39,7 +36,7 @@ void main() {
         );
 
         // fallback into accepted runtime works
-        await _withRuntimeVersions(
+        await withRuntimeVersions(
           ['2023.08.25', '2023.08.24'],
           () async {
             final card =
@@ -49,7 +46,7 @@ void main() {
         );
 
         // fallback into non-accepted runtime doesn't work
-        await _withRuntimeVersions(
+        await withRuntimeVersions(
           ['2023.08.25', '2023.08.23'],
           () async {
             final card =
@@ -63,14 +60,5 @@ void main() {
         defaultUser: adminAtPubDevEmail,
       ),
     );
-  });
-}
-
-Future<void> _withRuntimeVersions(
-    List<String> versions, Future Function() fn) async {
-  await fork(() async {
-    registerAcceptedRuntimeVersions(versions);
-    await setupCache();
-    await fn();
   });
 }

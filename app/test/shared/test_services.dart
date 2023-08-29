@@ -20,6 +20,8 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/shared/logging.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -40,6 +42,18 @@ export 'package:pub_dev/tool/utils/pub_api_client.dart';
 //       Further consider cleanup of [StaticFileCache] to avoid computing hashes
 //       when they are discarded during tests. And always load concurrently!
 final _staticFileCacheForTesting = StaticFileCache.forTests();
+
+/// Wraps [fn] in a new service scope with runtime versions and related initializations.
+Future<void> withRuntimeVersions(
+  List<String> versions,
+  Future Function() fn,
+) async {
+  await fork(() async {
+    registerAcceptedRuntimeVersions(versions);
+    await setupCache();
+    await fn();
+  });
+}
 
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
 /// with [testProfile] data.
