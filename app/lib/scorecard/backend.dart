@@ -72,15 +72,14 @@ class ScoreCardBackend {
         return null;
       }
 
-      // Get the scorecard with the latest version available with finished analysis.
-      final card = await scoreCardBackend.getScoreCardData(package, null);
-
-      // Load the version with the analysis above, or the latest version if no analysis
-      // has been finished yet.
       final releases = await packageBackend.latestReleases(p);
       final version = releases.stable.version;
-      final pv = await packageBackend.lookupPackageVersion(
-          package, card?.packageVersion ?? version);
+      final pvFuture = packageBackend.lookupPackageVersion(package, version);
+      final cardFuture = scoreCardBackend.getScoreCardData(package, version);
+      await Future.wait([pvFuture, cardFuture]);
+
+      final pv = await pvFuture;
+      final card = await cardFuture;
 
       return PackageView.fromModel(
         package: p,
