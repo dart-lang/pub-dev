@@ -1048,9 +1048,6 @@ class TaskBackend {
         if (finishedVersions == null || finishedVersions.isEmpty) {
           continue;
         }
-        if (finishedVersions.length == 1) {
-          return finishedVersions.single;
-        }
         final bestVersion = finishedVersions
             .map((e) => Version.parse(e))
             .reduce((a, b) =>
