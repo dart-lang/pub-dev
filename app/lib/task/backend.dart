@@ -25,7 +25,7 @@ import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart'
-    show canonicalizeVersion, compareSemanticVersionsDesc;
+    show canonicalizeVersion, VersionIterableExt;
 import 'package:pub_dev/shared/versions.dart'
     show
         runtimeVersion,
@@ -1041,17 +1041,13 @@ class TaskBackend {
         if (state == null || state.hasNeverFinished) {
           continue;
         }
-        final finishedVersions = state.versions?.entries
+        final bestVersion = state.versions?.entries
             .where((e) => e.value.finished)
-            .map((e) => e.key)
-            .toList();
-        if (finishedVersions == null || finishedVersions.isEmpty) {
+            .map((e) => Version.parse(e.key))
+            .latestVersion;
+        if (bestVersion == null) {
           continue;
         }
-        final bestVersion = finishedVersions
-            .map((e) => Version.parse(e))
-            .reduce((a, b) =>
-                compareSemanticVersionsDesc(a, b, true, true) <= 0 ? a : b);
         return bestVersion.toString();
       }
       return '';
