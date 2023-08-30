@@ -38,7 +38,6 @@ class DefaultCommand extends Command {
     await runIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
-      frontendCount: envConfig.isRunningInAppengine ? 4 : 1,
     );
   }
 }

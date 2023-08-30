@@ -214,7 +214,6 @@ Future runIsolates({
   required Logger logger,
   Future<void> Function(EntryMessage message)? frontendEntryPoint,
   Future<void> Function(EntryMessage message)? workerEntryPoint,
-  required int frontendCount,
   ServicesWrapperFn? servicesWrapperFn,
 }) async {
   final runner = IsolateCollection(
@@ -228,7 +227,7 @@ Future runIsolates({
         await runner.startGroup(
           kind: 'frontend',
           entryPoint: frontendEntryPoint,
-          count: frontendCount,
+          count: 1,
         );
       }
       if (workerEntryPoint != null) {
