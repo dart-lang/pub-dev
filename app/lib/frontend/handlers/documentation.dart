@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
 import 'package:pub_package_reader/src/names.dart';
@@ -44,12 +45,31 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
 
   final package = docFilePath.package;
-  var version = docFilePath.version!;
-  final path = docFilePath.path!;
-  // Redirect to /latest/ version if the version points to latest version
-  if (version != 'latest') {
+  final version = docFilePath.version!;
+  // Keep the `/latest/` URL if the latest finished is the latest version,
+  // otherwise redirect to the latest finished version.
+  if (version == 'latest') {
+    final latestFinished = await taskBackend.latestFinishedVersion(package);
+    if (latestFinished == null) {
+      return notFoundHandler(request);
+    }
     final latestVersion = await packageBackend.getLatestVersion(package);
-    if (latestVersion != null && latestVersion == version) {
+    if (latestFinished != latestVersion) {
+      return redirectResponse(pkgDocUrl(
+        docFilePath.package,
+        version: latestFinished,
+        relativePath: docFilePath.path,
+      ));
+    }
+    return await handleDartDoc(
+        request, package, latestFinished, docFilePath.path!);
+  }
+
+  // May redirect to /latest/ URL if the version is latest version and it has a finished analysis.
+  final latestVersion = await packageBackend.getLatestVersion(package);
+  if (version == latestVersion) {
+    final latestFinished = await taskBackend.latestFinishedVersion(package);
+    if (version == latestFinished) {
       return redirectResponse(pkgDocUrl(
         docFilePath.package,
         isLatest: true,
@@ -57,16 +77,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       ));
     }
   }
-  // Find the latest version
-  if (version == 'latest') {
-    final latestVersion = await packageBackend.getLatestVersion(package);
-    if (latestVersion == null) {
-      return notFoundHandler(request);
-    }
-    version = latestVersion;
-  }
 
-  return await handleDartDoc(request, package, version, path);
+  // TODO: check if analysis finished for this version, redirect to closest version if possible
+
+  return await handleDartDoc(request, package, version, docFilePath.path!);
 }
 
 /// The parsed structure of the documentation URL.
