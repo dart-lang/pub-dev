@@ -243,7 +243,7 @@ class SearchBackend {
     }
     // Get the scorecard with the latest version available with finished analysis.
     final scoreCard =
-        await scoreCardBackend.getScoreCardData(packageName, null);
+        await scoreCardBackend.getLatestFinishedScoreCardData(packageName);
 
     // Load the version with the analysis above, or the latest version if no analysis
     // has been finished yet.

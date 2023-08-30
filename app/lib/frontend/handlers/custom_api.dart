@@ -214,19 +214,13 @@ Future<shelf.Response> apiPackageMetricsHandler(
     shelf.Request request, String packageName) async {
   final packageVersion = request.requestedUri.queryParameters['version'];
   checkPackageVersionParams(packageName, packageVersion);
-  final current = request.requestedUri.queryParameters.containsKey('current');
-  final data = await scoreCardBackend.getScoreCardData(
-    packageName,
-    packageVersion,
-    onlyCurrent: current,
-  );
-  if (data == null) {
-    return jsonResponse({}, status: 404);
-  }
+  final data = packageVersion == null
+      ? await scoreCardBackend.getLatestFinishedScoreCardData(packageName)
+      : await scoreCardBackend.getScoreCardData(packageName, packageVersion);
   final score = await packageVersionScoreHandler(request, packageName);
   final result = {
     'score': score.toJson(),
-    'scorecard': data.toJson(),
+    'scorecard': data?.toJson(),
   };
   return jsonResponse(result);
 }

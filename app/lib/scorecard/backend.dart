@@ -90,34 +90,30 @@ class ScoreCardBackend {
     });
   }
 
+  /// Returns the latest finished [ScoreCardData] for the given [package].
+  ///
+  /// If no analysis has been finished for this package, the method loads
+  /// the information for the latest version.
+  Future<ScoreCardData?> getLatestFinishedScoreCardData(String package) async {
+    final version = await taskBackend.latestFinishedVersion(package) ??
+        await packageBackend.getLatestVersion(package);
+    if (version == null) {
+      return null;
+    }
+    return getScoreCardData(package, version);
+  }
+
   /// Returns the [ScoreCardData] for the given package and version.
-  ///
-  /// When [packageVersion] is not specified (or the `latest` string value is
-  /// used as version), we try to find the latest finished analysis of the
-  /// package. If no analysis has been finished for this package, the method
-  /// loads the information for the latest version.
-  ///
-  /// TODO: separate the use case of `latest` and `null` values.
   Future<ScoreCardData?> getScoreCardData(
     String packageName,
-    String? packageVersion, {
-    bool onlyCurrent = false,
-  }) async {
-    if (packageVersion == null || packageVersion == 'latest') {
-      packageVersion = await taskBackend.latestFinishedVersion(packageName) ??
-          await packageBackend.getLatestVersion(packageName);
-      if (packageVersion == null) {
-        // package does not exists
-        return null;
-      }
-    }
-    final cacheEntry =
-        onlyCurrent ? null : cache.scoreCardData(packageName, packageVersion);
-    if (cacheEntry != null) {
-      final cached = await cacheEntry.get();
-      if (cached != null) {
-        return cached;
-      }
+    String packageVersion,
+  ) async {
+    InvalidInputException.check(
+        packageVersion != 'latest', 'latest is no longer supported');
+    final cacheEntry = cache.scoreCardData(packageName, packageVersion);
+    final cached = await cacheEntry.get();
+    if (cached != null) {
+      return cached;
     }
 
     final package = await packageBackend.lookupPackage(packageName);
@@ -148,9 +144,7 @@ class ScoreCardBackend {
       panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       taskStatus: versionInfo?.status,
     );
-    if (cacheEntry != null) {
-      await cacheEntry.set(data);
-    }
+    await cacheEntry.set(data);
     return data;
   }
 
