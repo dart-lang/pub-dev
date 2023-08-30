@@ -6,6 +6,18 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+ListOSVsResponse _$ListOSVResponseFromJson(Map<String, dynamic> json) =>
+    ListOSVsResponse(
+      osvs: (json['osvs'] as List<dynamic>)
+          .map((e) => OSV.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$ListOSVResponseToJson(ListOSVsResponse instance) =>
+    <String, dynamic>{
+      'osvs': instance.osvs,
+    };
+
 OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
       schemaVersion: json['schema_version'] as String?,
       id: json['id'] as String,

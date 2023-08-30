@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -418,4 +420,11 @@ Future<shelf.Response> packagePublisherHandler(
       ? urls.pkgPageUrl(package)
       : urls.publisherUrl(publisherId);
   return redirectResponse(redirectUrl);
+}
+
+/// Handles GET /api/packages/<package>/advisories
+Future<ListOSVsResponse> listAdvisoriesForPackage(
+    shelf.Request request, String package) async {
+  final osvs = await securityAdvisoryBackend.lookupSecurityAdvisories(package);
+  return ListOSVsResponse(osvs: osvs);
 }

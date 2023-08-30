@@ -65,6 +65,19 @@ class OSVProperty extends db.Property {
   }
 }
 
+/// Response for listing all security advisories affacting a given package.
+@JsonSerializable()
+class ListOSVsResponse {
+  /// List of advisories
+  final List<OSV> osvs;
+
+  // json_serializable boiler-plate
+  ListOSVsResponse({required this.osvs});
+  factory ListOSVsResponse.fromJson(Map<String, dynamic> json) =>
+      _$ListOSVResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ListOSVResponseToJson(this);
+}
+
 /// Representation of an advisory in [Open Source Vulnerability format][1] version 1.5
 ///
 /// [1]: https://ossf.github.io/osv-schema/

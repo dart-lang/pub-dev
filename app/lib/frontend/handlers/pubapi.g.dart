@@ -1315,5 +1315,25 @@ Router _$PubApiRouter(PubApi service) {
       }
     },
   );
+  router.add(
+    'GET',
+    r'/api/packages/<package>/advisories',
+    (
+      Request request,
+      String package,
+    ) async {
+      try {
+        final _$result = await service.getPackageAdvisories(
+          request,
+          package,
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
   return router;
 }

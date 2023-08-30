@@ -12,6 +12,7 @@ import 'package:_pub_shared/data/publisher_api.dart' as _i5;
 import 'package:_pub_shared/data/task_api.dart' as _i6;
 import 'package:api_builder/_client_utils.dart' as _i2;
 import 'package:http/http.dart' as _i1;
+import 'package:pub_dev/service/security_advisories/models.dart' as _i8;
 
 export 'package:api_builder/_client_utils.dart' show RequestException;
 
@@ -585,6 +586,13 @@ class PubApiClient {
     return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/admin/packages/$package/uploaders/$email',
+    ));
+  }
+
+  Future<_i8.ListOSVsResponse> getPackageAdvisories(String package) async {
+    return _i8.ListOSVsResponse.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/advisories',
     ));
   }
 }
