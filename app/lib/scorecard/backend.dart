@@ -80,6 +80,7 @@ class ScoreCardBackend {
 
       final pv = await pvFuture;
       final card = await cardFuture;
+
       return PackageView.fromModel(
         package: p,
         releases: releases,
@@ -90,13 +91,21 @@ class ScoreCardBackend {
   }
 
   /// Returns the [ScoreCardData] for the given package and version.
+  ///
+  /// When [packageVersion] is not specified (or the `latest` string value is
+  /// used as version), we try to find the latest finished analysis of the
+  /// package. If no analysis has been finished for this package, the method
+  /// loads the information for the latest version.
+  ///
+  /// TODO: separate the use case of `latest` and `null` values.
   Future<ScoreCardData?> getScoreCardData(
     String packageName,
     String? packageVersion, {
     bool onlyCurrent = false,
   }) async {
     if (packageVersion == null || packageVersion == 'latest') {
-      packageVersion = await packageBackend.getLatestVersion(packageName);
+      packageVersion = await taskBackend.latestFinishedVersion(packageName) ??
+          await packageBackend.getLatestVersion(packageName);
       if (packageVersion == null) {
         // package does not exists
         return null;

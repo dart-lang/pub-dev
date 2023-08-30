@@ -241,18 +241,22 @@ class SearchBackend {
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
-    final releases = await packageBackend.latestReleases(p);
+    // Get the scorecard with the latest version available with finished analysis.
+    final scoreCard =
+        await scoreCardBackend.getScoreCardData(packageName, null);
 
+    // Load the version with the analysis above, or the latest version if no analysis
+    // has been finished yet.
+    final releases = await packageBackend.latestReleases(p);
     final pv = await packageBackend.lookupPackageVersion(
-        packageName, releases.stable.version);
+      packageName,
+      scoreCard?.packageVersion ?? releases.stable.version,
+    );
     if (pv == null) {
       throw RemovedPackageException();
     }
     final readmeAsset = await packageBackend.lookupPackageVersionAsset(
         packageName, pv.version!, AssetKind.readme);
-
-    final scoreCard =
-        await scoreCardBackend.getScoreCardData(packageName, pv.version!);
 
     // Find tags from latest prerelease and/or preview (if there one).
     Future<Iterable<String>> loadFutureTags(String version) async {
