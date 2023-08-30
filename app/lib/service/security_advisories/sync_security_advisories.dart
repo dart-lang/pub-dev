@@ -4,11 +4,11 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/security_advisories/backend.dart';
-import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 

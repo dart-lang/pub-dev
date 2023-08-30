@@ -5,10 +5,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
-import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';

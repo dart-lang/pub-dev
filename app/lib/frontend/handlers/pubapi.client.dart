@@ -7,12 +7,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:_pub_shared/data/account_api.dart' as _i4;
 import 'package:_pub_shared/data/admin_api.dart' as _i7;
+import 'package:_pub_shared/data/advisories_api.dart' as _i8;
 import 'package:_pub_shared/data/package_api.dart' as _i3;
 import 'package:_pub_shared/data/publisher_api.dart' as _i5;
 import 'package:_pub_shared/data/task_api.dart' as _i6;
 import 'package:api_builder/_client_utils.dart' as _i2;
 import 'package:http/http.dart' as _i1;
-import 'package:pub_dev/service/security_advisories/models.dart' as _i8;
 
 export 'package:api_builder/_client_utils.dart' show RequestException;
 
