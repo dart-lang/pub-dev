@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['presubmit-only'])
+// @Tags(['presubmit-only'])
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -210,7 +210,7 @@ void main() {
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
-      expect((partsSize / 1024).round(), closeTo(230, 1));
+      expect((partsSize / 1024).round(), closeTo(208, 1));
     });
   });
 
