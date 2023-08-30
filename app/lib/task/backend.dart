@@ -1045,10 +1045,9 @@ class TaskBackend {
             .where((e) => e.value.finished)
             .map((e) => Version.parse(e.key))
             .latestVersion;
-        if (bestVersion == null) {
-          continue;
+        if (bestVersion != null) {
+          return bestVersion.toString();
         }
-        return bestVersion.toString();
       }
       return '';
     });
