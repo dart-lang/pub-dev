@@ -1048,6 +1048,16 @@ class TaskBackend {
         if (bestVersion != null) {
           return bestVersion.toString();
         }
+        // TODO: remove this fallback after all runtime version has the `finished` field populated
+        if (rt.compareTo('2023.08.29') < 0) {
+          final latestNonPending = state.versions?.entries
+              .where((e) => e.value.status != PackageVersionStatus.pending)
+              .map((e) => Version.parse(e.key))
+              .latestVersion;
+          if (latestNonPending != null) {
+            return latestNonPending.toString();
+          }
+        }
       }
       return '';
     });
