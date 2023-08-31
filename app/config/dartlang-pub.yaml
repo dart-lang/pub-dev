@@ -19,7 +19,7 @@ taskResultBucketName: dartlang-pub-task-output
 taskWorkerImage: us-central1-docker.pkg.dev/dartlang-pub-tasks/{{GOOGLE_CLOUD_PROJECT}}-worker-images/task-worker:{{GAE_VERSION}}
 taskWorkerProject: dartlang-pub-tasks
 taskWorkerNetwork: pub-workers
-cosImage: projects/cos-cloud/global/images/family/cos-97-lts
+cosImage: projects/cos-cloud/global/images/family/cos-105-lts
 taskWorkerServiceAccount: task-worker@dartlang-pub-tasks.iam.gserviceaccount.com
 imageBucketName: dartlang-pub--pub-images
 reportsBucketName: dartlang-pub-reports
