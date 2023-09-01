@@ -306,6 +306,20 @@ void main() {
       },
     );
   });
+
+  group('Sanity check', () {
+    testWithProfile('consent parameter length', fn: () async {
+      await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
+          fn: (c) async {
+            await expectApiException(
+              c.consentInfo('abcd' * 500),
+              status: 400,
+              code: 'InvalidInput',
+            );
+          });
+    });
+  });
 }
 
 Future<void> _expireConsent(String? consentId) async {
