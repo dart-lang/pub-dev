@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
 import 'package:pub_package_reader/src/names.dart';
@@ -46,41 +46,20 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
 
   final package = docFilePath.package;
   final version = docFilePath.version!;
-  // Keep the `/latest/` URL if the latest finished is the latest version,
-  // otherwise redirect to the latest finished version.
-  if (version == 'latest') {
-    final latestFinished = await taskBackend.latestFinishedVersion(package);
-    if (latestFinished == null) {
-      return notFoundHandler(request);
-    }
-    final latestVersion = await packageBackend.getLatestVersion(package);
-    if (latestFinished != latestVersion) {
-      return redirectResponse(pkgDocUrl(
-        docFilePath.package,
-        version: latestFinished,
-        relativePath: docFilePath.path,
-      ));
-    }
+  final resolved = await dartdocBackend.resolveDocUrlVersion(package, version);
+  if (resolved.isEmpty) {
+    return notFoundHandler(request);
+  }
+  if (version != resolved.segment) {
+    return redirectResponse(pkgDocUrl(
+      package,
+      version: resolved.segment,
+      relativePath: docFilePath.path,
+    ));
+  } else {
     return await handleDartDoc(
-        request, package, latestFinished, docFilePath.path!);
+        request, package, resolved.version, docFilePath.path!);
   }
-
-  // May redirect to /latest/ URL if the version is latest version and it has a finished analysis.
-  final latestVersion = await packageBackend.getLatestVersion(package);
-  if (version == latestVersion) {
-    final latestFinished = await taskBackend.latestFinishedVersion(package);
-    if (version == latestFinished) {
-      return redirectResponse(pkgDocUrl(
-        docFilePath.package,
-        isLatest: true,
-        relativePath: docFilePath.path,
-      ));
-    }
-  }
-
-  // TODO: check if analysis finished for this version, redirect to closest version if possible
-
-  return await handleDartDoc(request, package, version, docFilePath.path!);
 }
 
 /// The parsed structure of the documentation URL.
