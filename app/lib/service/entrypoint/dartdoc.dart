@@ -33,7 +33,6 @@ class DartdocCommand extends Command {
       logger: logger,
       frontendEntryPoint: _frontendMain,
       workerEntryPoint: _workerMain,
-      frontendCount: 1,
     );
   }
 }

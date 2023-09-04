@@ -7,16 +7,16 @@ env: flex
 service: default
 
 resources:
-  cpu: 4
-  memory_gb: 6
+  cpu: 1
+  memory_gb: 4
   disk_size_gb: 25
 
 #manual_scaling:
 #  instances: 1
 
 automatic_scaling:
-  min_num_instances: 10
-  max_num_instances: 18
+  min_num_instances: 20
+  max_num_instances: 72
 
 skip_files:
 - ^\.git/.*$
