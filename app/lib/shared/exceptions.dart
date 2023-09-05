@@ -169,7 +169,8 @@ class InvalidInputException extends ResponseException {
         () => '"$name" must be less than $maximum');
   }
 
-  static final _ulidPattern = RegExp(r'^[a-zA-Z0-9]*$');
+  // note: base32-ulid is 26 characters long, base16-based ulid may be 32 or 36 characters long.
+  static final _ulidPattern = RegExp(r'^[a-zA-Z0-9]{26,36}$');
 
   static void checkUlid(String value, String? name) {
     assert(name != null, '"name" must not beq `null`');
