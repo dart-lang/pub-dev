@@ -52,6 +52,11 @@ final class DartDocPage {
   /// Sanitized HTML for the [content] pane.
   final String content;
 
+  final String? baseHref;
+  final String? usingBaseHref;
+  final String? aboveSidebarUrl;
+  final String? belowSidebarUrl;
+
   DartDocPage({
     required this.title,
     required this.description,
@@ -59,6 +64,10 @@ final class DartDocPage {
     required this.left,
     required this.right,
     required this.content,
+    required this.baseHref,
+    required this.usingBaseHref,
+    required this.aboveSidebarUrl,
+    required this.belowSidebarUrl,
   });
 
   factory DartDocPage.fromJson(Map<String, dynamic> json) =>
@@ -151,6 +160,10 @@ final class DartDocPage {
       left: sanitize(left),
       right: sanitize(right),
       content: sanitize(content),
+      baseHref: body?.attributes['data-base-href'],
+      usingBaseHref: body?.attributes['data-using-base-href'],
+      aboveSidebarUrl: rawContent?.attributes['data-above-sidebar'],
+      belowSidebarUrl: rawContent?.attributes['data-below-sidebar'],
     );
   }
 }

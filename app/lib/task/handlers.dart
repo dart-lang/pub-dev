@@ -59,6 +59,9 @@ Future<shelf.Response> handleDartDoc(
         if (dataGz == null) {
           return const <int>[]; // store empty string for missing data
         }
+        if (path.endsWith('-sidebar.html')) {
+          return gzip.decode(dataGz);
+        }
         final latestVersion = await packageBackend.getLatestVersion(package);
         final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
         final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
