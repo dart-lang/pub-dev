@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -49,7 +50,7 @@ class ScoreCardBackend {
   }
 
   /// Returns the [PackageView] instance for each package in [packages], using
-  /// the latest stable version.
+  /// the latest finished version.
   ///
   /// If the package does not exist, it will return null in the given index.
   Future<List<PackageView?>> getPackageViews(Iterable<String> packages) async {
@@ -61,9 +62,12 @@ class ScoreCardBackend {
     return await Future.wait(futures);
   }
 
-  /// Returns the [PackageView] instance for [package] on its latest stable version.
+  /// Returns the [PackageView] instance for [package] on its "best" version:
+  /// either loading the latest finished version, or if no analysis has been
+  /// done yet, the latest stable version.
   ///
   /// Returns null if the package does not exists.
+  @visibleForTesting
   Future<PackageView?> getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
       final p = await packageBackend.lookupPackage(package);
@@ -72,8 +76,13 @@ class ScoreCardBackend {
         return null;
       }
 
+      final version = await taskBackend.latestFinishedVersion(package) ??
+          await packageBackend.getLatestVersion(package);
+      if (version == null) {
+        return null;
+      }
+
       final releases = await packageBackend.latestReleases(p);
-      final version = releases.stable.version;
       final pvFuture = packageBackend.lookupPackageVersion(package, version);
       final cardFuture = scoreCardBackend.getScoreCardData(package, version);
       await Future.wait([pvFuture, cardFuture]);
