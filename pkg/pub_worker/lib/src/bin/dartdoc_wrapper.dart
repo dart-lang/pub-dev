@@ -201,7 +201,7 @@ Future<void> _dartdoc({
     await for (final file in originalFiles) {
       // inside the archive prefix the name with <package>/version/
       final relativePath = p.relative(file.path, from: originalDocDir.path);
-      final tarEntryPath = p.join(package, packageVersion, relativePath);
+      final tarEntryPath = p.join(package, version, relativePath);
       final data = await file.readAsBytes();
       yield TarEntry.data(
         TarHeader(
