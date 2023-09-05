@@ -19,6 +19,7 @@ import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -424,7 +425,13 @@ Future<shelf.Response> packagePublisherHandler(
 
 /// Handles GET /api/packages/<package>/advisories
 Future<ListOSVsResponse> listAdvisoriesForPackage(
-    shelf.Request request, String package) async {
-  final osvs = await securityAdvisoryBackend.lookupSecurityAdvisories(package);
+    shelf.Request request, String packageName) async {
+  InvalidInputException.checkPackageName(packageName);
+  final package = await packageBackend.lookupPackage(packageName);
+  if (package == null) {
+    throw NotFoundException.resource(packageName);
+  }
+  final osvs =
+      await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
   return ListOSVsResponse(osvs: osvs);
 }
