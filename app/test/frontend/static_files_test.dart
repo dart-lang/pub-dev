@@ -165,7 +165,8 @@ void main() {
           '/static/dartdoc/resources/favicon.png',
           '/static/dartdoc/resources/play_button.svg',
           '/static/dartdoc/resources/docs.dart.js.map',
-          '/static/dartdoc/resources/search.png', // probably used through js
+          '/static/dartdoc/resources/search.png', // probably used through old js
+          '/static/dartdoc/resources/search.svg', // probably used through js
         ]);
 
       expect(requestPaths, hasLength(greaterThan(50)));
