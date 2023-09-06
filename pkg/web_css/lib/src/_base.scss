@@ -17,6 +17,9 @@ body {
   margin: 0;
   padding: 0;
   overflow-wrap: anywhere;
+  // we don't use font ligatures, and Google Sans fonts would otherwise change text in surprising ways
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0;
 }
 
 body, input, button {
