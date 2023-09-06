@@ -72,9 +72,16 @@ final class DartDocPage {
   /// Sanitized HTML for the [content] pane.
   final String content;
 
+  /// The base href of the current page relative to the root `index.html`.
   final String? baseHref;
+
+  /// Flag for dartdoc, whether to use the [baseHref] in dynamic sidebar loading.
   final String? usingBaseHref;
+
+  /// The left/above sidebar URL that dartdoc will load dynamically.
   final String? aboveSidebarUrl;
+
+  /// The right/below sidebar URL that dartdoc will load dynamically.
   final String? belowSidebarUrl;
 
   DartDocPage({
