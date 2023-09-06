@@ -94,6 +94,11 @@ class ResolvedDocUrlVersion {
   final String version;
 
   /// The URL segment that should be used to display the version.
+  ///
+  /// This is either:
+  /// * `"latest"`,
+  /// * `"${version}"`, or,
+  /// * `""` (indicating empty response)
   final String segment;
 
   ResolvedDocUrlVersion({
