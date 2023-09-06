@@ -47,6 +47,7 @@ d.Node packageInfoBoxNode({
         data.package!.name!,
         version: data.isLatestStable ? null : data.version!.version,
       ),
+      isPending: data.toPackageView().isPending,
     );
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
@@ -163,9 +164,12 @@ d.Node _linkAndBr(InfoBoxLink link) {
 d.Node? _licenseNode({
   required List<License> licenses,
   required String licenseUrl,
+  required bool isPending,
 }) {
   final paths = licenses.map((e) => e.path).toSet().toList();
-  final labels = licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
+  final labels = isPending
+      ? '(pending)'
+      : licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
   return d.fragment([
     d.img(
       classes: ['inline-icon-img'],
