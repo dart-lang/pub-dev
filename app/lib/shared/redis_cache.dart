@@ -14,6 +14,7 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 import '../account/models.dart' show LikeData, SessionData;
@@ -343,6 +344,20 @@ class CachePatterns {
         encode: (DateTime v) => v.toUtc().toIso8601String(),
         decode: (v) => DateTime.parse(v.toString()),
       ))[entryKey];
+
+  /// The resolved display version and URL redirect info for /documentation/ URLs.
+  Entry<ResolvedDocUrlVersion> resolvedDocUrlVersion(
+          String package, String version) =>
+      _cache
+          .withPrefix('resolved-doc-url-version/')
+          .withTTL(Duration(minutes: 15))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (ResolvedDocUrlVersion v) => v.toJson(),
+            decode: (v) =>
+                ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
+          ))['$package-$version'];
 }
 
 /// The active cache.
