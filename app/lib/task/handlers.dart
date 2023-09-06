@@ -59,11 +59,13 @@ Future<shelf.Response> handleDartDoc(
         if (dataGz == null) {
           return const <int>[]; // store empty string for missing data
         }
+        final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
         if (path.endsWith('-sidebar.html')) {
-          return gzip.decode(dataGz);
+          final sidebar =
+              DartDocSidebar.fromJson(dataJson as Map<String, dynamic>);
+          return utf8.encode(sidebar.content);
         }
         final latestVersion = await packageBackend.getLatestVersion(package);
-        final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
         final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
         final html = page.render(DartDocPageOptions(
           package: package,

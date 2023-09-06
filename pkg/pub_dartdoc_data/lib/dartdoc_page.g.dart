@@ -17,6 +17,16 @@ Map<String, dynamic> _$BreadcrumbToJson(Breadcrumb instance) =>
       'href': instance.href,
     };
 
+DartDocSidebar _$DartDocSidebarFromJson(Map<String, dynamic> json) =>
+    DartDocSidebar(
+      content: json['content'] as String,
+    );
+
+Map<String, dynamic> _$DartDocSidebarToJson(DartDocSidebar instance) =>
+    <String, dynamic>{
+      'content': instance.content,
+    };
+
 DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
       title: json['title'] as String,
       description: json['description'] as String,
