@@ -38,7 +38,7 @@ class DartdocBackend {
   /// Returns empty version and URL segment when there is no displayable version found.
   Future<ResolvedDocUrlVersion> resolveDocUrlVersion(
       String package, String version) async {
-    return cache.resolvedDocUrlVersion(package, version).get(() async {
+    return await cache.resolvedDocUrlVersion(package, version).get(() async {
       // Keep the `/latest/` URL if the latest finished is the latest version,
       // otherwise redirect to the latest finished version.
       if (version == 'latest') {
