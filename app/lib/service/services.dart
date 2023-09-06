@@ -140,9 +140,6 @@ Future<R> withFakeServices<R>({
   MemStorage? storage,
   FakeCloudCompute? cloudCompute,
 }) async {
-  if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn()) as R;
-  }
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
   }
