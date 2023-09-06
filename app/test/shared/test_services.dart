@@ -65,7 +65,12 @@ class FakeAppengineEnv {
   final _datastore = MemDatastore();
   final _cloudCompute = FakeCloudCompute();
 
-  /// Starts a new environment and runs [fn] in it.
+  /// Create a service scope with fake services and run [fn] in it.
+  ///
+  /// All services will terminate when [fn] returns.
+  ///
+  /// Calling [run] more than once, is allowed. Services will not survive between
+  /// invocations, but datastore, storage and cloud compute will retain state.
   Future<R> run<R>(
     Future<R> Function() fn, {
     TestProfile? testProfile,
