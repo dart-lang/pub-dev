@@ -16,42 +16,49 @@ import '../shared/test_services.dart';
 
 void main() {
   group('task fallback test', () {
-    testWithProfile(
-      'analysis fallback',
-      testProfile: TestProfile(
-        packages: [
-          TestPackage(
-            name: 'oxygen',
-            versions: [
-              TestVersion(version: '1.0.0'),
-            ],
-          ),
-        ],
-        defaultUser: adminAtPubDevEmail,
-      ),
-      processJobsWithFakeRunners: true,
-      runtimeVersions: [
-        ['2023.08.24'],
-        ['2023.08.25', '2023.08.24'],
-        ['2023.08.26', '2023.08.23'],
-      ],
-      fn: () async {
-        if (runtimeVersion == '2023.08.25') {
+    test('analysis fallback', () async {
+      final env = FakeAppengineEnv();
+      await env.run(
+        testProfile: TestProfile(
+          packages: [
+            TestPackage(
+              name: 'oxygen',
+              versions: [
+                TestVersion(version: '1.0.0'),
+              ],
+            ),
+          ],
+          defaultUser: adminAtPubDevEmail,
+        ),
+        processJobsWithFakeRunners: true,
+        runtimeVersions: ['2023.08.24'],
+        () async {
+          final card =
+              await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
+          expect(card!.runtimeVersion, '2023.08.24');
+        },
+      );
+
+      await env.run(
+        runtimeVersions: ['2023.08.25', '2023.08.24'],
+        () async {
           // fallback into accepted runtime works
           final card =
               await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
           expect(card!.runtimeVersion, '2023.08.24');
-          return;
-        }
+        },
+      );
 
-        if (runtimeVersion == '2023.08.26') {
+      await env.run(
+        runtimeVersions: ['2023.08.26', '2023.08.23'],
+        () async {
           // fallback into non-accepted runtime doesn't work
           final card =
               await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
           expect(card!.runtimeVersion, '2023.08.26');
-        }
-      },
-    );
+        },
+      );
+    });
   });
 
   group('latest analyzed version', () {
