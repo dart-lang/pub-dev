@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -22,7 +23,6 @@ import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
-import '../service/security_advisories/models.dart';
 import '../task/models.dart';
 import 'convert.dart';
 import 'versions.dart';

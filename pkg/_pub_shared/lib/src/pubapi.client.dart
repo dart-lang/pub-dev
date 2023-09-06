@@ -7,6 +7,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:_pub_shared/data/account_api.dart' as _i4;
 import 'package:_pub_shared/data/admin_api.dart' as _i7;
+import 'package:_pub_shared/data/advisories_api.dart' as _i8;
 import 'package:_pub_shared/data/package_api.dart' as _i3;
 import 'package:_pub_shared/data/publisher_api.dart' as _i5;
 import 'package:_pub_shared/data/task_api.dart' as _i6;
@@ -585,6 +586,13 @@ class PubApiClient {
     return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/admin/packages/$package/uploaders/$email',
+    ));
+  }
+
+  Future<_i8.ListOSVsResponse> getPackageAdvisories(String package) async {
+    return _i8.ListOSVsResponse.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/advisories',
     ));
   }
 }

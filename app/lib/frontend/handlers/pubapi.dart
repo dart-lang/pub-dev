@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
@@ -544,4 +545,11 @@ class PubApi {
   Future<PackageUploaders> adminRemovePackageUploader(
           Request request, String package, String email) =>
       adminBackend.handleRemovePackageUploader(package, email);
+
+  @EndPoint.get('/api/packages/<package>/advisories')
+  Future<ListOSVsResponse> getPackageAdvisories(
+    Request request,
+    String package,
+  ) =>
+      listAdvisoriesForPackage(request, package);
 }
