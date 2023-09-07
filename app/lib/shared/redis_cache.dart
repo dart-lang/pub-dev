@@ -120,6 +120,16 @@ class CachePatterns {
         decode: (d) => d as bool,
       ))[package];
 
+  Entry<bool> packageModerated(String package) => _cache
+      .withPrefix('package-moderated/')
+      .withTTL(Duration(days: 7))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (bool value) => value,
+        decode: (d) => d as bool,
+      ))[package];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];

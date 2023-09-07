@@ -228,15 +228,18 @@ Future<shelf.Response> _handlePackagePage({
 
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
+    if (!await packageBackend.isPackageVisible(packageName)) {
+      return formattedNotFoundHandler(request);
+    }
+    if (await packageBackend.isPackageModerated(packageName)) {
+      final content = renderModeratedPackagePage(packageName);
+      return htmlResponse(content, status: 404);
+    }
     final data = await loadPackagePageData(packageName, versionName, assetKind);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     if (data.package == null ||
         data.package!.isNotVisible ||
         data.version == null) {
-      if (data.moderatedPackage != null) {
-        final content = renderModeratedPackagePage(packageName);
-        return htmlResponse(content, status: 404);
-      }
       return formattedNotFoundHandler(request);
     }
     final renderedResult = await renderFn(data);
@@ -326,11 +329,9 @@ Future<PackagePageData> loadPackagePageData(
 ) async {
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
-    final moderated = await packageBackend.lookupModeratedPackage(packageName);
     return PackagePageData.missing(
       package: null,
       latestReleases: null,
-      moderatedPackage: moderated,
     );
   }
 
