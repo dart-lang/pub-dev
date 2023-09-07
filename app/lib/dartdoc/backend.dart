@@ -9,8 +9,6 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/task/backend.dart';
 
-import '../shared/datastore.dart';
-
 import 'models.dart';
 
 /// Sets the dartdoc backend.
@@ -22,15 +20,6 @@ DartdocBackend get dartdocBackend =>
     ss.lookup(#_dartdocBackend) as DartdocBackend;
 
 class DartdocBackend {
-  final DatastoreDB _db;
-  DartdocBackend(this._db);
-
-  /// Scan the Datastore for [DartdocRun]s and remove everything.
-  Future<void> deleteDartdocRuns() async {
-    final query = _db.query<DartdocRun>();
-    await _db.deleteWithQuery(query);
-  }
-
   /// Resolves the best version to display for a /documentation/[package]/[version]/
   /// request. Also resolves the best URL it should be displayed under, in case it
   /// needs a redirect.

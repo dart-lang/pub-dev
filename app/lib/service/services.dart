@@ -233,9 +233,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAnnouncementBackend(AnnouncementBackend());
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
-    registerDartdocBackend(
-      DartdocBackend(dbService),
-    );
+    registerDartdocBackend(DartdocBackend());
     registerDartSdkMemIndex(DartSdkMemIndex());
     registerEmailBackend(EmailBackend(dbService));
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());

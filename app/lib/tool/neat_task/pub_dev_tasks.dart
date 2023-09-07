@@ -12,7 +12,6 @@ import 'package:neat_periodic_task/neat_periodic_task.dart';
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
-import '../../dartdoc/backend.dart';
 import '../../job/backend.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
@@ -189,14 +188,6 @@ void setupAnalyzerPeriodicTasks() {
 /// Setup the tasks that we are running in the dartdoc service.
 void setupDartdocPeriodicTasks() {
   _setupJobCleanupPeriodicTasks();
-
-  // Deletes DartdocRun entities and their storage content that are older
-  // than the accepted runtime versions.
-  _weekly(
-    name: 'delete-old-dartdoc-runs',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteDartdocRuns(),
-  );
 }
 
 /// Setup the tasks that we are running in the search service.
