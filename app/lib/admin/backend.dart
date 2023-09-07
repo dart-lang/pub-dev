@@ -493,10 +493,6 @@ class AdminBackend {
       where: (PackageVersionAsset asset) => asset.version == version,
     );
 
-    await _db.deleteWithQuery(
-      _db.query<Job>()..filter('packageName =', packageName),
-      where: (Job job) => job.packageVersion == version,
-    );
     await purgePackageCache(packageName);
   }
 
