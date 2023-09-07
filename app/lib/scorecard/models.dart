@@ -29,33 +29,7 @@ abstract class ReportStatus {
 /// The details are pulled in from various data sources, and the entry is
 /// recalculated from scratch each time any of the sources change.
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
-class ScoreCard extends db.ExpandoModel<String> {
-  @db.StringProperty(required: true)
-  String? packageName;
-
-  @db.StringProperty(required: true, indexed: false)
-  String? packageVersion;
-
-  @db.StringProperty(required: true)
-  String? runtimeVersion;
-
-  @db.DateTimeProperty(required: true)
-  DateTime? updated;
-
-  @db.DateTimeProperty(required: true, indexed: false)
-  DateTime? packageCreated;
-
-  @db.DateTimeProperty(required: true, indexed: false)
-  DateTime? packageVersionCreated;
-
-  /// Compressed, json-encoded content of [PanaReport].
-  @db.BlobProperty()
-  List<int>? panaReportJsonGz;
-
-  /// Compressed, json-encoded content of [DartdocReport].
-  @db.BlobProperty()
-  List<int>? dartdocReportJsonGz;
-}
+class ScoreCard extends db.ExpandoModel<String> {}
 
 mixin FlagMixin {
   List<String>? get tags;
