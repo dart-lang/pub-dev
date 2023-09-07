@@ -185,11 +185,6 @@ void setupAnalyzerPeriodicTasks() {
   );
 }
 
-/// Setup the tasks that we are running in the dartdoc service.
-void setupDartdocPeriodicTasks() {
-  _setupJobCleanupPeriodicTasks();
-}
-
 /// Setup the tasks that we are running in the search service.
 void setupSearchPeriodicTasks() {
   // Deletes the old search snapshots
