@@ -7,7 +7,6 @@ import 'package:pool/pool.dart';
 
 import '../../account/models.dart';
 import '../../audit/models.dart';
-import '../../dartdoc/models.dart';
 import '../../job/backend.dart';
 import '../../package/models.dart';
 import '../../publisher/models.dart';
@@ -44,7 +43,6 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
   final entities = <Query, int>{
     dbService.query<AuditLogRecord>(): 500,
     dbService.query<Job>(): 500,
-    dbService.query<DartdocRun>(): 100,
     dbService.query<UserInfo>(): 500,
     dbService.query<OAuthUserID>(): 500,
     dbService.query<UserSession>(): 500,
