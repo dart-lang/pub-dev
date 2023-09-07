@@ -109,6 +109,18 @@ class PackageBackend {
     }))!;
   }
 
+  /// Whether the package has been deleted and a [ModeratedPackage] entity exists for it.
+  Future<bool> isPackageModerated(String package) async {
+    return (await cache.packageModerated(package).get(() async {
+      final visible = await isPackageVisible(package);
+      if (visible) {
+        return false;
+      }
+      final p = await lookupModeratedPackage(package);
+      return p != null;
+    }))!;
+  }
+
   /// Retrieves the names of all packages that need to be included in sitemap.txt.
   Stream<String> sitemapPackageNames() {
     final query = db.query<Package>()
@@ -1649,6 +1661,7 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
 Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageVisible(package).purge(),
+    cache.packageModerated(package).purge(),
     cache.packageData(package).purge(),
     cache.packageDataGz(package).purge(),
     cache.packageLatestVersion(package).purge(),

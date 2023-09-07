@@ -1083,7 +1083,6 @@ class PackageLinks {
 class PackagePageData {
   final Package? package;
   final LatestReleases? latestReleases;
-  final ModeratedPackage? moderatedPackage;
   final PackageVersion? version;
   final PackageVersionInfo? versionInfo;
   final PackageVersionAsset? asset;
@@ -1101,13 +1100,11 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
-  })  : latestReleases = latestReleases ?? package!.latestReleases,
-        moderatedPackage = null;
+  }) : latestReleases = latestReleases ?? package!.latestReleases;
 
   PackagePageData.missing({
     required this.package,
     required this.latestReleases,
-    this.moderatedPackage,
   })  : version = null,
         versionInfo = null,
         asset = null,
