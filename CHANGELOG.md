@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2023.09.05`.
  * Upgraded dartdoc to `6.3.0`.
  * Note: increased minimum instance count of `default` service to 32.
+ * Note: isolates do not automatically restart after they are closed with uncaught error.
 
 ## `20230904t124200-all`
  * Note: Only a single frontend isolate will process HTTP requests.
