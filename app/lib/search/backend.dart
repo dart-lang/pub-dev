@@ -250,7 +250,7 @@ class SearchBackend {
     final releases = await packageBackend.latestReleases(p);
     final pv = await packageBackend.lookupPackageVersion(
       packageName,
-      scoreCard?.packageVersion ?? releases.stable.version,
+      scoreCard.packageVersion ?? releases.stable.version,
     );
     if (pv == null) {
       throw RemovedPackageException();
@@ -266,7 +266,7 @@ class SearchBackend {
           await scoreCardBackend.getScoreCardData(packageName, version);
       final futureTags = <String>{
         ...?futureVersion?.getTags(),
-        ...?futureVersionAnalysis?.panaReport?.derivedTags,
+        ...?futureVersionAnalysis.panaReport?.derivedTags,
       };
       return futureTags.where(isFutureVersionTag);
     }
@@ -289,7 +289,7 @@ class SearchBackend {
       // regular tags
       ...p.getTags(),
       ...pv.getTags(),
-      ...?scoreCard?.panaReport?.derivedTags,
+      ...?scoreCard.panaReport?.derivedTags,
       ...prereleaseTags,
       ...previewTags,
     };
@@ -318,7 +318,7 @@ class SearchBackend {
     // select the latest entity updated timestamp (when available)
     final sourceUpdated = [
       p.updated,
-      scoreCard?.updated,
+      scoreCard.updated,
     ].whereNotNull().maxOrNull;
 
     return PackageDocument(
@@ -330,8 +330,8 @@ class SearchBackend {
       updated: p.lastVersionPublished,
       readme: compactReadme(readmeAsset?.textContent),
       likeCount: p.likes,
-      grantedPoints: scoreCard?.grantedPubPoints,
-      maxPoints: scoreCard?.maxPubPoints ?? 0,
+      grantedPoints: scoreCard.grantedPubPoints,
+      maxPoints: scoreCard.maxPubPoints,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
