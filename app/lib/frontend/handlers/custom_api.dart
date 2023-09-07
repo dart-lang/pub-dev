@@ -220,7 +220,7 @@ Future<shelf.Response> apiPackageMetricsHandler(
   final score = await packageVersionScoreHandler(request, packageName);
   final result = {
     'score': score.toJson(),
-    'scorecard': data?.toJson(),
+    'scorecard': data.toJson(),
   };
   return jsonResponse(result);
 }
@@ -246,21 +246,21 @@ Future<VersionScore> packageVersionScoreHandler(
 
     var updated = pkg.updated;
     final card = await scoreCardBackend.getScoreCardData(package, v);
-    if (updated == null || card?.updated?.isAfter(updated) == true) {
-      updated = card?.updated;
+    if (updated == null || card.updated?.isAfter(updated) == true) {
+      updated = card.updated;
     }
 
     final tags = <String>{
       ...pkg.getTags(),
       ...pv.getTags(),
-      ...?card?.derivedTags,
+      ...?card.derivedTags,
     };
 
     return VersionScore(
-      grantedPoints: card?.grantedPubPoints,
-      maxPoints: card?.maxPubPoints,
+      grantedPoints: card.grantedPubPoints,
+      maxPoints: card.maxPubPoints,
       likeCount: pkg.likes,
-      popularityScore: card?.popularityScore,
+      popularityScore: card.popularityScore,
       tags: tags.toList(),
       lastUpdated: updated,
     );

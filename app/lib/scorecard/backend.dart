@@ -103,17 +103,17 @@ class ScoreCardBackend {
   ///
   /// If no analysis has been finished for this package, the method loads
   /// the information for the latest version.
-  Future<ScoreCardData?> getLatestFinishedScoreCardData(String package) async {
+  Future<ScoreCardData> getLatestFinishedScoreCardData(String package) async {
     final version = await taskBackend.latestFinishedVersion(package) ??
         await packageBackend.getLatestVersion(package);
     if (version == null) {
-      return null;
+      throw NotFoundException.resource('package "$package"');
     }
     return getScoreCardData(package, version);
   }
 
   /// Returns the [ScoreCardData] for the given package and version.
-  Future<ScoreCardData?> getScoreCardData(
+  Future<ScoreCardData> getScoreCardData(
     String packageName,
     String packageVersion,
   ) async {

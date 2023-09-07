@@ -35,7 +35,7 @@ void main() {
         () async {
           final card =
               await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
-          expect(card!.runtimeVersion, '2023.08.24');
+          expect(card.runtimeVersion, '2023.08.24');
         },
       );
 
@@ -45,7 +45,7 @@ void main() {
           // fallback into accepted runtime works
           final card =
               await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
-          expect(card!.runtimeVersion, '2023.08.24');
+          expect(card.runtimeVersion, '2023.08.24');
         },
       );
 
@@ -55,7 +55,7 @@ void main() {
           // fallback into non-accepted runtime doesn't work
           final card =
               await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
-          expect(card!.runtimeVersion, '2023.08.26');
+          expect(card.runtimeVersion, '2023.08.26');
         },
       );
     });
