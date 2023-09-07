@@ -83,17 +83,17 @@ void main() {
           'test isolate #1 closed.',
         ],
       );
-      // second isolate starts after 6 seconds
+      // no further  isolate starts
       await Future.delayed(Duration(seconds: 7));
       expect(
           messages,
-          containsAll([
+          isNot(containsAll([
             'About to start test isolate #2 ...',
             'test isolate #2 started.',
             'test isolate #2 exited.',
             'About to close test isolate #2 ...',
             'test isolate #2 closed.',
-          ]));
+          ])));
 
       await runner.close();
       await subs.cancel();
@@ -168,17 +168,17 @@ void main() {
           'test isolate #1 closed.',
         ],
       );
-      // second isolate starts after 6 seconds
+      // second isolate is not started
       await Future.delayed(Duration(seconds: 7));
       expect(
           messages,
-          containsAll([
+          isNot(containsAll([
             'About to start test isolate #2 ...',
             'test isolate #2 started.',
             'ERROR from test isolate #2',
             'About to close test isolate #2 ...',
             'test isolate #2 closed.',
-          ]));
+          ])));
 
       await runner.close();
       await subs.cancel();
