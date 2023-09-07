@@ -229,11 +229,12 @@ Future<shelf.Response> _handlePackagePage({
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
     if (!await packageBackend.isPackageVisible(packageName)) {
-      return formattedNotFoundHandler(request);
-    }
-    if (await packageBackend.isPackageModerated(packageName)) {
-      final content = renderModeratedPackagePage(packageName);
-      return htmlResponse(content, status: 404);
+      if (await packageBackend.isPackageModerated(packageName)) {
+        final content = renderModeratedPackagePage(packageName);
+        return htmlResponse(content, status: 404);
+      } else {
+        return formattedNotFoundHandler(request);
+      }
     }
     final data = await loadPackagePageData(packageName, versionName, assetKind);
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
