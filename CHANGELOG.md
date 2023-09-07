@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2023.09.05`.
+ * Upgraded dartdoc to `6.3.0`.
 
 ## `20230904t124200-all`
  * Note: Only a single frontend isolate will process HTTP requests.

@@ -93,10 +93,10 @@ packages:
     dependency: "direct main"
     description:
       name: dartdoc
-      sha256: "1712fe73fdfb7d889252234ddd19c707cd3d7c255025521adc90759feb56adb1"
+      sha256: d9bab893c9f42615f62bf2d3ff2b89d5905952d1d42cc7890003537249cb472e
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.2"
+    version: "6.3.0"
   file:
     dependency: transitive
     description:
@@ -428,10 +428,10 @@ packages:
     dependency: transitive
     description:
       name: webkit_inspection_protocol
-      sha256: "67d3a8b6c79e1987d19d848b0892e582dbb0c66c57cc1fef58a177dd2aa2823d"
+      sha256: "87d3f2333bb240704cd3f1c6b5b7acd8a10e7f0bc28c28dcf14e782014f4a572"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.1"
   yaml:
     dependency: transitive
     description:

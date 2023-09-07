@@ -189,6 +189,10 @@ extension DartDocPageRender on DartDocPage {
   d.Node _renderMainContent(DartDocPageOptions options) => d.div(
         id: 'dartdoc-main-content',
         classes: ['main-content'],
+        attributes: {
+          if (aboveSidebarUrl != null) 'data-above-sidebar': aboveSidebarUrl!,
+          if (belowSidebarUrl != null) 'data-below-sidebar': belowSidebarUrl!,
+        },
         child: _content,
       );
 
@@ -224,6 +228,7 @@ extension DartDocPageRender on DartDocPage {
             ],
           ),
           _left,
+          d.div(id: 'dartdoc-sidebar-left-content', text: ''),
         ],
       );
 
@@ -251,8 +256,9 @@ extension DartDocPageRender on DartDocPage {
   d.Node _renderBody(DartDocPageOptions options) {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
     return d.element('body', attributes: {
-      'data-base-href': dataBaseHref == '.' ? '' : '$dataBaseHref/',
-      'data-using-base-href': 'false',
+      'data-base-href':
+          baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
+      'data-using-base-href': usingBaseHref ?? 'false',
       'class': 'light-theme',
     }, children: [
       d.element('noscript',

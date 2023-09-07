@@ -40,7 +40,8 @@ class PubDataGenerator {
 
     final apiMap = <String, ApiElement>{};
     void addElement(ModelElement elem) {
-      final isReferenced = elem.kind == 'library' || elem.kind == 'class';
+      final isReferenced =
+          elem.kind == Kind.library || elem.kind == Kind.class_;
       final fqnParts = elem.fullyQualifiedName.split('.');
       final name = fqnParts.removeLast();
       final parent = fqnParts.isEmpty ? null : fqnParts.join('.');
@@ -48,7 +49,7 @@ class PubDataGenerator {
           elem.fullyQualifiedName,
           () => ApiElement(
                 name: name,
-                kind: elem.kind,
+                kind: elem.kind.toString(),
                 parent: parent,
                 // TODO: decide if keeping the source reference is worth it
                 // We could probably store it more efficiently by not repeating

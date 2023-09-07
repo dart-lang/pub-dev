@@ -17,6 +17,16 @@ Map<String, dynamic> _$BreadcrumbToJson(Breadcrumb instance) =>
       'href': instance.href,
     };
 
+DartDocSidebar _$DartDocSidebarFromJson(Map<String, dynamic> json) =>
+    DartDocSidebar(
+      content: json['content'] as String,
+    );
+
+Map<String, dynamic> _$DartDocSidebarToJson(DartDocSidebar instance) =>
+    <String, dynamic>{
+      'content': instance.content,
+    };
+
 DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
       title: json['title'] as String,
       description: json['description'] as String,
@@ -26,6 +36,10 @@ DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
       left: json['left'] as String,
       right: json['right'] as String,
       content: json['content'] as String,
+      baseHref: json['baseHref'] as String?,
+      usingBaseHref: json['usingBaseHref'] as String?,
+      aboveSidebarUrl: json['aboveSidebarUrl'] as String?,
+      belowSidebarUrl: json['belowSidebarUrl'] as String?,
     );
 
 Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
@@ -36,4 +50,8 @@ Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
       'left': instance.left,
       'right': instance.right,
       'content': instance.content,
+      'baseHref': instance.baseHref,
+      'usingBaseHref': instance.usingBaseHref,
+      'aboveSidebarUrl': instance.aboveSidebarUrl,
+      'belowSidebarUrl': instance.belowSidebarUrl,
     };

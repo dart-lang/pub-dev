@@ -179,9 +179,16 @@ Future<void> _dartdoc({
     final suffix = file.path.substring(docDir.length + 1);
     final targetFile = File(p.join(tmpOutDir, suffix));
     await targetFile.parent.create(recursive: true);
-    if (file.path.endsWith('.html')) {
+    final isDartDocSidebar =
+        file.path.endsWith('.html') && file.path.endsWith('-sidebar.html');
+    final isDartDocPage = file.path.endsWith('.html') && !isDartDocSidebar;
+    if (isDartDocPage) {
       final page = DartDocPage.parse(await file.readAsString(encoding: _utf8));
       await targetFile.writeAsBytes(_jsonUtf8.encode(page.toJson()));
+    } else if (isDartDocSidebar) {
+      final sidebar =
+          DartDocSidebar.parse(await file.readAsString(encoding: _utf8));
+      await targetFile.writeAsBytes(_jsonUtf8.encode(sidebar.toJson()));
     } else {
       await file.copy(targetFile.path);
     }
