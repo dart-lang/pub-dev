@@ -3,17 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
 import '../../dartdoc/handlers.dart';
+import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
-import '../../shared/scheduler_stats.dart';
-
-import '_isolate.dart';
 
 final Logger logger = Logger('pub.dartdoc');
 
@@ -27,16 +24,8 @@ class DartdocCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await runIsolates(
-      logger: logger,
-      frontendEntryPoint: _frontendMain,
-    );
+    await withServices(() async {
+      await runHandler(logger, dartdocServiceHandler);
+    });
   }
-}
-
-Future _frontendMain(EntryMessage message) async {
-  final statsConsumer = ReceivePort();
-  registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(ReadyMessage());
-  await runHandler(logger, dartdocServiceHandler);
 }

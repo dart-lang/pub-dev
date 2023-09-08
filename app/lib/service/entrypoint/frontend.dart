@@ -8,6 +8,7 @@ import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/service/services.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
 
@@ -21,8 +22,6 @@ import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 
-import '_isolate.dart';
-
 final Logger _logger = Logger('pub');
 
 class DefaultCommand extends Command {
@@ -35,16 +34,13 @@ class DefaultCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await runIsolates(
-      logger: _logger,
-      frontendEntryPoint: _main,
-    );
+    await withServices(() async {
+      await _main();
+    });
   }
 }
 
-Future _main(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-
+Future _main() async {
   await updateLocalBuiltFilesIfNeeded();
   final appHandler = createAppHandler();
 

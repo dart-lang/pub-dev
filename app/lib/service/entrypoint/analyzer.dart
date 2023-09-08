@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 
 import '../../analyzer/handlers.dart';
+import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../../shared/scheduler_stats.dart';
 import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
@@ -30,19 +30,13 @@ class AnalyzerCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await runIsolates(
-      logger: logger,
-      frontendEntryPoint: _frontendMain,
-      workerEntryPoint: _workerMain,
-    );
+    await withServices(() async {
+      final worker =
+          await startWorkerIsolate(logger: logger, entryPoint: _workerMain);
+      registerScopeExitCallback(worker.close);
+      await runHandler(logger, analyzerServiceHandler);
+    });
   }
-}
-
-Future _frontendMain(EntryMessage message) async {
-  final statsConsumer = ReceivePort();
-  registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(ReadyMessage());
-  await runHandler(logger, analyzerServiceHandler);
 }
 
 Future _workerMain(EntryMessage message) async {

@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Note: isolates do not automatically restart after they are closed with uncaught error.
+ * Note: no control isolate is used, first isolate is used as the HTTP-serving frontend.
 
 ## `20230907t123500-all`
  * Bumped runtimeVersion to `2023.09.05`.
