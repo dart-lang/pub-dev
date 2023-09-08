@@ -158,6 +158,16 @@ class Package extends db.ExpandoModel<String> {
   @AutomatedPublishingProperty(propertyName: 'automatedPublishing')
   AutomatedPublishing? automatedPublishingField;
 
+  /// The latest point in time at which a security advisory that affects this
+  /// package has been synchronized into pub.
+  ///
+  /// `null` if the package has never been affected by an advisory.
+  ///
+  /// Once set, it must only be moved forward, never `null` again and never a
+  /// future date.
+  @db.DateTimeProperty()
+  DateTime? latestAdvisory;
+
   Package();
 
   /// Creates a new [Package] and populates all of it's fields from [version].

@@ -1,11 +1,11 @@
 {
-  "id": "GHSA-5678-5678-5678",
-  "summary": "Example",
+  "id": "GHSA-1234-1234-1234",
+  "summary": "Example with invalid data",
   "details": "This is a dummy example.",
   "aliases": [
     "CVE-1111"
   ],
-  "modified": "2013-04-11T01:46:51.549596Z",
+  "modified": "2014-04-11T01:46:51.549596Z",
   "published": "2012-05-24T17:37:16Z",
   "database_specific": {
     "severity": "MODERATE",

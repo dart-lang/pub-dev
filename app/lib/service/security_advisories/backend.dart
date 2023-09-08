@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:_pub_shared/data/advisories_api.dart' show OSV;
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -14,6 +14,8 @@ import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
+import '../../package/models.dart' show Package;
+import '../../shared/exceptions.dart';
 
 final _logger = Logger('security_advisories.backend');
 
@@ -52,7 +54,8 @@ class SecurityAdvisoryBackend {
 
   bool _isValidAdvisory(OSV osv) {
     final errors = sanityCheckOSV(osv);
-    errors.forEach((error) => _logger.shout('[advisory-malformed]: $error'));
+    errors.forEach(
+        (error) => _logger.shout('[advisory-malformed] ID: ${osv.id}: $error'));
     return errors.isEmpty;
   }
 
@@ -93,20 +96,65 @@ class SecurityAdvisoryBackend {
             osv.published != null ? DateTime.parse(osv.published!) : modified
         ..syncTime = syncTime;
 
-      tx.queueMutations(
-        // This is an upsert
-        inserts: [newAdvisory],
-      );
+      final packages = await _lookupAffectedPackages(newAdvisory, tx);
+      if (packages.length > 20) {
+        _logger.shout(
+            'Failed to update `latestAdvisory` field for packages affected by'
+            ' `${newAdvisory.name}`. Too many (>20) affected packages.');
+        tx.queueMutations(
+          // This is an upsert
+          inserts: [newAdvisory],
+        );
+      } else {
+        packages.forEach((pkg) => pkg.latestAdvisory = syncTime);
+        tx.queueMutations(
+          // This is an upsert
+          inserts: [newAdvisory, ...packages],
+        );
+      }
 
       return newAdvisory;
     });
   }
 
-  Future<void> deleteAdvisory(String id) async {
-    final key = _db.emptyKey.append(SecurityAdvisory, id: id);
-    // If necessary this can be optimized by deleting up to 500 at once.
-    // At this point we don't expect many deletes so we keep it simple.
-    await _db.commit(deletes: [key]);
+  Future<void> deleteAdvisory(
+      SecurityAdvisory advisory, DateTime syncTime) async {
+    return await withRetryTransaction(_db, (tx) async {
+      final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
+      // If necessary this can be optimized by deleting up to 500 at once.
+      // At this point we don't expect many deletes so we keep it simple.
+      // await _db.commit(deletes: [key]);
+
+      final packages = await _lookupAffectedPackages(advisory, tx);
+      if (packages.length > 20) {
+        _logger.shout(
+            'Failed to update `latestAdvisory` field for packages affected by'
+            ' `${advisory.name}`. Too many (>20) affected packages.');
+
+        tx.queueMutations(deletes: [key]);
+      } else {
+        packages.forEach((pkg) => pkg.latestAdvisory = syncTime);
+        tx.queueMutations(inserts: packages, deletes: [key]);
+      }
+    });
+  }
+
+  Future<List<Package>> _lookupAffectedPackages(
+      SecurityAdvisory advisory, TransactionWrapper tx) async {
+    final packages = <Package>[];
+    for (final packageName in advisory.affectedPackages!) {
+      final packageKey = _db.emptyKey.append(Package, id: packageName);
+      final package = await tx.lookupOrNull<Package>(packageKey);
+      if (package == null) {
+        _logger
+            .shout('Package $packageName not found, while ingesting advisory '
+                '${advisory.id}.');
+        continue;
+      }
+
+      packages.add(package);
+    }
+    return packages;
   }
 }
 

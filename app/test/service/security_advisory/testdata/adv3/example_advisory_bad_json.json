@@ -6,7 +6,7 @@
     "CVE-1111"
   ],
   "modified": "2013-04-11T01:46:51.549596Z",
-  "published": "2012-05-24T17:37:16Z",
+  "published": "2012-05-24T17:37:16Z"],
   "database_specific": {
     "severity": "MODERATE",
     "github_reviewed": true
