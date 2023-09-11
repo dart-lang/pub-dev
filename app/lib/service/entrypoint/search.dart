@@ -5,13 +5,15 @@
 import 'dart:async';
 
 import 'package:args/command_runner.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/search/backend.dart';
 
+import '../../search/backend.dart';
 import '../../search/dart_sdk_mem_index.dart';
 import '../../search/flutter_sdk_mem_index.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
+import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -31,16 +33,16 @@ class SearchCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await runIsolates(
-      logger: _logger,
-      frontendEntryPoint: _main,
-      workerEntryPoint: _worker,
-    );
+    await withServices(() async {
+      final worker =
+          await startWorkerIsolate(logger: _logger, entryPoint: _worker);
+      registerScopeExitCallback(worker.close);
+      await _main();
+    });
   }
 }
 
-Future _main(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
+Future _main() async {
   await popularityStorage.start();
 
   // Don't block on init, we need to serve liveliness and readiness checks.

@@ -7,14 +7,9 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
-import '../../shared/env_config.dart';
-
 import '../services.dart';
-import 'tools.dart';
 
 /// Wrapper method to replace [withServices] into [withFakeServices] for
 /// local tests and development.
@@ -44,73 +39,22 @@ class DebugMessage extends Message {
   DebugMessage(this.text);
 }
 
-/// Runs the collection of different isolate groups (where a group of
-/// isolate execute the same code).
-///
-/// TODO: The runner will handle the cross-group communication of the isolates.
-@visibleForTesting
-class IsolateCollection {
-  final Logger logger;
-  final ServicesWrapperFn servicesWrapperFn;
-  var _closing = false;
-
-  final _groups = <IsolateGroup>[];
-
-  IsolateCollection({
-    required this.logger,
-    required this.servicesWrapperFn,
-  });
-
-  /// Starts a new isolate group with [count] running instances.
-  @visibleForTesting
-  Future<IsolateGroup> startGroup({
-    required String kind,
-    required Future<void> Function(EntryMessage message) entryPoint,
-    required int count,
-  }) async {
-    if (_closing) {
-      throw AssertionError('Runner is closed.');
-    }
-    final group = IsolateGroup(
-      runner: this,
-      kind: kind,
-      servicesWrapperFn: servicesWrapperFn,
-      entryPoint: entryPoint,
-    );
-    _groups.add(group);
-    await group.start(count);
-    return group;
-  }
-
-  Future<void> _closeGroups() async {
-    while (_groups.isNotEmpty) {
-      await _groups.removeLast().close();
-    }
-  }
-
-  Future<void> close() async {
-    _closing = true;
-    await _closeGroups();
-  }
-}
-
 /// Starts, monitors, stops or restarts isolates that run the same code.
 ///
 /// Once an isolate starts, it is expected to run indefinitely. When it exits,
 /// either by completion or uncaught exception, a new isolate will be started.
-class IsolateGroup {
-  final IsolateCollection runner;
+class IsolateRunner {
+  final Logger logger;
   final String kind;
   final ServicesWrapperFn servicesWrapperFn;
   final Future<void> Function(EntryMessage message) entryPoint;
 
   int started = 0;
   final _isolates = <_Isolate>[];
-  bool get _closing => runner._closing;
-  Logger get logger => runner.logger;
+  bool _closing = false;
 
-  IsolateGroup({
-    required this.runner,
+  IsolateRunner({
+    required this.logger,
     required this.kind,
     required this.servicesWrapperFn,
     required this.entryPoint,
@@ -143,7 +87,6 @@ class IsolateGroup {
     final id = '$kind isolate #$started';
     logger.info('About to start $id ...');
     final isolate = _Isolate(
-      parent: runner,
       group: this,
       logger: logger,
       id: id,
@@ -163,76 +106,33 @@ class IsolateGroup {
   }
 
   Future<void> close() async {
+    _closing = true;
     while (_isolates.isNotEmpty) {
       await _isolates.removeLast().close();
     }
   }
 }
 
-/// Starts an [IsolateCollection] with the default isolate configuration
-/// (when specified).
-///
-/// After starting the isolates, the method waits for terminating
-/// process signals (e.g. SIGTERM), and when recieved, closes the
-/// isolates and returns.
-Future runIsolates({
+/// Starts a worker isolate and returns its runner to control it.
+Future<IsolateRunner> startWorkerIsolate({
   required Logger logger,
-  Future<void> Function(EntryMessage message)? frontendEntryPoint,
-  Future<void> Function(EntryMessage message)? workerEntryPoint,
+  required Future<void> Function(EntryMessage message) entryPoint,
   ServicesWrapperFn? servicesWrapperFn,
 }) async {
-  final runner = IsolateCollection(
+  final worker = IsolateRunner(
     logger: logger,
+    kind: 'worker',
     servicesWrapperFn: servicesWrapperFn ?? withServices,
+    entryPoint: entryPoint,
   );
-  await runner.servicesWrapperFn(() async {
-    _verifyStampFile();
-    try {
-      if (frontendEntryPoint != null) {
-        await runner.startGroup(
-          kind: 'frontend',
-          entryPoint: frontendEntryPoint,
-          count: 1,
-        );
-      }
-      if (workerEntryPoint != null) {
-        await runner.startGroup(
-          kind: 'worker',
-          entryPoint: workerEntryPoint,
-          count: 1,
-        );
-      }
-
-      await waitForProcessSignalTermination();
-
-      await runner.close();
-    } catch (e, st) {
-      logger.shout('Failed to start server.', e, st);
-      rethrow;
-    }
-  });
-}
-
-void _verifyStampFile() {
-  if (!envConfig.isRunningLocally) {
-    // The existence of this file may indicate an issue with the service health.
-    // Checking it only in AppEngine environment.
-    final stampFile =
-        File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
-    if (stampFile.existsSync()) {
-      stderr.writeln('[warning-service-restarted]: '
-          '${stampFile.path} already exists, indicating that this process has been restarted.');
-    } else {
-      stampFile.createSync(recursive: true);
-    }
-  }
+  await worker.start(1);
+  return worker;
 }
 
 /// Represents a running isolate, with its current status and subscriptions.
 class _Isolate {
   /// Parent runner that owns this group
-  final IsolateCollection parent;
-  final IsolateGroup group;
+  final IsolateRunner group;
   final Logger logger;
   final String id;
   final ServicesWrapperFn servicesWrapperFn;
@@ -256,7 +156,6 @@ class _Isolate {
   late final done = _doneCompleter.future;
 
   _Isolate({
-    required this.parent,
     required this.group,
     required this.logger,
     required this.id,

@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 import '../package/models.dart' show Package;
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
-import '../shared/scheduler_stats.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
@@ -31,7 +30,6 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 class IndexUpdater implements TaskRunner {
   final DatastoreDB _db;
   final InMemoryPackageIndex _packageIndex;
-  Timer? _statsTimer;
 
   IndexUpdater(this._db, this._packageIndex);
 
@@ -112,15 +110,9 @@ class IndexUpdater implements TaskRunner {
       ],
     );
     scheduler.run();
-
-    _statsTimer = Timer.periodic(const Duration(minutes: 5), (_) {
-      updateLatestStats(scheduler.stats());
-    });
   }
 
   Future<void> close() async {
-    _statsTimer?.cancel();
-    _statsTimer = null;
     // TODO: close scheduler
   }
 

@@ -17,15 +17,13 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(
+      final runner = IsolateRunner(
         logger: logger,
         servicesWrapperFn: (fn) => fn(),
-      );
-      await runner.startGroup(
         kind: 'test',
         entryPoint: _main1,
-        count: 2,
       );
+      await runner.start(2);
 
       await Future.delayed(Duration(seconds: 2));
       expect(messages, hasLength(6));
@@ -56,64 +54,19 @@ void main() {
       );
     });
 
-    test('start -> end', () async {
-      final logger = Logger.detached('test');
-      final messages = <String>[];
-      final subs = logger.onRecord.listen((event) {
-        messages.add(event.message);
-      });
-      final runner = IsolateCollection(
-        logger: logger,
-        servicesWrapperFn: (fn) => fn(),
-      );
-      await runner.startGroup(
-        kind: 'test',
-        entryPoint: _main2,
-        count: 1,
-      );
-
-      await Future.delayed(Duration(seconds: 1));
-      expect(
-        messages,
-        [
-          'About to start test isolate #1 ...',
-          'test isolate #1 started.',
-          'test isolate #1 exited.',
-          'About to close test isolate #1 ...',
-          'test isolate #1 closed.',
-        ],
-      );
-      // no further  isolate starts
-      await Future.delayed(Duration(seconds: 7));
-      expect(
-          messages,
-          isNot(containsAll([
-            'About to start test isolate #2 ...',
-            'test isolate #2 started.',
-            'test isolate #2 exited.',
-            'About to close test isolate #2 ...',
-            'test isolate #2 closed.',
-          ])));
-
-      await runner.close();
-      await subs.cancel();
-    });
-
     test('renew', () async {
       final logger = Logger.detached('test');
       final messages = <String>[];
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(
+      final runner = IsolateRunner(
         logger: logger,
         servicesWrapperFn: (fn) => fn(),
-      );
-      final group = await runner.startGroup(
         kind: 'test',
         entryPoint: _main4,
-        count: 1,
       );
+      await runner.start(1);
 
       await Future.delayed(Duration(seconds: 1));
       expect(
@@ -124,7 +77,7 @@ void main() {
         ],
       );
       // renew isolate
-      await group.renew(count: 1, wait: Duration(seconds: 1));
+      await runner.renew(count: 1, wait: Duration(seconds: 1));
       await Future.delayed(Duration(seconds: 1));
       expect(
           messages,
@@ -147,15 +100,13 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateCollection(
+      final runner = IsolateRunner(
         logger: logger,
         servicesWrapperFn: (fn) => fn(),
-      );
-      await runner.startGroup(
         kind: 'test',
         entryPoint: _main3,
-        count: 1,
       );
+      await runner.start(1);
 
       await Future.delayed(Duration(seconds: 1));
       expect(
@@ -191,10 +142,6 @@ Future<void> _main1(EntryMessage message) async {
   final currentIsolate = Isolate.current;
   message.protocolSendPort.send(DebugMessage('${currentIsolate.debugName}'));
   await Completer().future;
-}
-
-Future<void> _main2(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
 }
 
 Future<void> _main3(EntryMessage message) async {
