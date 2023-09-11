@@ -15,7 +15,9 @@ export 'package:pub_dartdoc_data/dartdoc_page.dart';
 final class DartDocPageOptions {
   final String package;
   final String version;
-  final String segment;
+
+  /// The URL segment the version is served under (e.g. `/1.2.5/` or `/latest/`)
+  final String urlSegment;
   final bool isLatestStable;
 
   /// Path of the current file relative to the documentation root.
@@ -24,7 +26,7 @@ final class DartDocPageOptions {
   DartDocPageOptions({
     required this.package,
     required this.version,
-    required this.segment,
+    required this.urlSegment,
     required this.isLatestStable,
     required this.path,
   });
@@ -44,7 +46,7 @@ final class DartDocPageOptions {
       package,
       includeHost: true,
       // keeps the [version] or the "latest" string of the requested URI
-      version: segment,
+      version: urlSegment,
       relativePath: p,
     );
   }

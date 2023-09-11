@@ -18,11 +18,11 @@ class ResolvedDocUrlVersion {
   /// * `"latest"`,
   /// * `"${version}"`, or,
   /// * `""` (indicating empty response)
-  final String segment;
+  final String urlSegment;
 
   ResolvedDocUrlVersion({
     required this.version,
-    required this.segment,
+    required this.urlSegment,
   });
 
   factory ResolvedDocUrlVersion.fromJson(Map<String, dynamic> json) =>
@@ -30,5 +30,5 @@ class ResolvedDocUrlVersion {
 
   Map<String, dynamic> toJson() => _$ResolvedDocUrlVersionToJson(this);
 
-  bool get isEmpty => version.isEmpty || segment.isEmpty;
+  bool get isEmpty => version.isEmpty || urlSegment.isEmpty;
 }
