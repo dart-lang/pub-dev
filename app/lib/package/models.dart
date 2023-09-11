@@ -22,7 +22,6 @@ import '../shared/model_properties.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-import '../task/models.dart';
 
 part 'models.g.dart';
 
@@ -946,29 +945,13 @@ class PackageView extends Object with FlagMixin {
     required Package package,
     required LatestReleases releases,
     PackageVersion? version,
-    ScoreCardData? scoreCard,
+    required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
   }) {
-    final hasPanaReport = scoreCard?.hasPanaReport ?? false;
-    final taskStatus = scoreCard?.taskStatus;
-    bool isPending = false;
-    if (taskStatus != null) {
-      isPending = taskStatus == PackageVersionStatus.pending;
-    } else {
-      isPending =
-          // Job processing has not created any card yet.
-          (scoreCard == null) ||
-              // The uploader has recently removed the "discontinued" flag, but the
-              // analysis did not complete yet.
-              (scoreCard.isDiscontinued && !package.isDiscontinued) ||
-              // No blocker for analysis, but no results yet.
-              (!scoreCard.isSkipped && !hasPanaReport);
-    }
-
     final tags = <String>{
       ...package.getTags(),
       ...?version?.getTags(),
-      ...?scoreCard?.derivedTags,
+      ...?scoreCard.derivedTags,
     };
     return PackageView(
       name: package.name!,
@@ -976,17 +959,16 @@ class PackageView extends Object with FlagMixin {
       ellipsizedDescription: version?.ellipsizedDescription,
       created: package.created!,
       publisherId: package.publisherId,
-      isPending: isPending,
+      isPending: scoreCard.isPending,
       likes: package.likes,
-      grantedPubPoints: scoreCard?.grantedPubPoints,
-      maxPubPoints: scoreCard?.maxPubPoints,
+      grantedPubPoints: scoreCard.grantedPubPoints,
+      maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
       replacedBy: package.replacedBy,
-      spdxIdentifiers: scoreCard?.panaReport?.licenses
-          ?.map((e) => e.spdxIdentifier)
-          .toList(),
+      spdxIdentifiers:
+          scoreCard.panaReport?.licenses?.map((e) => e.spdxIdentifier).toList(),
       apiPages: apiPages,
-      screenshots: scoreCard?.panaReport?.screenshots,
+      screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.topics,
     );
   }
