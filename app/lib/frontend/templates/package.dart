@@ -28,7 +28,7 @@ import 'views/pkg/title_content.dart';
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
 d.Node renderPkgInfoBox(PackagePageData data) {
-  final package = data.package!;
+  final package = data.package;
   final packageLinks = data.packageLinks;
 
   String? documentationUrl = packageLinks.documentationUrl;
@@ -37,11 +37,11 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   }
   final dartdocsUrl = urls.pkgDocUrl(
     package.name!,
-    version: data.version!.version,
+    version: data.version.version,
     isLatest: data.isLatestStable,
   );
 
-  final urlProblems = data.scoreCard?.panaReport?.urlProblems;
+  final urlProblems = data.scoreCard.panaReport?.urlProblems;
   final metaLinks = <InfoBoxLink>[];
   final docLinks = <InfoBoxLink>[];
   void addLink(
@@ -86,12 +86,12 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   addLink(data.contributingUrl, 'Contributing');
 
   addLink(documentationUrl, 'Documentation', documentation: true);
-  if (data.scoreCard?.hasApiDocs ?? false) {
+  if (data.scoreCard.hasApiDocs) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
   // TODO: display only verified links
-  final fundingLinks = data.version!.pubspec!.funding.map((uri) {
+  final fundingLinks = data.version.pubspec!.funding.map((uri) {
     return InfoBoxLink(uri.toString(), uri.host, rel: 'ugc');
   }).toList();
   return packageInfoBoxNode(
@@ -101,7 +101,7 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     fundingLinks: fundingLinks,
     labeledScores: labeledScoresNodeFromPackageView(
       data.toPackageView(),
-      version: data.isLatestStable ? null : data.version!.version,
+      version: data.isLatestStable ? null : data.version.version,
     ),
   );
 }
@@ -109,9 +109,9 @@ d.Node renderPkgInfoBox(PackagePageData data) {
 /// Renders the package header template for header metadata and
 /// wraps it with content-header.
 d.Node renderPkgHeader(PackagePageData data) {
-  final package = data.package!;
-  final showPrereleaseVersion = data.latestReleases!.showPrerelease;
-  final showPreviewVersion = data.latestReleases!.showPreview;
+  final package = data.package;
+  final showPrereleaseVersion = data.latestReleases.showPrerelease;
+  final showPreviewVersion = data.latestReleases.showPreview;
   final bool showReleases =
       !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 
@@ -120,7 +120,7 @@ d.Node renderPkgHeader(PackagePageData data) {
   final metadataNode = packageHeaderNode(
     packageName: package.name!,
     publisherId: package.publisherId,
-    published: data.version!.created!,
+    published: data.version.created!,
     isNullSafe: isNullSafe,
     isDart3Compatible:
         pkgView.tags.contains(PackageVersionTags.isDart3Compatible),
@@ -132,7 +132,7 @@ d.Node renderPkgHeader(PackagePageData data) {
   return renderDetailHeader(
     titleNode: titleContentNode(
       package: package.name!,
-      version: data.version!.version!,
+      version: data.version.version!,
     ),
     packageLikes: package.likes,
     isLiked: data.isLiked,
@@ -141,8 +141,8 @@ d.Node renderPkgHeader(PackagePageData data) {
     metadataNode: metadataNode,
     tagsNode: tagsNodeFromPackageView(
       package: pkgView,
-      version: data.isLatestStable ? null : data.version!.version,
-      isRetracted: data.version!.isRetracted,
+      version: data.isLatestStable ? null : data.version.version,
+      isRetracted: data.version.isRetracted,
     ),
     isLoose: true,
   );
@@ -242,39 +242,39 @@ String _renderPkgPage({
   final content = renderDetailPage(
     headerNode: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: data.version!.ellipsizedDescription,
+    infoBoxLead: data.version.ellipsizedDescription,
     infoBoxNode: renderPkgInfoBox(data),
     footerNode: renderPackageSchemaOrgHtml(data),
   );
 
-  final isFlutterPackage = data.version!.pubspec!.usesFlutter;
+  final isFlutterPackage = data.version.pubspec!.usesFlutter;
   final packageAndVersion = data.isLatestStable
-      ? data.package!.name
-      : '${data.package!.name} ${data.version!.version}';
+      ? data.package.name
+      : '${data.package.name} ${data.version.version}';
   final pageTitle =
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
   final canonicalUrl = urls.pkgPageUrl(
-    data.package!.name!,
-    version: data.isLatestStable ? null : data.version!.version,
+    data.package.name!,
+    version: data.isLatestStable ? null : data.version.version,
     includeHost: true,
     pkgPageTab: pkgPageTab,
   );
   final noIndex = pkgPageTab == urls.PkgPageTab.install ||
       pkgPageTab == urls.PkgPageTab.score ||
-      (card?.isSkipped ?? false) ||
-      (card?.grantedPubPoints == 0) ||
-      data.package!.isExcludedInRobots;
+      (card.isSkipped) ||
+      (card.grantedPubPoints == 0) ||
+      data.package.isExcludedInRobots;
   return renderLayoutPage(
     PageType.package,
     content,
     title: pageTitle,
-    pageDescription: data.version!.ellipsizedDescription,
+    pageDescription: data.version.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
     noIndex: noIndex,
     pageData: pkgPageData(
-      data.package!,
-      data.version!,
+      data.package,
+      data.version,
       editable: pkgPageTab == urls.PkgPageTab.admin,
     ),
   );
@@ -371,9 +371,9 @@ Tab? _exampleTab(PackagePageData data) {
 
 Tab _installTab(PackagePageData data) {
   final content = installTabNode(
-    version: data.version!,
-    tags: data.scoreCard?.panaReport?.derivedTags,
-    isDevDependency: devDependencyPackages.contains(data.version!.package),
+    version: data.version,
+    tags: data.scoreCard.panaReport?.derivedTags,
+    isDevDependency: devDependencyPackages.contains(data.version.package),
   );
   return Tab.withContent(
     id: 'installing',
@@ -423,15 +423,15 @@ Tab _scoreTab(PackagePageData data) {
     title: 'Scores',
     contentNode: scoreTabNode(
       card: data.scoreCard,
-      likeCount: data.package!.likes,
-      usesFlutter: data.version!.pubspec!.usesFlutter,
+      likeCount: data.package.likes,
+      usesFlutter: data.version.pubspec!.usesFlutter,
     ),
   );
 }
 
 d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
-  final p = data.package!;
-  final pv = data.version!;
+  final p = data.package;
+  final pv = data.version;
   final map = <String, dynamic>{
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
@@ -446,8 +446,8 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
   };
   if (data.hasLicense) {
     map['license'] = urls.pkgLicenseUrl(
-      data.package!.name!,
-      version: data.isLatestStable ? null : data.version!.version,
+      data.package.name!,
+      version: data.isLatestStable ? null : data.version.version,
       includeHost: true,
     );
   }
@@ -471,8 +471,8 @@ List<Tab> buildPackageTabs({
   Tab? adminTab,
   Tab? activityLogTab,
 }) {
-  final package = data.package!;
-  final linkVersion = data.isLatestStable ? null : data.version!.version;
+  final package = data.package;
+  final linkVersion = data.isLatestStable ? null : data.version.version;
   readmeTab ??= Tab.withLink(
     id: 'readme',
     title: 'Readme',
@@ -522,8 +522,8 @@ List<Tab> buildPackageTabs({
     if (pubspecTab != null) pubspecTab,
     versionsTab,
     scoreTab,
-    if (data.isAdmin!) adminTab,
-    if (data.isAdmin!) activityLogTab,
+    if (data.isAdmin) adminTab,
+    if (data.isAdmin) activityLogTab,
   ];
 }
 

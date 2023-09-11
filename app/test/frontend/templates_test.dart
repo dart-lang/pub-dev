@@ -151,8 +151,8 @@ void main() {
         );
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
+          'published': data.package.created,
+          'updated': data.version.created,
         });
       },
     );
@@ -165,8 +165,8 @@ void main() {
             await loadPackagePageData('oxygen', '1.2.0', AssetKind.changelog);
         final html = renderPkgChangelogPage(data);
         expectGoldenFile(html, 'pkg_changelog_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
+          'published': data.package.created,
+          'updated': data.version.created,
         });
       },
     );
@@ -179,8 +179,8 @@ void main() {
             await loadPackagePageData('oxygen', '1.2.0', AssetKind.example);
         final html = renderPkgExamplePage(data);
         expectGoldenFile(html, 'pkg_example_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
+          'published': data.package.created,
+          'updated': data.version.created,
         });
       },
     );
@@ -192,8 +192,8 @@ void main() {
         final data = await loadPackagePageData('oxygen', '1.2.0', null);
         final html = renderPkgInstallPage(data);
         expectGoldenFile(html, 'pkg_install_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
+          'published': data.package.created,
+          'updated': data.version.created,
         });
       },
     );
@@ -203,8 +203,8 @@ void main() {
       final data = await loadPackagePageData('oxygen', '1.2.0', null);
       final html = renderPkgScorePage(data);
       expectGoldenFile(html, 'pkg_score_page.html', timestamps: {
-        'published': data.package!.created,
-        'updated': data.version!.created,
+        'published': data.package.created,
+        'updated': data.version.created,
       });
     });
 
@@ -216,8 +216,8 @@ void main() {
             await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_version_page.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
+          'published': data.package.created,
+          'updated': data.version.created,
         });
       },
     );
@@ -234,8 +234,8 @@ void main() {
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html',
             timestamps: {
-              'published': data.package!.created,
-              'updated': data.version!.created,
+              'published': data.package.created,
+              'updated': data.version.created,
             });
       },
     );
@@ -257,8 +257,8 @@ void main() {
       final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
       final html = renderPkgShowPage(data);
       expectGoldenFile(html, 'pkg_show_page_discontinued.html', timestamps: {
-        'published': data.package!.created,
-        'updated': data.version!.created,
+        'published': data.package.created,
+        'updated': data.version.created,
       });
     });
 
@@ -280,8 +280,8 @@ void main() {
       final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
       final html = renderPkgShowPage(data);
       expectGoldenFile(html, 'pkg_show_page_retracted.html', timestamps: {
-        'published': data.package!.created,
-        'updated': data.version!.created,
+        'published': data.package.created,
+        'updated': data.version.created,
       });
 
       final data2 = await loadPackagePageData('pkg', '2.0.0', AssetKind.readme);
@@ -289,8 +289,8 @@ void main() {
       expectGoldenFile(
           html2, 'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
-            'published': data2.package!.created,
-            'updated': data2.version!.created,
+            'published': data2.package.created,
+            'updated': data2.version.created,
           });
     });
 
@@ -314,8 +314,8 @@ void main() {
       expectGoldenFile(
           html2, 'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
-            'published': data2.package!.created,
-            'updated': data2.version!.created,
+            'published': data2.package.created,
+            'updated': data2.version.created,
           });
     });
 
@@ -333,8 +333,8 @@ void main() {
         final data = await loadPackagePageData('pkg', '1.0.0-legacy', null);
         final html = renderPkgScorePage(data);
         expectGoldenFile(html, 'pkg_show_page_legacy.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.version!.created,
+          'published': data.package.created,
+          'updated': data.version.created,
         });
       },
     );
@@ -347,8 +347,8 @@ void main() {
             await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
-          'published': data.package!.created,
-          'updated': data.package!.lastVersionPublished,
+          'published': data.package.created,
+          'updated': data.package.lastVersionPublished,
         });
       },
       processJobsWithFakeRunners: true,
@@ -435,8 +435,8 @@ void main() {
               ['1.0.0'],
             );
             expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
-              'published': data.package!.created,
-              'updated': data.version!.created,
+              'published': data.package.created,
+              'updated': data.version.created,
             });
           },
         );
@@ -461,7 +461,7 @@ void main() {
                 ..expires = mockPresent.add(Duration(days: 61))
                 ..summary = 'recent action');
 
-          final mockPast = data.package!.created!.subtract(Duration(days: 75));
+          final mockPast = data.package.created!.subtract(Duration(days: 75));
           activities.records.add(AuditLogRecord()
             ..created = mockPast
             ..expires = auditLogRecordExpiresInFarFuture
@@ -469,8 +469,8 @@ void main() {
 
           final html = renderPkgActivityLogPage(data, activities);
           expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
-            'published': data.package!.created,
-            'updated': data.version!.created,
+            'published': data.package.created,
+            'updated': data.version.created,
             ..._activityLogTimestamps(activities),
           });
         });
@@ -552,8 +552,8 @@ void main() {
         final rs = await issueGet('/packages/oxygen/versions');
         final html = await rs.readAsString();
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {
-          'version-created': data.version!.created,
-          'package-created': data.package!.created,
+          'version-created': data.version.created,
+          'package-created': data.package.created,
         });
       },
     );
