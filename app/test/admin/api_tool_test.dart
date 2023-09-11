@@ -14,7 +14,9 @@ import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -183,6 +185,21 @@ void main() {
       expect(utf8.decode(rs2), 'Publisher and 1 member(s) deleted.');
       final p2 = await publisherBackend.getPublisher('other.com');
       expect(p2, isNull);
+    });
+
+    testWithProfile('remove package from publisher', fn: () async {
+      final client = createPubApiClient(authToken: siteAdminToken);
+      final rs1 = await client.adminExecuteTool(
+        'remove-package-from-publisher',
+        Uri(pathSegments: ['--package', 'neon']).toString(),
+      );
+      expect(utf8.decode(rs1), 'Done.');
+      final packagePublisherInfo =
+          await packageBackend.getPublisherInfo('neon');
+      expect(packagePublisherInfo.publisherId, isNull);
+      final neon = await packageBackend.lookupPackage('neon');
+      final emails = await accountBackend.getEmailsOfUserIds(neon!.uploaders!);
+      expect(emails, {'admin@pub.dev'});
     });
   });
 }
