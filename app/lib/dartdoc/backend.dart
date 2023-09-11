@@ -33,25 +33,14 @@ class DartdocBackend {
       if (version == 'latest') {
         final latestFinished = await taskBackend.latestFinishedVersion(package);
         if (latestFinished == null) {
-          return ResolvedDocUrlVersion(version: '', segment: '');
+          return ResolvedDocUrlVersion(version: '', urlSegment: '');
         }
         final latestVersion = await packageBackend.getLatestVersion(package);
         return ResolvedDocUrlVersion(
           version: latestFinished,
-          segment: latestFinished == latestVersion ? 'latest' : latestFinished,
+          urlSegment:
+              latestFinished == latestVersion ? 'latest' : latestFinished,
         );
-      }
-
-      // May redirect to /latest/ URL if the version is latest version and it has a finished analysis.
-      final latestVersion = await packageBackend.getLatestVersion(package);
-      if (version == latestVersion) {
-        final latestFinished = await taskBackend.latestFinishedVersion(package);
-        if (version == latestFinished) {
-          return ResolvedDocUrlVersion(
-            version: version,
-            segment: 'latest',
-          );
-        }
       }
 
       // TODO: check if analysis finished for this version, redirect to closest version if possible
@@ -59,7 +48,7 @@ class DartdocBackend {
       // Default: keep the URL on the version that was provided.
       return ResolvedDocUrlVersion(
         version: version,
-        segment: version,
+        urlSegment: version,
       );
     }) as ResolvedDocUrlVersion;
   }

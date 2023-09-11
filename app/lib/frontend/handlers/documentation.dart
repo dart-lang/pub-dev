@@ -50,15 +50,14 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (resolved.isEmpty) {
     return notFoundHandler(request);
   }
-  if (version != resolved.segment) {
+  if (version != resolved.urlSegment) {
     return redirectResponse(pkgDocUrl(
       package,
-      version: resolved.segment,
+      version: resolved.urlSegment,
       relativePath: docFilePath.path,
     ));
   } else {
-    return await handleDartDoc(
-        request, package, resolved.version, docFilePath.path!);
+    return await handleDartDoc(request, package, resolved, docFilePath.path!);
   }
 }
 

@@ -356,11 +356,6 @@ class PubSiteService {
   // **** Experimental task end-points
   // ****
 
-  @Route.get('/experimental/task-documentation/<package>/<version>/<path|[^]*>')
-  Future<Response> taskdocumentation(
-          Request request, String package, String version, String path) =>
-      handleDartDoc(request, package, version, path);
-
   @Route.get('/experimental/task-log/<package>/<version>/')
   Future<Response> taskLog(
       Request request, String package, String version) async {
