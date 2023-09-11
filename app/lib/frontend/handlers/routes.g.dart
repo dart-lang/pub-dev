@@ -340,11 +340,6 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
-    r'/experimental/task-documentation/<package>/<version>/<path|[^]*>',
-    service.taskdocumentation,
-  );
-  router.add(
-    'GET',
     r'/experimental/task-log/<package>/<version>/',
     service.taskLog,
   );

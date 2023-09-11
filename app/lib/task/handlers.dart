@@ -42,6 +42,7 @@ Future<shelf.Response> handleDartDoc(
   shelf.Request request,
   String package,
   String version,
+  String segment,
   String path,
 ) async {
   InvalidInputException.checkPackageName(package);
@@ -53,7 +54,7 @@ Future<shelf.Response> handleDartDoc(
   final isHtml = ext == 'html';
   if (isHtml) {
     final htmlBytes =
-        await cache.dartdocHtmlBytes(package, version, path).get(() async {
+        await cache.dartdocHtmlBytes(package, segment, path).get(() async {
       try {
         final dataGz = await taskBackend.dartdocFile(package, version, path);
         if (dataGz == null) {
@@ -70,6 +71,7 @@ Future<shelf.Response> handleDartDoc(
         final html = page.render(DartDocPageOptions(
           package: package,
           version: version,
+          segment: segment,
           isLatestStable: version == latestVersion,
           path: path,
         ));

@@ -57,8 +57,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       relativePath: docFilePath.path,
     ));
   } else {
-    return await handleDartDoc(
-        request, package, resolved.version, docFilePath.path!);
+    return await handleDartDoc(request, package, resolved.version,
+        resolved.segment, docFilePath.path!);
   }
 }
 
