@@ -1081,14 +1081,14 @@ class PackageLinks {
 
 /// Common data structure shared between package pages.
 class PackagePageData {
-  final Package? package;
-  final LatestReleases? latestReleases;
-  final PackageVersion? version;
-  final PackageVersionInfo? versionInfo;
+  final Package package;
+  final LatestReleases latestReleases;
+  final PackageVersion version;
+  final PackageVersionInfo versionInfo;
   final PackageVersionAsset? asset;
-  final ScoreCardData? scoreCard;
-  final bool? isAdmin;
-  final bool? isLiked;
+  final ScoreCardData scoreCard;
+  final bool isAdmin;
+  final bool isLiked;
   PackageView? _view;
 
   PackagePageData({
@@ -1100,30 +1100,20 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
-  }) : latestReleases = latestReleases ?? package!.latestReleases;
+  }) : latestReleases = latestReleases ?? package.latestReleases;
 
-  PackagePageData.missing({
-    required this.package,
-    required this.latestReleases,
-  })  : version = null,
-        versionInfo = null,
-        asset = null,
-        scoreCard = null,
-        isAdmin = null,
-        isLiked = null;
+  bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
+  bool get hasChangelog => versionInfo.assets.contains(AssetKind.changelog);
+  bool get hasExample => versionInfo.assets.contains(AssetKind.example);
+  bool get hasLicense => versionInfo.assets.contains(AssetKind.license);
+  bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
 
-  bool get hasReadme => versionInfo!.assets.contains(AssetKind.readme);
-  bool get hasChangelog => versionInfo!.assets.contains(AssetKind.changelog);
-  bool get hasExample => versionInfo!.assets.contains(AssetKind.example);
-  bool get hasLicense => versionInfo!.assets.contains(AssetKind.license);
-  bool get hasPubspec => versionInfo!.assets.contains(AssetKind.pubspec);
-
-  bool get isLatestStable => version!.version == package!.latestVersion;
-  int get popularity => popularityStorage.lookupAsScore(package!.name!);
+  bool get isLatestStable => version.version == package.latestVersion;
+  int get popularity => popularityStorage.lookupAsScore(package.name!);
 
   late final packageLinks = () {
     // Trying to use verfied URLs
-    final result = scoreCard?.panaReport?.result;
+    final result = scoreCard.panaReport?.result;
     if (result != null) {
       final baseUrl = urls.inferBaseUrl(
         homepageUrl: result.homepageUrl,
@@ -1139,7 +1129,7 @@ class PackagePageData {
     }
     // Falling back to use URLs from pubspec.yaml.
     // TODO: Remove this and return `null` after this release gets stable.
-    final pubspec = version!.pubspec!;
+    final pubspec = version.pubspec!;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
@@ -1148,7 +1138,7 @@ class PackagePageData {
     );
   }();
 
-  late final contributingUrl = scoreCard?.panaReport?.result?.contributingUrl;
+  late final contributingUrl = scoreCard.panaReport?.result?.contributingUrl;
 
   /// The inferred base URL that can be used to link files from.
   late final repositoryBaseUrl = () {
@@ -1158,12 +1148,12 @@ class PackagePageData {
 
   /// The verified repository (or homepage).
   late final urlResolverFn =
-      scoreCard?.panaReport?.result?.repository?.resolveUrl;
+      scoreCard.panaReport?.result?.repository?.resolveUrl;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
-      package: package!,
-      releases: latestReleases!,
+      package: package,
+      releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
     );
