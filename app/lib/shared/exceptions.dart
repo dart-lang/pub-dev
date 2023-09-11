@@ -60,6 +60,8 @@ class InvalidInputException extends ResponseException {
           message,
         );
 
+  InvalidInputException(String message) : this._(message);
+
   /// Thrown when the parsing and/or validating of the continuation token failed.
   InvalidInputException.continuationParseError()
       : this._('Parsing the continuation token failed.');

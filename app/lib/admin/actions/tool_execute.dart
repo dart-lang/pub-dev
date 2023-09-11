@@ -14,7 +14,7 @@ possible to call them with arguments that contain comma.
 ''',
   options: {
     'tool': 'name of tool to execute',
-    'args': 'comma separate list of arguments',
+    'args': 'comma separated list of arguments',
   },
   invoke: (options) async {
     final toolName = options['toolName']!;

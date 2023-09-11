@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/admin_api.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -31,5 +33,26 @@ void main() {
       );
       expect(result.output.containsKey('tools'), isTrue);
     });
+  });
+
+  testWithProfile('remove package from publisher', fn: () async {
+    final api = createPubApiClient(authToken: siteAdminToken);
+    final result = await api.adminInvokeAction(
+      'remove-package-from-publisher',
+      AdminInvokeActionArguments(arguments: {'package': 'neon'}),
+    );
+    final neon = await packageBackend.lookupPackage('neon');
+
+    expect(result.output, {
+      'previousPublisher': 'example.com',
+      'package': 'neon',
+      'uploaders': [
+        {'email': 'admin@pub.dev', 'userId': neon!.uploaders!.first}
+      ]
+    });
+    final packagePublisherInfo = await packageBackend.getPublisherInfo('neon');
+    expect(packagePublisherInfo.publisherId, isNull);
+    final emails = await accountBackend.getEmailsOfUserIds(neon.uploaders!);
+    expect(emails, {'admin@pub.dev'});
   });
 }

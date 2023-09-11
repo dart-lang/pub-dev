@@ -186,20 +186,5 @@ void main() {
       final p2 = await publisherBackend.getPublisher('other.com');
       expect(p2, isNull);
     });
-
-    testWithProfile('remove package from publisher', fn: () async {
-      final client = createPubApiClient(authToken: siteAdminToken);
-      final rs1 = await client.adminExecuteTool(
-        'remove-package-from-publisher',
-        Uri(pathSegments: ['--package', 'neon']).toString(),
-      );
-      expect(utf8.decode(rs1), 'Done.');
-      final packagePublisherInfo =
-          await packageBackend.getPublisherInfo('neon');
-      expect(packagePublisherInfo.publisherId, isNull);
-      final neon = await packageBackend.lookupPackage('neon');
-      final emails = await accountBackend.getEmailsOfUserIds(neon!.uploaders!);
-      expect(emails, {'admin@pub.dev'});
-    });
   });
 }
