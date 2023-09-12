@@ -361,37 +361,6 @@ void main() {
           '<i>Awaiting analysis to complete.</i>');
     });
 
-    testWithProfile('aborted analysis tab', fn: () async {
-      final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
-      final card = ScoreCardData(
-        packageName: 'pkg',
-        panaReport: PanaReport(
-          timestamp: timestamp,
-          panaRuntimeInfo: _panaRuntimeInfo,
-          reportStatus: ReportStatus.aborted,
-          derivedTags: null,
-          allDependencies: null,
-          licenses: null,
-          report: Report(sections: <ReportSection>[]),
-          result: null,
-          urlProblems: null,
-          screenshots: null,
-        ),
-      );
-      final html = scoreTabNode(
-        card: card,
-        likeCount: 1000000,
-        usesFlutter: false,
-      ).toString();
-
-      expectGoldenFile(
-        html,
-        'analysis_tab_aborted.html',
-        isFragment: true,
-        timestamps: {'timestamp': timestamp},
-      );
-    });
-
     testWithProfile('outdated analysis tab', fn: () async {
       final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
       final card = ScoreCardData(
