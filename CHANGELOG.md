@@ -2,6 +2,11 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2023.09.12`.
+ * Upgraded stable Dart analysis SDK to `3.1.1`.
+ * Upgraded stable Flutter analysis SDK to `3.13.3`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-42.2.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.14.0-0.2.pre`.
  * Note: isolates do not automatically restart after they are closed with uncaught error.
  * Note: no control isolate is used, first isolate is used as the HTTP-serving frontend.
 

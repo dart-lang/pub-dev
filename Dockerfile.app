@@ -32,14 +32,7 @@ RUN ./build.sh
 WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
-# Setup analysis Dart SDKs
-RUN /project/tool/setup-dart.sh /tool/stable 3.1.0
-RUN /project/tool/setup-dart.sh /tool/preview 3.2.0-42.1.beta
 RUN /project/tool/setup-webp.sh /usr/local/bin
-
-# Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 3.13.0
-RUN /project/tool/setup-flutter.sh /tool/preview 3.13.0
 
 # Clear out any arguments the base images might have set
 CMD []
