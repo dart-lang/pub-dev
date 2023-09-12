@@ -6,7 +6,7 @@ import '../../../dom/dom.dart' as d;
 
 d.Node labeledScoresNode({
   required String pkgScorePageUrl,
-  required int? likeCount,
+  required int likeCount,
   required int? grantedPubPoints,
   required int? popularity,
 }) {
