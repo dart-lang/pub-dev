@@ -14,9 +14,7 @@ import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
-import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
