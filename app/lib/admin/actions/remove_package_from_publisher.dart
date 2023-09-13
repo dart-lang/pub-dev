@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 
+import '../../audit/models.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../publisher/backend.dart';
@@ -51,6 +52,12 @@ If the publisher has no members, the package will end up without uploaders.
         pkg.uploaders = currentPublisherMembers.map((e) => e.userId).toList();
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);
+        tx.insert(
+          AuditLogRecord.packageRemovedFromPublisher(
+            package: packageName,
+            fromPublisherId: currentPublisherId,
+          ),
+        );
       });
       await purgePackageCache(packageName);
       await purgePublisherCache(publisherId: currentPublisherId);
