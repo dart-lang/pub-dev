@@ -22,7 +22,7 @@ final removePackageFromPublisher = AdminAction(
 Removes <package> from its current publisher, and makes that publisher\'s owners
  uploaders.
 
-Fails if that package currently has no uploader.
+Fails if that package currently has no publisher.
 
 Example: given a publisher example.com with two members a@example.com and
  b@example.com, and apackage:foo in the publisher.
