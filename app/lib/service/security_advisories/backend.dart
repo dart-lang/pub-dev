@@ -79,6 +79,7 @@ class SecurityAdvisoryBackend {
       }
 
       if (!_isValidAdvisory(osv)) return null;
+      final syncTime = clock.now();
 
       final newAdvisory = SecurityAdvisory()
         ..id = osv.id
@@ -89,7 +90,8 @@ class SecurityAdvisoryBackend {
         ..affectedPackages =
             (osv.affected ?? []).map((a) => a.package.name).toList()
         ..published =
-            osv.published != null ? DateTime.parse(osv.published!) : modified;
+            osv.published != null ? DateTime.parse(osv.published!) : modified
+        ..syncTime = syncTime;
 
       tx.queueMutations(
         // This is an upsert
