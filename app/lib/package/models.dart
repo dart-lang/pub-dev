@@ -887,16 +887,16 @@ class QualifiedVersionKey {
 /// display-only uses.
 @JsonSerializable(includeIfNull: false)
 class PackageView extends Object with FlagMixin {
-  final String? name;
-  final LatestReleases? releases;
+  final String name;
+  final LatestReleases releases;
   final String? ellipsizedDescription;
 
   /// The date when the package was first published.
-  final DateTime? created;
+  final DateTime created;
   final String? publisherId;
   final bool isPending;
 
-  final int? likes;
+  final int likes;
 
   /// The package's granted points from pana and dartdoc analysis.
   /// May be `null` if the analysis is not available yet.
@@ -922,13 +922,13 @@ class PackageView extends Object with FlagMixin {
 
   PackageView({
     this.screenshots,
-    this.name,
-    this.releases,
+    required this.name,
+    required this.releases,
     this.ellipsizedDescription,
-    this.created,
+    required this.created,
     this.publisherId,
     bool? isPending,
-    this.likes,
+    required this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
     List<String>? tags,
@@ -971,10 +971,10 @@ class PackageView extends Object with FlagMixin {
       ...?scoreCard?.derivedTags,
     };
     return PackageView(
-      name: version?.package ?? package.name,
+      name: package.name!,
       releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
-      created: package.created,
+      created: package.created!,
       publisherId: package.publisherId,
       isPending: isPending,
       likes: package.likes,
@@ -1014,7 +1014,7 @@ class PackageView extends Object with FlagMixin {
   Map<String, dynamic> toJson() => _$PackageViewToJson(this);
 
   // TODO: refactor code to use popularityStorage directly.
-  int get popularity => popularityStorage.lookupAsScore(name!);
+  int get popularity => popularityStorage.lookupAsScore(name);
 }
 
 /// Sorts [versions] according to the semantic versioning specification.

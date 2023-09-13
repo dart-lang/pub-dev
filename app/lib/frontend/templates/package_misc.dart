@@ -167,7 +167,7 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.pending());
   }
   if (simpleTags.isEmpty && badgeTags.isEmpty && discontinuedNode == null) {
-    final scorePageUrl = urls.pkgScoreUrl(package.name!, version: version);
+    final scorePageUrl = urls.pkgScoreUrl(package.name, version: version);
     if (package.tags.contains(PackageVersionTags.hasError)) {
       simpleTags.add(SimpleTag.analysisIssue(scorePageUrl: scorePageUrl));
     } else {
@@ -194,7 +194,7 @@ d.Node replacedByLink(String replacedBy) {
 /// Renders the labeled scores widget (the score values in a compact layout).
 d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
   return labeledScoresNode(
-    pkgScorePageUrl: urls.pkgScoreUrl(view.name!, version: version),
+    pkgScorePageUrl: urls.pkgScoreUrl(view.name, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
     popularity: view.popularity,

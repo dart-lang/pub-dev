@@ -119,7 +119,7 @@ class SearchAdapter {
     for (var i = 0; i < hits.length; i++) {
       final view = views[i];
       if (view == null) continue;
-      results[view.name!] = view.change(apiPages: hits[i].apiPages);
+      results[view.name] = view.change(apiPages: hits[i].apiPages);
     }
     return results;
   }
