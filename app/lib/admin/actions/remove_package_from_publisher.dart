@@ -25,7 +25,7 @@ Removes <package> from its current publisher, and makes that publisher\'s owners
 Fails if that package currently has no publisher.
 
 Example: given a publisher example.com with two members a@example.com and
- b@example.com, and apackage:foo in the publisher.
+ b@example.com, and a package:foo in the publisher.
 
 Executing remove-package-from-publisher({'package': 'foo'}) will remove foo from
 the publisher and assign a@example.com and b@example.com as uploaders.
