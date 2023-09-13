@@ -17,7 +17,7 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner(
+      final runner = IsolateRunner.fn(
         logger: logger,
         servicesWrapperFn: (fn) => fn(),
         kind: 'test',
@@ -60,7 +60,7 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner(
+      final runner = IsolateRunner.fn(
         logger: logger,
         servicesWrapperFn: (fn) => fn(),
         kind: 'test',
@@ -100,7 +100,7 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner(
+      final runner = IsolateRunner.fn(
         logger: logger,
         servicesWrapperFn: (fn) => fn(),
         kind: 'test',

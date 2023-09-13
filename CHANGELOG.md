@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `3.14.0-0.2.pre`.
  * Note: isolates do not automatically restart after they are closed with uncaught error.
  * Note: no control isolate is used, first isolate is used as the HTTP-serving frontend.
+ * Note: `search` has now a separate index in an isolate that is renewed every 15 minutes.
 
 ## `20230907t123500-all`
  * Bumped runtimeVersion to `2023.09.05`.
