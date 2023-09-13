@@ -310,6 +310,31 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ];
   }
 
+  factory AuditLogRecord.packageRemovedFromPublisher({
+    required String package,
+    required String fromPublisherId,
+  }) {
+    // For now this is always done as an administrative action, so we hardcode
+    // the email.
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packageRemovedFromPublisher
+      ..agent = KnownAgents.pubSupport
+      ..summary = [
+        'Package `$package` ',
+        'was removed from `$fromPublisherId` ',
+        'by `${KnownAgents.pubSupport}`.',
+      ].join()
+      ..data = {
+        'package': package,
+        'fromPublisherId': fromPublisherId,
+        'user': KnownAgents.pubSupport,
+      }
+      ..users = []
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [fromPublisherId];
+  }
+
   factory AuditLogRecord.publisherContactInviteAccepted({
     required User user,
     required String publisherId,
@@ -712,6 +737,9 @@ abstract class AuditLogRecordKind {
 
   /// Event that a package has transferred to a (new) publisher.
   static const packageTransferred = 'package-transferred';
+
+  /// Event that a package has been removed from a publisher.
+  static const packageRemovedFromPublisher = 'package-removed-from-publisher';
 
   /// Event that an e-mail was invited to be a publisher contact.
   static const publisherContactInvited = 'publisher-contact-invited';

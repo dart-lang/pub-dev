@@ -4,6 +4,7 @@
 
 import 'package:pub_dev/admin/actions/publisher_block.dart';
 import 'package:pub_dev/admin/actions/publisher_members_list.dart';
+import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
 import 'package:pub_dev/admin/actions/tool_execute.dart';
 import 'package:pub_dev/admin/actions/tool_list.dart';
 
@@ -63,6 +64,7 @@ final class AdminAction {
   static List<AdminAction> actions = [
     publisherBlock,
     publisherMembersList,
+    removePackageFromPublisher,
     taskBumpPriority,
     toolExecute,
     toolList,
