@@ -157,13 +157,13 @@ Future<IsolateRunner> startWorkerIsolate({
 }
 
 /// Starts an index isolate and returns its runner to control it.
-Future<IsolateRunner> startIndexIsolate({
+Future<IsolateRunner> startQueryIsolate({
   required Logger logger,
   required Uri spawnUri,
 }) async {
   final worker = IsolateRunner.uri(
     logger: logger,
-    kind: 'index',
+    kind: 'query',
     spawnUri: spawnUri,
   );
   await worker.start(1);

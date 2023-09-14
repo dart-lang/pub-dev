@@ -38,7 +38,7 @@ class SearchCommand extends Command {
       );
       registerScopeExitCallback(worker.close);
 
-      final index = await startIndexIsolate(
+      final index = await startQueryIsolate(
         logger: _logger,
         spawnUri:
             Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
