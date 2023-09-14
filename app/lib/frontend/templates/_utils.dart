@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as p;
-
 import '../../package/models.dart' show PackageVersionAsset;
 import '../../shared/markdown.dart';
 import '../dom/dom.dart' as d;
@@ -12,7 +10,6 @@ import '../dom/dom.dart' as d;
 d.Node renderFile(
   PackageVersionAsset asset, {
   UrlResolverFn? urlResolverFn,
-  String? baseUrl,
   bool isChangelog = false,
 }) {
   final filename = asset.path!;
@@ -22,8 +19,7 @@ d.Node renderFile(
       markdownToHtml(
         content,
         urlResolverFn: urlResolverFn,
-        baseUrl: baseUrl,
-        baseDir: p.dirname(filename),
+        relativeFrom: filename,
         isChangelog: isChangelog,
       ),
     );
