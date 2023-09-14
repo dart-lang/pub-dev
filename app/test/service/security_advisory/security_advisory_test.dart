@@ -87,8 +87,9 @@ void main() {
       affected: [affectedA],
     );
 
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2);
+    final syncTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
 
     final all = await securityAdvisoryBackend.listAdvisories();
     expect(all, isNotNull);
@@ -134,8 +135,8 @@ void main() {
       affected: [affectedA, affectedB],
     );
 
-    final beforeIngestTime = clock.now();
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
+    final ingestTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, ingestTime);
     final afterIngestTime = clock.now();
 
     final advisory = await securityAdvisoryBackend.lookupById(id);
@@ -146,7 +147,7 @@ void main() {
     expect(advisory.affectedPackages!.length, 2);
     expect(advisory.affectedPackages!.first, affectedA.package.name);
     expect(advisory.affectedPackages!.last, affectedB.package.name);
-    expect(advisory.syncTime!.isAfter(beforeIngestTime), isTrue);
+    expect(advisory.syncTime!, ingestTime);
     expect(advisory.syncTime!.isBefore(afterIngestTime), isTrue);
 
     final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
@@ -163,7 +164,9 @@ void main() {
       affected: [affectedA, affectedC],
     );
 
-    await securityAdvisoryBackend.ingestSecurityAdvisory(updatedOsv);
+    final updateIngestTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(
+        updatedOsv, updateIngestTime);
 
     final updatedAdvisory = await securityAdvisoryBackend.lookupById(id);
     final updatedSyncTime = updatedAdvisory!.syncTime!;

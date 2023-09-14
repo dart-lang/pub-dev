@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as path;
@@ -65,8 +66,9 @@ Future<void> updateAdvisories(Map<String, OSV> osvs) async {
     }
   }
 
+  final syncTime = clock.now();
   for (final osv in osvs.values) {
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
   }
 }
 
