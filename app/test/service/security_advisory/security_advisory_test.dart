@@ -87,8 +87,9 @@ void main() {
       affected: [affectedA],
     );
 
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2);
+    final syncTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
 
     final all = await securityAdvisoryBackend.listAdvisories();
     expect(all, isNotNull);
@@ -134,15 +135,20 @@ void main() {
       affected: [affectedA, affectedB],
     );
 
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv);
+    final ingestTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, ingestTime);
+    final afterIngestTime = clock.now();
 
     final advisory = await securityAdvisoryBackend.lookupById(id);
     expect(advisory, isNotNull);
-    expect(advisory!.id, id);
+    final syncTime = advisory!.syncTime!;
+    expect(advisory.id, id);
     expect(advisory.aliases, [id]);
     expect(advisory.affectedPackages!.length, 2);
     expect(advisory.affectedPackages!.first, affectedA.package.name);
     expect(advisory.affectedPackages!.last, affectedB.package.name);
+    expect(advisory.syncTime!, ingestTime);
+    expect(advisory.syncTime!.isBefore(afterIngestTime), isTrue);
 
     final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
     expect(list, isNotNull);
@@ -150,7 +156,6 @@ void main() {
     expect(list.first.id, id);
 
     final updateTime = DateTime(2023).toIso8601String();
-
     final updatedOsv = OSV(
       schemaVersion: '1.2.3',
       id: id,
@@ -159,11 +164,16 @@ void main() {
       affected: [affectedA, affectedC],
     );
 
-    await securityAdvisoryBackend.ingestSecurityAdvisory(updatedOsv);
+    final updateIngestTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(
+        updatedOsv, updateIngestTime);
 
     final updatedAdvisory = await securityAdvisoryBackend.lookupById(id);
+    final updatedSyncTime = updatedAdvisory!.syncTime!;
+
     expect(updatedAdvisory, isNotNull);
-    expect(updatedAdvisory!.id, id);
+    expect(updatedAdvisory.id, id);
+    expect(updatedSyncTime.isAfter(syncTime), isTrue);
     expect(updatedAdvisory.aliases, [id]);
     expect(updatedAdvisory.affectedPackages!.length, 2);
     expect(updatedAdvisory.affectedPackages!.first, affectedA.package.name);

@@ -62,7 +62,8 @@ class SecurityAdvisoryBackend {
   /// taken to resolve this. Instead both advisories will be stored and served.
   /// It's assumed that security advisory database owners take care to keep the
   /// security advisories sound, and that inconsistencies are intentional.
-  Future<SecurityAdvisory?> ingestSecurityAdvisory(OSV osv) async {
+  Future<SecurityAdvisory?> ingestSecurityAdvisory(
+      OSV osv, DateTime syncTime) async {
     return await withRetryTransaction(_db, (tx) async {
       DateTime modified;
       try {
@@ -89,7 +90,8 @@ class SecurityAdvisoryBackend {
         ..affectedPackages =
             (osv.affected ?? []).map((a) => a.package.name).toList()
         ..published =
-            osv.published != null ? DateTime.parse(osv.published!) : modified;
+            osv.published != null ? DateTime.parse(osv.published!) : modified
+        ..syncTime = syncTime;
 
       tx.queueMutations(
         // This is an upsert
