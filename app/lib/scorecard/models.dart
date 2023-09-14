@@ -43,9 +43,6 @@ mixin FlagMixin {
       tags?.contains(PackageVersionTags.isDart3Incompatible) ?? false;
 
   bool get isObsolete => tags?.contains(PackageVersionTags.isObsolete) ?? false;
-
-  bool get isSkipped =>
-      isDiscontinued || isLegacy || isDart3Incompatible || isObsolete;
 }
 
 @JsonSerializable()
@@ -82,6 +79,9 @@ class ScoreCardData extends Object with FlagMixin {
   /// List of tags computed by `pana` or other analyzer.
   List<String>? get derivedTags => panaReport?.derivedTags;
 
+  bool get isSkipped => taskStatus == null;
+  // TODO: also consider finished status
+  bool get isPending => taskStatus == PackageVersionStatus.pending;
   bool get hasApiDocs => dartdocReport?.reportStatus == ReportStatus.success;
   bool get hasPanaReport => panaReport != null;
 
