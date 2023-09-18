@@ -369,7 +369,7 @@ jobs:
       - job_004
       - job_005
   job_008:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 0`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -394,8 +394,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 0"
@@ -411,7 +411,7 @@ jobs:
       - job_006
       - job_007
   job_009:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 1`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -436,8 +436,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 1"
@@ -453,7 +453,7 @@ jobs:
       - job_006
       - job_007
   job_010:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 2`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -478,8 +478,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 2"
@@ -495,7 +495,7 @@ jobs:
       - job_006
       - job_007
   job_011:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 3`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 3`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -520,8 +520,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 3"
@@ -537,7 +537,7 @@ jobs:
       - job_006
       - job_007
   job_012:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 4`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 4`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -562,8 +562,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 4"
@@ -579,7 +579,7 @@ jobs:
       - job_006
       - job_007
   job_013:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 5`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 5`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -604,8 +604,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 5"
@@ -621,7 +621,7 @@ jobs:
       - job_006
       - job_007
   job_014:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 6`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 6`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -646,8 +646,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 6"
@@ -663,7 +663,7 @@ jobs:
       - job_006
       - job_007
   job_015:
-    name: "unit_test; PKG: app; `sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 7`"
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 7`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -688,8 +688,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: app
-      - name: "app; sudo apt-get install webp"
-        run: sudo apt-get install webp
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
         if: "always() && steps.app_pub_get.conclusion == 'success'"
         working-directory: app
       - name: "app; dart test -P presubmit --total-shards 8 --shard-index 7"
