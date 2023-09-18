@@ -9,28 +9,28 @@ stages:
         - analyze: --fatal-infos  .
   - unit_test:
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 0
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 1
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 2
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 3
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 4
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 5
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 6
     - group:
-      - command: sudo apt-get install webp
+      - command: sudo apt-get update -yq && sudo apt-get install webp
       - test: -P presubmit --total-shards 8 --shard-index 7
 
 cache:

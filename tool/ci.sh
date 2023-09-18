@@ -88,8 +88,8 @@ for PKG in ${PKGS}; do
         dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
         ;;
       command_0)
-        echo 'sudo apt-get install webp'
-        sudo apt-get install webp || EXIT_CODE=$?
+        echo 'sudo apt-get update -yq && sudo apt-get install webp'
+        sudo apt-get update -yq && sudo apt-get install webp || EXIT_CODE=$?
         ;;
       command_1)
         echo './build.sh'
