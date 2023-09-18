@@ -64,10 +64,13 @@ class IsolateRunner {
     required Duration wait,
   }) async {
     final isolatesToClose = [..._isolates];
+
+    await start(count);
+    // prevent traffic to hit the old instances
     for (final i in isolatesToClose) {
       i.markedForRenew = true;
     }
-    await start(count);
+
     await Future.delayed(wait);
     for (final i in isolatesToClose) {
       await i.close();

@@ -222,4 +222,7 @@ class IsolateRequestException implements Exception {
   final String message;
 
   IsolateRequestException(this.message);
+
+  @override
+  String toString() => 'IsolateRequestException: $message';
 }
