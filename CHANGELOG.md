@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Fix: search isolate renewal doesn't block ongoing traffic.
 
 ## `20230914t133300-all`
  * Bumped runtimeVersion to `2023.09.12`.
