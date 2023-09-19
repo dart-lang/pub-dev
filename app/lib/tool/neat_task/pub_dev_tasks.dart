@@ -12,7 +12,6 @@ import 'package:neat_periodic_task/neat_periodic_task.dart';
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
-import '../../job/backend.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
@@ -197,13 +196,6 @@ void setupSearchPeriodicTasks() {
 
 /// Setup the tasks that we are running in both analyzer and dartdoc services.
 void _setupJobCleanupPeriodicTasks() {
-  // Deletes Job entities that are older than the accepted runtime versions.
-  _weekly(
-    name: 'delete-old-jobs',
-    isRuntimeVersioned: true,
-    task: () async => await jobBackend.deleteOldEntries(),
-  );
-
   // Deletes ScoreCard and ScoreCardReport entities that are older than the
   // accepted runtime versions.
   _weekly(
