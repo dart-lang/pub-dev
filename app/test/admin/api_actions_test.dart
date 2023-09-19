@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
@@ -33,6 +36,36 @@ void main() {
       );
       expect(result.output.containsKey('tools'), isTrue);
     });
+  });
+
+  testWithProfile('creating and deleting publisher with no packages',
+      fn: () async {
+    final client = createPubApiClient(authToken: siteAdminToken);
+    final p0 = await publisherBackend.getPublisher('other.com');
+    expect(p0, isNull);
+    final rs1 = await client.adminInvokeAction(
+      'create-publisher',
+      AdminInvokeActionArguments(
+          arguments: {'publisher': 'other.com', 'member': 'user@pub.dev'}),
+    );
+    expect(rs1.output, {
+      'message': 'Publisher created.',
+      'publisherId': 'other.com',
+      'member': 'user@pub.dev',
+    });
+    final p1 = await publisherBackend.getPublisher('other.com');
+    expect(p1, isNotNull);
+    // TODO(sigurdm): Migrate delete-publisher to be an Action.
+    final rs2 = await client.adminExecuteTool(
+      'delete-publisher',
+      Uri(pathSegments: [
+        '--publisher',
+        'other.com',
+      ]).toString(),
+    );
+    expect(utf8.decode(rs2), 'Publisher and 1 member(s) deleted.');
+    final p2 = await publisherBackend.getPublisher('other.com');
+    expect(p2, isNull);
   });
 
   testWithProfile('remove package from publisher', fn: () async {

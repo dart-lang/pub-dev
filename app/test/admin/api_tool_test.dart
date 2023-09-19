@@ -155,34 +155,5 @@ void main() {
       expect(p2, isNotNull);
     });
 
-    testWithProfile('publisher has no packages', fn: () async {
-      final client = createPubApiClient(authToken: siteAdminToken);
-      final p0 = await publisherBackend.getPublisher('other.com');
-      expect(p0, isNull);
-      final rs1 = await client.adminExecuteTool(
-        'create-publisher',
-        Uri(pathSegments: [
-          '--publisher',
-          'other.com',
-          '--member',
-          'user@pub.dev',
-          '--admin',
-          'user@pub.dev',
-        ]).toString(),
-      );
-      expect(utf8.decode(rs1), 'Publisher created.');
-      final p1 = await publisherBackend.getPublisher('other.com');
-      expect(p1, isNotNull);
-      final rs2 = await client.adminExecuteTool(
-        'delete-publisher',
-        Uri(pathSegments: [
-          '--publisher',
-          'other.com',
-        ]).toString(),
-      );
-      expect(utf8.decode(rs2), 'Publisher and 1 member(s) deleted.');
-      final p2 = await publisherBackend.getPublisher('other.com');
-      expect(p2, isNull);
-    });
-  });
+   
 }
