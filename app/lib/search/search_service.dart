@@ -72,10 +72,16 @@ class PackageDocument {
 
   final List<String> tags;
 
-  final int? likeCount;
+  final int likeCount;
 
-  final int? grantedPoints;
-  final int? maxPoints;
+  /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
+  double? likeScore;
+
+  /// The normalized score between [0.0-1.0] (1.0 being the most popular package).
+  final double? popularityScore;
+
+  final int grantedPoints;
+  final int maxPoints;
 
   final Map<String, String> dependencies;
 
@@ -95,14 +101,19 @@ class PackageDocument {
     this.updated,
     this.readme = '',
     List<String>? tags,
-    this.likeCount = 0,
-    this.grantedPoints = 0,
-    this.maxPoints = 0,
+    int? likeCount,
+    this.likeScore,
+    this.popularityScore,
+    int? grantedPoints,
+    int? maxPoints,
     this.dependencies = const {},
     this.apiDocPages = const [],
     DateTime? timestamp,
     this.sourceUpdated,
-  })  : tags = tags ?? const <String>[],
+  })  : likeCount = likeCount ?? 0,
+        grantedPoints = grantedPoints ?? 0,
+        maxPoints = maxPoints ?? 0,
+        tags = tags ?? const <String>[],
         timestamp = timestamp ?? clock.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>

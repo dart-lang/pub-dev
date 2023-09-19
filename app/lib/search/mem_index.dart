@@ -74,7 +74,7 @@ class InMemoryPackageIndex {
       }
     }
 
-    _likeTracker.trackLikeCount(doc.package, doc.likeCount ?? 0);
+    _likeTracker.trackLikeCount(doc.package, doc.likeCount);
     if (_alwaysUpdateLikeScores) {
       _likeTracker._updateScores();
     } else {
@@ -132,7 +132,7 @@ class InMemoryPackageIndex {
     if (query.minPoints != null && query.minPoints! > 0) {
       packages.removeWhere((package) {
         final doc = _packages[package]!;
-        return (doc.grantedPoints ?? 0) < query.minPoints!;
+        return doc.grantedPoints < query.minPoints!;
       });
     }
 
@@ -219,15 +219,15 @@ class InMemoryPackageIndex {
 
   @visibleForTesting
   Map<String, double> getPopularityScore(Iterable<String> packages) {
-    return Map.fromEntries(packages
-        .map((p) => MapEntry<String, double>(p, _popularityValueFn(p))));
+    return Map.fromEntries(packages.map((p) => MapEntry<String, double>(
+        p, _packages[p]!.popularityScore ?? _popularityValueFn(p))));
   }
 
   @visibleForTesting
   Map<String, double> getLikeScore(Iterable<String> packages) {
     return Map.fromIterable(
       packages,
-      value: (package) => (_packages[package]?.likeCount?.toDouble() ?? 0.0),
+      value: (package) => (_packages[package]?.likeCount.toDouble() ?? 0.0),
     );
   }
 
@@ -235,18 +235,17 @@ class InMemoryPackageIndex {
   Map<String, double> getPubPoints(Iterable<String> packages) {
     return Map.fromIterable(
       packages,
-      value: (package) =>
-          (_packages[package]?.grantedPoints?.toDouble() ?? 0.0),
+      value: (package) => (_packages[package]?.grantedPoints.toDouble() ?? 0.0),
     );
   }
 
   Score _getOverallScore(Iterable<String> packages) {
     final values = Map<String, double>.fromEntries(packages.map((package) {
       final doc = _packages[package]!;
-      final downloadScore = _popularityValueFn(package);
-      final likeScore = _likeTracker.getLikeScore(doc.package);
+      final downloadScore = doc.popularityScore ?? _popularityValueFn(package);
+      final likeScore = doc.likeScore ?? _likeTracker.getLikeScore(doc.package);
       final popularity = (downloadScore + likeScore) / 2;
-      final points = (doc.grantedPoints ?? 0) / math.max(1, doc.maxPoints ?? 0);
+      final points = doc.grantedPoints / math.max(1, doc.maxPoints);
       final overall = popularity * 0.5 + points * 0.5;
       // don't multiply with zero.
       return MapEntry(package, 0.4 + 0.6 * overall);

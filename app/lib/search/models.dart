@@ -33,6 +33,22 @@ class SearchSnapshot {
     documents!.remove(packageName);
   }
 
+  /// Updates the PackageDocument.likeScore for each package in the snapshot.
+  /// The score is normalized into the range of [0.0 - 1.0] using the
+  /// ordered list of packages by like counts (same like count gets the same score).
+  void updateLikeScores() {
+    final sortedByLikes = documents!.values.toList()
+      ..sort((a, b) => a.likeCount.compareTo(b.likeCount));
+    for (var i = 0; i < sortedByLikes.length; i++) {
+      if (i > 0 &&
+          sortedByLikes[i - 1].likeCount == sortedByLikes[i].likeCount) {
+        sortedByLikes[i].likeScore = sortedByLikes[i - 1].likeScore;
+      } else {
+        sortedByLikes[i].likeScore = (i + 1) / sortedByLikes.length;
+      }
+    }
+  }
+
   Map<String, dynamic> toJson() => _$SearchSnapshotToJson(this);
 }
 
