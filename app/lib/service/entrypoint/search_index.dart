@@ -118,7 +118,6 @@ class IsolateSearchIndex implements SearchIndex {
       isReady: false,
       packageCount: 0,
       lastUpdated: null,
-      updatedPackages: [],
     );
   }
 
