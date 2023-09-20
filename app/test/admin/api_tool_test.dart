@@ -154,6 +154,5 @@ void main() {
       final p2 = await publisherBackend.getPublisher('example.com');
       expect(p2, isNotNull);
     });
-
-   
+  });
 }
