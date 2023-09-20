@@ -17,17 +17,19 @@ import 'package:xml/xml.dart';
 void main() {
   group('DartDocPage rendering', () {
     final tempDir = Directory.systemTemp.createTempSync();
+    final pkgDir = p.join(tempDir.path, 'pkg');
+    final docDir = p.join(tempDir.path, 'doc');
 
     setUpAll(() async {
       for (final f in _sources.entries) {
-        final file = File(p.join(tempDir.path, 'pkg', f.key));
+        final file = File(p.join(pkgDir, f.key));
         await file.parent.create(recursive: true);
         await file.writeAsString(f.value);
       }
       await Process.run(
         'dart',
         ['pub', 'get'],
-        workingDirectory: p.join(tempDir.path, 'pkg'),
+        workingDirectory: pkgDir,
       );
     });
 
@@ -45,16 +47,16 @@ void main() {
             '--no-validate-links',
             '--sanitize-html',
             '--input',
-            p.join(tempDir.path, 'pkg'),
+            pkgDir,
             '--output',
-            p.join(tempDir.path, 'doc'),
+            docDir,
           ],
           workingDirectory: resolvePubDartdocDirPath(),
         );
         expect(pr.exitCode, 0);
 
         final processedFiles = <String>{};
-        final files = await Directory(p.join(tempDir.path, 'doc'))
+        final files = await Directory(docDir)
             .list(recursive: true)
             .whereType<File>()
             .toList();
@@ -66,8 +68,7 @@ void main() {
             continue;
           }
           if (file.path.endsWith('.html')) {
-            final relativePath =
-                p.relative(file.path, from: p.join(tempDir.path, 'doc'));
+            final relativePath = p.relative(file.path, from: docDir);
             processedFiles.add(relativePath);
 
             var fileContent = (await file.readAsString());
