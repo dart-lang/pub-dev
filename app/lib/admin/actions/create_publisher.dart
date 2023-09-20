@@ -14,23 +14,23 @@ final createPublisher = AdminAction(
     name: 'create-publisher',
     options: {
       'publisher': 'name of publisher to create',
-      'member': 'email of user to add',
+      'member-email': 'email of user to add',
     },
     summary:
-        'Creates a new publisher <publisher> and adds <member> as the single member.',
+        'Creates a new publisher <publisher> and adds <member-email> as the single member.',
     description: '''
-Creates a new publisher <publisher> and adds <member> as the single member.
+Creates a new publisher <publisher> and adds <member-email> as the single member.
 
 This should generally only be done with PM approval as it skips actual domain verification.
 ''',
     invoke: (args) async {
       final publisherId = args['publisher'];
-      final userEmail = args['member'];
+      final userEmail = args['member-email'];
       if (publisherId == null) {
         throw InvalidInputException('Missing --publisher argument.');
       }
       if (userEmail == null) {
-        throw InvalidInputException('Missing --member argument.');
+        throw InvalidInputException('Missing --member-email argument.');
       }
       final users = await accountBackend.lookupUsersByEmail(userEmail);
       if (users.isEmpty) {
@@ -86,6 +86,6 @@ This should generally only be done with PM approval as it skips actual domain ve
       return {
         'message': 'Publisher created.',
         'publisherId': publisherId,
-        'member': userEmail,
+        'member-email': userEmail,
       };
     });

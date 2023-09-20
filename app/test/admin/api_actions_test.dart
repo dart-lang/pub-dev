@@ -45,13 +45,15 @@ void main() {
     expect(p0, isNull);
     final rs1 = await client.adminInvokeAction(
       'create-publisher',
-      AdminInvokeActionArguments(
-          arguments: {'publisher': 'other.com', 'member': 'user@pub.dev'}),
+      AdminInvokeActionArguments(arguments: {
+        'publisher': 'other.com',
+        'member-email': 'user@pub.dev'
+      }),
     );
     expect(rs1.output, {
       'message': 'Publisher created.',
       'publisherId': 'other.com',
-      'member': 'user@pub.dev',
+      'member-email': 'user@pub.dev',
     });
     final p1 = await publisherBackend.getPublisher('other.com');
     expect(p1, isNotNull);
