@@ -117,8 +117,10 @@ class ScoreCardBackend {
   /// Returns the [ScoreCardData] for the given package and version.
   Future<ScoreCardData> getScoreCardData(
     String packageName,
-    String packageVersion,
-  ) async {
+    String packageVersion, {
+    Package? package,
+    Future<PackageVersion?>? versionFuture,
+  }) async {
     InvalidInputException.check(
         packageVersion != 'latest', 'latest is no longer supported');
     final cacheEntry = cache.scoreCardData(packageName, packageVersion);
@@ -127,12 +129,12 @@ class ScoreCardBackend {
       return cached;
     }
 
-    final package = await packageBackend.lookupPackage(packageName);
+    package ??= await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException('Package "$packageName" does not exist.');
     }
-    final version =
-        await packageBackend.lookupPackageVersion(packageName, packageVersion);
+    final version = await (versionFuture ??
+        packageBackend.lookupPackageVersion(packageName, packageVersion));
     if (version == null) {
       throw NotFoundException(
           'Package version "$packageName $packageVersion" does not exist.');

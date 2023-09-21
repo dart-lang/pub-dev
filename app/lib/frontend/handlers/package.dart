@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:_pub_shared/data/advisories_api.dart' as advisories_api;
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
@@ -227,8 +227,8 @@ Future<shelf.Response> _handlePackagePage({
   }
 
   if (cachedPage == null) {
-    final serviceSw = Stopwatch()..start();
-    if (!await packageBackend.isPackageVisible(packageName)) {
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null || !package.isVisible) {
       if (await packageBackend.isPackageModerated(packageName)) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
@@ -236,9 +236,10 @@ Future<shelf.Response> _handlePackagePage({
         return formattedNotFoundHandler(request);
       }
     }
+    final serviceSw = Stopwatch()..start();
     late PackagePageData data;
     try {
-      data = await loadPackagePageData(packageName, versionName, assetKind);
+      data = await loadPackagePageData(package, versionName, assetKind);
     } on NotFoundException {
       return formattedNotFoundHandler(request);
     }
@@ -324,61 +325,77 @@ Future<shelf.Response> packageActivityLogHandler(
 
 @visibleForTesting
 Future<PackagePageData> loadPackagePageData(
-  String packageName,
+  Package package,
   String? versionName,
   String? assetKind,
 ) async {
-  final package = await packageBackend.lookupPackage(packageName);
-  if (package == null || package.isNotVisible) {
-    // note: this should not happen, as isVisible check is done before calling the method
-    throw NotFoundException.resource('package "$package"');
-  }
-
-  final bool isLiked = requestContext.isNotAuthenticated
-      ? false
-      : await likeBackend.getPackageLikeStatus(
-              requestContext.authenticatedUserId!, package.name!) !=
-          null;
-
+  final packageName = package.name!;
   versionName ??= package.latestVersion;
-  final selectedVersion =
-      await packageBackend.lookupPackageVersion(packageName, versionName!);
-  if (selectedVersion == null) {
-    throw NotFoundException.resource(
-        'package "$package" version "$versionName"');
-  }
 
-  final versionInfo =
-      await packageBackend.lookupPackageVersionInfo(packageName, versionName);
-  if (versionInfo == null) {
-    throw NotFoundException.resource(
-        'package "$package" version "$versionName"');
-  }
+  final latestReleasesFuture =
+      Future(() => packageBackend.latestReleases(package));
 
-  final asset = assetKind == null
-      ? null
-      : await packageBackend.lookupPackageVersionAsset(
-          packageName, versionName, assetKind);
-
-  final scoreCard = await scoreCardBackend.getScoreCardData(
-    selectedVersion.package,
-    selectedVersion.version!,
+  final isLikedFuture = Future(
+    () async => requestContext.isNotAuthenticated
+        ? false
+        : await likeBackend.getPackageLikeStatus(
+                requestContext.authenticatedUserId!, package.name!) !=
+            null,
   );
 
-  final isAdmin = requestContext.isNotAuthenticated
+  final selectedVersionFuture = Future(
+      () => packageBackend.lookupPackageVersion(packageName, versionName!));
+  final versionInfoFuture = Future(
+      () => packageBackend.lookupPackageVersionInfo(packageName, versionName!));
+
+  final assetFuture = Future(() async => assetKind == null
+      ? null
+      : packageBackend.lookupPackageVersionAsset(
+          packageName, versionName!, assetKind));
+
+  final isAdminFuture = Future(() async => requestContext.isNotAuthenticated
       ? false
       : await packageBackend.isPackageAdmin(
-          package, requestContext.authenticatedUserId!);
+          package, requestContext.authenticatedUserId!));
+
+  final scoreCardFuture = Future(() => scoreCardBackend.getScoreCardData(
+        packageName,
+        versionName!,
+        package: package,
+        versionFuture: selectedVersionFuture,
+      ));
+
+  await Future.wait([
+    latestReleasesFuture,
+    isLikedFuture,
+    selectedVersionFuture,
+    versionInfoFuture,
+    assetFuture,
+    isAdminFuture,
+    scoreCardFuture,
+  ]);
+
+  final selectedVersion = await selectedVersionFuture;
+  if (selectedVersion == null) {
+    throw NotFoundException.resource(
+        'package "$packageName" version "$versionName"');
+  }
+
+  final versionInfo = await versionInfoFuture;
+  if (versionInfo == null) {
+    throw NotFoundException.resource(
+        'package "$packageName" version "$versionName"');
+  }
 
   return PackagePageData(
     package: package,
-    latestReleases: await packageBackend.latestReleases(package),
+    latestReleases: await latestReleasesFuture,
     version: selectedVersion,
     versionInfo: versionInfo,
-    asset: asset,
-    scoreCard: scoreCard,
-    isAdmin: isAdmin,
-    isLiked: isLiked,
+    asset: await assetFuture,
+    scoreCard: await scoreCardFuture,
+    isAdmin: await isAdminFuture,
+    isLiked: await isLikedFuture,
   );
 }
 
@@ -420,7 +437,7 @@ Future<shelf.Response> packagePublisherHandler(
 }
 
 /// Handles GET /api/packages/<package>/advisories
-Future<ListOSVsResponse> listAdvisoriesForPackage(
+Future<advisories_api.ListOSVsResponse> listAdvisoriesForPackage(
     shelf.Request request, String packageName) async {
   InvalidInputException.checkPackageName(packageName);
   final package = await packageBackend.lookupPackage(packageName);
@@ -429,5 +446,5 @@ Future<ListOSVsResponse> listAdvisoriesForPackage(
   }
   final osvs =
       await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
-  return ListOSVsResponse(osvs: osvs);
+  return advisories_api.ListOSVsResponse(osvs: osvs);
 }
