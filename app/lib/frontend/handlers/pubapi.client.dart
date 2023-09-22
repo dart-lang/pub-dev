@@ -389,14 +389,6 @@ class PubApiClient {
     ));
   }
 
-  Future<_i3.PackagePublisherInfo> removePackagePublisher(
-      String package) async {
-    return _i3.PackagePublisherInfo.fromJson(await _client.requestJson(
-      verb: 'delete',
-      path: '/api/packages/$package/publisher',
-    ));
-  }
-
   Future<_i3.VersionScore> packageScore(String package) async {
     return _i3.VersionScore.fromJson(await _client.requestJson(
       verb: 'get',
