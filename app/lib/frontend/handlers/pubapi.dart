@@ -391,11 +391,6 @@ class PubApi {
   ) =>
       packageBackend.setPublisher(package, body);
 
-  @EndPoint.delete('/api/packages/<package>/publisher')
-  Future<PackagePublisherInfo> removePackagePublisher(
-          Request request, String package) =>
-      packageBackend.removePublisher(package);
-
   @EndPoint.get('/api/packages/<package>/score')
   Future<VersionScore> packageScore(Request request, String package) =>
       packageVersionScoreHandler(request, package);
