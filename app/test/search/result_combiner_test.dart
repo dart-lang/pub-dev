@@ -28,7 +28,7 @@ void main() {
     );
 
     setUpAll(() async {
-      await primaryIndex.addPackage(PackageDocument(
+      primaryIndex.addPackage(PackageDocument(
         package: 'stringutils',
         version: '1.0.0',
         description: 'many utils utils',
@@ -77,7 +77,7 @@ void main() {
         ]),
         version: '2.0.0',
       );
-      await primaryIndex.markReady();
+      primaryIndex.markReady();
     });
 
     test('non-text ranking', () async {

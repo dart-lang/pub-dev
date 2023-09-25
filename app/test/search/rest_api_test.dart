@@ -16,7 +16,7 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'cloud_firestore',
         version: '0.7.2',
         description: compactDescription(
@@ -34,7 +34,7 @@ For Flutter plugins for other Firebase products, see [FlutterFire.md](https://gi
 
 Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec functionality](https://github.com/flutter/flutter/pull/15414) that is not yet released to the [beta channel](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels) of Flutter. If you're encountering issues using those versions, consider switching to the dev channel.'''),
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'currency_cloud',
         version: '0.2.1',
         description: compactDescription(
@@ -44,7 +44,7 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
             'Currency Cloud Dart API A dart library for the Currency Cloud '
             'service Usage A simple usage example'),
       ));
-      await index.markReady();
+      index.markReady();
     });
 
     test('REST API', () async {

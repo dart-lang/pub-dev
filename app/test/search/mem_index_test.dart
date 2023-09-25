@@ -87,8 +87,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           maxPoints: 110,
         ),
       ];
-      await index.addPackages(docs);
-      await index.markReady();
+      index.addPackages(docs);
+      index.markReady();
       lastPackageUpdated =
           docs.map((p) => p.updated).reduce((a, b) => a!.isAfter(b!) ? a : b)!;
     });
@@ -569,10 +569,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
   group('special cases', () {
     test('short words: lookup for app(s)', () async {
       final index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'app',
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'apps',
       ));
       final match = index.search(
@@ -591,10 +591,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('short words: lookup for app(z)', () async {
       final index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'app',
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'appz',
       ));
       final match = index.search(
@@ -614,7 +614,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     group('exact name match', () {
       test('exact match vs description', () async {
         final index = InMemoryPackageIndex();
-        await index.addPackages([
+        index.addPackages([
           PackageDocument(
             package: 'abc',
             description: 'def xyz',
@@ -677,12 +677,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
   group('package name weight', () {
     test('modular', () async {
       final index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'serveme',
         description:
             'Backend server framework designed for a quick development of modular WebSocket based server applications with MongoDB integration.',
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_modular',
         description:
             'Smart project structure with dependency injection and route management',

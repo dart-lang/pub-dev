@@ -15,9 +15,9 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(package: 'maps'));
-      await index.addPackage(PackageDocument(package: 'map'));
-      await index.markReady();
+      index.addPackage(PackageDocument(package: 'maps'));
+      index.addPackage(PackageDocument(package: 'map'));
+      index.markReady();
     });
 
     test('maps', () async {

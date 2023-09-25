@@ -16,18 +16,18 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_blue',
         version: '0.2.3',
         description: compactDescription('Bluetooth plugin for Flutter.'),
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'smooth_scroll',
         version: '0.0.3',
         description: compactDescription(
             'A Dart library for smooth scroll effect on a web page.'),
       ));
-      await index.markReady();
+      index.markReady();
     });
 
     test('bluetooth', () async {

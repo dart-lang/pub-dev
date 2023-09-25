@@ -15,11 +15,11 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'lombok',
         version: '1.0.0',
       ));
-      await index.markReady();
+      index.markReady();
     });
 
     test('lombock', () async {

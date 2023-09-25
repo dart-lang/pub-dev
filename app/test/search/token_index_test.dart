@@ -75,8 +75,6 @@ void main() {
       expect(index.tokenCount, 1);
       index.add('url2', 'another');
       expect(index.tokenCount, 2);
-      index.remove('url2');
-      expect(index.tokenCount, 1);
     });
 
     test('Do not overweight partial matches', () {
