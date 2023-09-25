@@ -113,6 +113,9 @@ class PackageDocument {
       _$PackageDocumentFromJson(json);
 
   Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  late final tagsForLookup = Set<String>.from(tags);
 }
 
 /// A reference to an API doc page
