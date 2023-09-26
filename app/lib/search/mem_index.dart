@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
@@ -58,66 +57,39 @@ class InMemoryPackageIndex {
   /// running. Once the initialization is done (either via a snapshot or a
   /// `Package`-scan completes), the updater should call this method to indicate
   /// to the frontend load-balancer that the instance now accepts requests.
-  Future<void> markReady() async {
+  void markReady() {
     _isReady = true;
   }
 
-  Future<void> addPackage(PackageDocument doc) async {
+  void addPackage(PackageDocument doc) {
     _packages[doc.package] = doc;
-
-    // The method could be a single sync block, however, while the index update
-    // happens, we are not serving queries. With the forced async segments,
-    // the waiting queries will be served earlier.
-    await Future.delayed(Duration.zero);
     _packageNameIndex.add(doc.package);
-
-    await Future.delayed(Duration.zero);
     _descrIndex.add(doc.package, doc.description);
-
-    await Future.delayed(Duration.zero);
     _readmeIndex.add(doc.package, doc.readme);
 
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
       final pageId = _apiDocPageId(doc.package, page);
       if (page.symbols != null && page.symbols!.isNotEmpty) {
-        await Future.delayed(Duration.zero);
         _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
       }
     }
 
-    await Future.delayed(Duration.zero);
     _likeTracker.trackLikeCount(doc.package, doc.likeCount ?? 0);
     if (_alwaysUpdateLikeScores) {
-      await _likeTracker._updateScores();
+      _likeTracker._updateScores();
     } else {
-      await _likeTracker._updateScoresIfNeeded();
+      _likeTracker._updateScoresIfNeeded();
     }
 
-    await Future.delayed(Duration.zero);
     _lastUpdated = clock.now().toUtc();
     _invalidateHitCaches();
   }
 
-  Future<void> addPackages(Iterable<PackageDocument> documents) async {
+  void addPackages(Iterable<PackageDocument> documents) {
     for (PackageDocument doc in documents) {
-      await addPackage(doc);
+      addPackage(doc);
     }
-    await _likeTracker._updateScores();
-  }
-
-  Future<void> removePackage(String package) async {
-    final doc = _packages.remove(package);
-    if (doc == null) return;
-    _packageNameIndex.remove(package);
-    _descrIndex.remove(package);
-    _readmeIndex.remove(package);
-    for (ApiDocPage page in doc.apiDocPages ?? const []) {
-      final pageId = _apiDocPageId(doc.package, page);
-      _apiSymbolIndex.remove(pageId);
-    }
-    _likeTracker.removePackage(doc.package);
-    _lastUpdated = clock.now().toUtc();
-    _invalidateHitCaches();
+    _likeTracker._updateScores();
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
@@ -467,11 +439,6 @@ class PackageNameIndex {
     });
   }
 
-  /// Remove a [package] from the index.
-  void remove(String package) {
-    _data.remove(package);
-  }
-
   /// Search [text] and return the matching packages with scores.
   Score search(String text) {
     return Score.multiply(splitForQuery(text).map(searchWord).toList());
@@ -542,12 +509,7 @@ class _LikeTracker {
     }
   }
 
-  void removePackage(String package) {
-    final removed = _values.remove(package);
-    _changed |= removed != null;
-  }
-
-  Future<void> _updateScoresIfNeeded() async {
+  void _updateScoresIfNeeded() {
     if (!_changed) {
       // we know there is nothing to update
       return;
@@ -558,22 +520,15 @@ class _LikeTracker {
       return;
     }
 
-    await _updateScores();
+    _updateScores();
   }
 
   /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
   /// 1.0 (most likes).
-  Future<void> _updateScores() async {
+  void _updateScores() {
     final sw = Stopwatch()..start();
     final entries = _values.values.toList();
-
-    // The method could be a single sync block, however, while the index update
-    // happens, we are not serving queries. With the forced async segments,
-    // the waiting queries will be served earlier.
-    await Future.delayed(Duration.zero);
     entries.sort((a, b) => a.likeCount.compareTo(b.likeCount));
-
-    await Future.delayed(Duration.zero);
     for (int i = 0; i < entries.length; i++) {
       if (i > 0 && entries[i].likeCount == entries[i - 1].likeCount) {
         entries[i].score = entries[i - 1].score;

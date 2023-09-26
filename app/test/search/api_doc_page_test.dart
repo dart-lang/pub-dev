@@ -16,7 +16,7 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'foo',
         version: '1.0.0',
         description: compactDescription('Yet another web framework.'),
@@ -30,7 +30,7 @@ void main() {
           ),
         ],
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'other_with_api',
         version: '2.0.0',
         description: compactDescription('Unrelated package'),
@@ -39,12 +39,12 @@ void main() {
           ApiDocPage(relativePath: 'serve.html', symbols: ['serveWebPages']),
         ],
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'other_without_api',
         version: '2.0.0',
         description: compactDescription('Unrelated package'),
       ));
-      await index.markReady();
+      index.markReady();
     });
 
     test('foo', () async {

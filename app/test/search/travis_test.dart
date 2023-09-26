@@ -24,14 +24,14 @@ void main() {
         'w_transport',
         'sass_transformer',
       ];
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'travis',
         version: '0.0.1-dev',
         description: compactDescription(
             'A starting point for Dart libraries or applications.'),
       ));
       for (String packageName in packageNames) {
-        await index.addPackage(PackageDocument(
+        index.addPackage(PackageDocument(
           package: packageName,
           version: '1.0.0',
           description:
@@ -48,7 +48,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 '''),
         ));
       }
-      await index.markReady();
+      index.markReady();
     });
 
     test('travis', () async {

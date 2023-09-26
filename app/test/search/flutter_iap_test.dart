@@ -16,36 +16,36 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_iap',
         version: '1.0.0',
         description: compactDescription('in app purchases for flutter'),
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_blue',
         version: '0.2.3',
         description: compactDescription('Bluetooth plugin for Flutter.'),
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_redux',
         version: '0.3.4',
         description: compactDescription(
             'A library that connects Widgets to a Redux Store.'),
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_web_view',
         version: '0.0.2',
         description: compactDescription(
             'A native WebView plugin for Flutter with Nav Bar support. Works with iOS and Android'),
       ));
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter_3d_obj',
         version: '0.0.3',
         description: compactDescription(
             'A new flutter package to render wavefront obj files into a canvas.'),
       ));
 
-      await index.markReady();
+      index.markReady();
     });
 
     test('flutter iap', () async {

@@ -16,14 +16,14 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
+      index.addPackage(PackageDocument(
         package: 'flutter95',
         version: '0.0.7',
         description: compactDescription(
             'Windows95 UI components for Flutter apps. Bring back the nostalgic look and feel of old operating systems with this set of UI components ready to use.'),
       ));
-      await index.addPackage(PackageDocument(package: 'flutter_charts'));
-      await index.markReady();
+      index.addPackage(PackageDocument(package: 'flutter_charts'));
+      index.markReady();
     });
 
     test('flutter 95', () async {

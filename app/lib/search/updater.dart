@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 
 import '../package/models.dart' show Package;
 import '../shared/datastore.dart';
-import '../shared/exceptions.dart';
 
 import 'backend.dart';
 import 'mem_index.dart';
@@ -38,13 +37,13 @@ class IndexUpdater {
       _logger.info('Loading minimum package index...');
       int cnt = 0;
       await for (final pd in searchBackend.loadMinimumPackageIndex()) {
-        await _packageIndex.addPackage(pd);
+        _packageIndex.addPackage(pd);
         cnt++;
         if (cnt % 500 == 0) {
           _logger.info('Loaded $cnt minimum package data (${pd.package})');
         }
       }
-      await _packageIndex.markReady();
+      _packageIndex.markReady();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
   }
@@ -55,14 +54,10 @@ class IndexUpdater {
   @visibleForTesting
   Future<void> updateAllPackages() async {
     await for (final p in _db.query<Package>().run()) {
-      try {
-        final doc = await searchBackend.loadDocument(p.name!);
-        await _packageIndex.addPackage(doc);
-      } on RemovedPackageException catch (_) {
-        await _packageIndex.removePackage(p.name!);
-      }
+      final doc = await searchBackend.loadDocument(p.name!);
+      _packageIndex.addPackage(doc);
     }
-    await _packageIndex.markReady();
+    _packageIndex.markReady();
   }
 
   /// Returns whether the snapshot was initialized and loaded properly.
@@ -73,12 +68,11 @@ class IndexUpdater {
       if (documents == null) {
         return false;
       }
-      await _packageIndex.addPackages(documents);
+      _packageIndex.addPackages(documents);
       // Arbitrary sanity check that the snapshot is not entirely bogus.
       // Index merge will enable search.
       if (documents.length > 10) {
-        _logger.info('Merging index after snapshot.');
-        await _packageIndex.markReady();
+        _packageIndex.markReady();
         _logger.info('Snapshot load completed.');
         return true;
       }
