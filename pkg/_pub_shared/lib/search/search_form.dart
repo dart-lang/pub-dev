@@ -137,7 +137,7 @@ class TagsPredicate {
 
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
-  bool matches(List<String> tags) {
+  bool matches(Iterable<String> tags) {
     for (final entry in _values.entries) {
       final tag = entry.key;
       final required = entry.value;

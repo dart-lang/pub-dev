@@ -136,8 +136,8 @@ class InMemoryPackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packages.retainWhere(
-          (package) => combinedTagsPredicate.matches(_packages[package]!.tags));
+      packages.retainWhere((package) =>
+          combinedTagsPredicate.matches(_packages[package]!.tagsForLookup));
     }
 
     // filter on dependency
