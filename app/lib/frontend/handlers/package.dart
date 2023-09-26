@@ -332,8 +332,7 @@ Future<PackagePageData> loadPackagePageData(
   final packageName = package.name!;
   versionName ??= package.latestVersion;
 
-  final latestReleasesFuture =
-      Future(() => packageBackend.latestReleases(package));
+  final latestReleasesFuture = packageBackend.latestReleases(package);
 
   final isLikedFuture = Future(
     () async => requestContext.isNotAuthenticated
@@ -343,10 +342,10 @@ Future<PackagePageData> loadPackagePageData(
             null,
   );
 
-  final selectedVersionFuture = Future(
-      () => packageBackend.lookupPackageVersion(packageName, versionName!));
-  final versionInfoFuture = Future(
-      () => packageBackend.lookupPackageVersionInfo(packageName, versionName!));
+  final selectedVersionFuture =
+      packageBackend.lookupPackageVersion(packageName, versionName!);
+  final versionInfoFuture =
+      packageBackend.lookupPackageVersionInfo(packageName, versionName);
 
   final assetFuture = Future(() async => assetKind == null
       ? null
@@ -358,11 +357,8 @@ Future<PackagePageData> loadPackagePageData(
       : await packageBackend.isPackageAdmin(
           package, requestContext.authenticatedUserId!));
 
-  final scoreCardFuture = Future(() => scoreCardBackend.getScoreCardData(
-        packageName,
-        versionName!,
-        package: package,
-      ));
+  final scoreCardFuture = scoreCardBackend
+      .getScoreCardData(packageName, versionName, package: package);
 
   await Future.wait([
     latestReleasesFuture,
