@@ -9,7 +9,7 @@ dependencies:
   appengine: ^0.13.6
   json_annotation: ^4.3.0
   jsontool: ^1.1.0
-  pana: ^0.21.36
+  pana: ^0.21.37
   lints: ^2.0.0 # required for pana
   meta: ^1.7.0
   api_builder:
@@ -29,7 +29,7 @@ dependencies:
   pub_dartdoc_data:
     path: ../pub_dartdoc_data
   pubspec_parse: ^1.2.1
-  tar: ^0.5.0
+  tar: ^1.0.0
   shelf: ^1.2.0
   shelf_router: ^1.1.2
   async: ^2.10.0
@@ -46,4 +46,4 @@ dev_dependencies:
   args: ^2.3.1
 
 dependency_overrides:
-  http: ^1.0.0
+  analyzer: ^6.0.0
