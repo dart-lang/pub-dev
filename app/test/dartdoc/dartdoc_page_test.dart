@@ -14,6 +14,22 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
+// This test ensures that the output from the `DartDocPage` rendering pipeline
+// is the same as the default output from `dartdoc`.
+//
+// The test does the following steps:
+//   - runs pkg/pub_dartdoc on a simple package
+//   - scans each .html file (skipping the -sidebar.html content which are
+//     served without processing)
+//     - runs the `DartDocPage` rendering pipeline on each file
+//     - removes the shared matching parts in both files
+//     - removes the known differences from the original and the rendered one
+//     - fails the test if there is any (unknown) differences left
+//
+// On upgrading `dartdoc` (`pkg/pub_dartdoc`) this test may fail, as the
+// `dartdoc` output may diverge from our rendering pipeline. In such cases
+// we may need to update either the test or the rendering templates until
+// there are only known and accepted differences between the two.
 void main() {
   group('DartDocPage rendering', () {
     final tempDir = Directory.systemTemp.createTempSync();
