@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
@@ -31,7 +30,6 @@ class InMemoryPackageIndex {
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
   final _likeTracker = _LikeTracker();
-  final _updatedPackages = ListQueue<String>();
   final bool _alwaysUpdateLikeScores;
   late final _createdOrderedHitCache = _OrderedHitCache(
       () => _rankWithComparator(_packages.keys.toSet(), _compareCreated));
@@ -53,29 +51,7 @@ class InMemoryPackageIndex {
       isReady: _isReady,
       packageCount: _packages.length,
       lastUpdated: _lastUpdated,
-      updatedPackages: _updatedPackages.toList(),
     );
-  }
-
-  void _trackUpdated(String package) {
-    while (_updatedPackages.length >= 20) {
-      _updatedPackages.removeFirst();
-    }
-    _updatedPackages.addLast(package);
-  }
-
-  /// Returns the source update timestamp of the [package].
-  DateTime? getPackageSourceLastUpdated(String package) {
-    final doc = _packages[package];
-    return doc?.sourceUpdated ?? doc?.timestamp;
-  }
-
-  /// Returns the map of package names and their versions in the index.
-  Map<String, String> getPackageNamesNotRecentlyUpdated(Duration threshold) {
-    final now = clock.now();
-    return Map.fromEntries(_packages.values
-        .where((doc) => now.difference(doc.timestamp) > threshold)
-        .map((doc) => MapEntry(doc.package, doc.version!)));
   }
 
   /// A package index may be accessed while the initialization phase is still
@@ -119,7 +95,6 @@ class InMemoryPackageIndex {
 
     await Future.delayed(Duration.zero);
     _lastUpdated = clock.now().toUtc();
-    _trackUpdated(doc.package);
     _invalidateHitCaches();
   }
 
@@ -142,7 +117,6 @@ class InMemoryPackageIndex {
     }
     _likeTracker.removePackage(doc.package);
     _lastUpdated = clock.now().toUtc();
-    _trackUpdated('-$package');
     _invalidateHitCaches();
   }
 

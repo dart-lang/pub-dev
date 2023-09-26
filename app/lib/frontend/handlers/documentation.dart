@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
@@ -44,29 +45,20 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
 
   final package = docFilePath.package;
-  var version = docFilePath.version!;
-  final path = docFilePath.path!;
-  // Redirect to /latest/ version if the version points to latest version
-  if (version != 'latest') {
-    final latestVersion = await packageBackend.getLatestVersion(package);
-    if (latestVersion != null && latestVersion == version) {
-      return redirectResponse(pkgDocUrl(
-        docFilePath.package,
-        isLatest: true,
-        relativePath: docFilePath.path,
-      ));
-    }
+  final version = docFilePath.version!;
+  final resolved = await dartdocBackend.resolveDocUrlVersion(package, version);
+  if (resolved.isEmpty) {
+    return notFoundHandler(request);
   }
-  // Find the latest version
-  if (version == 'latest') {
-    final latestVersion = await packageBackend.getLatestVersion(package);
-    if (latestVersion == null) {
-      return notFoundHandler(request);
-    }
-    version = latestVersion;
+  if (version != resolved.urlSegment) {
+    return redirectResponse(pkgDocUrl(
+      package,
+      version: resolved.urlSegment,
+      relativePath: docFilePath.path,
+    ));
+  } else {
+    return await handleDartDoc(request, package, resolved, docFilePath.path!);
   }
-
-  return await handleDartDoc(request, package, version, path);
 }
 
 /// The parsed structure of the documentation URL.

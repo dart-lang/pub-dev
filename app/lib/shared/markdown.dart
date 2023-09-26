@@ -245,7 +245,8 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
       if (urlResolverFn != null) {
         return urlResolverFn!(
           url,
-          relativeFrom: baseDir,
+          // note: pana will call `p.dirname(relativeFrom)` to get the reference to baseDir
+          relativeFrom: baseDir == null ? null : p.join(baseDir!, 'README.md'),
           isEmbeddedObject: raw,
         );
       }

@@ -140,9 +140,6 @@ Future<R> withFakeServices<R>({
   MemStorage? storage,
   FakeCloudCompute? cloudCompute,
 }) async {
-  if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn()) as R;
-  }
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
   }
@@ -190,6 +187,7 @@ Future<R> withFakeServices<R>({
     registerTaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 
     return await _withPubServices(() async {
+      await nameTracker.startTracking();
       await topPackages.start();
       await youtubeBackend.start();
       if (frontendServer != null) {
@@ -235,12 +233,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAnnouncementBackend(AnnouncementBackend());
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
-    registerDartdocBackend(
-      DartdocBackend(
-        dbService,
-        storageService.bucket(activeConfiguration.dartdocStorageBucketName!),
-      ),
-    );
+    registerDartdocBackend(DartdocBackend());
     registerDartSdkMemIndex(DartSdkMemIndex());
     registerEmailBackend(EmailBackend(dbService));
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
@@ -288,7 +281,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
-    registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(dartSdkMemIndex.close);
     registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);

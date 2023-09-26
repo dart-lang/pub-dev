@@ -104,6 +104,22 @@ int compareSemanticVersionsDesc(
 bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
     compareSemanticVersionsDesc(a, b, false, pubSorted) < 0;
 
+extension VersionIterableExt on Iterable<semver.Version> {
+  /// Returns the latest version of this iterable, using pub's priorization ordering,
+  /// which will rank pre-release versions lower than stable versions, otherwise
+  /// semantic version sorting.
+  ///
+  /// Returns `null` if the collection is empty.
+  semver.Version? get latestVersion {
+    return fold(null, (best, v) {
+      if (best == null) {
+        return v;
+      }
+      return compareSemanticVersionsDesc(best, v, true, true) <= 0 ? best : v;
+    });
+  }
+}
+
 List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
   final int maxPageIndex = (list.length - 1) ~/ limit;

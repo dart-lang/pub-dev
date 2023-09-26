@@ -24,6 +24,26 @@ final class Breadcrumb {
   Map<String, dynamic> toJson() => _$BreadcrumbToJson(this);
 }
 
+/// A dartdoc sidebar content.
+@JsonSerializable()
+class DartDocSidebar {
+  /// Sanitized HTML content of the sidebar.
+  final String content;
+
+  DartDocSidebar({
+    required this.content,
+  });
+
+  static DartDocSidebar parse(String rawHtml) {
+    return DartDocSidebar(content: DartDocPage._sanitize(rawHtml));
+  }
+
+  factory DartDocSidebar.fromJson(Map<String, dynamic> json) =>
+      _$DartDocSidebarFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DartDocSidebarToJson(this);
+}
+
 /// A dartdoc page parsed as sanitized html.
 ///
 ///
@@ -52,6 +72,18 @@ final class DartDocPage {
   /// Sanitized HTML for the [content] pane.
   final String content;
 
+  /// The base href of the current page relative to the root `index.html`.
+  final String? baseHref;
+
+  /// Flag for dartdoc, whether to use the [baseHref] in dynamic sidebar loading.
+  final String? usingBaseHref;
+
+  /// The left/above sidebar URL that dartdoc will load dynamically.
+  final String? aboveSidebarUrl;
+
+  /// The right/below sidebar URL that dartdoc will load dynamically.
+  final String? belowSidebarUrl;
+
   DartDocPage({
     required this.title,
     required this.description,
@@ -59,6 +91,10 @@ final class DartDocPage {
     required this.left,
     required this.right,
     required this.content,
+    required this.baseHref,
+    required this.usingBaseHref,
+    required this.aboveSidebarUrl,
+    required this.belowSidebarUrl,
   });
 
   factory DartDocPage.fromJson(Map<String, dynamic> json) =>
@@ -66,27 +102,27 @@ final class DartDocPage {
 
   Map<String, dynamic> toJson() => _$DartDocPageToJson(this);
 
+  // TODO: Create a variant of sanitizeHtml that consumes nodes from
+  //       package:html, so that we don't have re-parse everything :/
+  static String _sanitize(String? html) => sanitizeHtml(
+        html ?? '',
+        allowClassName: (_) => true,
+        allowElementId: (_) => true,
+        addLinkRel: (href) {
+          final u = Uri.tryParse(href);
+          if (u != null && !u.shouldIndicateUgc) {
+            // TODO: Determine if there is a better way to do this.
+            //       It's probably reasonable that internal links don't
+            //       required ugc + nofollow.
+            return [];
+          }
+          // Add ugc and nofollow if the host isn't one of ours.
+          return ['ugc', 'nofollow'];
+        },
+      );
+
   static DartDocPage parse(String rawHtml) {
     final document = html_parser.parse(rawHtml);
-
-    // TODO: Create a variant of sanitizeHtml that consumes nodes from
-    //       package:html, so that we don't have re-parse everything :/
-    String sanitize(String? html) => sanitizeHtml(
-          html ?? '',
-          allowClassName: (_) => true,
-          allowElementId: (_) => true,
-          addLinkRel: (href) {
-            final u = Uri.tryParse(href);
-            if (u != null && !u.shouldIndicateUgc) {
-              // TODO: Determine if there is a better way to do this.
-              //       It's probably reasonable that internal links don't
-              //       required ugc + nofollow.
-              return [];
-            }
-            // Add ugc and nofollow if the host isn't one of ours.
-            return ['ugc', 'nofollow'];
-          },
-        );
 
     // HACK: Adding markdown-body style
     final body = document.body;
@@ -148,9 +184,13 @@ final class DartDocPage {
               ?.attributes['content'] ??
           '',
       breadcrumbs: breadcrumbs,
-      left: sanitize(left),
-      right: sanitize(right),
-      content: sanitize(content),
+      left: _sanitize(left),
+      right: _sanitize(right),
+      content: _sanitize(content),
+      baseHref: body?.attributes['data-base-href'],
+      usingBaseHref: body?.attributes['data-using-base-href'],
+      aboveSidebarUrl: rawContent?.attributes['data-above-sidebar'],
+      belowSidebarUrl: rawContent?.attributes['data-below-sidebar'],
     );
   }
 }

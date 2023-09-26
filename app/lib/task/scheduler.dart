@@ -8,7 +8,6 @@ import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
@@ -240,7 +239,6 @@ Future<void> schedule(
               s.derivePendingAt();
               tx.insert(s);
             });
-            await cache.taskPackageStatus(state.package).purge();
           }
         }
       });
@@ -274,7 +272,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
   String zone,
   String instanceName,
 ) async {
-  final payload = await withRetryTransaction(db, (tx) async {
+  return await withRetryTransaction(db, (tx) async {
     final s = await tx.lookupOrNull<PackageState>(state.key);
     if (s == null) {
       // presumably the package was deleted.
@@ -297,6 +295,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           zone: zone,
           instance: instanceName,
           secretToken: createUuid(),
+          finished: s.versions![v]!.finished,
         ),
     });
     s.derivePendingAt();
@@ -312,8 +311,4 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           )),
     );
   });
-  if (payload != null) {
-    await cache.taskPackageStatus(payload.package).purge();
-  }
-  return payload;
 }

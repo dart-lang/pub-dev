@@ -15,10 +15,13 @@ final _uuidRegExp =
 abstract class KnownAgents {
   static const githubActions = 'service:github-actions';
   static const gcpServiceAccount = 'service:gcp-service-account';
+  // Agent for pub admin actions.
+  static const pubSupport = 'support@pub.dev';
 
   static const _values = <String>{
     githubActions,
     gcpServiceAccount,
+    pubSupport,
   };
 }
 

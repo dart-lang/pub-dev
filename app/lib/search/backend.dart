@@ -31,6 +31,7 @@ import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/global_lock.dart';
+import '../task/models.dart';
 import '../tool/utils/http.dart';
 
 import 'dart_sdk_mem_index.dart';
@@ -218,11 +219,13 @@ class SearchBackend {
       addResult(p.name!, p.updated!);
     }
 
-    final q2 = _db.query<ScoreCard>()
-      ..filter('updated >=', updatedThreshold)
-      ..order('-updated');
-    await for (final sc in q2.run()) {
-      addResult(sc.packageName!, sc.updated!);
+    final q3 = _db.query<PackageState>()
+      ..filter('finished >=', updatedThreshold)
+      ..order('-finished');
+    await for (final s in q3.run()) {
+      if (s.finished != null) {
+        addResult(s.package, s.finished!);
+      }
     }
 
     return results;
@@ -238,18 +241,22 @@ class SearchBackend {
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
-    final releases = await packageBackend.latestReleases(p);
+    // Get the scorecard with the latest version available with finished analysis.
+    final scoreCard =
+        await scoreCardBackend.getLatestFinishedScoreCardData(packageName);
 
+    // Load the version with the analysis above, or the latest version if no analysis
+    // has been finished yet.
+    final releases = await packageBackend.latestReleases(p);
     final pv = await packageBackend.lookupPackageVersion(
-        packageName, releases.stable.version);
+      packageName,
+      scoreCard.packageVersion ?? releases.stable.version,
+    );
     if (pv == null) {
       throw RemovedPackageException();
     }
     final readmeAsset = await packageBackend.lookupPackageVersionAsset(
         packageName, pv.version!, AssetKind.readme);
-
-    final scoreCard =
-        await scoreCardBackend.getScoreCardData(packageName, pv.version!);
 
     // Find tags from latest prerelease and/or preview (if there one).
     Future<Iterable<String>> loadFutureTags(String version) async {
@@ -259,7 +266,7 @@ class SearchBackend {
           await scoreCardBackend.getScoreCardData(packageName, version);
       final futureTags = <String>{
         ...?futureVersion?.getTags(),
-        ...?futureVersionAnalysis?.panaReport?.derivedTags,
+        ...?futureVersionAnalysis.panaReport?.derivedTags,
       };
       return futureTags.where(isFutureVersionTag);
     }
@@ -282,7 +289,7 @@ class SearchBackend {
       // regular tags
       ...p.getTags(),
       ...pv.getTags(),
-      ...?scoreCard?.panaReport?.derivedTags,
+      ...?scoreCard.panaReport?.derivedTags,
       ...prereleaseTags,
       ...previewTags,
     };
@@ -311,7 +318,7 @@ class SearchBackend {
     // select the latest entity updated timestamp (when available)
     final sourceUpdated = [
       p.updated,
-      scoreCard?.updated,
+      scoreCard.updated,
     ].whereNotNull().maxOrNull;
 
     return PackageDocument(
@@ -323,8 +330,8 @@ class SearchBackend {
       updated: p.lastVersionPublished,
       readme: compactReadme(readmeAsset?.textContent),
       likeCount: p.likes,
-      grantedPoints: scoreCard?.grantedPubPoints,
-      maxPoints: scoreCard?.maxPubPoints ?? 0,
+      grantedPoints: scoreCard.grantedPubPoints,
+      maxPoints: scoreCard.maxPubPoints,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
@@ -505,6 +512,9 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 
 class _CombinedSearchIndex implements SearchIndex {
   const _CombinedSearchIndex();
+
+  @override
+  bool isReady() => indexInfo().isReady;
 
   @override
   IndexInfo indexInfo() => _inMemoryPackageIndex.indexInfo();

@@ -12,12 +12,12 @@ import 'package:neat_periodic_task/neat_periodic_task.dart';
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
-import '../../dartdoc/backend.dart';
 import '../../job/backend.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../service/email/backend.dart';
+import '../../service/security_advisories/sync_security_advisories.dart';
 import '../../shared/configuration.dart';
 import '../../shared/count_topics.dart';
 import '../../shared/datastore.dart';
@@ -162,6 +162,11 @@ void _setupGenericPeriodicTasks() {
 
   _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics);
 
+  _daily(
+      name: 'sync-security-advisories',
+      isRuntimeVersioned: false,
+      task: syncSecurityAdvisories);
+
   // TODO: setup tasks to remove known obsolete (but now unmapped) fields from entities
 }
 
@@ -177,34 +182,6 @@ void setupAnalyzerPeriodicTasks() {
     task: () async =>
         await IntegrityChecker(dbService, concurrency: 2).verifyAndLogIssues(),
     timeout: Duration(days: 1),
-  );
-}
-
-/// Setup the tasks that we are running in the dartdoc service.
-void setupDartdocPeriodicTasks() {
-  _setupJobCleanupPeriodicTasks();
-
-  // Deletes the extracted dartdoc data from old SDKs.
-  _weekly(
-    name: 'delete-old-dartdoc-sdks',
-    isRuntimeVersioned: true,
-    task: () => dartdocBackend.deleteOldData(),
-  );
-
-  // Deletes DartdocRun entities and their storage content that are older
-  // than the accepted runtime versions.
-  _weekly(
-    name: 'delete-old-dartdoc-runs',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteOldRuns(),
-  );
-
-  // Deletes DartdocRun entities and their storage content that are expired,
-  // and have newer version with content.
-  _weekly(
-    name: 'delete-expired-dartdoc-runs',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteExpiredRuns(),
   );
 }
 

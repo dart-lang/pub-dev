@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -13,17 +14,16 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 import '../account/models.dart' show LikeData, SessionData;
-import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
-import '../service/security_advisories/models.dart';
 import '../task/models.dart';
 import 'convert.dart';
 import 'versions.dart';
@@ -53,29 +53,6 @@ class CachePatterns {
         encode: (SessionData data) => data.toJson(),
         decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
-
-  /// Cache for [DartdocEntry] objects.
-  Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache
-      .withPrefix('dartdoc-entry/')
-      .withTTL(Duration(hours: 24))
-      .withCodec(wrapAsCodec(
-        encode: (DartdocEntry entry) => entry.asBytes(),
-        decode: (data) => DartdocEntry.fromBytes(data),
-      ))['$package-$version'];
-
-  /// Cache for [FileInfo] objects used by dartdoc.
-  Entry<FileInfo> dartdocFileInfo(String objectName) => _cache
-      .withPrefix('dartdoc-fileinfo/')
-      .withTTL(Duration(minutes: 60))
-      .withCodec(wrapAsCodec(
-        encode: (FileInfo info) => info.asBytes(),
-        decode: (data) => FileInfo.fromBytes(data),
-      ))[objectName];
-
-  /// Cache for the binary content of the blob index (v1).
-  Entry<List<int>> dartdocBlobIndexV1(String objectName) => _cache
-      .withPrefix('dartdoc-blob-index-v1/')
-      .withTTL(Duration(minutes: 60))[objectName];
 
   Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage/')
@@ -143,6 +120,16 @@ class CachePatterns {
         decode: (d) => d as bool,
       ))[package];
 
+  Entry<bool> packageModerated(String package) => _cache
+      .withPrefix('package-moderated/')
+      .withTTL(Duration(days: 7))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (bool value) => value,
+        decode: (d) => d as bool,
+      ))[package];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];
@@ -164,6 +151,11 @@ class CachePatterns {
   Entry<String> packageLatestVersion(String package) => _cache
       .withPrefix('package-latest-version/')
       .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)[package];
+
+  Entry<String> latestFinishedVersion(String package) => _cache
+      .withPrefix('latest-finished-version/')
+      .withTTL(Duration(minutes: 10))
       .withCodec(utf8)[package];
 
   Entry<PackageView> packageView(String package) => _cache
@@ -308,7 +300,7 @@ class CachePatterns {
 
   /// Cache for task status.
   Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
-      .withPrefix('task-status/')
+      .withPrefix('task-status-v2/')
       .withTTL(Duration(hours: 3))
       .withCodec(utf8)
       .withCodec(json)
@@ -321,12 +313,12 @@ class CachePatterns {
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<List<int>> dartdocHtmlBytes(
     String package,
-    String version,
+    String urlSegment,
     String path,
   ) =>
       _cache
           .withPrefix('dartdoc-html/')
-          .withTTL(Duration(minutes: 10))['$package-$version/$path'];
+          .withTTL(Duration(minutes: 10))['$package/$urlSegment/$path'];
 
   /// Stores the OpenID Data (including the JSON Web Key list).
   ///
@@ -362,6 +354,20 @@ class CachePatterns {
         encode: (DateTime v) => v.toUtc().toIso8601String(),
         decode: (v) => DateTime.parse(v.toString()),
       ))[entryKey];
+
+  /// The resolved display version and URL redirect info for /documentation/ URLs.
+  Entry<ResolvedDocUrlVersion> resolvedDocUrlVersion(
+          String package, String version) =>
+      _cache
+          .withPrefix('resolved-doc-url-version/')
+          .withTTL(Duration(minutes: 15))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (ResolvedDocUrlVersion v) => v.toJson(),
+            decode: (v) =>
+                ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
+          ))['$package-$version'];
 }
 
 /// The active cache.

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show gzip;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
@@ -41,30 +42,38 @@ const _safeMimeTypes = {
 Future<shelf.Response> handleDartDoc(
   shelf.Request request,
   String package,
-  String version,
+  ResolvedDocUrlVersion resolvedDocUrlVersion,
   String path,
 ) async {
   InvalidInputException.checkPackageName(package);
-  version = InvalidInputException.checkSemanticVersion(version);
+  final version =
+      InvalidInputException.checkSemanticVersion(resolvedDocUrlVersion.version);
 
   final ext = path.split('.').last;
 
   // Handle HTML requests
   final isHtml = ext == 'html';
   if (isHtml) {
-    final htmlBytes =
-        await cache.dartdocHtmlBytes(package, version, path).get(() async {
+    final htmlBytes = await cache
+        .dartdocHtmlBytes(package, resolvedDocUrlVersion.urlSegment, path)
+        .get(() async {
       try {
         final dataGz = await taskBackend.dartdocFile(package, version, path);
         if (dataGz == null) {
           return const <int>[]; // store empty string for missing data
         }
-        final latestVersion = await packageBackend.getLatestVersion(package);
         final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
+        if (path.endsWith('-sidebar.html')) {
+          final sidebar =
+              DartDocSidebar.fromJson(dataJson as Map<String, dynamic>);
+          return utf8.encode(sidebar.content);
+        }
+        final latestVersion = await packageBackend.getLatestVersion(package);
         final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
         final html = page.render(DartDocPageOptions(
           package: package,
           version: version,
+          urlSegment: resolvedDocUrlVersion.urlSegment,
           isLatestStable: version == latestVersion,
           path: path,
         ));

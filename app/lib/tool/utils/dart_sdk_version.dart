@@ -33,7 +33,7 @@ class DartSdkVersion {
       : semanticVersion = Version.parse(version),
         expires = expires ?? clock.now().add(_defaultMaxAge);
 
-  bool get isExpired => clock.now().isBefore(expires);
+  bool get isExpired => clock.now().isAfter(expires);
 }
 
 /// Gets the latest Dart SDK version information (value may be cached).
@@ -46,6 +46,7 @@ Future<DartSdkVersion> getDartSdkVersion() async {
 
 /// Fetches the latest Dart SDK version information.
 Future<DartSdkVersion> _fetchDartSdkVersion() async {
+  // TODO: Migrate to proper retry logic
   final client = httpRetryClient();
   try {
     final rs = await client.get(Uri.parse(

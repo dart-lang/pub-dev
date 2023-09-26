@@ -22,7 +22,6 @@ import '../shared/model_properties.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-import '../task/models.dart';
 
 part 'models.g.dart';
 
@@ -887,16 +886,16 @@ class QualifiedVersionKey {
 /// display-only uses.
 @JsonSerializable(includeIfNull: false)
 class PackageView extends Object with FlagMixin {
-  final String? name;
-  final LatestReleases? releases;
+  final String name;
+  final LatestReleases releases;
   final String? ellipsizedDescription;
 
   /// The date when the package was first published.
-  final DateTime? created;
+  final DateTime created;
   final String? publisherId;
   final bool isPending;
 
-  final int? likes;
+  final int likes;
 
   /// The package's granted points from pana and dartdoc analysis.
   /// May be `null` if the analysis is not available yet.
@@ -922,13 +921,13 @@ class PackageView extends Object with FlagMixin {
 
   PackageView({
     this.screenshots,
-    this.name,
-    this.releases,
+    required this.name,
+    required this.releases,
     this.ellipsizedDescription,
-    this.created,
+    required this.created,
     this.publisherId,
     bool? isPending,
-    this.likes,
+    required this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
     List<String>? tags,
@@ -946,47 +945,30 @@ class PackageView extends Object with FlagMixin {
     required Package package,
     required LatestReleases releases,
     PackageVersion? version,
-    ScoreCardData? scoreCard,
+    required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
   }) {
-    final hasPanaReport = scoreCard?.hasPanaReport ?? false;
-    final taskStatus = scoreCard?.taskStatus;
-    bool isPending = false;
-    if (taskStatus != null) {
-      isPending = taskStatus == PackageVersionStatus.pending;
-    } else {
-      isPending =
-          // Job processing has not created any card yet.
-          (scoreCard == null) ||
-              // The uploader has recently removed the "discontinued" flag, but the
-              // analysis did not complete yet.
-              (scoreCard.isDiscontinued && !package.isDiscontinued) ||
-              // No blocker for analysis, but no results yet.
-              (!scoreCard.isSkipped && !hasPanaReport);
-    }
-
     final tags = <String>{
       ...package.getTags(),
       ...?version?.getTags(),
-      ...?scoreCard?.derivedTags,
+      ...?scoreCard.derivedTags,
     };
     return PackageView(
-      name: version?.package ?? package.name,
+      name: package.name!,
       releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
-      created: package.created,
+      created: package.created!,
       publisherId: package.publisherId,
-      isPending: isPending,
+      isPending: scoreCard.isPending,
       likes: package.likes,
-      grantedPubPoints: scoreCard?.grantedPubPoints,
-      maxPubPoints: scoreCard?.maxPubPoints,
+      grantedPubPoints: scoreCard.grantedPubPoints,
+      maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
       replacedBy: package.replacedBy,
-      spdxIdentifiers: scoreCard?.panaReport?.licenses
-          ?.map((e) => e.spdxIdentifier)
-          .toList(),
+      spdxIdentifiers:
+          scoreCard.panaReport?.licenses?.map((e) => e.spdxIdentifier).toList(),
       apiPages: apiPages,
-      screenshots: scoreCard?.panaReport?.screenshots,
+      screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.topics,
     );
   }
@@ -1014,7 +996,7 @@ class PackageView extends Object with FlagMixin {
   Map<String, dynamic> toJson() => _$PackageViewToJson(this);
 
   // TODO: refactor code to use popularityStorage directly.
-  int get popularity => popularityStorage.lookupAsScore(name!);
+  int get popularity => popularityStorage.lookupAsScore(name);
 }
 
 /// Sorts [versions] according to the semantic versioning specification.
@@ -1081,15 +1063,14 @@ class PackageLinks {
 
 /// Common data structure shared between package pages.
 class PackagePageData {
-  final Package? package;
-  final LatestReleases? latestReleases;
-  final ModeratedPackage? moderatedPackage;
-  final PackageVersion? version;
-  final PackageVersionInfo? versionInfo;
+  final Package package;
+  final LatestReleases latestReleases;
+  final PackageVersion version;
+  final PackageVersionInfo versionInfo;
   final PackageVersionAsset? asset;
-  final ScoreCardData? scoreCard;
-  final bool? isAdmin;
-  final bool? isLiked;
+  final ScoreCardData scoreCard;
+  final bool isAdmin;
+  final bool isLiked;
   PackageView? _view;
 
   PackagePageData({
@@ -1101,32 +1082,20 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
-  })  : latestReleases = latestReleases ?? package!.latestReleases,
-        moderatedPackage = null;
+  }) : latestReleases = latestReleases ?? package.latestReleases;
 
-  PackagePageData.missing({
-    required this.package,
-    required this.latestReleases,
-    this.moderatedPackage,
-  })  : version = null,
-        versionInfo = null,
-        asset = null,
-        scoreCard = null,
-        isAdmin = null,
-        isLiked = null;
+  bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
+  bool get hasChangelog => versionInfo.assets.contains(AssetKind.changelog);
+  bool get hasExample => versionInfo.assets.contains(AssetKind.example);
+  bool get hasLicense => versionInfo.assets.contains(AssetKind.license);
+  bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
 
-  bool get hasReadme => versionInfo!.assets.contains(AssetKind.readme);
-  bool get hasChangelog => versionInfo!.assets.contains(AssetKind.changelog);
-  bool get hasExample => versionInfo!.assets.contains(AssetKind.example);
-  bool get hasLicense => versionInfo!.assets.contains(AssetKind.license);
-  bool get hasPubspec => versionInfo!.assets.contains(AssetKind.pubspec);
-
-  bool get isLatestStable => version!.version == package!.latestVersion;
-  int get popularity => popularityStorage.lookupAsScore(package!.name!);
+  bool get isLatestStable => version.version == package.latestVersion;
+  int get popularity => popularityStorage.lookupAsScore(package.name!);
 
   late final packageLinks = () {
     // Trying to use verfied URLs
-    final result = scoreCard?.panaReport?.result;
+    final result = scoreCard.panaReport?.result;
     if (result != null) {
       final baseUrl = urls.inferBaseUrl(
         homepageUrl: result.homepageUrl,
@@ -1142,7 +1111,7 @@ class PackagePageData {
     }
     // Falling back to use URLs from pubspec.yaml.
     // TODO: Remove this and return `null` after this release gets stable.
-    final pubspec = version!.pubspec!;
+    final pubspec = version.pubspec!;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
@@ -1151,7 +1120,7 @@ class PackagePageData {
     );
   }();
 
-  late final contributingUrl = scoreCard?.panaReport?.result?.contributingUrl;
+  late final contributingUrl = scoreCard.panaReport?.result?.contributingUrl;
 
   /// The inferred base URL that can be used to link files from.
   late final repositoryBaseUrl = () {
@@ -1161,12 +1130,12 @@ class PackagePageData {
 
   /// The verified repository (or homepage).
   late final urlResolverFn =
-      scoreCard?.panaReport?.result?.repository?.resolveUrl;
+      scoreCard.panaReport?.result?.repository?.resolveUrl;
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
-      package: package!,
-      releases: latestReleases!,
+      package: package,
+      releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
     );

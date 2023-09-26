@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -100,6 +101,22 @@ void main() {
           r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[8-9A-B][0-9A-F]{3}-[0-9A-F]{12}$',
           caseSensitive: false);
       expect(createUuid(), matches(uuidRegexp));
+    });
+  });
+
+  group('semantic versions', () {
+    test('latest of empty version list', () {
+      expect(<Version>[].latestVersion, isNull);
+    });
+
+    test('latest of a mixed values', () {
+      final versions = [
+        '1.0.0',
+        '1.2.0',
+        '2.0.0-beta',
+        '1.1.0',
+      ].map((e) => Version.parse(e));
+      expect(versions.latestVersion.toString(), '1.2.0');
     });
   });
 }

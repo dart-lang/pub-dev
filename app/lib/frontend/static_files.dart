@@ -229,6 +229,7 @@ class StaticFile {
     this.etag,
   );
 
+  @visibleForTesting
   String get contentAsString => utf8.decode(bytes);
 
   late final String _cacheableUrl =

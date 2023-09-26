@@ -214,15 +214,9 @@ Future<shelf.Response> apiPackageMetricsHandler(
     shelf.Request request, String packageName) async {
   final packageVersion = request.requestedUri.queryParameters['version'];
   checkPackageVersionParams(packageName, packageVersion);
-  final current = request.requestedUri.queryParameters.containsKey('current');
-  final data = await scoreCardBackend.getScoreCardData(
-    packageName,
-    packageVersion,
-    onlyCurrent: current,
-  );
-  if (data == null) {
-    return jsonResponse({}, status: 404);
-  }
+  final data = packageVersion == null
+      ? await scoreCardBackend.getLatestFinishedScoreCardData(packageName)
+      : await scoreCardBackend.getScoreCardData(packageName, packageVersion);
   final score = await packageVersionScoreHandler(request, packageName);
   final result = {
     'score': score.toJson(),
@@ -252,21 +246,21 @@ Future<VersionScore> packageVersionScoreHandler(
 
     var updated = pkg.updated;
     final card = await scoreCardBackend.getScoreCardData(package, v);
-    if (updated == null || card?.updated?.isAfter(updated) == true) {
-      updated = card?.updated;
+    if (updated == null || card.updated?.isAfter(updated) == true) {
+      updated = card.updated;
     }
 
     final tags = <String>{
       ...pkg.getTags(),
       ...pv.getTags(),
-      ...?card?.derivedTags,
+      ...?card.derivedTags,
     };
 
     return VersionScore(
-      grantedPoints: card?.grantedPubPoints,
-      maxPoints: card?.maxPubPoints,
+      grantedPoints: card.grantedPubPoints,
+      maxPoints: card.maxPubPoints,
       likeCount: pkg.likes,
-      popularityScore: card?.popularityScore,
+      popularityScore: card.popularityScore,
       tags: tags.toList(),
       lastUpdated: updated,
     );

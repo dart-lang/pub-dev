@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -12,9 +11,6 @@ import 'package:meta/meta.dart';
 import '../package/models.dart' show Package;
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
-import '../shared/scheduler_stats.dart';
-import '../shared/task_scheduler.dart';
-import '../shared/task_sources.dart';
 
 import 'backend.dart';
 import 'mem_index.dart';
@@ -28,10 +24,9 @@ void registerIndexUpdater(IndexUpdater updater) =>
 /// The active index updater.
 IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
-class IndexUpdater implements TaskRunner {
+class IndexUpdater {
   final DatastoreDB _db;
   final InMemoryPackageIndex _packageIndex;
-  Timer? _statsTimer;
 
   IndexUpdater(this._db, this._packageIndex);
 
@@ -91,83 +86,5 @@ class IndexUpdater implements TaskRunner {
       _logger.warning('Error while fetching snapshot.', e, st);
     }
     return false;
-  }
-
-  /// Starts the scheduler to update the package index.
-  void runScheduler() {
-    final scheduler = TaskScheduler(
-      this,
-      [
-        DatastoreHeadTaskSource(
-          _db,
-          TaskSourceModel.package,
-          sleep: const Duration(minutes: 10),
-        ),
-        DatastoreHeadTaskSource(
-          _db,
-          TaskSourceModel.scorecard,
-          sleep: const Duration(minutes: 10),
-          skipHistory: true,
-        ),
-        _PeriodicUpdateTaskSource(_packageIndex),
-      ],
-    );
-    scheduler.run();
-
-    _statsTimer = Timer.periodic(const Duration(minutes: 5), (_) {
-      updateLatestStats(scheduler.stats());
-    });
-  }
-
-  Future<void> close() async {
-    _statsTimer?.cancel();
-    _statsTimer = null;
-    // TODO: close scheduler
-  }
-
-  @override
-  Future<void> runTask(Task task) async {
-    try {
-      // Skip tasks that originate before the current document in the snapshot
-      // was created (e.g. the index and the snapshot was updated since the task
-      // was created).
-      // This preempts unnecessary work at startup (scanned Packages are updated
-      // only if the index was not updated since the last snapshot), and also
-      // deduplicates the periodic-updates which may not complete in 2 hours.
-      final updated = _packageIndex.getPackageSourceLastUpdated(task.package);
-      if (updated != null && updated.isAfter(task.updated)) {
-        return;
-      }
-
-      final doc = await searchBackend.loadDocument(task.package);
-      await _packageIndex.addPackage(doc);
-    } on RemovedPackageException catch (_) {
-      _logger.info('Removing: ${task.package}');
-      await _packageIndex.removePackage(task.package);
-    }
-  }
-}
-
-/// A task source that generates an update task for stale documents.
-///
-/// It scans the current search snapshot every two hours, and selects the
-/// packages that have not been updated in the last 5 days.
-class _PeriodicUpdateTaskSource implements TaskSource {
-  final InMemoryPackageIndex _packageIndex;
-  _PeriodicUpdateTaskSource(this._packageIndex);
-
-  @override
-  Stream<Task> startStreaming() async* {
-    for (;;) {
-      await Future.delayed(Duration(hours: 2));
-      final now = clock.now();
-      final toBeUpdated =
-          _packageIndex.getPackageNamesNotRecentlyUpdated(Duration(days: 5));
-      _logger.info(
-          'Periodic scheduler found ${toBeUpdated.length} packages to update.');
-      for (final e in toBeUpdated.entries) {
-        yield Task(e.key, e.value, now);
-      }
-    }
   }
 }

@@ -2,6 +2,45 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20230918t113400-all`
+ * Fix: search isolate renewal doesn't block ongoing traffic.
+
+## `20230914t133300-all`
+ * Bumped runtimeVersion to `2023.09.12`.
+ * Upgraded stable Dart analysis SDK to `3.1.1`.
+ * Upgraded stable Flutter analysis SDK to `3.13.3`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-42.2.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.14.0-0.2.pre`.
+ * Note: isolates do not automatically restart after they are closed with uncaught error.
+ * Note: no control isolate is used, first isolate is used as the HTTP-serving frontend.
+ * Note: `search` has now a separate index in an isolate that is renewed every 15 minutes.
+
+## `20230907t123500-all`
+ * Bumped runtimeVersion to `2023.09.05`.
+ * Upgraded dartdoc to `6.3.0`.
+ * Note: increased minimum instance count of `default` service to 32.
+
+## `20230904t124200-all`
+ * Note: Only a single frontend isolate will process HTTP requests.
+         Increased autoscaling of the default service.
+
+## `20230831t122900-all`
+ * Bumped runtimeVersion to `2023.08.29`.
+ * Upgraded runtime Dart SDK to `3.1.0`.
+ * Upgraded dependencies.
+ * Note: `DartdocRun`, `Job` and `ScoreCard` entities will be deleted in Datastore.
+ * Note: `dartdoc` backend no longer deletes entries from `Configuraiton.dartdocStorageBucketName`.
+         TODO: delete the bucket after this release becomes obsolete.
+
+## `20230822t112400-all`
+
+## `20230821t132100-all`
+
+## `20230818t145900-all`
+ * Bumped runtimeVersion to `2023.08.18`.
+
+## `20230817t142000-all`
  * Bumped runtimeVersion to `2023.08.17`.
  * Upgraded stable Dart analysis SDK to `3.1.0`.
  * Upgraded stable Flutter analysis SDK to `3.13.0`.

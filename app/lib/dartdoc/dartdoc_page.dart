@@ -15,6 +15,9 @@ export 'package:pub_dartdoc_data/dartdoc_page.dart';
 final class DartDocPageOptions {
   final String package;
   final String version;
+
+  /// The URL segment the version is served under (e.g. `/1.2.5/` or `/latest/`)
+  final String urlSegment;
   final bool isLatestStable;
 
   /// Path of the current file relative to the documentation root.
@@ -23,6 +26,7 @@ final class DartDocPageOptions {
   DartDocPageOptions({
     required this.package,
     required this.version,
+    required this.urlSegment,
     required this.isLatestStable,
     required this.path,
   });
@@ -38,19 +42,13 @@ final class DartDocPageOptions {
     if (p.endsWith('/index.html')) {
       p = p.substring(0, p.length - 'index.html'.length);
     }
-    return isLatestStable
-        ? pkgDocUrl(
-            package,
-            includeHost: true,
-            isLatest: true,
-            relativePath: p,
-          )
-        : pkgDocUrl(
-            package,
-            includeHost: true,
-            version: version,
-            relativePath: p,
-          );
+    return pkgDocUrl(
+      package,
+      includeHost: true,
+      // keeps the [version] or the "latest" string of the requested URI
+      version: urlSegment,
+      relativePath: p,
+    );
   }
 }
 
@@ -78,7 +76,6 @@ extension DartDocPageRender on DartDocPage {
         d.meta(name: 'generator', content: 'made with love by dartdoc'),
         d.meta(name: 'description', content: description),
         d.element('title', text: title),
-        // HACK: Inject a customized canonical url
         d.link(rel: 'canonical', href: options.canonicalUrl),
         // HACK: Inject alternate link, if not is latest stable version
         if (!options.isLatestStable)
@@ -189,6 +186,10 @@ extension DartDocPageRender on DartDocPage {
   d.Node _renderMainContent(DartDocPageOptions options) => d.div(
         id: 'dartdoc-main-content',
         classes: ['main-content'],
+        attributes: {
+          if (aboveSidebarUrl != null) 'data-above-sidebar': aboveSidebarUrl!,
+          if (belowSidebarUrl != null) 'data-below-sidebar': belowSidebarUrl!,
+        },
         child: _content,
       );
 
@@ -224,6 +225,7 @@ extension DartDocPageRender on DartDocPage {
             ],
           ),
           _left,
+          d.div(id: 'dartdoc-sidebar-left-content', text: ''),
         ],
       );
 
@@ -251,8 +253,9 @@ extension DartDocPageRender on DartDocPage {
   d.Node _renderBody(DartDocPageOptions options) {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
     return d.element('body', attributes: {
-      'data-base-href': dataBaseHref == '.' ? '' : '$dataBaseHref/',
-      'data-using-base-href': 'false',
+      'data-base-href':
+          baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
+      'data-using-base-href': usingBaseHref ?? 'false',
       'class': 'light-theme',
     }, children: [
       d.element('noscript',

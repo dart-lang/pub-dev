@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v6.5.6
+# Created with package:mono_repo v6.5.0
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -88,8 +88,8 @@ for PKG in ${PKGS}; do
         dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
         ;;
       command_0)
-        echo 'sudo apt-get install webp'
-        sudo apt-get install webp || EXIT_CODE=$?
+        echo 'sudo apt-get update -yq && sudo apt-get install webp'
+        sudo apt-get update -yq && sudo apt-get install webp || EXIT_CODE=$?
         ;;
       command_1)
         echo './build.sh'

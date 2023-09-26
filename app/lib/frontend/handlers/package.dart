@@ -5,8 +5,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -17,6 +19,7 @@ import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -225,17 +228,21 @@ Future<shelf.Response> _handlePackagePage({
 
   if (cachedPage == null) {
     final serviceSw = Stopwatch()..start();
-    final data = await loadPackagePageData(packageName, versionName, assetKind);
-    _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    if (data.package == null ||
-        data.package!.isNotVisible ||
-        data.version == null) {
-      if (data.moderatedPackage != null) {
+    if (!await packageBackend.isPackageVisible(packageName)) {
+      if (await packageBackend.isPackageModerated(packageName)) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
+      } else {
+        return formattedNotFoundHandler(request);
       }
+    }
+    late PackagePageData data;
+    try {
+      data = await loadPackagePageData(packageName, versionName, assetKind);
+    } on NotFoundException {
       return formattedNotFoundHandler(request);
     }
+    _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     final renderedResult = await renderFn(data);
     if (renderedResult is String) {
       cachedPage = renderedResult;
@@ -266,13 +273,13 @@ Future<shelf.Response> packageAdminHandler(
       if (unauthenticatedRs != null) {
         return unauthenticatedRs;
       }
-      if (!data.isAdmin!) {
+      if (!data.isAdmin) {
         return htmlResponse(renderUnauthorizedPage());
       }
       final page = await publisherBackend
           .listPublishersForUser(requestContext.authenticatedUserId!);
       final uploaderEmails = await accountBackend
-          .lookupUsersById(data.package!.uploaders ?? <String>[]);
+          .lookupUsersById(data.package.uploaders ?? <String>[]);
       final retractableVersions =
           await packageBackend.listRetractableVersions(packageName);
       final retractedVersions =
@@ -301,7 +308,7 @@ Future<shelf.Response> packageActivityLogHandler(
       if (unauthenticatedRs != null) {
         return unauthenticatedRs;
       }
-      if (!data.isAdmin!) {
+      if (!data.isAdmin) {
         return htmlResponse(renderUnauthorizedPage());
       }
       final before = auditBackend.parseBeforeQueryParameter(
@@ -323,12 +330,8 @@ Future<PackagePageData> loadPackagePageData(
 ) async {
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
-    final moderated = await packageBackend.lookupModeratedPackage(packageName);
-    return PackagePageData.missing(
-      package: null,
-      latestReleases: null,
-      moderatedPackage: moderated,
-    );
+    // note: this should not happen, as isVisible check is done before calling the method
+    throw NotFoundException.resource('package "$package"');
   }
 
   final bool isLiked = requestContext.isNotAuthenticated
@@ -341,19 +344,15 @@ Future<PackagePageData> loadPackagePageData(
   final selectedVersion =
       await packageBackend.lookupPackageVersion(packageName, versionName!);
   if (selectedVersion == null) {
-    return PackagePageData.missing(
-      package: package,
-      latestReleases: await packageBackend.latestReleases(package),
-    );
+    throw NotFoundException.resource(
+        'package "$package" version "$versionName"');
   }
 
   final versionInfo =
       await packageBackend.lookupPackageVersionInfo(packageName, versionName);
   if (versionInfo == null) {
-    return PackagePageData.missing(
-      package: package,
-      latestReleases: await packageBackend.latestReleases(package),
-    );
+    throw NotFoundException.resource(
+        'package "$package" version "$versionName"');
   }
 
   final asset = assetKind == null
@@ -418,4 +417,17 @@ Future<shelf.Response> packagePublisherHandler(
       ? urls.pkgPageUrl(package)
       : urls.publisherUrl(publisherId);
   return redirectResponse(redirectUrl);
+}
+
+/// Handles GET /api/packages/<package>/advisories
+Future<ListOSVsResponse> listAdvisoriesForPackage(
+    shelf.Request request, String packageName) async {
+  InvalidInputException.checkPackageName(packageName);
+  final package = await packageBackend.lookupPackage(packageName);
+  if (package == null) {
+    throw NotFoundException.resource(packageName);
+  }
+  final osvs =
+      await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
+  return ListOSVsResponse(osvs: osvs);
 }

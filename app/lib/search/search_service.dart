@@ -28,13 +28,11 @@ class IndexInfo {
   final bool isReady;
   final int packageCount;
   final DateTime? lastUpdated;
-  final List<String> updatedPackages;
 
   IndexInfo({
     required this.isReady,
     required this.packageCount,
     required this.lastUpdated,
-    required this.updatedPackages,
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -43,12 +41,21 @@ class IndexInfo {
         'lastUpdated': lastUpdated?.toIso8601String(),
         if (lastUpdated != null)
           'lastUpdateDelta': clock.now().difference(lastUpdated!).toString(),
-        'updatedPackages': updatedPackages,
       };
+
+  factory IndexInfo.fromJson(Map<String, dynamic> map) {
+    final lastUpdated = map['lastUpdated'] as String?;
+    return IndexInfo(
+      isReady: map['isReady'] == true,
+      packageCount: map['packageCount'] as int,
+      lastUpdated: lastUpdated == null ? null : DateTime.parse(lastUpdated),
+    );
+  }
 }
 
 /// Package search index and lookup.
 abstract class SearchIndex {
+  FutureOr<bool> isReady();
   FutureOr<PackageSearchResult> search(ServiceSearchQuery query);
   FutureOr<IndexInfo> indexInfo();
 }

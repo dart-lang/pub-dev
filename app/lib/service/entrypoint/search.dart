@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:args/command_runner.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/search/backend.dart';
+import 'package:pub_dev/service/entrypoint/search_index.dart';
 
-import '../../search/dart_sdk_mem_index.dart';
-import '../../search/flutter_sdk_mem_index.dart';
+import '../../search/backend.dart';
 import '../../search/handlers.dart';
-import '../../search/updater.dart';
+import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
@@ -31,33 +31,31 @@ class SearchCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await runIsolates(
-      logger: _logger,
-      frontendEntryPoint: _main,
-      workerEntryPoint: _worker,
-      frontendCount: 1,
-    );
+    await withServices(() async {
+      final worker = await startWorkerIsolate(
+        logger: _logger,
+        entryPoint: _worker,
+      );
+      registerScopeExitCallback(worker.close);
+
+      final index = await startQueryIsolate(
+        logger: _logger,
+        spawnUri:
+            Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
+      );
+      registerScopeExitCallback(index.close);
+
+      await popularityStorage.start();
+      registerSearchIndex(IsolateSearchIndex(index));
+
+      final renewTimer = Timer.periodic(Duration(minutes: 15), (_) async {
+        await index.renew(count: 1, wait: Duration(minutes: 2));
+      });
+      registerScopeExitCallback(() => renewTimer.cancel());
+
+      await runHandler(_logger, searchServiceHandler);
+    });
   }
-}
-
-Future _main(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-  await popularityStorage.start();
-
-  // Don't block on init, we need to serve liveliness and readiness checks.
-  scheduleMicrotask(() async {
-    await dartSdkMemIndex.start();
-    await flutterSdkMemIndex.start();
-    try {
-      await indexUpdater.init();
-    } catch (e, st) {
-      _logger.shout('Error initializing search service.', e, st);
-      rethrow;
-    }
-    indexUpdater.runScheduler();
-  });
-
-  await runHandler(_logger, searchServiceHandler);
 }
 
 Future _worker(EntryMessage message) async {

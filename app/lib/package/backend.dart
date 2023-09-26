@@ -26,7 +26,6 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
 import '../audit/models.dart';
-import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
 import '../service/email/models.dart';
@@ -107,6 +106,18 @@ class PackageBackend {
       final p = await db
           .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
       return p != null && p.isVisible;
+    }))!;
+  }
+
+  /// Whether the package has been deleted and a [ModeratedPackage] entity exists for it.
+  Future<bool> isPackageModerated(String package) async {
+    return (await cache.packageModerated(package).get(() async {
+      final visible = await isPackageVisible(package);
+      if (visible) {
+        return false;
+      }
+      final p = await lookupModeratedPackage(package);
+      return p != null;
     }))!;
   }
 
@@ -378,10 +389,8 @@ class PackageBackend {
     }
 
     final pkg = await _requirePackageAdmin(package, user.userId);
-    String? latestVersion;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
-      latestVersion = p.latestVersion;
 
       final optionsChanges = <String>[];
       if (options.isDiscontinued != null &&
@@ -419,8 +428,7 @@ class PackageBackend {
       ));
     });
     await purgePackageCache(package);
-    await jobBackend.trigger(JobService.analyzer, package,
-        version: latestVersion);
+    await taskBackend.trackPackage(package);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -1186,28 +1194,8 @@ class PackageBackend {
     String? prevLatestPrereleaseVersion,
   }) async {
     try {
-      final latestVersionChanged = prevLatestStableVersion != null &&
-          package!.latestVersion != prevLatestStableVersion;
-      final latestPrereleaseVersionChanged =
-          prevLatestPrereleaseVersion != null &&
-              package!.latestPrereleaseVersion != prevLatestPrereleaseVersion;
       await Future.wait([
         emailBackend.trySendOutgoingEmail(outgoingEmail),
-        // Trigger analysis and dartdoc generation. Dependent packages can be left
-        // out here, because the dependency graph's background polling will pick up
-        // the new upload, and will trigger analysis for the dependent packages.
-        jobBackend.triggerAnalysis(newVersion.package, newVersion.version),
-        jobBackend.triggerDartdoc(newVersion.package, newVersion.version),
-        // Trigger a new doc generation for the previous latest stable version
-        // in order to update the dartdoc entry and the canonical-urls.
-        if (latestVersionChanged)
-          jobBackend.triggerDartdoc(newVersion.package, prevLatestStableVersion,
-              shouldProcess: true),
-        // Reset the priority of the previous pre-release version.
-        if (latestPrereleaseVersionChanged)
-          jobBackend.triggerDartdoc(
-              newVersion.package, prevLatestPrereleaseVersion,
-              shouldProcess: false),
         taskBackend.trackPackage(newVersion.package, updateDependants: true),
       ]);
     } catch (e, st) {
@@ -1673,6 +1661,7 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
 Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageVisible(package).purge(),
+    cache.packageModerated(package).purge(),
     cache.packageData(package).purge(),
     cache.packageDataGz(package).purge(),
     cache.packageLatestVersion(package).purge(),

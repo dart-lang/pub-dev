@@ -1068,6 +1068,44 @@ Router _$PubApiRouter(PubApi service) {
   );
   router.add(
     'GET',
+    r'/api/admin/actions',
+    (Request request) async {
+      try {
+        final _$result = await service.adminListActions(
+          request,
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
+    'POST',
+    r'/api/admin/actions/<action>',
+    (
+      Request request,
+      String action,
+    ) async {
+      try {
+        final _$result = await service.adminInvokeAction(
+          request,
+          action,
+          await $utilities.decodeJson<AdminInvokeActionArguments>(
+              request, (o) => AdminInvokeActionArguments.fromJson(o)),
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
+    'GET',
     r'/api/admin/users',
     (Request request) async {
       try {
@@ -1268,6 +1306,26 @@ Router _$PubApiRouter(PubApi service) {
           request,
           package,
           email,
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
+    'GET',
+    r'/api/packages/<package>/advisories',
+    (
+      Request request,
+      String package,
+    ) async {
+      try {
+        final _$result = await service.getPackageAdvisories(
+          request,
+          package,
         );
         return $utilities.jsonResponse(_$result.toJson());
       } on ApiResponseException catch (e) {

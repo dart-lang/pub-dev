@@ -359,7 +359,6 @@ Iterable<String> _generateConflictingNames(String name) sync* {
 /// These pairs - depending on the font being used - may be rendered similarly.
 const _homoglyphPairs = [
   ['1', 'l'],
-  ['a', 'ci'],
   ['d', 'cl'],
   ['g', 'cj'],
   ['m', 'rn'],

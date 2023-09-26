@@ -7,6 +7,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:_pub_shared/data/account_api.dart' as _i4;
 import 'package:_pub_shared/data/admin_api.dart' as _i7;
+import 'package:_pub_shared/data/advisories_api.dart' as _i8;
 import 'package:_pub_shared/data/package_api.dart' as _i3;
 import 'package:_pub_shared/data/publisher_api.dart' as _i5;
 import 'package:_pub_shared/data/task_api.dart' as _i6;
@@ -471,6 +472,24 @@ class PubApiClient {
     );
   }
 
+  Future<_i7.AdminListActionsResponse> adminListActions() async {
+    return _i7.AdminListActionsResponse.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/admin/actions',
+    ));
+  }
+
+  Future<_i7.AdminInvokeActionResponse> adminInvokeAction(
+    String action,
+    _i7.AdminInvokeActionArguments payload,
+  ) async {
+    return _i7.AdminInvokeActionResponse.fromJson(await _client.requestJson(
+      verb: 'post',
+      path: '/api/admin/actions/$action',
+      body: payload.toJson(),
+    ));
+  }
+
   Future<_i7.AdminListUsersResponse> adminListUsers({
     String? email,
     String? ouid,
@@ -567,6 +586,13 @@ class PubApiClient {
     return _i7.PackageUploaders.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/admin/packages/$package/uploaders/$email',
+    ));
+  }
+
+  Future<_i8.ListOSVsResponse> getPackageAdvisories(String package) async {
+    return _i8.ListOSVsResponse.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/advisories',
     ));
   }
 }

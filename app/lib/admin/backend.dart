@@ -8,6 +8,7 @@ import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -19,7 +20,6 @@ import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
-import '../dartdoc/backend.dart';
 import '../job/model.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
@@ -31,7 +31,7 @@ import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../tool/utils/dart_sdk_version.dart';
-import 'tools/block_publisher_and_all_members.dart';
+import 'actions/actions.dart' show AdminAction;
 import 'tools/create_publisher.dart';
 import 'tools/delete_all_staging.dart';
 import 'tools/delete_publisher.dart';
@@ -71,7 +71,6 @@ final Map<String, Tool> availableTools = {
   'package-publisher': executeSetPackagePublisher,
   'update-package-versions': executeUpdatePackageVersions,
   'recent-uploaders': executeRecentUploaders,
-  'block-publisher-and-all-members': executeBlockPublisherAndAllMembers,
   'publisher-member': executePublisherMember,
   'publisher-invite-member': executePublisherInviteMember,
   'set-package-blocked': executeSetPackageBlocked,
@@ -365,9 +364,6 @@ class AdminBackend {
     await Future.wait(futures);
     await pool.close();
 
-    _logger.info('Removing package from dartdoc backend ...');
-    await dartdocBackend.removeAll(packageName, concurrency: 32);
-
     _logger.info('Removing package from PackageVersion ...');
     await _db
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
@@ -487,8 +483,6 @@ class AdminBackend {
     print('Removing GCS objects ...');
     await packageBackend.removePackageTarball(packageName, version);
 
-    await dartdocBackend.removeAll(packageName, version: version);
-
     await _db.deleteWithQuery(
       _db.query<PackageVersionInfo>()..filter('package =', packageName),
       where: (PackageVersionInfo info) => info.version == version,
@@ -499,10 +493,6 @@ class AdminBackend {
       where: (PackageVersionAsset asset) => asset.version == version,
     );
 
-    await _db.deleteWithQuery(
-      _db.query<Job>()..filter('packageName =', packageName),
-      where: (Job job) => job.packageVersion == version,
-    );
     await purgePackageCache(packageName);
   }
 
@@ -687,5 +677,50 @@ class AdminBackend {
       }
     });
     return await handleGetPackageUploaders(packageName);
+  }
+
+  Future<api.AdminListActionsResponse> listActions() async {
+    await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+
+    return api.AdminListActionsResponse(
+      actions: AdminAction.actions
+          .map(
+            (action) => api.AdminAction(
+              name: action.name,
+              summary: action.summary,
+              description: action.description,
+              options: action.options,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Future<api.AdminInvokeActionResponse> invokeAction(
+    String actionName,
+    Map<String, String> args,
+  ) async {
+    await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+
+    final action = AdminAction.actions.firstWhereOrNull(
+      (a) => a.name == actionName,
+    );
+    if (action == null) {
+      throw NotFoundException.resource(actionName);
+    }
+
+    // Don't allow unknown arguments
+    final unknownArgs =
+        args.keys.toSet().difference(action.options.keys.toSet());
+    InvalidInputException.check(
+      unknownArgs.isEmpty,
+      'Unknown options: ${unknownArgs.join(',')}',
+    );
+
+    final result = await action.invoke({
+      for (final k in action.options.keys) k: args[k] ?? '',
+    });
+
+    return api.AdminInvokeActionResponse(output: result);
   }
 }

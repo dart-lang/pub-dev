@@ -24,10 +24,11 @@ Map<String, dynamic> _$SearchSnapshotToJson(SearchSnapshot instance) =>
 
 DartdocIndexEntry _$DartdocIndexEntryFromJson(Map<String, dynamic> json) =>
     DartdocIndexEntry(
-      name: json['name'] as String,
-      qualifiedName: json['qualifiedName'] as String,
-      href: json['href'] as String,
-      type: json['type'] as String?,
+      name: json['name'] as String?,
+      qualifiedName: json['qualifiedName'] as String?,
+      href: json['href'] as String?,
+      kind: json['kind'] as int?,
+      packageRank: json['packageRank'] as int?,
       overriddenDepth: json['overriddenDepth'] as int?,
       packageName: json['packageName'] as String?,
       desc: json['desc'] as String?,
@@ -38,11 +39,7 @@ DartdocIndexEntry _$DartdocIndexEntryFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$DartdocIndexEntryToJson(DartdocIndexEntry instance) {
-  final val = <String, dynamic>{
-    'name': instance.name,
-    'qualifiedName': instance.qualifiedName,
-    'href': instance.href,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -50,7 +47,11 @@ Map<String, dynamic> _$DartdocIndexEntryToJson(DartdocIndexEntry instance) {
     }
   }
 
-  writeNotNull('type', instance.type);
+  writeNotNull('name', instance.name);
+  writeNotNull('qualifiedName', instance.qualifiedName);
+  writeNotNull('href', instance.href);
+  writeNotNull('kind', instance.kind);
+  writeNotNull('packageRank', instance.packageRank);
   writeNotNull('overriddenDepth', instance.overriddenDepth);
   writeNotNull('packageName', instance.packageName);
   writeNotNull('desc', instance.desc);
@@ -62,7 +63,7 @@ DartdocIndexEntryEnclosedBy _$DartdocIndexEntryEnclosedByFromJson(
         Map<String, dynamic> json) =>
     DartdocIndexEntryEnclosedBy(
       name: json['name'] as String?,
-      type: json['type'] as String?,
+      kind: json['kind'] as int?,
       href: json['href'] as String?,
     );
 
@@ -77,7 +78,7 @@ Map<String, dynamic> _$DartdocIndexEntryEnclosedByToJson(
   }
 
   writeNotNull('name', instance.name);
-  writeNotNull('type', instance.type);
+  writeNotNull('kind', instance.kind);
   writeNotNull('href', instance.href);
   return val;
 }

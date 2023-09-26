@@ -21,7 +21,7 @@ d.Node scoreTabNode({
   }
 
   final report = card.report;
-  final showPending = !card.isSkipped && report == null;
+  final showPending = card.isPending;
   final showReport = !card.isSkipped && report != null;
 
   final toolEnvInfo = showReport

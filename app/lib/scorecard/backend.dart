@@ -7,10 +7,9 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pana/pana.dart' as pana;
+import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 
 import '../package/backend.dart';
@@ -21,24 +20,9 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
 
-import 'helpers.dart';
 import 'models.dart';
 
 final _logger = Logger('pub.scorecard.backend');
-
-final Duration _deleteThreshold = const Duration(days: 182);
-final _reportSizeWarnThreshold = 16 * 1024;
-final _reportSizeDropThreshold = 32 * 1024;
-
-/// The maximum number of keys we'll try to lookup when we need to load the
-/// scorecard or the report information for multiple versions.
-///
-/// The Datastore limit is 1000, but that caused resource constraint issues
-/// https://github.com/dart-lang/pub-dev/issues/4040
-///
-/// Another issue was if the total size of the reports got too long
-/// https://github.com/dart-lang/pub-dev/issues/4780
-const _batchLookupMaxKeyCount = 10;
 
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
@@ -66,7 +50,7 @@ class ScoreCardBackend {
   }
 
   /// Returns the [PackageView] instance for each package in [packages], using
-  /// the latest stable version.
+  /// the latest finished version.
   ///
   /// If the package does not exist, it will return null in the given index.
   Future<List<PackageView?>> getPackageViews(Iterable<String> packages) async {
@@ -78,9 +62,12 @@ class ScoreCardBackend {
     return await Future.wait(futures);
   }
 
-  /// Returns the [PackageView] instance for [package] on its latest stable version.
+  /// Returns the [PackageView] instance for [package] on its "best" version:
+  /// either loading the latest finished version, or if no analysis has been
+  /// done yet, the latest stable version.
   ///
   /// Returns null if the package does not exists.
+  @visibleForTesting
   Future<PackageView?> getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
       final p = await packageBackend.lookupPackage(package);
@@ -89,14 +76,20 @@ class ScoreCardBackend {
         return null;
       }
 
+      final version = await taskBackend.latestFinishedVersion(package) ??
+          await packageBackend.getLatestVersion(package);
+      if (version == null) {
+        return null;
+      }
+
       final releases = await packageBackend.latestReleases(p);
-      final version = releases.stable.version;
       final pvFuture = packageBackend.lookupPackageVersion(package, version);
       final cardFuture = scoreCardBackend.getScoreCardData(package, version);
       await Future.wait([pvFuture, cardFuture]);
 
       final pv = await pvFuture;
       final card = await cardFuture;
+
       return PackageView.fromModel(
         package: p,
         releases: releases,
@@ -106,26 +99,30 @@ class ScoreCardBackend {
     });
   }
 
-  /// Returns the [ScoreCardData] for the given package and version.
-  Future<ScoreCardData?> getScoreCardData(
-    String packageName,
-    String? packageVersion, {
-    bool onlyCurrent = false,
-  }) async {
-    if (packageVersion == null || packageVersion == 'latest') {
-      packageVersion = await packageBackend.getLatestVersion(packageName);
-      if (packageVersion == null) {
-        // package does not exists
-        return null;
-      }
+  /// Returns the latest finished [ScoreCardData] for the given [package].
+  ///
+  /// If no analysis has been finished for this package, the method loads
+  /// the information for the latest version.
+  Future<ScoreCardData> getLatestFinishedScoreCardData(String package) async {
+    final version = await taskBackend.latestFinishedVersion(package) ??
+        await packageBackend.getLatestVersion(package);
+    if (version == null) {
+      throw NotFoundException.resource('package "$package"');
     }
-    final cacheEntry =
-        onlyCurrent ? null : cache.scoreCardData(packageName, packageVersion);
-    if (cacheEntry != null) {
-      final cached = await cacheEntry.get();
-      if (cached != null && cached.hasAllReports) {
-        return cached;
-      }
+    return getScoreCardData(package, version);
+  }
+
+  /// Returns the [ScoreCardData] for the given package and version.
+  Future<ScoreCardData> getScoreCardData(
+    String packageName,
+    String packageVersion,
+  ) async {
+    InvalidInputException.check(
+        packageVersion != 'latest', 'latest is no longer supported');
+    final cacheEntry = cache.scoreCardData(packageName, packageVersion);
+    final cached = await cacheEntry.get();
+    if (cached != null) {
+      return cached;
     }
 
     final package = await packageBackend.lookupPackage(packageName);
@@ -147,186 +144,22 @@ class ScoreCardBackend {
     final data = ScoreCardData(
       packageName: packageName,
       packageVersion: packageVersion,
-      // this is unused outside scorecard backend, and a bit wrong:
-      runtimeVersion: runtimeVersion,
+      runtimeVersion: stateInfo.runtimeVersion,
       updated: summary?.createdAt ?? version.created,
-      packageCreated: package.created,
-      packageVersionCreated: version.created,
       dartdocReport: DartdocReport(
-        timestamp: summary?.createdAt ?? version.created,
         reportStatus:
             hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
-        dartdocEntry: null, // unused
-        documentationSection: null, // already embedded in summary
       ),
       panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       taskStatus: versionInfo?.status,
     );
-    if (cacheEntry != null) {
-      await cacheEntry.set(data);
-    }
+    await cacheEntry.set(data);
     return data;
-  }
-
-  /// Creates or updates a [ScoreCard] entry with the provided [panaReport] and/or [dartdocReport].
-  /// The report data will be converted to json+gzip and stored as a bytes in the [ScoreCard] entry.
-  Future<void> updateReportOnCard(
-    String packageName,
-    String packageVersion, {
-    PanaReport? panaReport,
-    DartdocReport? dartdocReport,
-  }) async {
-    final key = scoreCardKey(packageName, packageVersion);
-    final pAndPv = await _db.lookup([key.parent!, key.parent!.parent!]);
-    final version = pAndPv[0] as PackageVersion?;
-    final package = pAndPv[1] as Package?;
-    if (package == null || version == null) {
-      throw Exception('Unable to lookup $packageName $packageVersion.');
-    }
-
-    await db.withRetryTransaction(_db, (tx) async {
-      var scoreCard = await tx.lookupOrNull<ScoreCard>(key);
-
-      if (scoreCard == null) {
-        _logger.info('Creating new ScoreCard $packageName $packageVersion.');
-        scoreCard = ScoreCard.init(
-          packageName: packageName,
-          packageVersion: packageVersion,
-          packageCreated: package.created,
-          packageVersionCreated: version.created,
-        );
-      } else {
-        _logger.info('Updating ScoreCard $packageName $packageVersion.');
-        scoreCard.updated = clock.now().toUtc();
-      }
-
-      bool reportIsTooBig(String reportType, List<int>? bytes) {
-        if (bytes == null || bytes.isEmpty) return false;
-        final size = bytes.length;
-        if (size > _reportSizeDropThreshold) {
-          _logger.reportError(
-              '$reportType report exceeded size threshold ($packageName $packageVersion - $size > $_reportSizeWarnThreshold)');
-          return true;
-        } else if (size > _reportSizeWarnThreshold) {
-          _logger.warning(
-              '$reportType report exceeded size threshold ($packageName $packageVersion - $size > $_reportSizeWarnThreshold)');
-        }
-        return false;
-      }
-
-      if (panaReport != null &&
-          reportIsTooBig(ReportType.pana, panaReport!.asBytes)) {
-        panaReport = PanaReport(
-          timestamp: clock.now().toUtc(),
-          panaRuntimeInfo: null,
-          reportStatus: ReportStatus.aborted,
-          derivedTags: <String>[
-            'has:pana-report-exceeds-size-threshold',
-          ],
-          allDependencies: <String>[],
-          licenses: null,
-          report: pana.Report(
-            sections: [
-              pana.ReportSection(
-                id: 'error',
-                title: 'Report exceeded size limit.',
-                grantedPoints: panaReport!.report?.grantedPoints ?? 0,
-                maxPoints: panaReport!.report?.maxPoints ?? 1,
-                status: pana.ReportStatus.partial,
-                summary: 'The `pana` report exceeded size limit. '
-                    'A log about the issue has been filed, the site admins will address it soon.',
-              ),
-            ],
-          ),
-          result: null,
-          urlProblems: <pana.UrlProblem>[],
-          screenshots: null,
-        );
-      }
-      if (dartdocReport != null &&
-          reportIsTooBig(ReportType.dartdoc, dartdocReport!.asBytes)) {
-        dartdocReport = DartdocReport(
-          timestamp: dartdocReport!.timestamp,
-          reportStatus: ReportStatus.aborted,
-          dartdocEntry: null,
-          documentationSection: pana.ReportSection(
-            id: pana.ReportSectionId.documentation,
-            title: pana.documentationSectionTitle,
-            grantedPoints:
-                dartdocReport!.documentationSection?.grantedPoints ?? 0,
-            maxPoints: dartdocReport!.documentationSection?.maxPoints ?? 10,
-            status: pana.ReportStatus.partial,
-            summary: 'The `dartdoc` report exceeded size limit. '
-                'A log about the issue has been filed, the site admins will address it soon.',
-          ),
-        );
-      }
-
-      scoreCard.updateReports(
-        panaReport: panaReport,
-        dartdocReport: dartdocReport,
-      );
-
-      tx.insert(scoreCard);
-    });
-
-    await purgeScorecardData(
-      package.name!,
-      version.version!,
-      isLatest: package.latestVersion == version.version,
-    );
-  }
-
-  /// Load and deserialize a [ScoreCardData] for the given package's versions.
-  Future<List<ScoreCardData?>> getScoreCardDataForAllVersions(
-    String packageName,
-    Iterable<String> versions, {
-    String? runtimeVersion,
-  }) async {
-    final futures = <Future<List<ScoreCardData?>>>[];
-    for (var start = 0;
-        start < versions.length;
-        start += _batchLookupMaxKeyCount) {
-      final keys = versions
-          .skip(start)
-          .take(_batchLookupMaxKeyCount)
-          .map((v) =>
-              scoreCardKey(packageName, v, runtimeVersion: runtimeVersion))
-          .toList();
-      final f = _scoreCardDataPool.withResource(() async {
-        final items = await _db.lookup<ScoreCard>(keys);
-        return items.map((item) => item?.tryDecodeData()).toList();
-      });
-      futures.add(f);
-    }
-    final lists = await Future.wait(futures);
-    final results = lists.fold<List<ScoreCardData?>>(
-      <ScoreCardData?>[],
-      (r, list) => r..addAll(list),
-    );
-    return results;
-  }
-
-  /// Updates the `updated` field of the [ScoreCard] entry, forcing search
-  /// indexes to pick it up and update their index.
-  Future<void> markScoreCardUpdated(
-      String packageName, String packageVersion) async {
-    final key = scoreCardKey(packageName, packageVersion);
-    await db.withRetryTransaction(_db, (tx) async {
-      final card = await tx.lookupOrNull<ScoreCard>(key);
-      if (card == null) return;
-      card.updated = clock.now().toUtc();
-      tx.insert(card);
-    });
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
   Future<void> deleteOldEntries() async {
-    final now = clock.now();
-    await _db.deleteWithQuery(_db.query<ScoreCard>()
-      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
-    await _db.deleteWithQuery(_db.query<ScoreCard>()
-      ..filter('updated <', now.subtract(_deleteThreshold)));
+    await _db.deleteWithQuery(_db.query<ScoreCard>());
   }
 
   /// Returns the status of a package and version.
@@ -337,62 +170,6 @@ class ScoreCardBackend {
     final p = list[0] as Package?;
     final pv = list[1] as PackageVersion?;
     return PackageStatus.fromModels(p, pv);
-  }
-
-  /// Returns whether we should update the [reportType] report for the given
-  /// package version.
-  ///
-  /// The method will return true, if either of the following is true:
-  /// - it does not have a report yet,
-  /// - the report was updated before [updatedAfter],
-  /// - the report is older than [successThreshold] if it was a success,
-  /// - the report is older than [failureThreshold] if it was a failure.
-  Future<bool> shouldUpdateReport(
-    String package,
-    String version,
-    String reportType, {
-    Duration successThreshold = const Duration(days: 30),
-    Duration failureThreshold = const Duration(days: 1),
-    DateTime? updatedAfter,
-  }) async {
-    if (isSoftRemoved(package)) {
-      return false;
-    }
-
-    // checking existing card
-    final key = scoreCardKey(package, version);
-    final card = await _db.lookupOrNull<ScoreCard>(key);
-    if (card == null) return true;
-
-    bool checkUpdatedAndStatus(DateTime? updated, String? reportStatus) {
-      // checking existence
-      if (updated == null) {
-        return true;
-      }
-      // checking freshness
-      if (updatedAfter != null && updatedAfter.isAfter(updated)) {
-        return true;
-      }
-      // checking age
-      final age = clock.now().toUtc().difference(updated);
-      final isSuccess = reportStatus == ReportStatus.success;
-      final ageThreshold = isSuccess ? successThreshold : failureThreshold;
-      return age > ageThreshold;
-    }
-
-    final data = card.tryDecodeData();
-    if (data == null) {
-      return true;
-    }
-    if (reportType == ReportType.pana) {
-      return checkUpdatedAndStatus(
-          data.panaReport?.timestamp, data.panaReport?.reportStatus);
-    } else if (reportType == ReportType.dartdoc) {
-      return checkUpdatedAndStatus(
-          data.dartdocReport?.timestamp, data.dartdocReport?.reportStatus);
-    } else {
-      throw AssertionError('Unknown report type: $reportType.');
-    }
   }
 }
 

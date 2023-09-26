@@ -85,7 +85,7 @@ d.Node _packageItem(
     return [
       d.a(
         href: urls.pkgPageUrl(
-          view.name!,
+          view.name,
           version: isLatest ? null : release.version,
         ),
         text: release.version,
@@ -97,7 +97,7 @@ d.Node _packageItem(
   }
 
   final licenseNode = packageListMetadataLicense(view.spdxIdentifiers);
-  final releases = view.releases!;
+  final releases = view.releases;
   final metadataNode = d.fragment([
     d.span(
       classes: ['packages-metadata-block'],
@@ -142,12 +142,12 @@ d.Node _packageItem(
   final screenshotUrls = <String>[];
   final screenshotDescriptions = <String>[];
   if (hasScreenshots) {
-    thumbnailUrl = imageStorage.getImageUrl(view.name!, releases.stable.version,
-        screenshots.first.webp100Thumbnail);
+    thumbnailUrl = imageStorage.getImageUrl(
+        view.name, releases.stable.version, screenshots.first.webp100Thumbnail);
 
     for (ProcessedScreenshot s in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
-          view.name!, releases.stable.version, s.webpImage));
+          view.name, releases.stable.version, s.webpImage));
       screenshotDescriptions.add(s.description);
     }
   }
@@ -169,8 +169,8 @@ d.Node _packageItem(
     thumbnailUrl: thumbnailUrl,
     screenshotUrls: screenshotUrls,
     screenshotDescriptions: screenshotDescriptions,
-    url: urls.pkgPageUrl(view.name!),
-    name: view.name!,
+    url: urls.pkgPageUrl(view.name),
+    name: view.name,
     newTimestamp: view.created,
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
@@ -181,7 +181,7 @@ d.Node _packageItem(
         ?.map((page) => _ApiPageUrl(
               page.url ??
                   urls.pkgDocUrl(
-                    view.name!,
+                    view.name,
                     isLatest: true,
                     relativePath: page.path,
                   ),

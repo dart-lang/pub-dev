@@ -5,132 +5,50 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
-import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
-import '../../shared/env_config.dart';
-
 import '../services.dart';
-import 'tools.dart';
-
-final _random = Random.secure();
+import '_messages.dart';
+export '_messages.dart';
 
 /// Wrapper method to replace [withServices] into [withFakeServices] for
 /// local tests and development.
 typedef ServicesWrapperFn = Future<void> Function(Future Function() fn);
 
-/// Marker class for inter-isolate messages.
-sealed class Message {}
-
-/// Initializing message send from the controller isolate to the new one.
-class EntryMessage extends Message {
-  final SendPort protocolSendPort;
-  final SendPort aliveSendPort;
-
-  EntryMessage({
-    required this.protocolSendPort,
-    required this.aliveSendPort,
-  });
-}
-
-/// Message sent from the isolate to indicate that it is ready with the initialization.
-class ReadyMessage extends Message {
-  ReadyMessage();
-}
-
-/// Message sent from the isolate with arbitrary text.
-class DebugMessage extends Message {
-  final String text;
-
-  DebugMessage(this.text);
-}
-
-/// Runs the collection of different isolate groups (where a group of
-/// isolate execute the same code).
-///
-/// TODO: The runner will handle the cross-group communication of the isolates.
-@visibleForTesting
-class IsolateCollection {
-  final Logger logger;
-  final ServicesWrapperFn servicesWrapperFn;
-  var _closing = false;
-
-  final _groups = <IsolateGroup>[];
-
-  IsolateCollection({
-    required this.logger,
-    required this.servicesWrapperFn,
-  });
-
-  /// Starts a new isolate group with [count] running instances.
-  @visibleForTesting
-  Future<IsolateGroup> startGroup({
-    required String kind,
-    required Future<void> Function(EntryMessage message) entryPoint,
-    required int count,
-    required Duration? deadTimeout,
-  }) async {
-    if (_closing) {
-      throw AssertionError('Runner is closed.');
-    }
-    final group = IsolateGroup(
-      runner: this,
-      kind: kind,
-      servicesWrapperFn: servicesWrapperFn,
-      entryPoint: entryPoint,
-      deadTimeout: deadTimeout,
-    );
-    _groups.add(group);
-    await group.start(count);
-    return group;
-  }
-
-  Future<void> _closeGroups() async {
-    while (_groups.isNotEmpty) {
-      await _groups.removeLast().close();
-    }
-  }
-
-  Future<void> close() async {
-    _closing = true;
-    await _closeGroups();
-  }
-}
+/// The main method to run in the new isolate.
+typedef EntryPointFn = Future<void> Function(EntryMessage message);
 
 /// Starts, monitors, stops or restarts isolates that run the same code.
 ///
 /// Once an isolate starts, it is expected to run indefinitely. When it exits,
 /// either by completion or uncaught exception, a new isolate will be started.
-class IsolateGroup {
-  final IsolateCollection runner;
+class IsolateRunner {
+  final Logger logger;
   final String kind;
-  final ServicesWrapperFn servicesWrapperFn;
-  final Future<void> Function(EntryMessage message) entryPoint;
-  final Duration? deadTimeout;
-  final bool skipWaitBetweenRestarts;
+  final ServicesWrapperFn? servicesWrapperFn;
+  final EntryPointFn? entryPoint;
+  final Uri? spawnUri;
 
   int started = 0;
   final _isolates = <_Isolate>[];
-  bool get _closing => runner._closing;
-  Logger get logger => runner.logger;
+  bool _closing = false;
 
-  /// The duration while internal errors won't cause isolates to restart.
-  var _restartProtectionOffset = Duration.zero;
-  var _lastStarted = clock.now();
-
-  IsolateGroup({
-    required this.runner,
+  IsolateRunner.fn({
+    required this.logger,
     required this.kind,
-    required this.servicesWrapperFn,
-    required this.entryPoint,
-    required this.deadTimeout,
-    this.skipWaitBetweenRestarts = false,
-  });
+    required ServicesWrapperFn this.servicesWrapperFn,
+    required EntryPointFn this.entryPoint,
+  }) : spawnUri = null;
+
+  IsolateRunner.uri({
+    required this.logger,
+    required this.kind,
+    required Uri this.spawnUri,
+  })  : entryPoint = null,
+        servicesWrapperFn = null;
 
   /// Starts [count] new isolates.
   Future<void> start(int count) async {
@@ -146,13 +64,45 @@ class IsolateGroup {
     required Duration wait,
   }) async {
     final isolatesToClose = [..._isolates];
-    for (final i in isolatesToClose) {
-      i.shouldRestart = false;
-    }
+
     await start(count);
+    // prevent traffic to hit the old instances
+    for (final i in isolatesToClose) {
+      i.markedForRenew = true;
+    }
+
     await Future.delayed(wait);
     for (final i in isolatesToClose) {
       await i.close();
+    }
+  }
+
+  /// Send [RequestMessage] and wait for [ReplyMessage] returning
+  /// [ReplyMessage.result], or throws [IsolateRequestException]
+  Future<Object?> sendRequest(
+    Object payload, {
+    required Duration timeout,
+  }) async {
+    final last = _isolates.lastWhereOrNull((i) =>
+        i.markedForRenew == false && i._readyMessage?.requestSendPort != null);
+    if (last == null) {
+      throw IsolateRequestException('No isolate to process request.');
+    }
+
+    final replyRecievePort = ReceivePort();
+    try {
+      final firstFuture = replyRecievePort.first;
+      final targetSendPort = last._readyMessage!.requestSendPort!;
+      final requestMessage = RequestMessage(payload, replyRecievePort.sendPort);
+      targetSendPort.send(requestMessage.encodeAsJson());
+      final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
+      final reply = Message.fromObject(first) as ReplyMessage;
+      if (reply.isError) {
+        throw IsolateRequestException(reply.error!);
+      }
+      return reply.result;
+    } finally {
+      replyRecievePort.close();
     }
   }
 
@@ -162,143 +112,76 @@ class IsolateGroup {
     final id = '$kind isolate #$started';
     logger.info('About to start $id ...');
     final isolate = _Isolate(
-      parent: runner,
       group: this,
       logger: logger,
       id: id,
-      servicesWrapperFn: servicesWrapperFn,
-      entryPoint: entryPoint,
     );
     _isolates.add(isolate);
-    await isolate.init(deadTimeout: deadTimeout);
+    unawaited(isolate.done.then((_) async {
+      _isolates.remove(isolate);
+    }));
+    if (entryPoint != null) {
+      await isolate.spawnFn(
+        servicesWrapperFn: servicesWrapperFn!,
+        entryPoint: entryPoint!,
+      );
+    } else {
+      await isolate.spawnUri(spawnUri: spawnUri!);
+    }
     if (_closing) {
       await isolate.close();
       return;
     }
     logger.info('$id started.');
-    _lastStarted = clock.now();
-
-    // automatic restart logic
-    unawaited(isolate.done.then((_) async {
-      _isolates.remove(isolate);
-      if (_closing) {
-        return;
-      }
-      if (!isolate.shouldRestart) {
-        return;
-      }
-      if (!skipWaitBetweenRestarts) {
-        // Restart the isolate after a wait, increasing the duration with each restart.
-        //
-        // NOTE: As this wait period increases, the service may miss /liveness_check
-        //       requests, and eventually AppEngine may just kill the instance
-        //       marking it unreachable (if it is a frontend isolate).
-        var waitSeconds = 5 + started;
-        while (waitSeconds > 0) {
-          if (_closing) {
-            return;
-          }
-          await Future.delayed(Duration(seconds: 1));
-          waitSeconds--;
-        }
-      }
-      await _startOne();
-    }));
   }
 
   Future<void> close() async {
+    _closing = true;
     while (_isolates.isNotEmpty) {
       await _isolates.removeLast().close();
     }
   }
 }
 
-/// Starts an [IsolateCollection] with the default isolate configuration
-/// (when specified).
-///
-/// After starting the isolates, the method waits for terminating
-/// process signals (e.g. SIGTERM), and when recieved, closes the
-/// isolates and returns.
-Future runIsolates({
+/// Starts a worker isolate and returns its runner to control it.
+Future<IsolateRunner> startWorkerIsolate({
   required Logger logger,
-  Future<void> Function(EntryMessage message)? frontendEntryPoint,
-  Future<void> Function(EntryMessage message)? workerEntryPoint,
-  Future<void> Function(EntryMessage message)? jobEntryPoint,
-  Duration? deadWorkerTimeout,
-  required int frontendCount,
+  required EntryPointFn entryPoint,
   ServicesWrapperFn? servicesWrapperFn,
 }) async {
-  final runner = IsolateCollection(
+  final worker = IsolateRunner.fn(
     logger: logger,
+    kind: 'worker',
     servicesWrapperFn: servicesWrapperFn ?? withServices,
+    entryPoint: entryPoint,
   );
-  await runner.servicesWrapperFn(() async {
-    _verifyStampFile();
-    try {
-      if (frontendEntryPoint != null) {
-        await runner.startGroup(
-          kind: 'frontend',
-          entryPoint: frontendEntryPoint,
-          count: frontendCount,
-          deadTimeout: Duration(minutes: 1),
-        );
-      }
-      if (workerEntryPoint != null) {
-        await runner.startGroup(
-          kind: 'worker',
-          entryPoint: workerEntryPoint,
-          count: 1,
-          deadTimeout: deadWorkerTimeout,
-        );
-      }
-      if (jobEntryPoint != null) {
-        await runner.startGroup(
-          kind: 'job',
-          entryPoint: jobEntryPoint,
-          count: 1,
-          deadTimeout: deadWorkerTimeout,
-        );
-      }
-
-      await waitForProcessSignalTermination();
-
-      await runner.close();
-    } catch (e, st) {
-      logger.shout('Failed to start server.', e, st);
-      rethrow;
-    }
-  });
+  await worker.start(1);
+  return worker;
 }
 
-void _verifyStampFile() {
-  if (!envConfig.isRunningLocally) {
-    // The existence of this file may indicate an issue with the service health.
-    // Checking it only in AppEngine environment.
-    final stampFile =
-        File(p.join(Directory.systemTemp.path, 'pub-dev-started.stamp'));
-    if (stampFile.existsSync()) {
-      stderr.writeln('[warning-service-restarted]: '
-          '${stampFile.path} already exists, indicating that this process has been restarted.');
-    } else {
-      stampFile.createSync(recursive: true);
-    }
-  }
+/// Starts an index isolate and returns its runner to control it.
+Future<IsolateRunner> startQueryIsolate({
+  required Logger logger,
+  required Uri spawnUri,
+}) async {
+  final worker = IsolateRunner.uri(
+    logger: logger,
+    kind: 'query',
+    spawnUri: spawnUri,
+  );
+  await worker.start(1);
+  return worker;
 }
 
-/// Represents a running isolate, with its current status, subscriptions and
-/// autokill timer.
+/// Represents a running isolate, with its current status and subscriptions.
 class _Isolate {
   /// Parent runner that owns this group
-  final IsolateCollection parent;
-  final IsolateGroup group;
+  final IsolateRunner group;
   final Logger logger;
   final String id;
-  final ServicesWrapperFn servicesWrapperFn;
-  final Future<void> Function(EntryMessage message) entryPoint;
 
   late Isolate _isolate;
 
-  final _aliveReceivePort = ReceivePort();
   final _errorReceivePort = ReceivePort();
   final _exitReceivePort = ReceivePort();
   final _protocolReceivePort = ReceivePort();
@@ -310,23 +193,20 @@ class _Isolate {
   StreamSubscription? _errorSubscription;
   StreamSubscription? _exitSubscription;
   StreamSubscription? _aliveSubscription;
-  Timer? _autokillTimer;
 
   final _doneCompleter = Completer();
   late final done = _doneCompleter.future;
-  var shouldRestart = true;
+  bool markedForRenew = false;
 
   _Isolate({
-    required this.parent,
     required this.group,
     required this.logger,
     required this.id,
-    required this.servicesWrapperFn,
-    required this.entryPoint,
   });
 
-  Future<void> init({
-    required Duration? deadTimeout,
+  Future<void> spawnFn({
+    required ServicesWrapperFn servicesWrapperFn,
+    required Future<void> Function(EntryMessage message) entryPoint,
   }) async {
     _isolate = await Isolate.spawn(
       _wrapper,
@@ -335,7 +215,6 @@ class _Isolate {
         entryPoint,
         EntryMessage(
           protocolSendPort: _protocolReceivePort.sendPort,
-          aliveSendPort: _aliveReceivePort.sendPort,
         ),
       ],
       onError: _errorReceivePort.sendPort,
@@ -344,8 +223,30 @@ class _Isolate {
       debugName: id,
     );
 
+    await _init();
+  }
+
+  Future<void> spawnUri({
+    required Uri spawnUri,
+  }) async {
+    _isolate = await Isolate.spawnUri(
+      spawnUri,
+      [],
+      EntryMessage(
+        protocolSendPort: _protocolReceivePort.sendPort,
+      ).encodeAsJson(),
+      onError: _errorReceivePort.sendPort,
+      onExit: _exitReceivePort.sendPort,
+      errorsAreFatal: true,
+      debugName: id,
+    );
+    await _init();
+  }
+
+  Future<void> _init() async {
     final ready = Completer();
-    _protocolSubscription = _protocolReceivePort.listen((e) {
+    _protocolSubscription = _protocolReceivePort.listen((event) {
+      final e = Message.fromObject(event);
       if (e is ReadyMessage && !ready.isCompleted) {
         _readyMessage = e;
         ready.complete();
@@ -357,25 +258,6 @@ class _Isolate {
     _errorSubscription = _errorReceivePort.listen((e) async {
       stderr.writeln('ERROR from $id: $e');
       logger.severe('ERROR from $id', e);
-
-      final now = clock.now();
-      // If the last isolate was started more than an hour ago, we can reset
-      // the protection.
-      if (now.isAfter(group._lastStarted.add(Duration(hours: 1)))) {
-        group._restartProtectionOffset = Duration.zero;
-      }
-
-      // If we have recently restarted an isolate, let's keep it running.
-      if (now
-          .isBefore(group._lastStarted.add(group._restartProtectionOffset))) {
-        return;
-      }
-
-      // Extend restart protection for up to 20 minutes.
-      if (group._restartProtectionOffset.inMinutes < 20) {
-        group._restartProtectionOffset += Duration(minutes: 4);
-      }
-
       await close();
     });
 
@@ -385,49 +267,17 @@ class _Isolate {
       await close();
     });
 
-    _setupAutokillTimer(deadTimeout);
-
     await ready.future;
-  }
-
-  /// Resets (and starts) autokill timer on alive messages.
-  /// Returns the [Function] that should be called on isolate closing,
-  /// cancelling the stream listener and the timer that may be active.
-  ///
-  /// NOTE: The timer will NOT be initialized when [timeout] is not specified or negative.
-  void _setupAutokillTimer(Duration? timeout) {
-    void resetAutokillTimer() {
-      if (timeout == null || timeout <= Duration.zero) {
-        return;
-      }
-      _autokillTimer?.cancel();
-
-      /// Randomize TTL so that isolate restarts do not happen at the same time.
-      final ttl = timeout + Duration(seconds: _random.nextInt(30));
-      _autokillTimer = Timer(ttl, () {
-        logger.shout('Killing "$id", because it is not sending alive pings');
-        close();
-      });
-    }
-
-    // We DO NOT initialize `autokillTimer` at this point, allowing the isolate
-    // to do arbitrary-length setup. Once the first message comes in, we can
-    // start the auto-kill timer.
-    _aliveSubscription = _aliveReceivePort.listen((_) {
-      resetAutokillTimer();
-    });
   }
 
   Future<void> close() async {
     try {
       if (_doneCompleter.isCompleted) return;
       logger.info('About to close $id ...');
-      _autokillTimer?.cancel();
       await _protocolSubscription?.cancel();
       await _aliveSubscription?.cancel();
       await _errorSubscription?.cancel();
       await _exitSubscription?.cancel();
-      _aliveReceivePort.close();
       _errorReceivePort.close();
       _exitReceivePort.close();
       _protocolReceivePort.close();

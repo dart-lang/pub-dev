@@ -30,6 +30,76 @@ class AdminListUsersResponse {
   Map<String, dynamic> toJson() => _$AdminListUsersResponseToJson(this);
 }
 
+/// Admin API response for listing all _admin actions_.
+@JsonSerializable()
+class AdminListActionsResponse {
+  /// List of admin actions.
+  final List<AdminAction> actions;
+
+  // json_serializable boiler-plate
+  AdminListActionsResponse({required this.actions});
+  factory AdminListActionsResponse.fromJson(Map<String, dynamic> json) =>
+      _$AdminListActionsResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminListActionsResponseToJson(this);
+}
+
+@JsonSerializable()
+class AdminAction {
+  /// Name of the action is an identifier to be specified when the action is
+  /// triggered.
+  final String name;
+
+  /// Map from option name to description of the option.
+  ///
+  /// This are specified as querystring parameters when invoking the action.
+  final Map<String, String> options;
+
+  /// A one-liner summary of what this action does.
+  final String summary;
+
+  /// A multi-line explanation of what this action does, written in markdown.
+  ///
+  /// This **must** explain what the action does? What the implications are?
+  /// What other actions could be useful to use in conjunction.
+  /// What are reasonable expectations around cache-time outs, etc.
+  ///
+  /// Do write detailed documentation and include examples.
+  final String description;
+
+  // json_serializable boiler-plate
+  AdminAction({
+    required this.name,
+    required this.options,
+    required this.summary,
+    required this.description,
+  });
+  factory AdminAction.fromJson(Map<String, dynamic> json) =>
+      _$AdminActionFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminActionToJson(this);
+}
+
+@JsonSerializable()
+class AdminInvokeActionArguments {
+  /// Arguments for the [AdminAction.options] when invoking an admin action.
+  final Map<String, String> arguments;
+
+  AdminInvokeActionArguments({required this.arguments});
+  factory AdminInvokeActionArguments.fromJson(Map<String, dynamic> json) =>
+      _$AdminInvokeActionArgumentsFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminInvokeActionArgumentsToJson(this);
+}
+
+@JsonSerializable()
+class AdminInvokeActionResponse {
+  /// Output from running the action.
+  final Map<String, Object?> output;
+
+  AdminInvokeActionResponse({required this.output});
+  factory AdminInvokeActionResponse.fromJson(Map<String, dynamic> json) =>
+      _$AdminInvokeActionResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$AdminInvokeActionResponseToJson(this);
+}
+
 /// Entry in the [AdminListUsersResponse] structure.
 @JsonSerializable()
 class AdminUserEntry {

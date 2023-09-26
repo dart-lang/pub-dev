@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Tags(['presubmit-only'])
+// @Tags(['presubmit-only'])
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -165,7 +165,8 @@ void main() {
           '/static/dartdoc/resources/favicon.png',
           '/static/dartdoc/resources/play_button.svg',
           '/static/dartdoc/resources/docs.dart.js.map',
-          '/static/dartdoc/resources/search.png', // probably used through js
+          '/static/dartdoc/resources/search.png', // probably used through old js
+          '/static/dartdoc/resources/search.svg', // probably used through js
         ]);
 
       expect(requestPaths, hasLength(greaterThan(50)));
@@ -210,7 +211,7 @@ void main() {
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
-      expect((partsSize / 1024).round(), closeTo(230, 1));
+      expect((partsSize / 1024).round(), closeTo(208, 1));
     });
   });
 
