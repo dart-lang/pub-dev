@@ -20,7 +20,6 @@ import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../audit/models.dart';
-import '../job/model.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
 import '../package/models.dart';
@@ -373,10 +372,6 @@ class AdminBackend {
     _logger.info('Removing package from PackageVersionAsset ...');
     await _db.deleteWithQuery(
         _db.query<PackageVersionAsset>()..filter('package =', packageName));
-
-    _logger.info('Removing package from Jobs ...');
-    await _db.deleteWithQuery(
-        _db.query<Job>()..filter('packageName =', packageName));
 
     _logger.info('Removing package from ScoreCard ...');
     await _db.deleteWithQuery(

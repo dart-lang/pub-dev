@@ -31,7 +31,6 @@ import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/email_sender.dart';
 import '../frontend/handlers.dart';
-import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
 import '../package/screenshots/backend.dart';
@@ -237,7 +236,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerDartSdkMemIndex(DartSdkMemIndex());
     registerEmailBackend(EmailBackend(dbService));
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
-    registerJobBackend(JobBackend(dbService));
     registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     final inMemoryPackageIndex = InMemoryPackageIndex(
