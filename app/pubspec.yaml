@@ -53,11 +53,11 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.21.36'
+  pana: '0.21.37'
   # 3rd-party packages with pinned versions
   mailer: '6.0.1'
   ulid: '2.0.0'
-  tar: '0.5.6'
+  tar: '1.0.1'
   api_builder:
     path: ../pkg/api_builder
 
