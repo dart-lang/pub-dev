@@ -732,34 +732,6 @@ class PackageBackend {
     return rs;
   }
 
-  /// Moves the package out of its current publisher.
-  Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
-    final user = await requireAuthenticatedWebUser();
-    final package = await _requirePackageAdmin(packageName, user.userId);
-    if (package.publisherId == null) {
-      return _asPackagePublisherInfo(package);
-    }
-    await requirePublisherAdmin(package.publisherId, user.userId);
-//  Code commented out while we decide if this feature is something we want to
-//  support going forward.
-//
-//    final key = db.emptyKey.append(Package, id: packageName);
-//    final rs = await db.withTransaction((tx) async {
-//      final package = (await db.lookup<Package>([key])).single;
-//      package.publisherId = null;
-//      package.uploaders = [user.userId];
-//      package.updated = clock.now().toUtc();
-//      // TODO: store PackageTransferred History entry.
-//      tx.queueMutations(inserts: [package]);
-//      await tx.commit();
-//      return _asPackagePublisherInfo(package);
-//    });
-//    await purgePublisherCache(package.publisherId);
-//    await invalidatePackageCache(packageName);
-//    return rs as api.PackagePublisherInfo;
-    throw NotImplementedException();
-  }
-
   /// Returns the known versions of [package].
   /// The available versions are sorted by their semantic version number (ascending).
   ///

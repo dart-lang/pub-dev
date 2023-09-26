@@ -57,6 +57,15 @@ All files in the project must start with the following header.
 // BSD-style license that can be found in the LICENSE file.
 ```
 
+### TODO style:
+Prefer creating an issue for every TODO, and write it on the form:
+
+```
+// TODO(https://github.com/dart-sdk/pub-dev/issues/#123): We should do blah blah...
+```
+
+That way the tasks can be triaged and referred.
+
 ### The small print
 
 Contributions made by corporations are covered by a different agreement than the
