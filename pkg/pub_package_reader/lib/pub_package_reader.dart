@@ -73,7 +73,7 @@ class PackageSummary {
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
   /// The maximum length of the extracted content text.
-  int maxContentLength = 128 * 1024,
+  int maxContentLength = 256 * 1024,
 
   /// The maximum file size of the archive (gzipped or compressed) and
   /// the maximum total size of the files inside the archive.
