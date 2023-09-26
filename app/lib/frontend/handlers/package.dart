@@ -362,7 +362,6 @@ Future<PackagePageData> loadPackagePageData(
         packageName,
         versionName!,
         package: package,
-        versionFuture: selectedVersionFuture,
       ));
 
   await Future.wait([

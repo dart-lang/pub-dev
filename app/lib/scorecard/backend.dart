@@ -119,7 +119,6 @@ class ScoreCardBackend {
     String packageName,
     String packageVersion, {
     Package? package,
-    Future<PackageVersion?>? versionFuture,
   }) async {
     InvalidInputException.check(
         packageVersion != 'latest', 'latest is no longer supported');
@@ -133,8 +132,8 @@ class ScoreCardBackend {
     if (package == null) {
       throw NotFoundException('Package "$packageName" does not exist.');
     }
-    final version = await (versionFuture ??
-        packageBackend.lookupPackageVersion(packageName, packageVersion));
+    final version =
+        await packageBackend.lookupPackageVersion(packageName, packageVersion);
     if (version == null) {
       throw NotFoundException(
           'Package version "$packageName $packageVersion" does not exist.');
