@@ -40,6 +40,11 @@ void main() {
     test(
       'run dartdoc',
       () async {
+        await Process.run(
+          'dart',
+          ['pub', 'get'],
+          workingDirectory: resolvePubDartdocDirPath(),
+        );
         final pr = await Process.run(
           'dart',
           [
