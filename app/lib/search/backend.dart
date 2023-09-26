@@ -165,9 +165,9 @@ class SearchBackend {
     if (!claim.valid) {
       return;
     }
+    snapshot.updateLikeScores();
 
     // first complete snapshot, uploading it
-    snapshot.updateLikeScores();
     await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
     var lastUploadedSnapshotTimestamp = snapshot.updated!;
 
