@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/actions/create_publisher.dart';
 import 'package:pub_dev/admin/actions/publisher_block.dart';
 import 'package:pub_dev/admin/actions/publisher_members_list.dart';
 import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
@@ -62,6 +63,7 @@ final class AdminAction {
   }
 
   static List<AdminAction> actions = [
+    createPublisher,
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,

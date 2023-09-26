@@ -32,7 +32,6 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'actions/actions.dart' show AdminAction;
-import 'tools/create_publisher.dart';
 import 'tools/delete_all_staging.dart';
 import 'tools/delete_publisher.dart';
 import 'tools/list_package_blocked.dart';
@@ -62,7 +61,6 @@ AdminBackend get adminBackend => ss.lookup(#_adminBackend) as AdminBackend;
 typedef Tool = Future<String> Function(List<String> args);
 
 final Map<String, Tool> availableTools = {
-  'create-publisher': executeCreatePublisher,
   'delete-all-staging': executeDeleteAllStaging,
   'delete-publisher': executeDeletePublisher,
   'list-package-blocked': executeListPackageBlocked,
