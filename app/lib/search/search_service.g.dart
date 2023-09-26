@@ -19,9 +19,11 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated'] as String),
       readme: json['readme'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      likeCount: json['likeCount'] as int? ?? 0,
-      grantedPoints: json['grantedPoints'] as int? ?? 0,
-      maxPoints: json['maxPoints'] as int? ?? 0,
+      likeCount: json['likeCount'] as int?,
+      likeScore: (json['likeScore'] as num?)?.toDouble(),
+      popularityScore: (json['popularityScore'] as num?)?.toDouble(),
+      grantedPoints: json['grantedPoints'] as int?,
+      maxPoints: json['maxPoints'] as int?,
       dependencies: (json['dependencies'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
@@ -48,6 +50,8 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'readme': instance.readme,
       'tags': instance.tags,
       'likeCount': instance.likeCount,
+      'likeScore': instance.likeScore,
+      'popularityScore': instance.popularityScore,
       'grantedPoints': instance.grantedPoints,
       'maxPoints': instance.maxPoints,
       'dependencies': instance.dependencies,

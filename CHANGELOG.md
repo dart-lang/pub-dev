@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded preview Flutter analysis SDK to `3.15.0-15.2.pre`.
  * Upgraded pana to `0.21.37`.
  * Upgraded `package:tar` and other dependencies.
+ * Note: started to populate `PackageDocument.likeScore` and `popularityScore`.
 
 ## `20230918t113400-all`
  * Fix: search isolate renewal doesn't block ongoing traffic.

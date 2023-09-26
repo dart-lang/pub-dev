@@ -17,6 +17,7 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../package/backend.dart';
 import '../package/model_properties.dart';
@@ -164,6 +165,7 @@ class SearchBackend {
     if (!claim.valid) {
       return;
     }
+    snapshot.updateLikeScores();
 
     // first complete snapshot, uploading it
     await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
@@ -192,6 +194,7 @@ class SearchBackend {
       futures.clear();
 
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
+        snapshot.updateLikeScores();
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
@@ -330,6 +333,7 @@ class SearchBackend {
       updated: p.lastVersionPublished,
       readme: compactReadme(readmeAsset?.textContent),
       likeCount: p.likes,
+      popularityScore: popularityStorage.lookup(packageName),
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
