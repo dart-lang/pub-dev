@@ -64,7 +64,7 @@ class PublishingScript {
 
       await dart.publish(_dummyDir.path,
           expectedErrorContains:
-              '`CHANGELOG.md` exceeds the maximum content length (131072 bytes).');
+              '`CHANGELOG.md` exceeds the maximum content length');
       await _dummyDir.delete(recursive: true);
 
       // upload package
@@ -159,7 +159,7 @@ class PublishingScript {
     _dummyExampleDir = Directory(path.join(_dummyDir.path, 'example'));
     await _dummyDir.create(recursive: true);
     await createDummyPkg(_dummyDir.path, _newDummyVersion,
-        changelogContentSizeInKB: oversized ? 129 : 4);
+        changelogContentSizeInKB: oversized ? 257 : 4);
   }
 
   Future<void> _createFakeRetryPkg() async {

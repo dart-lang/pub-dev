@@ -48,7 +48,7 @@ import 'upload_signer_service.dart';
 
 // The maximum stored length of `README.md` and other user-provided file content
 // that is stored separately in the database.
-final maxAssetContentLength = 128 * 1024;
+final maxAssetContentLength = 256 * 1024;
 
 /// The maximum number of versions a package is allowed to have.
 final _defaultMaxVersionsPerPackage = 1000;
