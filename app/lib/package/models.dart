@@ -11,6 +11,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/model_properties.dart';
@@ -1130,7 +1131,8 @@ class PackagePageData {
 
   /// The verified repository (or homepage).
   late final urlResolverFn =
-      scoreCard.panaReport?.result?.repository?.resolveUrl;
+      scoreCard.panaReport?.result?.repository?.resolveUrl ??
+          fallbackUrlResolverFn(packageLinks._baseUrl);
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(

@@ -298,14 +298,12 @@ PageData pkgPageData(
 }
 
 Tab _readmeTab(PackagePageData data) {
-  final baseUrl = data.repositoryBaseUrl;
   final content = data.hasReadme &&
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
       ? renderFile(
           data.asset!,
           urlResolverFn: data.urlResolverFn,
-          baseUrl: baseUrl,
         )
       : d.text('');
   return Tab.withContent(
@@ -322,7 +320,6 @@ Tab? _changelogTab(PackagePageData data) {
   final content = renderFile(
     data.asset!,
     urlResolverFn: data.urlResolverFn,
-    baseUrl: data.repositoryBaseUrl,
     isChangelog: true,
   );
   return Tab.withContent(
@@ -342,7 +339,6 @@ Tab? _exampleTab(PackagePageData data) {
   final renderedExample = renderFile(
     data.asset!,
     urlResolverFn: data.urlResolverFn,
-    baseUrl: baseUrl,
   );
   final url = urls.getRepositoryUrl(baseUrl, exampleFilename!);
 
@@ -388,7 +384,6 @@ Tab _licenseTab(PackagePageData data) {
       ? renderFile(
           data.asset!,
           urlResolverFn: data.urlResolverFn,
-          baseUrl: data.repositoryBaseUrl,
         )
       : d.text('No license file found.');
   return Tab.withContent(
@@ -407,7 +402,6 @@ Tab _pubspecTab(PackagePageData data) {
       ? renderFile(
           data.asset!,
           urlResolverFn: data.urlResolverFn,
-          baseUrl: data.repositoryBaseUrl,
         )
       : d.text('No pubspec file found.');
   return Tab.withContent(
