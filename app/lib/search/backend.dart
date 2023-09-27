@@ -91,7 +91,7 @@ class SearchBackend {
   /// attempting to get the claim.
   Future<Never> updateSnapshotInForeverLoop() async {
     final lock = GlobalLock.create(
-      'update-search-snapshot',
+      '$runtimeVersion/search/update-snapshot',
       expiration: Duration(minutes: 20),
     );
     while (true) {
