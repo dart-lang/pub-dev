@@ -18,6 +18,7 @@ import 'package:pool/pool.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
+import 'package:retry/retry.dart';
 
 import '../package/backend.dart';
 import '../package/model_properties.dart';
@@ -137,12 +138,14 @@ class SearchBackend {
         }
       }
       // update or remove the document
-      try {
-        final doc = await loadDocument(package);
-        snapshot.add(doc);
-      } on RemovedPackageException catch (_) {
-        snapshot.remove(package);
-      }
+      await retry(() async {
+        try {
+          final doc = await loadDocument(package);
+          snapshot.add(doc);
+        } on RemovedPackageException catch (_) {
+          snapshot.remove(package);
+        }
+      });
     }
 
     // initial scan of packages
