@@ -94,7 +94,7 @@ extension DartDocPageRender on DartDocPage {
         d.link(
           rel: 'stylesheet',
           href:
-              'https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;display=swap',
+              'https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap',
         ),
         d.link(
           rel: 'stylesheet',
@@ -177,7 +177,13 @@ extension DartDocPageRender on DartDocPage {
             children: [
               d.input(id: 'theme', type: 'checkbox', value: 'light-theme'),
               d.span(
-                  classes: ['material-symbols-outlined'], text: 'brightness_4'),
+                  id: 'dark-theme-button',
+                  classes: ['material-symbols-outlined'],
+                  text: 'brightness_4'),
+              d.span(
+                  id: 'light-theme-button',
+                  classes: ['material-symbols-outlined'],
+                  text: 'brightness_5'),
             ],
           ),
         ),
