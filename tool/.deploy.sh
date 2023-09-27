@@ -7,11 +7,10 @@ set -e
 
 # Echos The message and sends it to team chat
 message() {
-  echo $1
-  CHAT_ID=AAAAkQUOtE8
+  echo "$1"
+  CHAT_ID="AAAAkQUOtE8"
   THREAD_KEY=$TAG_NAME
-  DATA='{"text": "'"$1"'"}'
-  curl -H 'Content-Type: application/json' -X POST https://chat.googleapis.com/v1/spaces/$CHAT_ID/messages?key=$CHAT_KEY\&token=$CHAT_TOKEN\&threadKey=$THREAD_KEY --data $DATA
+  curl -H 'Content-Type: application/json' -X POST "https://chat.googleapis.com/v1/spaces/$CHAT_ID/messages?key=$CHAT_KEY\&token=$CHAT_TOKEN\&threadKey=$THREAD_KEY" --data "{\"text\": \"$1\"}"
 }
 
 # Print an error message, if exiting non-zero
