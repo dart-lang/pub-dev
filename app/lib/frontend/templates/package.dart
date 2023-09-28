@@ -31,10 +31,6 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   final package = data.package;
   final packageLinks = data.packageLinks;
 
-  String? documentationUrl = packageLinks.documentationUrl;
-  if (urls.hideUserProvidedDocUrl(documentationUrl)) {
-    documentationUrl = null;
-  }
   final dartdocsUrl = urls.pkgDocUrl(
     package.name!,
     version: data.version.version,
@@ -83,9 +79,9 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   addLink(packageLinks.repositoryUrl, 'Repository',
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
-  addLink(data.contributingUrl, 'Contributing');
+  addLink(packageLinks.contributingUrl, 'Contributing');
 
-  addLink(documentationUrl, 'Documentation', documentation: true);
+  addLink(packageLinks.documentationUrl, 'Documentation', documentation: true);
   if (data.scoreCard.hasApiDocs) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
@@ -333,15 +329,13 @@ Tab? _changelogTab(PackagePageData data) {
 Tab? _exampleTab(PackagePageData data) {
   if (!data.hasExample) return null;
   if (data.asset?.kind != AssetKind.example) return null;
-  final baseUrl = data.repositoryBaseUrl;
 
   final exampleFilename = data.asset!.path;
   final renderedExample = renderFile(
     data.asset!,
     urlResolverFn: data.urlResolverFn,
   );
-  final url = urls.getRepositoryUrl(baseUrl, exampleFilename!);
-
+  final url = data.urlResolverFn?.call(exampleFilename!);
   return Tab.withContent(
     id: 'example',
     title: 'Example',
@@ -350,7 +344,7 @@ Tab? _exampleTab(PackagePageData data) {
         attributes: {'style': 'font-family: monospace'},
         child: d.b(
           child: url == null
-              ? d.text(exampleFilename)
+              ? d.text(exampleFilename!)
               : d.a(
                   href: url,
                   target: '_blank',
