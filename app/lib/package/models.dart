@@ -1029,16 +1029,22 @@ class PackageLinks {
   /// inferred URL from [repositoryUrl].
   final String? issueTrackerUrl;
 
+  /// The link to `CONTRIBUTING.md` in the git repository (when the repository is verified).
+  final String? contributingUrl;
+
   /// The inferred base URL that can be used to link files from.
   final String? _baseUrl;
 
   PackageLinks._(
     this._baseUrl, {
     this.homepageUrl,
-    this.documentationUrl,
+    String? documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
-  });
+    this.contributingUrl,
+  }) : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
+            ? null
+            : documentationUrl;
 
   factory PackageLinks.infer({
     String? homepageUrl,
@@ -1108,10 +1114,10 @@ class PackagePageData {
         repositoryUrl: result.repositoryUrl,
         issueTrackerUrl: result.issueTrackerUrl,
         documentationUrl: result.documentationUrl,
+        contributingUrl: result.contributingUrl,
       );
     }
     // Falling back to use URLs from pubspec.yaml.
-    // TODO: Remove this and return `null` after this release gets stable.
     final pubspec = version.pubspec!;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
@@ -1119,14 +1125,6 @@ class PackagePageData {
       repositoryUrl: pubspec.repository,
       issueTrackerUrl: pubspec.issueTracker,
     );
-  }();
-
-  late final contributingUrl = scoreCard.panaReport?.result?.contributingUrl;
-
-  /// The inferred base URL that can be used to link files from.
-  late final repositoryBaseUrl = () {
-    // TODO: use pana's verified repository instead
-    return packageLinks._baseUrl;
   }();
 
   /// The verified repository (or homepage).
