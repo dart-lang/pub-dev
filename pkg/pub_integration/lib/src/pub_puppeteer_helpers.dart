@@ -1,6 +1,8 @@
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:async';
+
 import 'package:puppeteer/puppeteer.dart';
 
 import 'test_browser.dart';
@@ -221,6 +223,33 @@ extension PubPageExt on Page {
   }
 
   Future<void> _waitForModelHidden() async {
-    await waitForSelector('.mdc-dialog', hidden: true);
+    try {
+      await waitForSelector(
+        '.mdc-dialog',
+        hidden: true,
+        timeout: Duration(seconds: 5),
+      );
+      return;
+    } on TimeoutException catch (_) {
+      // ignore the exception
+    }
+
+    // return if the dialog is no longer present
+    final dialogs = await $$('.mdc-dialog');
+    if (dialogs.isEmpty) {
+      return;
+    }
+
+    // Click on the neutral area of the page (on the background element that
+    // makes the UI behind the modal dialog darker). This should make the dialog
+    // disappear.
+    await mouse.click(Point(1, 1));
+
+    // second attempt to wait for the dialog to disappear
+    await waitForSelector(
+      '.mdc-dialog',
+      hidden: true,
+      timeout: Duration(seconds: 5),
+    );
   }
 }
