@@ -240,7 +240,9 @@ extension PubPageExt on Page {
       return;
     }
 
-    // click on the neutral area of the page
+    // Click on the neutral area of the page (on the background element that
+    // makes the UI behind the modal dialog darker). This should make the dialog
+    // disappear.
     await mouse.click(Point(1, 1));
 
     // second attempt to wait for the dialog to disappear
