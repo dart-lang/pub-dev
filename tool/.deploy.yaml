@@ -14,13 +14,4 @@ steps:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'BRANCH_NAME=$BRANCH_NAME'
       - 'TAG_NAME=$TAG_NAME'
-    secretenv:
-      - 'CHAT_KEY'
-      - 'CHAT_TOKEN'
 timeout: '5400s'
-availableSecrets:
-  secretManager:
-  - versionName: projects/$PROJECT_ID/secrets/google-chat-pub-dev-hackers-key/versions/latest
-    env: 'CHAT_KEY'
-  - versionName: projects/$PROJECT_ID/secrets/google-chat-pub-dev-hackers-token/versions/latest
-    env: 'CHAT_TOKEN'

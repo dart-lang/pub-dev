@@ -4,17 +4,8 @@
 
 # Always exit on error
 set -e
-
-# Echos The message and sends it to team chat
-message() {
-  echo "$1"
-  CHAT_ID="AAAAkQUOtE8"
-  THREAD_KEY=$TAG_NAME
-  curl -H 'Content-Type: application/json' -X POST "https://chat.googleapis.com/v1/spaces/$CHAT_ID/messages?key=$CHAT_KEY\&token=$CHAT_TOKEN\&threadKey=$THREAD_KEY" --data "{\"text\": \"$1\"}"
-}
-
 # Print an error message, if exiting non-zero
-trap 'if [ $? -ne 0 ]; then message "Deployment failed!"; fi' EXIT
+trap 'if [ $? -ne 0 ]; then echo "Deployment failed!"; fi' EXIT
 
 # This only works with PROJECT_ID defined
 if [ -z "$PROJECT_ID" ]; then
@@ -102,5 +93,3 @@ echo '### Site updated, see:'
 echo "https://$APP_VERSION-dot-$PROJECT_ID.appspot.com/"
 echo ''
 echo 'Traffic must be migrated manually.'
-
-message 'Build complete'
