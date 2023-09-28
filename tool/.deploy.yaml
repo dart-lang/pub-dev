@@ -14,7 +14,7 @@ steps:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'BRANCH_NAME=$BRANCH_NAME'
       - 'TAG_NAME=$TAG_NAME'
-    secretenv:
+    secretEnv:
       - 'CHAT_KEY'
       - 'CHAT_TOKEN'
 timeout: '5400s'
