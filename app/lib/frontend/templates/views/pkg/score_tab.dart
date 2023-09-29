@@ -21,8 +21,9 @@ d.Node scoreTabNode({
   }
 
   final report = card.report;
-  final showPending = card.isPending;
-  final showReport = !card.isSkipped && report != null;
+  final showReport = report != null;
+  final showPending = report == null && card.isPending;
+  final showNoReport = !showReport && !showPending;
 
   final toolEnvInfo = showReport
       ? _renderToolEnvInfoNode(card.panaReport?.panaRuntimeInfo, usesFlutter)
@@ -36,42 +37,22 @@ d.Node scoreTabNode({
         _popularityKeyFigureNode(card.popularityScore),
       ],
     ),
-    if (card.isDiscontinued)
+    if (showPending)
       d.p(
         classes: ['analysis-info'],
-        text: 'This package is not analyzed, because it is discontinued.',
+        text: 'The analysis of the package has not been completed yet.',
       ),
-    if (card.isObsolete)
+    if (showNoReport)
       d.p(
         classes: ['analysis-info'],
         children: [
-          d.text('This package version is not analyzed, because '
-              'it is more than two years old. Check the '),
+          d.text('This package version is not analyzed. Check the '),
           d.a(
             href: urls.pkgScoreUrl(card.packageName!),
             text: 'latest stable version',
           ),
           d.text(' for its analysis.'),
         ],
-      ),
-    if (card.isLegacy)
-      d.p(
-        classes: ['analysis-info'],
-        text:
-            'The package version is not analyzed, because it does not support Dart 2 or 3. '
-            'Until this is resolved, the package will receive a pub score of 0.',
-      ),
-    if (card.isDart3Incompatible)
-      d.p(
-        classes: ['analysis-info'],
-        text:
-            'The package version is not analyzed, because it does not support Dart 3. '
-            'Until this is resolved, the package will receive a pub score of 0.',
-      ),
-    if (showPending)
-      d.p(
-        classes: ['analysis-info'],
-        text: 'The analysis of the package has not been completed yet.',
       ),
     if (showReport)
       d.p(

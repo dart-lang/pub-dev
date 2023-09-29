@@ -31,22 +31,8 @@ abstract class ReportStatus {
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
 class ScoreCard extends db.ExpandoModel<String> {}
 
-mixin FlagMixin {
-  List<String>? get tags;
-
-  bool get isDiscontinued =>
-      tags?.contains(PackageTags.isDiscontinued) ?? false;
-
-  bool get isLegacy => tags?.contains(PackageVersionTags.isLegacy) ?? false;
-
-  bool get isDart3Incompatible =>
-      tags?.contains(PackageVersionTags.isDart3Incompatible) ?? false;
-
-  bool get isObsolete => tags?.contains(PackageVersionTags.isObsolete) ?? false;
-}
-
 @JsonSerializable()
-class ScoreCardData extends Object with FlagMixin {
+class ScoreCardData {
   final String? packageName;
   final String? packageVersion;
   final String? runtimeVersion;
@@ -89,7 +75,6 @@ class ScoreCardData extends Object with FlagMixin {
 
   late final report = panaReport?.report;
 
-  @override
   List<String>? get tags => panaReport?.derivedTags;
 
   // TODO: refactor code to use popularityStorage directly.

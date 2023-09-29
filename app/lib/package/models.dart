@@ -886,7 +886,7 @@ class QualifiedVersionKey {
 /// An extract of [Package] and [PackageVersion], for
 /// display-only uses.
 @JsonSerializable(includeIfNull: false)
-class PackageView extends Object with FlagMixin {
+class PackageView {
   final String name;
   final LatestReleases releases;
   final String? ellipsizedDescription;
@@ -906,7 +906,6 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the analysis is not available yet.
   final int? maxPubPoints;
 
-  @override
   final List<String> tags;
 
   /// The package that should be used instead of the current package.
@@ -995,6 +994,10 @@ class PackageView extends Object with FlagMixin {
   }
 
   Map<String, dynamic> toJson() => _$PackageViewToJson(this);
+
+  bool get isDiscontinued => tags.contains(PackageTags.isDiscontinued);
+  bool get isLegacy => tags.contains(PackageVersionTags.isLegacy);
+  bool get isObsolete => tags.contains(PackageVersionTags.isObsolete);
 
   // TODO: refactor code to use popularityStorage directly.
   int get popularity => popularityStorage.lookupAsScore(name);

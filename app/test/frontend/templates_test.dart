@@ -5,11 +5,9 @@
 import 'dart:io';
 
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
-import 'package:pana/pana.dart' hide ReportStatus;
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
@@ -33,7 +31,6 @@ import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
-import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;
@@ -319,26 +316,6 @@ void main() {
           });
     });
 
-    testWithProfile(
-      'package show page with legacy version',
-      testProfile: TestProfile(
-        packages: [
-          TestPackage(
-              name: 'pkg', versions: [TestVersion(version: '1.0.0-legacy')]),
-        ],
-        defaultUser: 'admin@pub.dev',
-      ),
-      processJobsWithFakeRunners: true,
-      fn: () async {
-        final data = await loadPackagePageData('pkg', '1.0.0-legacy', null);
-        final html = renderPkgScorePage(data);
-        expectGoldenFile(html, 'pkg_show_page_legacy.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.version.created,
-        });
-      },
-    );
-
     // package analysis was intentionally left out for this template
     testWithProfile(
       'package show page with publisher',
@@ -359,32 +336,6 @@ void main() {
       expect(
           scoreTabNode(card: null, likeCount: 4, usesFlutter: false).toString(),
           '<i>Awaiting analysis to complete.</i>');
-    });
-
-    testWithProfile('outdated analysis tab', fn: () async {
-      final timestamp = DateTime(2017, 12, 18, 14, 26, 00);
-      final card = ScoreCardData(
-        packageName: 'pkg_foo',
-        updated: timestamp,
-        panaReport: PanaReport(
-          timestamp: timestamp,
-          panaRuntimeInfo: _panaRuntimeInfo,
-          reportStatus: ReportStatus.success,
-          derivedTags: [PackageVersionTags.isObsolete],
-          allDependencies: null,
-          licenses: null,
-          report: Report(sections: <ReportSection>[]),
-          result: null,
-          urlProblems: null,
-          screenshots: null,
-        ),
-      );
-      final String html = scoreTabNode(
-        card: card,
-        likeCount: 1111,
-        usesFlutter: false,
-      ).toString();
-      expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
     testWithProfile(
@@ -934,12 +885,6 @@ void main() {
     });
   });
 }
-
-final _panaRuntimeInfo = PanaRuntimeInfo(
-  panaVersion: '0.6.2',
-  flutterVersions: {'frameworkVersion': '0.0.18'},
-  sdkVersion: '2.0.0-dev.7.0',
-);
 
 Map<String, DateTime> _activityLogTimestamps(AuditLogRecordPage page) {
   final map = <String, DateTime>{};
