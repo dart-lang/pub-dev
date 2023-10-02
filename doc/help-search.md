@@ -17,6 +17,9 @@
   - `dependency*:package_name`: Searches for packages that depend on
     `package_name` (as direct, dev, or transitive dependencies).
 
+  - `topic:topic-name`: Searches for packages that have specified the
+    `topic-name` [topic](/topics).
+
 ## Filters
 
 The search UI also supports filters.
