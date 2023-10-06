@@ -15,8 +15,7 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      index.addPackages([
+      index = InMemoryPackageIndex(documents: [
         PackageDocument(
           package: 'stack_trace',
           version: '1.9.3',
@@ -24,7 +23,6 @@ void main() {
               'A package for manipulating stack traces and printing them readably.'),
         ),
       ]);
-      index.markReady();
     });
 
     // should find full word

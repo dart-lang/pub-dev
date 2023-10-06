@@ -15,19 +15,19 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(
-        package: 'flutter_blue',
-        version: '0.2.3',
-        description: compactDescription('Bluetooth plugin for Flutter.'),
-      ));
-      index.addPackage(PackageDocument(
-        package: 'smooth_scroll',
-        version: '0.0.3',
-        description: compactDescription(
-            'A Dart library for smooth scroll effect on a web page.'),
-      ));
-      index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'flutter_blue',
+          version: '0.2.3',
+          description: compactDescription('Bluetooth plugin for Flutter.'),
+        ),
+        PackageDocument(
+          package: 'smooth_scroll',
+          version: '0.0.3',
+          description: compactDescription(
+              'A Dart library for smooth scroll effect on a web page.'),
+        ),
+      ]);
     });
 
     test('bluetooth', () async {

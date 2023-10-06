@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/search/search_service.dart';
 
 import '../package/models.dart' show Package;
 import '../shared/datastore.dart';
@@ -35,16 +36,10 @@ class IndexUpdater {
     final isReady = await _initSnapshot();
     if (!isReady) {
       _logger.info('Loading minimum package index...');
-      int cnt = 0;
-      await for (final pd in searchBackend.loadMinimumPackageIndex()) {
-        _packageIndex.addPackage(pd);
-        cnt++;
-        if (cnt % 500 == 0) {
-          _logger.info('Loaded $cnt minimum package data (${pd.package})');
-        }
-      }
-      _packageIndex.markReady();
-      _logger.info('Minimum package index loaded with $cnt packages.');
+      final documents = await searchBackend.loadMinimumPackageIndex().toList();
+      _packageIndex.addPackages(documents);
+      _logger.info(
+          'Minimum package index loaded with ${documents.length} packages.');
     }
   }
 
@@ -53,11 +48,12 @@ class IndexUpdater {
   /// complete document for the index.
   @visibleForTesting
   Future<void> updateAllPackages() async {
+    final documents = <PackageDocument>[];
     await for (final p in _db.query<Package>().run()) {
       final doc = await searchBackend.loadDocument(p.name!);
-      _packageIndex.addPackage(doc);
+      documents.add(doc);
     }
-    _packageIndex.markReady();
+    _packageIndex.addPackages(documents);
   }
 
   /// Returns whether the snapshot was initialized and loaded properly.
@@ -72,7 +68,6 @@ class IndexUpdater {
       // Arbitrary sanity check that the snapshot is not entirely bogus.
       // Index merge will enable search.
       if (documents.length > 10) {
-        _packageIndex.markReady();
         _logger.info('Snapshot load completed.');
         return true;
       }

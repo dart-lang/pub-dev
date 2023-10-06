@@ -15,14 +15,14 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(
-        package: 'cloud_firestore',
-        version: '0.7.2',
-        description: compactDescription(
-            'Flutter plugin for Cloud Firestore, a cloud-hosted, noSQL database '
-            'with live synchronization and offline support on Android and iOS.'),
-        readme: compactReadme('''# Cloud Firestore Plugin for Flutter
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'cloud_firestore',
+          version: '0.7.2',
+          description: compactDescription(
+              'Flutter plugin for Cloud Firestore, a cloud-hosted, noSQL database '
+              'with live synchronization and offline support on Android and iOS.'),
+          readme: compactReadme('''# Cloud Firestore Plugin for Flutter
 
 A Flutter plugin to use the [Cloud Firestore API](https://firebase.google.com/docs/firestore/).
 
@@ -33,18 +33,18 @@ For Flutter plugins for other Firebase products, see [FlutterFire.md](https://gi
 *Note*: This plugin is still under development, and some APIs might not be available yet. [Feedback](https://github.com/flutter/flutter/issues) and [Pull Requests](https://github.com/flutter/plugins/pulls) are most welcome!
 
 Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec functionality](https://github.com/flutter/flutter/pull/15414) that is not yet released to the [beta channel](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels) of Flutter. If you're encountering issues using those versions, consider switching to the dev channel.'''),
-      ));
-      index.addPackage(PackageDocument(
-        package: 'currency_cloud',
-        version: '0.2.1',
-        description: compactDescription(
-            'A dart library for the Currency Cloud service. It operates as a '
-            'wrapper for the Currency Cloud REST API.'),
-        readme: compactReadme(
-            'Currency Cloud Dart API A dart library for the Currency Cloud '
-            'service Usage A simple usage example'),
-      ));
-      index.markReady();
+        ),
+        PackageDocument(
+          package: 'currency_cloud',
+          version: '0.2.1',
+          description: compactDescription(
+              'A dart library for the Currency Cloud service. It operates as a '
+              'wrapper for the Currency Cloud REST API.'),
+          readme: compactReadme(
+              'Currency Cloud Dart API A dart library for the Currency Cloud '
+              'service Usage A simple usage example'),
+        ),
+      ]);
     });
 
     test('REST API', () async {

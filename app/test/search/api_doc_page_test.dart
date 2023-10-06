@@ -15,36 +15,36 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(
-        package: 'foo',
-        version: '1.0.0',
-        description: compactDescription('Yet another web framework.'),
-        apiDocPages: [
-          ApiDocPage(
-            relativePath: 'generator.html',
-            symbols: [
-              'generateWebPage',
-              'WebPageGenerator',
-            ],
-          ),
-        ],
-      ));
-      index.addPackage(PackageDocument(
-        package: 'other_with_api',
-        version: '2.0.0',
-        description: compactDescription('Unrelated package'),
-        apiDocPages: [
-          ApiDocPage(relativePath: 'main.html', symbols: ['foo']),
-          ApiDocPage(relativePath: 'serve.html', symbols: ['serveWebPages']),
-        ],
-      ));
-      index.addPackage(PackageDocument(
-        package: 'other_without_api',
-        version: '2.0.0',
-        description: compactDescription('Unrelated package'),
-      ));
-      index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'foo',
+          version: '1.0.0',
+          description: compactDescription('Yet another web framework.'),
+          apiDocPages: [
+            ApiDocPage(
+              relativePath: 'generator.html',
+              symbols: [
+                'generateWebPage',
+                'WebPageGenerator',
+              ],
+            ),
+          ],
+        ),
+        PackageDocument(
+          package: 'other_with_api',
+          version: '2.0.0',
+          description: compactDescription('Unrelated package'),
+          apiDocPages: [
+            ApiDocPage(relativePath: 'main.html', symbols: ['foo']),
+            ApiDocPage(relativePath: 'serve.html', symbols: ['serveWebPages']),
+          ],
+        ),
+        PackageDocument(
+          package: 'other_without_api',
+          version: '2.0.0',
+          description: compactDescription('Unrelated package'),
+        ),
+      ]);
     });
 
     test('foo', () async {

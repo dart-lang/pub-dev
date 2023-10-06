@@ -15,8 +15,7 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      index.addPackages([
+      index = InMemoryPackageIndex(documents: [
         PackageDocument(
           package: 'haversine',
           version: '0.0.2',
@@ -373,7 +372,6 @@ class MyBot implements Bot {
 MIT'''),
         ),
       ]);
-      index.markReady();
     });
 
     test('haversine', () async {

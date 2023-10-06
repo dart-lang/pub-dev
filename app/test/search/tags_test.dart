@@ -12,9 +12,9 @@ import 'package:test/test.dart';
 void main() {
   group('ServiceSearchQuery.tags', () {
     test('No tags in documents: positive tag match', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(package: 'pkg1'));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1'),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate(requiredTags: ['is:a']),
@@ -28,9 +28,9 @@ void main() {
     });
 
     test('No tags in documents: negative tag match', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(package: 'pkg1'));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1'),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
@@ -46,10 +46,10 @@ void main() {
     });
 
     test('One tag in documents: negative tag match', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(package: 'pkg1', tags: ['is:a']));
-      index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a']),
+        PackageDocument(package: 'pkg2', tags: ['is:b']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
@@ -65,10 +65,10 @@ void main() {
     });
 
     test('One tag in documents: positive tag match', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(package: 'pkg1', tags: ['is:a']));
-      index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a']),
+        PackageDocument(package: 'pkg2', tags: ['is:b']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:a']),
@@ -84,12 +84,10 @@ void main() {
     });
 
     test('More tags in documents: multiple results', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(
-          PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
-      index.addPackage(
-          PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']),
+        PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1']),
@@ -106,12 +104,10 @@ void main() {
     });
 
     test('More tags in documents: multiple queried tags #1', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(
-          PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
-      index.addPackage(
-          PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']),
+        PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', 'is:b']),
@@ -127,12 +123,10 @@ void main() {
     });
 
     test('More tags in documents: multiple queried tags #2', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(
-          PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']));
-      index.addPackage(
-          PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']),
+        PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
@@ -148,11 +142,10 @@ void main() {
     });
 
     test('User-supplied queried tags #1', () async {
-      final index = InMemoryPackageIndex();
-      index
-          .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
-      index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']),
+        PackageDocument(package: 'pkg2', tags: ['is:b']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(query: 'is:b -is:a'));
       expect(json.decode(json.encode(rs.toJson())), {
@@ -166,11 +159,10 @@ void main() {
     });
 
     test('User-supplied queried tags #2', () async {
-      final index = InMemoryPackageIndex();
-      index
-          .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
-      index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:a']));
-      index.markReady();
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']),
+        PackageDocument(package: 'pkg2', tags: ['is:a']),
+      ]);
 
       final rs = index.search(ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:b']),

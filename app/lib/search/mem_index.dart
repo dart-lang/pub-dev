@@ -29,39 +29,31 @@ class InMemoryPackageIndex {
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
   final _likeTracker = _LikeTracker();
-  final bool _alwaysUpdateLikeScores;
   late final _createdOrderedHitCache = _OrderedHitCache(
       () => _rankWithComparator(_packages.keys.toSet(), _compareCreated));
   late final _updatedOrderedHitCache = _OrderedHitCache(
       () => _rankWithComparator(_packages.keys.toSet(), _compareUpdated));
 
   DateTime? _lastUpdated;
-  bool _isReady = false;
 
   InMemoryPackageIndex({
+    Iterable<PackageDocument>? documents,
     PopularityValueFn popularityValueFn = _noPopularityScoreFn,
-    math.Random? random,
-    @visibleForTesting bool alwaysUpdateLikeScores = false,
-  })  : _popularityValueFn = popularityValueFn,
-        _alwaysUpdateLikeScores = alwaysUpdateLikeScores;
+  }) : _popularityValueFn = popularityValueFn {
+    if (documents != null) {
+      addPackages(documents);
+    }
+  }
 
   IndexInfo indexInfo() {
     return IndexInfo(
-      isReady: _isReady,
+      isReady: true,
       packageCount: _packages.length,
       lastUpdated: _lastUpdated,
     );
   }
 
-  /// A package index may be accessed while the initialization phase is still
-  /// running. Once the initialization is done (either via a snapshot or a
-  /// `Package`-scan completes), the updater should call this method to indicate
-  /// to the frontend load-balancer that the instance now accepts requests.
-  void markReady() {
-    _isReady = true;
-  }
-
-  void addPackage(PackageDocument doc) {
+  void _addPackage(PackageDocument doc) {
     _packages[doc.package] = doc;
     _packageNameIndex.add(doc.package);
     _descrIndex.add(doc.package, doc.description);
@@ -75,21 +67,15 @@ class InMemoryPackageIndex {
     }
 
     _likeTracker.trackLikeCount(doc.package, doc.likeCount);
-    if (_alwaysUpdateLikeScores) {
-      _likeTracker._updateScores();
-    } else {
-      _likeTracker._updateScoresIfNeeded();
-    }
-
-    _lastUpdated = clock.now().toUtc();
-    _invalidateHitCaches();
   }
 
   void addPackages(Iterable<PackageDocument> documents) {
     for (PackageDocument doc in documents) {
-      addPackage(doc);
+      _addPackage(doc);
     }
     _likeTracker._updateScores();
+    _lastUpdated = clock.now().toUtc();
+    _invalidateHitCaches();
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
@@ -493,8 +479,6 @@ class _LikeScore {
 
 class _LikeTracker {
   final _values = <String, _LikeScore>{};
-  bool _changed = false;
-  DateTime? _lastUpdated;
 
   double getLikeScore(String package) {
     return _values[package]?.score ?? 0.0;
@@ -503,23 +487,8 @@ class _LikeTracker {
   void trackLikeCount(String package, int likeCount) {
     final v = _values.putIfAbsent(package, () => _LikeScore(package));
     if (v.likeCount != likeCount) {
-      _changed = true;
       v.likeCount = likeCount;
     }
-  }
-
-  void _updateScoresIfNeeded() {
-    if (!_changed) {
-      // we know there is nothing to update
-      return;
-    }
-    final now = clock.now();
-    if (_lastUpdated != null && now.difference(_lastUpdated!).inHours < 12) {
-      // we don't need to update too frequently
-      return;
-    }
-
-    _updateScores();
   }
 
   /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
@@ -535,8 +504,6 @@ class _LikeTracker {
         entries[i].score = (i + 1) / entries.length;
       }
     }
-    _changed = false;
-    _lastUpdated = clock.now();
     _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
   }
 }

@@ -18,6 +18,16 @@ void main() {
     final primaryIndex = InMemoryPackageIndex(
       popularityValueFn: (p) =>
           const <String, double>{'stringutils': 0.4}[p] ?? 0.0,
+      documents: [
+        PackageDocument(
+          package: 'stringutils',
+          version: '1.0.0',
+          description: 'many utils utils',
+          readme: 'Many useful string methods like substring.',
+          grantedPoints: 110,
+          maxPoints: 110,
+        ),
+      ],
     );
     final dartSdkMemIndex = DartSdkMemIndex();
     final flutterSdkMemIndex = FlutterSdkMemIndex();
@@ -28,14 +38,6 @@ void main() {
     );
 
     setUpAll(() async {
-      primaryIndex.addPackage(PackageDocument(
-        package: 'stringutils',
-        version: '1.0.0',
-        description: 'many utils utils',
-        readme: 'Many useful string methods like substring.',
-        grantedPoints: 110,
-        maxPoints: 110,
-      ));
       dartSdkMemIndex.setDartdocIndex(
         DartdocIndex.fromJsonList([
           {
@@ -77,7 +79,6 @@ void main() {
         ]),
         version: '2.0.0',
       );
-      primaryIndex.markReady();
     });
 
     test('non-text ranking', () async {
