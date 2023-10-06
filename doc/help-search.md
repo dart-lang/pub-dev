@@ -20,6 +20,12 @@
   - `topic:topic-name`: Searches for packages that have specified the
     `topic-name` [topic](/topics).
 
+  - `publisher:publisher-name.com`: Searches for packages published by  `publisher-name.com`
+
+  - `sdk:flutter`: Searches for packages that support the given SDK. The value can be either `flutter` or `dart`
+
+  - `runtime:web`: Searches for packages that support the web runtime. The value can also be `native-jit` and `native-aot`.
+
 ## Filters
 
 The search UI also supports filters.
