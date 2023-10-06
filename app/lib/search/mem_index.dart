@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
@@ -158,6 +159,7 @@ class InMemoryPackageIndex {
     }
 
     late List<PackageHit> packageHits;
+    late int totalCount;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         final List<Score> scores = [
@@ -172,31 +174,50 @@ class InMemoryPackageIndex {
         packageHits = _rankWithValues(
           overallScore.getValues(),
           priorityPackageName: priorityPackageName,
+          limit: query.limit,
         );
+        totalCount = overallScore.length;
         break;
       case SearchOrder.text:
         final score = textResults?.pkgScore ?? Score.empty();
-        packageHits = _rankWithValues(score.getValues());
+        packageHits = _rankWithValues(
+          score.getValues(),
+          limit: query.limit,
+        );
+        totalCount = score.length;
         break;
       case SearchOrder.created:
         packageHits = _createdOrderedHitCache.whereInSet(packages);
+        totalCount = packages.length;
         break;
       case SearchOrder.updated:
         packageHits = _updatedOrderedHitCache.whereInSet(packages);
+        totalCount = packages.length;
         break;
       case SearchOrder.popularity:
-        packageHits = _rankWithValues(getPopularityScore(packages));
+        packageHits = _rankWithValues(
+          getPopularityScore(packages),
+          limit: query.limit,
+        );
+        totalCount = packages.length;
         break;
       case SearchOrder.like:
-        packageHits = _rankWithValues(getLikeScore(packages));
+        packageHits = _rankWithValues(
+          getLikeScore(packages),
+          limit: query.limit,
+        );
+        totalCount = packages.length;
         break;
       case SearchOrder.points:
-        packageHits = _rankWithValues(getPubPoints(packages));
+        packageHits = _rankWithValues(
+          getPubPoints(packages),
+          limit: query.limit,
+        );
+        totalCount = packages.length;
         break;
     }
 
     // bound by offset and limit (or randomize items)
-    final totalCount = packageHits.length;
     packageHits =
         boundedList(packageHits, offset: query.offset, limit: query.limit);
 
@@ -204,7 +225,8 @@ class InMemoryPackageIndex {
       packageHits = packageHits.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
             // TODO: extract title for the page
-            ?.map((String page) => ApiPageRef(path: page))
+            ?.map((MapEntry<String, double> e) =>
+                ApiPageRef(path: _apiDocPath(e.key)))
             .toList();
         return ps.change(apiPages: apiPages);
       }).toList();
@@ -258,7 +280,7 @@ class InMemoryPackageIndex {
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
       if (words.isEmpty) {
-        return _TextResults(Score.empty(), <String, List<String>>{});
+        return _TextResults(Score.empty(), {});
       }
 
       bool aborted = false;
@@ -306,11 +328,32 @@ class InMemoryPackageIndex {
       }
 
       final apiPackages = <String, double>{};
+      final topApiPages = <String, List<MapEntry<String, double>>>{};
+      const maxApiPageCount = 2;
       for (final entry in symbolPages.getValues().entries) {
         final pkg = _apiDocPkg(entry.key);
         if (!packages.contains(pkg)) continue;
+
+        // skip if the previously found pages are better than the current one
+        final pages = topApiPages.putIfAbsent(pkg, () => []);
+        if (pages.length >= maxApiPageCount && pages.last.value > entry.value) {
+          continue;
+        }
+
+        // update the top api packages score
         apiPackages[pkg] = math.max(entry.value, apiPackages[pkg] ?? 0.0);
+
+        // add the page and re-sort the current results
+        pages.add(entry);
+        if (pages.length > 1) {
+          pages.sort((a, b) => -a.value.compareTo(b.value));
+        }
+        // keep the results limited to the max count
+        if (pages.length > maxApiPageCount) {
+          pages.removeLast();
+        }
       }
+
       final apiPkgScore = Score(apiPackages);
       var score = Score.max([core, apiPkgScore])
           .project(packages)
@@ -319,7 +362,7 @@ class InMemoryPackageIndex {
       // filter results based on exact phrases
       final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
-        final Map<String, double> matched = <String, double>{};
+        final matched = <String, double>{};
         for (String package in score.getKeys()) {
           final doc = _packages[package]!;
           final bool matchedAllPhrases = phrases.every((phrase) =>
@@ -333,18 +376,6 @@ class InMemoryPackageIndex {
         score = Score(matched);
       }
 
-      final apiDocKeys = symbolPages.getKeys().toList()
-        ..sort((a, b) => -symbolPages[a].compareTo(symbolPages[b]));
-      final topApiPages = <String, List<String>>{};
-      for (String key in apiDocKeys) {
-        final pkg = _apiDocPkg(key);
-        final pages = topApiPages.putIfAbsent(pkg, () => []);
-        if (pages.length < 3) {
-          final page = _apiDocPath(key);
-          pages.add(page);
-        }
-      }
-
       return _TextResults(score, topApiPages);
     }
     return null;
@@ -353,11 +384,10 @@ class InMemoryPackageIndex {
   List<PackageHit> _rankWithValues(
     Map<String, double> values, {
     String? priorityPackageName,
+    required int? limit,
   }) {
-    final list = values.entries
-        .map((e) => PackageHit(package: e.key, score: e.value))
-        .toList();
-    list.sort((a, b) {
+    // Keep a sorted list of top-N (limit) packages.
+    final set = SplayTreeSet<PackageHit>((a, b) {
       if (a.package == priorityPackageName) return -1;
       if (b.package == priorityPackageName) return 1;
       final int scoreCompare = -a.score!.compareTo(b.score!);
@@ -365,7 +395,17 @@ class InMemoryPackageIndex {
       // if two packages got the same score, order by last updated
       return _compareUpdated(_packages[a.package]!, _packages[b.package]!);
     });
-    return list;
+    for (final e in values.entries) {
+      // skip if the current value is worse than the previosly found top-N
+      if (limit != null && set.length >= limit && set.last.score! > e.value) {
+        continue;
+      }
+      set.add(PackageHit(package: e.key, score: e.value));
+      if (limit != null && set.length >= limit) {
+        set.remove(set.last);
+      }
+    }
+    return set.toList();
   }
 
   List<PackageHit> _rankWithComparator(Set<String> packages,
@@ -409,7 +449,7 @@ class InMemoryPackageIndex {
 
 class _TextResults {
   final Score pkgScore;
-  final Map<String, List<String>> topApiPages;
+  final Map<String, List<MapEntry<String, double>>> topApiPages;
 
   _TextResults(this.pkgScore, this.topApiPages);
 }
