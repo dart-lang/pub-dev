@@ -24,19 +24,23 @@ class InMemoryPackageIndex {
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
   final _likeTracker = _LikeTracker();
-  late final _createdOrderedHitCache = _OrderedHitCache(
-      () => _rankWithComparator(_packages.keys.toSet(), _compareCreated));
-  late final _updatedOrderedHitCache = _OrderedHitCache(
-      () => _rankWithComparator(_packages.keys.toSet(), _compareUpdated));
+  late final List<PackageHit> _createdOrderedHits;
+  late final List<PackageHit> _updatedOrderedHits;
 
-  DateTime? _lastUpdated;
+  late final DateTime _lastUpdated;
 
   InMemoryPackageIndex({
-    Iterable<PackageDocument>? documents,
+    required Iterable<PackageDocument> documents,
   }) {
-    if (documents != null) {
-      addPackages(documents);
+    for (final doc in documents) {
+      _addPackage(doc);
     }
+    _likeTracker._updateScores();
+    _lastUpdated = clock.now().toUtc();
+    _createdOrderedHits =
+        _rankWithComparator(_packages.keys.toSet(), _compareCreated);
+    _updatedOrderedHits =
+        _rankWithComparator(_packages.keys.toSet(), _compareUpdated);
   }
 
   IndexInfo indexInfo() {
@@ -61,15 +65,6 @@ class InMemoryPackageIndex {
     }
 
     _likeTracker.trackLikeCount(doc.package, doc.likeCount);
-  }
-
-  void addPackages(Iterable<PackageDocument> documents) {
-    for (PackageDocument doc in documents) {
-      _addPackage(doc);
-    }
-    _likeTracker._updateScores();
-    _lastUpdated = clock.now().toUtc();
-    _invalidateHitCaches();
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
@@ -159,10 +154,10 @@ class InMemoryPackageIndex {
         packageHits = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
-        packageHits = _createdOrderedHitCache.whereInSet(packages);
+        packageHits = _createdOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.updated:
-        packageHits = _updatedOrderedHitCache.whereInSet(packages);
+        packageHits = _updatedOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.popularity:
         packageHits = _rankWithValues(getPopularityScore(packages));
@@ -380,11 +375,6 @@ class InMemoryPackageIndex {
   String _apiDocPath(String id) {
     return id.split('::').last;
   }
-
-  void _invalidateHitCaches() {
-    _createdOrderedHitCache.invalide();
-    _updatedOrderedHitCache.invalide();
-  }
 }
 
 class _TextResults {
@@ -502,34 +492,8 @@ class _LikeTracker {
   }
 }
 
-class _OrderedHitCache {
-  final List<PackageHit> Function() _updater;
-  bool _expired = true;
-  DateTime _lastUpdated = clock.now();
-  List<PackageHit>? _values;
-
-  _OrderedHitCache(this._updater);
-
-  void invalide() {
-    _expired = true;
-  }
-
-  List<PackageHit> getOrUpdate() {
-    if (_expired ||
-        _values == null ||
-        clock.now().difference(_lastUpdated) > const Duration(hours: 1)) {
-      _expired = false;
-      _lastUpdated = clock.now();
-      _values = _updater();
-    }
-    return _values!;
-  }
-
-  List<PackageHit> where(bool Function(PackageHit hit) fn) {
-    return getOrUpdate().where(fn).toList();
-  }
-
+extension on List<PackageHit> {
   List<PackageHit> whereInSet(Set<String> packages) {
-    return where((hit) => packages.contains(hit.package));
+    return where((hit) => packages.contains(hit.package)).toList();
   }
 }

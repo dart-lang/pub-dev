@@ -42,7 +42,6 @@ import '../scorecard/backend.dart';
 import '../search/backend.dart';
 import '../search/dart_sdk_mem_index.dart';
 import '../search/flutter_sdk_mem_index.dart';
-import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/top_packages.dart';
 import '../search/updater.dart';
@@ -238,9 +237,8 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
-    final inMemoryPackageIndex = InMemoryPackageIndex();
-    registerInMemoryPackageIndex(inMemoryPackageIndex);
-    registerIndexUpdater(IndexUpdater(dbService, inMemoryPackageIndex));
+    registerPackageIndexHolder(PackageIndexHolder());
+    registerIndexUpdater(IndexUpdater(dbService));
     registerPopularityStorage(
       PopularityStorage(
           storageService.bucket(activeConfiguration.popularityDumpBucketName!)),
