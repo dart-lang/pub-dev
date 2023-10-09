@@ -16,8 +16,6 @@ import 'package:test/test.dart';
 void main() {
   group('ResultCombiner', () {
     final primaryIndex = InMemoryPackageIndex(
-      popularityValueFn: (p) =>
-          const <String, double>{'stringutils': 0.4}[p] ?? 0.0,
       documents: [
         PackageDocument(
           package: 'stringutils',
@@ -26,6 +24,7 @@ void main() {
           readme: 'Many useful string methods like substring.',
           grantedPoints: 110,
           maxPoints: 110,
+          popularityScore: 0.4,
         ),
       ],
     );
