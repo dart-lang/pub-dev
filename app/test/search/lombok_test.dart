@@ -14,12 +14,12 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(
-        package: 'lombok',
-        version: '1.0.0',
-      ));
-      index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'lombok',
+          version: '1.0.0',
+        ),
+      ]);
     });
 
     test('lombock', () async {

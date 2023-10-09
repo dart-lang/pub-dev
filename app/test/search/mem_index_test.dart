@@ -16,15 +16,6 @@ void main() {
     late DateTime lastPackageUpdated;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(
-        alwaysUpdateLikeScores: true,
-        popularityValueFn: (p) =>
-            const <String, double>{
-              'http': 0.7,
-              'async': 0.8,
-            }[p] ??
-            0.0,
-      );
       final docs = [
         PackageDocument(
           package: 'http',
@@ -87,10 +78,17 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           maxPoints: 110,
         ),
       ];
-      index.addPackages(docs);
-      index.markReady();
       lastPackageUpdated =
           docs.map((p) => p.updated).reduce((a, b) => a!.isAfter(b!) ? a : b)!;
+      index = InMemoryPackageIndex(
+        popularityValueFn: (p) =>
+            const <String, double>{
+              'http': 0.7,
+              'async': 0.8,
+            }[p] ??
+            0.0,
+        documents: docs,
+      );
     });
 
     test('popularity scores', () {
@@ -568,13 +566,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
   group('special cases', () {
     test('short words: lookup for app(s)', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(
-        package: 'app',
-      ));
-      index.addPackage(PackageDocument(
-        package: 'apps',
-      ));
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'app',
+        ),
+        PackageDocument(
+          package: 'apps',
+        ),
+      ]);
       final match = index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.packageHits.map((e) => e.toJson()), [
@@ -590,13 +589,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('short words: lookup for app(z)', () async {
-      final index = InMemoryPackageIndex();
-      index.addPackage(PackageDocument(
-        package: 'app',
-      ));
-      index.addPackage(PackageDocument(
-        package: 'appz',
-      ));
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'app',
+        ),
+        PackageDocument(
+          package: 'appz',
+        ),
+      ]);
       final match = index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.packageHits.map((e) => e.toJson()), [
@@ -613,8 +613,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     group('exact name match', () {
       test('exact match vs description', () async {
-        final index = InMemoryPackageIndex();
-        index.addPackages([
+        final index = InMemoryPackageIndex(documents: [
           PackageDocument(
             package: 'abc',
             description: 'def xyz',
@@ -676,17 +675,18 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
   group('package name weight', () {
     test('modular', () async {
-      final index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
-      index.addPackage(PackageDocument(
-        package: 'serveme',
-        description:
-            'Backend server framework designed for a quick development of modular WebSocket based server applications with MongoDB integration.',
-      ));
-      index.addPackage(PackageDocument(
-        package: 'flutter_modular',
-        description:
-            'Smart project structure with dependency injection and route management',
-      ));
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'serveme',
+          description:
+              'Backend server framework designed for a quick development of modular WebSocket based server applications with MongoDB integration.',
+        ),
+        PackageDocument(
+          package: 'flutter_modular',
+          description:
+              'Smart project structure with dependency injection and route management',
+        ),
+      ]);
       final rs = index.search(
           ServiceSearchQuery.parse(query: 'modular', order: SearchOrder.text));
       expect(
