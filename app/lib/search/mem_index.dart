@@ -17,12 +17,7 @@ import 'token_index.dart';
 final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
-/// Returns the popularity score (0.0 - 1.0) of a package.
-typedef PopularityValueFn = double Function(String packageName);
-double _noPopularityScoreFn(String packageName) => 0.0;
-
 class InMemoryPackageIndex {
-  final PopularityValueFn _popularityValueFn;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final _packageNameIndex = PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
@@ -38,8 +33,7 @@ class InMemoryPackageIndex {
 
   InMemoryPackageIndex({
     Iterable<PackageDocument>? documents,
-    PopularityValueFn popularityValueFn = _noPopularityScoreFn,
-  }) : _popularityValueFn = popularityValueFn {
+  }) {
     if (documents != null) {
       addPackages(documents);
     }
@@ -205,8 +199,8 @@ class InMemoryPackageIndex {
 
   @visibleForTesting
   Map<String, double> getPopularityScore(Iterable<String> packages) {
-    return Map.fromEntries(packages.map((p) => MapEntry<String, double>(
-        p, _packages[p]!.popularityScore ?? _popularityValueFn(p))));
+    return Map.fromEntries(packages.map((p) =>
+        MapEntry<String, double>(p, _packages[p]!.popularityScore ?? 0.0)));
   }
 
   @visibleForTesting
@@ -228,7 +222,7 @@ class InMemoryPackageIndex {
   Score _getOverallScore(Iterable<String> packages) {
     final values = Map<String, double>.fromEntries(packages.map((package) {
       final doc = _packages[package]!;
-      final downloadScore = doc.popularityScore ?? _popularityValueFn(package);
+      final downloadScore = doc.popularityScore ?? 0.0;
       final likeScore = doc.likeScore ?? _likeTracker.getLikeScore(doc.package);
       final popularity = (downloadScore + likeScore) / 2;
       final points = doc.grantedPoints / math.max(1, doc.maxPoints);

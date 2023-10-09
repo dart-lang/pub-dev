@@ -34,6 +34,7 @@ void main() {
             'runtime:web'
           ],
           likeCount: 10,
+          popularityScore: 0.7,
           grantedPoints: 110,
           maxPoints: 110,
           dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
@@ -62,6 +63,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
           grantedPoints: 10,
           maxPoints: 110,
           dependencies: {'test': 'dev'},
+          popularityScore: 0.8,
         ),
         PackageDocument(
           package: 'chrome_net',
@@ -80,15 +82,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       ];
       lastPackageUpdated =
           docs.map((p) => p.updated).reduce((a, b) => a!.isAfter(b!) ? a : b)!;
-      index = InMemoryPackageIndex(
-        popularityValueFn: (p) =>
-            const <String, double>{
-              'http': 0.7,
-              'async': 0.8,
-            }[p] ??
-            0.0,
-        documents: docs,
-      );
+      index = InMemoryPackageIndex(documents: docs);
     });
 
     test('popularity scores', () {
