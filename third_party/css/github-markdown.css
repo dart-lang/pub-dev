@@ -391,12 +391,14 @@
 }
 .dark-theme .markdown-body pre {
   /* TODO: Investigate if this should be fixed in dartdoc's styles.css: the `pre` rule has precendece over the dark theme there. */
+  /*       https://github.com/dart-lang/pub-dev/issues/7101 */
   background-color: inherit;
 }
 
 .dark-theme .hljs .hljs-deletion,
 .dark-theme .hljs .hljs-addition {
   /* TODO: Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
+  /*       https://github.com/dart-lang/pub-dev/issues/7101 */
   color: black;
 }
 
