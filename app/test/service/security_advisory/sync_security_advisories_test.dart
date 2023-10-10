@@ -4,7 +4,9 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/service/security_advisories/sync_security_advisories.dart';
 import 'package:test/test.dart';
@@ -48,5 +50,44 @@ void main() {
     expect(adv, isNotNull);
     adv = await securityAdvisoryBackend.lookupById('GHSA-1234-1234-1234');
     expect(adv, isNull);
+  });
+
+  testWithProfile('Sync with partial success', fn: () async {
+    // This directory contains 4 json files. One is with invalid json.
+    // One contains invalid osv. The final two are valid security advisories.
+    final dataDir3 = Directory(path.join(Directory.current.path, 'test',
+        'service', 'security_advisory', 'testdata', 'adv3'));
+    final (osvs, failedFiles) = await loadAdvisoriesFromDir(dataDir3);
+    expect(failedFiles.length, 1);
+    expect(osvs.length, 3);
+
+    await updateAdvisories(osvs);
+    final list = await securityAdvisoryBackend.listAdvisories();
+    expect(list.length, 2);
+  });
+
+  testWithProfile('LatestAdvisory field gets updated on sync', fn: () async {
+    var pkg = await packageBackend.lookupPackage('oxygen');
+    expect(pkg!.latestAdvisory, isNull);
+
+    final beforeSyncTime = clock.now();
+    final dataDir3 = Directory(path.join(Directory.current.path, 'test',
+        'service', 'security_advisory', 'testdata', 'adv3'));
+    final (osvs, _) = await loadAdvisoriesFromDir(dataDir3);
+    await updateAdvisories(osvs);
+    pkg = await packageBackend.lookupPackage('oxygen');
+
+    expect(pkg!.latestAdvisory, isNotNull);
+    expect(pkg.latestAdvisory!.isAfter(beforeSyncTime), isTrue);
+
+    final betweenSyncsTime = clock.now();
+    expect(pkg.latestAdvisory!.isBefore(betweenSyncsTime), isTrue);
+
+    final dataDir4 = Directory(path.join(Directory.current.path, 'test',
+        'service', 'security_advisory', 'testdata', 'adv4'));
+    final (osvs1, _) = await loadAdvisoriesFromDir(dataDir4);
+    await updateAdvisories(osvs1);
+    pkg = await packageBackend.lookupPackage('oxygen');
+    expect(pkg!.latestAdvisory!.isAfter(betweenSyncsTime), isTrue);
   });
 }

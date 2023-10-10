@@ -49,9 +49,9 @@
   "affected": [
     {
       "package": {
-        "name": "http",
+        "name": "neon",
         "ecosystem": "Pub",
-        "purl": "pkg:pub/http"
+        "purl": "pkg:pub/neon"
       },
       "ranges": [
         {

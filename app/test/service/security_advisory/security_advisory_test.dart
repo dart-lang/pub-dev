@@ -62,6 +62,42 @@ void main() {
     }
   });
 
+  testWithProfile('Ingest invalid advisory', fn: () async {
+    final firstTime = DateTime(2022).toIso8601String();
+    final futureTime = clock.now().add(Duration(days: 1)).toIso8601String();
+    final affectedA = Affected(
+      package: Package(ecosystem: 'pub', name: 'a'),
+      versions: ['1'],
+    );
+    final id = '123';
+    final id2 = '456';
+
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: id,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv2 = OSV(
+      schemaVersion: '1.2.3',
+      id: id2,
+      modified: futureTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final syncTime = clock.now();
+    final adv =
+        await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    expect(adv, isNotNull);
+
+    final adv2 =
+        await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
+    expect(adv2, isNull);
+  });
+
   testWithProfile('List all advisories and delete advisory', fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
@@ -88,8 +124,13 @@ void main() {
     );
 
     final syncTime = clock.now();
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
+    final adv =
+        await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    expect(adv, isNotNull);
+
+    final adv2 =
+        await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
+    expect(adv2, isNotNull);
 
     final all = await securityAdvisoryBackend.listAdvisories();
     expect(all, isNotNull);
@@ -97,7 +138,7 @@ void main() {
     expect(all.first.id, id);
     expect(all.last.id, id2);
 
-    await securityAdvisoryBackend.deleteAdvisory(id);
+    await securityAdvisoryBackend.deleteAdvisory(adv!, syncTime);
 
     final reduced = await securityAdvisoryBackend.listAdvisories();
     expect(reduced, isNotNull);

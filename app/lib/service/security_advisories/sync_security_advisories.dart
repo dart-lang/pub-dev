@@ -58,15 +58,16 @@ Future<(Map<String, OSV>, List<String>)> loadAdvisoriesFromDir(
 }
 
 Future<void> updateAdvisories(Map<String, OSV> osvs) async {
+  final syncTime = clock.now();
+
   final oldAdvisories = await securityAdvisoryBackend.listAdvisories();
 
   for (final advisory in oldAdvisories) {
     if (!osvs.containsKey(advisory.id)) {
-      await securityAdvisoryBackend.deleteAdvisory(advisory.id!);
+      await securityAdvisoryBackend.deleteAdvisory(advisory, syncTime);
     }
   }
 
-  final syncTime = clock.now();
   for (final osv in osvs.values) {
     await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
   }
