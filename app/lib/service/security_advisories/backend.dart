@@ -95,8 +95,7 @@ class SecurityAdvisoryBackend {
             osv.published != null ? DateTime.parse(osv.published!) : modified
         ..syncTime = syncTime;
 
-      final packages = await _lookupAffectedPackages(newAdvisory, tx);
-      if (packages.length > 50) {
+      if (newAdvisory.affectedPackages!.length > 50) {
         // This is very unlikly to happen, since a security advisory typically
         // affects one or a few packages. We log this to keep an eye out. If
         // it turns out that this becomes a problem we need to consider other
@@ -109,6 +108,7 @@ class SecurityAdvisoryBackend {
           inserts: [newAdvisory],
         );
       } else {
+        final packages = await _lookupAffectedPackages(newAdvisory, tx);
         packages.forEach((pkg) => pkg.latestAdvisory = syncTime);
         tx.queueMutations(
           // This is an upsert
@@ -124,12 +124,8 @@ class SecurityAdvisoryBackend {
       SecurityAdvisory advisory, DateTime syncTime) async {
     return await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
-      // If necessary this can be optimized by deleting up to 500 at once.
-      // At this point we don't expect many deletes so we keep it simple.
-      // await _db.commit(deletes: [key]);
 
-      final packages = await _lookupAffectedPackages(advisory, tx);
-      if (packages.length > 50) {
+      if (advisory.affectedPackages!.length > 50) {
         // This is very unlikly to happen, since a security advisory typically
         // affects one or a few packages. We log this to keep an eye out. If
         // it turns out that this becomes a problem we need to consider other
@@ -138,8 +134,12 @@ class SecurityAdvisoryBackend {
             'Failed to update `latestAdvisory` field for packages affected by'
             ' `${advisory.name}`. Too many (>50) affected packages.');
 
+        // If necessary this can be optimized by deleting up to 500 at once.
+        // At this point we don't expect many deletes so we keep it simple.
+        // await _db.commit(deletes: [key]);
         tx.queueMutations(deletes: [key]);
       } else {
+        final packages = await _lookupAffectedPackages(advisory, tx);
         packages.forEach((pkg) => pkg.latestAdvisory = syncTime);
         tx.queueMutations(inserts: packages, deletes: [key]);
       }
