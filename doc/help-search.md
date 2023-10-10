@@ -24,7 +24,7 @@
 
   - `sdk:<sdk>`: Searches for packages that support the given SDK. `sdk` can be either `flutter` or `dart`
 
-  - `runtime:web`: Searches for packages that support the web runtime. The value can also be `native-jit` and `native-aot`.
+  - `runtime:<runtime>`: Searches for packages that support the given runtime. `runtime` can be one of `web`, `native-jit` and `native-aot`.
 
 ## Filters
 
