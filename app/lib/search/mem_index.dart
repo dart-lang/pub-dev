@@ -183,7 +183,7 @@ class InMemoryPackageIndex {
     if (textResults != null && textResults.topApiPages.isNotEmpty) {
       packageHits = packageHits.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
-            // TODO: extract title for the page
+            // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
             ?.map((MapEntry<String, double> e) =>
                 ApiPageRef(path: _apiDocPath(e.key)))
             .toList();
