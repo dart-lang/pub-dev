@@ -397,7 +397,7 @@
 
 .dark-theme .hljs .hljs-deletion,
 .dark-theme .hljs .hljs-addition {
-  /* TODO: Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
+  /* TODO(https://github.com/dart-lang/pub-dev/issues/7101): Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
   /*       https://github.com/dart-lang/pub-dev/issues/7101 */
   color: black;
 }
