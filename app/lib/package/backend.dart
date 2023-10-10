@@ -962,8 +962,13 @@ class PackageBackend {
     required String name,
     required AuthenticatedAgent agent,
   }) async {
+    final isGoogleComUser = agent is AuthenticatedUser &&
+        !agent.user.email!.endsWith('@google.com');
+    final isReservedName = matchesReservedPackageName(name);
+    final isExempted = isGoogleComUser && isReservedName;
+
     final conflictingName = await nameTracker.accept(name);
-    if (conflictingName != null) {
+    if (conflictingName != null && !isExempted) {
       final visible = await isPackageVisible(conflictingName);
       if (visible) {
         throw PackageRejectedException.similarToActive(name, conflictingName,
@@ -973,8 +978,6 @@ class PackageBackend {
             name, conflictingName);
       }
     }
-    PackageRejectedException.check(conflictingName == null,
-        'Package name is too similar to another active or moderated package: `$conflictingName`.');
 
     // Apply name verification for new packages.
     final isCurrentlyVisible = await isPackageVisible(name);
@@ -985,11 +988,8 @@ class PackageBackend {
       }
 
       // reserved package names for the Dart team
-      if (matchesReservedPackageName(name)) {
-        if (agent is! AuthenticatedUser ||
-            !agent.user.email!.endsWith('@google.com')) {
-          throw PackageRejectedException.nameReserved(name);
-        }
+      if (isReservedName && !isGoogleComUser) {
+        throw PackageRejectedException.nameReserved(name);
       }
     }
   }
