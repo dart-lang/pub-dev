@@ -26,9 +26,8 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 class IndexUpdater {
   final DatastoreDB _db;
-  final InMemoryPackageIndex _packageIndex;
 
-  IndexUpdater(this._db, this._packageIndex);
+  IndexUpdater(this._db);
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
@@ -37,7 +36,7 @@ class IndexUpdater {
     if (!isReady) {
       _logger.info('Loading minimum package index...');
       final documents = await searchBackend.loadMinimumPackageIndex().toList();
-      _packageIndex.addPackages(documents);
+      updatePackageIndex(InMemoryPackageIndex(documents: documents));
       _logger.info(
           'Minimum package index loaded with ${documents.length} packages.');
     }
@@ -53,7 +52,7 @@ class IndexUpdater {
       final doc = await searchBackend.loadDocument(p.name!);
       documents.add(doc);
     }
-    _packageIndex.addPackages(documents);
+    updatePackageIndex(InMemoryPackageIndex(documents: documents));
   }
 
   /// Returns whether the snapshot was initialized and loaded properly.
@@ -64,7 +63,7 @@ class IndexUpdater {
       if (documents == null) {
         return false;
       }
-      _packageIndex.addPackages(documents);
+      updatePackageIndex(InMemoryPackageIndex(documents: documents));
       // Arbitrary sanity check that the snapshot is not entirely bogus.
       // Index merge will enable search.
       if (documents.length > 10) {

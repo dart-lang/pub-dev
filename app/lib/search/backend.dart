@@ -56,13 +56,13 @@ void registerSearchBackend(SearchBackend backend) =>
 /// The active backend service.
 SearchBackend get searchBackend => ss.lookup(#_searchBackend) as SearchBackend;
 
-/// The in-memory (primary) [InMemoryPackageIndex] registered in the current service scope.
-InMemoryPackageIndex get _inMemoryPackageIndex =>
-    ss.lookup(#_inMemoryPackageIndex) as InMemoryPackageIndex;
+/// Holder instance for the in-memory (primary) [InMemoryPackageIndex] registered in the current service scope.
+PackageIndexHolder get _packageIndexHolder =>
+    ss.lookup(#_packageIndexHolder) as PackageIndexHolder;
 
-/// Register a new [InMemoryPackageIndex] in the current service scope.
-void registerInMemoryPackageIndex(InMemoryPackageIndex index) =>
-    ss.register(#_inMemoryPackageIndex, index);
+/// Register a new [PackageIndexHolder] in the current service scope.
+void registerPackageIndexHolder(PackageIndexHolder indexHolder) =>
+    ss.register(#_packageIndexHolder, indexHolder);
 
 /// The combined or delegated [SearchIndex] registered in the current service scope.
 SearchIndex get searchIndex =>
@@ -524,15 +524,25 @@ class _CombinedSearchIndex implements SearchIndex {
   bool isReady() => indexInfo().isReady;
 
   @override
-  IndexInfo indexInfo() => _inMemoryPackageIndex.indexInfo();
+  IndexInfo indexInfo() => _packageIndexHolder._index.indexInfo();
 
   @override
   PackageSearchResult search(ServiceSearchQuery query) {
     final combiner = SearchResultCombiner(
-      primaryIndex: _inMemoryPackageIndex,
+      primaryIndex: _packageIndexHolder._index,
       dartSdkMemIndex: dartSdkMemIndex,
       flutterSdkMemIndex: flutterSdkMemIndex,
     );
     return combiner.search(query);
   }
+}
+
+/// Holds an immutable [InMemoryPackageIndex] that is the actual active search index.
+class PackageIndexHolder {
+  var _index = InMemoryPackageIndex(documents: const []);
+}
+
+/// Updates the active package index with [newIndex].
+void updatePackageIndex(InMemoryPackageIndex newIndex) {
+  _packageIndexHolder._index = newIndex;
 }
