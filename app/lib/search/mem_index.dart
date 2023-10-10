@@ -178,8 +178,9 @@ class InMemoryPackageIndex {
     if (textResults != null && textResults.topApiPages.isNotEmpty) {
       packageHits = packageHits.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
-            // TODO: extract title for the page
-            ?.map((String page) => ApiPageRef(path: page))
+            // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
+            ?.map((MapEntry<String, double> e) =>
+                ApiPageRef(path: _apiDocPath(e.key)))
             .toList();
         return ps.change(apiPages: apiPages);
       }).toList();
@@ -233,7 +234,7 @@ class InMemoryPackageIndex {
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
       if (words.isEmpty) {
-        return _TextResults(Score.empty(), <String, List<String>>{});
+        return _TextResults(Score.empty(), {});
       }
 
       bool aborted = false;
@@ -281,11 +282,32 @@ class InMemoryPackageIndex {
       }
 
       final apiPackages = <String, double>{};
+      final topApiPages = <String, List<MapEntry<String, double>>>{};
+      const maxApiPageCount = 2;
       for (final entry in symbolPages.getValues().entries) {
         final pkg = _apiDocPkg(entry.key);
         if (!packages.contains(pkg)) continue;
+
+        // skip if the previously found pages are better than the current one
+        final pages = topApiPages.putIfAbsent(pkg, () => []);
+        if (pages.length >= maxApiPageCount && pages.last.value > entry.value) {
+          continue;
+        }
+
+        // update the top api packages score
         apiPackages[pkg] = math.max(entry.value, apiPackages[pkg] ?? 0.0);
+
+        // add the page and re-sort the current results
+        pages.add(entry);
+        if (pages.length > 1) {
+          pages.sort((a, b) => -a.value.compareTo(b.value));
+        }
+        // keep the results limited to the max count
+        if (pages.length > maxApiPageCount) {
+          pages.removeLast();
+        }
       }
+
       final apiPkgScore = Score(apiPackages);
       var score = Score.max([core, apiPkgScore])
           .project(packages)
@@ -294,7 +316,7 @@ class InMemoryPackageIndex {
       // filter results based on exact phrases
       final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
-        final Map<String, double> matched = <String, double>{};
+        final matched = <String, double>{};
         for (String package in score.getKeys()) {
           final doc = _packages[package]!;
           final bool matchedAllPhrases = phrases.every((phrase) =>
@@ -306,18 +328,6 @@ class InMemoryPackageIndex {
           }
         }
         score = Score(matched);
-      }
-
-      final apiDocKeys = symbolPages.getKeys().toList()
-        ..sort((a, b) => -symbolPages[a].compareTo(symbolPages[b]));
-      final topApiPages = <String, List<String>>{};
-      for (String key in apiDocKeys) {
-        final pkg = _apiDocPkg(key);
-        final pages = topApiPages.putIfAbsent(pkg, () => []);
-        if (pages.length < 3) {
-          final page = _apiDocPath(key);
-          pages.add(page);
-        }
       }
 
       return _TextResults(score, topApiPages);
@@ -379,7 +389,7 @@ class InMemoryPackageIndex {
 
 class _TextResults {
   final Score pkgScore;
-  final Map<String, List<String>> topApiPages;
+  final Map<String, List<MapEntry<String, double>>> topApiPages;
 
   _TextResults(this.pkgScore, this.topApiPages);
 }
