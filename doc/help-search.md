@@ -20,7 +20,7 @@
   - `topic:topic-name`: Searches for packages that have specified the
     `topic-name` [topic](/topics).
 
-  - `publisher:publisher-name.com`: Searches for packages published by  `publisher-name.com`
+  - `publisher:<publisher-name.com>`: Searches for packages published by  `publisher-name.com`
 
   - `sdk:<sdk>`: Searches for packages that support the given SDK. `sdk` can be either `flutter` or `dart`
 
