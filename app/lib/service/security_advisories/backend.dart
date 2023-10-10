@@ -15,7 +15,6 @@ import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import '../../package/models.dart' show Package;
-import '../../shared/exceptions.dart';
 
 final _logger = Logger('security_advisories.backend');
 
@@ -97,10 +96,14 @@ class SecurityAdvisoryBackend {
         ..syncTime = syncTime;
 
       final packages = await _lookupAffectedPackages(newAdvisory, tx);
-      if (packages.length > 20) {
+      if (packages.length > 50) {
+        // This is very unlikly to happen, since a security advisory typically
+        // affects one or a few packages. We log this to keep an eye out. If
+        // it turns out that this becomes a problem we need to consider other
+        // solutions with eventual consistency.
         _logger.shout(
             'Failed to update `latestAdvisory` field for packages affected by'
-            ' `${newAdvisory.name}`. Too many (>20) affected packages.');
+            ' `${newAdvisory.name}`. Too many (>50) affected packages.');
         tx.queueMutations(
           // This is an upsert
           inserts: [newAdvisory],
@@ -126,10 +129,14 @@ class SecurityAdvisoryBackend {
       // await _db.commit(deletes: [key]);
 
       final packages = await _lookupAffectedPackages(advisory, tx);
-      if (packages.length > 20) {
+      if (packages.length > 50) {
+        // This is very unlikly to happen, since a security advisory typically
+        // affects one or a few packages. We log this to keep an eye out. If
+        // it turns out that this becomes a problem we need to consider other
+        // solutions with eventual consistency.
         _logger.shout(
             'Failed to update `latestAdvisory` field for packages affected by'
-            ' `${advisory.name}`. Too many (>20) affected packages.');
+            ' `${advisory.name}`. Too many (>50) affected packages.');
 
         tx.queueMutations(deletes: [key]);
       } else {
