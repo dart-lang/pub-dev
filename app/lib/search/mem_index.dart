@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../shared/utils.dart' show boundedList;
+import 'models.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 import 'token_index.dart';
@@ -23,7 +24,6 @@ class InMemoryPackageIndex {
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
-  final _likeTracker = _LikeTracker();
   late final List<PackageHit> _createdOrderedHits;
   late final List<PackageHit> _updatedOrderedHits;
 
@@ -35,7 +35,10 @@ class InMemoryPackageIndex {
     for (final doc in documents) {
       _addPackage(doc);
     }
-    _likeTracker._updateScores();
+    // update like scores only if they were not set (should happen only in local tests)
+    if (_packages.values.any((e) => e.likeScore == null)) {
+      _packages.values.updateLikeScores();
+    }
     _lastUpdated = clock.now().toUtc();
     _createdOrderedHits =
         _rankWithComparator(_packages.keys.toSet(), _compareCreated);
@@ -63,8 +66,6 @@ class InMemoryPackageIndex {
         _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
       }
     }
-
-    _likeTracker.trackLikeCount(doc.package, doc.likeCount);
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
@@ -219,7 +220,7 @@ class InMemoryPackageIndex {
     final values = Map<String, double>.fromEntries(packages.map((package) {
       final doc = _packages[package]!;
       final downloadScore = doc.popularityScore ?? 0.0;
-      final likeScore = doc.likeScore ?? _likeTracker.getLikeScore(doc.package);
+      final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
       final points = doc.grantedPoints / math.max(1, doc.maxPoints);
       final overall = popularity * 0.5 + points * 0.5;
@@ -461,45 +462,6 @@ class _PkgNameData {
   final Set<String> trigrams;
 
   _PkgNameData(this.collapsed, this.trigrams);
-}
-
-class _LikeScore {
-  final String package;
-  int likeCount = 0;
-  double score = 0.0;
-
-  _LikeScore(this.package);
-}
-
-class _LikeTracker {
-  final _values = <String, _LikeScore>{};
-
-  double getLikeScore(String package) {
-    return _values[package]?.score ?? 0.0;
-  }
-
-  void trackLikeCount(String package, int likeCount) {
-    final v = _values.putIfAbsent(package, () => _LikeScore(package));
-    if (v.likeCount != likeCount) {
-      v.likeCount = likeCount;
-    }
-  }
-
-  /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
-  /// 1.0 (most likes).
-  void _updateScores() {
-    final sw = Stopwatch()..start();
-    final entries = _values.values.toList();
-    entries.sort((a, b) => a.likeCount.compareTo(b.likeCount));
-    for (int i = 0; i < entries.length; i++) {
-      if (i > 0 && entries[i].likeCount == entries[i - 1].likeCount) {
-        entries[i].score = entries[i - 1].score;
-      } else {
-        entries[i].score = (i + 1) / entries.length;
-      }
-    }
-    _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
-  }
 }
 
 extension on List<PackageHit> {
