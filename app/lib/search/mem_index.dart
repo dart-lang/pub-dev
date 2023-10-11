@@ -26,6 +26,9 @@ class InMemoryPackageIndex {
   final TokenIndex _apiSymbolIndex = TokenIndex();
   late final List<PackageHit> _createdOrderedHits;
   late final List<PackageHit> _updatedOrderedHits;
+  late final List<PackageHit> _popularityOrderedHits;
+  late final List<PackageHit> _likesOrderedHits;
+  late final List<PackageHit> _pointsOrderedHits;
 
   late final DateTime _lastUpdated;
 
@@ -40,10 +43,11 @@ class InMemoryPackageIndex {
       _packages.values.updateLikeScores();
     }
     _lastUpdated = clock.now().toUtc();
-    _createdOrderedHits =
-        _rankWithComparator(_packages.keys.toSet(), _compareCreated);
-    _updatedOrderedHits =
-        _rankWithComparator(_packages.keys.toSet(), _compareUpdated);
+    _createdOrderedHits = _rankWithComparator(_compareCreated);
+    _updatedOrderedHits = _rankWithComparator(_compareUpdated);
+    _popularityOrderedHits = _rankWithComparator(_comparePopularity);
+    _likesOrderedHits = _rankWithComparator(_compareLikes);
+    _pointsOrderedHits = _rankWithComparator(_comparePoints);
   }
 
   IndexInfo indexInfo() {
@@ -136,7 +140,7 @@ class InMemoryPackageIndex {
     late List<PackageHit> packageHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
-        final List<Score> scores = [
+        final scores = <Score>[
           _getOverallScore(packages),
           if (textResults != null) textResults.pkgScore,
         ];
@@ -161,13 +165,13 @@ class InMemoryPackageIndex {
         packageHits = _updatedOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.popularity:
-        packageHits = _rankWithValues(getPopularityScore(packages));
+        packageHits = _popularityOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.like:
-        packageHits = _rankWithValues(getLikeScore(packages));
+        packageHits = _likesOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.points:
-        packageHits = _rankWithValues(getPubPoints(packages));
+        packageHits = _pointsOrderedHits.whereInSet(packages);
         break;
     }
 
@@ -191,28 +195,6 @@ class InMemoryPackageIndex {
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
       packageHits: packageHits,
-    );
-  }
-
-  @visibleForTesting
-  Map<String, double> getPopularityScore(Iterable<String> packages) {
-    return Map.fromEntries(packages.map((p) =>
-        MapEntry<String, double>(p, _packages[p]!.popularityScore ?? 0.0)));
-  }
-
-  @visibleForTesting
-  Map<String, double> getLikeScore(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) => (_packages[package]?.likeCount.toDouble() ?? 0.0),
-    );
-  }
-
-  @visibleForTesting
-  Map<String, double> getPubPoints(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) => (_packages[package]?.grantedPoints.toDouble() ?? 0.0),
     );
   }
 
@@ -354,9 +336,9 @@ class InMemoryPackageIndex {
     return list;
   }
 
-  List<PackageHit> _rankWithComparator(Set<String> packages,
+  List<PackageHit> _rankWithComparator(
       int Function(PackageDocument a, PackageDocument b) compare) {
-    final list = packages
+    final list = _packages.keys
         .map((package) => PackageHit(package: _packages[package]!.package))
         .toList();
     list.sort((a, b) => compare(_packages[a.package]!, _packages[b.package]!));
@@ -364,15 +346,33 @@ class InMemoryPackageIndex {
   }
 
   int _compareCreated(PackageDocument a, PackageDocument b) {
-    if (a.created == null) return -1;
-    if (b.created == null) return 1;
+    if (a.created == null) return 1;
+    if (b.created == null) return -1;
     return -a.created!.compareTo(b.created!);
   }
 
   int _compareUpdated(PackageDocument a, PackageDocument b) {
-    if (a.updated == null) return -1;
-    if (b.updated == null) return 1;
+    if (a.updated == null) return 1;
+    if (b.updated == null) return -1;
     return -a.updated!.compareTo(b.updated!);
+  }
+
+  int _comparePopularity(PackageDocument a, PackageDocument b) {
+    final x = -(a.popularityScore ?? 0.0).compareTo(b.popularityScore ?? 0.0);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _compareLikes(PackageDocument a, PackageDocument b) {
+    final x = -a.likeCount.compareTo(b.likeCount);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _comparePoints(PackageDocument a, PackageDocument b) {
+    final x = -a.grantedPoints.compareTo(b.grantedPoints);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
   }
 
   String _apiDocPageId(String package, ApiDocPage page) {

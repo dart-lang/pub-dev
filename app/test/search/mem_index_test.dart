@@ -85,30 +85,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       index = InMemoryPackageIndex(documents: docs);
     });
 
-    test('popularity scores', () {
-      expect(index.getPopularityScore(['http', 'async', 'chrome_net']), {
-        'http': 0.7,
-        'async': 0.8,
-        'chrome_net': 0.0,
-      });
-    });
-
-    test('pub points scores', () {
-      expect(index.getPubPoints(['http', 'async', 'chrome_net']), {
-        'http': 110.0,
-        'async': 10.0,
-        'chrome_net': 0.0,
-      });
-    });
-
-    test('like scores', () {
-      expect(index.getLikeScore(['http', 'async', 'chrome_net']), {
-        'http': 10.0,
-        'async': 1.0,
-        'chrome_net': 0.0,
-      });
-    });
-
     test('package name match: async', () async {
       final PackageSearchResult result =
           index.search(ServiceSearchQuery.parse(query: 'async'));
