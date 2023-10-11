@@ -8,17 +8,23 @@
     packages with similar phrases. When a phrase is inside quotes, you'll see
     only those packages that contain exactly the specified phrase.
 
-  - `package:prefix`: Searches for packages that begin with `prefix`. Use this
+  - `package:<prefix>`: Searches for packages that begin with `prefix`. Use this
     feature to find packages in the same framework.
 
-  - `dependency:package_name`: Searches for packages that reference
+  - `dependency:<package_name>`: Searches for packages that reference
     `package_name` in their `pubspec.yaml`.
 
-  - `dependency*:package_name`: Searches for packages that depend on
+  - `dependency*:<package_name>`: Searches for packages that depend on
     `package_name` (as direct, dev, or transitive dependencies).
 
-  - `topic:topic-name`: Searches for packages that have specified the
+  - `topic:<topic-name>`: Searches for packages that have specified the
     `topic-name` [topic](/topics).
+
+  - `publisher:<publisher-name.com>`: Searches for packages published by  `publisher-name.com`
+
+  - `sdk:<sdk>`: Searches for packages that support the given SDK. `sdk` can be either `flutter` or `dart`
+
+  - `runtime:<runtime>`: Searches for packages that support the given runtime. `runtime` can be one of `web`, `native-jit` and `native-aot`.
 
 ## Filters
 
