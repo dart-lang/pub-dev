@@ -45,9 +45,12 @@ class InMemoryPackageIndex {
     _lastUpdated = clock.now().toUtc();
     _createdOrderedHits = _rankWithComparator(_compareCreated);
     _updatedOrderedHits = _rankWithComparator(_compareUpdated);
-    _popularityOrderedHits = _rankWithComparator(_comparePopularity);
-    _likesOrderedHits = _rankWithComparator(_compareLikes);
-    _pointsOrderedHits = _rankWithComparator(_comparePoints);
+    _popularityOrderedHits = _rankWithComparator(_comparePopularity,
+        score: (doc) => doc.popularityScore ?? 0);
+    _likesOrderedHits = _rankWithComparator(_compareLikes,
+        score: (doc) => doc.likeCount.toDouble());
+    _pointsOrderedHits = _rankWithComparator(_comparePoints,
+        score: (doc) => doc.grantedPoints.toDouble());
   }
 
   IndexInfo indexInfo() {
@@ -337,9 +340,12 @@ class InMemoryPackageIndex {
   }
 
   List<PackageHit> _rankWithComparator(
-      int Function(PackageDocument a, PackageDocument b) compare) {
-    final list = _packages.keys
-        .map((package) => PackageHit(package: _packages[package]!.package))
+    int Function(PackageDocument a, PackageDocument b) compare, {
+    double Function(PackageDocument doc)? score,
+  }) {
+    final list = _packages.values
+        .map((doc) => PackageHit(
+            package: doc.package, score: score == null ? null : score(doc)))
         .toList();
     list.sort((a, b) => compare(_packages[a.package]!, _packages[b.package]!));
     return list;
