@@ -126,7 +126,7 @@ class InMemoryPackageIndex {
       final now = clock.now();
       packages.removeWhere((package) {
         final doc = _packages[package]!;
-        final diff = now.difference(doc.updated!);
+        final diff = now.difference(doc.updated);
         return diff > threshold;
       });
     }
@@ -352,15 +352,11 @@ class InMemoryPackageIndex {
   }
 
   int _compareCreated(PackageDocument a, PackageDocument b) {
-    if (a.created == null) return -1;
-    if (b.created == null) return 1;
-    return -a.created!.compareTo(b.created!);
+    return -a.created.compareTo(b.created);
   }
 
   int _compareUpdated(PackageDocument a, PackageDocument b) {
-    if (a.updated == null) return -1;
-    if (b.updated == null) return 1;
-    return -a.updated!.compareTo(b.updated!);
+    return -a.updated.compareTo(b.updated);
   }
 
   int _comparePopularity(PackageDocument a, PackageDocument b) {

@@ -11,12 +11,8 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       package: json['package'] as String,
       version: json['version'] as String?,
       description: json['description'] as String?,
-      created: json['created'] == null
-          ? null
-          : DateTime.parse(json['created'] as String),
-      updated: json['updated'] == null
-          ? null
-          : DateTime.parse(json['updated'] as String),
+      created: DateTime.parse(json['created'] as String),
+      updated: DateTime.parse(json['updated'] as String),
       readme: json['readme'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       likeCount: json['likeCount'] as int?,
@@ -45,8 +41,8 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'package': instance.package,
       'version': instance.version,
       'description': instance.description,
-      'created': instance.created?.toIso8601String(),
-      'updated': instance.updated?.toIso8601String(),
+      'created': instance.created.toIso8601String(),
+      'updated': instance.updated.toIso8601String(),
       'readme': instance.readme,
       'tags': instance.tags,
       'likeCount': instance.likeCount,

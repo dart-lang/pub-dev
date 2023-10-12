@@ -81,7 +81,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         ),
       ];
       lastPackageUpdated =
-          docs.map((p) => p.updated).reduce((a, b) => a!.isAfter(b!) ? a : b)!;
+          docs.map((p) => p.updated).reduce((a, b) => a.isAfter(b) ? a : b);
       index = InMemoryPackageIndex(documents: docs);
     });
 
@@ -539,9 +539,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final index = InMemoryPackageIndex(documents: [
         PackageDocument(
           package: 'app',
+          updated: DateTime(2020, 10, 2),
         ),
         PackageDocument(
           package: 'apps',
+          updated: DateTime(2020, 10, 1),
         ),
       ]);
       final match = index.search(
@@ -562,9 +564,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final index = InMemoryPackageIndex(documents: [
         PackageDocument(
           package: 'app',
+          updated: DateTime(2020, 10, 2),
         ),
         PackageDocument(
           package: 'appz',
+          updated: DateTime(2020, 10, 2),
         ),
       ]);
       final match = index.search(
