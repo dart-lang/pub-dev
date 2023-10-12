@@ -9,10 +9,10 @@ set -e
 message() {
   echo "$1"
   if [ "$PROJECT_ID" = 'dartlang-pub' ]; then
-    CHAT_KEY=`gcloud --project=dartlang-pub secrets versions access latest --secret=google-chat-pub-dev-hackers-key`
-    CHAT_TOKEN=`gcloud --project=dartlang-pub secrets versions access latest --secret=google-chat-pub-dev-hackers-token`
+    CHAT_KEY=$(gcloud --project=dartlang-pub secrets versions access latest --secret=google-chat-pub-dev-hackers-key)
+    CHAT_TOKEN=$(gcloud --project=dartlang-pub secrets versions access latest --secret=google-chat-pub-dev-hackers-token)
     CHAT_ID="AAAAkQUOtE8"
-    THREAD_KEY="$TAG_NAME"
+    THREAD_KEY="${TAG_NAME%-all}"
     curl -H 'Content-Type: application/json' -X POST "https://chat.googleapis.com/v1/spaces/$CHAT_ID/messages?key=$CHAT_KEY&token=$CHAT_TOKEN&threadKey=$THREAD_KEY" --data "{\"text\": \"$1\"}"
   fi
 }
