@@ -962,8 +962,8 @@ class PackageBackend {
     required String name,
     required AuthenticatedAgent agent,
   }) async {
-    final isGoogleComUser = agent is AuthenticatedUser &&
-        !agent.user.email!.endsWith('@google.com');
+    final isGoogleComUser =
+        agent is AuthenticatedUser && agent.user.email!.endsWith('@google.com');
     final isReservedName = matchesReservedPackageName(name);
     final isExempted = isGoogleComUser && isReservedName;
 
