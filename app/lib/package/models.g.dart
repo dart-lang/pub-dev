@@ -117,6 +117,7 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
           .toList(),
       topics:
           (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      popularity: json['popularity'] as int,
     );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
@@ -144,5 +145,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('apiPages', instance.apiPages);
   writeNotNull('screenshots', instance.screenshots);
   writeNotNull('topics', instance.topics);
+  val['popularity'] = instance.popularity;
   return val;
 }

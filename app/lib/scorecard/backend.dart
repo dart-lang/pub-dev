@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/task/backend.dart';
 
 import '../package/backend.dart';
@@ -95,6 +96,7 @@ class ScoreCardBackend {
         releases: releases,
         version: pv,
         scoreCard: card,
+        popularity: popularityStorage.lookupAsScore(package),
       );
     });
   }
