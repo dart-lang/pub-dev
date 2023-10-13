@@ -928,6 +928,7 @@ class PackageView {
   final List<ProcessedScreenshot>? screenshots;
 
   final List<String>? topics;
+  final int popularity;
 
   PackageView({
     this.screenshots,
@@ -945,6 +946,7 @@ class PackageView {
     this.spdxIdentifiers,
     this.apiPages,
     this.topics,
+    required this.popularity,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
 
@@ -957,6 +959,7 @@ class PackageView {
     PackageVersion? version,
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
+    required int popularity,
   }) {
     final tags = <String>{
       ...package.getTags(),
@@ -980,6 +983,7 @@ class PackageView {
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.topics,
+      popularity: popularity,
     );
   }
 
@@ -1000,6 +1004,7 @@ class PackageView {
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,
       topics: topics,
+      popularity: popularity,
     );
   }
 
@@ -1008,9 +1013,6 @@ class PackageView {
   bool get isDiscontinued => tags.contains(PackageTags.isDiscontinued);
   bool get isLegacy => tags.contains(PackageVersionTags.isLegacy);
   bool get isObsolete => tags.contains(PackageVersionTags.isObsolete);
-
-  // TODO: refactor code to use popularityStorage directly.
-  int get popularity => popularityStorage.lookupAsScore(name);
 }
 
 /// Sorts [versions] according to the semantic versioning specification.
@@ -1111,7 +1113,6 @@ class PackagePageData {
   bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
 
   bool get isLatestStable => version.version == package.latestVersion;
-  int get popularity => popularityStorage.lookupAsScore(package.name!);
 
   late final packageLinks = () {
     // Trying to use verfied URLs
@@ -1151,6 +1152,7 @@ class PackagePageData {
       releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
+      popularity: popularityStorage.lookupAsScore(package.name!),
     );
   }
 }
