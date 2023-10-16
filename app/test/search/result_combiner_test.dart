@@ -5,10 +5,10 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:pub_dartdoc_data/dartdoc_index.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
-import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:test/test.dart';

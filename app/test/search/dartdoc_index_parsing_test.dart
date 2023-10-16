@@ -9,27 +9,11 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/search/models.dart';
+import 'package:pub_dartdoc_data/dartdoc_index.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-
-final _indexedKinds = <int>{
-  3, // class
-  1, // constant,
-  2, // constructor
-  5, // enum
-  6, // extension
-  7, // function
-  8, // library
-  9, // method
-  10, // mixin
-  15, // property
-  18, // top-level constant
-  19, // top-level property
-  20, // typedef
-};
 
 void main() {
   group('dartdoc index.json parsing', () {
@@ -76,7 +60,7 @@ void main() {
 
       final kinds = index.entries.map((e) => e.kind).whereNotNull().toSet();
       for (final kind in kinds) {
-        expect(_indexedKinds.contains(kind), isTrue,
+        expect(kindNames.containsKey(kind), isTrue,
             reason: 'unknown kind: $kind');
       }
 
@@ -109,7 +93,7 @@ void main() {
 
       final kinds = index.entries.map((e) => e.kind).whereNotNull().toSet();
       for (final kind in kinds) {
-        expect(_indexedKinds.contains(kind), isTrue,
+        expect(kindNames.containsKey(kind), isTrue,
             reason: 'unknown kind: $kind');
       }
 
