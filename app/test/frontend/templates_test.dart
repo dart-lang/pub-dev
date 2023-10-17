@@ -26,6 +26,7 @@ import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -50,6 +51,11 @@ final _regenerateGoldens = false;
 
 void main() {
   group('templates', () {
+    Future<PackagePageData> loadPackagePageDataByName(
+            String name, String versionName, String? assetKind) async =>
+        loadPackagePageData((await packageBackend.lookupPackage(name))!,
+            versionName, assetKind);
+
     void expectGoldenFile(
       String content,
       String fileName, {
@@ -144,7 +150,7 @@ void main() {
       fn: () async {
         final data = await withFakeAuthRequestContext(
           adminAtPubDevEmail,
-          () => loadPackagePageData('oxygen', '1.2.0', AssetKind.readme),
+          () => loadPackagePageDataByName('oxygen', '1.2.0', AssetKind.readme),
         );
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_page.html', timestamps: {
@@ -158,8 +164,8 @@ void main() {
       'package changelog page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data =
-            await loadPackagePageData('oxygen', '1.2.0', AssetKind.changelog);
+        final data = await loadPackagePageDataByName(
+            'oxygen', '1.2.0', AssetKind.changelog);
         final html = renderPkgChangelogPage(data);
         expectGoldenFile(html, 'pkg_changelog_page.html', timestamps: {
           'published': data.package.created,
@@ -172,8 +178,8 @@ void main() {
       'package example page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data =
-            await loadPackagePageData('oxygen', '1.2.0', AssetKind.example);
+        final data = await loadPackagePageDataByName(
+            'oxygen', '1.2.0', AssetKind.example);
         final html = renderPkgExamplePage(data);
         expectGoldenFile(html, 'pkg_example_page.html', timestamps: {
           'published': data.package.created,
@@ -186,7 +192,7 @@ void main() {
       'package install page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data = await loadPackagePageData('oxygen', '1.2.0', null);
+        final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
         final html = renderPkgInstallPage(data);
         expectGoldenFile(html, 'pkg_install_page.html', timestamps: {
           'published': data.package.created,
@@ -197,7 +203,7 @@ void main() {
 
     testWithProfile('package score page', processJobsWithFakeRunners: true,
         fn: () async {
-      final data = await loadPackagePageData('oxygen', '1.2.0', null);
+      final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
       final html = renderPkgScorePage(data);
       expectGoldenFile(html, 'pkg_score_page.html', timestamps: {
         'published': data.package.created,
@@ -209,8 +215,8 @@ void main() {
       'package show page - with version',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data =
-            await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
+        final data = await loadPackagePageDataByName(
+            'oxygen', '1.2.0', AssetKind.readme);
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_version_page.html', timestamps: {
           'published': data.package.created,
@@ -225,7 +231,7 @@ void main() {
       fn: () async {
         final data = await withFakeAuthRequestContext(
           adminAtPubDevEmail,
-          () => loadPackagePageData(
+          () => loadPackagePageDataByName(
               'flutter_titanium', '1.10.0', AssetKind.readme),
         );
         final html = renderPkgShowPage(data);
@@ -251,7 +257,8 @@ void main() {
           defaultUser: 'admin@pub.dev',
         ),
         processJobsWithFakeRunners: true, fn: () async {
-      final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
+      final data =
+          await loadPackagePageDataByName('pkg', '1.0.0', AssetKind.readme);
       final html = renderPkgShowPage(data);
       expectGoldenFile(html, 'pkg_show_page_discontinued.html', timestamps: {
         'published': data.package.created,
@@ -274,14 +281,16 @@ void main() {
           defaultUser: 'admin@pub.dev',
         ),
         processJobsWithFakeRunners: true, fn: () async {
-      final data = await loadPackagePageData('pkg', '1.0.0', AssetKind.readme);
+      final data =
+          await loadPackagePageDataByName('pkg', '1.0.0', AssetKind.readme);
       final html = renderPkgShowPage(data);
       expectGoldenFile(html, 'pkg_show_page_retracted.html', timestamps: {
         'published': data.package.created,
         'updated': data.version.created,
       });
 
-      final data2 = await loadPackagePageData('pkg', '2.0.0', AssetKind.readme);
+      final data2 =
+          await loadPackagePageDataByName('pkg', '2.0.0', AssetKind.readme);
       final html2 = renderPkgShowPage(data2);
       expectGoldenFile(
           html2, 'pkg_show_page_retracted_non_retracted_version.html',
@@ -306,7 +315,8 @@ void main() {
           defaultUser: 'admin@pub.dev',
         ),
         processJobsWithFakeRunners: true, fn: () async {
-      final data2 = await loadPackagePageData('pkg', '2.0.0', AssetKind.readme);
+      final data2 =
+          await loadPackagePageDataByName('pkg', '2.0.0', AssetKind.readme);
       final html2 = renderPkgShowPage(data2);
       expectGoldenFile(
           html2, 'pkg_show_page_retracted_non_retracted_version.html',
@@ -321,7 +331,7 @@ void main() {
       'package show page with publisher',
       fn: () async {
         final data =
-            await loadPackagePageData('neon', '1.0.0', AssetKind.readme);
+            await loadPackagePageDataByName('neon', '1.0.0', AssetKind.readme);
         final html = renderPkgShowPage(data);
         expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
           'published': data.package.created,
@@ -345,8 +355,8 @@ void main() {
         await withFakeAuthRequestContext(
           adminAtPubDevEmail,
           () async {
-            final data =
-                await loadPackagePageData('oxygen', '1.2.0', AssetKind.readme);
+            final data = await loadPackagePageDataByName(
+                'oxygen', '1.2.0', AssetKind.readme);
             final html = renderPkgAdminPage(
               data,
               ['example.com'],
@@ -368,7 +378,7 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
-          final data = await loadPackagePageData('oxygen', '1.2.0', null);
+          final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
           final activities = await auditBackend.listRecordsForPackage('oxygen');
           expect(activities.records, isNotEmpty);
 
@@ -468,7 +478,7 @@ void main() {
       'package versions page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final data = await loadPackagePageData('oxygen', '1.2.0', null);
+        final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
         final rs = await issueGet('/packages/oxygen/versions');
         final html = await rs.readAsString();
         expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {
