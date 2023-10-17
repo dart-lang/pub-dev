@@ -5,10 +5,10 @@
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dartdoc_data/dartdoc_index.dart';
 
 import '../shared/cached_value.dart';
 import 'backend.dart';
-import 'models.dart';
 import 'sdk_mem_index.dart';
 import 'search_service.dart';
 

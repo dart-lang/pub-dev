@@ -6,6 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc/src/index_to_pubdata.dart';
+import 'package:pub_dartdoc_data/dartdoc_index.dart';
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:test/test.dart';
 
 final _regenerateGoldens = false;
@@ -101,8 +104,8 @@ void main() {
     test(
       'document pub_dartdoc project',
       () async {
-        final goldenFile = File('test/self-pub-data.json');
-        final dataFile = File('${tempDir!.path}/pub-data.json');
+        final goldenFile = File(p.join('test', 'self-pub-data.json'));
+        final dataFile = File(p.join(tempDir!.path, 'pub-data.json'));
         final fileContent = await dataFile.readAsString();
         final actualMap = json.decode(fileContent);
 
@@ -116,9 +119,43 @@ void main() {
         }
 
         final expectedMap = json.decode(await goldenFile.readAsString());
-        expect(expectedMap, actualMap);
+        expect(actualMap, expectedMap);
       },
-      timeout: Timeout(const Duration(minutes: 5)),
     );
+
+    test('processing index.json', () async {
+      final tempFile = File(p.join('test', 'temp.index.json'));
+      final indexJsonContent = tempFile.existsSync()
+          ? await tempFile.readAsString()
+          : await File(p.join(tempDir!.path, 'index.json')).readAsString();
+      await tempFile.writeAsString(
+          JsonEncoder.withIndent('  ').convert(json.decode(indexJsonContent)));
+      final index = DartdocIndex.parseJsonText(indexJsonContent);
+      final data = dataFromDartdocIndex(index);
+
+      final goldenFile = File(p.join('test', 'self-pub-data.json'));
+      final expectedMap = json.decode((await goldenFile.readAsString())
+          .replaceAll('[PubDartdocData]', 'PubDartdocData')
+          .replaceAll('`pub-data.json`', 'pub-data.json'));
+      final expectedData =
+          PubDartdocData.fromJson(expectedMap as Map<String, dynamic>);
+
+      data.apiElements!.sort((a, b) {
+        if (a.kind == 'library') return -1;
+        if (b.kind == 'library') return 1;
+        if (a.kind == 'function') return -1;
+        if (b.kind == 'function') return 1;
+        if (a.kind == 'class') return -1;
+        if (b.kind == 'class') return 1;
+        if (a.kind == 'top-level constant') return -1;
+        if (b.kind == 'top-level constant') return 1;
+        final ia = expectedData.apiElements!
+            .indexWhere((e) => e.name == a.name && e.parent == a.parent);
+        final ib = expectedData.apiElements!
+            .indexWhere((e) => e.name == b.name && e.parent == b.parent);
+        return ia.compareTo(ib);
+      });
+      expect(json.decode(json.encode(data.toJson())), expectedMap);
+    });
   }, timeout: Timeout(const Duration(minutes: 5)));
 }

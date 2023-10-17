@@ -4,8 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:pub_dartdoc_data/dartdoc_index.dart';
 import 'package:pub_dev/search/dart_sdk_mem_index.dart';
-import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:test/test.dart';
 

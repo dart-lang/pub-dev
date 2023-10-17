@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:path/path.dart' as p;
+import 'package:pub_dartdoc_data/dartdoc_index.dart';
 
 import '../shared/versions.dart' show toolStableDartSdkVersion;
-import 'models.dart';
 import 'search_service.dart';
 import 'token_index.dart';
 
