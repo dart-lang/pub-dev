@@ -334,28 +334,36 @@ Future<PackagePageData> loadPackagePageData(
 
   final latestReleasesFuture = packageBackend.latestReleases(package);
 
-  final isLikedFuture = Future(
-    () async => requestContext.isNotAuthenticated
-        ? false
-        : await likeBackend.getPackageLikeStatus(
-                requestContext.authenticatedUserId!, package.name!) !=
-            null,
-  );
+  final isLikedFuture = Future(() async {
+    if (requestContext.isNotAuthenticated) {
+      return false;
+    }
+    final likeStatus = await likeBackend.getPackageLikeStatus(
+      requestContext.authenticatedUserId!,
+      package.name!,
+    );
+    return likeStatus != null;
+  });
 
   final selectedVersionFuture =
       packageBackend.lookupPackageVersion(packageName, versionName!);
   final versionInfoFuture =
       packageBackend.lookupPackageVersionInfo(packageName, versionName);
 
-  final assetFuture = Future(() async => assetKind == null
-      ? null
+  final assetFuture = assetKind == null
+      ? Future.value(null)
       : packageBackend.lookupPackageVersionAsset(
-          packageName, versionName!, assetKind));
+          packageName,
+          versionName,
+          assetKind,
+        );
 
-  final isAdminFuture = Future(() async => requestContext.isNotAuthenticated
-      ? false
-      : await packageBackend.isPackageAdmin(
-          package, requestContext.authenticatedUserId!));
+  final isAdminFuture = requestContext.isNotAuthenticated
+      ? Future.value(false)
+      : packageBackend.isPackageAdmin(
+          package,
+          requestContext.authenticatedUserId!,
+        );
 
   final scoreCardFuture = scoreCardBackend
       .getScoreCardData(packageName, versionName, package: package);
