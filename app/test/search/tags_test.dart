@@ -85,8 +85,16 @@ void main() {
 
     test('More tags in documents: multiple results', () async {
       final index = InMemoryPackageIndex(documents: [
-        PackageDocument(package: 'pkg1', tags: ['is:a', 'is:dart1']),
-        PackageDocument(package: 'pkg2', tags: ['is:b', 'is:dart1']),
+        PackageDocument(
+          package: 'pkg1',
+          tags: ['is:a', 'is:dart1'],
+          updated: DateTime(2020, 10, 2),
+        ),
+        PackageDocument(
+          package: 'pkg2',
+          tags: ['is:b', 'is:dart1'],
+          updated: DateTime(2020, 10, 1),
+        ),
       ]);
 
       final rs = index.search(ServiceSearchQuery.parse(

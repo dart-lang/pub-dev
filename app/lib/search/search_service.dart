@@ -66,8 +66,8 @@ class PackageDocument {
   final String package;
   final String? version;
   final String? description;
-  final DateTime? created;
-  final DateTime? updated;
+  final DateTime created;
+  final DateTime updated;
   final String? readme;
 
   final List<String> tags;
@@ -97,8 +97,8 @@ class PackageDocument {
     required this.package,
     this.version,
     this.description,
-    this.created,
-    this.updated,
+    DateTime? created,
+    DateTime? updated,
     this.readme = '',
     List<String>? tags,
     int? likeCount,
@@ -110,7 +110,9 @@ class PackageDocument {
     this.apiDocPages = const [],
     DateTime? timestamp,
     this.sourceUpdated,
-  })  : likeCount = likeCount ?? 0,
+  })  : created = created ?? clock.now(),
+        updated = updated ?? clock.now(),
+        likeCount = likeCount ?? 0,
         grantedPoints = grantedPoints ?? 0,
         maxPoints = maxPoints ?? 0,
         tags = tags ?? const <String>[],

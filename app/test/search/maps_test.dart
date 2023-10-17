@@ -15,8 +15,8 @@ void main() {
 
     setUpAll(() async {
       index = InMemoryPackageIndex(documents: [
-        PackageDocument(package: 'maps'),
-        PackageDocument(package: 'map'),
+        PackageDocument(package: 'maps', updated: DateTime(2020, 10, 2)),
+        PackageDocument(package: 'map', updated: DateTime(2020, 10, 1)),
       ]);
     });
 
