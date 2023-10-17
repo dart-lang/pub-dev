@@ -95,7 +95,8 @@ class DartdocIndexEntry {
   Map<String, dynamic> toJson() => _$DartdocIndexEntryToJson(this);
 
   /// Wether the entry is a top-level library.
-  bool get isLibrary => kind == 9;
+  bool get isLibrary => href != null && href!.endsWith('-library.html');
+  bool get isClass => href != null && href!.endsWith('-class.html');
 }
 
 @JsonSerializable(includeIfNull: false)
