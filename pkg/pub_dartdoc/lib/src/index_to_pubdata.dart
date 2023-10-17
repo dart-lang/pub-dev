@@ -12,11 +12,6 @@ const _commonApiSymbols = <String>{
   'runtimeType',
 };
 
-final _showHrefsFor = <String>{
-  'library',
-  'class',
-};
-
 PubDartdocData dataFromDartdocIndex(DartdocIndex index) {
   final entries = index.entries
       .where((e) => e.name != null && !_commonApiSymbols.contains(e.name!))
@@ -30,7 +25,7 @@ PubDartdocData dataFromDartdocIndex(DartdocIndex index) {
   final apiElements = <ApiElement>[];
   for (final e in entries) {
     final kind = kindNames[e.kind!]!;
-    final showHref = _showHrefsFor.contains(kind);
+    final showHref = e.isLibrary || e.isClass;
     final parent = hrefToQualifiedNames[e.enclosedBy?.href ?? ''];
     apiElements.add(ApiElement(
       name: e.name!,

@@ -255,6 +255,7 @@ final _goldenReplacements = <Pattern, String>{
   _escapedTimestampPattern: '%%escaped-timestamp%%',
   _timeAgoPattern: '%%time-ago%%',
   _shortDatePattern: '%%short-dateformat%%',
+  '<wbr>': '<wbr/>',
 };
 
 final _timestampPattern =

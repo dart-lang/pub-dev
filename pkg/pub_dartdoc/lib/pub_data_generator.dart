@@ -8,6 +8,10 @@ import 'dart:convert' as convert;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:dartdoc/dartdoc.dart';
+// ignore: implementation_imports
+import 'package:dartdoc/src/model/inheritable.dart';
+// ignore: implementation_imports
+import 'package:dartdoc/src/model/model_element.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
