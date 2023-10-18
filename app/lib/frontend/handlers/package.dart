@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/advisories_api.dart' as advisories_api;
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -190,6 +191,31 @@ Future<shelf.Response> packageScoreHandler(
     assetKind: null,
     renderFn: (data) => renderPkgScorePage(data),
     cacheEntry: cache.uiPackageScore(packageName, versionName),
+  );
+}
+
+/// Handles requests for /packages/<package>/score/log.txt
+/// Handles requests for /packages/<package>/versions/<version>/score/log.txt
+Future<shelf.Response> packageScoreLogTxtHandler(
+  shelf.Request request,
+  String package, {
+  String? version,
+}) async {
+  checkPackageVersionParams(package, version);
+  if (redirectPackageUrls.containsKey(package)) {
+    return redirectResponse(redirectPackageUrls[package]!);
+  }
+  if (!await packageBackend.isPackageVisible(package)) {
+    return shelf.Response.notFound('no such package');
+  }
+  version ??= (await packageBackend.getLatestVersion(package))!;
+  final log = await taskBackend.taskLog(package, version);
+  return shelf.Response(
+    log == null ? 404 : 200,
+    body: log ?? 'no log',
+    headers: {
+      'content-type': 'text/plain;charset=UTF-8',
+    },
   );
 }
 

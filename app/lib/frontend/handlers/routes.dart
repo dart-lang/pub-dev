@@ -117,6 +117,11 @@ class PubSiteService {
           Request request, String package, String version) =>
       packageScoreHandler(request, package, versionName: version);
 
+  @Route.get('/packages/<package>/versions/<version>/score/log.txt')
+  Future<Response> packageVersionScoreLogTxt(
+          Request request, String package, String version) =>
+      packageScoreLogTxtHandler(request, package, version: version);
+
   @Route.get('/packages/<package>/versions/<version>')
   Future<Response> packageVersion(
           Request request, String package, String version) =>
@@ -157,6 +162,10 @@ class PubSiteService {
   @Route.get('/packages/<package>/score')
   Future<Response> packageScore(Request request, String package) =>
       packageScoreHandler(request, package);
+
+  @Route.get('/packages/<package>/score/log.txt')
+  Future<Response> packageScoreLogTxt(Request request, String package) =>
+      packageScoreLogTxtHandler(request, package);
 
   @Route.get('/packages/<package>/versions')
   Future<Response> packageVersions(Request request, String package) =>
@@ -355,26 +364,6 @@ class PubSiteService {
   // ****
   // **** Experimental task end-points
   // ****
-
-  @Route.get('/experimental/task-log/<package>/<version>/')
-  Future<Response> taskLog(
-      Request request, String package, String version) async {
-    checkPackageVersionParams(package, version);
-
-    InvalidInputException.checkPackageName(package);
-    version = InvalidInputException.checkSemanticVersion(version);
-
-    if (!await packageBackend.isPackageVisible(package) ||
-        (await packageBackend.lookupPackageVersion(package, version)) == null) {
-      return Response.notFound('no such package');
-    }
-
-    final log = await taskBackend.taskLog(package, version);
-    return Response.ok(
-      log ?? 'no log',
-      headers: {'content-type': 'plain/text'},
-    );
-  }
 
   @Route.get('/experimental/task-summary/<package>/<version>/')
   Future<Response> taskSummary(
