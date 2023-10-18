@@ -73,9 +73,9 @@ d.Node scoreTabNode({
         d.p(
           classes: ['analysis-info'],
           children: [
-            d.text('You can check the '),
+            d.text('Check the '),
             d.a(href: 'score/log.txt', text: 'analysis log'),
-            d.text(' for more details.'),
+            d.text(' for details.'),
           ],
         ),
       ]),
