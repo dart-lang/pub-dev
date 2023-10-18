@@ -122,6 +122,7 @@ Future<void> _processPayload(Payload payload) async {
         }
         await addFileAsStringGzipped(
             'summary.json', json.encode(summary.toJson()));
+        await addFileAsStringGzipped('log.txt', 'started\nstopped\n');
         final index = await builder.buildIndex(r.blobId);
 
         // Upload blob and index

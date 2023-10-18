@@ -31,7 +31,7 @@ void main() {
     expect(urls, contains('/packages/<package>/versions/<version>'));
     expect(urls, contains('/api/packages/<package>'));
     // this a naive assertion that fails, if new end-points are introduced!
-    expect(urls, hasLength(42), reason: 'check if new end-points was added');
+    expect(urls, hasLength(44), reason: 'check if new end-points was added');
   });
 
   testWithProfile(

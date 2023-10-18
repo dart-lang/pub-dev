@@ -180,6 +180,7 @@ Future<void> _traveseLinksUnderPath({
 
     htmlQueue.addAll(links
         .whereNot((l) => l.endsWith('.tar.gz'))
+        .whereNot((l) => l.endsWith('.txt'))
         .whereNot(visited.contains)
         .whereNot(htmlQueue.contains)
         .whereNot(assetQueue.contains));

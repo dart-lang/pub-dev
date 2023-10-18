@@ -413,6 +413,7 @@ Tab _scoreTab(PackagePageData data) {
       card: data.scoreCard,
       likeCount: data.package.likes,
       usesFlutter: data.version.pubspec!.usesFlutter,
+      isLatestStable: data.isLatestStable,
     ),
   );
 }

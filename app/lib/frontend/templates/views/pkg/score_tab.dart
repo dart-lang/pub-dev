@@ -15,6 +15,7 @@ d.Node scoreTabNode({
   required int? likeCount,
   required ScoreCardData? card,
   required bool usesFlutter,
+  required bool isLatestStable,
 }) {
   if (card == null) {
     return d.i(text: 'Awaiting analysis to complete.');
@@ -22,7 +23,7 @@ d.Node scoreTabNode({
 
   final report = card.report;
   final showReport = report != null;
-  final showPending = report == null && card.isPending;
+  final showPending = report == null && (card.isPending || isLatestStable);
   final showNoReport = !showReport && !showPending;
 
   final toolEnvInfo = showReport
@@ -41,8 +42,8 @@ d.Node scoreTabNode({
       d.p(
         classes: ['analysis-info'],
         text: 'The analysis of the package has not been completed yet.',
-      ),
-    if (showNoReport)
+      )
+    else if (showNoReport)
       d.p(
         classes: ['analysis-info'],
         children: [
@@ -53,21 +54,31 @@ d.Node scoreTabNode({
           ),
           d.text(' for its analysis.'),
         ],
-      ),
-    if (showReport)
-      d.p(
-        classes: ['analysis-info'],
-        children: [
-          d.text('We analyzed this package '),
-          if (card.panaReport?.timestamp != null)
-            d.xAgoTimestamp(card.panaReport!.timestamp!, datePrefix: 'on'),
-          d.text(', '
-              'and awarded it ${report.grantedPoints} '
-              'pub points (of a possible ${report.maxPoints}):'),
-        ],
-      ),
-    if (report != null) _reportNode(report),
-    if (toolEnvInfo != null) toolEnvInfo,
+      )
+    else
+      d.fragment([
+        d.p(
+          classes: ['analysis-info'],
+          children: [
+            d.text('We analyzed this package '),
+            if (card.panaReport?.timestamp != null)
+              d.xAgoTimestamp(card.panaReport!.timestamp!, datePrefix: 'on'),
+            d.text(', '
+                'and awarded it ${report!.grantedPoints} '
+                'pub points (of a possible ${report.maxPoints}):'),
+          ],
+        ),
+        _reportNode(report),
+        if (toolEnvInfo != null) toolEnvInfo,
+        d.p(
+          classes: ['analysis-info'],
+          children: [
+            d.text('You can check the '),
+            d.a(href: 'score/log.txt', text: 'analysis log'),
+            d.text(' for more details.'),
+          ],
+        ),
+      ]),
   ]);
 }
 

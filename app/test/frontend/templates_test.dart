@@ -344,7 +344,12 @@ void main() {
     scopedTest('no content for analysis tab', () async {
       // no content
       expect(
-          scoreTabNode(card: null, likeCount: 4, usesFlutter: false).toString(),
+          scoreTabNode(
+            card: null,
+            likeCount: 4,
+            usesFlutter: false,
+            isLatestStable: false,
+          ).toString(),
           '<i>Awaiting analysis to complete.</i>');
     });
 
