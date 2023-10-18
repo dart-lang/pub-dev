@@ -365,14 +365,6 @@ class PubSiteService {
   // **** Experimental task end-points
   // ****
 
-  @Route.get('/experimental/task-log/<package>/<version>/')
-  Future<Response> taskLog(
-      Request request, String package, String version) async {
-    checkPackageVersionParams(package, version);
-    return redirectResponse(
-        '/packages/$package/versions/$version/score/log.txt');
-  }
-
   @Route.get('/experimental/task-summary/<package>/<version>/')
   Future<Response> taskSummary(
       Request request, String package, String version) async {
