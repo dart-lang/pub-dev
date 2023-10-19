@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Moved search index building and seach GC jobs into `analyzer` instance.
+ * Increased memory on `analyzer` instances to 16G.
 
 ## `20231018t131100-all`
  * Bumped runtimeVersion to `2023.10.18`.

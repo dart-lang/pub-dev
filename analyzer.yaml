@@ -8,7 +8,7 @@ service: analyzer
 
 resources:
   cpu: 2
-  memory_gb: 8
+  memory_gb: 16
   disk_size_gb: 25
 
 #manual_scaling:
