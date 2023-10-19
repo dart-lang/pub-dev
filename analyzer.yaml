@@ -7,7 +7,7 @@ env: flex
 service: analyzer
 
 resources:
-  cpu: 2
+  cpu: 4
   memory_gb: 16
   disk_size_gb: 25
 
