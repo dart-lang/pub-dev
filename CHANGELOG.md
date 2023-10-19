@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20231019t112500-all`
  * Moved search index building and seach GC jobs into `analyzer` instance.
  * Increased memory on `analyzer` instances to 16G, running two of them.
 
