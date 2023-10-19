@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/search/backend.dart';
 
 import '../../analyzer/handlers.dart';
 import '../../service/services.dart';
@@ -34,6 +35,14 @@ class AnalyzerCommand extends Command {
       final worker =
           await startWorkerIsolate(logger: logger, entryPoint: _workerMain);
       registerScopeExitCallback(worker.close);
+
+      final indexBuilder = await startWorkerIsolate(
+        logger: logger,
+        entryPoint: _indexBuilderMain,
+        kind: 'index-builder',
+      );
+      registerScopeExitCallback(indexBuilder.close);
+
       await runHandler(logger, analyzerServiceHandler);
     });
   }
@@ -45,8 +54,15 @@ Future _workerMain(EntryMessage message) async {
   await taskBackend.start();
 
   setupAnalyzerPeriodicTasks();
+  setupSearchPeriodicTasks();
   await popularityStorage.start();
 
   // wait indefinitely
   await Completer().future;
+}
+
+Future _indexBuilderMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+  await popularityStorage.start();
+  await searchBackend.updateSnapshotInForeverLoop();
 }
