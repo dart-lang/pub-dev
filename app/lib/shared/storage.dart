@@ -82,6 +82,16 @@ extension BucketExt on Bucket {
     }
   }
 
+  /// Deletes [name] if it exists, ignores 404 otherwise.
+  Future<void> tryDelete(String name) async {
+    try {
+      return await delete(name);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+  }
+
   Future uploadPublic(String objectName, int length,
       Stream<List<int>> Function() openStream, String contentType) {
     final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
