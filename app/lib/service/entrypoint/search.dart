@@ -15,7 +15,6 @@ import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '_isolate.dart';
 
@@ -32,12 +31,6 @@ class SearchCommand extends Command {
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      final worker = await startWorkerIsolate(
-        logger: _logger,
-        entryPoint: _worker,
-      );
-      registerScopeExitCallback(worker.close);
-
       final index = await startQueryIsolate(
         logger: _logger,
         spawnUri:
@@ -56,11 +49,4 @@ class SearchCommand extends Command {
       await runHandler(_logger, searchServiceHandler);
     });
   }
-}
-
-Future _worker(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-  await popularityStorage.start();
-  setupSearchPeriodicTasks();
-  await searchBackend.updateSnapshotInForeverLoop();
 }

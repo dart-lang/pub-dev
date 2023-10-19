@@ -148,10 +148,11 @@ Future<IsolateRunner> startWorkerIsolate({
   required Logger logger,
   required EntryPointFn entryPoint,
   ServicesWrapperFn? servicesWrapperFn,
+  String? kind,
 }) async {
   final worker = IsolateRunner.fn(
     logger: logger,
-    kind: 'worker',
+    kind: kind ?? 'worker',
     servicesWrapperFn: servicesWrapperFn ?? withServices,
     entryPoint: entryPoint,
   );
