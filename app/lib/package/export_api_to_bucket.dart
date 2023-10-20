@@ -275,12 +275,14 @@ class ApiExporter {
     if (md5Hash.length != info.md5Hash.length) {
       return false;
     }
+    // making sure the timing is fixed
+    var isSame = true;
     for (var i = 0; i < md5Hash.length; i++) {
       if (md5Hash[i] != info.md5Hash[i]) {
-        return false;
+        isSame = false;
       }
     }
-    return true;
+    return isSame;
   }
 }
 
