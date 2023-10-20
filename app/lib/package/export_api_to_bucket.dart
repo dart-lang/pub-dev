@@ -109,16 +109,20 @@ class ApiExporter {
     final pool = Pool(_concurrency);
     final futures = <Future>[];
     await for (final mp in dbService.query<ModeratedPackage>().run()) {
-      final f =
-          pool.withResource(() => _processPkgUpdated(mp.asPkgUpdatedEvent()));
+      final f = pool.withResource(() => _deletePackageFromBucket(mp.name!));
       futures.add(f);
     }
     await Future.wait(futures);
     futures.clear();
 
     await for (final package in dbService.query<Package>().run()) {
-      final f = pool
-          .withResource(() => _processPkgUpdated(package.asPkgUpdatedEvent()));
+      final f = pool.withResource(() async {
+        if (package.isVisible) {
+          await _uploadPackageToBucket(package.name!);
+        } else {
+          await _deletePackageFromBucket(package.name!);
+        }
+      });
       futures.add(f);
     }
     await Future.wait(futures);
@@ -158,7 +162,16 @@ class ApiExporter {
           if (!claim.valid) {
             return;
           }
-          await _processPkgUpdated(event);
+          final last = _pkgLastUpdated[event.package];
+          if (last != null && last.updated.isAtOrAfter(event.updated)) {
+            return;
+          }
+          _pkgLastUpdated[event.package] = event;
+          if (event.isVisible) {
+            await _uploadPackageToBucket(event.package);
+          } else {
+            await _deletePackageFromBucket(event.package);
+          }
         });
         futures.add(f);
       }
@@ -167,19 +180,6 @@ class ApiExporter {
       await Future.delayed(sleepDuration);
     }
     await pool.close();
-  }
-
-  Future<void> _processPkgUpdated(_PkgUpdatedEvent event) async {
-    final last = _pkgLastUpdated[event.package];
-    if (last != null && last.updated.isAtOrAfter(event.updated)) {
-      return;
-    }
-    _pkgLastUpdated[event.package] = event;
-    if (event.isVisible) {
-      await _uploadPackageToBucket(event.package);
-    } else {
-      await _deletePackageFromBucket(event.package);
-    }
   }
 
   /// Uploads the package version API response bytes to the bucket, mirroring
