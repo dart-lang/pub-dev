@@ -25,11 +25,12 @@ void main() {
           bucket: bucket,
           concurrency: 2,
         );
-        await exporter.fullScanAndUpload();
+        await exporter.uploadPkgNameCompletionData();
+        await exporter.fullPkgScanAndUpload();
 
         final claim =
             FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3)));
-        await exporter.incrementalScanAndUpload(
+        await exporter.incrementalPkgScanAndUpload(
           claim,
           sleepDuration: Duration(milliseconds: 300),
         );
@@ -40,6 +41,8 @@ void main() {
             .map((e) => e.name)
             .toList();
         expect(files.toSet(), {
+          '$runtimeVersion/api/package-name-completion-data',
+          'current/api/package-name-completion-data',
           '$runtimeVersion/api/packages/flutter_titanium',
           '$runtimeVersion/api/packages/neon',
           '$runtimeVersion/api/packages/oxygen',

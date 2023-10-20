@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -14,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
+import '../search/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/storage.dart';
 import '../shared/utils.dart';
@@ -28,11 +28,17 @@ final Logger _logger = Logger('export_api_to_bucket');
 const _defaultBucketUpdateConcurrency = 8;
 
 /// The default cache timeout for content.
-const _maxCacheAge = Duration(minutes: 10);
+const _pkgApiMaxCacheAge = Duration(minutes: 10);
+const _pkgNameCompletitionDataMaxAge = Duration(hours: 8);
 
 List<String> _apiPkgObjectNames(String package) => [
       '$runtimeVersion/api/packages/$package',
       'current/api/packages/$package',
+    ];
+
+List<String> _apiPkgNameCompletitionDataNames() => [
+      '$runtimeVersion/api/package-name-completion-data',
+      'current/api/package-name-completion-data',
     ];
 
 class ApiExporter {
@@ -63,7 +69,7 @@ class ApiExporter {
     while (true) {
       try {
         await lock.withClaim((claim) async {
-          await incrementalScanAndUpload(claim);
+          await incrementalPkgScanAndUpload(claim);
         });
       } catch (e, st) {
         _logger.warning('Package API bucket update failed.', e, st);
@@ -73,11 +79,33 @@ class ApiExporter {
     }
   }
 
+  /// Gets and uploads the package name completion data.
+  Future<void> uploadPkgNameCompletionData() async {
+    final bytes = await searchBackend.getPackageNameCompletitionDataJsonGz();
+    for (final objectName in _apiPkgNameCompletitionDataNames()) {
+      if (await _isSameContent(objectName, bytes)) {
+        continue;
+      }
+      await uploadWithRetry(
+        _bucket,
+        objectName,
+        bytes.length,
+        () => Stream.value(bytes),
+        metadata: ObjectMetadata(
+          contentType: 'application/json; charset="utf-8"',
+          contentEncoding: 'gzip',
+          cacheControl:
+              'public, max-age=${_pkgNameCompletitionDataMaxAge.inSeconds}',
+        ),
+      );
+    }
+  }
+
   /// Note: there is no global locking here, the full scan should be called
   /// only once every day, and it may be racing against the incremental
   /// updates.
   @visibleForTesting
-  Future<void> fullScanAndUpload() async {
+  Future<void> fullPkgScanAndUpload() async {
     final pool = Pool(_concurrency);
     final futures = <Future>[];
     await for (final mp in dbService.query<ModeratedPackage>().run()) {
@@ -98,7 +126,7 @@ class ApiExporter {
   }
 
   @visibleForTesting
-  Future<void> incrementalScanAndUpload(
+  Future<void> incrementalPkgScanAndUpload(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
   }) async {
@@ -162,15 +190,8 @@ class ApiExporter {
     final gzippedBytes = gzip.encode(rawBytes);
 
     for (final objectName in _apiPkgObjectNames(package)) {
-      final info = await _bucket.tryInfo(objectName);
-      // Skip upload if the bytes length and md5 hash matches.
-      if (info != null && info.length == gzippedBytes.length) {
-        final md5Hash = md5.convert(gzippedBytes).bytes;
-        if (info.md5Hash.length == md5Hash.length &&
-            info.md5Hash.whereIndexed((i, e) => md5Hash[i] == e).length ==
-                info.md5Hash.length) {
-          continue;
-        }
+      if (await _isSameContent(objectName, gzippedBytes)) {
+        continue;
       }
 
       await uploadWithRetry(
@@ -181,7 +202,7 @@ class ApiExporter {
         metadata: ObjectMetadata(
           contentType: 'application/json; charset="utf-8"',
           contentEncoding: 'gzip',
-          cacheControl: 'public, max-age=${_maxCacheAge.inSeconds}',
+          cacheControl: 'public, max-age=${_pkgApiMaxCacheAge.inSeconds}',
         ),
       );
     }
@@ -240,6 +261,26 @@ class ApiExporter {
     for (final v in versions) {
       await deleteBucketFolderRecursively(_bucket, '$v/', concurrency: 4);
     }
+  }
+
+  Future<bool> _isSameContent(String objectName, List<int> bytes) async {
+    final info = await _bucket.tryInfo(objectName);
+    if (info == null) {
+      return false;
+    }
+    if (info.length != bytes.length) {
+      return false;
+    }
+    final md5Hash = md5.convert(bytes).bytes;
+    if (md5Hash.length != info.md5Hash.length) {
+      return false;
+    }
+    for (var i = 0; i < md5Hash.length; i++) {
+      if (md5Hash[i] != info.md5Hash[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 

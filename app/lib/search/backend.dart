@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -18,7 +19,10 @@ import 'package:meta/meta.dart';
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:pool/pool.dart';
 
+import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:retry/retry.dart';
 
 import '../package/backend.dart';
@@ -473,6 +477,26 @@ class SearchBackend {
         minAgeThreshold: Duration(days: 182));
     _logger.info(
         'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
+  }
+
+  /// Creates the gzipped byte content for the /api/package-name-completion-data endpoint.
+  Future<List<int>> getPackageNameCompletitionDataJsonGz() async {
+    final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
+      final rs = await searchClient.search(
+        ServiceSearchQuery.parse(
+          tagsPredicate: TagsPredicate.regularSearch(),
+          limit: 20000,
+        ),
+        // Do not cache response at the search client level, as we'll be caching
+        // it in a processed form much longer.
+        skipCache: true,
+      );
+
+      return gzip.encode(jsonUtf8Encoder.convert({
+        'packages': rs.packageHits.map((p) => p.package).toList(),
+      }));
+    });
+    return bytes!;
   }
 
   Future<void> close() async {
