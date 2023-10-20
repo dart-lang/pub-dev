@@ -82,8 +82,9 @@ class ApiExporter {
   /// Gets and uploads the package name completion data.
   Future<void> uploadPkgNameCompletionData() async {
     final bytes = await searchBackend.getPackageNameCompletitionDataJsonGz();
+    final bytesAndHash = _BytesAndHash(bytes);
     for (final objectName in _apiPkgNameCompletitionDataNames()) {
-      if (await _isSameContent(objectName, bytes)) {
+      if (await _isSameContent(objectName, bytesAndHash)) {
         continue;
       }
       await uploadWithRetry(
@@ -187,18 +188,19 @@ class ApiExporter {
   Future<void> _uploadPackageToBucket(String package) async {
     final data = await retry(() => packageBackend.listVersions(package));
     final rawBytes = jsonUtf8Encoder.convert(data.toJson());
-    final gzippedBytes = gzip.encode(rawBytes);
+    final bytes = gzip.encode(rawBytes);
+    final bytesAndHash = _BytesAndHash(bytes);
 
     for (final objectName in _apiPkgObjectNames(package)) {
-      if (await _isSameContent(objectName, gzippedBytes)) {
+      if (await _isSameContent(objectName, bytesAndHash)) {
         continue;
       }
 
       await uploadWithRetry(
         _bucket,
         objectName,
-        gzippedBytes.length,
-        () => Stream.value(gzippedBytes),
+        bytes.length,
+        () => Stream.value(bytes),
         metadata: ObjectMetadata(
           contentType: 'application/json; charset="utf-8"',
           contentEncoding: 'gzip',
@@ -263,22 +265,22 @@ class ApiExporter {
     }
   }
 
-  Future<bool> _isSameContent(String objectName, List<int> bytes) async {
+  Future<bool> _isSameContent(
+      String objectName, _BytesAndHash bytesAndHash) async {
     final info = await _bucket.tryInfo(objectName);
     if (info == null) {
       return false;
     }
-    if (info.length != bytes.length) {
+    if (info.length != bytesAndHash.length) {
       return false;
     }
-    final md5Hash = md5.convert(bytes).bytes;
-    if (md5Hash.length != info.md5Hash.length) {
+    if (bytesAndHash.md5Hash.length != info.md5Hash.length) {
       return false;
     }
     // making sure the timing is fixed
     var isSame = true;
-    for (var i = 0; i < md5Hash.length; i++) {
-      if (md5Hash[i] != info.md5Hash[i]) {
+    for (var i = 0; i < bytesAndHash.md5Hash.length; i++) {
+      if (bytesAndHash.md5Hash[i] != info.md5Hash[i]) {
         isSame = false;
       }
     }
@@ -296,4 +298,13 @@ extension on ModeratedPackage {
 extension on Package {
   _PkgUpdatedEvent asPkgUpdatedEvent() =>
       (package: name!, updated: updated!, isVisible: isVisible);
+}
+
+class _BytesAndHash {
+  final List<int> bytes;
+
+  _BytesAndHash(this.bytes);
+
+  late final length = bytes.length;
+  late final md5Hash = md5.convert(bytes).bytes;
 }
