@@ -25,7 +25,7 @@ import 'models.dart';
 final Logger _logger = Logger('export_api_to_bucket');
 
 /// The default concurrency to upload API JSON files to the bucket.
-const _defaultUploadPackageApisToBucketConcurrency = 8;
+const _defaultBucketUpdateConcurrency = 8;
 
 /// The default cache timeout for content.
 const _maxCacheAge = Duration(minutes: 10);
@@ -38,11 +38,11 @@ List<String> _apiPkgObjectNames(String package) => [
 class ApiExporter {
   final Bucket _bucket;
   final int _concurrency;
-  final _lastSeen = <String, _UpdatedEvent>{};
+  final _pkgLastUpdated = <String, _PkgUpdatedEvent>{};
 
   ApiExporter({
     required Bucket bucket,
-    int concurrency = _defaultUploadPackageApisToBucketConcurrency,
+    int concurrency = _defaultBucketUpdateConcurrency,
   })  : _bucket = bucket,
         _concurrency = concurrency;
 
@@ -55,7 +55,7 @@ class ApiExporter {
   ///
   /// When other process has the claim, the loop waits a minute before
   /// attempting to get the claim.
-  Future<Never> uploadPackageApisInForeverLoop() async {
+  Future<Never> uploadInForeverLoop() async {
     final lock = GlobalLock.create(
       '$runtimeVersion/package/update-api-bucket',
       expiration: Duration(minutes: 20),
@@ -63,7 +63,7 @@ class ApiExporter {
     while (true) {
       try {
         await lock.withClaim((claim) async {
-          await incrementalScanAndUploadPackageApis(claim);
+          await incrementalScanAndUpload(claim);
         });
       } catch (e, st) {
         _logger.warning('Package API bucket update failed.', e, st);
@@ -77,18 +77,20 @@ class ApiExporter {
   /// only once every day, and it may be racing against the incremental
   /// updates.
   @visibleForTesting
-  Future<void> fullScanAndUploadPackageApis() async {
+  Future<void> fullScanAndUpload() async {
     final pool = Pool(_concurrency);
     final futures = <Future>[];
     await for (final mp in dbService.query<ModeratedPackage>().run()) {
-      final f = pool.withResource(() => _update(mp.asUpdatedEvent()));
+      final f =
+          pool.withResource(() => _processPkgUpdated(mp.asPkgUpdatedEvent()));
       futures.add(f);
     }
     await Future.wait(futures);
     futures.clear();
 
     await for (final package in dbService.query<Package>().run()) {
-      final f = pool.withResource(() => _update(package.asUpdatedEvent()));
+      final f = pool
+          .withResource(() => _processPkgUpdated(package.asPkgUpdatedEvent()));
       futures.add(f);
     }
     await Future.wait(futures);
@@ -96,7 +98,7 @@ class ApiExporter {
   }
 
   @visibleForTesting
-  Future<void> incrementalScanAndUploadPackageApis(
+  Future<void> incrementalScanAndUpload(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
   }) async {
@@ -114,12 +116,13 @@ class ApiExporter {
       }
 
       // clear old entries from last seen cache
-      _lastSeen.removeWhere((key, value) =>
-          now.difference(value.updated) > const Duration(hours: 1));
+      _pkgLastUpdated.removeWhere((key, event) =>
+          now.difference(event.updated) > const Duration(hours: 1));
 
       lastQueryStarted = now;
       final futures = <Future>[];
-      await for (final event in _queryRecentEvents(lastQueryStarted)) {
+      final eventsSince = lastQueryStarted.subtract(Duration(minutes: 5));
+      await for (final event in _queryRecentPkgUpdatedEvents(eventsSince)) {
         if (!claim.valid) {
           break;
         }
@@ -127,7 +130,7 @@ class ApiExporter {
           if (!claim.valid) {
             return;
           }
-          await _update(event);
+          await _processPkgUpdated(event);
         });
         futures.add(f);
       }
@@ -138,14 +141,14 @@ class ApiExporter {
     await pool.close();
   }
 
-  Future<void> _update(_UpdatedEvent event) async {
-    final last = _lastSeen[event.package];
+  Future<void> _processPkgUpdated(_PkgUpdatedEvent event) async {
+    final last = _pkgLastUpdated[event.package];
     if (last != null && last.updated.isAtOrAfter(event.updated)) {
       return;
     }
-    _lastSeen[event.package] = event;
+    _pkgLastUpdated[event.package] = event;
     if (event.isVisible) {
-      await _uploadPackageApiToBucket(event.package);
+      await _uploadPackageToBucket(event.package);
     } else {
       await _deletePackageFromBucket(event.package);
     }
@@ -153,7 +156,7 @@ class ApiExporter {
 
   /// Uploads the package version API response bytes to the bucket, mirroring
   /// the endpoint name in the file location.
-  Future<void> _uploadPackageApiToBucket(String package) async {
+  Future<void> _uploadPackageToBucket(String package) async {
     final data = await retry(() => packageBackend.listVersions(package));
     final rawBytes = jsonUtf8Encoder.convert(data.toJson());
     final gzippedBytes = gzip.encode(rawBytes);
@@ -190,22 +193,20 @@ class ApiExporter {
     }
   }
 
-  Stream<_UpdatedEvent> _queryRecentEvents(DateTime lastQueryStarted) async* {
-    final updatedThreshold = lastQueryStarted.subtract(Duration(minutes: 5));
-
+  Stream<_PkgUpdatedEvent> _queryRecentPkgUpdatedEvents(DateTime since) async* {
     final q1 = dbService.query<ModeratedPackage>()
-      ..filter('moderated >=', updatedThreshold)
+      ..filter('moderated >=', since)
       ..order('-moderated');
-    yield* q1.run().map((mp) => mp.asUpdatedEvent());
+    yield* q1.run().map((mp) => mp.asPkgUpdatedEvent());
 
     final q2 = dbService.query<Package>()
-      ..filter('updated >=', updatedThreshold)
+      ..filter('updated >=', since)
       ..order('-updated');
-    yield* q2.run().map((p) => p.asUpdatedEvent());
+    yield* q2.run().map((p) => p.asPkgUpdatedEvent());
   }
 
   /// Deletes obsolete runtime-versions from the bucket.
-  Future<void> gcPackageApis() async {
+  Future<void> deleteObsoleteRuntimeContent() async {
     final versions = <String>{};
 
     // Objects in the bucket are stored under the following pattern:
@@ -242,14 +243,14 @@ class ApiExporter {
   }
 }
 
-typedef _UpdatedEvent = ({String package, DateTime updated, bool isVisible});
+typedef _PkgUpdatedEvent = ({String package, DateTime updated, bool isVisible});
 
 extension on ModeratedPackage {
-  _UpdatedEvent asUpdatedEvent() =>
+  _PkgUpdatedEvent asPkgUpdatedEvent() =>
       (package: name!, updated: moderated, isVisible: false);
 }
 
 extension on Package {
-  _UpdatedEvent asUpdatedEvent() =>
+  _PkgUpdatedEvent asPkgUpdatedEvent() =>
       (package: name!, updated: updated!, isVisible: isVisible);
 }

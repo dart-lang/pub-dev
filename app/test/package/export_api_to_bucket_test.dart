@@ -25,15 +25,15 @@ void main() {
           bucket: bucket,
           concurrency: 2,
         );
-        await exporter.fullScanAndUploadPackageApis();
+        await exporter.fullScanAndUpload();
 
         final claim =
             FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3)));
-        await exporter.incrementalScanAndUploadPackageApis(
+        await exporter.incrementalScanAndUpload(
           claim,
           sleepDuration: Duration(milliseconds: 300),
         );
-        await exporter.gcPackageApis();
+        await exporter.deleteObsoleteRuntimeContent();
 
         final files = await bucket
             .list(delimiter: 'bogus-delimiter-for-full-file-list')
