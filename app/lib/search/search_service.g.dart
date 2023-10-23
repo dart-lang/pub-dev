@@ -38,7 +38,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       sourceUpdated: json['sourceUpdated'] == null
           ? null
           : DateTime.parse(json['sourceUpdated'] as String),
-    );
+    )..overallScore = (json['overallScore'] as num?)?.toDouble();
 
 Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
     <String, dynamic>{
@@ -54,6 +54,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'popularityScore': instance.popularityScore,
       'grantedPoints': instance.grantedPoints,
       'maxPoints': instance.maxPoints,
+      'overallScore': instance.overallScore,
       'dependencies': instance.dependencies,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp.toIso8601String(),
