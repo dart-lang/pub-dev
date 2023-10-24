@@ -479,7 +479,7 @@ Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
       await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
   if (advisories.isEmpty) {
     return ListAdvisoriesResponse(
-        advisories: advisories.map((e) => e.advisory).toList(),
+        advisories: [],
         advisoriesUpdated: DateTime.fromMicrosecondsSinceEpoch(0));
   }
   final advisoriesUpdated = advisories.fold(

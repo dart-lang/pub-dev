@@ -84,8 +84,8 @@ class SecurityAdvisoryData {
   SecurityAdvisoryData(this.advisory, this.syncTime);
 
   factory SecurityAdvisoryData.fromJson(Map<String, dynamic> json) =>
-      _$AdvisoryFromJson(json);
-  Map<String, dynamic> toJson() => _$AdvisoryToJson(this);
+      _$SecurityAdvisoryDataFromJson(json);
+  Map<String, dynamic> toJson() => _$SecurityAdvisoryDataToJson(this);
 
   factory SecurityAdvisoryData.fromModel(SecurityAdvisory advisory) =>
       SecurityAdvisoryData(advisory.osv!, advisory.syncTime!);
