@@ -5,7 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_pub_shared/data/advisories_api.dart' as advisories_api;
+import 'package:_pub_shared/data/advisories_api.dart'
+    show ListAdvisoriesResponse;
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
@@ -466,14 +467,14 @@ Future<shelf.Response> packagePublisherHandler(
 }
 
 /// Handles GET /api/packages/<package>/advisories
-Future<advisories_api.ListOSVsResponse> listAdvisoriesForPackage(
+Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
     shelf.Request request, String packageName) async {
   InvalidInputException.checkPackageName(packageName);
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null) {
     throw NotFoundException.resource(packageName);
   }
-  final osvs =
+  final advisories =
       await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
-  return advisories_api.ListOSVsResponse(osvs: osvs);
+  return ListAdvisoriesResponse(advisories: advisories);
 }

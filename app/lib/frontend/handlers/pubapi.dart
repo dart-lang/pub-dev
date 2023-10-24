@@ -542,7 +542,7 @@ class PubApi {
       adminBackend.handleRemovePackageUploader(package, email);
 
   @EndPoint.get('/api/packages/<package>/advisories')
-  Future<ListOSVsResponse> getPackageAdvisories(
+  Future<ListAdvisoriesResponse> getPackageAdvisories(
     Request request,
     String package,
   ) =>
