@@ -8,15 +8,15 @@ part 'advisories_api.g.dart';
 
 /// Response for listing all security advisories affecting a given package.
 @JsonSerializable()
-class ListOSVsResponse {
+class ListAdvisoriesResponse {
   /// List of advisories
-  final List<OSV> osvs;
+  final List<OSV> advisories;
 
   // json_serializable boiler-plate
-  ListOSVsResponse({required this.osvs});
-  factory ListOSVsResponse.fromJson(Map<String, dynamic> json) =>
-      _$ListOSVsResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$ListOSVsResponseToJson(this);
+  ListAdvisoriesResponse({required this.advisories});
+  factory ListAdvisoriesResponse.fromJson(Map<String, dynamic> json) =>
+      _$ListAdvisoriesResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$ListAdvisoriesResponseToJson(this);
 }
 
 /// Representation of an advisory in [Open Source Vulnerability format][1] version 1.5

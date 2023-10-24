@@ -581,8 +581,9 @@ class PubApiClient {
     ));
   }
 
-  Future<_i8.ListOSVsResponse> getPackageAdvisories(String package) async {
-    return _i8.ListOSVsResponse.fromJson(await _client.requestJson(
+  Future<_i8.ListAdvisoriesResponse> getPackageAdvisories(
+      String package) async {
+    return _i8.ListAdvisoriesResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/$package/advisories',
     ));

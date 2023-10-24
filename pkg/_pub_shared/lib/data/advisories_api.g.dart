@@ -6,16 +6,18 @@ part of 'advisories_api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ListOSVsResponse _$ListOSVsResponseFromJson(Map<String, dynamic> json) =>
-    ListOSVsResponse(
-      osvs: (json['osvs'] as List<dynamic>)
+ListAdvisoriesResponse _$ListAdvisoriesResponseFromJson(
+        Map<String, dynamic> json) =>
+    ListAdvisoriesResponse(
+      advisories: (json['advisories'] as List<dynamic>)
           .map((e) => OSV.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$ListOSVsResponseToJson(ListOSVsResponse instance) =>
+Map<String, dynamic> _$ListAdvisoriesResponseToJson(
+        ListAdvisoriesResponse instance) =>
     <String, dynamic>{
-      'osvs': instance.osvs,
+      'advisories': instance.advisories,
     };
 
 OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
