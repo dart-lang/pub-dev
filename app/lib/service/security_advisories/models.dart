@@ -5,8 +5,11 @@
 import 'dart:convert' show json;
 
 import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../../shared/datastore.dart' as db;
+
+part 'models.g.dart';
 
 /// [SecurityAdvisory] is used to store a security advisory.
 ///
@@ -68,4 +71,22 @@ class OSVProperty extends db.Property {
   bool validate(db.ModelDB db, Object? value) {
     return super.validate(db, value) && (value == null || value is OSV);
   }
+}
+
+/// The cacheable version of [SecurityAdvisory]
+@JsonSerializable()
+class SecurityAdvisoryData {
+  final OSV advisory;
+
+  /// The time this advisory was synced into datastore.
+  final DateTime syncTime;
+
+  SecurityAdvisoryData(this.advisory, this.syncTime);
+
+  factory SecurityAdvisoryData.fromJson(Map<String, dynamic> json) =>
+      _$AdvisoryFromJson(json);
+  Map<String, dynamic> toJson() => _$AdvisoryToJson(this);
+
+  factory SecurityAdvisoryData.fromModel(SecurityAdvisory advisory) =>
+      SecurityAdvisoryData(advisory.osv!, advisory.syncTime!);
 }

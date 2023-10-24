@@ -5,7 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:_pub_shared/data/advisories_api.dart' show OSV;
+import 'package:_pub_shared/data/advisories_api.dart'
+    show ListAdvisoriesResponse, OSV;
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -15,6 +16,8 @@ import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import '../../package/models.dart' show Package;
+import '../../service/security_advisories/models.dart'
+    show SecurityAdvisoryData;
 
 final _logger = Logger('security_advisories.backend');
 
@@ -36,13 +39,16 @@ class SecurityAdvisoryBackend {
     return query.run().toList();
   }
 
-  Future<List<OSV>> lookupSecurityAdvisories(
+  Future<List<SecurityAdvisoryData>> lookupSecurityAdvisories(
     String package,
   ) async {
     return (await cache.securityAdvisories(package).get(() async {
       final query = _db.query<SecurityAdvisory>()
         ..filter('affectedPackages =', package);
-      return query.run().map((e) => e.osv!).toList();
+      return query
+          .run()
+          .map((SecurityAdvisory adv) => SecurityAdvisoryData.fromModel(adv))
+          .toList();
     }))!;
   }
 

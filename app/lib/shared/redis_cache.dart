@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -15,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 import '../account/models.dart' show LikeData, SessionData;
@@ -201,15 +201,17 @@ class CachePatterns {
         decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
 
-  Entry<List<OSV>> securityAdvisories(String package) => _cache
+  Entry<List<SecurityAdvisoryData>> securityAdvisories(String package) => _cache
       .withPrefix('security-advisory/')
       .withTTL(Duration(hours: 8))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
-        encode: (List<OSV> l) => l.map((OSV osv) => osv.toJson()).toList(),
+        encode: (List<SecurityAdvisoryData> l) =>
+            l.map((SecurityAdvisoryData adv) => adv.toJson()).toList(),
         decode: (d) => (d as List)
-            .map((d) => OSV.fromJson(d as Map<String, dynamic>))
+            .map(
+                (d) => SecurityAdvisoryData.fromJson(d as Map<String, dynamic>))
             .toList(),
       ))[package];
 

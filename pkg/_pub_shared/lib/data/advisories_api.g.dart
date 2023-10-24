@@ -12,12 +12,14 @@ ListAdvisoriesResponse _$ListAdvisoriesResponseFromJson(
       advisories: (json['advisories'] as List<dynamic>)
           .map((e) => OSV.fromJson(e as Map<String, dynamic>))
           .toList(),
+      advisoriesUpdated: DateTime.parse(json['advisoriesUpdated'] as String),
     );
 
 Map<String, dynamic> _$ListAdvisoriesResponseToJson(
         ListAdvisoriesResponse instance) =>
     <String, dynamic>{
       'advisories': instance.advisories,
+      'advisoriesUpdated': instance.advisoriesUpdated.toIso8601String(),
     };
 
 OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
