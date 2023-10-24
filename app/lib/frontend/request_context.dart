@@ -38,7 +38,7 @@ class RequestContext {
   /// The parsed experimental flags.
   final ExperimentalFlags experimentalFlags;
 
-  /// The CSRF token recieved via the header of the request.
+  /// The CSRF token received via the header of the request.
   final String? csrfToken;
 
   final SessionData? sessionData;

@@ -582,7 +582,7 @@ class AccountBackend {
   /// Returns the [UserSession] associated with the [sessionId] or
   /// `null` if it does not exists.
   ///
-  /// Deletes the session entry if is has already expired and
+  /// Deletes the session entry if it has already expired and
   /// clears the related cache too.
   Future<UserSession?> lookupValidUserSession(String sessionId) async {
     final key = _db.emptyKey.append(UserSession, id: sessionId);

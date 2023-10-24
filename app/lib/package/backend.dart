@@ -815,7 +815,7 @@ class PackageBackend {
       throw PackageRejectedException.uploadRestricted();
     }
     _logger.info('Starting async upload.');
-    // NOTE: We use a authenticated user scope here to ensure the uploading
+    // NOTE: We use an authenticated user scope here to ensure the uploading
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.

@@ -269,7 +269,7 @@ class PackageRejectedException extends ResponseException {
       : super._(400, 'PackageRejected',
             'Version $version of package $package was deleted previously, re-upload is not allowed.');
 
-  /// The package is has an active `isBlocked` flag, no further version is allowed.
+  /// The package has an active `isBlocked` flag, no further version is allowed.
   PackageRejectedException.isBlocked()
       : super._(400, 'PackageRejected', 'Package has been blocked.');
 
