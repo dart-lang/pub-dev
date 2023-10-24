@@ -474,7 +474,20 @@ Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
   if (package == null) {
     throw NotFoundException.resource(packageName);
   }
+
   final advisories =
       await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
-  return ListAdvisoriesResponse(advisories: advisories);
+  if (advisories.isEmpty) {
+    return ListAdvisoriesResponse(
+        advisories: [],
+        advisoriesUpdated: DateTime.fromMicrosecondsSinceEpoch(0));
+  }
+  final advisoriesUpdated = advisories.fold(
+      advisories.first.syncTime,
+      (previousValue, advisory) => advisory.syncTime.isAfter(previousValue)
+          ? advisory.syncTime
+          : previousValue);
+  return ListAdvisoriesResponse(
+      advisories: advisories.map((e) => e.advisory).toList(),
+      advisoriesUpdated: advisoriesUpdated);
 }

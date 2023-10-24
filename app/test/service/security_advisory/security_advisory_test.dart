@@ -194,7 +194,7 @@ void main() {
     final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
     expect(list, isNotNull);
     expect(list.length, 1);
-    expect(list.first.id, id);
+    expect(list.first.advisory.id, id);
 
     final updateTime = DateTime(2023).toIso8601String();
     final updatedOsv = OSV(
@@ -226,7 +226,7 @@ void main() {
     final list3 = await securityAdvisoryBackend.lookupSecurityAdvisories('c');
     expect(list3, isNotNull);
     expect(list3.length, 1);
-    expect(list3.first.id, id);
+    expect(list3.first.advisory.id, id);
   });
   group('Validate osv', () {
     test('Modified date should not be in the future', () async {

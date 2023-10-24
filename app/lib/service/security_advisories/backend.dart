@@ -36,13 +36,16 @@ class SecurityAdvisoryBackend {
     return query.run().toList();
   }
 
-  Future<List<OSV>> lookupSecurityAdvisories(
+  Future<List<SecurityAdvisoryData>> lookupSecurityAdvisories(
     String package,
   ) async {
     return (await cache.securityAdvisories(package).get(() async {
       final query = _db.query<SecurityAdvisory>()
         ..filter('affectedPackages =', package);
-      return query.run().map((e) => e.osv!).toList();
+      return query
+          .run()
+          .map((SecurityAdvisory adv) => SecurityAdvisoryData.fromModel(adv))
+          .toList();
     }))!;
   }
 
