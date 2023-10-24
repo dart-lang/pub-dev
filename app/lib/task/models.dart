@@ -68,7 +68,7 @@ Duration taskRetryDelay(int attempts) =>
 /// given `runtimeVersion`.
 ///
 ///  * `id`, is the `runtimeVersion / packageName`.
-///  * `PackageState` entities never has a parent.
+///  * `PackageState` entities never have a parent.
 @db.Kind(name: 'PackageState', idType: db.IdType.String)
 class PackageState extends db.ExpandoModel<String> {
   /// Create a key for [runtimeVersion] and [packageName] in [ddb].
