@@ -362,6 +362,8 @@ d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
     '',
     'jobs:',
     '  publish:',
+    '    permissions:',
+    '      id-token: write # Required for authentication using OIDC',
     '    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1',
     if (hasWithParameter) ...[
       '    with:',
