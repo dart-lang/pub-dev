@@ -25,7 +25,7 @@ class InMemoryPackageIndex {
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
 
-  /// Adjusted score takes the overall score and transform
+  /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
   final _adjustedOverallScores = <String, double>{};
   late final List<PackageHit> _overallOrderedHits;
@@ -156,7 +156,7 @@ class InMemoryPackageIndex {
           break;
         }
 
-        /// Adjusted score takes the overall score and transform
+        /// Adjusted score takes the overall score and transforms
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
         final overallScore = textResults.pkgScore
@@ -214,7 +214,7 @@ class InMemoryPackageIndex {
     );
   }
 
-  /// Updated the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
+  /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
   void _updateOverallScores() {
     for (final doc in _packages.values) {
       final downloadScore = doc.popularityScore ?? 0.0;
