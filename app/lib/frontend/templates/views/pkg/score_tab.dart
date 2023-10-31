@@ -12,6 +12,8 @@ import '../../package_misc.dart' show formatScore;
 
 /// Renders the score page content.
 d.Node scoreTabNode({
+  required String package,
+  required String version,
   required int? likeCount,
   required ScoreCardData? card,
   required bool usesFlutter,
@@ -74,7 +76,11 @@ d.Node scoreTabNode({
           classes: ['analysis-info'],
           children: [
             d.text('Check the '),
-            d.a(href: 'score/log.txt', text: 'analysis log'),
+            d.a(
+              href: urls.pkgScoreLogTxtUrl(package,
+                  version: isLatestStable ? null : version),
+              text: 'analysis log',
+            ),
             d.text(' for details.'),
           ],
         ),

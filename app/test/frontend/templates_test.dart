@@ -345,6 +345,8 @@ void main() {
       // no content
       expect(
           scoreTabNode(
+            package: 'pkg',
+            version: '1.1.1',
             card: null,
             likeCount: 4,
             usesFlutter: false,

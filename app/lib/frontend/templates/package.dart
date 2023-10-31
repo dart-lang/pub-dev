@@ -410,6 +410,8 @@ Tab _scoreTab(PackagePageData data) {
     id: 'analysis',
     title: 'Scores',
     contentNode: scoreTabNode(
+      package: data.package.name!,
+      version: data.version.version!,
       card: data.scoreCard,
       likeCount: data.package.likes,
       usesFlutter: data.version.pubspec!.usesFlutter,

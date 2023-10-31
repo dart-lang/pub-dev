@@ -9,6 +9,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
+import '../../task/models.dart';
 import '../dom/dom.dart' as d;
 
 import 'detail_page.dart';
@@ -22,6 +23,7 @@ String renderPkgVersionsPage(
   PackagePageData data,
   List<VersionInfo> versions, {
   required Version dartSdkVersion,
+  required PackageStateInfo taskStatus,
 }) {
   final previewVersionRows = <d.Node>[];
   final stableVersionRows = <d.Node>[];
@@ -35,7 +37,13 @@ String renderPkgVersionsPage(
   for (int i = 0; i < versions.length; i++) {
     final version = versions[i];
     final pubspec = Pubspec.fromJson(version.pubspec);
-    final rowNode = versionRowNode(pubspec.name, version, pubspec);
+    final versionStatus = taskStatus.versions[version.version];
+    final rowNode = versionRowNode(
+      pubspec.name,
+      version,
+      pubspec,
+      versionStatus: versionStatus,
+    );
     final semanticVersion = Version.parse(version.version);
     if (version.retracted != null && version.retracted!) {
       retractedVersionRows.add(rowNode);
