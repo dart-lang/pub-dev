@@ -193,7 +193,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.54, 0.1),
+            'score': closeTo(0.08, 0.1),
           },
         ],
       });
@@ -328,8 +328,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
-          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
+          {'package': 'async', 'score': closeTo(0.41, 0.01)},
         ],
       });
 
@@ -347,7 +347,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'chrome_net', 'score': closeTo(0.45, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.08, 0.01)},
         ],
       });
     });
@@ -360,8 +360,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
-          {'package': 'chrome_net', 'score': closeTo(0.45, 0.01)},
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.08, 0.01)},
         ],
       });
 
@@ -392,7 +392,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
         ],
       });
     });
@@ -416,7 +416,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+          {'package': 'async', 'score': closeTo(0.41, 0.01)},
         ],
       });
 

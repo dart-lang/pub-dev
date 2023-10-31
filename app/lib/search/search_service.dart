@@ -83,6 +83,9 @@ class PackageDocument {
   final int grantedPoints;
   final int maxPoints;
 
+  /// The normalized overall score between [0.0-1.0] for default package listing.
+  double? overallScore;
+
   final Map<String, String> dependencies;
 
   final List<ApiDocPage>? apiDocPages;

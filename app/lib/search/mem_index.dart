@@ -24,6 +24,11 @@ class InMemoryPackageIndex {
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
+
+  /// Adjusted score takes the overall score and transforms
+  /// it linearly into the [0.4-1.0] range.
+  final _adjustedOverallScores = <String, double>{};
+  late final List<PackageHit> _overallOrderedHits;
   late final List<PackageHit> _createdOrderedHits;
   late final List<PackageHit> _updatedOrderedHits;
   late final List<PackageHit> _popularityOrderedHits;
@@ -42,7 +47,10 @@ class InMemoryPackageIndex {
     if (_packages.values.any((e) => e.likeScore == null)) {
       _packages.values.updateLikeScores();
     }
+    _updateOverallScores();
     _lastUpdated = clock.now().toUtc();
+    _overallOrderedHits = _rankWithComparator(_compareOverall,
+        score: (doc) => doc.overallScore ?? 0.0);
     _createdOrderedHits = _rankWithComparator(_compareCreated);
     _updatedOrderedHits = _rankWithComparator(_compareUpdated);
     _popularityOrderedHits = _rankWithComparator(_comparePopularity,
@@ -143,11 +151,16 @@ class InMemoryPackageIndex {
     late List<PackageHit> packageHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
-        final scores = <Score>[
-          _getOverallScore(packages),
-          if (textResults != null) textResults.pkgScore,
-        ];
-        final overallScore = Score.multiply(scores);
+        if (textResults == null) {
+          packageHits = _overallOrderedHits.whereInSet(packages);
+          break;
+        }
+
+        /// Adjusted score takes the overall score and transforms
+        /// it linearly into the [0.4-1.0] range, to allow better
+        /// multiplication outcomes.
+        final overallScore = textResults.pkgScore
+            .map((key, value) => value * _adjustedOverallScores[key]!);
         // If the search hits have an exact name match, we move it to the front of the result list.
         final parsedQueryText = query.parsedQuery.text;
         final priorityPackageName =
@@ -201,18 +214,18 @@ class InMemoryPackageIndex {
     );
   }
 
-  Score _getOverallScore(Iterable<String> packages) {
-    final values = Map<String, double>.fromEntries(packages.map((package) {
-      final doc = _packages[package]!;
+  /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
+  void _updateOverallScores() {
+    for (final doc in _packages.values) {
       final downloadScore = doc.popularityScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
       final points = doc.grantedPoints / math.max(1, doc.maxPoints);
       final overall = popularity * 0.5 + points * 0.5;
-      // don't multiply with zero.
-      return MapEntry(package, 0.4 + 0.6 * overall);
-    }));
-    return Score(values);
+      doc.overallScore = overall;
+      // adding a base score prevents later multiplication with zero
+      _adjustedOverallScores[doc.package] = 0.4 + 0.6 * overall;
+    }
   }
 
   _TextResults? _searchText(Set<String> packages, String? text) {
@@ -357,6 +370,12 @@ class InMemoryPackageIndex {
 
   int _compareUpdated(PackageDocument a, PackageDocument b) {
     return -a.updated.compareTo(b.updated);
+  }
+
+  int _compareOverall(PackageDocument a, PackageDocument b) {
+    final x = -(a.overallScore ?? 0.0).compareTo(b.overallScore ?? 0.0);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
   }
 
   int _comparePopularity(PackageDocument a, PackageDocument b) {
