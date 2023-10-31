@@ -149,14 +149,9 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// The JSON-serialized format of the [AutomatedPublishingConfig].
-  @db.StringProperty(indexed: false)
-  @Deprecated('Use automatedPublishingField instead.')
-  String? automatedPublishingJson;
-
   /// Scheduling state for all versions of this package.
-  @AutomatedPublishingProperty(propertyName: 'automatedPublishing')
-  AutomatedPublishing? automatedPublishingField;
+  @AutomatedPublishingProperty()
+  AutomatedPublishing? automatedPublishing;
 
   /// The latest point in time at which a security advisory that affects this
   /// package has been synchronized into pub.
@@ -398,36 +393,6 @@ class Package extends db.ExpandoModel<String> {
             )
           : null,
     );
-  }
-
-  AutomatedPublishing? get automatedPublishing {
-    // TODO: remove after the values are migrated.
-    final field = automatedPublishingField ??
-        // ignore: deprecated_member_use_from_same_package
-        (automatedPublishingJson == null
-            ? null
-            : AutomatedPublishing(
-                githubConfig: _automatedPublishing.github,
-                gcpConfig: _automatedPublishing.gcp,
-              ));
-    automatedPublishingField = field;
-    return field;
-  }
-
-  set automatedPublishing(AutomatedPublishing? value) {
-    automatedPublishingField = value;
-    // ignore: deprecated_member_use_from_same_package
-    automatedPublishingJson = null;
-  }
-
-  AutomatedPublishingConfig get _automatedPublishing {
-    // ignore: deprecated_member_use_from_same_package
-    if (automatedPublishingJson == null) {
-      return AutomatedPublishingConfig();
-    }
-    return AutomatedPublishingConfig.fromJson(
-        // ignore: deprecated_member_use_from_same_package
-        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
   }
 
   void updateIsBlocked({

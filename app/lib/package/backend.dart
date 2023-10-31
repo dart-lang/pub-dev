@@ -1575,24 +1575,6 @@ class PackageBackend {
       current.gcpLock = GcpPublishingLock(oauthUserId: agent.payload.sub);
     }
   }
-
-  // ignore: deprecated_member_use_from_same_package
-  /// Migrates the deprecated [Package.automatedPublishingJson] JSON field
-  /// and makes sure that the only related value is in the
-  /// [Package.automatedPublishingField].
-  Future<void> backfillAutomatedPublishingField() async {
-    await for (final p in db.query<Package>().run()) {
-      // ignore: deprecated_member_use_from_same_package
-      if (p.automatedPublishingJson == null) {
-        continue;
-      }
-      await withRetryTransaction(db, (tx) async {
-        final pkg = await tx.lookupValue<Package>(p.key);
-        pkg.automatedPublishing = pkg.automatedPublishing;
-        tx.insert(pkg);
-      });
-    }
-  }
 }
 
 extension PackageVersionExt on PackageVersion {
