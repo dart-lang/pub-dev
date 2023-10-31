@@ -19,7 +19,6 @@ import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/shared/monitoring.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
 
 final _logger = Logger('search_index');
 
@@ -37,7 +36,6 @@ Future<void> main(List<String> args, var message) async {
   }
   await fork(() async {
     await servicesWrapperFn(() async {
-      await popularityStorage.start();
       await dartSdkMemIndex.start();
       await flutterSdkMemIndex.start();
       await indexUpdater.init();

@@ -14,7 +14,6 @@ import '../../search/handlers.dart';
 import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
-import '../../shared/popularity_storage.dart';
 
 import '_isolate.dart';
 
@@ -38,7 +37,6 @@ class SearchCommand extends Command {
       );
       registerScopeExitCallback(index.close);
 
-      await popularityStorage.start();
       registerSearchIndex(IsolateSearchIndex(index));
 
       final renewTimer = Timer.periodic(Duration(minutes: 15), (_) async {
