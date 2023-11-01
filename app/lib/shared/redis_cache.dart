@@ -158,6 +158,11 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)[package];
 
+  Entry<String> closestFinishedVersion(String package, String version) => _cache
+      .withPrefix('closest-finished-version/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package/$version'];
+
   Entry<PackageView> packageView(String package) => _cache
       .withPrefix('package-view/')
       .withTTL(Duration(minutes: 60))

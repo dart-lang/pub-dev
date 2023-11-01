@@ -25,6 +25,10 @@ class ResolvedDocUrlVersion {
     required this.urlSegment,
   });
 
+  ResolvedDocUrlVersion.empty()
+      : version = '',
+        urlSegment = '';
+
   factory ResolvedDocUrlVersion.fromJson(Map<String, dynamic> json) =>
       _$ResolvedDocUrlVersionFromJson(json);
 
