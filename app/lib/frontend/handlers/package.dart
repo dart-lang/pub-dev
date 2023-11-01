@@ -82,11 +82,13 @@ Future<shelf.Response> packageVersionsListHandler(
       }
 
       final dartSdkVersion = await getDartSdkVersion();
+      final taskStatus = await taskBackend.packageStatus(packageName);
       return renderPkgVersionsPage(
         data,
         // output is expected in descending versions order
         versions.descendingVersions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
+        taskStatus: taskStatus,
       );
     },
     cacheEntry: cache.uiPackageVersions(packageName),
