@@ -1063,7 +1063,7 @@ class TaskBackend {
 
   /// Returns the closest version of the [package] which has a finished analysis.
   ///
-  /// If [version] or new exists with finished analysis, it will be preferred, otherwise
+  /// If [version] or newer exists with finished analysis, it will be preferred, otherwise
   /// older versions may be considered too.
   ///
   /// Returns `null` if no such version exists.
