@@ -1074,7 +1074,7 @@ class TaskBackend {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
         final state = await dbService.lookupOrNull<PackageState>(key);
-        // skip states where the entry was created, but no analysis has not finished yet
+        // Skip states where the entry was created, but the analysis has not finished yet.
         if (state == null || state.hasNeverFinished) {
           continue;
         }
