@@ -6,6 +6,9 @@ import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../frontend/handlers/_utils.dart';
+import '../package/backend_test_utils.dart';
+import '../shared/handlers_test_utils.dart';
+import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -16,8 +19,10 @@ void main() {
         TestPackage(
           name: 'oxygen',
           versions: [
-            TestVersion(version: '1.0.0'),
-            TestVersion(version: '2.0.0'),
+            TestVersion(version: '1.0.0'), // won't get analyzed
+            TestVersion(version: '1.1.0'), // will get analyzed
+            TestVersion(version: '2.0.0'), // won't get analyzed
+            TestVersion(version: '2.1.0'), // will get analyzed
           ],
         ),
       ],
@@ -25,9 +30,9 @@ void main() {
     );
 
     testWithProfile(
-      'doc url redirects',
+      'doc url is serving',
       fn: () async {
-        final segments = ['1.0.0', '2.0.0', 'latest'];
+        final segments = ['1.1.0', '2.1.0', 'latest'];
         for (final segment in segments) {
           await expectHtmlResponse(
               await issueGet('/documentation/oxygen/$segment/'),
@@ -35,6 +40,65 @@ void main() {
                 '<link rel="canonical" href="https://pub.dev/documentation/oxygen/$segment/"/>'
               ]);
         }
+      },
+      testProfile: _testProfile,
+      processJobsWithFakeRunners: true,
+    );
+
+    testWithProfile(
+      'doc url redirects',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.0/'),
+          '/documentation/oxygen/1.1.0/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.0/x.html'),
+          '/documentation/oxygen/1.1.0/x.html',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/2.0.0/'),
+          '/documentation/oxygen/2.1.0/',
+        );
+      },
+      testProfile: _testProfile,
+      processJobsWithFakeRunners: true,
+    );
+
+    testWithProfile(
+      'doc url missing',
+      fn: () async {
+        await expectNotFoundResponse(
+            await issueGet('/documentation/oxygen/1.2.0/'));
+        await expectNotFoundResponse(
+            await issueGet('/documentation/oxygen/1.2.0/x.html'));
+      },
+      testProfile: _testProfile,
+      processJobsWithFakeRunners: true,
+    );
+
+    testWithProfile(
+      'right after new version upload',
+      fn: () async {
+        await createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(await packageArchiveBytes(
+                pubspecContent: generatePubspecYaml('oxygen', '2.5.0')));
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.0/'),
+          '/documentation/oxygen/1.1.0/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/2.0.0/'),
+          '/documentation/oxygen/2.1.0/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/2.5.0/'),
+          '/documentation/oxygen/2.1.0/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/latest/'),
+          '/documentation/oxygen/2.1.0/',
+        );
       },
       testProfile: _testProfile,
       processJobsWithFakeRunners: true,

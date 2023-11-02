@@ -5,10 +5,10 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
-import 'package:pub_dev/task/backend.dart';
 
+import '../package/backend.dart';
+import '../task/backend.dart';
 import 'models.dart';
 
 /// Sets the dartdoc backend.
@@ -33,7 +33,7 @@ class DartdocBackend {
       if (version == 'latest') {
         final latestFinished = await taskBackend.latestFinishedVersion(package);
         if (latestFinished == null) {
-          return ResolvedDocUrlVersion(version: '', urlSegment: '');
+          return ResolvedDocUrlVersion.empty();
         }
         final latestVersion = await packageBackend.getLatestVersion(package);
         return ResolvedDocUrlVersion(
@@ -43,12 +43,18 @@ class DartdocBackend {
         );
       }
 
-      // TODO: check if analysis finished for this version, redirect to closest version if possible
+      // Do not resolve if package version does not exists.
+      final pv = await packageBackend.lookupPackageVersion(package, version);
+      if (pv == null) {
+        return ResolvedDocUrlVersion.empty();
+      }
 
-      // Default: keep the URL on the version that was provided.
+      // Select the closest version (may be the same as version) that has a finished analysis.
+      final closest =
+          await taskBackend.closestFinishedVersion(package, version);
       return ResolvedDocUrlVersion(
-        version: version,
-        urlSegment: version,
+        version: closest ?? version,
+        urlSegment: closest ?? version,
       );
     }) as ResolvedDocUrlVersion;
   }

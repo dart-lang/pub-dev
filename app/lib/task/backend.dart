@@ -25,7 +25,7 @@ import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart'
-    show canonicalizeVersion, VersionIterableExt;
+    show canonicalizeVersion, isNewer, VersionIterableExt;
 import 'package:pub_dev/shared/versions.dart'
     show
         runtimeVersion,
@@ -421,10 +421,17 @@ class TaskBackend {
         return false;
       }
 
+      final latestFinishedVersion = state.versions?.entries
+          .where((e) => e.value.finished)
+          .map((e) => Version.parse(e.key))
+          .latestVersion;
+
       // Make changes!
       state.versions!
-        // Remove versions that have been deselected
-        ..removeWhere((v, _) => deselectedVersions.contains(v))
+        // Remove versions that have been deselected - but keep the latest finished one
+        ..removeWhere((v, _) =>
+            deselectedVersions.contains(v) &&
+            v != latestFinishedVersion.toString())
         // Add versions we should be tracking
         ..addAll({
           for (final v in untrackedVersions)
@@ -1048,16 +1055,48 @@ class TaskBackend {
         if (bestVersion != null) {
           return bestVersion.toString();
         }
-        // TODO: remove this fallback after all runtime version has the `finished` field populated
-        if (rt.compareTo('2023.08.29') < 0) {
-          final latestNonPending = state.versions?.entries
-              .where((e) => e.value.status != PackageVersionStatus.pending)
-              .map((e) => Version.parse(e.key))
-              .latestVersion;
-          if (latestNonPending != null) {
-            return latestNonPending.toString();
-          }
+      }
+      return '';
+    });
+    return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
+  }
+
+  /// Returns the closest version of the [package] which has a finished analysis.
+  ///
+  /// If [version] or newer exists with finished analysis, it will be preferred, otherwise
+  /// older versions may be considered too.
+  ///
+  /// Returns `null` if no such version exists.
+  Future<String?> closestFinishedVersion(String package, String version) async {
+    final cachedValue =
+        await cache.closestFinishedVersion(package, version).get(() async {
+      final semanticVersion = Version.parse(version);
+      for (final rt in acceptedRuntimeVersions) {
+        final key = PackageState.createKey(_db, rt, package);
+        final state = await dbService.lookupOrNull<PackageState>(key);
+        // Skip states where the entry was created, but the analysis has not finished yet.
+        if (state == null || state.hasNeverFinished) {
+          continue;
         }
+        final candidates = state.versions?.entries
+            .where((e) => e.value.finished)
+            .map((e) => Version.parse(e.key))
+            .toList();
+        if (candidates == null || candidates.isEmpty) {
+          continue;
+        }
+        if (candidates.contains(semanticVersion)) {
+          return version;
+        }
+        final newerCandidates =
+            candidates.where((e) => isNewer(semanticVersion, e)).toList();
+        if (newerCandidates.isNotEmpty) {
+          // Return the earliest finished that is newer than [version].
+          return newerCandidates
+              .reduce((a, b) => isNewer(a, b) ? a : b)
+              .toString();
+        }
+        return candidates.latestVersion!.toString();
       }
       return '';
     });
