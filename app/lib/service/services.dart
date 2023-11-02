@@ -40,8 +40,6 @@ import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
-import '../search/dart_sdk_mem_index.dart';
-import '../search/flutter_sdk_mem_index.dart';
 import '../search/search_client.dart';
 import '../search/top_packages.dart';
 import '../search/updater.dart';
@@ -232,9 +230,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(DartdocBackend());
-    registerDartSdkMemIndex(DartSdkMemIndex());
     registerEmailBackend(EmailBackend(dbService));
-    registerFlutterSdkMemIndex(FlutterSdkMemIndex());
     registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPackageIndexHolder(PackageIndexHolder());
@@ -275,8 +271,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
-    registerScopeExitCallback(dartSdkMemIndex.close);
-    registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(scoreCardBackend.close);
     registerScopeExitCallback(searchClient.close);
