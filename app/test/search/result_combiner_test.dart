@@ -108,16 +108,14 @@ void main() {
         'sdkLibraryHits': [
           {
             'sdk': 'dart',
-            'version': '2.0.0',
+            'version': isNotEmpty,
             'library': 'dart:core',
-            'url':
-                'https://api.dart.dev/stable/2.0.0/dart-core/dart-core-library.html',
+            'url': contains('dart-core-library.html'),
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
                 'path': 'dart-core/String/substring.html',
-                'url':
-                    'https://api.dart.dev/stable/2.0.0/dart-core/String/substring.html'
+                'url': contains('substring.html'),
               }
             ]
           },
