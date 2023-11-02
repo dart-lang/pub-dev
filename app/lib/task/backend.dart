@@ -1091,7 +1091,7 @@ class TaskBackend {
         final newerCandidates =
             candidates.where((e) => isNewer(semanticVersion, e)).toList();
         if (newerCandidates.isNotEmpty) {
-          // return the earliest finished that is newer than [version].
+          // Return the earliest finished that is newer than [version].
           return newerCandidates
               .reduce((a, b) => isNewer(a, b) ? a : b)
               .toString();
