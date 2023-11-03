@@ -61,7 +61,7 @@ void main() {
     expect(log1, isNull);
 
     // Check that the dartdoc is missing
-    final dartdoc1 = await taskBackend.dartdocPage(
+    final dartdoc1 = await taskBackend.dartdocFile(
       'oxygen',
       '1.2.0',
       'index.html',
@@ -149,7 +149,7 @@ void main() {
     expect(log2, contains('This is a pana log file'));
 
     // Check that we can get the generated dartdoc
-    final dartdoc2 = await taskBackend.dartdocPage(
+    final dartdoc2 = await taskBackend.dartdocFile(
       'oxygen',
       '1.2.0',
       'index.html',
