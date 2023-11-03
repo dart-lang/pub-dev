@@ -901,15 +901,6 @@ class TaskBackend {
     );
   }
 
-  /// Return gzipped dartdoc page or `null`.
-  // TODO: Remove this in favor of dartdocFile
-  Future<List<int>?> dartdocPage(
-    String package,
-    String version,
-    String path,
-  ) async =>
-      await gzippedTaskResult(package, version, 'doc/$path');
-
   /// Return [Summary] from pana or `null` if not available.
   ///
   /// The summary can be unavailable for a number of reasons:
