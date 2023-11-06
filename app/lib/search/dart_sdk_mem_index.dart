@@ -35,7 +35,7 @@ SdkMemIndex? get dartSdkMemIndex =>
 /// a search index from it.
 ///
 /// Returns `null` when the loading of `index.json` failed, or when there
-/// was an error parsing the faile or building the index.
+/// was an error parsing the file or building the index.
 Future<SdkMemIndex?> createDartSdkMemIndex() async {
   try {
     final index = SdkMemIndex.dart();
