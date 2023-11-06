@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
+
+import 'package:_pub_shared/format/x_ago_format.dart';
 
 void setupHoverable() {
   _setEventForHoverable();
   _setEventForPackageTitleCopyToClipboard();
   _setEventForPreCodeCopyToClipboard();
+  _updateXAgoLabels();
   _setEventForXAgo();
 }
 
@@ -116,6 +120,25 @@ void _setEventForPreCodeCopyToClipboard() {
   });
 }
 
+// Update x-ago labels at load time in case the page was stale in the cache.
+void _updateXAgoLabels() {
+  document.querySelectorAll('a.-x-ago').forEach((e) {
+    final timestampMillisAttr = e.getAttribute('data-timestamp');
+    final timestampMillisValue =
+        timestampMillisAttr == null ? null : int.tryParse(timestampMillisAttr);
+    if (timestampMillisValue == null) {
+      return;
+    }
+    final timestamp = DateTime.fromMillisecondsSinceEpoch(timestampMillisValue);
+    final newLabel = formatXAgo(DateTime.now().difference(timestamp));
+    final oldLabel = e.text;
+    if (oldLabel != newLabel) {
+      e.text = newLabel;
+    }
+  });
+}
+
+// Bind click events to switch between the title and the label on x-ago blocks.
 void _setEventForXAgo() {
   document.querySelectorAll('a.-x-ago').forEach((e) {
     e.onClick.listen((event) {

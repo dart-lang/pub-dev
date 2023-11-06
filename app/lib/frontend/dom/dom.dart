@@ -4,10 +4,11 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:clock/clock.dart';
 
 import '../../shared/markdown.dart';
-import '../../shared/utils.dart' show formatXAgo, shortDateFormat;
+import '../../shared/utils.dart' show shortDateFormat;
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
 final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
@@ -108,6 +109,7 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
     attributes: {
       'aria-label': 'Switch between date and elapsed time.',
       'aria-role': 'button',
+      'data-timestamp': timestamp.millisecondsSinceEpoch.toString(),
     },
     text: formatXAgo(clock.now().difference(timestamp)),
   );

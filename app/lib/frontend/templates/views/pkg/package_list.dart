@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
@@ -11,7 +12,6 @@ import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show formatXAgo;
 import '../../../dom/dom.dart' as d;
 
 import '../../../static_files.dart' show staticUrls;
