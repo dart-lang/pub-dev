@@ -149,10 +149,18 @@ void _setUpdateForXAgo() {
     });
   }
 
+  // Ever-increasing sleep during updates.
+  var sleepDuration = Duration(minutes: 5);
+  void schedule() {
+    Timer(sleepDuration, () {
+      update();
+      sleepDuration += Duration(minutes: 5);
+      schedule();
+    });
+  }
+
   update();
-  Timer.periodic(Duration(minutes: 5), (_) {
-    update();
-  });
+  schedule();
 }
 
 // Bind click events to switch between the title and the label on x-ago blocks.
