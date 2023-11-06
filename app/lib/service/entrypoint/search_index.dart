@@ -36,8 +36,8 @@ Future<void> main(List<String> args, var message) async {
   }
   await fork(() async {
     await servicesWrapperFn(() async {
-      await dartSdkMemIndex.start();
-      await flutterSdkMemIndex.start();
+      registerDartSdkMemIndex(await createDartSdkMemIndex());
+      registerFlutterSdkMemIndex(await createFlutterSdkMemIndex());
       await indexUpdater.init();
 
       final requestReceivePort = ReceivePort();

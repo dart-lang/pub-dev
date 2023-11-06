@@ -7,10 +7,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dartdoc_data/dartdoc_index.dart';
 
-import '../shared/cached_value.dart';
 import 'backend.dart';
 import 'sdk_mem_index.dart';
-import 'search_service.dart';
 
 final _logger = Logger('search.dart_sdk_mem_index');
 
@@ -23,47 +21,22 @@ const dartSdkLibraryWeights = <String, double>{
 };
 
 /// Sets the Dart SDK in-memory index.
-void registerDartSdkMemIndex(DartSdkMemIndex updater) =>
-    ss.register(#_dartSdkMemIndex, updater);
-
-/// The active Dart SDK in-memory index.
-DartSdkMemIndex get dartSdkMemIndex =>
-    ss.lookup(#_dartSdkMemIndex) as DartSdkMemIndex;
-
-/// Dart SDK in-memory index that fetches `index.json` from
-/// api.dart.dev and returns search results based on [SdkMemIndex].
-class DartSdkMemIndex {
-  final _index = CachedValue<SdkMemIndex>(
-    name: 'dart-sdk-index',
-    interval: Duration(days: 1),
-    maxAge: Duration(days: 30),
-    timeout: Duration(hours: 1),
-    updateFn: _createDartSdkMemIndex,
-  );
-
-  Future<void> start() async {
-    await _index.start();
-  }
-
-  Future<void> close() async {
-    await _index.close();
-  }
-
-  List<SdkLibraryHit> search(String query, {int? limit}) {
-    if (!_index.isAvailable) return <SdkLibraryHit>[];
-    return _index.value!.search(query, limit: limit);
-  }
-
-  @visibleForTesting
-  void setDartdocIndex(DartdocIndex index, {String? version}) {
-    final smi = SdkMemIndex.dart(version: version);
-    smi.addDartdocIndex(index);
-    // ignore: invalid_use_of_visible_for_testing_member
-    _index.setValue(smi);
+void registerDartSdkMemIndex(SdkMemIndex? index) {
+  if (index != null) {
+    ss.register(#_dartSdkMemIndex, index);
   }
 }
 
-Future<SdkMemIndex?> _createDartSdkMemIndex() async {
+/// The active Dart SDK in-memory index.
+SdkMemIndex? get dartSdkMemIndex =>
+    ss.lookup(#_dartSdkMemIndex) as SdkMemIndex?;
+
+/// Tries to load Dart SDK's dartdoc `index.json` and build
+/// a search index from it.
+///
+/// Returns `null` when the loading of `index.json` failed, or when there
+/// was an error parsing the file or building the index.
+Future<SdkMemIndex?> createDartSdkMemIndex() async {
   try {
     final index = SdkMemIndex.dart();
     final content = DartdocIndex.parseJsonText(
