@@ -18,7 +18,7 @@ import '../shared/test_services.dart';
 const String goldenDir = 'test/task/testdata/goldens';
 
 // TODO: generalize golden testing, use env var for regenerating all goldens.
-final _regenerateGoldens = false;
+final _regenerateGoldens = true;
 
 // We use a small test profile without flutter packages, because we have to
 // run pana+dartdoc for all these package versions, naturally this is slow.
@@ -255,6 +255,7 @@ final _goldenReplacements = <Pattern, String>{
   _timestampPattern: '%%timestamp%%',
   _escapedTimestampPattern: '%%escaped-timestamp%%',
   _timeAgoPattern: '%%time-ago%%',
+  _xagoMillisPattern: 'data-timestamp="%%time-ago-millis%%"',
   _shortDatePattern: '%%short-dateformat%%',
   '<wbr>': '<wbr/>',
 };
@@ -266,6 +267,7 @@ final _escapedTimestampPattern =
 final _timeAgoPattern = RegExp(
   r'(?:\d+ (?:years|months|days|hours|hour) ago)|(?:in the last hour)',
 );
+final _xagoMillisPattern = RegExp(r'data-timestamp="\d+"');
 
 final _shortDatePattern = RegExp(
   r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}',

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
@@ -34,7 +35,7 @@ import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
-import 'package:pub_dev/shared/utils.dart' show formatXAgo, shortDateFormat;
+import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
@@ -83,6 +84,8 @@ void main() {
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%')
               .replaceAll(value.toIso8601String().replaceAll(':', r'\u003a'),
                   '%%$key-escaped-timestamp%%')
+              .replaceAll(RegExp(r'data-timestamp="\d+"'),
+                  'data-timestamp="%%millis%%"')
               .replaceAll(formatXAgo(age), '%%x-ago%%');
         }
       });

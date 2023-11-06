@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
+
+import 'package:_pub_shared/format/x_ago_format.dart';
 
 void setupHoverable() {
   _setEventForHoverable();
   _setEventForPackageTitleCopyToClipboard();
   _setEventForPreCodeCopyToClipboard();
+  _setUpdateForXAgo();
   _setEventForXAgo();
 }
 
@@ -116,6 +120,42 @@ void _setEventForPreCodeCopyToClipboard() {
   });
 }
 
+// Update x-ago labels periodically, and also at load time in case the page was stale in the cache.
+void _setUpdateForXAgo() {
+  void update() {
+    document.querySelectorAll('a.-x-ago').forEach((e) {
+      final timestampMillisAttr = e.getAttribute('data-timestamp');
+      final timestampMillisValue = timestampMillisAttr == null
+          ? null
+          : int.tryParse(timestampMillisAttr);
+      if (timestampMillisValue == null) {
+        return;
+      }
+      final timestamp =
+          DateTime.fromMillisecondsSinceEpoch(timestampMillisValue);
+      final newLabel = formatXAgo(DateTime.now().difference(timestamp));
+      final isToggled = e.dataset['toggled'] == '1';
+      if (isToggled) {
+        final oldLabel = e.getAttribute('title');
+        if (oldLabel != newLabel) {
+          e.setAttribute('title', newLabel);
+        }
+      } else {
+        final oldLabel = e.text;
+        if (oldLabel != newLabel) {
+          e.text = newLabel;
+        }
+      }
+    });
+  }
+
+  update();
+  Timer.periodic(Duration(minutes: 5), (_) {
+    update();
+  });
+}
+
+// Bind click events to switch between the title and the label on x-ago blocks.
 void _setEventForXAgo() {
   document.querySelectorAll('a.-x-ago').forEach((e) {
     e.onClick.listen((event) {
@@ -124,6 +164,7 @@ void _setEventForXAgo() {
       final text = e.text;
       e.text = e.getAttribute('title');
       e.setAttribute('title', text!);
+      e.dataset['toggled'] = (e.dataset['toggled'] == '1') ? '0' : '1';
     });
   });
 }
