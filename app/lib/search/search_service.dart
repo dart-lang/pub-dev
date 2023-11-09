@@ -78,7 +78,7 @@ class PackageDocument {
   double? likeScore;
 
   /// The normalized score between [0.0-1.0] (1.0 being the most popular package).
-  final double? popularityScore;
+  double? popularityScore;
 
   final int grantedPoints;
   final int maxPoints;

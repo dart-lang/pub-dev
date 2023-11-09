@@ -197,7 +197,15 @@ class SearchBackend {
       futures.clear();
 
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
+        // Updates the normalized like score across all the packages.
         snapshot.updateLikeScores();
+
+        // Updates all popularity values to the currently cached one, otherwise
+        // only updated package would have been on their new values.
+        for (final d in snapshot.documents!.values) {
+          d.popularityScore = popularityStorage.lookup(d.package);
+        }
+
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
