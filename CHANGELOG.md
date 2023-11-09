@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20231109t095900-all`
  * Resyncing all `SecurityAdvisory` entities to get `syncTime` fields backfilled.
 
 ## `20231102t094900-all`
