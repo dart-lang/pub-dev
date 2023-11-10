@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
@@ -382,12 +383,6 @@ CachePatterns get cache => ss.lookup(#_cache) as CachePatterns;
 
 void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 
-final _delayedCachePurgerKey = #_delayedCachePurger;
-_DelayedCachePurger? get _delayedCachePurger =>
-    ss.lookup(_delayedCachePurgerKey) as _DelayedCachePurger?;
-void _registerDelayedCachePurgerKey(_DelayedCachePurger value) =>
-    ss.register(_delayedCachePurgerKey, value);
-
 /// Initializes caches based on the environment.
 /// - In AppEngine, it will use redis cache,
 /// - otherwise, a local in-memory cache.
@@ -401,7 +396,6 @@ Future<void> setupCache() async {
   }
 
   final purger = _DelayedCachePurger();
-  _registerDelayedCachePurgerKey(purger);
   ss.registerScopeExitCallback(purger._close);
 }
 
@@ -507,7 +501,10 @@ extension EntryPurgeExt<T> on Entry<T> {
   /// cache won't store the old values for too long.
   Future purgeAndRepeat({int retries = 0, Duration? delay}) async {
     await purge(retries: retries);
-    _delayedCachePurger!.add(this, delay);
+    asyncQueue.addAsyncFn(() async {
+      await Future.delayed(delay ?? Duration.zero);
+      await purge();
+    });
   }
 
 // Get or create a value.

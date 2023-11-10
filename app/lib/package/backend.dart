@@ -17,6 +17,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -1142,13 +1143,13 @@ class PackageBackend {
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
     // automatically.
-    await _postUploadTasks(
-      package,
-      newVersion,
-      outgoingEmail,
-      prevLatestStableVersion: prevLatestStableVersion,
-      prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
-    );
+    asyncQueue.addAsyncFn(() => _postUploadTasks(
+          package,
+          newVersion,
+          outgoingEmail,
+          prevLatestStableVersion: prevLatestStableVersion,
+          prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
+        ));
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
