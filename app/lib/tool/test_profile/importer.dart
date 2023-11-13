@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
 import '../utils/pub_api_client.dart';
@@ -200,6 +201,7 @@ Future<void> importProfile({
   }
 
   await source.close();
+  await asyncQueue.ongoingProcessing;
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
