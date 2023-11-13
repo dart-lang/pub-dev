@@ -19,6 +19,7 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
@@ -120,6 +121,7 @@ void main() {
         expect(pv.uploader, user.userId);
         expect(pv.publisherId, isNull);
 
+        await asyncQueue.ongoingProcessing;
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
         expect(email.recipients.single.email, user.email);
@@ -200,6 +202,7 @@ void main() {
         expect(pv.uploader, user.userId);
         expect(pv.publisherId, 'example.com');
 
+        await asyncQueue.ongoingProcessing;
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
         expect(email.recipients.single.email, user.email);
@@ -651,6 +654,7 @@ void main() {
           'repositoryOwnerId': 'owner-id-234',
         });
 
+        await asyncQueue.ongoingProcessing;
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
         expect(email.recipients.single.email, 'admin@pub.dev');
@@ -1078,6 +1082,7 @@ void main() {
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.versionCount, 4);
 
+        await asyncQueue.ongoingProcessing;
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
         expect(email.recipients.single.email, 'admin@pub.dev');

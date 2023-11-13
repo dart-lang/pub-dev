@@ -18,6 +18,7 @@ import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/updater.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/integrity.dart';
@@ -105,6 +106,7 @@ class FakeAppengineEnv {
           await nameTracker.reloadFromDatastore();
           await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
+          await asyncQueue.ongoingProcessing;
           fakeEmailSender.sentMessages.clear();
 
           await fork(() async {
@@ -183,6 +185,7 @@ void testWithFakeTime(
           await nameTracker.reloadFromDatastore();
           await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
+          await asyncQueue.ongoingProcessing;
           fakeEmailSender.sentMessages.clear();
 
           await fork(() async {

@@ -20,6 +20,7 @@ import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/scorecard/backend.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -31,6 +32,9 @@ import 'package:retry/retry.dart';
 /// Updates the task status for all packages and runs the local
 /// pub worker for each.
 Future<void> processTasksLocallyWithPubWorker() async {
+  // ignore: invalid_use_of_visible_for_testing_member
+  await asyncQueue.ongoingProcessing;
+
   /// Get hold of the [FakeCloudCompute]
   final cloud = taskWorkerCloudCompute as FakeCloudCompute;
   // Backfill tracking state
