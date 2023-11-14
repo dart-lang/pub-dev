@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/models.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
@@ -243,6 +244,13 @@ d.Node _likeKeyFigureNode(int? likeCount) {
 }
 
 d.Node _popularityKeyFigureNode(double? popularity) {
+  if (popularityStorage.isInvalid) {
+    return _keyFigureNode(
+      value: '--',
+      supplemental: '',
+      label: 'popularity',
+    );
+  }
   return _keyFigureNode(
     value: formatScore(popularity),
     supplemental: '%',

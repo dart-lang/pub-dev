@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/shared/popularity_storage.dart';
+
 import '../../../dom/dom.dart' as d;
 
 d.Node labeledScoresNode({
@@ -24,7 +26,11 @@ d.Node labeledScoresNode({
       ),
       d.div(
         classes: ['packages-score', 'packages-score-popularity'],
-        child: _labeledScore('popularity', popularity, sign: '%'),
+        child: _labeledScore(
+          'popularity',
+          popularityStorage.isInvalid ? null : popularity,
+          sign: popularityStorage.isInvalid ? '' : '%',
+        ),
       ),
     ],
   );
