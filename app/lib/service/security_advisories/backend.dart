@@ -61,15 +61,14 @@ class SecurityAdvisoryBackend {
     return errors.isEmpty;
   }
 
-  /// Overwrites existing advisory with the same id, if [osv] is newer or
-  /// unconditionally if [resync] is set.
+  /// Overwrites existing advisory with the same id, if [osv] is newer.
   ///
   /// If id is already listed as `alias` for another advisory, no action will be
   /// taken to resolve this. Instead both advisories will be stored and served.
   /// It's assumed that security advisory database owners take care to keep the
   /// security advisories sound, and that inconsistencies are intentional.
-  Future<SecurityAdvisory?> ingestSecurityAdvisory(OSV osv, DateTime syncTime,
-      {bool resync = false}) async {
+  Future<SecurityAdvisory?> ingestSecurityAdvisory(
+      OSV osv, DateTime syncTime) async {
     return await withRetryTransaction(_db, (tx) async {
       DateTime modified;
       try {
@@ -81,9 +80,7 @@ class SecurityAdvisoryBackend {
 
       final oldAdvisory = await lookupById(osv.id);
 
-      if (!resync &&
-          oldAdvisory != null &&
-          oldAdvisory.modified!.isAtOrAfter(modified)) {
+      if (oldAdvisory != null && oldAdvisory.modified!.isAtOrAfter(modified)) {
         return oldAdvisory;
       }
 
