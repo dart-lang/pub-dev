@@ -143,8 +143,8 @@ class _PopularityData {
   String get dateRange =>
       '${first?.toIso8601String()} - ${last?.toIso8601String()}';
 
-  /// Indicates that the data has no time range, or the range that is not
-  /// covering a full day, or that is more than a month old.
+  /// Indicates that the data has no time range, or that the range is not
+  /// covering a full day, or that it is more than a month old.
   late final isInvalid = first == null ||
       last == null ||
       last!.difference(first!).inDays < 1 ||
