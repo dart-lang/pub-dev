@@ -757,6 +757,7 @@ class PackageBackend {
       replacedBy: pkg.replacedBy,
       latest: latest.toApiVersionInfo(),
       versions: packageVersions.map((pv) => pv.toApiVersionInfo()).toList(),
+      advisoriesUpdated: pkg.latestAdvisory,
     );
   }
 

@@ -1,12 +1,17 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
+import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 void main() {
@@ -300,5 +305,34 @@ void main() {
       expect(errors, isNotEmpty);
       expect(errors.first, contains('OSV too large'));
     });
+  });
+
+  testWithProfile('listVersions contains advisoriesUpdated', fn: () async {
+    var pkg = await packageBackend.lookupPackage('oxygen');
+    expect(pkg!.latestAdvisory, isNull);
+
+    final firstTime = DateTime(2022).toIso8601String();
+    final affectedOxygen = Affected(
+      package: Package(ecosystem: 'pub', name: 'oxygen'),
+      versions: ['1'],
+    );
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: '123',
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedOxygen],
+    );
+    final syncTime = clock.now();
+
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    pkg = await packageBackend.lookupPackage('oxygen');
+    expect(pkg!.latestAdvisory, syncTime);
+
+    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
+    final oxygenPkgInfo = PackageData.fromJson(
+        json.decode(utf8.decode(await client.listVersions('oxygen')))
+            as Map<String, dynamic>);
+    expect(oxygenPkgInfo.advisoriesUpdated, syncTime);
   });
 }
