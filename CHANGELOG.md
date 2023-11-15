@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2023.11.15`.
+ * Upgraded stable Dart analysis SDK to `3.2.0`.
+ * Upgraded preview Dart analysis SDK to `3.3.0-120.0.dev`.
  * Upgraded pana to `0.21.42`.
  * Note: Started running `dartdoc` from `pana`.
 
