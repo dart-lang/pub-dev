@@ -37,10 +37,7 @@ class SecurityAdvisory extends db.Model<String> {
   DateTime? modified;
 
   /// The time this advisory was synced into datastore.
-  ///
-  // TODO(zarah): change this to required once all advisories have been
-  // updated in datastore.
-  @db.DateTimeProperty(required: false)
+  @db.DateTimeProperty(required: true)
   DateTime? syncTime;
 
   /// A list of affected package names.
