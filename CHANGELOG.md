@@ -2,6 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2023.11.15`.
+ * Upgraded pana to `0.21.42`.
+ * Note: Started running `dartdoc` from `pana`.
 
 ## `20231115t090700-all`
  * Hiding invalid popularity scores.
