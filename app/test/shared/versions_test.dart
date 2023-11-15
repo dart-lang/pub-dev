@@ -141,6 +141,13 @@ and do not format to also bump the runtimeVersion.''',
     expect(dependency.version.toString(), dartdocVersion);
   });
 
+  test('dartdoc version should match pkg/pub_worker', () async {
+    final content =
+        await File('../pkg/pub_worker/lib/src/bin/pana_wrapper.dart')
+            .readAsString();
+    expect(content, contains("globalDartdocVersion: '$dartdocVersion'"));
+  });
+
   scopedTest('GC is not deleting currently accepted versions', () {
     for (final version in acceptedRuntimeVersions) {
       expect(shouldGCVersion(version), isFalse);
