@@ -203,7 +203,7 @@ class PackageData {
   final List<VersionInfo> versions;
 
   /// The latest point the /advisories endpoint was updated.
-  DateTime? advisoriesUpdated;
+  final DateTime? advisoriesUpdated;
 
   PackageData({
     required this.name,
