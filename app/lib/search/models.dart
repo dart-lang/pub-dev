@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 
 import 'search_service.dart';
 
@@ -36,6 +37,18 @@ class SearchSnapshot {
   /// ordered list of packages by like counts (same like count gets the same score).
   void updateLikeScores() {
     documents!.values.updateLikeScores();
+  }
+
+  /// Updates all popularity values to the currently cached one, otherwise
+  /// only updated package would have been on their new values.
+  void updatePopularityScores() {
+    for (final d in documents!.values) {
+      if (popularityStorage.isInvalid) {
+        d.popularityScore = d.likeScore;
+      } else {
+        d.popularityScore = popularityStorage.lookup(d.package);
+      }
+    }
   }
 
   Map<String, dynamic> toJson() => _$SearchSnapshotToJson(this);

@@ -169,6 +169,7 @@ class SearchBackend {
       return;
     }
     snapshot.updateLikeScores();
+    snapshot.updatePopularityScores();
 
     // first complete snapshot, uploading it
     await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
@@ -199,12 +200,9 @@ class SearchBackend {
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
         // Updates the normalized like score across all the packages.
         snapshot.updateLikeScores();
-
         // Updates all popularity values to the currently cached one, otherwise
         // only updated package would have been on their new values.
-        for (final d in snapshot.documents!.values) {
-          d.popularityScore = popularityStorage.lookup(d.package);
-        }
+        snapshot.updatePopularityScores();
 
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
         lastUploadedSnapshotTimestamp = snapshot.updated!;
