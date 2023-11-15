@@ -13,11 +13,11 @@ class ListAdvisoriesResponse {
   final List<OSV> advisories;
 
   /// The latest point in time at which the content of this response was modified.
-  DateTime advisoriesUpdated;
+  /// `null` if no advisory affects the given package.
+  DateTime? advisoriesUpdated;
 
   // json_serializable boiler-plate
-  ListAdvisoriesResponse(
-      {required this.advisories, required this.advisoriesUpdated});
+  ListAdvisoriesResponse({required this.advisories, this.advisoriesUpdated});
   factory ListAdvisoriesResponse.fromJson(Map<String, dynamic> json) =>
       _$ListAdvisoriesResponseFromJson(json);
   Map<String, dynamic> toJson() => _$ListAdvisoriesResponseToJson(this);
