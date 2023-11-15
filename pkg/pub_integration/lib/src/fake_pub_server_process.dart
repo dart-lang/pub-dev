@@ -49,7 +49,8 @@ class FakePubServerProcess {
     final pr1 =
         await Process.run('dart', ['pub', 'get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
-      throw Exception('dart pub get failed in app');
+      throw Exception(
+          'dart pub get failed in app\n${pr1.stdout}\n${pr1.stderr}');
     }
     final tmpDir = await Directory.systemTemp.createTemp('fake-pub-server');
     final fakeEmailSenderOutputDir =
