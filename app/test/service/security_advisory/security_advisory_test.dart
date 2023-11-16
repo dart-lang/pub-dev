@@ -307,32 +307,53 @@ void main() {
     });
   });
 
-  testWithProfile('listVersions contains advisoriesUpdated', fn: () async {
-    var pkg = await packageBackend.lookupPackage('oxygen');
-    expect(pkg!.latestAdvisory, isNull);
+  testWithProfile('api test for advisories', fn: () async {
+    var oxygenPkg = await packageBackend.lookupPackage('oxygen');
+    var neonPkg = await packageBackend.lookupPackage('neon');
 
-    final firstTime = DateTime(2022).toIso8601String();
-    final affectedOxygen = Affected(
-      package: Package(ecosystem: 'pub', name: 'oxygen'),
-      versions: ['1'],
-    );
+    expect(oxygenPkg!.latestAdvisory, isNull);
+    expect(neonPkg!.latestAdvisory, isNull);
+
+    final syncTime = clock.now();
     final osv = OSV(
       schemaVersion: '1.2.3',
       id: '123',
-      modified: firstTime,
-      published: firstTime,
-      affected: [affectedOxygen],
+      modified: DateTime(2022).toIso8601String(),
+      published: DateTime(2022).toIso8601String(),
+      affected: [
+        Affected(
+          package: Package(ecosystem: 'pub', name: 'oxygen'),
+          versions: ['1'],
+        )
+      ],
     );
-    final syncTime = clock.now();
-
     await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
-    pkg = await packageBackend.lookupPackage('oxygen');
-    expect(pkg!.latestAdvisory, syncTime);
+
+    oxygenPkg = await packageBackend.lookupPackage('oxygen');
+    neonPkg = await packageBackend.lookupPackage('neon');
+
+    expect(oxygenPkg!.latestAdvisory, syncTime);
+    expect(neonPkg!.latestAdvisory, isNull);
 
     final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
+
     final oxygenPkgInfo = PackageData.fromJson(
         json.decode(utf8.decode(await client.listVersions('oxygen')))
             as Map<String, dynamic>);
     expect(oxygenPkgInfo.advisoriesUpdated, syncTime);
+
+    final neonPkgInfo = PackageData.fromJson(
+        json.decode(utf8.decode(await client.listVersions('neon')))
+            as Map<String, dynamic>);
+    expect(neonPkgInfo.advisoriesUpdated, isNull);
+
+    final oxygenRes = await client.getPackageAdvisories('oxygen');
+    expect(oxygenRes.advisories.length, 1);
+    expect(oxygenRes.advisories.first.id, '123');
+    expect(oxygenRes.advisoriesUpdated, syncTime);
+
+    final neonRes = await client.getPackageAdvisories('neon');
+    expect(neonRes.advisories, isEmpty);
+    expect(neonRes.advisoriesUpdated, isNull);
   });
 }
