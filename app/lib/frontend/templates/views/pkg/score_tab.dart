@@ -227,7 +227,7 @@ d.Node _toolEnvInfoNode(List<_ToolVersionInfo> values) {
   return d.p(
     classes: ['tool-env-info'],
     children: [
-      d.text('Analysed with '),
+      d.text('Analyzed with '),
       ...nodes,
       d.text('.'),
     ],
