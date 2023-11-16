@@ -37,8 +37,8 @@ void main() {
       final tempDir = await Directory.systemTemp.createTemp();
       try {
         final dependentPackages = {
-          'lints': '2.0.1',
-          'test': '1.22.2',
+          'lints': '2.99.0',
+          'test': '1.99.0',
         };
         for (final d in dependentPackages.keys) {
           final pkgDir = p.join(tempDir.path, d);
@@ -46,7 +46,7 @@ void main() {
           await File(p.join(pkgDir, 'pubspec.yaml')).writeAsString('name: $d\n'
               'version: ${dependentPackages[d]}\n'
               'description: simple package placeholder\n'
-              'environment:\n  sdk: ">=2.19.0 <4.0.0"\n');
+              'environment:\n  sdk: ">=3.0.0 <4.0.0"\n');
           await File(p.join(pkgDir, 'LICENSE'))
               .writeAsString('No real license.');
           if (d == 'test') {
