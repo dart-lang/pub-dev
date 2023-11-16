@@ -12,9 +12,12 @@ dependencies:
   http: ^1.0.0
   path: ^1.8.0
   pub_semver: ^2.0.0
-  puppeteer: ^3.0.0
+  puppeteer: ^2.24.0
   oauth2: ^2.0.0
 
 dev_dependencies:
   coverage: any # test already depends on it
   test: ^1.16.5
+
+dependency_overrides:
+  http: ^1.0.0
