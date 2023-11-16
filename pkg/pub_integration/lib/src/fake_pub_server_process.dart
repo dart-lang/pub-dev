@@ -33,10 +33,10 @@ class FakePubServerProcess {
   );
 
   static Future<FakePubServerProcess> start({
-    String? pkgDir,
+    String? appDir,
     int? port,
   }) async {
-    pkgDir ??= p.join(Directory.current.path, '../../app');
+    appDir ??= p.join(Directory.current.path, '../../app');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
     final storagePort = port + 1;
@@ -46,11 +46,7 @@ class FakePubServerProcess {
     final vmPort = port + 5;
     final coverageConfig = await _CoverageConfig.detect(vmPort);
 
-    final pr1 =
-        await Process.run('dart', ['pub', 'get'], workingDirectory: pkgDir);
-    if (pr1.exitCode != 0) {
-      throw Exception('dart pub get failed in app');
-    }
+    await _runPubGet(appDir);
     final tmpDir = await Directory.systemTemp.createTemp('fake-pub-server');
     final fakeEmailSenderOutputDir =
         p.join(tmpDir.path, 'fake-email-sender-output-dir');
@@ -71,7 +67,7 @@ class FakePubServerProcess {
         '--analyzer-port=$analyzerPort',
         '--dartdoc-port=$dartdocPort',
       ],
-      workingDirectory: pkgDir,
+      workingDirectory: appDir,
       environment: {
         'FAKE_EMAIL_SENDER_OUTPUT_DIR': fakeEmailSenderOutputDir,
       },
@@ -80,6 +76,41 @@ class FakePubServerProcess {
         FakePubServerProcess._(port, tmpDir.path, process, coverageConfig);
     instance._bindListeners();
     return instance;
+  }
+
+  /// Runs `pub get` in `app`, with a lock file to indicate ongoing pub get.
+  static Future<void> _runPubGet(String appDir) async {
+    final lockFile = File(p.join(appDir, 'integration-pub-get.lock'));
+
+    if (await lockFile.exists()) {
+      final age = DateTime.now().difference(await lockFile.lastModified());
+      if (age > Duration(minutes: 1)) {
+        // lockfile is present for longer than a minute, assuming stale file
+        await lockFile.delete();
+      } else {
+        // waiting for 15 seconds to get it deleted
+        for (var i = 15; i > 0; i++) {
+          await Future.delayed(Duration(seconds: 1));
+          if (!await lockFile.exists()) break;
+        }
+        // if it still exists, deleting it
+        if (await lockFile.exists()) {
+          await lockFile.delete();
+        }
+      }
+    }
+
+    await lockFile.create();
+    try {
+      final pr1 =
+          await Process.run('dart', ['pub', 'get'], workingDirectory: appDir);
+      if (pr1.exitCode != 0) {
+        throw Exception(
+            'dart pub get failed in app\n${pr1.stdout}\n${pr1.stderr}');
+      }
+    } finally {
+      await lockFile.delete();
+    }
   }
 
   void _bindListeners() {
