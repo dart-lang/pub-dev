@@ -477,7 +477,7 @@ class _PublisherMemberAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args![0];
     final currentUser = await requireAuthenticatedWebUser();
-    if (consent.email != currentUser.email) {
+    if (consent.email?.toLowerCase() != currentUser.email?.toLowerCase()) {
       throw NotAcceptableException('Consent is not for the current user.');
     }
     await publisherBackend.inviteConsentGranted(
