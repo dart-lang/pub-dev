@@ -55,7 +55,7 @@ class TopPackages {
       );
     }
     _running = true;
-    await Future.wait(_values.map((v) => v.start()));
+    await Future.wait(_values.map((v) => v.update()));
   }
 
   @visibleForTesting

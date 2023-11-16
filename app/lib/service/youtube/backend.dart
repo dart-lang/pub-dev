@@ -43,7 +43,7 @@ class YoutubeBackend {
 
   /// Starts the initial and schedules the periodic updates.
   Future<void> start() async {
-    await _packageOfWeekVideoList.start();
+    await _packageOfWeekVideoList.update();
   }
 
   /// Sets the list of PoW videos to a fixed value.
