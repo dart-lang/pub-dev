@@ -7,9 +7,11 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
+import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
@@ -35,6 +37,8 @@ void main() {
     final tempDir = Directory.systemTemp.createTempSync();
     final pkgDir = p.join(tempDir.path, 'pkg');
     final docDir = p.join(tempDir.path, 'doc');
+    final pubCacheDir = p.join(tempDir.path, 'pub-cache');
+    late final ToolEnvironment toolEnv;
 
     setUpAll(() async {
       for (final f in _sources.entries) {
@@ -42,11 +46,12 @@ void main() {
         await file.parent.create(recursive: true);
         await file.writeAsString(f.value);
       }
-      await Process.run(
-        'dart',
-        ['pub', 'get'],
-        workingDirectory: pkgDir,
+      await Directory(pubCacheDir).create(recursive: true);
+      toolEnv = await ToolEnvironment.create(
+        globalDartdocVersion: dartdocVersion,
+        pubCacheDir: pubCacheDir,
       );
+      await toolEnv.runUpgrade(pkgDir, false);
     });
 
     tearDownAll(() async {
@@ -56,24 +61,7 @@ void main() {
     test(
       'run dartdoc',
       () async {
-        await Process.run(
-          'dart',
-          ['pub', 'get'],
-          workingDirectory: resolvePubDartdocDirPath(),
-        );
-        final pr = await Process.run(
-          'dart',
-          [
-            'bin/pub_dartdoc.dart',
-            '--no-validate-links',
-            '--sanitize-html',
-            '--input',
-            pkgDir,
-            '--output',
-            docDir,
-          ],
-          workingDirectory: resolvePubDartdocDirPath(),
-        );
+        final pr = await toolEnv.dartdoc(pkgDir, docDir, usesFlutter: false);
         expect(pr.exitCode, 0);
 
         final processedFiles = <String>{};
