@@ -34,7 +34,7 @@ dependencies:
   shelf_router: ^1.1.2
   async: ^2.10.0
   collection: ^1.17.0
-  sanitize_html: ^2.0.0
+  sanitize_html: 2.0.0
   stream_transform: ^2.0.0
   stack_trace: ^1.11.1
 

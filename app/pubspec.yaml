@@ -45,7 +45,7 @@ dependencies:
   pub_semver: '^2.0.0'
   pubspec_parse: ^1.2.1
   retry: ^3.1.0
-  sanitize_html: ^2.0.0
+  sanitize_html: 2.0.0
   shelf: '^1.0.0'
   shelf_router: ^1.1.0
   stack_trace: ^1.10.0
