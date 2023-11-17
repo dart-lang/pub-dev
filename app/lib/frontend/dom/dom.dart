@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:clock/clock.dart';
+import 'package:meta/meta.dart';
 
 import '../../shared/markdown.dart';
 import '../../shared/utils.dart' show shortDateFormat;
@@ -949,6 +950,9 @@ class _StringNodeList extends _StringNode {
     }
   }
 }
+
+@visibleForTesting
+bool isSelfClosing(String tag) => _StringElement._selfClosing.contains(tag);
 
 class _StringElement extends _StringNode {
   static const _selfClosing = <String>{

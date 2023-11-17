@@ -39,11 +39,11 @@ void main() {
 
     test('absolute image URL', () {
       expect(markdownToHtml('![text](http://dartlang.org/image.png)'),
-          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n');
       expect(
           markdownToHtml('![text](http://dartlang.org/image.png)',
               urlResolverFn: urlResolverFn),
-          '<p><img src="http://dartlang.org/image.png" alt="text" /></p>\n');
+          '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n');
     });
 
     test('sibling link within site', () {
@@ -55,20 +55,20 @@ void main() {
 
     test('sibling image within site', () {
       expect(markdownToHtml('![text](image.png)'),
-          '<p><img src="image.png" alt="text" /></p>\n');
+          '<p><img src="image.png" alt="text"></p>\n');
       expect(markdownToHtml('![text](image.png)', urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text"></p>\n');
     });
 
     test('sibling image inside a relative directory', () {
       expect(
           markdownToHtml('![text](image.png)',
               relativeFrom: 'example/README.md'),
-          '<p><img src="image.png" alt="text" /></p>\n');
+          '<p><img src="image.png" alt="text"></p>\n');
       expect(
           markdownToHtml('![text](image.png)',
               urlResolverFn: urlResolverFn, relativeFrom: 'example/README.md'),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
     });
 
     test('sibling link plus relative link', () {
@@ -91,11 +91,11 @@ void main() {
 
     test('child image within site', () {
       expect(markdownToHtml('![text](example/image.png)'),
-          '<p><img src="example/image.png" alt="text" /></p>\n');
+          '<p><img src="example/image.png" alt="text"></p>\n');
       expect(
           markdownToHtml('![text](example/image.png)',
               urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
     });
 
     test('root link within site', () {
@@ -109,11 +109,11 @@ void main() {
 
     test('root image within site', () {
       expect(markdownToHtml('![text](/image.png)'),
-          '<p><img src="/image.png" alt="text" /></p>\n');
+          '<p><img src="/image.png" alt="text"></p>\n');
       expect(
           markdownToHtml('![text](/example/image.png)',
               urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/image.png" alt="text" /></p>\n');
+          '<p><img src="https://github.com/example/image.png" alt="text"></p>\n');
     });
 
     test('email', () {
@@ -189,8 +189,8 @@ void main() {
     });
 
     test('<br/>', () {
-      expect(markdownToHtml('a <br>b'), '<p>a <br />b</p>\n');
-      expect(markdownToHtml('a <br  />b'), '<p>a <br />b</p>\n');
+      expect(markdownToHtml('a <br>b'), '<p>a <br>b</p>\n');
+      expect(markdownToHtml('a <br  />b'), '<p>a <br>b</p>\n');
     });
   });
 
@@ -249,7 +249,7 @@ void main() {
       expect(
           markdownToHtml(
               '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text"></p>\n');
     });
 
     test('root path: /[..]/blob/master/[path].gif', () {
@@ -258,7 +258,7 @@ void main() {
               '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
               urlResolverFn: fallbackUrlResolverFn(
                   'https://github.com/rcpassos/progress_hud')),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text"></p>\n');
     });
 
     test('relative path: [path].gif', () {
@@ -266,7 +266,7 @@ void main() {
           markdownToHtml('![text](progress_hud.gif)',
               urlResolverFn: fallbackUrlResolverFn(
                   'https://github.com/rcpassos/progress_hud')),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text"></p>\n');
     });
   });
 
