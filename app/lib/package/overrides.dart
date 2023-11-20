@@ -24,6 +24,7 @@ final _reservedPackageNames = <String>[
   'location_background',
   'math',
   'mirrors',
+  'messages',
   'developer',
   'pub',
   'swift_ui',
