@@ -70,7 +70,6 @@ final class AdminAction {
     removePackageFromPublisher,
     taskBumpPriority,
     toolExecute,
-    getSecret,
     setSecret,
     toolList,
   ];

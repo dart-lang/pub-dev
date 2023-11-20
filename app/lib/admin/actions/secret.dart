@@ -5,51 +5,6 @@
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 
-final getSecret = AdminAction(
-  name: 'secret',
-  summary: 'View a secret value',
-  description: '''
-Get a "secret" admin value affecting the site.
-
-To set a secret, use the `set-secret` action.
-
-Possible secrets are [${SecretKey.values}] or prefixed ${SecretKey.oauthPrefix}
-
-The `announcement` secret will update the banner shown at top of pub.dev site
-and is usually cached for 30 minutes. So expect at least that long before the
-change is picked up.
-
-The `upload-restriction` is restriction applied on uploads.
-
-This feature is intended as an emergency brake if the site is experiencing
-overload or is being attacked.
-
-Valid values for `upload-restriction` are:
- * `no-uploads`, no package publications will be accepted by the server,
- * `only-updates`, publication of new packages will not be accepted, but new versions of existing packages will be accepted, and,
- * `no-restriction`, (default) publication of new packages and new versions is allowed.
-''',
-  options: {
-    'id':
-        'The secret to view/update. One of [${SecretKey.values}] or prefixed ${SecretKey.oauthPrefix}.',
-  },
-  invoke: (options) async {
-    final secretId = options['id']!;
-    InvalidInputException.check(
-      secretId.isNotEmpty,
-      'id must be given',
-    );
-    InvalidInputException.check(
-      SecretKey.isValid(secretId),
-      'ID should be one of [${SecretKey.values}] or prefixed'
-      ' ${SecretKey.oauthPrefix}.',
-    );
-
-    final currentValue = await secretBackend.lookup(secretId);
-    return {'currentValue': currentValue, 'message': 'Value retrieved'};
-  },
-);
-
 final setSecret = AdminAction(
   name: 'secret',
   summary: 'View, set or clear a secret value',
