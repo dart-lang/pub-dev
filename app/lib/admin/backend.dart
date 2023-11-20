@@ -41,7 +41,6 @@ import 'tools/package_publisher.dart';
 import 'tools/publisher_member.dart';
 import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
-import 'tools/set_secret.dart';
 import 'tools/set_user_blocked.dart';
 import 'tools/update_package_versions.dart';
 import 'tools/uploader_count_report.dart';
@@ -71,7 +70,6 @@ final Map<String, Tool> availableTools = {
   'publisher-member': executePublisherMember,
   'publisher-invite-member': executePublisherInviteMember,
   'set-package-blocked': executeSetPackageBlocked,
-  'set-secret': executeSetSecret,
   'set-user-blocked': executeSetUserBlocked,
   'user-merger': executeUserMergerTool,
   'list-tools': executeListTools,

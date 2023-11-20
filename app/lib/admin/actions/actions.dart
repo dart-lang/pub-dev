@@ -6,6 +6,7 @@ import 'package:pub_dev/admin/actions/create_publisher.dart';
 import 'package:pub_dev/admin/actions/publisher_block.dart';
 import 'package:pub_dev/admin/actions/publisher_members_list.dart';
 import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
+import 'package:pub_dev/admin/actions/secret.dart';
 import 'package:pub_dev/admin/actions/tool_execute.dart';
 import 'package:pub_dev/admin/actions/tool_list.dart';
 
@@ -69,6 +70,7 @@ final class AdminAction {
     removePackageFromPublisher,
     taskBumpPriority,
     toolExecute,
+    setSecret,
     toolList,
   ];
 }
