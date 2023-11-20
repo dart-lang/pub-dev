@@ -71,7 +71,6 @@ final Map<String, Tool> availableTools = {
   'publisher-member': executePublisherMember,
   'publisher-invite-member': executePublisherInviteMember,
   'set-package-blocked': executeSetPackageBlocked,
-  'set-secret': executeSetSecret,
   'set-user-blocked': executeSetUserBlocked,
   'user-merger': executeUserMergerTool,
   'list-tools': executeListTools,
