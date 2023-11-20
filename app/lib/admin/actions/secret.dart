@@ -16,11 +16,11 @@ will clear the secret.
 
 To just inspect a secret, use the `get-secret` action.
 
-Possible secrets are [${SecretKey.values}] or prefixed ${SecretKey.oauthPrefix}
+Possible secrets are [${SecretKey.values}] or prefixed ${SecretKey.oauthPrefix}.
 
-The `announcement` secret will update the banner shown at top of pub.dev site
-and is usually cached for 30 minutes. So expect at least that long before the
-change is picked up.
+The `announcement` secret will update the banner shown at the top of the pub.dev
+site and is usually cached for 30 minutes. So expect at least that long before
+the change is picked up.
 
 The `upload-restriction` is restriction applied on uploads.
 
