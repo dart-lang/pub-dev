@@ -56,7 +56,7 @@ class PopularityStorage {
   int lookupAsScore(String package) => (lookup(package) * 100).round();
 
   Future<void> start() async {
-    await _popularity.start();
+    await _popularity.update();
   }
 
   Future<void> close() async {

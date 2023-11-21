@@ -36,7 +36,7 @@ class AnnouncementBackend {
 
   /// Update announcements regularly.
   Future<void> start() async {
-    await _announcementHtml.start();
+    await _announcementHtml.update();
   }
 
   /// Cancel updates and free resources.

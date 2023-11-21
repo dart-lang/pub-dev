@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/cached_value.dart';
 import 'package:test/test.dart';
 
+import 'test_services.dart';
+
 void main() {
-  test('set value immediately available', () {
+  testWithProfile('set value immediately available', fn: () async {
     final cv = CachedValue<String>(
       name: 'test',
       interval: Duration(hours: 1),
@@ -19,7 +22,7 @@ void main() {
     expect(cv.value, 'x');
   });
 
-  test('failing update does not crash', () async {
+  testWithProfile('failing update does not crash', fn: () async {
     var count = 0;
     final cv = CachedValue<String>(
       name: 'test',
@@ -30,8 +33,10 @@ void main() {
         throw Exception();
       },
     );
-    await cv.start();
-    await Future.delayed(Duration(seconds: 2));
+    for (var i = 0; i < 15; i++) {
+      await cv.update();
+    }
+    await asyncQueue.ongoingProcessing;
     expect(cv.isAvailable, isFalse);
     expect(count, greaterThan(10));
     await cv.close();

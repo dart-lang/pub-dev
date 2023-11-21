@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 
 import 'monitoring.dart';
 
@@ -40,10 +41,10 @@ class CachedValue<T> {
   final Duration _interval;
   final Duration _timeout;
   DateTime _lastUpdated = clock.now();
-  Timer? _timer;
   T? _value;
   Completer? _ongoingCompleter;
   bool _closing = false;
+  bool _scheduled = false;
 
   CachedValue({
     required String name,
@@ -59,10 +60,30 @@ class CachedValue<T> {
 
   DateTime get lastUpdated => _lastUpdated;
   Duration get age => clock.now().difference(_lastUpdated);
-  bool get isAvailable => _value != null && age <= _maxAge;
+
+  bool get isAvailable {
+    _scheduleIfNeeded();
+    return _value != null && age <= _maxAge;
+  }
 
   /// The cached value, may be null.
-  T? get value => _value;
+  T? get value {
+    _scheduleIfNeeded();
+    return _value;
+  }
+
+  void _scheduleIfNeeded() {
+    if (!_scheduled && !_closing && (_value == null || age > _interval)) {
+      _scheduled = true;
+      asyncQueue.addAsyncFn(() async {
+        try {
+          await _update();
+        } finally {
+          _scheduled = false;
+        }
+      });
+    }
+  }
 
   @visibleForTesting
   void setValue(T v) {
@@ -71,7 +92,6 @@ class CachedValue<T> {
   }
 
   /// Updates the cached value.
-  @visibleForTesting
   Future<void> update() async {
     if (_closing) {
       throw StateError('Cache `$_name` is already closed.');
@@ -106,28 +126,8 @@ class CachedValue<T> {
     }
   }
 
-  /// Starts a periodic Timer to update the cached value.
-  ///
-  /// If this is the first call of [start], and initial value
-  /// was not set, this will also call [update].
-  Future<void> start() async {
-    if (_closing) {
-      throw StateError('Cache `$_name` is already closed.');
-    }
-    if (!isAvailable && _timer == null) {
-      await _update();
-      // ignore: invariant_booleans
-      if (_closing) return;
-    }
-    _timer ??= Timer.periodic(_interval, (timer) {
-      _update();
-    });
-  }
-
   Future<void> close() async {
     _closing = true;
-    _timer?.cancel();
-    _timer = null;
     if (_ongoingCompleter != null) {
       await _ongoingCompleter!.future;
     }
