@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
@@ -13,6 +12,8 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
+
+import '../shared/utils.dart';
 
 // This test ensures that the output from the `DartDocPage` rendering pipeline
 // is the same as the default output from `dartdoc`.
@@ -95,8 +96,9 @@ void main() {
             var fileContent = (await file.readAsString());
             // remove comments early on
             fileContent = fileContent.replaceAll(RegExp(r'\<!--.*?-->'), '');
-            final fileXmlRoot =
-                _toXml(html_parser.parse(fileContent).documentElement!);
+            final fileXmlDoc =
+                html_parser.parse(fileContent).toXml() as XmlDocument;
+            final fileXmlRoot = fileXmlDoc.rootElement;
 
             // rewrite static asset scripts
             for (final script in fileXmlRoot.findAllElements('script')) {
@@ -136,10 +138,9 @@ void main() {
                 path: relativePath,
               ),
             );
-            final renderedXmlDoc = XmlDocument.parse(
-              renderedNode.toString(),
-              entityMapping: XmlDefaultEntityMapping.html5(),
-            );
+            final renderedXmlDoc = html_parser
+                .parse(renderedNode.toString())
+                .toXml() as XmlDocument;
 
             // remove nodes that are the same in both XML
             _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
@@ -239,10 +240,10 @@ void main() {
             _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
 
             expect(
-              renderedXmlDoc.rootElement
+              renderedXmlDoc
                   .toXmlString(pretty: true, indent: '  ')
                   .replaceFirst('<html lang="en"/>', '<html lang="en"></html>'),
-              fileXmlRoot.toXmlString(pretty: true, indent: '  '),
+              fileXmlDoc.toXmlString(pretty: true, indent: '  '),
             );
           }
         }
@@ -276,25 +277,6 @@ class Oxygen {
 int multiply(int a, int b) => a*b;
 ''',
 };
-
-XmlElement _toXml(Element node) {
-  final xn = XmlElement(XmlName(node.localName!));
-  node.attributes.forEach((k, v) {
-    xn.attributes.add(XmlAttribute(XmlName(k.toString()), v));
-  });
-  node.nodes.forEach((child) {
-    if (child is Element) {
-      xn.children.add(_toXml(child));
-    } else if (child is Text) {
-      xn.children.add(XmlText(child.text));
-    } else if (child is Comment) {
-      xn.children.add(XmlComment(child.text!));
-    } else {
-      throw Exception('Unhandled HTML node: $child');
-    }
-  });
-  return xn;
-}
 
 void _removeSharedXmlNodes(XmlElement a, XmlDocument b) {
   void visitA(XmlElement ae) {

@@ -39,7 +39,6 @@ import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
-import 'package:xml/xml.dart' as xml;
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -104,20 +103,8 @@ void main() {
         replacedContent =
             replacedContent.replaceAll(csrfToken, '%%csrf-token%%');
       }
-
-      // Pretty printing output using XML parser and formatter.
-      final xmlDoc = xml.XmlDocument.parse(
-        isFragment
-            ? '<fragment>' + replacedContent + '</fragment>'
-            : replacedContent,
-        entityMapping: xml.XmlDefaultEntityMapping.html5(),
-      );
-      final xmlContent = xmlDoc.toXmlString(
-            pretty: true,
-            indent: '  ',
-            entityMapping: xml.XmlDefaultEntityMapping.html5(),
-          ) +
-          '\n';
+      final xmlContent =
+          prettyPrintHtml(replacedContent, isFragment: isFragment);
 
       if (_regenerateGoldens) {
         File('$goldenDir/$fileName').writeAsStringSync(xmlContent);

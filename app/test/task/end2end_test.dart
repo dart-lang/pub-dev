@@ -10,10 +10,10 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
-import 'package:xml/xml.dart' as xml;
 
 import '../frontend/handlers/_utils.dart';
 import '../shared/test_services.dart';
+import '../shared/utils.dart';
 
 const String goldenDir = 'test/task/testdata/goldens';
 
@@ -216,17 +216,7 @@ void expectGoldenFile(
     replacedContent = replacedContent.replaceAll(key, value);
   });
 
-  // Pretty printing output using XML parser and formatter.
-  final xmlDoc = xml.XmlDocument.parse(
-    replacedContent,
-    entityMapping: xml.XmlDefaultEntityMapping.html5(),
-  );
-  final xmlContent = xmlDoc.toXmlString(
-        pretty: true,
-        indent: '  ',
-        entityMapping: xml.XmlDefaultEntityMapping.html5(),
-      ) +
-      '\n';
+  final xmlContent = prettyPrintHtml(replacedContent);
 
   if (fileName.endsWith('/')) {
     fileName += 'index.html';
