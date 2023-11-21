@@ -72,12 +72,6 @@ String resolveWebCssDirPath() {
       .resolveSymbolicLinksSync();
 }
 
-/// Returns the path of pkg/pub_dartdoc on the local filesystem.
-String resolvePubDartdocDirPath() {
-  return Directory(path.join(resolveAppDir(), '../pkg/pub_dartdoc'))
-      .resolveSymbolicLinksSync();
-}
-
 /// Returns the path of /doc on the local filesystem.
 String resolveDocDirPath() {
   return path.join(resolveAppDir(), '../doc');
