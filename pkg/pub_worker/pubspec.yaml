@@ -20,8 +20,6 @@ dependencies:
   http_parser: ^4.0.0
   retry: ^3.1.0
   logging: ^1.0.2
-  pub_dartdoc:
-    path: ../pub_dartdoc
   indexed_blob:
     path: ../indexed_blob
   clock: ^1.1.0

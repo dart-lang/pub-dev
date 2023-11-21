@@ -40,16 +40,16 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "smoke_test; PKGS: app, pkg/_popularity, pkg/_pub_shared, pkg/api_builder, pkg/fake_gcloud, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app, pkg/web_css; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos  .`"
+    name: "smoke_test; PKGS: app, pkg/_popularity, pkg/_pub_shared, pkg/api_builder, pkg/fake_gcloud, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app, pkg/web_css; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos  .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css;commands:format-analyze_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_dartdoc_data-pkg/pub_package_reader-pkg/web_app-pkg/web_css
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -125,19 +125,6 @@ jobs:
         run: dart analyze --fatal-infos  .
         if: "always() && steps.pkg_fake_gcloud_pub_get.conclusion == 'success'"
         working-directory: pkg/fake_gcloud
-      - id: pkg_pub_dartdoc_pub_get
-        name: pkg/pub_dartdoc; dart pub get
-        run: dart pub get
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkg/pub_dartdoc
-      - name: "pkg/pub_dartdoc; dart format --output=none --set-exit-if-changed ."
-        run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
-        working-directory: pkg/pub_dartdoc
-      - name: "pkg/pub_dartdoc; dart analyze --fatal-infos  ."
-        run: dart analyze --fatal-infos  .
-        if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
-        working-directory: pkg/pub_dartdoc
       - id: pkg_pub_dartdoc_data_pub_get
         name: pkg/pub_dartdoc_data; dart pub get
         run: dart pub get
@@ -857,44 +844,6 @@ jobs:
       - job_006
       - job_007
   job_020:
-    name: "unit_test; PKG: pkg/pub_dartdoc; `dart test --run-skipped`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_dartdoc;commands:test_08"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_dartdoc
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
-        with:
-          sdk: "3.2.0"
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkg_pub_dartdoc_pub_get
-        name: pkg/pub_dartdoc; dart pub get
-        run: dart pub get
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkg/pub_dartdoc
-      - name: "pkg/pub_dartdoc; dart test --run-skipped"
-        run: dart test --run-skipped
-        if: "always() && steps.pkg_pub_dartdoc_pub_get.conclusion == 'success'"
-        working-directory: pkg/pub_dartdoc
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_021:
     name: "unit_test; PKG: pkg/pub_dartdoc_data; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -932,7 +881,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_022:
+  job_021:
     name: "unit_test; PKG: pkg/pub_package_reader; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -970,7 +919,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_023:
+  job_022:
     name: "unit_test; PKG: pkg/web_app; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -1008,7 +957,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_024:
+  job_023:
     name: "unit_test; PKG: pkg/web_css; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -1046,7 +995,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_025:
+  job_024:
     name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 0`"
     runs-on: ubuntu-latest
     steps:
@@ -1084,7 +1033,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_026:
+  job_025:
     name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
@@ -1122,7 +1071,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_027:
+  job_026:
     name: "unit_test; PKG: pkg/pub_integration; `dart test --run-skipped --total-shards 3 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
@@ -1160,7 +1109,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_028:
+  job_027:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1198,7 +1147,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_029:
+  job_028:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1236,7 +1185,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_030:
+  job_029:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
     runs-on: ubuntu-latest
     steps:
