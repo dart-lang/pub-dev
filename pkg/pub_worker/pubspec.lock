@@ -223,14 +223,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.3"
-  dartdoc:
-    dependency: transitive
-    description:
-      name: dartdoc
-      sha256: "47601f49a466190509868dd6bde7b62906efa54dd561da8ef48ed6e97f2116f0"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.0"
   file:
     dependency: transitive
     description:
@@ -502,13 +494,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  pub_dartdoc:
-    dependency: "direct main"
-    description:
-      path: "../pub_dartdoc"
-      relative: true
-    source: path
-    version: "0.0.0"
   pub_dartdoc_data:
     dependency: "direct main"
     description:
