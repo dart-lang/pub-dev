@@ -482,15 +482,21 @@ class SearchBackend {
 
 /// Creates the index-related API data structure from the extracted dartdoc data.
 List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
-  final nameToKindMap = <String, String>{};
+  final nameToHrefMap = <String, String>{};
   pubData.apiElements!.forEach((e) {
-    nameToKindMap[e.qualifiedName] = e.kind;
+    final href = e.href;
+    if (href != null) {
+      nameToHrefMap[e.qualifiedName] = href;
+    }
   });
 
   final pathMap = <String, String?>{};
   final symbolMap = <String, Set<String>>{};
 
-  bool isTopLevel(String? kind) => kind == 'library' || kind == 'class';
+  bool isTopLevelHref(String? href) {
+    if (href == null) return false;
+    return href.endsWith('-class.html') || href.endsWith('-library.html');
+  }
 
   void update(String key, String symbol, String? documentation) {
     if (isCommonApiSymbol(symbol)) {
@@ -501,12 +507,12 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }
 
   pubData.apiElements!.forEach((apiElement) {
-    if (isTopLevel(apiElement.kind)) {
+    if (isTopLevelHref(apiElement.href)) {
       pathMap[apiElement.qualifiedName] = apiElement.href;
       update(
           apiElement.qualifiedName, apiElement.name, apiElement.documentation);
     } else if (apiElement.parent != null &&
-        isTopLevel(nameToKindMap[apiElement.parent])) {
+        isTopLevelHref(nameToHrefMap[apiElement.parent])) {
       update(apiElement.parent!, apiElement.name, apiElement.documentation);
     }
   });
