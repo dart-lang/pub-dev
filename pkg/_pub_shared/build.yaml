@@ -5,6 +5,7 @@ targets:
     sources:
       - '$package$'
       - 'lib/$lib$'
+      - 'lib/dartdoc/dartdoc_page.dart'
       - 'lib/data/account_api.dart'
       - 'lib/data/admin_api.dart'
       - 'lib/data/advisories_api.dart'

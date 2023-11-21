@@ -6,5 +6,4 @@ targets:
       - '$package$'
       - 'lib/$lib$'
       - 'lib/dartdoc_index.dart'
-      - 'lib/dartdoc_page.dart'
       - 'lib/pub_dartdoc_data.dart'

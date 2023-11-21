@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/static_files.dart';
 
 import '../shared/urls.dart';
 
-export 'package:pub_dartdoc_data/dartdoc_page.dart';
+export 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 
 final class DartDocPageOptions {
   final String package;
