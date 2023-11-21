@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:convert' show json, utf8, Utf8Codec;
 import 'dart:io';
 
+import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:tar/tar.dart';
 

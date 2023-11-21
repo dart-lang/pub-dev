@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
@@ -15,7 +16,6 @@ import 'package:indexed_blob/indexed_blob.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
