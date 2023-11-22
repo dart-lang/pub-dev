@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:pub_dev/account/session_cookie.dart';
@@ -30,7 +32,7 @@ http.Client httpRetryClient({
     // TOOD: Consider implementing whenError to handle DNS + handshake errors.
     //       These are safe, retrying after partially sending data is more
     //       sketchy, but probably safe in our application.
-    whenError: (e, st) => lenient,
+    whenError: (e, st) => lenient || e is SocketException,
   );
 }
 
