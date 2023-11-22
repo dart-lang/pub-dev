@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: implementation_imports
+import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/dartdoc_index.dart';
 
 import '../shared/versions.dart' show toolStableDartSdkVersion;
 import 'search_service.dart';
 import 'token_index.dart';
+
+export 'package:pana/src/dartdoc/dartdoc_index.dart';
 
 /// In-memory index for SDK library search queries.
 class SdkMemIndex {
