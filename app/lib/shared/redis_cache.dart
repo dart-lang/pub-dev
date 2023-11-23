@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
-import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
@@ -394,9 +393,6 @@ Future<void> setupCache() async {
     _log.warning('using in-memory cache instead of redis');
     await _registerInmemoryCache();
   }
-
-  final purger = _DelayedCachePurger();
-  ss.registerScopeExitCallback(purger._close);
 }
 
 /// Read redis connection string from the secret backend and initialize redis
@@ -527,42 +523,4 @@ extension EntryPurgeExt<T> on Entry<T> {
     }
     return await get(create);
   }
-}
-
-class _DelayedCachePurger {
-  final _entries = <_DelayedPurge>[];
-  Timer? _timer;
-
-  void add(Entry cacheEntry, Duration? delay) {
-    final entry = _DelayedPurge(cacheEntry, delay);
-    _entries.add(entry);
-    _timer ??= Timer.periodic(Duration(seconds: 20), (timer) {
-      _purge();
-    });
-  }
-
-  Future<void> _purge() async {
-    final now = clock.now();
-    for (final e in _entries.where((e) => !e.time.isAfter(now)).toList()) {
-      await e.entry.purge();
-      _entries.remove(e);
-    }
-    if (_entries.isEmpty) {
-      _timer?.cancel();
-      _timer = null;
-    }
-  }
-
-  Future<void> _close() async {
-    _timer?.cancel();
-    _timer = null;
-  }
-}
-
-class _DelayedPurge {
-  final Entry entry;
-  final DateTime time;
-
-  _DelayedPurge(this.entry, Duration? delay)
-      : time = clock.now().add(delay ?? Duration(seconds: 30));
 }
