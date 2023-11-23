@@ -6,10 +6,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/dartdoc_index.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:retry/retry.dart';
@@ -58,12 +56,6 @@ void main() {
             'dart:js',
           ]));
 
-      final kinds = index.entries.map((e) => e.kind).whereNotNull().toSet();
-      for (final kind in kinds) {
-        expect(kindNames.containsKey(kind), isTrue,
-            reason: 'unknown kind: $kind');
-      }
-
       // making sure we don't miss any new attribute
       expect(json.decode(index.toJsonText()), json.decode(textContent));
     });
@@ -90,12 +82,6 @@ void main() {
             'flutter_driver',
             'flutter_test',
           ]));
-
-      final kinds = index.entries.map((e) => e.kind).whereNotNull().toSet();
-      for (final kind in kinds) {
-        expect(kindNames.containsKey(kind), isTrue,
-            reason: 'unknown kind: $kind');
-      }
 
       // making sure we don't miss any new attribute
       final originalWithoutFirstEntry = (json.decode(textContent) as List)

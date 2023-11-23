@@ -4,7 +4,6 @@
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pub_dartdoc_data/dartdoc_index.dart';
 
 import 'backend.dart';
 import 'sdk_mem_index.dart';

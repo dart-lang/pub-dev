@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:pub_dartdoc_data/dartdoc_index.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
