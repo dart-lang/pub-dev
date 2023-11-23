@@ -36,6 +36,7 @@ class PopularityStorage {
     _loader = _PopularityLoader(bucket);
     _popularity = CachedValue<_PopularityData>(
       name: 'popularity',
+      // note: popularity data is stored in storage bucket, not cached in redis
       interval: Duration(hours: 1),
       maxAge: Duration(days: 14),
       updateFn: () async => _loader.fetch(),

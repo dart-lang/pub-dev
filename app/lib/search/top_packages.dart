@@ -118,6 +118,7 @@ CachedValue<List<PackageView>> _cachedValue(
 }) {
   return CachedValue<List<PackageView>>(
     name: id,
+    // the redis-cached search results have 5 minutes TTL
     interval: Duration(minutes: 15),
     maxAge: Duration(hours: 24),
     updateFn: () async {

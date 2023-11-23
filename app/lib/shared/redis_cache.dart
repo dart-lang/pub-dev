@@ -8,6 +8,7 @@ import 'dart:math';
 
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:googleapis/youtube/v3.dart';
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -375,6 +376,17 @@ class CachePatterns {
             decode: (v) =>
                 ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
           ))['$package-$version'];
+
+  Entry<PlaylistItemListResponse> youtubePlaylistItems() => _cache
+      .withPrefix('youtube/playlist-item-list-response/')
+      .withTTL(Duration(hours: 6))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PlaylistItemListResponse v) => v.toJson(),
+        decode: (v) =>
+            PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
+      ))[''];
 }
 
 /// The active cache.
