@@ -22,6 +22,11 @@ final class Breadcrumb {
       _$BreadcrumbFromJson(json);
 
   Map<String, dynamic> toJson() => _$BreadcrumbToJson(this);
+
+  /// dartdoc outputs library names with `.dart` in the main breadcrumbs location,
+  /// but without it for the sidebar breadcrumbs location.
+  late final titleWithoutDotDart =
+      title.endsWith('.dart') ? title.substring(0, title.length - 5) : title;
 }
 
 /// A dartdoc sidebar content.

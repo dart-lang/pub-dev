@@ -226,12 +226,18 @@ extension DartDocPageRender on DartDocPage {
             classes: ['breadcrumbs', 'gt-separated', 'dark', 'hidden-l'],
             children: [
               ..._breadcrumbs(options).map((crumb) => crumb.href != null
-                  ? d.li(child: d.a(text: crumb.title, href: crumb.href))
+                  ? d.li(
+                      child: d.a(
+                      text: crumb.titleWithoutDotDart,
+                      href: crumb.href,
+                    ))
                   : d.li(text: crumb.title, classes: ['self-crumb']))
             ],
           ),
           _left,
-          d.div(id: 'dartdoc-sidebar-left-content', text: ''),
+          // TODO: remove this after all runtimes are rendered with dartdoc >=8.0.0
+          if (!left.contains('dartdoc-sidebar-left-content'))
+            d.div(id: 'dartdoc-sidebar-left-content', text: ''),
         ],
       );
 
