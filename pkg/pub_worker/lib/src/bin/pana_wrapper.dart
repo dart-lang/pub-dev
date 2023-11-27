@@ -102,7 +102,7 @@ Future<void> main(List<String> args) async {
     panaCacheDir: Platform.environment['PANA_CACHE'],
     environment: {'CI': 'true'},
     useGlobalDartdoc: true,
-    globalDartdocVersion: '7.0.0',
+    globalDartdocVersion: '8.0.0',
   );
 
   //final dartdocOutputDir =
