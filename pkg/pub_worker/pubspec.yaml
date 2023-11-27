@@ -24,8 +24,6 @@ dependencies:
     path: ../indexed_blob
   clock: ^1.1.0
   html: ^0.15.0
-  pub_dartdoc_data:
-    path: ../pub_dartdoc_data
   pubspec_parse: ^1.2.1
   tar: ^1.0.0
   shelf: ^1.2.0
