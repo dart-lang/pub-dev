@@ -132,26 +132,30 @@ for PKG in ${PKGS}; do
         dart test --run-skipped || EXIT_CODE=$?
         ;;
       test_09)
-        echo 'dart test --run-skipped --total-shards 3 --shard-index 0'
-        dart test --run-skipped --total-shards 3 --shard-index 0 || EXIT_CODE=$?
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~4p'` || EXIT_CODE=$?
         ;;
       test_10)
-        echo 'dart test --run-skipped --total-shards 3 --shard-index 1'
-        dart test --run-skipped --total-shards 3 --shard-index 1 || EXIT_CODE=$?
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~4p'` || EXIT_CODE=$?
         ;;
       test_11)
-        echo 'dart test --run-skipped --total-shards 3 --shard-index 2'
-        dart test --run-skipped --total-shards 3 --shard-index 2 || EXIT_CODE=$?
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~4p'` || EXIT_CODE=$?
         ;;
       test_12)
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~4p'` || EXIT_CODE=$?
+        ;;
+      test_13)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
         ;;
-      test_13)
+      test_14)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
         ;;
-      test_14)
+      test_15)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
         ;;
