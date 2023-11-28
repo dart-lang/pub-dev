@@ -945,7 +945,7 @@ jobs:
       - job_006
       - job_007
   job_023:
-    name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
+    name: "unit_test; PKG: pkg/pub_integration; `dart test -j1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -970,8 +970,8 @@ jobs:
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
         working-directory: pkg/pub_integration
-      - name: "pkg/pub_integration; dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
-        run: "dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'`"
+      - name: "pkg/pub_integration; dart test -j1"
+        run: dart test -j1
         if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
         working-directory: pkg/pub_integration
     needs:
@@ -983,82 +983,6 @@ jobs:
       - job_006
       - job_007
   job_024:
-    name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_integration;commands:test_10"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
-        with:
-          sdk: "3.2.0"
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkg_pub_integration_pub_get
-        name: pkg/pub_integration; dart pub get
-        run: dart pub get
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkg/pub_integration
-      - name: "pkg/pub_integration; dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
-        run: "dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'`"
-        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
-        working-directory: pkg/pub_integration
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_025:
-    name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_integration;commands:test_11"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
-        with:
-          sdk: "3.2.0"
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkg_pub_integration_pub_get
-        name: pkg/pub_integration; dart pub get
-        run: dart pub get
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkg/pub_integration
-      - name: "pkg/pub_integration; dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
-        run: "dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'`"
-        if: "always() && steps.pkg_pub_integration_pub_get.conclusion == 'success'"
-        working-directory: pkg/pub_integration
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-      - job_006
-      - job_007
-  job_026:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1066,7 +990,7 @@ jobs:
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker;commands:test_12"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker;commands:test_10"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
@@ -1096,7 +1020,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_027:
+  job_025:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1104,7 +1028,7 @@ jobs:
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker;commands:test_13"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker;commands:test_11"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
@@ -1134,7 +1058,7 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_028:
+  job_026:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1142,7 +1066,7 @@ jobs:
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker;commands:test_14"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker;commands:test_12"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0;packages:pkg/pub_worker
             os:ubuntu-latest;pub-cache-hosted;sdk:3.2.0
