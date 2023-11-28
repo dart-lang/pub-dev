@@ -16,7 +16,6 @@ import 'package:indexed_blob/indexed_blob.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -85,13 +84,17 @@ Future<void> _processPayload(Payload payload) async {
         final packageStatus =
             await scoreCardBackend.getPackageStatus(payload.package, v.version);
 
-        final dartdocFiles = _fakeDartdocFiles(payload.package, v.version);
-        final docData = PubDartdocData.fromJson(json.decode(
-          dartdocFiles['pub-data.json']!,
-        ) as Map<String, dynamic>);
+        final random = Random('${payload.package}/${v.version}'.hashCode);
+        final documented = random.nextInt(21);
+        final dartdocFiles = _fakeDartdocFiles(
+          payload.package,
+          v.version,
+          documented: documented,
+          total: 20,
+        );
         final docSection = documentationCoverageSection(
-          documented: docData.coverage?.documented ?? 0,
-          total: docData.coverage?.total ?? 0,
+          documented: documented,
+          total: 20,
         );
 
         late Summary summary;
@@ -164,14 +167,21 @@ Future<void> fakeCloudComputeInstanceRunner(FakeCloudInstance instance) async {
   await _processPayload(payload);
 }
 
-Map<String, String> _fakeDartdocFiles(String package, String version) {
-  final random = Random('$package/$version'.hashCode);
-  final pubData = PubDartdocData(
-    coverage: Coverage(documented: random.nextInt(21), total: 20),
-    apiElements: [
+Map<String, String> _fakeDartdocFiles(
+  String package,
+  String version, {
+  required int documented,
+  required int total,
+}) {
+  final pubData = {
+    'coverage': {
+      'documented': documented,
+      'total': total,
+    },
+    'apiElements': [
       // TODO: add fake library elements
     ],
-  );
+  };
   return {
     'index.html': json.encode(DartDocPage(
       title: 'index',

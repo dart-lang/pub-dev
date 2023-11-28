@@ -14,9 +14,10 @@ import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+// ignore: implementation_imports
+import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:pool/pool.dart';
 
-import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:retry/retry.dart';
 
