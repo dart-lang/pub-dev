@@ -16,6 +16,7 @@ import 'package:retry/retry.dart';
 import '../../shared/cached_value.dart';
 import '../../shared/env_config.dart';
 import '../../shared/monitoring.dart';
+import '../../shared/redis_cache.dart';
 import '../secret/backend.dart';
 
 /// The playlist ID for the Package of the Week channel.
@@ -35,7 +36,8 @@ final _logger = Logger('youtube_backend');
 class YoutubeBackend {
   final _packageOfWeekVideoList = CachedValue(
     name: 'pkg-of-week-video-list',
-    interval: Duration(hours: 6),
+    // redis-cached youtube API response has 6 hours TTL
+    interval: Duration(minutes: 15),
     maxAge: Duration(hours: 24),
     timeout: Duration(hours: 13),
     updateFn: _PkgOfWeekVideoFetcher().fetchVideoList,
@@ -122,12 +124,14 @@ class _PkgOfWeekVideoFetcher {
       final videos = <PkgOfWeekVideo>[];
       String? nextPageToken;
       for (var check = true; check && videos.length < 50;) {
-        final rs = await youtube.playlistItems.list(
-          ['snippet', 'contentDetails'],
-          playlistId: powPlaylistId,
-          pageToken: nextPageToken,
-        );
-        videos.addAll(rs.items!.map(
+        final rs = await cache.youtubePlaylistItems().get(
+              () async => await youtube.playlistItems.list(
+                ['snippet', 'contentDetails'],
+                playlistId: powPlaylistId,
+                pageToken: nextPageToken,
+              ),
+            );
+        videos.addAll(rs!.items!.map(
           (i) {
             try {
               final videoId = i.contentDetails?.videoId;

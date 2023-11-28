@@ -118,6 +118,15 @@ CachedValue<List<PackageView>> _cachedValue(
 }) {
   return CachedValue<List<PackageView>>(
     name: id,
+    // The search results are cached in redis with a 5 minutes TTL.
+    //
+    // If we have a valid value locally, we don't initiate new search queries
+    // for the top packages for 15 minutes, and after that we have a good chance
+    // that we have a <5 minutes old value in the cache.
+    //
+    // We could reduce the 15 minutes to 5 minutes, but in practice it wouldn't
+    // matter much, as the search index itself won't get updated only at
+    // every 15 minutes.
     interval: Duration(minutes: 15),
     maxAge: Duration(hours: 24),
     updateFn: () async {
