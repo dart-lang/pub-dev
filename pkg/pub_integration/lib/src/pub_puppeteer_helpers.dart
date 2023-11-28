@@ -193,12 +193,12 @@ extension PubPageExt on Page {
   }
 
   Future<void> waitForNavigationUntilIdle() async {
-    await waitForNavigation(wait: Until.all([Until.networkIdle, Until.load]));
+    await waitForNavigation(wait: Until.networkIdle);
     await Future.delayed(Duration(seconds: 1));
   }
 
   Future<void> reloadUntilIdle() async {
-    await reload(wait: Until.all([Until.networkIdle, Until.load]));
+    await reload(wait: Until.networkIdle);
     await Future.delayed(Duration(seconds: 1));
   }
 
