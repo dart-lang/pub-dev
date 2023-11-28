@@ -18,9 +18,6 @@ COPY doc /project/doc
 COPY third_party /project/third_party
 COPY tool /project/tool
 
-WORKDIR /project/pkg/pub_dartdoc
-RUN dart /project/tool/pub_get_offline.dart /project/pkg/pub_dartdoc
-
 WORKDIR /project/pkg/web_app
 RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
 RUN ./build.sh
