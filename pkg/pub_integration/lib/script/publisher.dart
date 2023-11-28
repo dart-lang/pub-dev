@@ -176,6 +176,7 @@ class PublisherScript {
   Future<void> _verifyPublisherPackageListPage() async {
     final html = (await _pubHttpClient.getPublisherPage('example.com'))!;
     if (!html.contains('href="/packages/_dummy_pkg"')) {
+      print(html);
       throw Exception('Does not contain link to package.');
     }
   }
