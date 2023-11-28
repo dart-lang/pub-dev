@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
+import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
@@ -114,7 +115,7 @@ void main() {
           expect(await page.content, contains('admin@pub.dev'));
           await page.hover('.nav-profile-img');
           await Future.wait([
-            page.waitForNavigation(),
+            page.waitForNavigationUntilIdle(),
             page.click('#-account-logout'),
           ]);
           final cookies = await page.cookies();
@@ -132,7 +133,7 @@ void main() {
           await handle.evaluate(
               'node => node.setAttribute("data-fake-email", "user@pub.dev")');
           await Future.wait([
-            page.waitForNavigation(),
+            page.waitForNavigationUntilIdle(),
             page.click('#-account-login'),
           ]);
           final cookies = await page.cookies();

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
+import 'dart:io';
 
 import 'package:puppeteer/puppeteer.dart';
 
@@ -45,6 +46,10 @@ Future<ListingPageInfo> listingPageInfo(Page page) async {
 }
 
 extension PubPageExt on Page {
+  Future<void> saveScreenshot(String path) async {
+    await File(path).writeAsBytes(await screenshot());
+  }
+
   Future<void> waitFocusAndType(String selector, String text) async {
     await waitForSelector(selector, timeout: Duration(seconds: 5));
     await focus(selector);
@@ -187,6 +192,16 @@ extension PubPageExt on Page {
     await _waitForModelHidden();
   }
 
+  Future<void> waitForNavigationUntilIdle() async {
+    await waitForNavigation(wait: Until.all([Until.networkIdle, Until.load]));
+    await Future.delayed(Duration(seconds: 1));
+  }
+
+  Future<void> reloadUntilIdle() async {
+    await reload(wait: Until.all([Until.networkIdle, Until.load]));
+    await Future.delayed(Duration(seconds: 1));
+  }
+
   Future<void> waitAndClick(
     String selector, {
     bool? waitForOneResponse,
@@ -203,6 +218,7 @@ extension PubPageExt on Page {
     if (future != null) {
       await future;
     }
+    await Future.delayed(Duration(milliseconds: 100));
   }
 
   Future<void> _waitAndType(String selector, String text) async {

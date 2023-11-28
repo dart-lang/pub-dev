@@ -76,7 +76,7 @@ void main() {
 
           // click Android
           await page.click('#search-form-checkbox-platform-android');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           final i2 = await listingPageInfo(page);
           expect(i2.totalCount, lessThan(80));
           expect(i2.totalCount, greaterThan(70));
@@ -98,7 +98,7 @@ void main() {
 
           // click Flutter
           await flutterCB3.click();
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           final i3 = await listingPageInfo(page);
           expect(i3.totalCount, lessThan(70));
           expect(i3.totalCount, greaterThan(60));
@@ -116,7 +116,7 @@ void main() {
           final flutterCB4 = await page.$('#search-form-checkbox-sdk-flutter');
           final flutterLink = await flutterCB4.$x('../following-sibling::*');
           await flutterLink.single.click();
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           final i4 = await listingPageInfo(page);
           expect(i4.totalCount, i2.totalCount);
           expect(i4.packageNames, i2.packageNames);
@@ -128,7 +128,7 @@ void main() {
           await page.keyboard.press(Key.arrowDown);
           await page.keyboard.type(' -sdk:flutter pkg');
           await page.keyboard.press(Key.enter);
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           final i5 = await listingPageInfo(page);
           expect(i5.totalCount, i2.totalCount - i3.totalCount);
           final both2And5 = i2.packageNames
@@ -152,7 +152,7 @@ void main() {
           // clear Flutter with a row-level click
           final flutterRow = await flutterCB5.$x('../../..');
           await flutterRow.single.click();
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           final i6 = await listingPageInfo(page);
           expect(i6.totalCount, i2.totalCount);
           expect(i6.openSections, i5.openSections);
@@ -161,25 +161,25 @@ void main() {
           // show hidden
           await page.click('.search-form-section[data-section-tag="advanced"]');
           await page.waitAndClick('#search-form-checkbox-show-unlisted');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
+          expect(page.url,
+              '$origin/packages?q=platform%3Aandroid+show%3Aunlisted+pkg');
           final i7 = await listingPageInfo(page);
           expect(i7.totalCount, i6.totalCount);
           expect(i7.openSections, ['sdks', 'advanced']);
-          expect(page.url,
-              '$origin/packages?q=platform%3Aandroid+show%3Aunlisted+pkg');
 
           // remove discontinued
           await page.click('#search-form-checkbox-show-unlisted');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
 
           Future<void> toggleMore(String tagPrefix, String tagPostfix) async {
             await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
-            await page.waitForNavigation(wait: Until.networkIdle);
+            await page.waitForNavigationUntilIdle();
             expect(page.url,
                 '$origin/packages?q=platform%3Aandroid+$tagPrefix%3A$tagPostfix+pkg');
             await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
-            await page.waitForNavigation(wait: Until.networkIdle);
+            await page.waitForNavigationUntilIdle();
             expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
           }
 
@@ -204,7 +204,7 @@ void main() {
             await page.waitForSelector(targetSelector, visible: true);
             await page.click(targetSelector);
           }
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(
               page.url,
               allOf(
@@ -218,7 +218,7 @@ void main() {
               'platform:android platform:web platform:ios pkg');
 
           await page.click('#search-form-checkbox-platform-windows');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(
               page.url,
               allOf(
@@ -241,7 +241,7 @@ void main() {
           // OSI approved
           await page.click('.search-form-section[data-section-tag="license"]');
           await page.waitAndClick('#search-form-checkbox-license-osi-approved');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
 
           expect(await page.propertyValue('input[name="q"]', 'value'),
               'license:osi-approved');
@@ -259,12 +259,12 @@ void main() {
           await page.focus('input[name="q"]');
           await page.keyboard.type('pkg');
           await page.keyboard.press(Key.enter);
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(page.url, '$origin/packages?q=pkg');
           expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
 
           await page.click('#search-form-checkbox-platform-android');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
           expect(await page.propertyValue('input[name="q"]', 'value'),
               'platform:android pkg');
@@ -283,7 +283,7 @@ void main() {
           await page.focus('input[name="q"]');
           await page.keyboard.type('pkg');
           await page.keyboard.press(Key.enter);
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(page.url, '$origin/packages?q=pkg');
           expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
 
@@ -292,7 +292,7 @@ void main() {
           await page.keyboard.press(Key.backspace);
           await page.keyboard.press(Key.backspace);
           await page.keyboard.press(Key.enter);
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitForNavigationUntilIdle();
           expect(page.url, '$origin/packages?q=p');
           expect(await page.propertyValue('input[name="q"]', 'value'), 'p');
 
@@ -307,7 +307,7 @@ void main() {
         await page.gotoOrigin('/packages?q=pkg+platform:android');
         // clicking on the first package's first sub-tag, which is `sdk:dart`
         await page.click('.tag-badge-sub');
-        await page.waitForNavigation(wait: Until.networkIdle);
+        await page.waitForNavigationUntilIdle();
         expect(
             page.url, '$origin/packages?q=platform%3Aandroid+sdk%3Adart+pkg');
       });

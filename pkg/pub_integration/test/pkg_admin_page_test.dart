@@ -54,7 +54,7 @@ void main() {
           await page.waitAndClick('#-pkg-admin-automated-button',
               waitForOneResponse: true);
           await page.waitAndClickOnDialogOk();
-          await page.reload();
+          await page.reloadUntilIdle();
           final value = await page.propertyValue(
               '#-pkg-admin-automated-github-repository', 'value');
           expect(value, 'dart-lang/pub-dev');
