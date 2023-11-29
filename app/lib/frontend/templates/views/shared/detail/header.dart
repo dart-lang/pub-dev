@@ -36,10 +36,9 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-desktop'],
                   title: 'Package is a Flutter Favorite',
-                  image: d.Image(
+                  image: d.Image.presentation(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
-                    alt: 'large Flutter Favorite logo',
                     width: 150,
                     height: 218,
                   ),
@@ -47,10 +46,9 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-mobile'],
                   title: 'Package is a Flutter Favorite',
-                  image: d.Image(
+                  image: d.Image.presentation(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
-                    alt: 'small Flutter Favorite logo',
                     width: 94,
                     height: 116,
                   ),

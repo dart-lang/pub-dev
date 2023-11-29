@@ -442,13 +442,22 @@ class Image {
   final String alt;
   final int? width;
   final int? height;
+  final String? role;
 
   Image({
     required this.src,
     required this.alt,
     required this.width,
     required this.height,
+    this.role,
   });
+
+  Image.presentation({
+    required this.src,
+    required this.width,
+    required this.height,
+  })  : alt = '',
+        role = 'presentation';
 }
 
 /// Creates an `<img>` Element using the default [DomContext].
@@ -472,6 +481,7 @@ Node img({
       if (image.height != null) 'height': image.height.toString(),
       if (title != null) 'title': title,
       if (lazy) 'loading': 'lazy',
+      if (image.role != null) 'role': image.role!,
       if (attributes != null) ...attributes,
     },
     children: children,

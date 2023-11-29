@@ -198,9 +198,8 @@ d.Node pageLayoutNode({
                         ),
                         d.img(
                           classes: ['logo'],
-                          image: d.Image(
+                          image: d.Image.presentation(
                             src: staticUrls.pubDevLogoSvg,
-                            alt: 'pub.dev package manager',
                             width: 328,
                             height: 70,
                           ),
