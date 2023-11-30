@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
@@ -26,6 +27,7 @@ import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
+import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -273,4 +275,22 @@ void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
+}
+
+class FakeGlobalLockClaim implements GlobalLockClaim {
+  @override
+  DateTime expires;
+
+  FakeGlobalLockClaim(this.expires);
+
+  @override
+  Future<bool> refresh() async {
+    return true;
+  }
+
+  @override
+  Future<void> release() async {}
+
+  @override
+  bool get valid => expires.isAfter(clock.now());
 }

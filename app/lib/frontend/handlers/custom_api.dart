@@ -8,10 +8,6 @@ import 'dart:io';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:gcloud/storage.dart';
-import 'package:pub_dev/shared/count_topics.dart';
-import 'package:pub_dev/shared/storage.dart';
-import 'package:pub_dev/task/backend.dart';
-import 'package:pub_dev/task/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../frontend/request_context.dart';
@@ -20,15 +16,19 @@ import '../../package/models.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
 import '../../scorecard/backend.dart';
+import '../../search/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
+import '../../shared/count_topics.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
+import '../../shared/storage.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show jsonUtf8Encoder;
-
+import '../../task/backend.dart';
+import '../../task/models.dart';
 import 'headers.dart';
 
 /// Handles requests for /api/documentation/<package>
@@ -104,22 +104,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
         'Client must send "Accept-Encoding: gzip" header');
   }
 
-  final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
-    final rs = await searchClient.search(
-      ServiceSearchQuery.parse(
-        tagsPredicate: TagsPredicate.regularSearch(),
-        limit: 20000,
-      ),
-      // Do not cache response at the search client level, as we'll be caching
-      // it in a processed form much longer.
-      skipCache: true,
-    );
-
-    return gzip.encode(jsonUtf8Encoder.convert({
-      'packages': rs.packageHits.map((p) => p.package).toList(),
-    }));
-  });
-
+  final bytes = await searchBackend.getPackageNameCompletitionDataJsonGz();
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
