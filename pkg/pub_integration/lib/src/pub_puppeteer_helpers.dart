@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
+import 'dart:io';
 
 import 'package:puppeteer/puppeteer.dart';
 
@@ -45,6 +46,10 @@ Future<ListingPageInfo> listingPageInfo(Page page) async {
 }
 
 extension PubPageExt on Page {
+  Future<void> saveScreenshot(String path) async {
+    await File(path).writeAsBytes(await screenshot());
+  }
+
   Future<void> waitFocusAndType(String selector, String text) async {
     await waitForSelector(selector, timeout: Duration(seconds: 5));
     await focus(selector);
@@ -185,6 +190,39 @@ extension PubPageExt on Page {
     // Click ok on the popup saying it was done
     await waitAndClickOnDialogOk();
     await _waitForModelHidden();
+  }
+
+  /// Waits until the given selectors are visible and their UI top-left position
+  /// differs.
+  Future<void> waitForLayout(
+    List<String> selectors, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final sw = Stopwatch()..start();
+    final handles = await Future.wait(
+        selectors.map((e) => waitForSelector(e, timeout: timeout)));
+    while (sw.elapsed < timeout) {
+      final positions =
+          await Future.wait(handles.map((e) async => (await e!.boundingBox)!));
+      bool hasSamePosition = false;
+      for (var i = 0; i < positions.length; i++) {
+        for (var j = i + 1; j < positions.length; j++) {
+          if (positions[i].topLeft == positions[j].topLeft) {
+            hasSamePosition = true;
+            break;
+          }
+        }
+        if (hasSamePosition) break;
+      }
+      if (hasSamePosition) {
+        await Future.delayed(Duration(milliseconds: 25));
+        continue;
+      } else {
+        return;
+      }
+    }
+    await saveScreenshot('layout-timeout.png');
+    throw TimeoutException('Did not have a stable layout in $timeout.');
   }
 
   Future<void> waitAndClick(

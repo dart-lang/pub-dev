@@ -49,6 +49,10 @@ void main() {
           await page.gotoOrigin('/packages/test_pkg/admin');
 
           await page.waitAndClick('#-pkg-admin-automated-github-enabled');
+          await page.waitForLayout([
+            '#-pkg-admin-automated-github-repository',
+            '#-pkg-admin-automated-github-tagpattern',
+          ]);
           await page.waitFocusAndType(
               '#-pkg-admin-automated-github-repository', 'dart-lang/pub-dev');
           await page.waitAndClick('#-pkg-admin-automated-button',
