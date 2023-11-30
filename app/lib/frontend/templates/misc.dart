@@ -33,9 +33,8 @@ final _helpScoringMarkdown = _readDocContent('help-scoring.md');
 final _helpSearchMarkdown = _readDocContent('help-search.md');
 final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 
-late final _sideImage = d.Image(
+late final _sideImage = d.Image.decorative(
   src: static_files.staticUrls.packagesSideImage,
-  alt: 'cover image decorating the page',
   width: 400,
   height: 400,
 );

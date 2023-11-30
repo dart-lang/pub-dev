@@ -24,9 +24,8 @@ d.Node siteHeaderNode({
           href: '/',
           child: d.img(
             classes: ['site-logo'],
-            image: d.Image(
+            image: d.Image.decorative(
               src: staticUrls.pubDevLogoSvg,
-              alt: 'pub logo',
               width: 140,
               height: 30,
             ),

@@ -442,13 +442,33 @@ class Image {
   final String alt;
   final int? width;
   final int? height;
+  final String? role;
 
   Image({
     required this.src,
     required this.alt,
     required this.width,
     required this.height,
+    this.role,
   });
+
+  /// Decorative images don't add information to the content of a page. For example,
+  /// the information provided by the image might already be given using adjacent
+  /// text, or the image might be included to make the website more visually attractive.
+  /// In these cases, a `null` (empty) alt text should be provided (`alt=""`) so that
+  /// they can be ignored by assistive technologies, such as screen readers.
+  ///
+  /// Screen readers also allow the use of WAI-ARIA to hide elements by using
+  /// `role="presentation"`. However, currently, this feature is not as widely
+  /// supported as using a `null` `alt` attribute.
+  ///
+  /// https://www.w3.org/WAI/tutorials/images/decorative/
+  Image.decorative({
+    required this.src,
+    required this.width,
+    required this.height,
+  })  : alt = '',
+        role = 'presentation';
 }
 
 /// Creates an `<img>` Element using the default [DomContext].
@@ -472,6 +492,7 @@ Node img({
       if (image.height != null) 'height': image.height.toString(),
       if (title != null) 'title': title,
       if (lazy) 'loading': 'lazy',
+      if (image.role != null) 'role': image.role!,
       if (attributes != null) ...attributes,
     },
     children: children,
