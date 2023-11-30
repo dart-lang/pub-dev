@@ -54,7 +54,7 @@ class ApiExporter {
 
   /// Runs a forever loop and tries to get a global lock.
   ///
-  /// Once it has the claim, it scans the packages entities and uploads
+  /// Once it has the claim, it scans the package entities and uploads
   /// the package API JSONs to the bucket.
   /// Tracks the package updates for the next up-to 24 hours and writes
   /// the API JSONs after every few minutes.

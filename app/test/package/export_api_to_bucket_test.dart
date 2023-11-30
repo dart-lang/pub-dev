@@ -51,13 +51,24 @@ void main() {
           'current/api/packages/oxygen',
         });
 
-        final currentNeon = json.decode(utf8.decode(gzip
-            .decode(await bucket.readAsBytes('current/api/packages/neon'))));
-        expect(currentNeon, {
-          'name': 'neon',
-          'latest': isNotEmpty,
-          'versions': isNotEmpty,
-        });
+        Future<Object?> readAndDecodeJson(String path) async => json
+            .decode(utf8.decode(gzip.decode(await bucket.readAsBytes(path))));
+
+        expect(
+          await readAndDecodeJson('current/api/packages/neon'),
+          {
+            'name': 'neon',
+            'latest': isNotEmpty,
+            'versions': hasLength(1),
+          },
+        );
+
+        expect(
+          await readAndDecodeJson('current/api/package-name-completion-data'),
+          {
+            'packages': hasLength(3),
+          },
+        );
       },
     );
   });
