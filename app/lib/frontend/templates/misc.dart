@@ -33,7 +33,7 @@ final _helpScoringMarkdown = _readDocContent('help-scoring.md');
 final _helpSearchMarkdown = _readDocContent('help-search.md');
 final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
 
-late final _sideImage = d.Image.presentation(
+late final _sideImage = d.Image.decorative(
   src: static_files.staticUrls.packagesSideImage,
   width: 400,
   height: 400,

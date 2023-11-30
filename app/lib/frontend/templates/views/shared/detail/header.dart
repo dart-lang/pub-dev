@@ -36,7 +36,7 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-desktop'],
                   title: 'Package is a Flutter Favorite',
-                  image: d.Image.presentation(
+                  image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
                     width: 150,
@@ -46,7 +46,7 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-mobile'],
                   title: 'Package is a Flutter Favorite',
-                  image: d.Image.presentation(
+                  image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
                     width: 94,

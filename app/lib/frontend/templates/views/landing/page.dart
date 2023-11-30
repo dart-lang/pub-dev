@@ -36,7 +36,7 @@ d.Node landingPageNode({
     if (_isNotEmptyList(mostPopularPackages))
       _block(
         shortId: 'mp',
-        image: d.Image.presentation(
+        image: d.Image.decorative(
           src: staticUrls.getAssetUrl('/static/img/landing-01.webp'),
           width: 351,
           height: 240,
@@ -51,7 +51,7 @@ d.Node landingPageNode({
     if (_isNotEmptyList(topFlutterPackages))
       _block(
         shortId: 'tf',
-        image: d.Image.presentation(
+        image: d.Image.decorative(
           src: staticUrls.getAssetUrl('/static/img/landing-02.webp'),
           width: 306,
           height: 240,
@@ -67,7 +67,7 @@ d.Node landingPageNode({
     if (_isNotEmptyList(topDartPackages))
       _block(
         shortId: 'td',
-        image: d.Image.presentation(
+        image: d.Image.decorative(
           src: staticUrls.getAssetUrl('/static/img/landing-03.webp'),
           width: 370,
           height: 240,

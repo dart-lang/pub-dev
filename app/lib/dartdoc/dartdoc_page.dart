@@ -136,7 +136,7 @@ extension DartDocPageRender on DartDocPage {
           child: d.img(
             // TODO: Move this into a class
             attributes: {'style': 'height: 30px; margin-right: 1em;'},
-            image: d.Image.presentation(
+            image: d.Image.decorative(
               src: staticUrls.dartLogoSvg,
               height: 30,
               width: 30,
