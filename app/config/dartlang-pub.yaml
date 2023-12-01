@@ -13,6 +13,7 @@ defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.apps
 dartdocStorageBucketName: dartlang-pub--dartdoc-storage
 popularityDumpBucketName: dartlang-pub--popularity
 searchSnapshotBucketName: dartlang-pub--search-snapshot
+exportedApiBucketName: null
 maxTaskInstances: 700
 maxTaskRunHours: 2
 taskResultBucketName: dartlang-pub-task-output
