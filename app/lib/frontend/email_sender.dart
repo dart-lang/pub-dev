@@ -120,6 +120,9 @@ class _GmailSmtpRelay implements EmailSender {
   final String _impersonatedGSuiteUser;
   final http.Client _authClient;
 
+  bool _forceReconnect = false;
+  Future<_GmailConnection>? _connection;
+
   DateTime _accessTokenRefreshed = DateTime(0);
   DateTime _backoffUntil = DateTime(0);
   Future<String>? _accessToken;
@@ -141,11 +144,14 @@ class _GmailSmtpRelay implements EmailSender {
     _logger.info('Sending email: $debugHeader...');
     try {
       await retry(
-        () async => send(
-          _toMessage(message),
-          await _getSmtpServer(),
-          timeout: Duration(seconds: 15),
-        ),
+        () async {
+          final c = await _getConnection();
+          try {
+            await c.connection.send(_toMessage(message));
+          } finally {
+            c.trackSentEmail(message.recipients.length);
+          }
+        },
         retryIf: (e) =>
             e is TimeoutException ||
             e is IOException ||
@@ -153,6 +159,9 @@ class _GmailSmtpRelay implements EmailSender {
             e is SmtpNoGreetingException,
         delayFactor: Duration(seconds: 2),
         maxAttempts: 2,
+        onRetry: (_) {
+          _forceReconnect = true;
+        },
       );
     } on SmtpMessageValidationException catch (e, st) {
       _logger.info('Sending email failed: $debugHeader.', e, st);
@@ -160,12 +169,36 @@ class _GmailSmtpRelay implements EmailSender {
     } on SmtpClientAuthenticationException catch (e, st) {
       _logger.shout('Sending email failed due to invalid auth: $e', e, st);
       _backoffUntil = clock.now().add(Duration(minutes: 2));
+      _forceReconnect = true;
       _accessToken = null;
       throw EmailSenderException.failed();
     } on MailerException catch (e, st) {
       _logger.warning('Sending email failed: $debugHeader.', e, st);
       throw EmailSenderException.failed();
     }
+  }
+
+  Future<_GmailConnection> _getConnection() async {
+    final old = _connection == null ? null : await _connection;
+    if (!_forceReconnect && old != null && !old.isExpired) {
+      return old;
+    }
+    _forceReconnect = false;
+    return _connection = Future.microtask(() async {
+      if (old != null) {
+        try {
+          await old.connection.close();
+        } catch (e, st) {
+          _logger.warning('Unable to close SMTP connection.', e, st);
+        }
+      }
+      return _GmailConnection(
+        PersistentConnection(
+          await _getSmtpServer(),
+          timeout: Duration(seconds: 15),
+        ),
+      );
+    });
   }
 
   Future<SmtpServer> _getSmtpServer() async {
@@ -232,5 +265,39 @@ class _GmailSmtpRelay implements EmailSender {
     } finally {
       client.close();
     }
+  }
+}
+
+class _GmailConnection {
+  final DateTime created;
+  final PersistentConnection connection;
+  DateTime _lastUsed;
+  var _sentCount = 0;
+
+  _GmailConnection(this.connection)
+      : created = clock.now(),
+        _lastUsed = clock.now();
+
+  void trackSentEmail(int count) {
+    _sentCount += count;
+    _lastUsed = clock.now();
+  }
+
+  bool get isExpired {
+    // There is a 100-recipient limit per SMTP transaction for smtp-relay.gmail.com.
+    // Exceeding this limit results in an error message. To send messages to
+    // additional recipients, start another transaction (new SMTP connection or RSET command).
+    if (_sentCount > 90) {
+      return true;
+    }
+    final age = clock.now().difference(created);
+    if (age > Duration(minutes: 5)) {
+      return true;
+    }
+    final idle = clock.now().difference(_lastUsed);
+    if (idle > Duration(seconds: 25)) {
+      return true;
+    }
+    return false;
   }
 }

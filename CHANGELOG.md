@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.2.5`.
  * Upgraded stable Flutter analysis SDK to `3.16.8`.
  * Upgraded preview Flutter analysis SDK to `3.19.0-0.2.pre`.
+ * Note: Sending emails keep persistent connection for a few minutes.
 
 ## `20240118t104800-all`
  * Upgraded dependencies including `markdown: ^7.2.0`.
