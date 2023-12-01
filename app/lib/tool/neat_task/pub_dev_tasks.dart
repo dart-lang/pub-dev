@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -114,6 +115,13 @@ void _setupGenericPeriodicTasks() {
     task: updatePublicArchiveBucket,
   );
 
+  // Exports the package name completetion data to a bucket.
+  _daily(
+    name: 'export-package-name-completition-data-to-bucket',
+    isRuntimeVersioned: true,
+    task: () async => await apiExporter?.uploadPkgNameCompletionData(),
+  );
+
   // Deletes task status entities where the status hasn't been updated
   // for more than a month.
   _weekly(
@@ -148,6 +156,13 @@ void _setupGenericPeriodicTasks() {
     name: 'garbage-collect-task-results',
     isRuntimeVersioned: false,
     task: taskBackend.garbageCollect,
+  );
+
+  // Deletes exported API data for old runtime versions
+  _weekly(
+    name: 'garbage-collect-api-exports',
+    isRuntimeVersioned: true,
+    task: () async => apiExporter?.deleteObsoleteRuntimeContent(),
   );
 
   // Delete very old instances that have been abandoned
