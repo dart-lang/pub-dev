@@ -19,7 +19,6 @@ import '../package/overrides.dart';
 import '../shared/datastore.dart' as db;
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
-import '../shared/versions.dart' as versions;
 
 import 'models.dart';
 
@@ -158,11 +157,6 @@ class ScoreCardBackend {
     );
     await cacheEntry.set(data);
     return data;
-  }
-
-  /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
-  Future<void> deleteOldEntries() async {
-    await _db.deleteWithQuery(_db.query<ScoreCard>());
   }
 
   /// Returns the status of a package and version.

@@ -17,7 +17,6 @@ import 'package:logging/logging.dart';
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:stream_transform/stream_transform.dart';
 
 export 'package:pana/pana.dart' show exampleFileCandidates;
 
@@ -120,36 +119,6 @@ extension VersionIterableExt on Iterable<semver.Version> {
   }
 }
 
-List<List<T>> _sliceList<T>(List<T> list, int limit) {
-  if (list.length <= limit) return [list];
-  final int maxPageIndex = (list.length - 1) ~/ limit;
-  return List.generate(maxPageIndex + 1,
-      (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
-}
-
-/// Buffers for [duration] and then randomizes the order of the items in the
-/// stream. For every single item, their final position would be in the range of
-/// [maxPositionDiff] of its original position.
-Stream<T> randomizeStream<T>(
-  Stream<T> stream, {
-  Duration duration = const Duration(minutes: 1),
-  int maxPositionDiff = 1000,
-  Random? random,
-}) {
-  random ??= Random.secure();
-  final Stream trigger = Stream.periodic(duration);
-  return stream.buffer(trigger).transform(StreamTransformer.fromHandlers(
-    handleData: (List<T> items, Sink<T> sink) {
-      for (List<T> list in _sliceList(items, maxPositionDiff)) {
-        list.shuffle(random);
-        for (T task in list) {
-          sink.add(task);
-        }
-      }
-    },
-  ));
-}
-
 class LastNTracker<T extends Comparable<T>> {
   final Queue<T> _lastItems = Queue();
   final int _n;
@@ -165,19 +134,6 @@ class LastNTracker<T extends Comparable<T>> {
   T? get p90 => _getP(0.9);
   T? get p99 => _getP(0.99);
 
-  Map<T, int> toCounts() {
-    return _lastItems.fold<Map<T, int>>({}, (Map<T, int> m, T item) {
-      m[item] = (m[item] ?? 0) + 1;
-      return m;
-    });
-  }
-
-  double get average {
-    if (_lastItems.isEmpty) return 0.0;
-    final double sum = _lastItems.whereType<num>().fold(0.0, (a, b) => a + b);
-    return sum / _lastItems.length;
-  }
-
   T? _getP(double p) {
     if (_lastItems.isEmpty) return null;
     final List<T> list = List.from(_lastItems);
@@ -192,23 +148,6 @@ class DurationTracker extends LastNTracker<Duration> {
         'p90': p90?.inMilliseconds,
         'p99': p99?.inMilliseconds,
       };
-}
-
-String formatDuration(Duration d) {
-  final List<String> parts = [];
-  int minutes = d.inMinutes;
-  if (minutes == 0) return '0 mins';
-
-  int hours = minutes ~/ 60;
-  minutes = minutes % 60;
-  final int days = hours ~/ 24;
-  hours = hours % 24;
-
-  if (days > 0) parts.add('$days days');
-  if (hours > 0) parts.add('$hours hours');
-  if (minutes > 0) parts.add('$minutes mins');
-
-  return parts.join(' ');
 }
 
 /// Returns the MIME content type based on the name of the file.
@@ -297,12 +236,6 @@ Map<String, String>? cloudTraceHeaders() {
   } catch (_) {
     return null;
   }
-}
-
-extension LoggerExt on Logger {
-  /// Reports an error [message] with the current stacktrace.
-  void reportError(String message) =>
-      shout(message, Exception(message), StackTrace.current);
 }
 
 /// Statistics for delete + filter operations.

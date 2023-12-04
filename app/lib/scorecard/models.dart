@@ -10,7 +10,6 @@ import 'package:pana/models.dart';
 import 'package:pub_dev/task/models.dart';
 
 import '../scorecard/backend.dart';
-import '../shared/datastore.dart' as db;
 import '../shared/popularity_storage.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 
@@ -23,13 +22,6 @@ abstract class ReportStatus {
   static const String failed = 'failed';
   static const String aborted = 'aborted';
 }
-
-/// Summary of various reports for a given PackageVersion.
-///
-/// The details are pulled in from various data sources, and the entry is
-/// recalculated from scratch each time any of the sources change.
-@db.Kind(name: 'ScoreCard', idType: db.IdType.String)
-class ScoreCard extends db.ExpandoModel<String> {}
 
 @JsonSerializable()
 class ScoreCardData {
