@@ -281,7 +281,8 @@
     text-align: center;
     position: relative;
 
-    &:hover {
+    &:hover,
+    &:focus-within {
       > a { opacity: 1; } // Overrides default a:hover.
       .pow-video-overlay-img-active { display: inline-block; }
       .pow-video-overlay-img-inactive { display: none; }
