@@ -9,7 +9,6 @@ import '../../account/models.dart';
 import '../../audit/models.dart';
 import '../../package/models.dart';
 import '../../publisher/models.dart';
-import '../../scorecard/models.dart';
 import '../../service/secret/models.dart';
 import '../../shared/datastore.dart';
 import '../../shared/env_config.dart';
@@ -46,7 +45,6 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
     dbService.query<UserSession>(): 500,
     dbService.query<User>(): 500,
     dbService.query<Like>(): 500,
-    dbService.query<ScoreCard>(): 500,
     dbService.query<PackageVersionInfo>(): 500,
     dbService.query<PackageVersionAsset>(): 100,
     dbService.query<PackageVersion>(): 500,

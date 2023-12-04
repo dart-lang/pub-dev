@@ -24,7 +24,6 @@ import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
 import '../package/models.dart';
 import '../publisher/models.dart';
-import '../scorecard/models.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
@@ -370,10 +369,6 @@ class AdminBackend {
     _logger.info('Removing package from PackageVersionAsset ...');
     await _db.deleteWithQuery(
         _db.query<PackageVersionAsset>()..filter('package =', packageName));
-
-    _logger.info('Removing package from ScoreCard ...');
-    await _db.deleteWithQuery(
-        _db.query<ScoreCard>()..filter('packageName =', packageName));
 
     _logger.info('Removing package from Like ...');
     await _db.deleteWithQuery(

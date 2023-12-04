@@ -2,64 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:math';
-
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Randomize Stream', () {
-    test('Single batch', () async {
-      final input = List.generate(10, (i) => i);
-      final Stream<int> randomizedStream = randomizeStream(
-        Stream.fromIterable(input),
-        duration: Duration(milliseconds: 100),
-        random: Random(123),
-      );
-      final result = await randomizedStream.toList();
-      expect(input.every(result.contains), isTrue);
-      expect(result, isNot(input)); // checks that items are randomized
-    });
-
-    test('Two batches', () async {
-      final StreamController<int> controller = StreamController<int>();
-      final Stream<int> randomizedStream = randomizeStream(
-        controller.stream,
-        duration: Duration(milliseconds: 100),
-        random: Random(123),
-      );
-      final Future<List<int>> valuesFuture = randomizedStream.toList();
-      List.generate(8, (i) => i).forEach(controller.add);
-      await Future.delayed(Duration(milliseconds: 200));
-      List.generate(8, (i) => i + 10).forEach(controller.add);
-      await controller.close();
-      final result = await valuesFuture;
-      final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
-      expect(input.every(result.contains), isTrue);
-      expect(result, isNot(input)); // checks that items are randomized
-    });
-
-    test('Small slices', () async {
-      final StreamController<int> controller = StreamController<int>();
-      final Stream<int> randomizedStream = randomizeStream(
-        controller.stream,
-        duration: Duration(milliseconds: 100),
-        maxPositionDiff: 4,
-        random: Random(123),
-      );
-      final Future<List<int>> valuesFuture = randomizedStream.toList();
-      List.generate(8, (i) => i).forEach(controller.add);
-      List.generate(8, (i) => i + 10).forEach(controller.add);
-      await controller.close();
-      final result = await valuesFuture;
-      final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
-      expect(input.every(result.contains), isTrue);
-      expect(result, isNot(input)); // checks that items are randomized
-    });
-  });
-
   group('boundedList', () {
     final numbers10 = List.generate(10, (i) => i);
 

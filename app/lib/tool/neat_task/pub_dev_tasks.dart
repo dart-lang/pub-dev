@@ -13,7 +13,6 @@ import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
-import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../service/email/backend.dart';
 import '../../service/security_advisories/sync_security_advisories.dart';
@@ -172,7 +171,6 @@ void _setupGenericPeriodicTasks() {
 /// Setup the tasks that we are running in the analyzer service.
 void setupAnalyzerPeriodicTasks() {
   _setupGenericPeriodicTasks();
-  _setupJobCleanupPeriodicTasks();
 
   // Checks the Datastore integrity of the model objects.
   _weekly(
@@ -191,17 +189,6 @@ void setupSearchPeriodicTasks() {
     name: 'delete-old-search-snapshots',
     isRuntimeVersioned: true,
     task: () => searchBackend.deleteOldData(),
-  );
-}
-
-/// Setup the tasks that we are running in both analyzer and dartdoc services.
-void _setupJobCleanupPeriodicTasks() {
-  // Deletes ScoreCard and ScoreCardReport entities that are older than the
-  // accepted runtime versions.
-  _weekly(
-    name: 'delete-old-scorecards',
-    isRuntimeVersioned: true,
-    task: () async => await scoreCardBackend.deleteOldEntries(),
   );
 }
 
