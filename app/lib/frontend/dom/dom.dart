@@ -103,16 +103,18 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
     if (datePrefix != null) datePrefix,
     shortDateFormat.format(timestamp),
   ].join(' ');
+  final text = formatXAgo(clock.now().difference(timestamp));
   return a(
     classes: ['-x-ago'],
     href: '',
     title: title,
     attributes: {
-      'aria-label': 'Switch between date and elapsed time.',
+      'aria-label': text,
       'aria-role': 'button',
+      'role': 'button',
       'data-timestamp': timestamp.millisecondsSinceEpoch.toString(),
     },
-    text: formatXAgo(clock.now().difference(timestamp)),
+    text: text,
   );
 }
 
