@@ -34,10 +34,9 @@ d.Node videoListNode(List<PkgOfWeekVideo> videos) {
               children: [
                 d.img(
                   classes: ['pow-video-overlay-img-active'],
-                  image: d.Image(
+                  image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/youtube-play-red.png'),
-                    alt: 'youtube video play icon - active',
                     width: 76,
                     height: 53,
                   ),
@@ -45,10 +44,9 @@ d.Node videoListNode(List<PkgOfWeekVideo> videos) {
                 ),
                 d.img(
                   classes: ['pow-video-overlay-img-inactive'],
-                  image: d.Image(
+                  image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/youtube-play-black.png'),
-                    alt: 'youtube video play icon - inactive',
                     width: 76,
                     height: 53,
                   ),
