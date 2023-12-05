@@ -96,14 +96,14 @@ d.Node detailHeaderNode({
                               onIcon: d.Image(
                                 src: staticUrls
                                     .getAssetUrl('/static/img/like-active.svg'),
-                                alt: 'icon indicating liked status (active)',
+                                alt: 'liked status: active',
                                 width: 18,
                                 height: 18,
                               ),
                               offIcon: d.Image(
                                 src: staticUrls.getAssetUrl(
                                     '/static/img/like-inactive.svg'),
-                                alt: 'icon indicating liked status (inactive)',
+                                alt: 'liked status: inactive',
                                 width: 18,
                                 height: 18,
                               ),

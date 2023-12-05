@@ -228,7 +228,7 @@ d.Node _item({
                   image: d.Image(
                     src:
                         staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
-                    alt: 'icon indicating recent time',
+                    alt: 'new package',
                     width: 10,
                     height: 10,
                   ),
