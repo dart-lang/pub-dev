@@ -92,21 +92,8 @@ class ApiExporter {
     final bytes = await searchBackend.getPackageNameCompletitionDataJsonGz();
     final bytesAndHash = _BytesAndHash(bytes);
     for (final objectName in _apiPkgNameCompletitionDataNames()) {
-      if (await _isSameContent(objectName, bytesAndHash)) {
-        continue;
-      }
-      await uploadWithRetry(
-        _bucket,
-        objectName,
-        bytes.length,
-        () => Stream.value(bytes),
-        metadata: ObjectMetadata(
-          contentType: 'application/json; charset="utf-8"',
-          contentEncoding: 'gzip',
-          cacheControl:
-              'public, max-age=${_pkgNameCompletitionDataMaxAge.inSeconds}',
-        ),
-      );
+      await _upsert(objectName, bytesAndHash,
+          maxAge: _pkgNameCompletitionDataMaxAge);
     }
   }
 
@@ -200,21 +187,7 @@ class ApiExporter {
     final bytesAndHash = _BytesAndHash(bytes);
 
     for (final objectName in _apiPkgObjectNames(package)) {
-      if (await _isSameContent(objectName, bytesAndHash)) {
-        continue;
-      }
-
-      await uploadWithRetry(
-        _bucket,
-        objectName,
-        bytes.length,
-        () => Stream.value(bytes),
-        metadata: ObjectMetadata(
-          contentType: 'application/json; charset="utf-8"',
-          contentEncoding: 'gzip',
-          cacheControl: 'public, max-age=${_pkgApiMaxCacheAge.inSeconds}',
-        ),
-      );
+      await _upsert(objectName, bytesAndHash, maxAge: _pkgApiMaxCacheAge);
     }
   }
 
@@ -271,6 +244,27 @@ class ApiExporter {
     for (final v in versions) {
       await deleteBucketFolderRecursively(_bucket, '$v/', concurrency: 4);
     }
+  }
+
+  Future<void> _upsert(
+    String objectName,
+    _BytesAndHash bytesAndHash, {
+    required Duration maxAge,
+  }) async {
+    if (await _isSameContent(objectName, bytesAndHash)) {
+      return;
+    }
+    await uploadWithRetry(
+      _bucket,
+      objectName,
+      bytesAndHash.bytes.length,
+      () => Stream.value(bytesAndHash.bytes),
+      metadata: ObjectMetadata(
+        contentType: 'application/json; charset="utf-8"',
+        contentEncoding: 'gzip',
+        cacheControl: 'public, max-age=${maxAge.inSeconds}',
+      ),
+    );
   }
 
   Future<bool> _isSameContent(
