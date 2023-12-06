@@ -26,7 +26,7 @@ String renderLandingPage({
   return renderLayoutPage(
     PageType.landing,
     content,
-    title: 'Dart packages',
+    title: 'The official package repository for Dart and Flutter apps.',
     canonicalUrl: '/',
     mainClasses: ['landing-main'],
   );
