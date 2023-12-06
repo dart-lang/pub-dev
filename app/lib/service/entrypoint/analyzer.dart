@@ -7,7 +7,9 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
 import 'package:pub_dev/search/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
 import '../../analyzer/handlers.dart';
 import '../../service/services.dart';
@@ -43,6 +45,15 @@ class AnalyzerCommand extends Command {
       );
       registerScopeExitCallback(indexBuilder.close);
 
+      if (activeConfiguration.exportedApiBucketName != null) {
+        final apiExporterIsolate = await startWorkerIsolate(
+          logger: logger,
+          entryPoint: _apiExporterMain,
+          kind: 'api-exporter',
+        );
+        registerScopeExitCallback(apiExporterIsolate.close);
+      }
+
       await runHandler(logger, analyzerServiceHandler);
     });
   }
@@ -51,11 +62,11 @@ class AnalyzerCommand extends Command {
 Future _workerMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
 
+  await popularityStorage.start();
   await taskBackend.start();
 
   setupAnalyzerPeriodicTasks();
   setupSearchPeriodicTasks();
-  await popularityStorage.start();
 
   // wait indefinitely
   await Completer().future;
@@ -65,4 +76,10 @@ Future _indexBuilderMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
   await searchBackend.updateSnapshotInForeverLoop();
+}
+
+Future _apiExporterMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+  await popularityStorage.start();
+  await apiExporter!.uploadInForeverLoop();
 }

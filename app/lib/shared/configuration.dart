@@ -85,6 +85,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for generated reports.
   final String? reportsBucketName;
 
+  /// The name of the Cloud Storage bucket to use for exporting JSON API responses.
+  final String? exportedApiBucketName;
+
   /// The Cloud project Id. This is only required when using Apiary to access
   /// Datastore and/or Cloud Storage
   final String projectId;
@@ -275,6 +278,7 @@ class Configuration {
     required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
+    required this.exportedApiBucketName,
     required this.maxTaskInstances,
     required this.maxTaskRunHours,
     required this.taskResultBucketName,
@@ -341,6 +345,7 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      exportedApiBucketName: 'fake-exported-apis',
       maxTaskInstances: 10,
       maxTaskRunHours: 2,
       taskResultBucketName: 'fake-bucket-task-result',
@@ -392,6 +397,7 @@ class Configuration {
       dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
+      exportedApiBucketName: 'fake-exported-apis',
       taskResultBucketName: 'fake-bucket-task-result',
       maxTaskInstances: 10,
       maxTaskRunHours: 2,
@@ -442,6 +448,7 @@ class Configuration {
     publicPackagesBucketName!,
     searchSnapshotBucketName!,
     taskResultBucketName!,
+    if (exportedApiBucketName != null) exportedApiBucketName!,
   ]);
 
   late final isProduction = projectId == 'dartlang-pub';

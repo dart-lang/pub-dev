@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -40,6 +41,13 @@ List<String> _apiPkgNameCompletitionDataNames() => [
       '$runtimeVersion/api/package-name-completion-data',
       'current/api/package-name-completion-data',
     ];
+
+/// Sets the API Exporter service.
+void registerApiExporter(ApiExporter value) =>
+    ss.register(#_apiExporter, value);
+
+/// The active API Exporter service or null if it hasn't been initialized.
+ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 
 class ApiExporter {
   final Bucket _bucket;

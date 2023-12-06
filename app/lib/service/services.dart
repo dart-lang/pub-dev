@@ -12,6 +12,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -228,6 +229,11 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnnouncementBackend(AnnouncementBackend());
+    if (activeConfiguration.exportedApiBucketName != null) {
+      registerApiExporter(ApiExporter(
+          bucket: storageService
+              .bucket(activeConfiguration.exportedApiBucketName!)));
+    }
     registerAsyncQueue(AsyncQueue());
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
