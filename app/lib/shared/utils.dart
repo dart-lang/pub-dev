@@ -277,6 +277,11 @@ extension ByteArrayEqualsExt on List<int> {
 
 /// Compare two strings with with fixed number of operations to prevent timing attacks.
 bool fixedTimeEquals(String a, String b) {
+  return fixedTimeIntListEquals(a.codeUnits, b.codeUnits);
+}
+
+/// Compare two int lists with with fixed number of operations to prevent timing attacks.
+bool fixedTimeIntListEquals(List<int> a, List<int> b) {
   final N = a.length;
   var result = 0;
   if (N != b.length) {
@@ -284,7 +289,7 @@ bool fixedTimeEquals(String a, String b) {
     result = 1; // return false
   }
   for (var i = 0; i < N; i++) {
-    result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    result |= a[i] ^ b[i];
   }
   return result == 0;
 }
