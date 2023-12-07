@@ -44,6 +44,10 @@ d.Node siteHeaderNode({
               name: 'q',
               placeholder: 'New search...',
               autocomplete: 'on',
+              attributes: {
+                'title': 'Search',
+                'aria-label': 'Search',
+              },
             ),
           ),
         ),
