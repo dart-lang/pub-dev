@@ -22,14 +22,14 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
           href: websiteUri.toString(),
           rel: websiteRel,
           label: websiteDisplayable!,
-          iconAlt: 'icon indicating a website link',
+          iconAlt: 'link to website',
         ),
       if (publisher.hasContactEmail)
         _ref(
           href: 'mailto:${publisher.contactEmail}',
           label: publisher.contactEmail!,
           iconPath: '/static/img/email-icon.svg',
-          iconAlt: 'icon indicating an email',
+          iconAlt: 'contact email',
         ),
     ]),
     d.p(

@@ -9,7 +9,7 @@ import '../../../static_files.dart';
 d.Image verifiedPublisherIconImage() {
   return d.Image(
     src: staticUrls.getAssetUrl('/static/img/material-icon-verified.svg'),
-    alt: 'verified publisher icon',
+    alt: 'verified publisher',
     width: 14,
     height: 14,
   );
@@ -17,9 +17,8 @@ d.Image verifiedPublisherIconImage() {
 
 /// Returns the image object for license icon.
 d.Image licenseIconImage() {
-  return d.Image(
+  return d.Image.decorative(
     src: staticUrls.getAssetUrl('/static/img/material-icon-balance.svg'),
-    alt: 'Icon for licenses.',
     width: 14,
     height: 14,
   );

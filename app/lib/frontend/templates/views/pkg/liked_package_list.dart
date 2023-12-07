@@ -43,7 +43,7 @@ d.Node likedPackageListNode(List<LikeData> likes) {
                   },
                   icon: d.Image(
                     src: thumbUpFilledUrl,
-                    alt: 'thumb up icon',
+                    alt: 'thumb up',
                     width: 24,
                     height: 24,
                   ),

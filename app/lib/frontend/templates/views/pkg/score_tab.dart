@@ -114,7 +114,7 @@ d.Node _section(ReportSection section) {
                 classes: ['pkg-report-icon'],
                 image: d.Image(
                   src: _statusIconUrls[section.status]!,
-                  alt: 'icon indicating section status',
+                  alt: _statusIconAlts[section.status]!,
                   width: 18,
                   height: 18,
                 ),
@@ -174,6 +174,12 @@ final _statusIconUrls = {
       staticUrls.getAssetUrl('/static/img/report-missing-icon-yellow.svg'),
   ReportStatus.failed:
       staticUrls.getAssetUrl('/static/img/report-missing-icon-red.svg'),
+};
+
+final _statusIconAlts = {
+  ReportStatus.passed: 'OK',
+  ReportStatus.partial: 'partial',
+  ReportStatus.failed: 'failed',
 };
 
 String _updatedSummary(String summary) {

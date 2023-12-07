@@ -275,7 +275,7 @@ d.Node _siteFooterNode() {
         ['sep'],
         d.Image(
           src: staticUrls.getAssetUrl('/static/img/rss-feed-icon.svg'),
-          alt: 'RSS icon',
+          alt: 'RSS',
           width: 20,
           height: 20,
         ),
@@ -286,7 +286,7 @@ d.Node _siteFooterNode() {
         ['github_issue'],
         d.Image(
           src: staticUrls.getAssetUrl('/static/img/bug-report-white-96px.png'),
-          alt: 'bug report icon',
+          alt: 'bug report',
           width: 20,
           height: 20,
         ),
