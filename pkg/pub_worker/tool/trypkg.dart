@@ -43,31 +43,64 @@ void main(List<String> args) async {
 
   await server.start();
 
+  final Process worker;
   if (argResults['docker'] == true) {
-    print('TODO: Implement support for running pub_worker under docker');
-    return;
+    print('Building worker docker image');
+    final buildProcess = await Process.start(
+      'docker',
+      ['build', '.', '--tag=pub_worker', '--file=Dockerfile.worker'],
+      workingDirectory: Platform.script.resolve('../../..').path,
+      mode: ProcessStartMode.inheritStdio,
+    );
+    final buildExitCode = await buildProcess.exitCode;
+    if (buildExitCode != 0) {
+      print('Building docker image failed (exit code $buildExitCode)');
+      exit(-1);
+    }
+    worker = await Process.start(
+      'docker',
+      [
+        'run',
+        '-it',
+        '--network=host',
+        '--entrypoint=dart',
+        '--rm',
+        'pub_worker',
+        'bin/pub_worker.dart',
+        json.encode(Payload(
+          package: package,
+          pubHostedUrl: '${server.baseUrl}',
+          versions: [
+            VersionTokenPair(
+              version: version,
+              token: 'secret-token',
+            ),
+          ],
+        )),
+      ],
+      mode: ProcessStartMode.inheritStdio,
+    );
+  } else {
+    worker = await Process.start(
+      Platform.resolvedExecutable,
+      [
+        'run',
+        if (argResults['observe'] == true) '--observe',
+        'pub_worker',
+        json.encode(Payload(
+          package: package,
+          pubHostedUrl: '${server.baseUrl}',
+          versions: [
+            VersionTokenPair(
+              version: version,
+              token: 'secret-token',
+            ),
+          ],
+        )),
+      ],
+      mode: ProcessStartMode.inheritStdio,
+    );
   }
-
-  final worker = await Process.start(
-    Platform.resolvedExecutable,
-    [
-      'run',
-      if (argResults['observe'] == true) '--observe',
-      'pub_worker',
-      json.encode(Payload(
-        package: package,
-        pubHostedUrl: '${server.baseUrl}',
-        versions: [
-          VersionTokenPair(
-            version: version,
-            token: 'secret-token',
-          ),
-        ],
-      )),
-    ],
-    mode: ProcessStartMode.inheritStdio,
-  );
-
   try {
     print('Starting worker');
     final exitCode = await worker.exitCode;
