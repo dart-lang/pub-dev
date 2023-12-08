@@ -62,8 +62,8 @@ Future<void> main(List<String> args) async {
   });
 
   // Fetch the pubspec so we detect which SDK to use for analysis
-  // TODO: Download the package, extract and load the pubspec.yaml, that way
-  //       we won't have to list versions again later.
+  // TODO(https://github.com/dart-lang/pub-dev/issues/7268): Download the archive,
+  //       extract and load the pubspec.yaml, that way we won't have to list versions.
   final pubspec = await fetchPubspec(
     package: package,
     version: version,

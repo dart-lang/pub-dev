@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -170,6 +171,11 @@ Future<void> schedule(
       scheduleMicrotask(() async {
         var rollbackPackageState = true;
         try {
+          // Purging cache is important for the edge case, where the new upload happens
+          // on a different runtime version, and the current one's cache is still stale
+          // and does not have the version yet.
+          // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
+          await purgePackageCache(payload.package);
           _log.info(
             'creating instance $instanceName in $zone for '
             'package:${state.package}',
