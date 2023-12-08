@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 final _client = HttpClient();
 
-/// Runs `dart pub get --offline --no-precompile` with pre-populated
-/// packages directly downloaded from the storage bucket.
+/// Runs `dart pub get --offline --no-precompile --enforce-lockfile` with
+/// pre-populated packages directly downloaded from the storage bucket.
 ///
-/// This allows us to not depend on a running `pub.dev` while deploying
-/// a new version.
+/// This allows us to not depend on a running `pub.dev` while deploying a new
+/// version.
 Future<void> main(List<String> args) async {
   final pkgDir = args.single;
   final pubCachePath =
@@ -91,54 +90,33 @@ Map<String, String> _parsePubspecLockSync(File file) {
   return versions;
 }
 
-/// Downloads the archive and extracts it into
-/// [pubCacheDir]/hosted/pub.dev/[package]-[version]/
+/// Downloads the archive and preloads it into the cache at [pubCacheDir].
 Future<void> _downloadInto(
     String package, String version, Directory pubCacheDir) async {
-  final targetDir =
-      Directory('${pubCacheDir.path}/hosted/pub.dev/$package-$version');
-  if (targetDir.existsSync()) {
-    targetDir.deleteSync(recursive: true);
-  }
-  targetDir.createSync(recursive: true);
   final rq = await _client.getUrl(Uri.parse(
       'https://storage.googleapis.com/dartlang-pub-public-packages/packages/${Uri.encodeComponent(package)}-${Uri.encodeComponent(version)}.tar.gz'));
   final rs = await rq.close();
   if (rs.statusCode != 200) {
     throw Exception('Unable to access archive of $package-$version.');
   }
-  final bytes = await rs
-      .fold<List<int>>(<int>[], (buffer, chunk) => buffer..addAll(chunk));
+  final tempDir = Directory.systemTemp.createTempSync();
+  try {
+    final archiveFile = File.fromUri(
+      tempDir.uri.resolve('$package-$version.tar.gz'),
+    );
+    await rs.pipe(archiveFile.openWrite());
+    final result = await Process.run(
+      Platform.resolvedExecutable,
+      ['pub', 'cache', 'preload', archiveFile.path],
+      environment: {'PUB_CACHE': pubCacheDir.path},
+    );
 
-  final tarProcess =
-      await Process.start('tar', ['-zxf', '-', '-C', targetDir.path]);
-  tarProcess.stdin.add(bytes);
-  await tarProcess.stdin.flush();
-  await tarProcess.stdin.close();
-  final tarExitCode = await tarProcess.exitCode;
-  if (tarExitCode != 0) {
-    throw Exception('Unable to extract archive of $package-$version.');
+    if (result.exitCode != 0) {
+      throw Exception(
+        'Unable to preload archive of $package-$version: ${result.stdout} ${result.stderr}',
+      );
+    }
+  } finally {
+    tempDir.deleteSync(recursive: true);
   }
-
-  final shaProcess = await Process.start('sha256sum', ['-b']);
-  shaProcess.stdin.add(bytes);
-  await shaProcess.stdin.flush();
-  await shaProcess.stdin.close();
-  final shaOutput = await shaProcess.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .first;
-  final shaExitCode = await shaProcess.exitCode;
-  if (shaExitCode != 0) {
-    throw Exception('Unable to hash archive of $package-$version.');
-  }
-  final hash = shaOutput.split(' ').first;
-  if (hash.length != 64) {
-    throw Exception(
-        'Unable to hash archive of $package-$version. Output: $shaOutput');
-  }
-  final targetHashFile = File(
-      '${pubCacheDir.path}/hosted-hashes/pub.dev/$package-$version.sha256');
-  await targetHashFile.parent.create(recursive: true);
-  await targetHashFile.writeAsString(hash);
 }
