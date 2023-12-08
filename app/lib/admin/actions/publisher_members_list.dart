@@ -7,12 +7,12 @@ import 'package:pub_dev/publisher/backend.dart';
 
 final publisherMembersList = AdminAction(
   name: 'publisher-members-list',
-  summary: 'List all members a publisher',
+  summary: 'List all members of a publisher',
   description: '''
-Get information about publisher and list all members.
+Get information about a publisher and list all its members.
 ''',
   options: {
-    'publisher': 'Publisher for which to list members',
+    'publisher': 'Publisher for which to list members, eg `dart.dev`',
   },
   invoke: (options) async {
     final publisherId = options['publisher']!;
@@ -32,7 +32,7 @@ Get information about publisher and list all members.
       'description': publisher.description,
       'website': publisher.websiteUrl,
       'contact': publisher.contactEmail,
-      'created': publisher.created,
+      'created': publisher.created?.toIso8601String(),
       'members': members
           .map((m) => {
                 'email': m.email,

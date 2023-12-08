@@ -38,7 +38,8 @@ void main() {
     });
   });
 
-  testWithProfile('creating and deleting publisher with no packages',
+  testWithProfile(
+      'creating, listing members and deleting publisher with no packages',
       fn: () async {
     final client = createPubApiClient(authToken: siteAdminToken);
     final p0 = await publisherBackend.getPublisher('other.com');
@@ -54,6 +55,22 @@ void main() {
       'message': 'Publisher created.',
       'publisherId': 'other.com',
       'member-email': 'user@pub.dev',
+    });
+    final publisherMembersResponse = await client.adminInvokeAction(
+      'publisher-members-list',
+      AdminInvokeActionArguments(arguments: {
+        'publisher': 'other.com',
+      }),
+    );
+    expect(publisherMembersResponse.output, {
+      'publisher': 'other.com',
+      'description': '',
+      'website': 'https://other.com/',
+      'contact': 'user@pub.dev',
+      'created': isA<String>(),
+      'members': [
+        {'email': 'user@pub.dev', 'role': 'admin', 'userId': isA<String>()}
+      ]
     });
     final p1 = await publisherBackend.getPublisher('other.com');
     expect(p1, isNotNull);
