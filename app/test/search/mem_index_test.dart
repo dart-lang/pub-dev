@@ -16,15 +16,6 @@ void main() {
     late DateTime lastPackageUpdated;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(
-        alwaysUpdateLikeScores: true,
-        popularityValueFn: (p) =>
-            const <String, double>{
-              'http': 0.7,
-              'async': 0.8,
-            }[p] ??
-            0.0,
-      );
       final docs = [
         PackageDocument(
           package: 'http',
@@ -43,6 +34,7 @@ void main() {
             'runtime:web'
           ],
           likeCount: 10,
+          popularityScore: 0.7,
           grantedPoints: 110,
           maxPoints: 110,
           dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
@@ -71,6 +63,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
           grantedPoints: 10,
           maxPoints: 110,
           dependencies: {'test': 'dev'},
+          popularityScore: 0.8,
         ),
         PackageDocument(
           package: 'chrome_net',
@@ -87,34 +80,9 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           maxPoints: 110,
         ),
       ];
-      await index.addPackages(docs);
-      await index.markReady();
       lastPackageUpdated =
-          docs.map((p) => p.updated).reduce((a, b) => a!.isAfter(b!) ? a : b)!;
-    });
-
-    test('popularity scores', () {
-      expect(index.getPopularityScore(['http', 'async', 'chrome_net']), {
-        'http': 0.7,
-        'async': 0.8,
-        'chrome_net': 0.0,
-      });
-    });
-
-    test('pub points scores', () {
-      expect(index.getPubPoints(['http', 'async', 'chrome_net']), {
-        'http': 110.0,
-        'async': 10.0,
-        'chrome_net': 0.0,
-      });
-    });
-
-    test('like scores', () {
-      expect(index.getLikeScore(['http', 'async', 'chrome_net']), {
-        'http': 10.0,
-        'async': 1.0,
-        'chrome_net': 0.0,
-      });
+          docs.map((p) => p.updated).reduce((a, b) => a.isAfter(b) ? a : b);
+      index = InMemoryPackageIndex(documents: docs);
     });
 
     test('package name match: async', () async {
@@ -225,7 +193,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.54, 0.1),
+            'score': closeTo(0.08, 0.1),
           },
         ],
       });
@@ -360,8 +328,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
-          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
+          {'package': 'async', 'score': closeTo(0.41, 0.01)},
         ],
       });
 
@@ -379,7 +347,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'chrome_net', 'score': closeTo(0.45, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.08, 0.01)},
         ],
       });
     });
@@ -392,8 +360,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
-          {'package': 'chrome_net', 'score': closeTo(0.45, 0.01)},
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.08, 0.01)},
         ],
       });
 
@@ -424,7 +392,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.96, 0.01)},
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
         ],
       });
     });
@@ -448,7 +416,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+          {'package': 'async', 'score': closeTo(0.41, 0.01)},
         ],
       });
 
@@ -568,13 +536,16 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
   group('special cases', () {
     test('short words: lookup for app(s)', () async {
-      final index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
-        package: 'app',
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'apps',
-      ));
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'app',
+          updated: DateTime(2020, 10, 2),
+        ),
+        PackageDocument(
+          package: 'apps',
+          updated: DateTime(2020, 10, 1),
+        ),
+      ]);
       final match = index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.packageHits.map((e) => e.toJson()), [
@@ -590,13 +561,16 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('short words: lookup for app(z)', () async {
-      final index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
-        package: 'app',
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'appz',
-      ));
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'app',
+          updated: DateTime(2020, 10, 2),
+        ),
+        PackageDocument(
+          package: 'appz',
+          updated: DateTime(2020, 10, 2),
+        ),
+      ]);
       final match = index.search(
           ServiceSearchQuery.parse(query: 'app', order: SearchOrder.text));
       expect(match.packageHits.map((e) => e.toJson()), [
@@ -613,8 +587,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     group('exact name match', () {
       test('exact match vs description', () async {
-        final index = InMemoryPackageIndex();
-        await index.addPackages([
+        final index = InMemoryPackageIndex(documents: [
           PackageDocument(
             package: 'abc',
             description: 'def xyz',
@@ -676,17 +649,18 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
   group('package name weight', () {
     test('modular', () async {
-      final index = InMemoryPackageIndex(alwaysUpdateLikeScores: true);
-      await index.addPackage(PackageDocument(
-        package: 'serveme',
-        description:
-            'Backend server framework designed for a quick development of modular WebSocket based server applications with MongoDB integration.',
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'flutter_modular',
-        description:
-            'Smart project structure with dependency injection and route management',
-      ));
+      final index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'serveme',
+          description:
+              'Backend server framework designed for a quick development of modular WebSocket based server applications with MongoDB integration.',
+        ),
+        PackageDocument(
+          package: 'flutter_modular',
+          description:
+              'Smart project structure with dependency injection and route management',
+        ),
+      ]);
       final rs = index.search(
           ServiceSearchQuery.parse(query: 'modular', order: SearchOrder.text));
       expect(

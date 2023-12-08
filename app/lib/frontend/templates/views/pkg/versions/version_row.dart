@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:pub_dev/task/models.dart';
 
 import '../../../../../package/model_properties.dart';
 import '../../../../../shared/urls.dart' as urls;
@@ -10,7 +11,12 @@ import '../../../../dom/dom.dart' as d;
 import '../../../../static_files.dart';
 import '../../../package_misc.dart';
 
-d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
+d.Node versionRowNode(
+  String package,
+  VersionInfo version,
+  Pubspec pubspec, {
+  PackageVersionStateInfo? versionStatus,
+}) {
   final sdk = pubspec.minSdkVersion;
   return d.tr(
     attributes: {
@@ -44,23 +50,7 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
       ),
       d.td(
         classes: ['documentation'],
-        child: d.a(
-          href: urls.pkgDocUrl(package, version: version.version),
-          rel: 'nofollow',
-          title: 'Go to the documentation of $package ${version.version}',
-          child: d.img(
-            classes: ['version-table-icon'],
-            image: d.Image(
-              src: staticUrls.documentationIcon,
-              alt: 'Go to the documentation of $package ${version.version}',
-              width: 24,
-              height: 24,
-            ),
-            attributes: {
-              'data-failed-icon': staticUrls.documentationFailedIcon,
-            },
-          ),
-        ),
+        child: _documentationCell(package, version, versionStatus),
       ),
       d.td(
         classes: ['archive'],
@@ -81,4 +71,48 @@ d.Node versionRowNode(String package, VersionInfo version, Pubspec pubspec) {
       ),
     ],
   );
+}
+
+d.Node _documentationCell(
+  String package,
+  VersionInfo version,
+  PackageVersionStateInfo? status,
+) {
+  if (status == null) {
+    return d.text('');
+  }
+  final taskStatus = status.status;
+  if (taskStatus == PackageVersionStatus.pending) {
+    return d.text('pending');
+  } else if (status.docs) {
+    return d.a(
+      href: urls.pkgDocUrl(package, version: version.version),
+      rel: 'nofollow',
+      title: 'Go to the documentation of $package ${version.version}',
+      child: d.img(
+        classes: ['version-table-icon'],
+        image: d.Image(
+          src: staticUrls.documentationIcon,
+          alt: 'Go to the documentation of $package ${version.version}',
+          width: 24,
+          height: 24,
+        ),
+      ),
+    );
+  } else {
+    return d.a(
+      href: urls.pkgScoreLogTxtUrl(package, version: version.version),
+      rel: 'nofollow',
+      title: 'Check the analysis logs for $package ${version.version}',
+      child: d.img(
+        classes: ['version-table-icon'],
+        image: d.Image(
+          src: staticUrls.documentationFailedIcon,
+          alt: 'Check the analysis logs for $package ${version.version}',
+          width: 24,
+          height: 24,
+        ),
+      ),
+    );
+  }
 }

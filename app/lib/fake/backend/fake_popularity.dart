@@ -19,5 +19,5 @@ Future<void> generateFakePopularityValues() async {
     values[p.name!] = value;
   }
   // ignore: invalid_use_of_visible_for_testing_member
-  popularityStorage.updateValues(values);
+  popularityStorage.updateValues(values, invalid: false);
 }

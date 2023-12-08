@@ -24,7 +24,7 @@ abstract class SecretKey {
 
   /// The restriction applied on uploads.
   ///
-  /// This feature is intended as an emergency break.
+  /// This feature is intended as an emergency brake.
   ///
   /// Valid values for `upload-restriction` are:
   ///  * `no-uploads`, no package publications will be accepted by the server,

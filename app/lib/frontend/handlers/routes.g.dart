@@ -95,6 +95,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/packages/<package>/versions/<version>/score/log.txt',
+    service.packageVersionScoreLogTxt,
+  );
+  router.add(
+    'GET',
     r'/packages/<package>/versions/<version>',
     service.packageVersion,
   );
@@ -142,6 +147,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
     'GET',
     r'/packages/<package>/score',
     service.packageScore,
+  );
+  router.add(
+    'GET',
+    r'/packages/<package>/score/log.txt',
+    service.packageScoreLogTxt,
   );
   router.add(
     'GET',
@@ -337,16 +347,6 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
     'GET',
     r'/consent',
     service.consentPage,
-  );
-  router.add(
-    'GET',
-    r'/experimental/task-documentation/<package>/<version>/<path|[^]*>',
-    service.taskdocumentation,
-  );
-  router.add(
-    'GET',
-    r'/experimental/task-log/<package>/<version>/',
-    service.taskLog,
   );
   router.add(
     'GET',

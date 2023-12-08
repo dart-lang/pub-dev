@@ -26,7 +26,7 @@ d.Node miniListNode(String sectionTag, List<PackageView> packages) {
 d.Node _title(String sectionTag, PackageView p) {
   return d.a(
     classes: ['mini-list-item-title'],
-    href: urls.pkgPageUrl(p.name!),
+    href: urls.pkgPageUrl(p.name),
     attributes: {'data-ga-click-event': 'landing-$sectionTag-card-title'},
     child: d.h3(text: p.name),
   );

@@ -8,16 +8,15 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../audit/backend.dart';
-import '../../dartdoc/backend.dart';
-import '../../job/backend.dart';
 import '../../package/backend.dart';
-import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../service/email/backend.dart';
+import '../../service/security_advisories/sync_security_advisories.dart';
 import '../../shared/configuration.dart';
 import '../../shared/count_topics.dart';
 import '../../shared/datastore.dart';
@@ -45,19 +44,22 @@ void _setupGenericPeriodicTasks() {
         aquireAbort.complete();
       });
 
-      final lock = GlobalLock.create(
-        'send-outgoing-emails',
-        expiration: Duration(minutes: 20),
-      );
-      await lock.withClaim(
-        (claim) async {
-          await emailBackend.trySendAllOutgoingEmails(
-            stopAfter: Duration(minutes: 10),
-          );
-        },
-        abort: aquireAbort,
-      );
-      aquireTimer.cancel();
+      try {
+        final lock = GlobalLock.create(
+          'send-outgoing-emails',
+          expiration: Duration(minutes: 20),
+        );
+        await lock.withClaim(
+          (claim) async {
+            await emailBackend.trySendAllOutgoingEmails(
+              stopAfter: Duration(minutes: 10),
+            );
+          },
+          abort: aquireAbort,
+        );
+      } finally {
+        aquireTimer.cancel();
+      }
     },
   );
 
@@ -107,9 +109,16 @@ void _setupGenericPeriodicTasks() {
   // Updates the public archive bucket from the canonical bucket, for the
   // unlikely case where an archive may be missing.
   _daily(
-    name: 'update-public-archive-bucket',
+    name: 'sync-public-bucket-from-canonical-bucket',
     isRuntimeVersioned: false,
     task: updatePublicArchiveBucket,
+  );
+
+  // Exports the package name completetion data to a bucket.
+  _daily(
+    name: 'export-package-name-completition-data-to-bucket',
+    isRuntimeVersioned: true,
+    task: () async => await apiExporter?.uploadPkgNameCompletionData(),
   );
 
   // Deletes task status entities where the status hasn't been updated
@@ -148,6 +157,13 @@ void _setupGenericPeriodicTasks() {
     task: taskBackend.garbageCollect,
   );
 
+  // Deletes exported API data for old runtime versions
+  _weekly(
+    name: 'garbage-collect-api-exports',
+    isRuntimeVersioned: true,
+    task: () async => apiExporter?.deleteObsoleteRuntimeContent(),
+  );
+
   // Delete very old instances that have been abandoned
   _daily(
     name: 'garbage-collect-old-instances',
@@ -159,13 +175,17 @@ void _setupGenericPeriodicTasks() {
 
   _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics);
 
+  _daily(
+      name: 'sync-security-advisories',
+      isRuntimeVersioned: false,
+      task: syncSecurityAdvisories);
+
   // TODO: setup tasks to remove known obsolete (but now unmapped) fields from entities
 }
 
 /// Setup the tasks that we are running in the analyzer service.
 void setupAnalyzerPeriodicTasks() {
   _setupGenericPeriodicTasks();
-  _setupJobCleanupPeriodicTasks();
 
   // Checks the Datastore integrity of the model objects.
   _weekly(
@@ -177,59 +197,13 @@ void setupAnalyzerPeriodicTasks() {
   );
 }
 
-/// Setup the tasks that we are running in the dartdoc service.
-void setupDartdocPeriodicTasks() {
-  _setupJobCleanupPeriodicTasks();
-
-  // Deletes the extracted dartdoc data from old SDKs.
-  _weekly(
-    name: 'delete-old-dartdoc-sdks',
-    isRuntimeVersioned: true,
-    task: () => dartdocBackend.deleteOldData(),
-  );
-
-  // Deletes DartdocRun entities and their storage content that are older
-  // than the accepted runtime versions.
-  _weekly(
-    name: 'delete-old-dartdoc-runs',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteOldRuns(),
-  );
-
-  // Deletes DartdocRun entities and their storage content that are expired,
-  // and have newer version with content.
-  _weekly(
-    name: 'delete-expired-dartdoc-runs',
-    isRuntimeVersioned: true,
-    task: () async => await dartdocBackend.deleteExpiredRuns(),
-  );
-}
-
 /// Setup the tasks that we are running in the search service.
 void setupSearchPeriodicTasks() {
   // Deletes the old search snapshots
   _weekly(
     name: 'delete-old-search-snapshots',
     isRuntimeVersioned: true,
-    task: () => snapshotStorage.deleteOldData(),
-  );
-}
-
-/// Setup the tasks that we are running in both analyzer and dartdoc services.
-void _setupJobCleanupPeriodicTasks() {
-  // Deletes Job entities that are older than the accepted runtime versions.
-  _weekly(
-    name: 'delete-old-jobs',
-    isRuntimeVersioned: true,
-    task: () async => await jobBackend.deleteOldEntries(),
-  );
-
-  // Deletes ScoreCard and ScoreCardReport entities that are older than the
-  // accepted runtime versions.
-  _weekly(
-    name: 'delete-old-scorecards',
-    isRuntimeVersioned: true,
-    task: () async => await scoreCardBackend.deleteOldEntries(),
+    task: () => searchBackend.deleteOldData(),
   );
 }
 

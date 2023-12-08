@@ -24,10 +24,9 @@ d.Node siteHeaderNode({
           href: '/',
           child: d.img(
             classes: ['site-logo'],
-            image: d.Image(
-              src: staticUrls.pubDevLogo2xPng,
-              alt: 'pub logo',
-              width: 135,
+            image: d.Image.decorative(
+              src: staticUrls.pubDevLogoSvg,
+              width: 140,
               height: 30,
             ),
           ),
@@ -45,6 +44,10 @@ d.Node siteHeaderNode({
               name: 'q',
               placeholder: 'New search...',
               autocomplete: 'on',
+              attributes: {
+                'title': 'Search',
+                'aria-label': 'Search',
+              },
             ),
           ),
         ),

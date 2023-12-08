@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
@@ -390,11 +391,6 @@ class PubApi {
   ) =>
       packageBackend.setPublisher(package, body);
 
-  @EndPoint.delete('/api/packages/<package>/publisher')
-  Future<PackagePublisherInfo> removePackagePublisher(
-          Request request, String package) =>
-      packageBackend.removePublisher(package);
-
   @EndPoint.get('/api/packages/<package>/score')
   Future<VersionScore> packageScore(Request request, String package) =>
       packageVersionScoreHandler(request, package);
@@ -457,6 +453,20 @@ class PubApi {
       Request request, String tool, String args) async {
     final parsedArgs = request.requestedUri.pathSegments.skip(4).toList();
     return Response.ok(await adminBackend.executeTool(tool, parsedArgs));
+  }
+
+  @EndPoint.get('/api/admin/actions')
+  Future<AdminListActionsResponse> adminListActions(Request request) {
+    return adminBackend.listActions();
+  }
+
+  @EndPoint.post('/api/admin/actions/<action>')
+  Future<AdminInvokeActionResponse> adminInvokeAction(
+    Request request,
+    String action,
+    AdminInvokeActionArguments args,
+  ) {
+    return adminBackend.invokeAction(action, args.arguments);
   }
 
   @EndPoint.get('/api/admin/users')
@@ -530,4 +540,11 @@ class PubApi {
   Future<PackageUploaders> adminRemovePackageUploader(
           Request request, String package, String email) =>
       adminBackend.handleRemovePackageUploader(package, email);
+
+  @EndPoint.get('/api/packages/<package>/advisories')
+  Future<ListAdvisoriesResponse> getPackageAdvisories(
+    Request request,
+    String package,
+  ) =>
+      listAdvisoriesForPackage(request, package);
 }

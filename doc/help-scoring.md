@@ -152,10 +152,6 @@ To determine if your package supports the latest versions of dependencies prior
 to publishing, run the `pub outdated` command (Dart SDK) or `flutter pub
 outdated` command (Flutter SDK).
 
-### Null-safety
-
-This category will award points to packages that have updated to null-safety.
-
 ## Calculating pub points prior to publishing
 
 The pub.dev site uses the analysis tool [pana][pana-url] to calculate pub

@@ -78,7 +78,7 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'stylesheet',
               href:
-                  'https://fonts.googleapis.com/css?family=Google+Sans:300,400,500|Google+Sans+Display:400|Roboto:300,400,500,700|Roboto+Mono:300,400,700&display=swap',
+                  'https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400&family=Google+Sans+Text:wght@400;500;700&family=Google+Sans+Mono:wght@400;700&display=swap',
             ),
             d.link(rel: 'shortcut icon', href: faviconUrl),
             d.link(
@@ -198,10 +198,8 @@ d.Node pageLayoutNode({
                         ),
                         d.img(
                           classes: ['logo'],
-                          image: d.Image(
-                            src: staticUrls
-                                .getAssetUrl('/static/img/pub-dev-logo.svg'),
-                            alt: 'pub.dev package manager',
+                          image: d.Image.decorative(
+                            src: staticUrls.pubDevLogoSvg,
                             width: 328,
                             height: 70,
                           ),
@@ -277,7 +275,7 @@ d.Node _siteFooterNode() {
         ['sep'],
         d.Image(
           src: staticUrls.getAssetUrl('/static/img/rss-feed-icon.svg'),
-          alt: 'RSS icon',
+          alt: 'RSS',
           width: 20,
           height: 20,
         ),
@@ -288,7 +286,7 @@ d.Node _siteFooterNode() {
         ['github_issue'],
         d.Image(
           src: staticUrls.getAssetUrl('/static/img/bug-report-white-96px.png'),
-          alt: 'bug report icon',
+          alt: 'bug report',
           width: 20,
           height: 20,
         ),

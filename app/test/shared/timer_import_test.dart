@@ -38,6 +38,12 @@ void main() {
     // Uses timer to send heartbeat signal to the master isolate.
     'lib/service/entrypoint/frontend.dart',
 
+    // Uses timer to renew the search index.
+    'lib/service/entrypoint/search.dart',
+
+    // Uses timer to prevent GC compaction.
+    'lib/service/entrypoint/search_index.dart',
+
     // Uses timer to timeout GlobalLock claim aquisition.
     'lib/tool/neat_task/pub_dev_tasks.dart',
 

@@ -4,26 +4,28 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/task_api.dart' as api;
-import 'package:chunked_stream/chunked_stream.dart'
-    show readByteStream, MaximumSizeExceeded;
+import 'package:_pub_shared/data/task_payload.dart';
+import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
-import 'package:googleapis/storage/v1.dart'
-    show DetailedApiRequestError, ApiRequestError;
+import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/redis_cache.dart' show cache;
-import 'package:pub_dev/shared/utils.dart' show canonicalizeVersion;
+import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/storage.dart';
+import 'package:pub_dev/shared/utils.dart'
+    show canonicalizeVersion, isNewer, VersionIterableExt;
 import 'package:pub_dev/shared/versions.dart'
     show
         runtimeVersion,
@@ -38,11 +40,11 @@ import 'package:pub_dev/task/models.dart'
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
+        PackageVersionStatus,
         initialTimestamp,
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
-import 'package:retry/retry.dart' show retry;
 import 'package:shelf/shelf.dart' as shelf;
 
 final _log = Logger('pub.task.backend');
@@ -51,11 +53,13 @@ final _log = Logger('pub.task.backend');
 /// Larger content will be still served, but not from the cache.
 const _gzippedTaskResultCacheSizeThreshold = 1 * 1024 * 1024;
 
+final gzippedUtf8JsonCodec = json.fuse(utf8).fuse(gzip);
+
 /// Register a [CloudCompute] pool for task workers in the current
 /// service scope.
 ///
 /// This is mainly used to inject a fake [CloudCompute] for testing.
-void registertaskWorkerCloudCompute(CloudCompute workerPool) =>
+void registerTaskWorkerCloudCompute(CloudCompute workerPool) =>
     ss.register(#_taskWorkerCloudCompute, workerPool);
 
 /// Get the active [CloudCompute] pool for task workers.
@@ -71,7 +75,6 @@ TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 class TaskBackend {
   final DatastoreDB _db;
-  final CloudCompute _cloudCompute;
   final Bucket _bucket;
 
   /// If [stop] has been called to stop background processes.
@@ -85,7 +88,7 @@ class TaskBackend {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
-  TaskBackend(this._db, this._cloudCompute, this._bucket);
+  TaskBackend(this._db, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///
@@ -144,7 +147,8 @@ class TaskBackend {
           // kill overdue VMs.
           try {
             await lock.withClaim((claim) async {
-              await schedule(claim, _cloudCompute, _db, abort: aborted);
+              await schedule(claim, taskWorkerCloudCompute, _db,
+                  abort: aborted);
             }, abort: aborted);
           } catch (e, st) {
             // Log this as very bad, and then move on. Nothing good can come
@@ -284,7 +288,9 @@ class TaskBackend {
     // Map from package to updated that has been seen.
     final seen = <String, DateTime>{};
 
-    var since = clock.ago(minutes: 30);
+    // In theory 30 minutes overlap should be enough. In practice we should
+    // allow an ample room for missed windows, and 3 days seems to be large enough.
+    var since = clock.ago(days: 3);
     while (claim.valid && !abort.isCompleted) {
       // Look at all packages changed in [since]
       final q = _db.query<Package>()
@@ -329,21 +335,26 @@ class TaskBackend {
     bool updateDependants = false,
   }) async {
     var lastVersionCreated = initialTimestamp;
-    await withRetryTransaction(_db, (tx) async {
+    String? latestVersion;
+    final changed = await withRetryTransaction(_db, (tx) async {
       final pkgKey = _db.emptyKey.append(Package, id: packageName);
 
       final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
       // Lookup Package and PackageVersion in the same transaction.
-      // Await results later to ensure concurrent lookups!
       final packageFuture = tx.lookupOrNull<Package>(pkgKey);
       final packageVersionsFuture =
           tx.query<PackageVersion>(pkgKey).run().toList();
-      final state = await tx.lookupOrNull<PackageState>(stateKey);
+      final stateFuture = tx.lookupOrNull<PackageState>(stateKey);
+      // Ensure we await all futures!
+      await Future.wait([packageFuture, packageVersionsFuture, stateFuture]);
+      final state = await stateFuture;
       final package = await packageFuture;
       final packageVersions = await packageVersionsFuture;
+
       if (package == null) {
-        return; // assume package was deleted!
+        return false; // assume package was deleted!
       }
+      latestVersion = package.latestVersion;
 
       // Update the timestamp for when the last version was published.
       // This is used if we need to update dependants.
@@ -354,7 +365,7 @@ class TaskBackend {
         if (state != null) {
           tx.delete(state.key);
         }
-        return;
+        return true;
       }
 
       // Determined the set of versions to track
@@ -379,9 +390,10 @@ class TaskBackend {
             }
             ..dependencies = <String>[]
             ..lastDependencyChanged = initialTimestamp
+            ..finished = initialTimestamp
             ..derivePendingAt(),
         );
-        return; // no more work for this package, state is sync'ed
+        return true; // no more work for this package, state is sync'ed
       }
 
       // List versions that not tracked, but should be
@@ -406,13 +418,20 @@ class TaskBackend {
 
       // Stop transaction, if there is no changes to be made!
       if (untrackedVersions.isEmpty && deselectedVersions.isEmpty) {
-        return;
+        return false;
       }
+
+      final latestFinishedVersion = state.versions?.entries
+          .where((e) => e.value.finished)
+          .map((e) => Version.parse(e.key))
+          .latestVersion;
 
       // Make changes!
       state.versions!
-        // Remove versions that have been deselected
-        ..removeWhere((v, _) => deselectedVersions.contains(v))
+        // Remove versions that have been deselected - but keep the latest finished one
+        ..removeWhere((v, _) =>
+            deselectedVersions.contains(v) &&
+            v != latestFinishedVersion.toString())
         // Add versions we should be tracking
         ..addAll({
           for (final v in untrackedVersions)
@@ -425,7 +444,12 @@ class TaskBackend {
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
+      return true;
     });
+
+    if (changed) {
+      await _purgeCache(packageName, latestVersion);
+    }
 
     if (updateDependants &&
         !lastVersionCreated.isAtSameMomentAs(initialTimestamp)) {
@@ -516,7 +540,7 @@ class TaskBackend {
       // and logs any failures before always releasing the [r].
       scheduleMicrotask(() async {
         try {
-          await withRetryTransaction(_db, (tx) async {
+          final changed = await withRetryTransaction(_db, (tx) async {
             // Reload [state] within a transaction to avoid overwriting changes
             // made by others trying to update state for another package.
             final s = await tx.lookupValue<PackageState>(state.key);
@@ -526,8 +550,13 @@ class TaskBackend {
                   ..lastDependencyChanged = publishedAt
                   ..derivePendingAt(),
               );
+              return true;
             }
+            return false;
           });
+          if (changed) {
+            await _purgeCache(state.package);
+          }
         } catch (e, st) {
           _log.warning(
             'failed to propagate lastDependencyChanged for ${state.package}',
@@ -580,22 +609,27 @@ class TaskBackend {
         .encode(sha256.convert(utf8.encode(versionState.instance!)).bytes)
         .substring(0, 32);
 
-    final uploadInfos = await Future.wait([
-      '$blobId.blob',
-      'index.json',
-    ].map(
-      (name) => uploadSigner.buildUpload(
+    final [blobUploadInfo, indexUploadInfo] = await Future.wait([
+      uploadSigner.buildUpload(
         _bucket.bucketName,
-        '$runtimeVersion/$package/$version/$name',
+        '$runtimeVersion/$package/$version/$blobId.blob',
         expiration,
+        // Allow up to 300 MB, keep in mind that 1.6GB dartdoc compressed to 92MB.
+        maxUploadSize: 300 * 1024 * 1024,
       ),
-    ));
-    assert(uploadInfos.length == 2);
+      uploadSigner.buildUpload(
+        _bucket.bucketName,
+        '$runtimeVersion/$package/$version/index.json',
+        expiration,
+        // Allow up to 64 MB just a sanity limit!
+        maxUploadSize: 64 * 1024 * 1024,
+      )
+    ]);
 
     return api.UploadTaskResultResponse(
-      blobId: '$blobId.blob',
-      blob: uploadInfos[0],
-      index: uploadInfos[1],
+      blobId: '$runtimeVersion/$package/$version/$blobId.blob',
+      blob: blobUploadInfo,
+      index: indexUploadInfo,
     );
   }
 
@@ -611,6 +645,17 @@ class TaskBackend {
 
     String? zone, instance;
     bool isInstanceDone = false;
+    final index = await _loadTaskResultIndex(
+      package: package,
+      version: version,
+      runtimeVersion: runtimeVersion,
+    );
+    final summary = _panaSummaryFromGzippedBytes(
+      package,
+      version,
+      await _gzippedTaskResult(index, 'summary.json'),
+    );
+    final hasDocIndexHtml = index.lookup('doc/index.html') != null;
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
@@ -627,11 +672,7 @@ class TaskBackend {
       assert(versionState.instance != null);
       assert(versionState.zone != null);
 
-      // Clear cache entries for package / version
-      await _purgeCache(package, version);
-
       // Update dependencies, if pana summary has dependencies
-      final summary = await panaSummary(package, version);
       if (summary != null && summary.allDependencies != null) {
         final updatedDependencies = _updatedDependencies(
           state.dependencies,
@@ -647,7 +688,6 @@ class TaskBackend {
           state.dependencies = updatedDependencies;
         }
       }
-      final dartdocIndex = await dartdocFile(package, version, 'index.html');
 
       zone = versionState.zone!;
       instance = versionState.instance!;
@@ -655,8 +695,9 @@ class TaskBackend {
       // Remove instanceName, zone, secretToken, and set attempts = 0
       state.versions![version] = PackageVersionStateInfo(
         scheduled: versionState.scheduled,
-        docs: dartdocIndex != null,
+        docs: hasDocIndexHtml,
         pana: summary != null,
+        finished: true,
         attempts: 0,
         instance: null, // version is no-longer running on this instance
         secretToken: null, // TODO: Consider retaining this for idempotency
@@ -671,9 +712,13 @@ class TaskBackend {
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
       state.derivePendingAt();
+      state.finished = clock.now().toUtc();
 
       tx.insert(state);
     });
+
+    // Clearing the state cache after the update.
+    await _purgeCache(package, version);
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down
@@ -684,7 +729,7 @@ class TaskBackend {
       _log.info('instance $instance is done, calling APIs to terminate it!');
       scheduleMicrotask(() async {
         try {
-          await _cloudCompute.delete(zone!, instance!);
+          await taskWorkerCloudCompute.delete(zone!, instance!);
         } catch (e, st) {
           _log.severe(
             'failed to delete task-worker w. zone/instance: $zone/$instance',
@@ -702,86 +747,89 @@ class TaskBackend {
     String path, {
     int? offset,
     int? length,
-  }) async =>
-      await retry(
-        () async {
-          try {
-            return await readByteStream(
-              _bucket.read(path, offset: offset, length: length),
-              maxSize: 10 * 1024 * 1024, // sanity limit
-            ).timeout(Duration(seconds: 30));
-          } on MaximumSizeExceeded catch (e, st) {
-            _log.shout(
-              'max size exceeded path: $path',
-              e,
-              st,
-            );
-            return null;
-          }
-        },
-        maxAttempts: 3,
-        retryIf: (e) {
-          if (e is TimeoutException) {
-            return true; // Timeouts we can retry
-          }
-          if (e is IOException) {
-            return true; // I/O issues are worth retrying
-          }
-          if (e is DetailedApiRequestError) {
-            final status = e.status;
-            return status == null || status >= 500; // 5xx errors are retried
-          }
-          return e is ApiRequestError; // Unknown API errors are retried
-        },
-      ).catchError(
-        (_) => null,
-        test: (e) => e is DetailedApiRequestError && e.status == 404,
+  }) async {
+    try {
+      return await _bucket.readAsBytes(
+        path, offset: offset, length: length,
+        maxSize: 10 * 1024 * 1024, // sanity limit
       );
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        return null;
+      }
+      rethrow;
+    } on MaximumSizeExceeded catch (e, st) {
+      _log.shout('max size exceeded path: $path', e, st);
+      return null;
+    }
+  }
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
   /// [package] and [version].
-  Future<void> _purgeCache(String package, String version) async =>
-      await Future.wait([
-        cache.taskPackageStatus(package).purge(),
-        cache.taskResultIndex(package, version).purge(),
-      ]);
+  Future<void> _purgeCache(String package, [String? version]) async {
+    await Future.wait([
+      cache.taskPackageStatus(package).purge(),
+      cache.latestFinishedVersion(package).purge(),
+      if (version != null) cache.taskResultIndex(package, version).purge(),
+      if (version != null) purgeScorecardData(package, version, isLatest: true),
+    ]);
+  }
 
   /// Fetch and cache `index.json` for [package] and [version].
   ///
   /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
-  Future<BlobIndex?> _taskResultIndex(String package, String version) async =>
-      await cache.taskResultIndex(package, version).get(() async {
-        // Try runtimeVersions in order of age
-        var path = '$runtimeVersion/$package/$version/index.json';
-        List<int>? bytes;
-        for (final rt in acceptedRuntimeVersions) {
-          path = '$rt/$package/$version/index.json';
-          bytes = await _readFromBucket(path);
-          if (bytes != null) break;
+  Future<BlobIndex?> _taskResultIndex(String package, String version) async {
+    return await cache.taskResultIndex(package, version).get(
+      () async {
+        // Don't try to load index if we don't consider the version for analysis.
+        final status = await packageStatus(package);
+        if (!status.versions.containsKey(version)) {
+          return BlobIndex.empty(blobId: '');
         }
-        if (bytes == null) {
-          return null;
+        final versionStatus = status.versions[version]!.status;
+        // if analysis has failed, don't try to load results
+        if (versionStatus == PackageVersionStatus.failed) {
+          return BlobIndex.empty(blobId: '');
         }
-        final index = BlobIndex.fromBytes(bytes);
-        final blobId = index.blobId;
-        if (!_blobIdPattern.hasMatch(blobId)) {
-          _log.warning('invalid blobId: "$blobId" in index in "$path"');
-          return null;
-        }
-        // We change the [blobId] when we store in the cache, because this frees
-        // us from having to cache the selected [runtimeVersion] next to the
-        // [BlobIndex].
-        // We don't store the full path of the blob as blobId, when creating the
-        // initial [BlobIndex], because it is created by `pub_worker` inside the
-        // untrusted sandboxed environment. And we do want to allow the worker
-        // to point at other files, than what is under:
-        //  `$runtimeVersion/$package/$version/`
-        return index.update(
-          blobId: '$runtimeVersion/$package/$version/$blobId',
+        return await _loadTaskResultIndex(
+          package: package,
+          version: version,
+          runtimeVersion: status.runtimeVersion ?? runtimeVersion,
         );
-      });
+      },
+    );
+  }
+
+  Future<BlobIndex> _loadTaskResultIndex({
+    required String package,
+    required String version,
+    required String runtimeVersion,
+  }) async {
+    final pathPrefix = '$runtimeVersion/$package/$version';
+    final path = '$pathPrefix/index.json';
+    final bytes = await _readFromBucket(path);
+    if (bytes == null) {
+      return BlobIndex.empty(blobId: '');
+    }
+    final index = BlobIndex.fromBytes(bytes);
+    final blobId = index.blobId;
+    // We must check that the blobId points to a file under:
+    //  `$runtimeVersion/$package/$version/`
+    // Technically, the blob index is produced by the sandbox and we cannot
+    // trust it to not be malformed.
+    if (!_blobIdPattern.hasMatch(blobId) ||
+        !blobId.startsWith('$pathPrefix/')) {
+      _log.warning('invalid blobId: "$blobId" in index in "$path"');
+      return BlobIndex.empty(blobId: '');
+    }
+    if (bytes.length > 1024 * 1024) {
+      _log.info(
+          '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
+    }
+    return index;
+  }
 
   /// Return gzipped result from task for the given [package]/[version] or
   /// `null`.
@@ -791,12 +839,15 @@ class TaskBackend {
     String path,
   ) async {
     version = canonicalizeVersion(version)!;
-
     final index = await _taskResultIndex(package, version);
     if (index == null) {
       return null;
     }
+    return await _gzippedTaskResult(index, path);
+  }
 
+  /// Return gzipped result of [path] from an [index] or `null` if it does not exists.
+  Future<List<int>?> _gzippedTaskResult(BlobIndex index, String path) async {
     // Normalize // and remove initial slash
     if (path.startsWith('/') || path.contains('//')) {
       path = path.split('/').where((s) => s.isNotEmpty).join('/');
@@ -821,13 +872,13 @@ class TaskBackend {
     // blobId that is the path to the blob within the task-result bucket.
     final length = range.end - range.start;
     if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache
-          .gzippedTaskResult(range.blobId, path)
-          .get(() => _readFromBucket(
-                range.blobId,
-                offset: range.start,
-                length: length,
-              ));
+      return cache.gzippedTaskResult(range.blobId, path).get(
+            () => _readFromBucket(
+              range.blobId,
+              offset: range.start,
+              length: length,
+            ),
+          );
     } else {
       return _readFromBucket(
         range.blobId,
@@ -842,17 +893,13 @@ class TaskBackend {
     String package,
     String version,
     String path,
-  ) async =>
-      await gzippedTaskResult(package, version, 'doc/$path');
-
-  /// Return gzipped dartdoc page or `null`.
-  // TODO: Remove this in favor of dartdocFile
-  Future<List<int>?> dartdocPage(
-    String package,
-    String version,
-    String path,
-  ) async =>
-      await gzippedTaskResult(package, version, 'doc/$path');
+  ) async {
+    return await gzippedTaskResult(
+      package,
+      version,
+      'doc/$path',
+    );
+  }
 
   /// Return [Summary] from pana or `null` if not available.
   ///
@@ -867,12 +914,17 @@ class TaskBackend {
   /// allocated time was exhausted before the worker completed all versions.
   Future<Summary?> panaSummary(String package, String version) async {
     final data = await gzippedTaskResult(package, version, 'summary.json');
+    return _panaSummaryFromGzippedBytes(package, version, data);
+  }
+
+  Summary? _panaSummaryFromGzippedBytes(
+      String package, String version, List<int>? data) {
     if (data == null) {
       return null;
     }
     try {
       return Summary.fromJson(
-        json.fuse(utf8).fuse(gzip).decode(data) as Map<String, dynamic>,
+        gzippedUtf8JsonCodec.decode(data) as Map<String, dynamic>,
       );
     } on FormatException catch (e, st) {
       _log.shout('Summary for $package/$version is malformed', e, st);
@@ -905,18 +957,25 @@ class TaskBackend {
     }
   }
 
-  /// Get status information for a package being analyzed.
+  /// Get the most up-to-date status information for a package that has already been analyzed.
   Future<PackageStateInfo> packageStatus(String package) async {
     final status = await cache.taskPackageStatus(package).get(() async {
-      final key = PackageState.createKey(_db, runtimeVersion, package);
-      final state = await dbService.lookupOrNull<PackageState>(key);
-
-      return PackageStateInfo(
-        package: package,
-        versions: state?.versions ?? {},
-      );
+      for (final rt in acceptedRuntimeVersions) {
+        final key = PackageState.createKey(_db, rt, package);
+        final state = await dbService.lookupOrNull<PackageState>(key);
+        // skip states where the entry was created, but no analysis has not finished yet
+        if (state == null || state.hasNeverFinished) {
+          continue;
+        }
+        return PackageStateInfo(
+          runtimeVersion: state.runtimeVersion!,
+          package: package,
+          versions: state.versions ?? {},
+        );
+      }
+      return PackageStateInfo.empty(package: package);
     });
-    return status ?? PackageStateInfo(package: package, versions: {});
+    return status ?? PackageStateInfo.empty(package: package);
   }
 
   /// Create a URL for getting a resource created in pana.
@@ -926,9 +985,117 @@ class TaskBackend {
   /// This is handled by [handleTaskResource].
   String resourceUrl(String package, String version, String path) =>
       '/packages/$package/versions/$version/gen-res/$path';
+
+  /// Backfills the tracking state and then processes in all packages with
+  /// calling [processPayload].
+  ///
+  /// TODO: rework the callback method into Future<TaskResult> Function(String package, String version);
+  ///       to handle the upload boilerplate inside this method.
+  Future<void> backfillAndProcessAllPackages(
+    Future<void> Function(Payload payload) processPayload,
+  ) async {
+    await backfillTrackingState();
+    await for (final state in dbService.query<PackageState>().run()) {
+      final zone = taskWorkerCloudCompute.zones.first;
+      // ignore: invalid_use_of_visible_for_testing_member
+      final payload = await updatePackageStateWithPendingVersions(
+        dbService,
+        state,
+        zone,
+        taskWorkerCloudCompute.generateInstanceName(),
+      );
+      if (payload == null) continue;
+      await processPayload(payload);
+    }
+  }
+
+  /// Trigger a one-off priority bump for [packageName].
+  ///
+  /// Intended to be used for admin actions, not intended for normal operations.
+  Future<void> adminBumpPriority(String packageName) async {
+    // Ensure we're up-to-date.
+    await trackPackage(packageName);
+
+    await withRetryTransaction(_db, (tx) async {
+      final stateKey = PackageState.createKey(_db, runtimeVersion, packageName);
+      final state = await tx.lookupOrNull<PackageState>(stateKey);
+      if (state != null) {
+        state.pendingAt = initialTimestamp;
+        tx.insert(state);
+      }
+    });
+  }
+
+  /// Returns the latest version of the [package] which has a finished analysis.
+  ///
+  /// Returns `null` if no such version exists.
+  Future<String?> latestFinishedVersion(String package) async {
+    final cachedValue =
+        await cache.latestFinishedVersion(package).get(() async {
+      for (final rt in acceptedRuntimeVersions) {
+        final key = PackageState.createKey(_db, rt, package);
+        final state = await dbService.lookupOrNull<PackageState>(key);
+        // skip states where the entry was created, but no analysis has not finished yet
+        if (state == null || state.hasNeverFinished) {
+          continue;
+        }
+        final bestVersion = state.versions?.entries
+            .where((e) => e.value.finished)
+            .map((e) => Version.parse(e.key))
+            .latestVersion;
+        if (bestVersion != null) {
+          return bestVersion.toString();
+        }
+      }
+      return '';
+    });
+    return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
+  }
+
+  /// Returns the closest version of the [package] which has a finished analysis.
+  ///
+  /// If [version] or newer exists with finished analysis, it will be preferred, otherwise
+  /// older versions may be considered too.
+  ///
+  /// Returns `null` if no such version exists.
+  Future<String?> closestFinishedVersion(String package, String version) async {
+    final cachedValue =
+        await cache.closestFinishedVersion(package, version).get(() async {
+      final semanticVersion = Version.parse(version);
+      for (final rt in acceptedRuntimeVersions) {
+        final key = PackageState.createKey(_db, rt, package);
+        final state = await dbService.lookupOrNull<PackageState>(key);
+        // Skip states where the entry was created, but the analysis has not finished yet.
+        if (state == null || state.hasNeverFinished) {
+          continue;
+        }
+        final candidates = state.versions?.entries
+            .where((e) => e.value.finished)
+            .map((e) => Version.parse(e.key))
+            .toList();
+        if (candidates == null || candidates.isEmpty) {
+          continue;
+        }
+        if (candidates.contains(semanticVersion)) {
+          return version;
+        }
+        final newerCandidates =
+            candidates.where((e) => isNewer(semanticVersion, e)).toList();
+        if (newerCandidates.isNotEmpty) {
+          // Return the earliest finished that is newer than [version].
+          return newerCandidates
+              .reduce((a, b) => isNewer(a, b) ? a : b)
+              .toString();
+        }
+        return candidates.latestVersion!.toString();
+      }
+      return '';
+    });
+    return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
+  }
 }
 
-final _blobIdPattern = RegExp(r'^[0-9a-fA-F]+\.blob$');
+final _blobIdPattern = RegExp(r'^[^/]+/[^/]+/[^/]+/[0-9a-fA-F]+\.blob$');
 
 /// Extract `<token>` from `Authorization: Bearer <token>`.
 String? _extractBearerToken(shelf.Request request) {

@@ -4,25 +4,21 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' show HtmlParser;
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/task/backend.dart';
-import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
-import 'package:xml/xml.dart' as xml;
 
 import '../frontend/handlers/_utils.dart';
 import '../shared/test_services.dart';
+import '../shared/utils.dart';
 
 const String goldenDir = 'test/task/testdata/goldens';
 
 // TODO: generalize golden testing, use env var for regenerating all goldens.
 final _regenerateGoldens = false;
-
-/// Get hold of the [FakeCloudCompute]
-FakeCloudCompute get cloud => taskWorkerCloudCompute as FakeCloudCompute;
 
 // We use a small test profile without flutter packages, because we have to
 // run pana+dartdoc for all these package versions, naturally this is slow.
@@ -46,28 +42,7 @@ final _testProfile = TestProfile(
 
 void main() {
   testWithProfile('output of oxygen', testProfile: _testProfile, fn: () async {
-    // Backfill tracking state
-    await taskBackend.backfillTrackingState();
-
-    /// Start instance execution
-    cloud.startInstanceExecution();
-
-    // Start listening for instances, before we create any. This avoids any
-    // race conditions.
-    final instancesCreated = cloud.onCreated.take(1).toList();
-    final instancesDeleted = cloud.onDeleted.take(1).toList();
-
-    // Start the taskbackend, this will scheduled instances and track state
-    // driving scheduling.
-    await taskBackend.start();
-
-    // Wait for instances to be created.
-    await instancesCreated;
-
-    // Wait for instances to be deleted, this indicates that they are done
-    // doing whatever work they planned to do.
-    await instancesDeleted;
-
+    await processTasksLocallyWithPubWorker();
     // Make assertions about generated documentation
     final doc = await _fetchHtmlDocument(
       '/documentation/oxygen/latest/oxygen/oxygen-library.html',
@@ -96,11 +71,10 @@ void main() {
       },
     );
 
-    // Stop the task backend, and instance execution
-    await Future.wait([
-      taskBackend.stop(),
-      cloud.stopInstanceExecution(),
-    ]);
+    // Check if the documentation package.tar.gz exists.
+    final packageRs =
+        await issueGet('/documentation/oxygen/latest/package.tar.gz');
+    expect(packageRs.statusCode, 200);
   }, timeout: Timeout(Duration(minutes: 15)));
 }
 
@@ -206,6 +180,7 @@ Future<void> _traveseLinksUnderPath({
 
     htmlQueue.addAll(links
         .whereNot((l) => l.endsWith('.tar.gz'))
+        .whereNot((l) => l.endsWith('.txt'))
         .whereNot(visited.contains)
         .whereNot(htmlQueue.contains)
         .whereNot(assetQueue.contains));
@@ -241,17 +216,7 @@ void expectGoldenFile(
     replacedContent = replacedContent.replaceAll(key, value);
   });
 
-  // Pretty printing output using XML parser and formatter.
-  final xmlDoc = xml.XmlDocument.parse(
-    replacedContent,
-    entityMapping: xml.XmlDefaultEntityMapping.html5(),
-  );
-  final xmlContent = xmlDoc.toXmlString(
-        pretty: true,
-        indent: '  ',
-        entityMapping: xml.XmlDefaultEntityMapping.html5(),
-      ) +
-      '\n';
+  final xmlContent = prettyPrintHtml(replacedContent);
 
   if (fileName.endsWith('/')) {
     fileName += 'index.html';
@@ -280,7 +245,9 @@ final _goldenReplacements = <Pattern, String>{
   _timestampPattern: '%%timestamp%%',
   _escapedTimestampPattern: '%%escaped-timestamp%%',
   _timeAgoPattern: '%%time-ago%%',
+  _xagoMillisPattern: 'data-timestamp="%%time-ago-millis%%"',
   _shortDatePattern: '%%short-dateformat%%',
+  '<wbr>': '<wbr/>',
 };
 
 final _timestampPattern =
@@ -290,6 +257,7 @@ final _escapedTimestampPattern =
 final _timeAgoPattern = RegExp(
   r'(?:\d+ (?:years|months|days|hours|hour) ago)|(?:in the last hour)',
 );
+final _xagoMillisPattern = RegExp(r'data-timestamp="\d+"');
 
 final _shortDatePattern = RegExp(
   r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}, \d{4}',

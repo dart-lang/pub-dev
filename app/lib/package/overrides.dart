@@ -26,6 +26,7 @@ final _reservedPackageNames = <String>[
   'mirrors',
   'developer',
   'pub',
+  'swift_ui',
   'versions',
   'webview_flutter',
   'firebaseui',

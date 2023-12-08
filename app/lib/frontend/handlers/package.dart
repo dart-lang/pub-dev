@@ -5,8 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:_pub_shared/data/advisories_api.dart'
+    show ListAdvisoriesResponse;
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -17,6 +21,7 @@ import '../../package/models.dart';
 import '../../package/overrides.dart';
 import '../../publisher/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -77,11 +82,13 @@ Future<shelf.Response> packageVersionsListHandler(
       }
 
       final dartSdkVersion = await getDartSdkVersion();
+      final taskStatus = await taskBackend.packageStatus(packageName);
       return renderPkgVersionsPage(
         data,
         // output is expected in descending versions order
         versions.descendingVersions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
+        taskStatus: taskStatus,
       );
     },
     cacheEntry: cache.uiPackageVersions(packageName),
@@ -190,6 +197,31 @@ Future<shelf.Response> packageScoreHandler(
   );
 }
 
+/// Handles requests for /packages/<package>/score/log.txt
+/// Handles requests for /packages/<package>/versions/<version>/score/log.txt
+Future<shelf.Response> packageScoreLogTxtHandler(
+  shelf.Request request,
+  String package, {
+  String? version,
+}) async {
+  checkPackageVersionParams(package, version);
+  if (redirectPackageUrls.containsKey(package)) {
+    return redirectResponse(redirectPackageUrls[package]!);
+  }
+  if (!await packageBackend.isPackageVisible(package)) {
+    return shelf.Response.notFound('no such package');
+  }
+  version ??= (await packageBackend.getLatestVersion(package))!;
+  final log = await taskBackend.taskLog(package, version);
+  return shelf.Response(
+    log == null ? 404 : 200,
+    body: log ?? 'no log',
+    headers: {
+      'content-type': 'text/plain;charset=UTF-8',
+    },
+  );
+}
+
 /// Handles requests for /packages/<package>
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
@@ -224,18 +256,23 @@ Future<shelf.Response> _handlePackagePage({
   }
 
   if (cachedPage == null) {
-    final serviceSw = Stopwatch()..start();
-    final data = await loadPackagePageData(packageName, versionName, assetKind);
-    _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    if (data.package == null ||
-        data.package!.isNotVisible ||
-        data.version == null) {
-      if (data.moderatedPackage != null) {
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null || !package.isVisible) {
+      if (await packageBackend.isPackageModerated(packageName)) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
+      } else {
+        return formattedNotFoundHandler(request);
       }
+    }
+    final serviceSw = Stopwatch()..start();
+    late PackagePageData data;
+    try {
+      data = await loadPackagePageData(package, versionName, assetKind);
+    } on NotFoundException {
       return formattedNotFoundHandler(request);
     }
+    _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     final renderedResult = await renderFn(data);
     if (renderedResult is String) {
       cachedPage = renderedResult;
@@ -266,13 +303,13 @@ Future<shelf.Response> packageAdminHandler(
       if (unauthenticatedRs != null) {
         return unauthenticatedRs;
       }
-      if (!data.isAdmin!) {
+      if (!data.isAdmin) {
         return htmlResponse(renderUnauthorizedPage());
       }
       final page = await publisherBackend
           .listPublishersForUser(requestContext.authenticatedUserId!);
       final uploaderEmails = await accountBackend
-          .lookupUsersById(data.package!.uploaders ?? <String>[]);
+          .lookupUsersById(data.package.uploaders ?? <String>[]);
       final retractableVersions =
           await packageBackend.listRetractableVersions(packageName);
       final retractedVersions =
@@ -301,7 +338,7 @@ Future<shelf.Response> packageActivityLogHandler(
       if (unauthenticatedRs != null) {
         return unauthenticatedRs;
       }
-      if (!data.isAdmin!) {
+      if (!data.isAdmin) {
         return htmlResponse(renderUnauthorizedPage());
       }
       final before = auditBackend.parseBeforeQueryParameter(
@@ -317,70 +354,80 @@ Future<shelf.Response> packageActivityLogHandler(
 
 @visibleForTesting
 Future<PackagePageData> loadPackagePageData(
-  String packageName,
+  Package package,
   String? versionName,
   String? assetKind,
 ) async {
-  final package = await packageBackend.lookupPackage(packageName);
-  if (package == null || package.isNotVisible) {
-    final moderated = await packageBackend.lookupModeratedPackage(packageName);
-    return PackagePageData.missing(
-      package: null,
-      latestReleases: null,
-      moderatedPackage: moderated,
-    );
-  }
-
-  final bool isLiked = requestContext.isNotAuthenticated
-      ? false
-      : await likeBackend.getPackageLikeStatus(
-              requestContext.authenticatedUserId!, package.name!) !=
-          null;
-
+  final packageName = package.name!;
   versionName ??= package.latestVersion;
-  final selectedVersion =
-      await packageBackend.lookupPackageVersion(packageName, versionName!);
+
+  final latestReleasesFuture = packageBackend.latestReleases(package);
+
+  final isLikedFuture = Future(() async {
+    if (requestContext.isNotAuthenticated) {
+      return false;
+    }
+    final likeStatus = await likeBackend.getPackageLikeStatus(
+      requestContext.authenticatedUserId!,
+      package.name!,
+    );
+    return likeStatus != null;
+  });
+
+  final selectedVersionFuture =
+      packageBackend.lookupPackageVersion(packageName, versionName!);
+  final versionInfoFuture =
+      packageBackend.lookupPackageVersionInfo(packageName, versionName);
+
+  final assetFuture = assetKind == null
+      ? Future.value(null)
+      : packageBackend.lookupPackageVersionAsset(
+          packageName,
+          versionName,
+          assetKind,
+        );
+
+  final isAdminFuture = requestContext.isNotAuthenticated
+      ? Future.value(false)
+      : packageBackend.isPackageAdmin(
+          package,
+          requestContext.authenticatedUserId!,
+        );
+
+  final scoreCardFuture = scoreCardBackend
+      .getScoreCardData(packageName, versionName, package: package);
+
+  await Future.wait([
+    latestReleasesFuture,
+    isLikedFuture,
+    selectedVersionFuture,
+    versionInfoFuture,
+    assetFuture,
+    isAdminFuture,
+    scoreCardFuture,
+  ]);
+
+  final selectedVersion = await selectedVersionFuture;
   if (selectedVersion == null) {
-    return PackagePageData.missing(
-      package: package,
-      latestReleases: await packageBackend.latestReleases(package),
-    );
+    throw NotFoundException.resource(
+        'package "$packageName" version "$versionName"');
   }
 
-  final versionInfo =
-      await packageBackend.lookupPackageVersionInfo(packageName, versionName);
+  final versionInfo = await versionInfoFuture;
   if (versionInfo == null) {
-    return PackagePageData.missing(
-      package: package,
-      latestReleases: await packageBackend.latestReleases(package),
-    );
+    throw NotFoundException.resource(
+        'package "$packageName" version "$versionName"');
   }
-
-  final asset = assetKind == null
-      ? null
-      : await packageBackend.lookupPackageVersionAsset(
-          packageName, versionName, assetKind);
-
-  final scoreCard = await scoreCardBackend.getScoreCardData(
-    selectedVersion.package,
-    selectedVersion.version!,
-    showSandboxedOutput: requestContext.experimentalFlags.showSandboxedOutput,
-  );
-
-  final isAdmin = requestContext.isNotAuthenticated
-      ? false
-      : await packageBackend.isPackageAdmin(
-          package, requestContext.authenticatedUserId!);
 
   return PackagePageData(
     package: package,
-    latestReleases: await packageBackend.latestReleases(package),
+    latestReleases: await latestReleasesFuture,
     version: selectedVersion,
     versionInfo: versionInfo,
-    asset: asset,
-    scoreCard: scoreCard,
-    isAdmin: isAdmin,
-    isLiked: isLiked,
+    asset: await assetFuture,
+    scoreCard: await scoreCardFuture,
+    isAdmin: await isAdminFuture,
+    isLiked: await isLikedFuture,
   );
 }
 
@@ -419,4 +466,28 @@ Future<shelf.Response> packagePublisherHandler(
       ? urls.pkgPageUrl(package)
       : urls.publisherUrl(publisherId);
   return redirectResponse(redirectUrl);
+}
+
+/// Handles GET /api/packages/<package>/advisories
+Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
+    shelf.Request request, String packageName) async {
+  InvalidInputException.checkPackageName(packageName);
+  final package = await packageBackend.lookupPackage(packageName);
+  if (package == null) {
+    throw NotFoundException.resource(packageName);
+  }
+
+  final advisories =
+      await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
+  if (advisories.isEmpty) {
+    return ListAdvisoriesResponse(advisories: []);
+  }
+  final advisoriesUpdated = advisories.fold(
+      advisories.first.syncTime,
+      (previousValue, advisory) => advisory.syncTime.isAfter(previousValue)
+          ? advisory.syncTime
+          : previousValue);
+  return ListAdvisoriesResponse(
+      advisories: advisories.map((e) => e.advisory).toList(),
+      advisoriesUpdated: advisoriesUpdated);
 }

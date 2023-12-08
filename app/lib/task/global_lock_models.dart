@@ -7,7 +7,7 @@ import 'package:pub_dev/shared/datastore.dart' as db;
 /// [GlobalLockState] is used for locking in a distributed system.
 ///
 ///  * `id`, is the `lockId`.
-///  * `GlobalLockState` entities never has a parent.
+///  * `GlobalLockState` entities never have a parent.
 @db.Kind(name: 'GlobalLockState', idType: db.IdType.String)
 class GlobalLockState extends db.ExpandoModel<String> {
   /// Get the lockId

@@ -14,12 +14,6 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       updated: json['updated'] == null
           ? null
           : DateTime.parse(json['updated'] as String),
-      packageCreated: json['packageCreated'] == null
-          ? null
-          : DateTime.parse(json['packageCreated'] as String),
-      packageVersionCreated: json['packageVersionCreated'] == null
-          ? null
-          : DateTime.parse(json['packageVersionCreated'] as String),
       dartdocReport: json['dartdocReport'] == null
           ? null
           : DartdocReport.fromJson(
@@ -27,6 +21,8 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       panaReport: json['panaReport'] == null
           ? null
           : PanaReport.fromJson(json['panaReport'] as Map<String, dynamic>),
+      taskStatus: $enumDecodeNullable(
+          _$PackageVersionStatusEnumMap, json['taskStatus']),
     );
 
 Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
@@ -35,12 +31,17 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'packageVersion': instance.packageVersion,
       'runtimeVersion': instance.runtimeVersion,
       'updated': instance.updated?.toIso8601String(),
-      'packageCreated': instance.packageCreated?.toIso8601String(),
-      'packageVersionCreated':
-          instance.packageVersionCreated?.toIso8601String(),
       'dartdocReport': instance.dartdocReport,
       'panaReport': instance.panaReport,
+      'taskStatus': _$PackageVersionStatusEnumMap[instance.taskStatus],
     };
+
+const _$PackageVersionStatusEnumMap = {
+  PackageVersionStatus.pending: 'pending',
+  PackageVersionStatus.running: 'running',
+  PackageVersionStatus.completed: 'completed',
+  PackageVersionStatus.failed: 'failed',
+};
 
 PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
       timestamp: json['timestamp'] == null
@@ -98,23 +99,10 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) =>
     DartdocReport(
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String),
       reportStatus: json['reportStatus'] as String?,
-      dartdocEntry: json['dartdocEntry'] == null
-          ? null
-          : DartdocEntry.fromJson(json['dartdocEntry'] as Map<String, dynamic>),
-      documentationSection: json['documentationSection'] == null
-          ? null
-          : ReportSection.fromJson(
-              json['documentationSection'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) =>
     <String, dynamic>{
-      'timestamp': instance.timestamp?.toIso8601String(),
       'reportStatus': instance.reportStatus,
-      'dartdocEntry': instance.dartdocEntry,
-      'documentationSection': instance.documentationSection,
     };

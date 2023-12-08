@@ -13,7 +13,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../frontend/request_context.dart';
 
 import 'popularity_storage.dart';
-import 'scheduler_stats.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show jsonUtf8Encoder;
 import 'versions.dart';
@@ -139,7 +138,6 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
         'flutter': toolPreviewFlutterSdkVersion,
       }
     },
-    'scheduler': latestSchedulerStats,
   };
   if (data != null) {
     map.addAll(data);

@@ -2,19 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/dartdoc_page.dart';
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/static_files.dart';
 
 import '../shared/urls.dart';
 
-export 'package:pub_dartdoc_data/dartdoc_page.dart';
+export 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 
 final class DartDocPageOptions {
   final String package;
   final String version;
+
+  /// The URL segment the version is served under (e.g. `/1.2.5/` or `/latest/`)
+  final String urlSegment;
   final bool isLatestStable;
 
   /// Path of the current file relative to the documentation root.
@@ -23,6 +26,7 @@ final class DartDocPageOptions {
   DartDocPageOptions({
     required this.package,
     required this.version,
+    required this.urlSegment,
     required this.isLatestStable,
     required this.path,
   });
@@ -38,19 +42,13 @@ final class DartDocPageOptions {
     if (p.endsWith('/index.html')) {
       p = p.substring(0, p.length - 'index.html'.length);
     }
-    return isLatestStable
-        ? pkgDocUrl(
-            package,
-            includeHost: true,
-            isLatest: true,
-            relativePath: p,
-          )
-        : pkgDocUrl(
-            package,
-            includeHost: true,
-            version: version,
-            relativePath: p,
-          );
+    return pkgDocUrl(
+      package,
+      includeHost: true,
+      // keeps the [version] or the "latest" string of the requested URI
+      version: urlSegment,
+      relativePath: p,
+    );
   }
 }
 
@@ -78,7 +76,6 @@ extension DartDocPageRender on DartDocPage {
         d.meta(name: 'generator', content: 'made with love by dartdoc'),
         d.meta(name: 'description', content: description),
         d.element('title', text: title),
-        // HACK: Inject a customized canonical url
         d.link(rel: 'canonical', href: options.canonicalUrl),
         // HACK: Inject alternate link, if not is latest stable version
         if (!options.isLatestStable)
@@ -97,7 +94,7 @@ extension DartDocPageRender on DartDocPage {
         d.link(
           rel: 'stylesheet',
           href:
-              'https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;display=swap',
+              'https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap',
         ),
         d.link(
           rel: 'stylesheet',
@@ -139,9 +136,8 @@ extension DartDocPageRender on DartDocPage {
           child: d.img(
             // TODO: Move this into a class
             attributes: {'style': 'height: 30px; margin-right: 1em;'},
-            image: d.Image(
+            image: d.Image.decorative(
               src: staticUrls.dartLogoSvg,
-              alt: 'Dart',
               height: 30,
               width: 30,
             ),
@@ -180,7 +176,13 @@ extension DartDocPageRender on DartDocPage {
             children: [
               d.input(id: 'theme', type: 'checkbox', value: 'light-theme'),
               d.span(
-                  classes: ['material-symbols-outlined'], text: 'brightness_4'),
+                  id: 'dark-theme-button',
+                  classes: ['material-symbols-outlined'],
+                  text: 'brightness_4'),
+              d.span(
+                  id: 'light-theme-button',
+                  classes: ['material-symbols-outlined'],
+                  text: 'brightness_5'),
             ],
           ),
         ),
@@ -189,6 +191,10 @@ extension DartDocPageRender on DartDocPage {
   d.Node _renderMainContent(DartDocPageOptions options) => d.div(
         id: 'dartdoc-main-content',
         classes: ['main-content'],
+        attributes: {
+          if (aboveSidebarUrl != null) 'data-above-sidebar': aboveSidebarUrl!,
+          if (belowSidebarUrl != null) 'data-below-sidebar': belowSidebarUrl!,
+        },
         child: _content,
       );
 
@@ -219,11 +225,18 @@ extension DartDocPageRender on DartDocPage {
             classes: ['breadcrumbs', 'gt-separated', 'dark', 'hidden-l'],
             children: [
               ..._breadcrumbs(options).map((crumb) => crumb.href != null
-                  ? d.li(child: d.a(text: crumb.title, href: crumb.href))
+                  ? d.li(
+                      child: d.a(
+                      text: crumb.titleWithoutDotDart,
+                      href: crumb.href,
+                    ))
                   : d.li(text: crumb.title, classes: ['self-crumb']))
             ],
           ),
           _left,
+          // TODO: remove this after all runtimes are rendered with dartdoc >=8.0.0
+          if (!left.contains('dartdoc-sidebar-left-content'))
+            d.div(id: 'dartdoc-sidebar-left-content', text: ''),
         ],
       );
 
@@ -251,8 +264,9 @@ extension DartDocPageRender on DartDocPage {
   d.Node _renderBody(DartDocPageOptions options) {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
     return d.element('body', attributes: {
-      'data-base-href': dataBaseHref == '.' ? '' : '$dataBaseHref/',
-      'data-using-base-href': 'false',
+      'data-base-href':
+          baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
+      'data-using-base-href': usingBaseHref ?? 'false',
       'class': 'light-theme',
     }, children: [
       d.element('noscript',

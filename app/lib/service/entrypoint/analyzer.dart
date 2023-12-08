@@ -3,20 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/search/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
 import '../../analyzer/handlers.dart';
-import '../../analyzer/pana_runner.dart';
-import '../../job/backend.dart';
-import '../../job/job.dart';
-import '../../shared/datastore.dart' as db;
+import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
-import '../../shared/scheduler_stats.dart';
+import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '_isolate.dart';
@@ -33,38 +33,53 @@ class AnalyzerCommand extends Command {
   @override
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
-    await startIsolates(
-      logger: logger,
-      frontendEntryPoint: _frontendMain,
-      workerEntryPoint: _workerMain,
-      deadWorkerTimeout: Duration(hours: 1),
-      frontendCount: 1,
-      workerCount: 1,
-    );
+    await withServices(() async {
+      final worker =
+          await startWorkerIsolate(logger: logger, entryPoint: _workerMain);
+      registerScopeExitCallback(worker.close);
+
+      final indexBuilder = await startWorkerIsolate(
+        logger: logger,
+        entryPoint: _indexBuilderMain,
+        kind: 'index-builder',
+      );
+      registerScopeExitCallback(indexBuilder.close);
+
+      if (activeConfiguration.exportedApiBucketName != null) {
+        final apiExporterIsolate = await startWorkerIsolate(
+          logger: logger,
+          entryPoint: _apiExporterMain,
+          kind: 'api-exporter',
+        );
+        registerScopeExitCallback(apiExporterIsolate.close);
+      }
+
+      await runHandler(logger, analyzerServiceHandler);
+    });
   }
 }
 
-Future _frontendMain(FrontendEntryMessage message) async {
-  final statsConsumer = ReceivePort();
-  registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(FrontendProtocolMessage(
-    statsConsumerPort: statsConsumer.sendPort,
-  ));
-  await runHandler(logger, analyzerServiceHandler);
-}
+Future _workerMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
 
-Future _workerMain(WorkerEntryMessage message) async {
-  message.protocolSendPort.send(WorkerProtocolMessage());
+  await popularityStorage.start();
+  await taskBackend.start();
 
   setupAnalyzerPeriodicTasks();
+  setupSearchPeriodicTasks();
+
+  // wait indefinitely
+  await Completer().future;
+}
+
+Future _indexBuilderMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
-  final jobProcessor = AnalyzerJobProcessor(
-      aliveCallback: () => message.aliveSendPort.send(null));
-  final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
+  await searchBackend.updateSnapshotInForeverLoop();
+}
 
-  Timer.periodic(const Duration(minutes: 15), (_) async {
-    message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
-  });
-
-  await jobMaintenance.run();
+Future _apiExporterMain(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+  await popularityStorage.start();
+  await apiExporter!.uploadInForeverLoop();
 }

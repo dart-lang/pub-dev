@@ -163,6 +163,15 @@ class MemDatastore implements Datastore {
   }
 
   int _compare(dynamic a, dynamic b) {
+    // Equality filter:  to query if an array contains a value use an equality filter.
+    // https://cloud.google.com/datastore/docs/concepts/queries#array_values
+    if (a is List && b is! List) {
+      if (a.contains(b)) {
+        return 0;
+      } else {
+        return -1;
+      }
+    }
     if (a is Key && b is Key) {
       if (a.elements.length != 1) {
         throw UnimplementedError();

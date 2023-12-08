@@ -11,7 +11,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
+import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/model_properties.dart';
@@ -20,6 +20,7 @@ import '../search/search_service.dart' show ApiPageRef;
 import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
+import '../shared/popularity_storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
@@ -148,14 +149,19 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// The JSON-serialized format of the [AutomatedPublishingConfig].
-  @db.StringProperty(indexed: false)
-  @Deprecated('Use automatedPublishingField instead.')
-  String? automatedPublishingJson;
-
   /// Scheduling state for all versions of this package.
-  @AutomatedPublishingProperty(propertyName: 'automatedPublishing')
-  AutomatedPublishing? automatedPublishingField;
+  @AutomatedPublishingProperty()
+  AutomatedPublishing? automatedPublishing;
+
+  /// The latest point in time at which a security advisory that affects this
+  /// package has been synchronized into pub.
+  ///
+  /// `null` if the package has never been affected by an advisory.
+  ///
+  /// Once set, it must only be moved forward, never `null` again and never a
+  /// future date.
+  @db.DateTimeProperty()
+  DateTime? latestAdvisory;
 
   Package();
 
@@ -387,36 +393,6 @@ class Package extends db.ExpandoModel<String> {
             )
           : null,
     );
-  }
-
-  AutomatedPublishing? get automatedPublishing {
-    // TODO: remove after the values are migrated.
-    final field = automatedPublishingField ??
-        // ignore: deprecated_member_use_from_same_package
-        (automatedPublishingJson == null
-            ? null
-            : AutomatedPublishing(
-                githubConfig: _automatedPublishing.github,
-                gcpConfig: _automatedPublishing.gcp,
-              ));
-    automatedPublishingField = field;
-    return field;
-  }
-
-  set automatedPublishing(AutomatedPublishing? value) {
-    automatedPublishingField = value;
-    // ignore: deprecated_member_use_from_same_package
-    automatedPublishingJson = null;
-  }
-
-  AutomatedPublishingConfig get _automatedPublishing {
-    // ignore: deprecated_member_use_from_same_package
-    if (automatedPublishingJson == null) {
-      return AutomatedPublishingConfig();
-    }
-    return AutomatedPublishingConfig.fromJson(
-        // ignore: deprecated_member_use_from_same_package
-        json.decode(automatedPublishingJson!) as Map<String, dynamic>);
   }
 
   void updateIsBlocked({
@@ -885,17 +861,17 @@ class QualifiedVersionKey {
 /// An extract of [Package] and [PackageVersion], for
 /// display-only uses.
 @JsonSerializable(includeIfNull: false)
-class PackageView extends Object with FlagMixin {
-  final String? name;
-  final LatestReleases? releases;
+class PackageView {
+  final String name;
+  final LatestReleases releases;
   final String? ellipsizedDescription;
 
   /// The date when the package was first published.
-  final DateTime? created;
+  final DateTime created;
   final String? publisherId;
   final bool isPending;
 
-  final int? likes;
+  final int likes;
 
   /// The package's granted points from pana and dartdoc analysis.
   /// May be `null` if the analysis is not available yet.
@@ -905,7 +881,6 @@ class PackageView extends Object with FlagMixin {
   /// May be `null` if the analysis is not available yet.
   final int? maxPubPoints;
 
-  @override
   final List<String> tags;
 
   /// The package that should be used instead of the current package.
@@ -918,16 +893,17 @@ class PackageView extends Object with FlagMixin {
   final List<ProcessedScreenshot>? screenshots;
 
   final List<String>? topics;
+  final int popularity;
 
   PackageView({
     this.screenshots,
-    this.name,
-    this.releases,
+    required this.name,
+    required this.releases,
     this.ellipsizedDescription,
-    this.created,
+    required this.created,
     this.publisherId,
     bool? isPending,
-    this.likes,
+    required this.likes,
     this.grantedPubPoints,
     this.maxPubPoints,
     List<String>? tags,
@@ -935,6 +911,7 @@ class PackageView extends Object with FlagMixin {
     this.spdxIdentifiers,
     this.apiPages,
     this.topics,
+    required this.popularity,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
 
@@ -945,42 +922,33 @@ class PackageView extends Object with FlagMixin {
     required Package package,
     required LatestReleases releases,
     PackageVersion? version,
-    ScoreCardData? scoreCard,
+    required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
+    required int popularity,
   }) {
-    final hasPanaReport = scoreCard?.hasPanaReport ?? false;
-    final isPending =
-        // Job processing has not created any card yet.
-        (scoreCard == null) ||
-            // The uploader has recently removed the "discontinued" flag, but the
-            // analysis did not complete yet.
-            (scoreCard.isDiscontinued && !package.isDiscontinued) ||
-            // No blocker for analysis, but no results yet.
-            (!scoreCard.isSkipped && !hasPanaReport);
-
     final tags = <String>{
       ...package.getTags(),
       ...?version?.getTags(),
-      ...?scoreCard?.derivedTags,
+      ...?scoreCard.derivedTags,
     };
     return PackageView(
-      name: version?.package ?? package.name,
+      name: package.name!,
       releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
-      created: package.created,
+      created: package.created!,
       publisherId: package.publisherId,
-      isPending: isPending,
+      isPending: scoreCard.isPending,
       likes: package.likes,
-      grantedPubPoints: scoreCard?.grantedPubPoints,
-      maxPubPoints: scoreCard?.maxPubPoints,
+      grantedPubPoints: scoreCard.grantedPubPoints,
+      maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
       replacedBy: package.replacedBy,
-      spdxIdentifiers: scoreCard?.panaReport?.licenses
-          ?.map((e) => e.spdxIdentifier)
-          .toList(),
+      spdxIdentifiers:
+          scoreCard.panaReport?.licenses?.map((e) => e.spdxIdentifier).toList(),
       apiPages: apiPages,
-      screenshots: scoreCard?.panaReport?.screenshots,
+      screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.topics,
+      popularity: popularity,
     );
   }
 
@@ -1001,13 +969,15 @@ class PackageView extends Object with FlagMixin {
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,
       topics: topics,
+      popularity: popularity,
     );
   }
 
   Map<String, dynamic> toJson() => _$PackageViewToJson(this);
 
-  // TODO: refactor code to use popularityStorage directly.
-  int get popularity => popularityStorage.lookupAsScore(name!);
+  bool get isDiscontinued => tags.contains(PackageTags.isDiscontinued);
+  bool get isLegacy => tags.contains(PackageVersionTags.isLegacy);
+  bool get isObsolete => tags.contains(PackageVersionTags.isObsolete);
 }
 
 /// Sorts [versions] according to the semantic versioning specification.
@@ -1039,16 +1009,22 @@ class PackageLinks {
   /// inferred URL from [repositoryUrl].
   final String? issueTrackerUrl;
 
+  /// The link to `CONTRIBUTING.md` in the git repository (when the repository is verified).
+  final String? contributingUrl;
+
   /// The inferred base URL that can be used to link files from.
   final String? _baseUrl;
 
   PackageLinks._(
     this._baseUrl, {
     this.homepageUrl,
-    this.documentationUrl,
+    String? documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
-  });
+    this.contributingUrl,
+  }) : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
+            ? null
+            : documentationUrl;
 
   factory PackageLinks.infer({
     String? homepageUrl,
@@ -1074,15 +1050,14 @@ class PackageLinks {
 
 /// Common data structure shared between package pages.
 class PackagePageData {
-  final Package? package;
-  final LatestReleases? latestReleases;
-  final ModeratedPackage? moderatedPackage;
-  final PackageVersion? version;
-  final PackageVersionInfo? versionInfo;
+  final Package package;
+  final LatestReleases latestReleases;
+  final PackageVersion version;
+  final PackageVersionInfo versionInfo;
   final PackageVersionAsset? asset;
-  final ScoreCardData? scoreCard;
-  final bool? isAdmin;
-  final bool? isLiked;
+  final ScoreCardData scoreCard;
+  final bool isAdmin;
+  final bool isLiked;
   PackageView? _view;
 
   PackagePageData({
@@ -1094,32 +1069,19 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
-  })  : latestReleases = latestReleases ?? package!.latestReleases,
-        moderatedPackage = null;
+  }) : latestReleases = latestReleases ?? package.latestReleases;
 
-  PackagePageData.missing({
-    required this.package,
-    required this.latestReleases,
-    this.moderatedPackage,
-  })  : version = null,
-        versionInfo = null,
-        asset = null,
-        scoreCard = null,
-        isAdmin = null,
-        isLiked = null;
+  bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
+  bool get hasChangelog => versionInfo.assets.contains(AssetKind.changelog);
+  bool get hasExample => versionInfo.assets.contains(AssetKind.example);
+  bool get hasLicense => versionInfo.assets.contains(AssetKind.license);
+  bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
 
-  bool get hasReadme => versionInfo!.assets.contains(AssetKind.readme);
-  bool get hasChangelog => versionInfo!.assets.contains(AssetKind.changelog);
-  bool get hasExample => versionInfo!.assets.contains(AssetKind.example);
-  bool get hasLicense => versionInfo!.assets.contains(AssetKind.license);
-  bool get hasPubspec => versionInfo!.assets.contains(AssetKind.pubspec);
-
-  bool get isLatestStable => version!.version == package!.latestVersion;
-  int get popularity => popularityStorage.lookupAsScore(package!.name!);
+  bool get isLatestStable => version.version == package.latestVersion;
 
   late final packageLinks = () {
     // Trying to use verfied URLs
-    final result = scoreCard?.panaReport?.result;
+    final result = scoreCard.panaReport?.result;
     if (result != null) {
       final baseUrl = urls.inferBaseUrl(
         homepageUrl: result.homepageUrl,
@@ -1131,11 +1093,11 @@ class PackagePageData {
         repositoryUrl: result.repositoryUrl,
         issueTrackerUrl: result.issueTrackerUrl,
         documentationUrl: result.documentationUrl,
+        contributingUrl: result.contributingUrl,
       );
     }
     // Falling back to use URLs from pubspec.yaml.
-    // TODO: Remove this and return `null` after this release gets stable.
-    final pubspec = version!.pubspec!;
+    final pubspec = version.pubspec!;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
@@ -1144,24 +1106,18 @@ class PackagePageData {
     );
   }();
 
-  late final contributingUrl = scoreCard?.panaReport?.result?.contributingUrl;
-
-  /// The inferred base URL that can be used to link files from.
-  late final repositoryBaseUrl = () {
-    // TODO: use pana's verified repository instead
-    return packageLinks._baseUrl;
-  }();
-
   /// The verified repository (or homepage).
   late final urlResolverFn =
-      scoreCard?.panaReport?.result?.repository?.resolveUrl;
+      scoreCard.panaReport?.result?.repository?.resolveUrl ??
+          fallbackUrlResolverFn(packageLinks._baseUrl);
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
-      package: package!,
-      releases: latestReleases!,
+      package: package,
+      releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
+      popularity: popularityStorage.lookupAsScore(package.name!),
     );
   }
 }

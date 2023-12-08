@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
@@ -12,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../shared/utils.dart' show boundedList;
+import 'models.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 import 'token_index.dart';
@@ -19,121 +18,71 @@ import 'token_index.dart';
 final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
-/// Returns the popularity score (0.0 - 1.0) of a package.
-typedef PopularityValueFn = double Function(String packageName);
-double _noPopularityScoreFn(String packageName) => 0.0;
-
-class InMemoryPackageIndex implements PackageIndex {
-  final PopularityValueFn _popularityValueFn;
+class InMemoryPackageIndex {
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final _packageNameIndex = PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
-  final _likeTracker = _LikeTracker();
-  final _updatedPackages = ListQueue<String>();
-  final bool _alwaysUpdateLikeScores;
-  late final _createdOrderedHitCache = _OrderedHitCache(
-      () => _rankWithComparator(_packages.keys.toSet(), _compareCreated));
-  late final _updatedOrderedHitCache = _OrderedHitCache(
-      () => _rankWithComparator(_packages.keys.toSet(), _compareUpdated));
 
-  DateTime? _lastUpdated;
-  bool _isReady = false;
+  /// Adjusted score takes the overall score and transforms
+  /// it linearly into the [0.4-1.0] range.
+  final _adjustedOverallScores = <String, double>{};
+  late final List<PackageHit> _overallOrderedHits;
+  late final List<PackageHit> _createdOrderedHits;
+  late final List<PackageHit> _updatedOrderedHits;
+  late final List<PackageHit> _popularityOrderedHits;
+  late final List<PackageHit> _likesOrderedHits;
+  late final List<PackageHit> _pointsOrderedHits;
+
+  late final DateTime _lastUpdated;
 
   InMemoryPackageIndex({
-    PopularityValueFn popularityValueFn = _noPopularityScoreFn,
-    math.Random? random,
-    @visibleForTesting bool alwaysUpdateLikeScores = false,
-  })  : _popularityValueFn = popularityValueFn,
-        _alwaysUpdateLikeScores = alwaysUpdateLikeScores;
+    required Iterable<PackageDocument> documents,
+  }) {
+    for (final doc in documents) {
+      _addPackage(doc);
+    }
+    // update like scores only if they were not set (should happen only in local tests)
+    if (_packages.values.any((e) => e.likeScore == null)) {
+      _packages.values.updateLikeScores();
+    }
+    _updateOverallScores();
+    _lastUpdated = clock.now().toUtc();
+    _overallOrderedHits = _rankWithComparator(_compareOverall,
+        score: (doc) => doc.overallScore ?? 0.0);
+    _createdOrderedHits = _rankWithComparator(_compareCreated);
+    _updatedOrderedHits = _rankWithComparator(_compareUpdated);
+    _popularityOrderedHits = _rankWithComparator(_comparePopularity,
+        score: (doc) => doc.popularityScore ?? 0);
+    _likesOrderedHits = _rankWithComparator(_compareLikes,
+        score: (doc) => doc.likeCount.toDouble());
+    _pointsOrderedHits = _rankWithComparator(_comparePoints,
+        score: (doc) => doc.grantedPoints.toDouble());
+  }
 
-  @override
-  Future<IndexInfo> indexInfo() async {
+  IndexInfo indexInfo() {
     return IndexInfo(
-      isReady: _isReady,
+      isReady: true,
       packageCount: _packages.length,
       lastUpdated: _lastUpdated,
-      updatedPackages: _updatedPackages.toList(),
     );
   }
 
-  void _trackUpdated(String package) {
-    while (_updatedPackages.length >= 20) {
-      _updatedPackages.removeFirst();
-    }
-    _updatedPackages.addLast(package);
-  }
-
-  @override
-  Future<void> markReady() async {
-    _isReady = true;
-  }
-
-  @override
-  Future<void> addPackage(PackageDocument doc) async {
+  void _addPackage(PackageDocument doc) {
     _packages[doc.package] = doc;
-
-    // The method could be a single sync block, however, while the index update
-    // happens, we are not serving queries. With the forced async segments,
-    // the waiting queries will be served earlier.
-    await Future.delayed(Duration.zero);
     _packageNameIndex.add(doc.package);
-
-    await Future.delayed(Duration.zero);
     _descrIndex.add(doc.package, doc.description);
-
-    await Future.delayed(Duration.zero);
     _readmeIndex.add(doc.package, doc.readme);
 
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
       final pageId = _apiDocPageId(doc.package, page);
       if (page.symbols != null && page.symbols!.isNotEmpty) {
-        await Future.delayed(Duration.zero);
         _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
       }
     }
-
-    await Future.delayed(Duration.zero);
-    _likeTracker.trackLikeCount(doc.package, doc.likeCount ?? 0);
-    if (_alwaysUpdateLikeScores) {
-      await _likeTracker._updateScores();
-    } else {
-      await _likeTracker._updateScoresIfNeeded();
-    }
-
-    await Future.delayed(Duration.zero);
-    _lastUpdated = clock.now().toUtc();
-    _trackUpdated(doc.package);
-    _invalidateHitCaches();
   }
 
-  @override
-  Future<void> addPackages(Iterable<PackageDocument> documents) async {
-    for (PackageDocument doc in documents) {
-      await addPackage(doc);
-    }
-    await _likeTracker._updateScores();
-  }
-
-  @override
-  Future<void> removePackage(String package) async {
-    final doc = _packages.remove(package);
-    if (doc == null) return;
-    _packageNameIndex.remove(package);
-    _descrIndex.remove(package);
-    _readmeIndex.remove(package);
-    for (ApiDocPage page in doc.apiDocPages ?? const []) {
-      final pageId = _apiDocPageId(doc.package, page);
-      _apiSymbolIndex.remove(pageId);
-    }
-    _likeTracker.removePackage(doc.package);
-    _lastUpdated = clock.now().toUtc();
-    _trackUpdated('-$package');
-    _invalidateHitCaches();
-  }
-
-  @override
   PackageSearchResult search(ServiceSearchQuery query) {
     final packages = Set<String>.of(_packages.keys);
 
@@ -150,8 +99,8 @@ class InMemoryPackageIndex implements PackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packages.retainWhere(
-          (package) => combinedTagsPredicate.matches(_packages[package]!.tags));
+      packages.retainWhere((package) =>
+          combinedTagsPredicate.matches(_packages[package]!.tagsForLookup));
     }
 
     // filter on dependency
@@ -174,7 +123,7 @@ class InMemoryPackageIndex implements PackageIndex {
     if (query.minPoints != null && query.minPoints! > 0) {
       packages.removeWhere((package) {
         final doc = _packages[package]!;
-        return (doc.grantedPoints ?? 0) < query.minPoints!;
+        return doc.grantedPoints < query.minPoints!;
       });
     }
 
@@ -185,7 +134,7 @@ class InMemoryPackageIndex implements PackageIndex {
       final now = clock.now();
       packages.removeWhere((package) {
         final doc = _packages[package]!;
-        final diff = now.difference(doc.updated!);
+        final diff = now.difference(doc.updated);
         return diff > threshold;
       });
     }
@@ -202,11 +151,16 @@ class InMemoryPackageIndex implements PackageIndex {
     late List<PackageHit> packageHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
-        final List<Score> scores = [
-          _getOverallScore(packages),
-          if (textResults != null) textResults.pkgScore,
-        ];
-        final overallScore = Score.multiply(scores);
+        if (textResults == null) {
+          packageHits = _overallOrderedHits.whereInSet(packages);
+          break;
+        }
+
+        /// Adjusted score takes the overall score and transforms
+        /// it linearly into the [0.4-1.0] range, to allow better
+        /// multiplication outcomes.
+        final overallScore = textResults.pkgScore
+            .map((key, value) => value * _adjustedOverallScores[key]!);
         // If the search hits have an exact name match, we move it to the front of the result list.
         final parsedQueryText = query.parsedQuery.text;
         final priorityPackageName =
@@ -221,19 +175,19 @@ class InMemoryPackageIndex implements PackageIndex {
         packageHits = _rankWithValues(score.getValues());
         break;
       case SearchOrder.created:
-        packageHits = _createdOrderedHitCache.whereInSet(packages);
+        packageHits = _createdOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.updated:
-        packageHits = _updatedOrderedHitCache.whereInSet(packages);
+        packageHits = _updatedOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.popularity:
-        packageHits = _rankWithValues(getPopularityScore(packages));
+        packageHits = _popularityOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.like:
-        packageHits = _rankWithValues(getLikeScore(packages));
+        packageHits = _likesOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.points:
-        packageHits = _rankWithValues(getPubPoints(packages));
+        packageHits = _pointsOrderedHits.whereInSet(packages);
         break;
     }
 
@@ -245,8 +199,9 @@ class InMemoryPackageIndex implements PackageIndex {
     if (textResults != null && textResults.topApiPages.isNotEmpty) {
       packageHits = packageHits.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
-            // TODO: extract title for the page
-            ?.map((String page) => ApiPageRef(path: page))
+            // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
+            ?.map((MapEntry<String, double> e) =>
+                ApiPageRef(path: _apiDocPath(e.key)))
             .toList();
         return ps.change(apiPages: apiPages);
       }).toList();
@@ -259,41 +214,18 @@ class InMemoryPackageIndex implements PackageIndex {
     );
   }
 
-  @visibleForTesting
-  Map<String, double> getPopularityScore(Iterable<String> packages) {
-    return Map.fromEntries(packages
-        .map((p) => MapEntry<String, double>(p, _popularityValueFn(p))));
-  }
-
-  @visibleForTesting
-  Map<String, double> getLikeScore(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) => (_packages[package]?.likeCount?.toDouble() ?? 0.0),
-    );
-  }
-
-  @visibleForTesting
-  Map<String, double> getPubPoints(Iterable<String> packages) {
-    return Map.fromIterable(
-      packages,
-      value: (package) =>
-          (_packages[package]?.grantedPoints?.toDouble() ?? 0.0),
-    );
-  }
-
-  Score _getOverallScore(Iterable<String> packages) {
-    final values = Map<String, double>.fromEntries(packages.map((package) {
-      final doc = _packages[package]!;
-      final downloadScore = _popularityValueFn(package);
-      final likeScore = _likeTracker.getLikeScore(doc.package);
+  /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
+  void _updateOverallScores() {
+    for (final doc in _packages.values) {
+      final downloadScore = doc.popularityScore ?? 0.0;
+      final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
-      final points = (doc.grantedPoints ?? 0) / math.max(1, doc.maxPoints ?? 0);
+      final points = doc.grantedPoints / math.max(1, doc.maxPoints);
       final overall = popularity * 0.5 + points * 0.5;
-      // don't multiply with zero.
-      return MapEntry(package, 0.4 + 0.6 * overall);
-    }));
-    return Score(values);
+      doc.overallScore = overall;
+      // adding a base score prevents later multiplication with zero
+      _adjustedOverallScores[doc.package] = 0.4 + 0.6 * overall;
+    }
   }
 
   _TextResults? _searchText(Set<String> packages, String? text) {
@@ -301,7 +233,7 @@ class InMemoryPackageIndex implements PackageIndex {
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
       if (words.isEmpty) {
-        return _TextResults(Score.empty(), <String, List<String>>{});
+        return _TextResults(Score.empty(), {});
       }
 
       bool aborted = false;
@@ -349,11 +281,32 @@ class InMemoryPackageIndex implements PackageIndex {
       }
 
       final apiPackages = <String, double>{};
+      final topApiPages = <String, List<MapEntry<String, double>>>{};
+      const maxApiPageCount = 2;
       for (final entry in symbolPages.getValues().entries) {
         final pkg = _apiDocPkg(entry.key);
         if (!packages.contains(pkg)) continue;
+
+        // skip if the previously found pages are better than the current one
+        final pages = topApiPages.putIfAbsent(pkg, () => []);
+        if (pages.length >= maxApiPageCount && pages.last.value > entry.value) {
+          continue;
+        }
+
+        // update the top api packages score
         apiPackages[pkg] = math.max(entry.value, apiPackages[pkg] ?? 0.0);
+
+        // add the page and re-sort the current results
+        pages.add(entry);
+        if (pages.length > 1) {
+          pages.sort((a, b) => -a.value.compareTo(b.value));
+        }
+        // keep the results limited to the max count
+        if (pages.length > maxApiPageCount) {
+          pages.removeLast();
+        }
       }
+
       final apiPkgScore = Score(apiPackages);
       var score = Score.max([core, apiPkgScore])
           .project(packages)
@@ -362,7 +315,7 @@ class InMemoryPackageIndex implements PackageIndex {
       // filter results based on exact phrases
       final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
-        final Map<String, double> matched = <String, double>{};
+        final matched = <String, double>{};
         for (String package in score.getKeys()) {
           final doc = _packages[package]!;
           final bool matchedAllPhrases = phrases.every((phrase) =>
@@ -374,18 +327,6 @@ class InMemoryPackageIndex implements PackageIndex {
           }
         }
         score = Score(matched);
-      }
-
-      final apiDocKeys = symbolPages.getKeys().toList()
-        ..sort((a, b) => -symbolPages[a].compareTo(symbolPages[b]));
-      final topApiPages = <String, List<String>>{};
-      for (String key in apiDocKeys) {
-        final pkg = _apiDocPkg(key);
-        final pages = topApiPages.putIfAbsent(pkg, () => []);
-        if (pages.length < 3) {
-          final page = _apiDocPath(key);
-          pages.add(page);
-        }
       }
 
       return _TextResults(score, topApiPages);
@@ -411,25 +352,48 @@ class InMemoryPackageIndex implements PackageIndex {
     return list;
   }
 
-  List<PackageHit> _rankWithComparator(Set<String> packages,
-      int Function(PackageDocument a, PackageDocument b) compare) {
-    final list = packages
-        .map((package) => PackageHit(package: _packages[package]!.package))
+  List<PackageHit> _rankWithComparator(
+    int Function(PackageDocument a, PackageDocument b) compare, {
+    double Function(PackageDocument doc)? score,
+  }) {
+    final list = _packages.values
+        .map((doc) => PackageHit(
+            package: doc.package, score: score == null ? null : score(doc)))
         .toList();
     list.sort((a, b) => compare(_packages[a.package]!, _packages[b.package]!));
     return list;
   }
 
   int _compareCreated(PackageDocument a, PackageDocument b) {
-    if (a.created == null) return -1;
-    if (b.created == null) return 1;
-    return -a.created!.compareTo(b.created!);
+    return -a.created.compareTo(b.created);
   }
 
   int _compareUpdated(PackageDocument a, PackageDocument b) {
-    if (a.updated == null) return -1;
-    if (b.updated == null) return 1;
-    return -a.updated!.compareTo(b.updated!);
+    return -a.updated.compareTo(b.updated);
+  }
+
+  int _compareOverall(PackageDocument a, PackageDocument b) {
+    final x = -(a.overallScore ?? 0.0).compareTo(b.overallScore ?? 0.0);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _comparePopularity(PackageDocument a, PackageDocument b) {
+    final x = -(a.popularityScore ?? 0.0).compareTo(b.popularityScore ?? 0.0);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _compareLikes(PackageDocument a, PackageDocument b) {
+    final x = -a.likeCount.compareTo(b.likeCount);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _comparePoints(PackageDocument a, PackageDocument b) {
+    final x = -a.grantedPoints.compareTo(b.grantedPoints);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
   }
 
   String _apiDocPageId(String package, ApiDocPage page) {
@@ -443,16 +407,11 @@ class InMemoryPackageIndex implements PackageIndex {
   String _apiDocPath(String id) {
     return id.split('::').last;
   }
-
-  void _invalidateHitCaches() {
-    _createdOrderedHitCache.invalide();
-    _updatedOrderedHitCache.invalide();
-  }
 }
 
 class _TextResults {
   final Score pkgScore;
-  final Map<String, List<String>> topApiPages;
+  final Map<String, List<MapEntry<String, double>>> topApiPages;
 
   _TextResults(this.pkgScore, this.topApiPages);
 }
@@ -479,11 +438,6 @@ class PackageNameIndex {
       final collapsed = _collapseName(package);
       return _PkgNameData(collapsed, trigrams(collapsed).toSet());
     });
-  }
-
-  /// Remove a [package] from the index.
-  void remove(String package) {
-    _data.remove(package);
   }
 
   /// Search [text] and return the matching packages with scores.
@@ -531,104 +485,8 @@ class _PkgNameData {
   _PkgNameData(this.collapsed, this.trigrams);
 }
 
-class _LikeScore {
-  final String package;
-  int likeCount = 0;
-  double score = 0.0;
-
-  _LikeScore(this.package);
-}
-
-class _LikeTracker {
-  final _values = <String, _LikeScore>{};
-  bool _changed = false;
-  DateTime? _lastUpdated;
-
-  double getLikeScore(String package) {
-    return _values[package]?.score ?? 0.0;
-  }
-
-  void trackLikeCount(String package, int likeCount) {
-    final v = _values.putIfAbsent(package, () => _LikeScore(package));
-    if (v.likeCount != likeCount) {
-      _changed = true;
-      v.likeCount = likeCount;
-    }
-  }
-
-  void removePackage(String package) {
-    final removed = _values.remove(package);
-    _changed |= removed != null;
-  }
-
-  Future<void> _updateScoresIfNeeded() async {
-    if (!_changed) {
-      // we know there is nothing to update
-      return;
-    }
-    final now = clock.now();
-    if (_lastUpdated != null && now.difference(_lastUpdated!).inHours < 12) {
-      // we don't need to update too frequently
-      return;
-    }
-
-    await _updateScores();
-  }
-
-  /// Updates `_LikeScore.score` values, setting them between 0.0 (no likes) to
-  /// 1.0 (most likes).
-  Future<void> _updateScores() async {
-    final sw = Stopwatch()..start();
-    final entries = _values.values.toList();
-
-    // The method could be a single sync block, however, while the index update
-    // happens, we are not serving queries. With the forced async segments,
-    // the waiting queries will be served earlier.
-    await Future.delayed(Duration.zero);
-    entries.sort((a, b) => a.likeCount.compareTo(b.likeCount));
-
-    await Future.delayed(Duration.zero);
-    for (int i = 0; i < entries.length; i++) {
-      if (i > 0 && entries[i].likeCount == entries[i - 1].likeCount) {
-        entries[i].score = entries[i - 1].score;
-      } else {
-        entries[i].score = (i + 1) / entries.length;
-      }
-    }
-    _changed = false;
-    _lastUpdated = clock.now();
-    _logger.info('Updated like scores in ${sw.elapsed} (${entries.length})');
-  }
-}
-
-class _OrderedHitCache {
-  final List<PackageHit> Function() _updater;
-  bool _expired = true;
-  DateTime _lastUpdated = clock.now();
-  List<PackageHit>? _values;
-
-  _OrderedHitCache(this._updater);
-
-  void invalide() {
-    _expired = true;
-  }
-
-  List<PackageHit> getOrUpdate() {
-    if (_expired ||
-        _values == null ||
-        clock.now().difference(_lastUpdated) > const Duration(hours: 1)) {
-      _expired = false;
-      _lastUpdated = clock.now();
-      _values = _updater();
-    }
-    return _values!;
-  }
-
-  List<PackageHit> where(bool Function(PackageHit hit) fn) {
-    return getOrUpdate().where(fn).toList();
-  }
-
+extension on List<PackageHit> {
   List<PackageHit> whereInSet(Set<String> packages) {
-    return where((hit) => packages.contains(hit.package));
+    return where((hit) => packages.contains(hit.package)).toList();
   }
 }

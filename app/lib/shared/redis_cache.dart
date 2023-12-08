@@ -7,16 +7,18 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
-import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:googleapis/youtube/v3.dart';
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 import '../account/models.dart' show LikeData, SessionData;
-import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
@@ -52,40 +54,6 @@ class CachePatterns {
         encode: (SessionData data) => data.toJson(),
         decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
-
-  /// Cache for [DartdocEntry] objects.
-  Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache
-      .withPrefix('dartdoc-entry/')
-      .withTTL(Duration(hours: 24))
-      .withCodec(wrapAsCodec(
-        encode: (DartdocEntry entry) => entry.asBytes(),
-        decode: (data) => DartdocEntry.fromBytes(data),
-      ))['$package-$version'];
-
-  /// Cache for [FileInfo] objects used by dartdoc.
-  Entry<FileInfo> dartdocFileInfo(String objectName) => _cache
-      .withPrefix('dartdoc-fileinfo/')
-      .withTTL(Duration(minutes: 60))
-      .withCodec(wrapAsCodec(
-        encode: (FileInfo info) => info.asBytes(),
-        decode: (data) => FileInfo.fromBytes(data),
-      ))[objectName];
-
-  /// Cache for the binary content of the blob index (v1).
-  Entry<List<int>> dartdocBlobIndexV1(String objectName) => _cache
-      .withPrefix('dartdoc-blob-index-v1/')
-      .withTTL(Duration(minutes: 60))[objectName];
-
-  /// Cache for API summaries used by dartdoc.
-  Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
-      .withPrefix('dartdoc-apisummary/')
-      .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (Map<String, dynamic> map) => map,
-        decode: (obj) => obj as Map<String, dynamic>,
-      ))[package];
 
   Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage/')
@@ -153,6 +121,16 @@ class CachePatterns {
         decode: (d) => d as bool,
       ))[package];
 
+  Entry<bool> packageModerated(String package) => _cache
+      .withPrefix('package-moderated/')
+      .withTTL(Duration(days: 7))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (bool value) => value,
+        decode: (d) => d as bool,
+      ))[package];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];
@@ -175,6 +153,16 @@ class CachePatterns {
       .withPrefix('package-latest-version/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[package];
+
+  Entry<String> latestFinishedVersion(String package) => _cache
+      .withPrefix('latest-finished-version/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)[package];
+
+  Entry<String> closestFinishedVersion(String package, String version) => _cache
+      .withPrefix('closest-finished-version/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package/$version'];
 
   Entry<PackageView> packageView(String package) => _cache
       .withPrefix('package-view/')
@@ -210,13 +198,28 @@ class CachePatterns {
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
-      .withPrefix('scorecarddata/')
+      .withPrefix('scorecard-data/')
+      .withTTL(Duration(hours: 2))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
         encode: (ScoreCardData d) => d.toJson(),
         decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
+
+  Entry<List<SecurityAdvisoryData>> securityAdvisories(String package) => _cache
+      .withPrefix('security-advisory/')
+      .withTTL(Duration(hours: 8))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (List<SecurityAdvisoryData> l) =>
+            l.map((SecurityAdvisoryData adv) => adv.toJson()).toList(),
+        decode: (d) => (d as List)
+            .map(
+                (d) => SecurityAdvisoryData.fromJson(d as Map<String, dynamic>))
+            .toList(),
+      ))[package];
 
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
       .withPrefix('user-package-likes/')
@@ -305,7 +308,7 @@ class CachePatterns {
 
   /// Cache for task status.
   Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
-      .withPrefix('task-status/')
+      .withPrefix('task-status-v2/')
       .withTTL(Duration(hours: 3))
       .withCodec(utf8)
       .withCodec(json)
@@ -318,12 +321,12 @@ class CachePatterns {
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<List<int>> dartdocHtmlBytes(
     String package,
-    String version,
+    String urlSegment,
     String path,
   ) =>
       _cache
           .withPrefix('dartdoc-html/')
-          .withTTL(Duration(minutes: 10))['$package-$version/$path'];
+          .withTTL(Duration(minutes: 10))['$package/$urlSegment/$path'];
 
   /// Stores the OpenID Data (including the JSON Web Key list).
   ///
@@ -359,18 +362,37 @@ class CachePatterns {
         encode: (DateTime v) => v.toUtc().toIso8601String(),
         decode: (v) => DateTime.parse(v.toString()),
       ))[entryKey];
+
+  /// The resolved display version and URL redirect info for /documentation/ URLs.
+  Entry<ResolvedDocUrlVersion> resolvedDocUrlVersion(
+          String package, String version) =>
+      _cache
+          .withPrefix('resolved-doc-url-version/')
+          .withTTL(Duration(minutes: 15))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (ResolvedDocUrlVersion v) => v.toJson(),
+            decode: (v) =>
+                ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
+          ))['$package-$version'];
+
+  Entry<PlaylistItemListResponse> youtubePlaylistItems() => _cache
+      .withPrefix('youtube/playlist-item-list-response/')
+      .withTTL(Duration(hours: 6))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PlaylistItemListResponse v) => v.toJson(),
+        decode: (v) =>
+            PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
+      ))[''];
 }
 
 /// The active cache.
 CachePatterns get cache => ss.lookup(#_cache) as CachePatterns;
 
 void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
-
-final _delayedCachePurgerKey = #_delayedCachePurger;
-_DelayedCachePurger? get _delayedCachePurger =>
-    ss.lookup(_delayedCachePurgerKey) as _DelayedCachePurger?;
-void _registerDelayedCachePurgerKey(_DelayedCachePurger value) =>
-    ss.register(_delayedCachePurgerKey, value);
 
 /// Initializes caches based on the environment.
 /// - In AppEngine, it will use redis cache,
@@ -383,10 +405,6 @@ Future<void> setupCache() async {
     _log.warning('using in-memory cache instead of redis');
     await _registerInmemoryCache();
   }
-
-  final purger = _DelayedCachePurger();
-  _registerDelayedCachePurgerKey(purger);
-  ss.registerScopeExitCallback(purger._close);
 }
 
 /// Read redis connection string from the secret backend and initialize redis
@@ -484,51 +502,37 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
       .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
 }
 
-extension EntryPurgeExt on Entry {
+extension EntryPurgeExt<T> on Entry<T> {
   /// Datastore.query is only eventually consistent, and when we are changing
   /// entries that are then fetched via query, the cache may store the old values.
   /// Running a repeated purge after a reasonable delay will make sure that the
   /// cache won't store the old values for too long.
   Future purgeAndRepeat({int retries = 0, Duration? delay}) async {
     await purge(retries: retries);
-    _delayedCachePurger!.add(this, delay);
-  }
-}
-
-class _DelayedCachePurger {
-  final _entries = <_DelayedPurge>[];
-  Timer? _timer;
-
-  void add(Entry cacheEntry, Duration? delay) {
-    final entry = _DelayedPurge(cacheEntry, delay);
-    _entries.add(entry);
-    _timer ??= Timer.periodic(Duration(seconds: 20), (timer) {
-      _purge();
+    asyncQueue.addAsyncFn(() async {
+      await Future.delayed(delay ?? Duration.zero);
+      await purge();
     });
   }
 
-  Future<void> _purge() async {
-    final now = clock.now();
-    for (final e in _entries.where((e) => !e.time.isAfter(now)).toList()) {
-      await e.entry.purge();
-      _entries.remove(e);
+// Get or create a value.
+  Future<T?> obtain(
+    Future<T?> Function() create, {
+    Duration? ttl,
+    bool purgeCache = false,
+  }) async {
+    if (purgeCache) {
+      final value = await create();
+      if (ttl != null) {
+        await set(value, ttl);
+      } else {
+        await set(value);
+      }
+      return value;
     }
-    if (_entries.isEmpty) {
-      _timer?.cancel();
-      _timer = null;
+    if (ttl != null) {
+      return await get(create, ttl);
     }
+    return await get(create);
   }
-
-  Future<void> _close() async {
-    _timer?.cancel();
-    _timer = null;
-  }
-}
-
-class _DelayedPurge {
-  final Entry entry;
-  final DateTime time;
-
-  _DelayedPurge(this.entry, Duration? delay)
-      : time = clock.now().add(delay ?? Duration(seconds: 30));
 }

@@ -36,10 +36,9 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-desktop'],
                   title: 'Package is a Flutter Favorite',
-                  image: d.Image(
+                  image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
-                    alt: 'large Flutter Favorite logo',
                     width: 150,
                     height: 218,
                   ),
@@ -47,10 +46,9 @@ d.Node detailHeaderNode({
                 d.img(
                   classes: ['ff-banner', 'ff-banner-mobile'],
                   title: 'Package is a Flutter Favorite',
-                  image: d.Image(
+                  image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
-                    alt: 'small Flutter Favorite logo',
                     width: 94,
                     height: 116,
                   ),
@@ -98,14 +96,14 @@ d.Node detailHeaderNode({
                               onIcon: d.Image(
                                 src: staticUrls
                                     .getAssetUrl('/static/img/like-active.svg'),
-                                alt: 'icon indicating liked status (active)',
+                                alt: 'liked status: active',
                                 width: 18,
                                 height: 18,
                               ),
                               offIcon: d.Image(
                                 src: staticUrls.getAssetUrl(
                                     '/static/img/like-inactive.svg'),
-                                alt: 'icon indicating liked status (inactive)',
+                                alt: 'liked status: inactive',
                                 width: 18,
                                 height: 18,
                               ),

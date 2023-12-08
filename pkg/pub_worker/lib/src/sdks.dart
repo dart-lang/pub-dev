@@ -35,6 +35,25 @@ class InstalledSdk {
         continue;
       }
       try {
+        // all SDKs have bin/ directory
+        final binDir = Directory(p.join(d.path, 'bin'));
+        if (!(await binDir.exists())) {
+          continue;
+        }
+        // only Dart SDK has lib/
+        // only Flutter SDK has packages/
+        if (kind == 'dart') {
+          final libDir = Directory(p.join(d.path, 'lib'));
+          if (!(await libDir.exists())) {
+            continue;
+          }
+        } else if (kind == 'flutter') {
+          final packagesDir = Directory(p.join(d.path, 'packages'));
+          if (!(await packagesDir.exists())) {
+            continue;
+          }
+        }
+
         final v = await File(p.join(d.path, 'version')).readAsString();
         sdks.add(InstalledSdk(kind, d.path, Version.parse(v.trim())));
       } on FormatException {

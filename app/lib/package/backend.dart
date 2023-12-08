@@ -17,6 +17,8 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -25,7 +27,6 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
 import '../audit/models.dart';
-import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
 import '../service/email/models.dart';
@@ -48,7 +49,7 @@ import 'upload_signer_service.dart';
 
 // The maximum stored length of `README.md` and other user-provided file content
 // that is stored separately in the database.
-final maxAssetContentLength = 128 * 1024;
+final maxAssetContentLength = 256 * 1024;
 
 /// The maximum number of versions a package is allowed to have.
 final _defaultMaxVersionsPerPackage = 1000;
@@ -106,6 +107,18 @@ class PackageBackend {
       final p = await db
           .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
       return p != null && p.isVisible;
+    }))!;
+  }
+
+  /// Whether the package has been deleted and a [ModeratedPackage] entity exists for it.
+  Future<bool> isPackageModerated(String package) async {
+    return (await cache.packageModerated(package).get(() async {
+      final visible = await isPackageVisible(package);
+      if (visible) {
+        return false;
+      }
+      final p = await lookupModeratedPackage(package);
+      return p != null;
     }))!;
   }
 
@@ -377,10 +390,8 @@ class PackageBackend {
     }
 
     final pkg = await _requirePackageAdmin(package, user.userId);
-    String? latestVersion;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
-      latestVersion = p.latestVersion;
 
       final optionsChanges = <String>[];
       if (options.isDiscontinued != null &&
@@ -418,8 +429,7 @@ class PackageBackend {
       ));
     });
     await purgePackageCache(package);
-    await jobBackend.trigger(JobService.analyzer, package,
-        version: latestVersion);
+    await taskBackend.trackPackage(package);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -723,34 +733,6 @@ class PackageBackend {
     return rs;
   }
 
-  /// Moves the package out of its current publisher.
-  Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
-    final user = await requireAuthenticatedWebUser();
-    final package = await _requirePackageAdmin(packageName, user.userId);
-    if (package.publisherId == null) {
-      return _asPackagePublisherInfo(package);
-    }
-    await requirePublisherAdmin(package.publisherId, user.userId);
-//  Code commented out while we decide if this feature is something we want to
-//  support going forward.
-//
-//    final key = db.emptyKey.append(Package, id: packageName);
-//    final rs = await db.withTransaction((tx) async {
-//      final package = (await db.lookup<Package>([key])).single;
-//      package.publisherId = null;
-//      package.uploaders = [user.userId];
-//      package.updated = clock.now().toUtc();
-//      // TODO: store PackageTransferred History entry.
-//      tx.queueMutations(inserts: [package]);
-//      await tx.commit();
-//      return _asPackagePublisherInfo(package);
-//    });
-//    await purgePublisherCache(package.publisherId);
-//    await invalidatePackageCache(packageName);
-//    return rs as api.PackagePublisherInfo;
-    throw NotImplementedException();
-  }
-
   /// Returns the known versions of [package].
   /// The available versions are sorted by their semantic version number (ascending).
   ///
@@ -776,6 +758,7 @@ class PackageBackend {
       replacedBy: pkg.replacedBy,
       latest: latest.toApiVersionInfo(),
       versions: packageVersions.map((pv) => pv.toApiVersionInfo()).toList(),
+      advisoriesUpdated: pkg.latestAdvisory,
     );
   }
 
@@ -981,8 +964,13 @@ class PackageBackend {
     required String name,
     required AuthenticatedAgent agent,
   }) async {
+    final isGoogleComUser =
+        agent is AuthenticatedUser && agent.user.email!.endsWith('@google.com');
+    final isReservedName = matchesReservedPackageName(name);
+    final isExempted = isGoogleComUser && isReservedName;
+
     final conflictingName = await nameTracker.accept(name);
-    if (conflictingName != null) {
+    if (conflictingName != null && !isExempted) {
       final visible = await isPackageVisible(conflictingName);
       if (visible) {
         throw PackageRejectedException.similarToActive(name, conflictingName,
@@ -992,8 +980,6 @@ class PackageBackend {
             name, conflictingName);
       }
     }
-    PackageRejectedException.check(conflictingName == null,
-        'Package name is too similar to another active or moderated package: `$conflictingName`.');
 
     // Apply name verification for new packages.
     final isCurrentlyVisible = await isPackageVisible(name);
@@ -1004,11 +990,8 @@ class PackageBackend {
       }
 
       // reserved package names for the Dart team
-      if (matchesReservedPackageName(name)) {
-        if (agent is! AuthenticatedUser ||
-            !agent.user.email!.endsWith('@google.com')) {
-          throw PackageRejectedException.nameReserved(name);
-        }
+      if (isReservedName && !isGoogleComUser) {
+        throw PackageRejectedException.nameReserved(name);
       }
     }
   }
@@ -1161,13 +1144,13 @@ class PackageBackend {
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
     // automatically.
-    unawaited(_postUploadTasks(
-      package,
-      newVersion,
-      outgoingEmail,
-      prevLatestStableVersion: prevLatestStableVersion,
-      prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
-    ));
+    asyncQueue.addAsyncFn(() => _postUploadTasks(
+          package,
+          newVersion,
+          outgoingEmail,
+          prevLatestStableVersion: prevLatestStableVersion,
+          prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
+        ));
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
@@ -1185,28 +1168,9 @@ class PackageBackend {
     String? prevLatestPrereleaseVersion,
   }) async {
     try {
-      final latestVersionChanged = prevLatestStableVersion != null &&
-          package!.latestVersion != prevLatestStableVersion;
-      final latestPrereleaseVersionChanged =
-          prevLatestPrereleaseVersion != null &&
-              package!.latestPrereleaseVersion != prevLatestPrereleaseVersion;
       await Future.wait([
         emailBackend.trySendOutgoingEmail(outgoingEmail),
-        // Trigger analysis and dartdoc generation. Dependent packages can be left
-        // out here, because the dependency graph's background polling will pick up
-        // the new upload, and will trigger analysis for the dependent packages.
-        jobBackend.triggerAnalysis(newVersion.package, newVersion.version),
-        jobBackend.triggerDartdoc(newVersion.package, newVersion.version),
-        // Trigger a new doc generation for the previous latest stable version
-        // in order to update the dartdoc entry and the canonical-urls.
-        if (latestVersionChanged)
-          jobBackend.triggerDartdoc(newVersion.package, prevLatestStableVersion,
-              shouldProcess: true),
-        // Reset the priority of the previous pre-release version.
-        if (latestPrereleaseVersionChanged)
-          jobBackend.triggerDartdoc(
-              newVersion.package, prevLatestPrereleaseVersion,
-              shouldProcess: false),
+        taskBackend.trackPackage(newVersion.package, updateDependants: true),
       ]);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
@@ -1671,6 +1635,7 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
 Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageVisible(package).purge(),
+    cache.packageModerated(package).purge(),
     cache.packageData(package).purge(),
     cache.packageDataGz(package).purge(),
     cache.packageLatestVersion(package).purge(),

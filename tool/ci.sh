@@ -1,9 +1,10 @@
 #!/bin/bash
-# Created with package:mono_repo v6.5.6
+# Created with package:mono_repo v6.6.1
 
 # Support built in commands on windows out of the box.
+
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
-# then "flutter" is called instead of "pub".
+# then "flutter pub" is called instead of "dart pub".
 # This assumes that the Flutter SDK has been installed in a previous step.
 function pub() {
   if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
@@ -12,18 +13,13 @@ function pub() {
     command dart pub "$@"
   fi
 }
-# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
-# then "flutter" is called instead of "pub".
-# This assumes that the Flutter SDK has been installed in a previous step.
+
 function format() {
-  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
-    command flutter format "$@"
-  else
-    command dart format "$@"
-  fi
+  command dart format "$@"
 }
+
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
-# then "flutter" is called instead of "pub".
+# then "flutter analyze" is called instead of "dart analyze".
 # This assumes that the Flutter SDK has been installed in a previous step.
 function analyze() {
   if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
@@ -88,8 +84,8 @@ for PKG in ${PKGS}; do
         dart analyze --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
         ;;
       command_0)
-        echo 'sudo apt-get install webp'
-        sudo apt-get install webp || EXIT_CODE=$?
+        echo 'sudo apt-get update -yq && sudo apt-get install webp'
+        sudo apt-get update -yq && sudo apt-get install webp || EXIT_CODE=$?
         ;;
       command_1)
         echo './build.sh'
@@ -136,26 +132,30 @@ for PKG in ${PKGS}; do
         dart test --run-skipped || EXIT_CODE=$?
         ;;
       test_09)
-        echo 'dart test --run-skipped --total-shards 3 --shard-index 0'
-        dart test --run-skipped --total-shards 3 --shard-index 0 || EXIT_CODE=$?
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~4p'` || EXIT_CODE=$?
         ;;
       test_10)
-        echo 'dart test --run-skipped --total-shards 3 --shard-index 1'
-        dart test --run-skipped --total-shards 3 --shard-index 1 || EXIT_CODE=$?
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~4p'` || EXIT_CODE=$?
         ;;
       test_11)
-        echo 'dart test --run-skipped --total-shards 3 --shard-index 2'
-        dart test --run-skipped --total-shards 3 --shard-index 2 || EXIT_CODE=$?
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~4p'` || EXIT_CODE=$?
         ;;
       test_12)
+        echo 'dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~4p'`'
+        dart test -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~4p'` || EXIT_CODE=$?
+        ;;
+      test_13)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '0~3p'` || EXIT_CODE=$?
         ;;
-      test_13)
+      test_14)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '1~3p'` || EXIT_CODE=$?
         ;;
-      test_14)
+      test_15)
         echo 'dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'`'
         dart test --run-skipped --concurrency=1 `find test -name "*_test\\.dart" | sort | sed -n '2~3p'` || EXIT_CODE=$?
         ;;

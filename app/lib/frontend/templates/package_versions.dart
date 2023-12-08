@@ -9,6 +9,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
+import '../../task/models.dart';
 import '../dom/dom.dart' as d;
 
 import 'detail_page.dart';
@@ -22,20 +23,27 @@ String renderPkgVersionsPage(
   PackagePageData data,
   List<VersionInfo> versions, {
   required Version dartSdkVersion,
+  required PackageStateInfo taskStatus,
 }) {
   final previewVersionRows = <d.Node>[];
   final stableVersionRows = <d.Node>[];
   final prereleaseVersionRows = <d.Node>[];
   final retractedVersionRows = <d.Node>[];
-  final latestPrereleaseVersion = data.latestReleases!.showPrerelease
+  final latestPrereleaseVersion = data.latestReleases.showPrerelease
       ? versions.firstWhereOrNull(
-          (v) => v.version == data.latestReleases!.prerelease!.version,
+          (v) => v.version == data.latestReleases.prerelease!.version,
         )
       : null;
   for (int i = 0; i < versions.length; i++) {
     final version = versions[i];
     final pubspec = Pubspec.fromJson(version.pubspec);
-    final rowNode = versionRowNode(pubspec.name, version, pubspec);
+    final versionStatus = taskStatus.versions[version.version];
+    final rowNode = versionRowNode(
+      pubspec.name,
+      version,
+      pubspec,
+      versionStatus: versionStatus,
+    );
     final semanticVersion = Version.parse(version.version);
     if (version.retracted != null && version.retracted!) {
       retractedVersionRows.add(rowNode);
@@ -51,7 +59,7 @@ String renderPkgVersionsPage(
   final blocks = <d.Node>[];
   if (stableVersionRows.isNotEmpty &&
       prereleaseVersionRows.isNotEmpty &&
-      data.latestReleases!.showPrerelease) {
+      data.latestReleases.showPrerelease) {
     blocks.add(d.p(
       children: [
         d.text('The latest prerelease was '),
@@ -66,7 +74,7 @@ String renderPkgVersionsPage(
     blocks.add(versionSectionNode(
       id: 'preview',
       label: 'Preview',
-      packageName: data.package!.name!,
+      packageName: data.package.name!,
       rows: previewVersionRows,
     ));
   }
@@ -74,7 +82,7 @@ String renderPkgVersionsPage(
     blocks.add(versionSectionNode(
       id: 'stable',
       label: 'Stable',
-      packageName: data.package!.name!,
+      packageName: data.package.name!,
       rows: stableVersionRows,
     ));
   }
@@ -82,7 +90,7 @@ String renderPkgVersionsPage(
     blocks.add(versionSectionNode(
       id: 'prerelease',
       label: 'Prerelease',
-      packageName: data.package!.name!,
+      packageName: data.package.name!,
       rows: prereleaseVersionRows,
     ));
   }
@@ -90,7 +98,7 @@ String renderPkgVersionsPage(
     blocks.add(versionSectionNode(
       id: 'retracted',
       label: 'Retracted',
-      packageName: data.package!.name!,
+      packageName: data.package.name!,
       rows: retractedVersionRows,
     ));
   }
@@ -107,19 +115,19 @@ String renderPkgVersionsPage(
   final content = renderDetailPage(
     headerNode: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: data.version!.ellipsizedDescription,
+    infoBoxLead: data.version.ellipsizedDescription,
     infoBoxNode: renderPkgInfoBox(data),
     footerNode: renderPackageSchemaOrgHtml(data),
   );
 
-  final canonicalUrl = urls.pkgPageUrl(data.package!.name!,
+  final canonicalUrl = urls.pkgPageUrl(data.package.name!,
       includeHost: true, pkgPageTab: urls.PkgPageTab.versions);
   return renderLayoutPage(
     PageType.package,
     content,
-    title: '${data.package!.name} package - All Versions',
+    title: '${data.package.name} package - All Versions',
     canonicalUrl: canonicalUrl,
-    pageData: pkgPageData(data.package!, data.version!),
-    noIndex: data.package!.isDiscontinued,
+    pageData: pkgPageData(data.package, data.version),
+    noIndex: data.package.isDiscontinued,
   );
 }

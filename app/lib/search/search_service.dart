@@ -28,13 +28,11 @@ class IndexInfo {
   final bool isReady;
   final int packageCount;
   final DateTime? lastUpdated;
-  final List<String> updatedPackages;
 
   IndexInfo({
     required this.isReady,
     required this.packageCount,
     required this.lastUpdated,
-    required this.updatedPackages,
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -43,23 +41,23 @@ class IndexInfo {
         'lastUpdated': lastUpdated?.toIso8601String(),
         if (lastUpdated != null)
           'lastUpdateDelta': clock.now().difference(lastUpdated!).toString(),
-        'updatedPackages': updatedPackages,
       };
+
+  factory IndexInfo.fromJson(Map<String, dynamic> map) {
+    final lastUpdated = map['lastUpdated'] as String?;
+    return IndexInfo(
+      isReady: map['isReady'] == true,
+      packageCount: map['packageCount'] as int,
+      lastUpdated: lastUpdated == null ? null : DateTime.parse(lastUpdated),
+    );
+  }
 }
 
 /// Package search index and lookup.
-abstract class PackageIndex {
-  Future<void> addPackage(PackageDocument doc);
-  Future<void> addPackages(Iterable<PackageDocument> documents);
-  Future<void> removePackage(String package);
-  PackageSearchResult search(ServiceSearchQuery query);
-
-  /// A package index may be accessed while the initialization phase is still
-  /// running. Once the initialization is done (either via a snapshot or a
-  /// `Package`-scan completes), the updater should call this method to indicate
-  /// to the frontend load-balancer that the instance now accepts requests.
-  Future<void> markReady();
-  Future<IndexInfo> indexInfo();
+abstract class SearchIndex {
+  FutureOr<bool> isReady();
+  FutureOr<PackageSearchResult> search(ServiceSearchQuery query);
+  FutureOr<IndexInfo> indexInfo();
 }
 
 /// A summary information about a package that goes into the search index.
@@ -68,16 +66,25 @@ class PackageDocument {
   final String package;
   final String? version;
   final String? description;
-  final DateTime? created;
-  final DateTime? updated;
+  final DateTime created;
+  final DateTime updated;
   final String? readme;
 
   final List<String> tags;
 
-  final int? likeCount;
+  final int likeCount;
 
-  final int? grantedPoints;
-  final int? maxPoints;
+  /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
+  double? likeScore;
+
+  /// The normalized score between [0.0-1.0] (1.0 being the most popular package).
+  double? popularityScore;
+
+  final int grantedPoints;
+  final int maxPoints;
+
+  /// The normalized overall score between [0.0-1.0] for default package listing.
+  double? overallScore;
 
   final Map<String, String> dependencies;
 
@@ -93,24 +100,34 @@ class PackageDocument {
     required this.package,
     this.version,
     this.description,
-    this.created,
-    this.updated,
+    DateTime? created,
+    DateTime? updated,
     this.readme = '',
     List<String>? tags,
-    this.likeCount = 0,
-    this.grantedPoints = 0,
-    this.maxPoints = 0,
+    int? likeCount,
+    this.likeScore,
+    this.popularityScore,
+    int? grantedPoints,
+    int? maxPoints,
     this.dependencies = const {},
     this.apiDocPages = const [],
     DateTime? timestamp,
     this.sourceUpdated,
-  })  : tags = tags ?? const <String>[],
+  })  : created = created ?? clock.now(),
+        updated = updated ?? clock.now(),
+        likeCount = likeCount ?? 0,
+        grantedPoints = grantedPoints ?? 0,
+        maxPoints = maxPoints ?? 0,
+        tags = tags ?? const <String>[],
         timestamp = timestamp ?? clock.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
 
   Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  late final tagsForLookup = Set<String>.from(tags);
 }
 
 /// A reference to an API doc page

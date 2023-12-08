@@ -2,80 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:math';
-
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('formatXAgo', () {
-    expect(formatXAgo(Duration()), 'in the last hour');
-    expect(formatXAgo(Duration(minutes: 59)), 'in the last hour');
-    expect(formatXAgo(Duration(minutes: 60)), '1 hour ago');
-    expect(formatXAgo(Duration(minutes: 119)), '1 hour ago');
-    expect(formatXAgo(Duration(minutes: 120)), '2 hours ago');
-    expect(formatXAgo(Duration(minutes: 179)), '2 hours ago');
-    expect(formatXAgo(Duration(minutes: 180)), '3 hours ago');
-    expect(formatXAgo(Duration(hours: 47)), '47 hours ago');
-    expect(formatXAgo(Duration(hours: 48)), '2 days ago');
-    expect(formatXAgo(Duration(hours: 72)), '3 days ago');
-    expect(formatXAgo(Duration(days: 60)), '60 days ago');
-    expect(formatXAgo(Duration(days: 61)), '2 months ago');
-    expect(formatXAgo(Duration(days: 365 * 2)), '24 months ago');
-    expect(formatXAgo(Duration(days: 365 * 2 + 1)), '2 years ago');
-  });
-
-  group('Randomize Stream', () {
-    test('Single batch', () async {
-      final input = List.generate(10, (i) => i);
-      final Stream<int> randomizedStream = randomizeStream(
-        Stream.fromIterable(input),
-        duration: Duration(milliseconds: 100),
-        random: Random(123),
-      );
-      final result = await randomizedStream.toList();
-      expect(input.every(result.contains), isTrue);
-      expect(result, isNot(input)); // checks that items are randomized
-    });
-
-    test('Two batches', () async {
-      final StreamController<int> controller = StreamController<int>();
-      final Stream<int> randomizedStream = randomizeStream(
-        controller.stream,
-        duration: Duration(milliseconds: 100),
-        random: Random(123),
-      );
-      final Future<List<int>> valuesFuture = randomizedStream.toList();
-      List.generate(8, (i) => i).forEach(controller.add);
-      await Future.delayed(Duration(milliseconds: 200));
-      List.generate(8, (i) => i + 10).forEach(controller.add);
-      await controller.close();
-      final result = await valuesFuture;
-      final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
-      expect(input.every(result.contains), isTrue);
-      expect(result, isNot(input)); // checks that items are randomized
-    });
-
-    test('Small slices', () async {
-      final StreamController<int> controller = StreamController<int>();
-      final Stream<int> randomizedStream = randomizeStream(
-        controller.stream,
-        duration: Duration(milliseconds: 100),
-        maxPositionDiff: 4,
-        random: Random(123),
-      );
-      final Future<List<int>> valuesFuture = randomizedStream.toList();
-      List.generate(8, (i) => i).forEach(controller.add);
-      List.generate(8, (i) => i + 10).forEach(controller.add);
-      await controller.close();
-      final result = await valuesFuture;
-      final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
-      expect(input.every(result.contains), isTrue);
-      expect(result, isNot(input)); // checks that items are randomized
-    });
-  });
-
   group('boundedList', () {
     final numbers10 = List.generate(10, (i) => i);
 
@@ -117,6 +48,22 @@ void main() {
           r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[8-9A-B][0-9A-F]{3}-[0-9A-F]{12}$',
           caseSensitive: false);
       expect(createUuid(), matches(uuidRegexp));
+    });
+  });
+
+  group('semantic versions', () {
+    test('latest of empty version list', () {
+      expect(<Version>[].latestVersion, isNull);
+    });
+
+    test('latest of a mixed values', () {
+      final versions = [
+        '1.0.0',
+        '1.2.0',
+        '2.0.0-beta',
+        '1.1.0',
+      ].map((e) => Version.parse(e));
+      expect(versions.latestVersion.toString(), '1.2.0');
     });
   });
 }

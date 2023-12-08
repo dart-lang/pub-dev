@@ -55,9 +55,12 @@ void setupDebugEnvBasedLogging() {
     );
   }).toList();
 
+  var lastTime = clock.now();
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
     final time = clock.now(); // rec.time
+    final ms = time.difference(lastTime).inMilliseconds.toString().padLeft(5);
+    lastTime = time;
 
     var matched = false;
     for (final p in patterns) {
@@ -70,7 +73,7 @@ void setupDebugEnvBasedLogging() {
     }
 
     for (final line in rec.message.split('\n')) {
-      print('$time [${rec.loggerName}] ${rec.level.name}: $line');
+      print('$ms ms [${rec.loggerName}] ${rec.level.name}: $line');
     }
     if (rec.error != null) {
       print('ERROR: ${rec.error}, ${rec.stackTrace}');

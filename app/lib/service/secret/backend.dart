@@ -62,6 +62,8 @@ class SecretBackend {
   /// WARNING: Do not use this method for sensitive data, as it will be put in
   ///          redis too.
   Future<String?> getCachedValue(String id) async {
-    return await cache.secretValue(id).get(() => lookup(id));
+    final value =
+        await cache.secretValue(id).get(() async => await lookup(id) ?? '');
+    return value == null || value.isEmpty ? null : value;
   }
 }

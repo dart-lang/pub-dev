@@ -74,7 +74,7 @@ d.Node _useAsLibrary(
   final bool useFlutterPackagesGet =
       isFlutterPackage || (tags != null && tags.contains(SdkTag.sdkFlutter));
   final pubAddCommand =
-      'pub add ${version.package}${isDevDependency ? ' --dev' : ''}';
+      'pub add ${isDevDependency ? 'dev:' : ''}${version.package}';
   final exampleDepKey = isDevDependency ? 'dev_dependencies' : 'dependencies';
   final showEditorSupport = usePubGet || useFlutterPackagesGet;
   final flutterOnly = useFlutterPackagesGet && !usePubGet;

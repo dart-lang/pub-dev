@@ -6,13 +6,10 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{
-  'topics',
-};
+const _publicFlags = <String>{};
 
 const _allFlags = <String>{
   ..._publicFlags,
-  'sandbox',
 };
 
 /// The name of the experimental cookie.
@@ -47,12 +44,6 @@ class ExperimentalFlags {
   factory ExperimentalFlags.all() {
     return ExperimentalFlags(_allFlags);
   }
-
-  /// Whether to return dartdoc from sandboxing output.
-  bool get showSandboxedOutput => _enabled.contains('sandbox');
-
-  /// Whether to show topics associated with a package.
-  bool get showTopics => true;
 
   bool get isEmpty => _enabled.isEmpty;
 

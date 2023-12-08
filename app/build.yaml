@@ -17,6 +17,7 @@ targets:
       - 'lib/search/models.dart'
       - 'lib/search/search_service.dart'
       - 'lib/service/openid/openid_models.dart'
+      - 'lib/service/security_advisories/models.dart'
       - 'lib/shared/*.dart'
       - 'lib/tool/test_profile/models.dart'
       - 'lib/tool/utils/flutter_archive.dart'

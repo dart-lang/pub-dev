@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/dartdoc/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
@@ -14,15 +13,9 @@ import 'package:pub_package_reader/src/names.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../dartdoc/backend.dart';
 import '../../package/overrides.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart';
-import '../../shared/utils.dart' show contentType;
-
-import '../request_context.dart';
-import '../templates/misc.dart';
-import 'headers.dart';
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
@@ -46,102 +39,26 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   final String requestMethod = request.method.toUpperCase();
 
-  if (requestContext.experimentalFlags.showSandboxedOutput) {
-    if (requestMethod != 'HEAD' && requestMethod != 'GET') {
-      // TODO: Should probably be "method not supported"!
-      return notFoundHandler(request);
-    }
-
-    final package = docFilePath.package;
-    var version = docFilePath.version!;
-    final path = docFilePath.path!;
-    // Redirect to /latest/ version if the version points to latest version
-    if (version != 'latest') {
-      final latestVersion = await packageBackend.getLatestVersion(package);
-      if (latestVersion != null && latestVersion == version) {
-        return redirectResponse(pkgDocUrl(
-          docFilePath.package,
-          isLatest: true,
-          relativePath: docFilePath.path,
-        ));
-      }
-    }
-    // Find the latest version
-    if (version == 'latest') {
-      final latestVersion = await packageBackend.getLatestVersion(package);
-      if (latestVersion == null) {
-        return notFoundHandler(request);
-      }
-      version = latestVersion;
-    }
-
-    return await handleDartDoc(request, package, version, path);
-  }
-
-  final entry =
-      await dartdocBackend.getEntry(docFilePath.package, docFilePath.version!);
-  if (entry == null) {
+  if (requestMethod != 'HEAD' && requestMethod != 'GET') {
+    // TODO: Should probably be "method not supported"!
     return notFoundHandler(request);
   }
-  if (entry.isLatest == true && docFilePath.version != 'latest') {
-    final version = await packageBackend.getLatestVersion(entry.packageName);
-    if (version == docFilePath.version) {
-      return redirectResponse(pkgDocUrl(docFilePath.package,
-          isLatest: true, relativePath: docFilePath.path));
-    }
+
+  final package = docFilePath.package;
+  final version = docFilePath.version!;
+  final resolved = await dartdocBackend.resolveDocUrlVersion(package, version);
+  if (resolved.isEmpty) {
+    return notFoundHandler(request);
   }
-  if (requestMethod == 'HEAD') {
-    if (!entry.hasContent && docFilePath.path!.endsWith('.html')) {
-      return notFoundHandler(request);
-    }
-    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path!);
-    if (info == null) {
-      return notFoundHandler(request);
-    }
-    // TODO: add content-length header too
-    return htmlResponse('');
+  if (version != resolved.urlSegment) {
+    return redirectResponse(pkgDocUrl(
+      package,
+      version: resolved.urlSegment,
+      relativePath: docFilePath.path,
+    ));
+  } else {
+    return await handleDartDoc(request, package, resolved, docFilePath.path!);
   }
-  if (requestMethod == 'GET') {
-    if (!entry.hasContent && docFilePath.path!.endsWith('.html')) {
-      final logTxtUrl = pkgDocUrl(docFilePath.package,
-          version: docFilePath.version, relativePath: 'log.txt');
-      final versionsUrl = pkgVersionsUrl(docFilePath.package);
-      final content = renderErrorPage(
-          'Documentation missing',
-          'Pub site failed to generate dartdoc for this package.\n\n'
-              '- View [dartdoc log]($logTxtUrl)\n'
-              '- Check [other versions]($versionsUrl) of the same package.\n');
-      return htmlResponse(content, status: 404);
-    }
-    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path!);
-    if (info == null) {
-      return notFoundHandler(request);
-    }
-    if (isNotModified(request, info.lastModified, info.etag)) {
-      return shelf.Response.notModified();
-    }
-    final headers = {
-      HttpHeaders.contentTypeHeader: contentType(docFilePath.path!),
-      ...CacheHeaders.dartdocAsset(),
-      HttpHeaders.lastModifiedHeader: formatHttpDate(info.lastModified),
-      HttpHeaders.etagHeader: info.etag,
-    };
-    if (info.blobId != null) {
-      final sendGzip = request.acceptsGzipEncoding();
-      final content = dartdocBackend.readFromBlob(entry, info);
-      return shelf.Response(
-        HttpStatus.ok,
-        body: sendGzip ? content : content.transform(gzip.decoder),
-        headers: {
-          ...headers,
-          if (sendGzip) HttpHeaders.contentEncodingHeader: 'gzip',
-        },
-      );
-    }
-    final stream = dartdocBackend.readContent(entry, docFilePath.path!);
-    return shelf.Response(HttpStatus.ok, body: stream, headers: headers);
-  }
-  return notFoundHandler(request);
 }
 
 /// The parsed structure of the documentation URL.

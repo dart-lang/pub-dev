@@ -27,7 +27,7 @@ String renderPkgAdminPage(
       id: 'admin',
       title: 'Admin',
       contentNode: packageAdminPageNode(
-        package: data.package!,
+        package: data.package,
         userPublishers: userPublishers,
         uploaderUsers: uploaderUsers,
         retractableVersions: retractableVersions,
@@ -39,17 +39,17 @@ String renderPkgAdminPage(
   final content = renderDetailPage(
     headerNode: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: data.version!.ellipsizedDescription,
+    infoBoxLead: data.version.ellipsizedDescription,
     infoBoxNode: renderPkgInfoBox(data),
   );
 
   return renderLayoutPage(
     PageType.package,
     content,
-    title: '${data.package!.name} package - Admin',
+    title: '${data.package.name} package - Admin',
     pageData: pkgPageData(
-      data.package!,
-      data.version!,
+      data.package,
+      data.version,
       editable: true,
     ),
     noIndex: true,
@@ -61,10 +61,10 @@ String renderPkgActivityLogPage(
   AuditLogRecordPage activities,
 ) {
   final activityLog = activityLogNode(
-    baseUrl: urls.pkgActivityLogUrl(data.package!.name!),
+    baseUrl: urls.pkgActivityLogUrl(data.package.name!),
     activities: activities,
     forCategory: 'package',
-    forEntity: data.package!.name!,
+    forEntity: data.package.name!,
   );
   final tabs = buildPackageTabs(
     data: data,
@@ -77,14 +77,14 @@ String renderPkgActivityLogPage(
   final content = renderDetailPage(
     headerNode: renderPkgHeader(data),
     tabs: tabs,
-    infoBoxLead: data.version!.ellipsizedDescription,
+    infoBoxLead: data.version.ellipsizedDescription,
     infoBoxNode: renderPkgInfoBox(data),
   );
   return renderLayoutPage(
     PageType.package,
     content,
-    title: '${data.package!.name} package - Admin',
-    pageData: pkgPageData(data.package!, data.version!),
+    title: '${data.package.name} package - Admin',
+    pageData: pkgPageData(data.package, data.version),
     noIndex: true,
   );
 }

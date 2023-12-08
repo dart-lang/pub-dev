@@ -14,11 +14,11 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(package: 'jsontool'));
-      await index.addPackage(PackageDocument(package: 'json2entity'));
-      await index.addPackage(PackageDocument(package: 'json_to_model'));
-      await index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'jsontool'),
+        PackageDocument(package: 'json2entity'),
+        PackageDocument(package: 'json_to_model'),
+      ]);
     });
 
     test('json_tool', () async {
@@ -39,25 +39,25 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
-        package: 'jsontool',
-        description:
-            'Low-level tools for working with JSON without creating intermediate objects.',
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'json2entity',
-        description:
-            'A tool for converting JSON strings into dart entity classes. Support json_serializable.',
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'json_to_model',
-        description:
-            'Gernerate model class from Json file. partly inspired by json_model.',
-        readme:
-            'Command line tool for generating Dart models (json_serializable) from Json file.',
-      ));
-      await index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'jsontool',
+          description:
+              'Low-level tools for working with JSON without creating intermediate objects.',
+        ),
+        PackageDocument(
+          package: 'json2entity',
+          description:
+              'A tool for converting JSON strings into dart entity classes. Support json_serializable.',
+        ),
+        PackageDocument(
+          package: 'json_to_model',
+          description:
+              'Gernerate model class from Json file. partly inspired by json_model.',
+          readme:
+              'Command line tool for generating Dart models (json_serializable) from Json file.',
+        ),
+      ]);
     });
 
     test('json_tool', () async {

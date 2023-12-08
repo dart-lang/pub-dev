@@ -1,6 +1,6 @@
 # See https://pub.dev/packages/mono_repo for details on this file
 sdk:
-  - 3.0.0
+  - 3.2.0
 
 stages:
   - smoke_test:
@@ -10,6 +10,10 @@ stages:
         - analyze: --fatal-infos lib/
         - analyze: --fatal-infos test/
   - unit_test:
-      - test: --run-skipped --total-shards 3 --shard-index 0
-      - test: --run-skipped --total-shards 3 --shard-index 1
-      - test: --run-skipped --total-shards 3 --shard-index 2
+      # Instead of --total-shards and --shard index, we are using file-based sharding,
+      # as it provided better distribution of the tests.
+      # https://github.com/dart-lang/test/issues/2141
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~4p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~4p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~4p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~4p'`

@@ -5,11 +5,8 @@
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
-import '../shared/cached_value.dart';
 import 'backend.dart';
-import 'models.dart';
 import 'sdk_mem_index.dart';
-import 'search_service.dart';
 
 /// The index.json file contains overlap with the Dart SDK and also repeats
 /// regular packages. The selected libraries are unique to the index.json.
@@ -43,39 +40,19 @@ const _flutterApiPageDirWeights = <String, double>{
 final _logger = Logger('search.flutter_sdk_mem_index');
 
 /// Sets the Flutter SDK in-memory index.
-void registerFlutterSdkMemIndex(FlutterSdkMemIndex updater) =>
-    ss.register(#_flutterSdkMemIndex, updater);
-
-/// The active Flutter SDK in-memory index.
-FlutterSdkMemIndex get flutterSdkMemIndex =>
-    ss.lookup(#_flutterSdkMemIndex) as FlutterSdkMemIndex;
-
-/// Flutter SDK in-memory index that fetches `index.json` from
-/// api.flutter.dev and returns search results based on [SdkMemIndex].
-class FlutterSdkMemIndex {
-  final _index = CachedValue<SdkMemIndex>(
-    name: 'flutter-sdk-index',
-    interval: Duration(days: 1),
-    maxAge: Duration(days: 30),
-    timeout: Duration(hours: 1),
-    updateFn: _createFlutterSdkMemIndex,
-  );
-
-  Future<void> start() async {
-    await _index.start();
-  }
-
-  Future<void> close() async {
-    await _index.close();
-  }
-
-  List<SdkLibraryHit> search(String query, {int? limit}) {
-    if (!_index.isAvailable) return <SdkLibraryHit>[];
-    return _index.value!.search(query, limit: limit);
+void registerFlutterSdkMemIndex(SdkMemIndex? index) {
+  if (index != null) {
+    ss.register(#_flutterSdkMemIndex, index);
   }
 }
 
-Future<SdkMemIndex?> _createFlutterSdkMemIndex() async {
+/// The active Flutter SDK in-memory index.
+SdkMemIndex? get flutterSdkMemIndex =>
+    ss.lookup(#_flutterSdkMemIndex) as SdkMemIndex?;
+
+/// Creates Flutter SDK in-memory index that fetches `index.json` from
+/// api.flutter.dev and returns search results based on [SdkMemIndex].
+Future<SdkMemIndex?> createFlutterSdkMemIndex() async {
   try {
     final index = SdkMemIndex.flutter();
     final content = DartdocIndex.parseJsonText(

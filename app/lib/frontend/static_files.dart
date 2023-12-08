@@ -72,12 +72,6 @@ String resolveWebCssDirPath() {
       .resolveSymbolicLinksSync();
 }
 
-/// Returns the path of pkg/pub_dartdoc on the local filesystem.
-String resolvePubDartdocDirPath() {
-  return Directory(path.join(resolveAppDir(), '../pkg/pub_dartdoc'))
-      .resolveSymbolicLinksSync();
-}
-
 /// Returns the path of /doc on the local filesystem.
 String resolveDocDirPath() {
   return path.join(resolveAppDir(), '../doc');
@@ -229,6 +223,7 @@ class StaticFile {
     this.etag,
   );
 
+  @visibleForTesting
   String get contentAsString => utf8.decode(bytes);
 
   late final String _cacheableUrl =
@@ -242,7 +237,7 @@ class StaticUrls {
   late final dartLogoSvg = getAssetUrl('/static/img/dart-logo.svg');
   late final flutterLogo32x32 =
       getAssetUrl('/static/img/flutter-logo-32x32.png');
-  late final pubDevLogo2xPng = getAssetUrl('/static/img/pub-dev-logo-2x.png');
+  late final pubDevLogoSvg = getAssetUrl('/static/img/pub-dev-logo.svg');
   late final defaultProfilePng = getAssetUrl(
       '/static/img/material-icon-twotone-account-circle-white-24dp.png');
   late final githubMarkdownCss = getAssetUrl('/static/css/github-markdown.css');

@@ -202,12 +202,16 @@ class PackageData {
   /// The available versions, sorted by their semantic version number (ascending).
   final List<VersionInfo> versions;
 
+  /// The latest point the /advisories endpoint was updated.
+  final DateTime? advisoriesUpdated;
+
   PackageData({
     required this.name,
     this.isDiscontinued,
     this.replacedBy,
     required this.latest,
     required this.versions,
+    this.advisoriesUpdated,
   });
 
   factory PackageData.fromJson(Map<String, dynamic> json) =>

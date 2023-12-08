@@ -53,11 +53,19 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
     if (publicInfo == null) {
       _logger.warning('Updating missing object in public bucket: $objectName');
-      await storageService.copyObject(
-        canonicalBucket.absoluteObjectName(objectName),
-        publicBucket.absoluteObjectName(objectName),
-      );
-      updatedCount++;
+      try {
+        await storageService.copyObject(
+          canonicalBucket.absoluteObjectName(objectName),
+          publicBucket.absoluteObjectName(objectName),
+        );
+        updatedCount++;
+      } on Exception catch (e, st) {
+        _logger.shout(
+          'Failed to copy $objectName from canonical to public bucket',
+          e,
+          st,
+        );
+      }
     }
     objectNamesInPublicBucket.add(objectName);
   }

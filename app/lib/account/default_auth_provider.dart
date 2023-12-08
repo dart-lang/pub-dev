@@ -19,6 +19,7 @@ import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/email.dart' show looksLikeEmail;
 import '../shared/exceptions.dart';
+import '../shared/monitoring.dart';
 import '../shared/utils.dart' show fixedTimeEquals;
 import '../tool/utils/http.dart' show httpRetryClient;
 import 'auth_provider.dart';
@@ -156,6 +157,9 @@ class DefaultAuthProvider extends BaseAuthProvider {
       );
       if (auth == null) {
         return null;
+      }
+      if (auth.name == null) {
+        _logger.pubNoticeWarning('auth-name', '${auth.email} has no name');
       }
       return auth.withToken(accessToken: accessToken);
     } catch (e, st) {

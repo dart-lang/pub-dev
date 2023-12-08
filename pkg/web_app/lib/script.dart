@@ -5,7 +5,6 @@
 import 'dart:html';
 import 'package:mdc_web/mdc_web.dart' as mdc show autoInit;
 import 'src/account.dart';
-import 'src/dartdoc_status.dart';
 import 'src/foldable.dart';
 import 'src/hoverable.dart';
 import 'src/issues.dart';
@@ -36,7 +35,6 @@ void _setupAllEvents() {
   setupHoverable();
   setupMobileNav();
   setupIssues();
-  updateDartdocStatus();
   setupLikes();
   setupLikesList();
   setupScreenshotCarousel();

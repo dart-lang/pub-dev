@@ -212,7 +212,7 @@ String renderPublisherActivityLogPage({
 
 d.Node _renderDetailHeader(Publisher publisher) {
   return renderDetailHeader(
-    title: publisher.publisherId,
+    titleNode: d.text(publisher.publisherId),
     metadataNode: publisherHeaderMetadataNode(publisher),
   );
 }

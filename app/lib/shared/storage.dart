@@ -7,10 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
-    show DetailedApiRequestError;
+import 'package:chunked_stream/chunked_stream.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart'
+    show DetailedApiRequestError, ApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
@@ -81,6 +82,16 @@ extension BucketExt on Bucket {
     }
   }
 
+  /// Deletes [name] if it exists, ignores 404 otherwise.
+  Future<void> tryDelete(String name) async {
+    try {
+      return await delete(name);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+  }
+
   Future uploadPublic(String objectName, int length,
       Stream<List<int>> Function() openStream, String contentType) {
     final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
@@ -95,20 +106,50 @@ extension BucketExt on Bucket {
     String objectName, {
     int? offset,
     int? length,
+    int? maxSize,
   }) async {
+    if (offset != null && offset < 0) {
+      throw ArgumentError.value(offset, 'offset must be positive, if given');
+    }
+    if (length != null && length < 0) {
+      throw ArgumentError.value(length, 'length must be positive, if given');
+    }
+    if (maxSize != null && maxSize < 0) {
+      throw ArgumentError.value(maxSize, 'maxSize must be positive, if given');
+    }
+    if (maxSize != null && length != null && maxSize < length) {
+      throw MaximumSizeExceeded(maxSize);
+    }
     return retry(
       () async {
+        final timeout = Duration(seconds: 30);
+        final deadline = clock.now().add(timeout);
         final builder = BytesBuilder(copy: false);
-        await for (final chunk
-            in read(objectName, offset: offset, length: length)) {
+        final stream = read(objectName, offset: offset, length: length);
+        await for (final chunk in stream) {
           builder.add(chunk);
+          if (maxSize != null && builder.length > maxSize) {
+            throw MaximumSizeExceeded(maxSize);
+          }
+          if (deadline.isBefore(clock.now())) {
+            throw TimeoutException('Reading $objectName timed out.', timeout);
+          }
         }
         return builder.toBytes();
       },
+      maxAttempts: 3,
       retryIf: (e) {
-        return e is DetailedApiRequestError &&
-            e.status != null &&
-            e.status! >= 500;
+        if (e is TimeoutException) {
+          return true; // Timeouts we can retry
+        }
+        if (e is IOException) {
+          return true; // I/O issues are worth retrying
+        }
+        if (e is DetailedApiRequestError) {
+          final status = e.status;
+          return status == null || status >= 500; // 5xx errors are retried
+        }
+        return e is ApiRequestError; // Unknown API errors are retried
       },
     );
   }
@@ -235,19 +276,6 @@ class VersionedJsonStorage {
     }
   }
 
-  /// Whether the storage bucket has a data file for the current runtime version.
-  Future<bool> hasCurrentData({Duration? maxAge}) async {
-    final info = await _bucket.tryInfo(_objectName());
-    if (info == null) {
-      return false;
-    }
-    final now = clock.now();
-    if (maxAge != null && now.difference(info.updated) > maxAge) {
-      return false;
-    }
-    return true;
-  }
-
   /// Upload the current data to the storage bucket.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();
@@ -260,8 +288,11 @@ class VersionedJsonStorage {
   }
 
   /// Gets the content of the data file decoded as JSON Map.
-  Future<Map<String, dynamic>> getContentAsJsonMap([String? version]) async {
-    version ??= versions.runtimeVersion;
+  Future<Map<String, dynamic>?> getContentAsJsonMap([String? version]) async {
+    version ??= await _detectLatestVersion();
+    if (version == null) {
+      return null;
+    }
     final objectName = _objectName(version);
     _logger.info('Loading snapshot: $objectName');
     final map = await _bucket
@@ -275,7 +306,15 @@ class VersionedJsonStorage {
 
   /// Returns the latest version of the data file matching the current version
   /// or created earlier.
-  Future<String?> detectLatestVersion() async {
+  Future<String?> _detectLatestVersion() async {
+    // checking accepted runtimes first
+    for (final version in versions.acceptedRuntimeVersions) {
+      final info = await _bucket.tryInfo(_objectName(version));
+      if (info != null) {
+        return version;
+      }
+    }
+    // fallback to earlier runtimes
     final currentPath = _objectName();
     final list = await _bucket
         .list(prefix: _prefix)
@@ -329,9 +368,6 @@ class VersionedJsonStorage {
     }
     return DeleteCounts(found, deleted);
   }
-
-  String getBucketUri([String? version]) =>
-      bucketUri(_bucket, _objectName(version ?? versions.runtimeVersion));
 
   String _objectName([String? version]) {
     version ??= versions.runtimeVersion;

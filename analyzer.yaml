@@ -7,8 +7,8 @@ env: flex
 service: analyzer
 
 resources:
-  cpu: 2
-  memory_gb: 8
+  cpu: 4
+  memory_gb: 16
   disk_size_gb: 25
 
 #manual_scaling:
@@ -16,7 +16,7 @@ resources:
 
 automatic_scaling:
   min_num_instances: 2
-  max_num_instances: 8
+  max_num_instances: 2
 
 skip_files:
   - ^\.git/.*$

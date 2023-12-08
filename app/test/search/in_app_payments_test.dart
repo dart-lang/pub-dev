@@ -15,15 +15,15 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
-          package: 'flutter_iap',
-          version: '1.0.1',
-          description: compactDescription('in app purchases for flutter'),
-          readme: compactReadme('''# flutter_iap
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+            package: 'flutter_iap',
+            version: '1.0.1',
+            description: compactDescription('in app purchases for flutter'),
+            readme: compactReadme('''# flutter_iap
 
-Add _In-App Payments_ to your Flutter app with this plugin.''')));
-      await index.markReady();
+Add _In-App Payments_ to your Flutter app with this plugin.''')),
+      ]);
     });
 
     test('IAP', () async {

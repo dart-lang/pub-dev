@@ -15,20 +15,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/github-markdown.css"/>
     <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/dartdoc/resources/github.css"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;amp;display=swap"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;display=swap"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0"/>
     <link rel="stylesheet" href="/static/hash-%%etag%%/dartdoc/resources/styles.css"/>
     <link rel="icon" href="/favicon.ico?hash=mocked_hash_985685822"/>
   </head>
   <body data-base-href="../" data-using-base-href="false" class="light-theme">
-    <noscript>
-      <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden"></iframe>
-    </noscript>
+    <noscript>&lt;iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9" height="0" width="0" style="display:none;visibility:hidden">&lt;/iframe></noscript>
     <div id="overlay-under-drawer"></div>
     <header id="title">
       <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
       <a class="hidden-xs" href="/">
-        <img src="/static/hash-%%etag%%/img/dart-logo.svg" alt="Dart" width="30" height="30" style="height: 30px; margin-right: 1em;"/>
+        <img src="/static/hash-%%etag%%/img/dart-logo.svg" alt="" width="30" height="30" role="presentation" style="height: 30px; margin-right: 1em;"/>
       </a>
       <ol class="breadcrumbs gt-separated dark hidden-xs">
         <li>
@@ -38,7 +36,7 @@
           <a href="../index.html">documentation</a>
         </li>
         <li>
-          <a href="../oxygen/oxygen-library.html">oxygen</a>
+          <a href="../oxygen/oxygen-library.html">oxygen.dart</a>
         </li>
         <li class="self-crumb">main function</li>
       </ol>
@@ -49,12 +47,13 @@
       <div id="theme-button" class="toggle">
         <label for="theme">
           <input id="theme" type="checkbox" value="light-theme"/>
-          <span class="material-symbols-outlined">brightness_4</span>
+          <span id="dark-theme-button" class="material-symbols-outlined">brightness_4</span>
+          <span id="light-theme-button" class="material-symbols-outlined">brightness_5</span>
         </label>
       </div>
     </header>
     <main>
-      <div id="dartdoc-main-content" class="main-content">
+      <div id="dartdoc-main-content" class="main-content" data-above-sidebar="oxygen/oxygen-library-sidebar.html" data-below-sidebar="">
         <div>
           <h1>
             <span class="kind-function">main</span>
@@ -62,7 +61,7 @@
           </h1>
         </div>
         <div class="multi-line-signature">
-          <span class="returntype">dynamic</span>
+          <span class="returntype">void</span>
           <span class="name ">main</span>
           (
           <wbr/>
@@ -73,7 +72,7 @@
             <span>Implementation</span>
           </h2>
           <pre class="language-dart">
-            <code class="language-dart">main() { print('Hello.'); }</code>
+            <code class="language-dart">void main() { print('Hello.'); }</code>
           </pre>
         </div>
       </div>
@@ -95,15 +94,9 @@
           </li>
           <li class="self-crumb">main function</li>
         </ol>
+        <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
         <h5>oxygen library</h5>
-        <ol>
-          <li class="section-title">
-            <a href="../oxygen/oxygen-library.html#functions">Functions</a>
-          </li>
-          <li>
-            <a href="../oxygen/main.html">main</a>
-          </li>
-        </ol>
+        <div id="dartdoc-sidebar-left-content"></div>
       </div>
       <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right"></div>
     </main>

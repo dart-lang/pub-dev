@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
 import '../../../../shared/urls.dart' as urls;
-import '../../../../shared/utils.dart' show formatXAgo;
 import '../../../dom/dom.dart' as d;
 
 import '../../../static_files.dart' show staticUrls;
@@ -86,7 +85,7 @@ d.Node _packageItem(
     return [
       d.a(
         href: urls.pkgPageUrl(
-          view.name!,
+          view.name,
           version: isLatest ? null : release.version,
         ),
         text: release.version,
@@ -98,7 +97,7 @@ d.Node _packageItem(
   }
 
   final licenseNode = packageListMetadataLicense(view.spdxIdentifiers);
-  final releases = view.releases!;
+  final releases = view.releases;
   final metadataNode = d.fragment([
     d.span(
       classes: ['packages-metadata-block'],
@@ -143,12 +142,12 @@ d.Node _packageItem(
   final screenshotUrls = <String>[];
   final screenshotDescriptions = <String>[];
   if (hasScreenshots) {
-    thumbnailUrl = imageStorage.getImageUrl(view.name!, releases.stable.version,
-        screenshots.first.webp100Thumbnail);
+    thumbnailUrl = imageStorage.getImageUrl(
+        view.name, releases.stable.version, screenshots.first.webp100Thumbnail);
 
     for (ProcessedScreenshot s in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
-          view.name!, releases.stable.version, s.webpImage));
+          view.name, releases.stable.version, s.webpImage));
       screenshotDescriptions.add(s.description);
     }
   }
@@ -170,8 +169,8 @@ d.Node _packageItem(
     thumbnailUrl: thumbnailUrl,
     screenshotUrls: screenshotUrls,
     screenshotDescriptions: screenshotDescriptions,
-    url: urls.pkgPageUrl(view.name!),
-    name: view.name!,
+    url: urls.pkgPageUrl(view.name),
+    name: view.name,
     newTimestamp: view.created,
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
@@ -182,7 +181,7 @@ d.Node _packageItem(
         ?.map((page) => _ApiPageUrl(
               page.url ??
                   urls.pkgDocUrl(
-                    view.name!,
+                    view.name,
                     isLatest: true,
                     relativePath: page.path,
                   ),
@@ -229,11 +228,11 @@ d.Node _item({
                   image: d.Image(
                     src:
                         staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
-                    alt: 'icon indicating recent time',
+                    alt: 'recently created package',
                     width: 10,
                     height: 10,
                   ),
-                  title: 'new package',
+                  title: 'recently created package',
                 ),
                 d.text(' Added '),
                 d.b(text: formatXAgo(age)),
@@ -252,7 +251,7 @@ d.Node _item({
               classes: ['packages-description'],
               children: [
                 d.span(text: description),
-                if (requestContext.experimentalFlags.showTopics) ...topics,
+                ...topics,
               ],
             ),
             d.p(classes: ['packages-metadata'], child: metadataNode),

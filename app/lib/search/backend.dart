@@ -4,36 +4,55 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+// ignore: implementation_imports
+import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
+import 'package:pool/pool.dart';
 
-import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
-import 'package:pub_dev/task/global_lock.dart';
+import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/utils.dart';
+import 'package:retry/retry.dart';
 
-import '../dartdoc/backend.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
+import '../search/mem_index.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart';
+import '../task/backend.dart';
+import '../task/global_lock.dart';
+import '../task/models.dart';
 import '../tool/utils/http.dart';
 
+import 'dart_sdk_mem_index.dart';
+import 'flutter_sdk_mem_index.dart';
 import 'models.dart';
+import 'result_combiner.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 
 final Logger _logger = Logger('pub.search.backend');
+
+/// The number of concurrent datastore/bucket fetch operations while
+/// building or updating the snapshot.
+const _defaultSnapshotBuildConcurrency = 8;
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -42,21 +61,21 @@ void registerSearchBackend(SearchBackend backend) =>
 /// The active backend service.
 SearchBackend get searchBackend => ss.lookup(#_searchBackend) as SearchBackend;
 
-/// Sets the snapshot storage
-void registerSnapshotStorage(SnapshotStorage storage) =>
-    ss.register(#_snapshotStorage, storage);
+/// Holder instance for the in-memory (primary) [InMemoryPackageIndex] registered in the current service scope.
+PackageIndexHolder get _packageIndexHolder =>
+    ss.lookup(#_packageIndexHolder) as PackageIndexHolder;
 
-/// The active snapshot storage
-SnapshotStorage get snapshotStorage =>
-    ss.lookup(#_snapshotStorage) as SnapshotStorage;
+/// Register a new [PackageIndexHolder] in the current service scope.
+void registerPackageIndexHolder(PackageIndexHolder indexHolder) =>
+    ss.register(#_packageIndexHolder, indexHolder);
 
-/// The [PackageIndex] registered in the current service scope.
-PackageIndex get packageIndex =>
-    ss.lookup(#packageIndexService) as PackageIndex;
+/// The combined or delegated [SearchIndex] registered in the current service scope.
+SearchIndex get searchIndex =>
+    (ss.lookup(#_searchIndex) as SearchIndex?) ?? const _CombinedSearchIndex();
 
-/// Register a new [PackageIndex] in the current service scope.
-void registerPackageIndex(PackageIndex index) =>
-    ss.register(#packageIndexService, index);
+/// Register a new combined or delegated [SearchIndex] in the current service scope.
+void registerSearchIndex(SearchIndex index) =>
+    ss.register(#_searchIndex, index);
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
@@ -78,7 +97,7 @@ class SearchBackend {
   /// attempting to get the claim.
   Future<Never> updateSnapshotInForeverLoop() async {
     final lock = GlobalLock.create(
-      'update-search-snapshot',
+      '$runtimeVersion/search/update-snapshot',
       expiration: Duration(minutes: 20),
     );
     while (true) {
@@ -98,6 +117,7 @@ class SearchBackend {
   Future<void> doCreateAndUpdateSnapshot(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
+    int concurrency = _defaultSnapshotBuildConcurrency,
   }) async {
     final firstClaimed = clock.now();
 
@@ -108,6 +128,9 @@ class SearchBackend {
     // creating snapshot from scratch
     final snapshot = SearchSnapshot();
     Future<void> updatePackage(String package, DateTime? updated) async {
+      if (!claim.valid) {
+        return;
+      }
       // Skip if the last document timestamp is before [updated].
       // 1-minute window is kept to reduce clock-skew.
       if (updated != null) {
@@ -120,25 +143,38 @@ class SearchBackend {
         }
       }
       // update or remove the document
-      try {
-        final doc = await loadDocument(package);
-        snapshot.add(doc);
-      } on RemovedPackageException catch (_) {
-        snapshot.remove(package);
-      }
+      await retry(() async {
+        try {
+          final doc = await loadDocument(package);
+          snapshot.add(doc);
+        } on RemovedPackageException catch (_) {
+          snapshot.remove(package);
+        }
+      });
     }
 
     // initial scan of packages
+    final pool = Pool(concurrency);
+    final futures = <Future>[];
     await for (final package in dbService.query<Package>().run()) {
-      if (package.isNotVisible) continue;
-      if (!claim.valid) break;
+      if (package.isNotVisible) {
+        continue;
+      }
+      if (!claim.valid) {
+        break;
+      }
       // This is the first scan, there isn't any existing document that we
       // can compare to, ignoring the updated field.
-      await updatePackage(package.name!, null);
+      final f = pool.withResource(() => updatePackage(package.name!, null));
+      futures.add(f);
     }
+    await Future.wait(futures);
+    futures.clear();
     if (!claim.valid) {
       return;
     }
+    snapshot.updateLikeScores();
+    snapshot.updatePopularityScores();
 
     // first complete snapshot, uploading it
     await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
@@ -160,16 +196,26 @@ class SearchBackend {
         if (!claim.valid) {
           break;
         }
-        await updatePackage(e.key, e.value);
+        final f = pool.withResource(() => updatePackage(e.key, e.value));
+        futures.add(f);
       }
+      await Future.wait(futures);
+      futures.clear();
 
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
+        // Updates the normalized like score across all the packages.
+        snapshot.updateLikeScores();
+        // Updates all popularity values to the currently cached one, otherwise
+        // only updated package would have been on their new values.
+        snapshot.updatePopularityScores();
+
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
 
       await Future.delayed(sleepDuration);
     }
+    await pool.close();
   }
 
   Future<Map<String, DateTime>> _queryRecentlyUpdated(
@@ -190,11 +236,13 @@ class SearchBackend {
       addResult(p.name!, p.updated!);
     }
 
-    final q2 = _db.query<ScoreCard>()
-      ..filter('updated >=', updatedThreshold)
-      ..order('-updated');
-    await for (final sc in q2.run()) {
-      addResult(sc.packageName!, sc.updated!);
+    final q3 = _db.query<PackageState>()
+      ..filter('finished >=', updatedThreshold)
+      ..order('-finished');
+    await for (final s in q3.run()) {
+      if (s.finished != null) {
+        addResult(s.package, s.finished!);
+      }
     }
 
     return results;
@@ -210,18 +258,22 @@ class SearchBackend {
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
-    final releases = await packageBackend.latestReleases(p);
+    // Get the scorecard with the latest version available with finished analysis.
+    final scoreCard =
+        await scoreCardBackend.getLatestFinishedScoreCardData(packageName);
 
+    // Load the version with the analysis above, or the latest version if no analysis
+    // has been finished yet.
+    final releases = await packageBackend.latestReleases(p);
     final pv = await packageBackend.lookupPackageVersion(
-        packageName, releases.stable.version);
+      packageName,
+      scoreCard.packageVersion ?? releases.stable.version,
+    );
     if (pv == null) {
       throw RemovedPackageException();
     }
     final readmeAsset = await packageBackend.lookupPackageVersionAsset(
         packageName, pv.version!, AssetKind.readme);
-
-    final scoreCard =
-        await scoreCardBackend.getScoreCardData(packageName, pv.version!);
 
     // Find tags from latest prerelease and/or preview (if there one).
     Future<Iterable<String>> loadFutureTags(String version) async {
@@ -231,7 +283,7 @@ class SearchBackend {
           await scoreCardBackend.getScoreCardData(packageName, version);
       final futureTags = <String>{
         ...?futureVersion?.getTags(),
-        ...?futureVersionAnalysis?.panaReport?.derivedTags,
+        ...?futureVersionAnalysis.panaReport?.derivedTags,
       };
       return futureTags.where(isFutureVersionTag);
     }
@@ -254,17 +306,18 @@ class SearchBackend {
       // regular tags
       ...p.getTags(),
       ...pv.getTags(),
-      ...?scoreCard?.panaReport?.derivedTags,
+      ...?scoreCard.panaReport?.derivedTags,
       ...prereleaseTags,
       ...previewTags,
     };
 
-    final pubDataContent = await dartdocBackend.getTextContent(
-        packageName, 'latest', 'pub-data.json',
-        timeout: const Duration(minutes: 1), maxSize: 10 * 1014);
-
     List<ApiDocPage>? apiDocPages;
     try {
+      final pubDataBytes = await taskBackend.gzippedTaskResult(
+          packageName, pv.version!, 'doc/pub-data.json');
+      final pubDataContent = pubDataBytes == null
+          ? null
+          : utf8.decode(gzip.decode(pubDataBytes), allowMalformed: true);
       if (pubDataContent == null || pubDataContent.isEmpty) {
         _logger.info('Got empty pub-data.json for package $packageName.');
       } else {
@@ -282,27 +335,21 @@ class SearchBackend {
     // select the latest entity updated timestamp (when available)
     final sourceUpdated = [
       p.updated,
-      scoreCard?.updated,
-    ].fold<DateTime?>(
-      null,
-      (p, v) {
-        if (v == null) return p;
-        if (p == null) return v;
-        return v.isAfter(p) ? v : p;
-      },
-    );
+      scoreCard.updated,
+    ].whereNotNull().maxOrNull;
 
     return PackageDocument(
       package: pv.package,
       version: pv.version!,
       tags: tags.toList(),
       description: compactDescription(descriptionAndTopics),
-      created: p.created,
-      updated: p.lastVersionPublished,
+      created: p.created!,
+      updated: p.lastVersionPublished!,
       readme: compactReadme(readmeAsset?.textContent),
       likeCount: p.likes,
-      grantedPoints: scoreCard?.grantedPubPoints,
-      maxPoints: scoreCard?.maxPubPoints ?? 0,
+      popularityScore: popularityStorage.lookup(packageName),
+      grantedPoints: scoreCard.grantedPubPoints,
+      maxPoints: scoreCard.maxPubPoints,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
@@ -339,8 +386,8 @@ class SearchBackend {
         package: p.name!,
         version: releases.stable.version,
         tags: p.getTags().toList(),
-        created: p.created,
-        updated: p.lastVersionPublished,
+        created: p.created!,
+        updated: p.lastVersionPublished!,
         likeCount: p.likes,
         grantedPoints: 0,
         maxPoints: 0,
@@ -403,22 +450,78 @@ class SearchBackend {
     return values;
   }
 
+  Future<List<PackageDocument>?> fetchSnapshotDocuments() async {
+    try {
+      final map = await _snapshotStorage.getContentAsJsonMap();
+      if (map == null) {
+        _logger.info('No snaptshot to fetch.');
+        return null;
+      }
+      final snapshot = SearchSnapshot.fromJson(map);
+      snapshot.documents!
+          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
+
+      final count = snapshot.documents!.length;
+      _logger.info('Got $count packages from snapshot at ${snapshot.updated}');
+      return snapshot.documents?.values.toList();
+    } catch (e, st) {
+      _logger.shout('Unable to load search snapshot.', e, st);
+    }
+    return null;
+  }
+
+  /// Deletes old data files in snapshot storage (for old runtimes that are more
+  /// than half a year old).
+  Future<void> deleteOldData() async {
+    final counts = await _snapshotStorage.deleteOldData(
+        minAgeThreshold: Duration(days: 182));
+    _logger.info(
+        'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
+  }
+
+  /// Creates the gzipped byte content for the /api/package-name-completion-data endpoint.
+  Future<List<int>> getPackageNameCompletitionDataJsonGz() async {
+    final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
+      final rs = await searchClient.search(
+        ServiceSearchQuery.parse(
+          tagsPredicate: TagsPredicate.regularSearch(),
+          limit: 20000,
+        ),
+        // Do not cache response at the search client level, as we'll be caching
+        // it in a processed form much longer.
+        skipCache: true,
+      );
+
+      return gzip.encode(jsonUtf8Encoder.convert({
+        'packages': rs.packageHits.map((p) => p.package).toList(),
+      }));
+    });
+    return bytes!;
+  }
+
   Future<void> close() async {
+    _snapshotStorage.close();
     _http.close();
   }
 }
 
 /// Creates the index-related API data structure from the extracted dartdoc data.
 List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
-  final nameToKindMap = <String, String>{};
+  final nameToHrefMap = <String, String>{};
   pubData.apiElements!.forEach((e) {
-    nameToKindMap[e.qualifiedName] = e.kind;
+    final href = e.href;
+    if (href != null) {
+      nameToHrefMap[e.qualifiedName] = href;
+    }
   });
 
   final pathMap = <String, String?>{};
   final symbolMap = <String, Set<String>>{};
 
-  bool isTopLevel(String? kind) => kind == 'library' || kind == 'class';
+  bool isTopLevelHref(String? href) {
+    if (href == null) return false;
+    return href.endsWith('-class.html') || href.endsWith('-library.html');
+  }
 
   void update(String key, String symbol, String? documentation) {
     if (isCommonApiSymbol(symbol)) {
@@ -429,12 +532,12 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }
 
   pubData.apiElements!.forEach((apiElement) {
-    if (isTopLevel(apiElement.kind)) {
+    if (isTopLevelHref(apiElement.href)) {
       pathMap[apiElement.qualifiedName] = apiElement.href;
       update(
           apiElement.qualifiedName, apiElement.name, apiElement.documentation);
     } else if (apiElement.parent != null &&
-        isTopLevel(nameToKindMap[apiElement.parent])) {
+        isTopLevelHref(nameToHrefMap[apiElement.parent])) {
       update(apiElement.parent!, apiElement.name, apiElement.documentation);
     }
   });
@@ -451,56 +554,32 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   return results;
 }
 
-class SnapshotStorage {
-  final VersionedJsonStorage _storage;
-  SearchSnapshot? _snapshot;
+class _CombinedSearchIndex implements SearchIndex {
+  const _CombinedSearchIndex();
 
-  SnapshotStorage(Bucket bucket)
-      : _storage = VersionedJsonStorage(bucket, 'snapshot/');
+  @override
+  bool isReady() => indexInfo().isReady;
 
-  Map<String, PackageDocument> get documents => _snapshot!.documents!;
+  @override
+  IndexInfo indexInfo() => _packageIndexHolder._index.indexInfo();
 
-  void add(PackageDocument doc) {
-    _snapshot!.add(doc);
+  @override
+  PackageSearchResult search(ServiceSearchQuery query) {
+    final combiner = SearchResultCombiner(
+      primaryIndex: _packageIndexHolder._index,
+      dartSdkMemIndex: dartSdkMemIndex,
+      flutterSdkMemIndex: flutterSdkMemIndex,
+    );
+    return combiner.search(query);
   }
+}
 
-  void remove(String package) {
-    _snapshot!.remove(package);
-  }
+/// Holds an immutable [InMemoryPackageIndex] that is the actual active search index.
+class PackageIndexHolder {
+  var _index = InMemoryPackageIndex(documents: const []);
+}
 
-  Future<void> fetch() async {
-    final version = await _storage.detectLatestVersion();
-    if (version == null) {
-      _logger.shout('Unable to detect the latest search snapshot file.');
-    }
-    try {
-      final map = await _storage.getContentAsJsonMap(version);
-      _snapshot = SearchSnapshot.fromJson(map);
-      _snapshot!.documents!
-          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-
-      final count = _snapshot!.documents!.length;
-      _logger
-          .info('Got $count packages from snapshot at ${_snapshot!.updated}');
-    } catch (e, st) {
-      final uri = _storage.getBucketUri(version);
-      _logger.shout('Unable to load search snapshot: $uri', e, st);
-    }
-    // Create an empty snapshot if the above failed. This will be populated with
-    // package data via a separate update process.
-    _snapshot ??= SearchSnapshot();
-  }
-
-  /// Deletes old data files in snapshot storage (for old runtimes that are more
-  /// than half a year old).
-  Future<void> deleteOldData() async {
-    final counts =
-        await _storage.deleteOldData(minAgeThreshold: Duration(days: 182));
-    _logger.info(
-        'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
-  }
-
-  Future<void> close() async {
-    _storage.close();
-  }
+/// Updates the active package index with [newIndex].
+void updatePackageIndex(InMemoryPackageIndex newIndex) {
+  _packageIndexHolder._index = newIndex;
 }

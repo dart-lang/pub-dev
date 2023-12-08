@@ -3,18 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
-import 'dart:io' show Directory, File, Platform, exit;
+import 'dart:convert' show json, utf8;
+import 'dart:io' show Directory, File, Platform, exit, gzip;
 
-import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 
 final _log = Logger('pana');
+
+/// The maximum of the compressed pana report. Larger reports will be dropped and
+/// replaced with a placeholder report.
+final _reportSizeDropThreshold = 32 * 1024;
+
+/// Stop dartdoc if it takes more than 45 minutes.
+const _dartdocTimeout = Duration(minutes: 45);
 
 /// Program to be used as subprocess for running pana, ensuring that we capture
 /// all the output, and only run analysis in a subprocess that can timeout and
@@ -31,6 +37,8 @@ Future<void> main(List<String> args) async {
   final pubHostedUrl =
       Platform.environment['PUB_HOSTED_URL'] ?? 'https://pub.dartlang.org';
   final pubCache = Platform.environment['PUB_CACHE']!;
+  final rawDartdocOutputFolder =
+      await Directory.systemTemp.createTemp('dartdoc-$package');
 
   // Setup logging
   Logger.root.level = Level.INFO;
@@ -90,12 +98,11 @@ Future<void> main(List<String> args) async {
   final toolEnv = await ToolEnvironment.create(
     dartSdkDir: dartSdk?.path,
     flutterSdkDir: flutterSdk?.path,
-    futureDartSdkDir: InstalledSdk.futureSdk(dartSdks)?.path,
-    futureFlutterSdkDir: InstalledSdk.futureSdk(flutterSdks)?.path,
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
     environment: {'CI': 'true'},
-    useGlobalDartdoc: false,
+    useGlobalDartdoc: true,
+    globalDartdocVersion: '8.0.0',
   );
 
   //final dartdocOutputDir =
@@ -105,15 +112,14 @@ Future<void> main(List<String> args) async {
   final pana = PackageAnalyzer(toolEnv);
   // TODO: add a cache purge + retry if the download would fail
   //       (e.g. the package version cache wasn't invalidated).
-  final summary = await pana.inspectPackage(
+  var summary = await pana.inspectPackage(
     package,
     version: version,
     options: InspectOptions(
-      //TODO: Add analysisOptionsYaml, or move the logic into pana
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
-      //TODO: Run dartdoc as part of pana
       checkRemoteRepository: true,
-      futureSdkTag: PackageVersionTags.isDart3Compatible,
+      dartdocTimeout: _dartdocTimeout,
+      dartdocOutputDir: rawDartdocOutputFolder.path,
     ),
     logger: _log,
     storeResource: (filename, data) async {
@@ -123,28 +129,40 @@ Future<void> main(List<String> args) async {
     },
   );
 
-  // Load doc/pub-data.json created by dartdoc
-  ReportSection docSection;
-  try {
-    final docData = PubDartdocData.fromJson(json.decode(
-      await File(p.join(outputFolder, 'doc', 'pub-data.json')).readAsString(),
-    ) as Map<String, dynamic>);
-    docSection = documentationCoverageSection(
-      documented: docData.coverage?.documented ?? 0,
-      total: docData.coverage?.total ?? 0,
-    );
-  } catch (e) {
-    // ignore the error
-    // TODO: handle errors more gracefully, or just run dartdoc as part of pana.
-    // TODO: make a proper link to the task-log, which isn't exposed yet.
-    docSection = dartdocFailedSection('`dartdoc` failed, see task-log.');
-  }
+  await postPorcessDartdoc(
+    outputFolder: outputFolder,
+    package: package,
+    version: version,
+    docDir: rawDartdocOutputFolder.path,
+  );
+  await rawDartdocOutputFolder.delete(recursive: true);
 
-  final updatedReport = summary.report?.joinSection(docSection);
-  final updatedSummary = summary.change(report: updatedReport);
+  // sanity check on pana report size
+  final reportSize =
+      gzip.encode(utf8.encode(json.encode(summary.toJson()))).length;
+  if (reportSize > _reportSizeDropThreshold) {
+    summary = Summary(
+      createdAt: summary.createdAt,
+      runtimeInfo: summary.runtimeInfo,
+      tags: ['has:pana-report-exceeds-size-threshold'],
+      report: Report(
+        sections: [
+          ReportSection(
+            id: 'error',
+            title: 'Report exceeded size limit.',
+            grantedPoints: summary.report?.grantedPoints ?? 0,
+            maxPoints: summary.report?.maxPoints ?? 0,
+            status: ReportStatus.partial,
+            summary: 'The `pana` report exceeded size limit. '
+                'Please review pana logs or contact the site admins.',
+          )
+        ],
+      ),
+    );
+  }
 
   _log.info('Writing summary.json');
   await File(
     p.join(outputFolder, 'summary.json'),
-  ).writeAsString(json.encode(updatedSummary));
+  ).writeAsString(json.encode(summary));
 }

@@ -155,9 +155,6 @@ class TokenMatch {
 
 /// Stores a token -> documentId inverted index with weights.
 class TokenIndex {
-  /// {id: hash} map to detect if a document update or removal is a no-op.
-  final _textHashes = <String, String>{};
-
   /// Maps token Strings to a weighted map of document ids.
   final _inverseIds = <String, Map<String, double>>{};
 
@@ -173,14 +170,7 @@ class TokenIndex {
     if (text == null) return;
     final tokens = tokenize(text);
     if (tokens == null || tokens.isEmpty) {
-      if (_textHashes.containsKey(id)) {
-        remove(id);
-      }
       return;
-    }
-    final String textHash = '${text.hashCode}/${tokens.length}';
-    if (_textHashes.containsKey(id) && _textHashes[id] != textHash) {
-      remove(id);
     }
     for (String token in tokens.keys) {
       final Map<String, double> weights =
@@ -190,18 +180,6 @@ class TokenIndex {
     // Document size is a highly scaled-down proxy of the length.
     final docSize = 1 + math.log(1 + tokens.length) / 100;
     _docSizes[id] = docSize;
-    _textHashes[id] = textHash;
-  }
-
-  void remove(String id) {
-    _textHashes.remove(id);
-    _docSizes.remove(id);
-    final List<String> removeTokens = [];
-    _inverseIds.forEach((String key, Map<String, double> weights) {
-      weights.remove(id);
-      if (weights.isEmpty) removeTokens.add(key);
-    });
-    removeTokens.forEach(_inverseIds.remove);
   }
 
   /// Match the text against the corpus and return the tokens or

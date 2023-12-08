@@ -9,158 +9,145 @@ import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../../analyzer/pana_runner.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart' show PackageStatus;
 import '../../shared/versions.dart';
 
-/// Runs package analysis for all packages with fake pana runner.
-Future<void> processJobsWithFakePanaRunner() async {
-  // ignore: invalid_use_of_visible_for_testing_member
-  await processJobsWithPanaRunner(runner: FakePanaRunner());
-}
+Future<Summary> fakePanaSummary({
+  required String package,
+  required String version,
+  required PackageStatus packageStatus,
+}) async {
+  final pv = await packageBackend.lookupPackageVersion(package, version);
+  final pubspec = pv!.pubspec!;
+  final hasher = createHasher([package, version].join('/'));
+  final layoutPoints = hasher('points/layout', max: 30);
+  final examplePoints = hasher('points/example', max: 30);
+  final hasSdkDart = hasher('sdk:dart', max: 10) > 0;
+  final hasSdkFlutter =
+      hasher('sdk:flutter', max: packageStatus.usesFlutter ? 20 : 10) > 0;
+  final hasValidSdk = hasSdkDart || hasSdkFlutter;
+  final runtimeTags = hasSdkDart
+      ? <String>[
+          'runtime:native-aot',
+          'runtime:native-jit',
+          'runtime:web',
+        ].where((p) => hasher(p, max: 5) > 0).toList()
+      : <String>[];
+  final platformTags = hasValidSdk
+      ? <String>[
+          'platform:android',
+          'platform:ios',
+          'platform:linux',
+          'platform:macos',
+          'platform:web',
+          'platform:windows',
+        ].where((p) => hasher(p, max: 5) > 0).toList()
+      : <String>[];
+  final licenseSpdx =
+      hasher('license', max: 5) == 0 ? 'unknown' : 'BSD-3-Clause';
 
-/// Generates pana analysis result based on a deterministic random seed.
-class FakePanaRunner implements PanaRunner {
-  @override
-  Future<Summary> analyze({
-    required String package,
-    required String version,
-    required PackageStatus packageStatus,
-  }) async {
-    final pv = await packageBackend.lookupPackageVersion(package, version);
-    final pubspec = pv!.pubspec!;
-    final hasher = createHasher([package, version].join('/'));
-    final layoutPoints = hasher('points/layout', max: 30);
-    final examplePoints = hasher('points/example', max: 30);
-    final hasSdkDart = hasher('sdk:dart', max: 10) > 0;
-    final hasSdkFlutter =
-        hasher('sdk:flutter', max: packageStatus.usesFlutter ? 20 : 10) > 0;
-    final hasValidSdk = hasSdkDart || hasSdkFlutter;
-    final runtimeTags = hasSdkDart
-        ? <String>[
-            'runtime:native-aot',
-            'runtime:native-jit',
-            'runtime:web',
-          ].where((p) => hasher(p, max: 5) > 0).toList()
-        : <String>[];
-    final platformTags = hasValidSdk
-        ? <String>[
-            'platform:android',
-            'platform:ios',
-            'platform:linux',
-            'platform:macos',
-            'platform:web',
-            'platform:windows',
-          ].where((p) => hasher(p, max: 5) > 0).toList()
-        : <String>[];
-    final licenseSpdx =
-        hasher('license', max: 5) == 0 ? 'unknown' : 'BSD-3-Clause';
+  String? fakeUrlCheck(String key, String? url) {
+    return hasher(key, max: 20) > 0 ? url : null;
+  }
 
-    String? fakeUrlCheck(String key, String? url) {
-      return hasher(key, max: 20) > 0 ? url : null;
-    }
-
-    final homepageUrl = fakeUrlCheck('pubspec.homepage', pubspec.homepage);
-    final repositoryUrl =
-        fakeUrlCheck('pubspec.repository', pubspec.repository);
-    final issueTrackerUrl =
-        fakeUrlCheck('pubspec.issueTracker', pubspec.issueTracker);
-    final documentationUrl =
-        fakeUrlCheck('pubspec.documentation', pubspec.documentation);
-    final verifiedUrl =
-        Repository.tryParseUrl(repositoryUrl ?? homepageUrl ?? '');
-    final hasVerifiedRepository =
-        verifiedUrl != null && hasher('verifiedRepository', max: 20) > 0;
-    Repository? repository;
-    if (hasVerifiedRepository) {
-      final verifiedRepositoryBranch = verifiedUrl.branch ??
-          (hasher('verifiedRepository.branch', max: 5) > 0 ? 'main' : null);
-      repository = Repository(
-        provider: verifiedUrl.provider,
-        host: verifiedUrl.host,
-        repository: verifiedUrl.repository,
-        branch: verifiedRepositoryBranch,
-        path: verifiedUrl.path,
-      );
-    }
-
-    final contributingUrl = fakeUrlCheck(
-        'contributingUrl', repository?.tryResolveUrl('CONTRIBUTING.md'));
-
-    final result = AnalysisResult(
-      homepageUrl: homepageUrl,
-      repositoryUrl: repositoryUrl,
-      issueTrackerUrl: issueTrackerUrl,
-      documentationUrl: documentationUrl,
-      repository: repository,
-      // TODO: add funding URLs
-      fundingUrls: null,
-      contributingUrl: contributingUrl,
-    );
-    return Summary(
-      createdAt: clock.now().toUtc(),
-      packageName: package,
-      packageVersion: Version.parse(version),
-      runtimeInfo: PanaRuntimeInfo(
-        sdkVersion: packageStatus.usesPreviewAnalysisSdk
-            ? toolPreviewDartSdkVersion
-            : toolStableDartSdkVersion,
-        panaVersion: panaVersion,
-        flutterVersions: {},
-      ),
-      allDependencies: <String>[],
-      tags: <String>[
-        if (hasSdkDart) 'sdk:dart',
-        if (hasSdkFlutter) 'sdk:flutter',
-        ...runtimeTags,
-        ...platformTags,
-        'license:${licenseSpdx.toLowerCase()}',
-        if (licenseSpdx != 'unknown') 'license:fsf-libre',
-        if (licenseSpdx != 'unknown') 'license:osi-approved',
-      ],
-      report: Report(
-        sections: [
-          ReportSection(
-            id: ReportSectionId.convention,
-            title: 'Fake conventions',
-            grantedPoints: layoutPoints,
-            maxPoints: 30,
-            summary: renderSimpleSectionSummary(
-              title: 'Package layout',
-              description:
-                  'Package layout score randomly set to $layoutPoints...',
-              grantedPoints: layoutPoints,
-              maxPoints: 30,
-            ),
-            status:
-                layoutPoints > 20 ? ReportStatus.passed : ReportStatus.failed,
-          ),
-          ReportSection(
-            id: ReportSectionId.documentation,
-            title: 'Fake documentation',
-            grantedPoints: examplePoints,
-            maxPoints: 30,
-            summary: renderSimpleSectionSummary(
-              title: 'Example',
-              description: 'Example score randomly set to $examplePoints...',
-              grantedPoints: examplePoints,
-              maxPoints: 30,
-            ),
-            status:
-                examplePoints > 20 ? ReportStatus.passed : ReportStatus.partial,
-          ),
-        ],
-      ),
-      result: result,
-      licenseFile: LicenseFile('LICENSE', licenseSpdx),
-      licenses: [
-        License(path: 'LICENSE', spdxIdentifier: licenseSpdx),
-      ],
-      errorMessage: null,
-      pubspec: null, // will be ignored
+  final homepageUrl = fakeUrlCheck('pubspec.homepage', pubspec.homepage);
+  final repositoryUrl = fakeUrlCheck('pubspec.repository', pubspec.repository);
+  final issueTrackerUrl =
+      fakeUrlCheck('pubspec.issueTracker', pubspec.issueTracker);
+  final documentationUrl =
+      fakeUrlCheck('pubspec.documentation', pubspec.documentation);
+  final verifiedUrl =
+      Repository.tryParseUrl(repositoryUrl ?? homepageUrl ?? '');
+  final hasVerifiedRepository =
+      verifiedUrl != null && hasher('verifiedRepository', max: 20) > 0;
+  Repository? repository;
+  if (hasVerifiedRepository) {
+    final verifiedRepositoryBranch = verifiedUrl.branch ??
+        (hasher('verifiedRepository.branch', max: 5) > 0 ? 'main' : null);
+    repository = Repository(
+      provider: verifiedUrl.provider,
+      host: verifiedUrl.host,
+      repository: verifiedUrl.repository,
+      branch: verifiedRepositoryBranch,
+      path: verifiedUrl.path,
     );
   }
+
+  final contributingUrl = fakeUrlCheck(
+      'contributingUrl', repository?.tryResolveUrl('CONTRIBUTING.md'));
+
+  final result = AnalysisResult(
+    homepageUrl: homepageUrl,
+    repositoryUrl: repositoryUrl,
+    issueTrackerUrl: issueTrackerUrl,
+    documentationUrl: documentationUrl,
+    repository: repository,
+    // TODO: add funding URLs
+    fundingUrls: null,
+    contributingUrl: contributingUrl,
+  );
+  return Summary(
+    createdAt: clock.now().toUtc(),
+    packageName: package,
+    packageVersion: Version.parse(version),
+    runtimeInfo: PanaRuntimeInfo(
+      sdkVersion: packageStatus.usesPreviewAnalysisSdk
+          ? toolPreviewDartSdkVersion
+          : toolStableDartSdkVersion,
+      panaVersion: panaVersion,
+      flutterVersions: {},
+    ),
+    allDependencies: <String>[],
+    tags: <String>[
+      if (hasSdkDart) 'sdk:dart',
+      if (hasSdkFlutter) 'sdk:flutter',
+      ...runtimeTags,
+      ...platformTags,
+      'license:${licenseSpdx.toLowerCase()}',
+      if (licenseSpdx != 'unknown') 'license:fsf-libre',
+      if (licenseSpdx != 'unknown') 'license:osi-approved',
+    ],
+    report: Report(
+      sections: [
+        ReportSection(
+          id: ReportSectionId.convention,
+          title: 'Fake conventions',
+          grantedPoints: layoutPoints,
+          maxPoints: 30,
+          summary: renderSimpleSectionSummary(
+            title: 'Package layout',
+            description:
+                'Package layout score randomly set to $layoutPoints...',
+            grantedPoints: layoutPoints,
+            maxPoints: 30,
+          ),
+          status: layoutPoints > 20 ? ReportStatus.passed : ReportStatus.failed,
+        ),
+        ReportSection(
+          id: ReportSectionId.documentation,
+          title: 'Fake documentation',
+          grantedPoints: examplePoints,
+          maxPoints: 30,
+          summary: renderSimpleSectionSummary(
+            title: 'Example',
+            description: 'Example score randomly set to $examplePoints...',
+            grantedPoints: examplePoints,
+            maxPoints: 30,
+          ),
+          status:
+              examplePoints > 20 ? ReportStatus.passed : ReportStatus.partial,
+        ),
+      ],
+    ),
+    result: result,
+    licenseFile: LicenseFile('LICENSE', licenseSpdx),
+    licenses: [
+      License(path: 'LICENSE', spdxIdentifier: licenseSpdx),
+    ],
+    errorMessage: null,
+    pubspec: null, // will be ignored
+  );
 }
 
 /// Returns the hash of the [key]. When [max] is present, only

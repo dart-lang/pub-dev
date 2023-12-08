@@ -65,6 +65,7 @@ const reservedWords = <String>{
   'throw',
   'true',
   'try',
+  'type',
   'typedef',
   'var',
   'void',

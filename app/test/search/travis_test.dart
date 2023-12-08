@@ -15,7 +15,6 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
       final packageNames = [
         'rainbow_vis',
         'mongo_dart_query',
@@ -24,19 +23,19 @@ void main() {
         'w_transport',
         'sass_transformer',
       ];
-      await index.addPackage(PackageDocument(
-        package: 'travis',
-        version: '0.0.1-dev',
-        description: compactDescription(
-            'A starting point for Dart libraries or applications.'),
-      ));
-      for (String packageName in packageNames) {
-        await index.addPackage(PackageDocument(
-          package: packageName,
-          version: '1.0.0',
-          description:
-              compactDescription('$packageName a package for $packageName'),
-          readme: compactReadme('''
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'travis',
+          version: '0.0.1-dev',
+          description: compactDescription(
+              'A starting point for Dart libraries or applications.'),
+        ),
+        ...packageNames.map((packageName) => PackageDocument(
+              package: packageName,
+              version: '1.0.0',
+              description:
+                  compactDescription('$packageName a package for $packageName'),
+              readme: compactReadme('''
 # $packageName
 
 [![Pub](https://img.shields.io/pub/v/$packageName.svg?maxAge=2592000?style=flat-square)](https://pub.dartlang.org/packages/$packageName)
@@ -46,9 +45,8 @@ void main() {
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 '''),
-        ));
-      }
-      await index.markReady();
+            )),
+      ]);
     });
 
     test('travis', () async {

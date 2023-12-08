@@ -14,10 +14,10 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(package: 'maps'));
-      await index.addPackage(PackageDocument(package: 'map'));
-      await index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(package: 'maps', updated: DateTime(2020, 10, 2)),
+        PackageDocument(package: 'map', updated: DateTime(2020, 10, 1)),
+      ]);
     });
 
     test('maps', () async {

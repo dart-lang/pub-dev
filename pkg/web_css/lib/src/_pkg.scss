@@ -170,7 +170,7 @@
 
   .score-key-figure-label {
     color: #555555;
-    font-family: $font-family-roboto;
+    font-family: $font-family-google-sans-text;
     font-size: 14px;
     text-align: center;
     text-transform: uppercase;
@@ -313,7 +313,7 @@
     transition: opacity $copy-feedback-transition-opacity-delay;
 
     >.code {
-      font-family: $font-family-roboto-mono;
+      font-family: $font-family-google-sans-mono;
       display: block;
     }
 

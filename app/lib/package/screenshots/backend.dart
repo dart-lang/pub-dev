@@ -6,7 +6,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/task/backend.dart';
 
@@ -71,9 +70,6 @@ class ImageStorage {
   // TODO(zarah) add functionality to garbage collect bucket entries.
 
   String getImageUrl(String package, String version, String imageFilePath) {
-    if (requestContext.experimentalFlags.showSandboxedOutput) {
-      return taskBackend.resourceUrl(package, version, imageFilePath);
-    }
-    return bucket.objectUrl([package, version, imageFilePath].join('/'));
+    return taskBackend.resourceUrl(package, version, imageFilePath);
   }
 }

@@ -1,9 +1,0 @@
-# Read about `build.yaml` at https://pub.dartlang.org/packages/build_config
-# To update generated code, run `pub run build_runner build`
-targets:
-  pub_dartdoc_data:
-    sources:
-      - '$package$'
-      - 'lib/$lib$'
-      - 'lib/pub_dartdoc_data.dart'
-      - 'lib/dartdoc_page.dart'

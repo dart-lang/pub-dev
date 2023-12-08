@@ -80,7 +80,7 @@ Future<RequestContext> buildRequestContext({
   // Parse client session cookie status, which can be present at any kind of request.
   SessionData? sessionData;
   final clientSessionCookieStatus = parseClientSessionCookies(cookies);
-  if (isPrimaryHost && clientSessionCookieStatus.isPresent) {
+  if (clientSessionCookieStatus.isPresent) {
     sessionData = await accountBackend
         .getSessionData(clientSessionCookieStatus.sessionId!);
   }

@@ -244,49 +244,6 @@ void main() {
       expect(email.recipients.map((e) => e.email).toList(), ['admin@pub.dev']);
     });
   });
-
-  group('Delete publisher', () {
-    _testNoPackage((client) async {
-      return client.removePackagePublisher('no_package');
-    });
-
-    _testNoActiveUser((client) async {
-      return client.removePackagePublisher('oxygen');
-    });
-
-    _testUserNotMemberOfPublisher(
-      fn: (client) => client.removePackagePublisher('neon'),
-    );
-
-    _testUserNotAdminOfPublisher(
-      fn: (client) => client.removePackagePublisher('neon'),
-    );
-
-    _testPublisherBlocked(
-      (client) => client.removePackagePublisher('neon'),
-      status: 403,
-      code: 'InsufficientPermissions',
-    );
-
-    testWithProfile('successful', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = client.removePackagePublisher('neon');
-      await expectApiException(rs, status: 501);
-//  Code commented out while we decide if this feature is something we want to
-//  support going forward.
-//
-//      final rs = await client.removePackagePublisher('neon');
-//      expect(_json(rs.toJson()), {'publisherId': null});
-//
-//      final p = await packageBackend.lookupPackage('neon');
-//      expect(p.publisherId, isNull);
-//      expect(p.uploaders, isNotEmpty);
-//
-//      final info = await client.getPackagePublisher('neon');
-//      expect(_json(info.toJson()), _json(rs.toJson()));
-    });
-  });
 }
 
 dynamic _json(value) => json.decode(json.encode(value));

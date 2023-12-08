@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
-import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/test_browser.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
@@ -160,7 +160,11 @@ void main() {
 
           // show hidden
           await page.click('.search-form-section[data-section-tag="advanced"]');
-          await page.waitAndClick('#search-form-checkbox-show-unlisted');
+          await page.waitForLayout([
+            '#search-form-checkbox-is-flutter-favorite',
+            '#search-form-checkbox-show-unlisted'
+          ]);
+          await page.click('#search-form-checkbox-show-unlisted');
           await page.waitForNavigation(wait: Until.networkIdle);
           final i7 = await listingPageInfo(page);
           expect(i7.totalCount, i6.totalCount);

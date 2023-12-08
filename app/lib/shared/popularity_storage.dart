@@ -30,16 +30,22 @@ PopularityStorage get popularityStorage =>
 class PopularityStorage {
   late CachedValue<_PopularityData> _popularity;
   late final _PopularityLoader _loader;
+  bool? _invalid;
 
   PopularityStorage(Bucket bucket) {
     _loader = _PopularityLoader(bucket);
     _popularity = CachedValue<_PopularityData>(
       name: 'popularity',
+      // note: popularity data is stored in storage bucket, not cached in redis
       interval: Duration(hours: 1),
       maxAge: Duration(days: 14),
       updateFn: () async => _loader.fetch(),
     );
   }
+
+  bool get isInvalid =>
+      _invalid ??
+      (!_popularity.isAvailable || (_popularity.value?.isInvalid ?? true));
 
   DateTime? get lastFetched => _popularity.lastUpdated;
   String? get dateRange => _popularity.value?.dateRange;
@@ -51,7 +57,7 @@ class PopularityStorage {
   int lookupAsScore(String package) => (lookup(package) * 100).round();
 
   Future<void> start() async {
-    await _popularity.start();
+    await _popularity.update();
   }
 
   Future<void> close() async {
@@ -60,7 +66,13 @@ class PopularityStorage {
 
   // Updates popularity scores to fixed values, useful for testing.
   @visibleForTesting
-  void updateValues(Map<String, double> values) {
+  void updateValues(
+    Map<String, double> values, {
+    bool? invalid,
+  }) {
+    if (invalid != null) {
+      _invalid = invalid;
+    }
     // ignore: invalid_use_of_visible_for_testing_member
     _popularity.setValue(
         _PopularityData(values: values, first: clock.now(), last: clock.now()));
@@ -131,6 +143,13 @@ class _PopularityData {
 
   String get dateRange =>
       '${first?.toIso8601String()} - ${last?.toIso8601String()}';
+
+  /// Indicates that the data has no time range, or that the range is not
+  /// covering a full day, or that it is more than a month old.
+  late final isInvalid = first == null ||
+      last == null ||
+      last!.difference(first!).inDays < 1 ||
+      clock.now().difference(last!).inDays > 30;
 }
 
 class _Entry implements Comparable<_Entry> {

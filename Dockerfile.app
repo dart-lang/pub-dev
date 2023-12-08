@@ -1,5 +1,5 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM dart:3.0.0
+FROM dart:3.2.0
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
@@ -18,9 +18,6 @@ COPY doc /project/doc
 COPY third_party /project/third_party
 COPY tool /project/tool
 
-WORKDIR /project/pkg/pub_dartdoc
-RUN dart /project/tool/pub_get_offline.dart /project/pkg/pub_dartdoc
-
 WORKDIR /project/pkg/web_app
 RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
 RUN ./build.sh
@@ -32,14 +29,7 @@ RUN ./build.sh
 WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
-# Setup analysis Dart SDKs
-RUN /project/tool/setup-dart.sh /tool/stable 3.0.2
-RUN /project/tool/setup-dart.sh /tool/preview 3.1.0-63.1.beta
 RUN /project/tool/setup-webp.sh /usr/local/bin
-
-# Setup analysis Flutter SDKs
-RUN /project/tool/setup-flutter.sh /tool/stable 3.10.2
-RUN /project/tool/setup-flutter.sh /tool/preview 3.11.0-0.1.pre
 
 # Clear out any arguments the base images might have set
 CMD []

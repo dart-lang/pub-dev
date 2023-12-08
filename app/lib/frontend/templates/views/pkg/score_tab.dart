@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/models.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
@@ -12,20 +13,25 @@ import '../../package_misc.dart' show formatScore;
 
 /// Renders the score page content.
 d.Node scoreTabNode({
+  required String package,
+  required String version,
   required int? likeCount,
   required ScoreCardData? card,
   required bool usesFlutter,
+  required bool isLatestStable,
 }) {
   if (card == null) {
     return d.i(text: 'Awaiting analysis to complete.');
   }
 
   final report = card.report;
-  final showPending = !card.isSkipped && report == null;
-  final showReport = !card.isSkipped && report != null;
+  final showReport = report != null;
+  final showPending = report == null && (card.isPending || isLatestStable);
+  final showNoReport = !showReport && !showPending;
 
-  final toolEnvInfo =
-      _renderToolEnvInfoNode(card.panaReport?.panaRuntimeInfo, usesFlutter);
+  final toolEnvInfo = showReport
+      ? _renderToolEnvInfoNode(card.panaReport?.panaRuntimeInfo, usesFlutter)
+      : null;
   return d.fragment([
     d.div(
       classes: ['score-key-figures'],
@@ -35,57 +41,51 @@ d.Node scoreTabNode({
         _popularityKeyFigureNode(card.popularityScore),
       ],
     ),
-    if (card.isDiscontinued)
+    if (showPending)
       d.p(
         classes: ['analysis-info'],
-        text: 'This package is not analyzed, because it is discontinued.',
-      ),
-    if (card.isObsolete)
+        text: 'The analysis of the package has not been completed yet.',
+      )
+    else if (showNoReport)
       d.p(
         classes: ['analysis-info'],
         children: [
-          d.text('This package version is not analyzed, because '
-              'it is more than two years old. Check the '),
+          d.text('This package version is not analyzed. Check the '),
           d.a(
             href: urls.pkgScoreUrl(card.packageName!),
             text: 'latest stable version',
           ),
           d.text(' for its analysis.'),
         ],
-      ),
-    if (card.isLegacy)
-      d.p(
-        classes: ['analysis-info'],
-        text:
-            'The package version is not analyzed, because it does not support Dart 2 or 3. '
-            'Until this is resolved, the package will receive a pub score of 0.',
-      ),
-    if (card.isDart3Incompatible)
-      d.p(
-        classes: ['analysis-info'],
-        text:
-            'The package version is not analyzed, because it does not support Dart 3. '
-            'Until this is resolved, the package will receive a pub score of 0.',
-      ),
-    if (showPending)
-      d.p(
-        classes: ['analysis-info'],
-        text: 'The analysis of the package has not been completed yet.',
-      ),
-    if (showReport)
-      d.p(
-        classes: ['analysis-info'],
-        children: [
-          d.text('We analyzed this package '),
-          if (card.panaReport?.timestamp != null)
-            d.xAgoTimestamp(card.panaReport!.timestamp!, datePrefix: 'on'),
-          d.text(', '
-              'and awarded it ${report.grantedPoints} '
-              'pub points (of a possible ${report.maxPoints}):'),
-        ],
-      ),
-    if (report != null) _reportNode(report),
-    if (toolEnvInfo != null) toolEnvInfo,
+      )
+    else
+      d.fragment([
+        d.p(
+          classes: ['analysis-info'],
+          children: [
+            d.text('We analyzed this package '),
+            if (card.panaReport?.timestamp != null)
+              d.xAgoTimestamp(card.panaReport!.timestamp!, datePrefix: 'on'),
+            d.text(', '
+                'and awarded it ${report!.grantedPoints} '
+                'pub points (of a possible ${report.maxPoints}):'),
+          ],
+        ),
+        _reportNode(report),
+        if (toolEnvInfo != null) toolEnvInfo,
+        d.p(
+          classes: ['analysis-info'],
+          children: [
+            d.text('Check the '),
+            d.a(
+              href: urls.pkgScoreLogTxtUrl(package,
+                  version: isLatestStable ? null : version),
+              text: 'analysis log',
+            ),
+            d.text(' for details.'),
+          ],
+        ),
+      ]),
   ]);
 }
 
@@ -114,7 +114,7 @@ d.Node _section(ReportSection section) {
                 classes: ['pkg-report-icon'],
                 image: d.Image(
                   src: _statusIconUrls[section.status]!,
-                  alt: 'icon indicating section status',
+                  alt: _statusIconAlts[section.status]!,
                   width: 18,
                   height: 18,
                 ),
@@ -176,6 +176,12 @@ final _statusIconUrls = {
       staticUrls.getAssetUrl('/static/img/report-missing-icon-red.svg'),
 };
 
+final _statusIconAlts = {
+  ReportStatus.passed: 'OK',
+  ReportStatus.partial: 'partial',
+  ReportStatus.failed: 'failed',
+};
+
 String _updatedSummary(String summary) {
   return summary.split('\n').map((line) {
     if (!line.startsWith('### ')) return line;
@@ -227,7 +233,7 @@ d.Node _toolEnvInfoNode(List<_ToolVersionInfo> values) {
   return d.p(
     classes: ['tool-env-info'],
     children: [
-      d.text('Analysed with '),
+      d.text('Analyzed with '),
       ...nodes,
       d.text('.'),
     ],
@@ -244,6 +250,13 @@ d.Node _likeKeyFigureNode(int? likeCount) {
 }
 
 d.Node _popularityKeyFigureNode(double? popularity) {
+  if (popularityStorage.isInvalid) {
+    return _keyFigureNode(
+      value: '--',
+      supplemental: '',
+      label: 'popularity',
+    );
+  }
   return _keyFigureNode(
     value: formatScore(popularity),
     supplemental: '%',

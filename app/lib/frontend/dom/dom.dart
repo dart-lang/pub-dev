@@ -4,10 +4,12 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:clock/clock.dart';
+import 'package:meta/meta.dart';
 
 import '../../shared/markdown.dart';
-import '../../shared/utils.dart' show formatXAgo, shortDateFormat;
+import '../../shared/utils.dart' show shortDateFormat;
 
 final _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);
 final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
@@ -101,15 +103,18 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
     if (datePrefix != null) datePrefix,
     shortDateFormat.format(timestamp),
   ].join(' ');
+  final text = formatXAgo(clock.now().difference(timestamp));
   return a(
     classes: ['-x-ago'],
     href: '',
     title: title,
     attributes: {
-      'aria-label': 'Switch between date and elapsed time.',
+      'aria-label': text,
       'aria-role': 'button',
+      'role': 'button',
+      'data-timestamp': timestamp.millisecondsSinceEpoch.toString(),
     },
-    text: formatXAgo(clock.now().difference(timestamp)),
+    text: text,
   );
 }
 
@@ -439,13 +444,33 @@ class Image {
   final String alt;
   final int? width;
   final int? height;
+  final String? role;
 
   Image({
     required this.src,
     required this.alt,
     required this.width,
     required this.height,
+    this.role,
   });
+
+  /// Decorative images don't add information to the content of a page. For example,
+  /// the information provided by the image might already be given using adjacent
+  /// text, or the image might be included to make the website more visually attractive.
+  /// In these cases, a `null` (empty) alt text should be provided (`alt=""`) so that
+  /// they can be ignored by assistive technologies, such as screen readers.
+  ///
+  /// Screen readers also allow the use of WAI-ARIA to hide elements by using
+  /// `role="presentation"`. However, currently, this feature is not as widely
+  /// supported as using a `null` `alt` attribute.
+  ///
+  /// https://www.w3.org/WAI/tutorials/images/decorative/
+  Image.decorative({
+    required this.src,
+    required this.width,
+    required this.height,
+  })  : alt = '',
+        role = 'presentation';
 }
 
 /// Creates an `<img>` Element using the default [DomContext].
@@ -469,6 +494,7 @@ Node img({
       if (image.height != null) 'height': image.height.toString(),
       if (title != null) 'title': title,
       if (lazy) 'loading': 'lazy',
+      if (image.role != null) 'role': image.role!,
       if (attributes != null) ...attributes,
     },
     children: children,
@@ -947,6 +973,9 @@ class _StringNodeList extends _StringNode {
     }
   }
 }
+
+@visibleForTesting
+bool isSelfClosing(String tag) => _StringElement._selfClosing.contains(tag);
 
 class _StringElement extends _StringNode {
   static const _selfClosing = <String>{

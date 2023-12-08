@@ -25,8 +25,12 @@ d.Node searchBannerNode({
         autocomplete: 'on',
         autofocus: autofocus,
         value: queryText,
+        attributes: {
+          'title': 'Search',
+          'aria-label': 'Search',
+        },
       ),
-      d.button(classes: ['icon'], ariaLabel: 'search'),
+      d.span(classes: ['icon']),
       if (showSearchFiltersButton)
         d.div(
           classes: [

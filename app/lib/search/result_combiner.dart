@@ -6,16 +6,16 @@ import 'dart:math' as math;
 
 import 'package:_pub_shared/search/tags.dart';
 
-import 'dart_sdk_mem_index.dart';
-import 'flutter_sdk_mem_index.dart';
+import 'mem_index.dart';
+import 'sdk_mem_index.dart';
 import 'search_service.dart';
 
 /// Combines the results from the primary package index and the optional Dart
 /// SDK index.
 class SearchResultCombiner {
-  final PackageIndex primaryIndex;
-  final DartSdkMemIndex dartSdkMemIndex;
-  final FlutterSdkMemIndex flutterSdkMemIndex;
+  final InMemoryPackageIndex primaryIndex;
+  final SdkMemIndex? dartSdkMemIndex;
+  final SdkMemIndex? flutterSdkMemIndex;
 
   SearchResultCombiner({
     required this.primaryIndex,
@@ -24,16 +24,17 @@ class SearchResultCombiner {
   });
 
   PackageSearchResult search(ServiceSearchQuery query) {
+    final primaryResult = primaryIndex.search(query);
     if (!query.includeSdkResults) {
-      return primaryIndex.search(query);
+      return primaryResult;
     }
 
-    final primaryResult = primaryIndex.search(query);
     final queryFlutterSdk = query.tagsPredicate.hasNoTagPrefix('sdk:') ||
         query.tagsPredicate.hasTag(SdkTag.sdkFlutter);
     final sdkLibraryHits = [
-      ...dartSdkMemIndex.search(query.query!, limit: 2),
-      if (queryFlutterSdk) ...flutterSdkMemIndex.search(query.query!, limit: 2),
+      ...?dartSdkMemIndex?.search(query.query!, limit: 2),
+      if (queryFlutterSdk)
+        ...?flutterSdkMemIndex?.search(query.query!, limit: 2),
     ];
     if (sdkLibraryHits.isNotEmpty) {
       // Do not display low SDK scores if all the first page package hits are more relevant.

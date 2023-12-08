@@ -13,8 +13,7 @@ final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 ///
 /// The like button in the header will not be displayed when [isLiked] is null.
 d.Node renderDetailHeader({
-  String? title,
-  d.Node? titleNode,
+  required d.Node titleNode,
   d.Image? image,
   int? packageLikes,
   bool? isLiked,
@@ -25,14 +24,8 @@ d.Node renderDetailHeader({
   /// Set true for more whitespace in the header.
   bool isLoose = false,
 }) {
-  if ((title == null && titleNode == null) ||
-      (title != null && titleNode != null)) {
-    throw ArgumentError(
-        'Exactly one of `title` and `titleNode` must be specified.');
-  }
-
   return detailHeaderNode(
-    titleNode: titleNode ?? d.text(title!),
+    titleNode: titleNode,
     metadataNode: metadataNode,
     tagsNode: tagsNode,
     image: image,

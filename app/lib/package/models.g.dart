@@ -97,17 +97,14 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       screenshots: (json['screenshots'] as List<dynamic>?)
           ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
           .toList(),
-      name: json['name'] as String?,
-      releases: json['releases'] == null
-          ? null
-          : LatestReleases.fromJson(json['releases'] as Map<String, dynamic>),
+      name: json['name'] as String,
+      releases:
+          LatestReleases.fromJson(json['releases'] as Map<String, dynamic>),
       ellipsizedDescription: json['ellipsizedDescription'] as String?,
-      created: json['created'] == null
-          ? null
-          : DateTime.parse(json['created'] as String),
+      created: DateTime.parse(json['created'] as String),
       publisherId: json['publisherId'] as String?,
       isPending: json['isPending'] as bool?,
-      likes: json['likes'] as int?,
+      likes: json['likes'] as int,
       grantedPubPoints: json['grantedPubPoints'] as int?,
       maxPubPoints: json['maxPubPoints'] as int?,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
@@ -120,10 +117,14 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
           .toList(),
       topics:
           (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      popularity: json['popularity'] as int,
     );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'name': instance.name,
+    'releases': instance.releases,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -131,13 +132,11 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
     }
   }
 
-  writeNotNull('name', instance.name);
-  writeNotNull('releases', instance.releases);
   writeNotNull('ellipsizedDescription', instance.ellipsizedDescription);
-  writeNotNull('created', instance.created?.toIso8601String());
+  val['created'] = instance.created.toIso8601String();
   writeNotNull('publisherId', instance.publisherId);
   val['isPending'] = instance.isPending;
-  writeNotNull('likes', instance.likes);
+  val['likes'] = instance.likes;
   writeNotNull('grantedPubPoints', instance.grantedPubPoints);
   writeNotNull('maxPubPoints', instance.maxPubPoints);
   val['tags'] = instance.tags;
@@ -146,5 +145,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('apiPages', instance.apiPages);
   writeNotNull('screenshots', instance.screenshots);
   writeNotNull('topics', instance.topics);
+  val['popularity'] = instance.popularity;
   return val;
 }

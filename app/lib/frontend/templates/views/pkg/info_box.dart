@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -34,26 +33,27 @@ d.Node packageInfoBoxNode({
   required List<InfoBoxLink> fundingLinks,
   required d.Node labeledScores,
 }) {
-  final package = data.package!;
-  final version = data.version!;
+  final package = data.package;
+  final version = data.version;
   d.Node? license;
-  if (data.versionInfo?.hasLicense ?? false) {
-    final licenses = data.scoreCard?.panaReport?.licenses ?? <License>[];
+  if (data.versionInfo.hasLicense) {
+    final licenses = data.scoreCard.panaReport?.licenses ?? <License>[];
     if (licenses.isEmpty) {
       licenses.add(License(path: 'LICENSE', spdxIdentifier: 'unknown'));
     }
     license = _licenseNode(
       licenses: licenses,
       licenseUrl: urls.pkgLicenseUrl(
-        data.package!.name!,
-        version: data.isLatestStable ? null : data.version!.version,
+        data.package.name!,
+        version: data.isLatestStable ? null : data.version.version,
       ),
+      isPending: data.toPackageView().isPending,
     );
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
   final topics = _topicstNode(version.pubspec?.topics);
 
-  final screenshots = data.scoreCard?.panaReport?.screenshots;
+  final screenshots = data.scoreCard.panaReport?.screenshots;
   String? thumbnailUrl;
   final screenshotUrls = <String>[];
   final screenshotDescriptions = <String>[];
@@ -84,8 +84,7 @@ d.Node packageInfoBoxNode({
       description: version.pubspec!.description,
       metaLinks: metaLinks,
     ),
-    if (topics != null && requestContext.experimentalFlags.showTopics)
-      _block('Topics', topics),
+    if (topics != null) _block('Topics', topics),
     if (docLinks.isNotEmpty)
       _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
     if (fundingLinks.isNotEmpty)
@@ -165,9 +164,12 @@ d.Node _linkAndBr(InfoBoxLink link) {
 d.Node? _licenseNode({
   required List<License> licenses,
   required String licenseUrl,
+  required bool isPending,
 }) {
   final paths = licenses.map((e) => e.path).toSet().toList();
-  final labels = licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
+  final labels = isPending
+      ? '(pending)'
+      : licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
   return d.fragment([
     d.img(
       classes: ['inline-icon-img'],

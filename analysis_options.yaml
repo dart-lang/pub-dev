@@ -1,11 +1,11 @@
-# https://dart.dev/guides/language/analysis-options
+# https://dart.dev/tools/analysis
 analyzer:
   exclude:
     - pkg/pub_integration/test_data/
   language:
     strict-casts: true
 
-# http://dart-lang.github.io/linter/lints/options/options.html
+# https://dart.dev/lints
 linter:
   rules:
   - always_declare_return_types
@@ -23,6 +23,7 @@ linter:
   - camel_case_types
   - cancel_subscriptions
   - close_sinks
+  - collection_methods_unrelated_type
   - comment_references
   - constant_identifier_names
   - control_flow_in_finally
@@ -33,10 +34,8 @@ linter:
   - empty_statements
   - hash_and_equals
   - implementation_imports
-  - iterable_contains_unrelated_type
   - library_names
   - library_prefixes
-  - list_remove_unrelated_type
   - literal_only_boolean_expressions
   - no_duplicate_case_values
   - non_constant_identifier_names

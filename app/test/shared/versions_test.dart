@@ -7,12 +7,13 @@ import 'dart:io';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/utils/flutter_archive.dart';
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'utils.dart';
+
 void main() {
-  test('runtime pattern', () {
+  scopedTest('runtime pattern', () {
     expect(runtimeVersionPattern.hasMatch(runtimeVersion), isTrue);
     expect(runtimeVersionPattern.hasMatch('2018.09.13'), isTrue);
     expect(runtimeVersionPattern.hasMatch('2018 09 13'), isFalse);
@@ -22,7 +23,7 @@ void main() {
     expect(runtimeVersionPattern.hasMatch('x.json'), isFalse);
   });
 
-  test('do not forget to update CHANGELOG.md', () async {
+  scopedTest('do not forget to update CHANGELOG.md', () async {
     final lines = await File('../CHANGELOG.md').readAsLines();
     final nextRelease = lines
         .skipWhile((line) => !line.startsWith('##'))
@@ -56,7 +57,8 @@ void main() {
     check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
   });
 
-  test('accepted runtime versions should be lexicographically ordered', () {
+  scopedTest('accepted runtime versions should be lexicographically ordered',
+      () {
     for (final version in acceptedRuntimeVersions) {
       expect(runtimeVersionPattern.hasMatch(version), isTrue);
     }
@@ -65,7 +67,7 @@ void main() {
     expect(acceptedRuntimeVersions, sorted);
   });
 
-  test('No more than 5 accepted runtimeVersions', () {
+  scopedTest('No more than 5 accepted runtimeVersions', () {
     expect(acceptedRuntimeVersions, hasLength(lessThan(6)));
   });
 
@@ -78,30 +80,12 @@ void main() {
     expect(ci.contains('sdk:$runtimeSdkVersion'), isTrue);
   });
 
-  test('Dart SDK versions should match Dockerfile.app', () async {
-    final dockerfileContent = await File('../Dockerfile.app').readAsString();
-    expect(
-        dockerfileContent,
-        contains(
-            'RUN /project/tool/setup-dart.sh /tool/stable $toolStableDartSdkVersion'));
-    expect(
-        dockerfileContent,
-        contains(
-            'RUN /project/tool/setup-dart.sh /tool/preview $toolPreviewDartSdkVersion'));
-  });
-
   test('Dart SDK versions should match Dockerfile.worker', () async {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
         dockerfileContent,
         contains(
             'RUN tool/setup-dart.sh /home/worker/dart $toolStableDartSdkVersion'));
-  });
-
-  test('Flutter SDK versions should match Dockerfile.app', () async {
-    final String docker = await File('../Dockerfile.app').readAsString();
-    expect(docker.contains('stable $toolStableFlutterSdkVersion'), isTrue);
-    expect(docker.contains('preview $toolPreviewFlutterSdkVersion'), isTrue);
   });
 
   test('Flutter SDK versions should match Dockerfile.worker', () async {
@@ -148,37 +132,35 @@ and do not format to also bump the runtimeVersion.''',
     tags: ['sanity'],
   );
 
-  test('dartdoc version should match pkg/pub_dartdoc', () async {
-    final yamlContent =
-        await File('../pkg/pub_dartdoc/pubspec.yaml').readAsString();
-    final pubspec = Pubspec.parse(yamlContent);
-    final dependency = pubspec.dependencies['dartdoc'] as HostedDependency;
-    expect(dependency.version.toString(), dartdocVersion);
+  test('dartdoc version should match pkg/pub_worker', () async {
+    final content =
+        await File('../pkg/pub_worker/lib/src/bin/pana_wrapper.dart')
+            .readAsString();
+    expect(content, contains("globalDartdocVersion: '$dartdocVersion'"));
   });
 
-  test('GC is not deleting currently accepted versions', () {
+  scopedTest('GC is not deleting currently accepted versions', () {
     for (final version in acceptedRuntimeVersions) {
       expect(shouldGCVersion(version), isFalse);
     }
   });
 
-  test('GC is returning correct values for known versions', () {
-    expect(shouldGCVersion('2000.01.01'), isTrue);
-    expect(shouldGCVersion('3000.01.01'), isFalse);
+  scopedTest('gcBeforeRuntimeVersion != runtimeVersion', () {
+    // gcBeforeRuntimeVersion must not be runtimeVersion
+    // It is okay that acceptedRuntimeVersions only contains the current
+    // runtimeVersion. This usually happens when we have breaking changes in
+    // the data versioned by runtimeVersion.
+    // BUT: gcBeforeRuntimeVersion MUST NOT BE EQUAL to runtimeVersion!
+    // Otherwise, we will essentially have the latest version deleting the
+    // runtimeVersion used by older versions. This will make it impossible to
+    // roll traffic backwards.
+    // Avoid this by temporarily hardcoding gcBeforeRuntimeVersion to not be
+    // the last version of acceptedRuntimeVersions.
+    expect(gcBeforeRuntimeVersion != runtimeVersion, isTrue);
   });
 
-  group('dartdoc serving', () {
-    test('old versions are no longer serving', () {
-      expect(shouldServeDartdoc(null), isFalse);
-      expect(shouldServeDartdoc('2017.1.1'), isFalse);
-    });
-
-    test('current version is serving', () {
-      expect(shouldServeDartdoc(runtimeVersion), isTrue);
-    });
-
-    test('next version is not serving', () {
-      expect(shouldServeDartdoc('2099.12.31'), isFalse);
-    });
+  scopedTest('GC is returning correct values for known versions', () {
+    expect(shouldGCVersion('2000.01.01'), isTrue);
+    expect(shouldGCVersion('3000.01.01'), isFalse);
   });
 }

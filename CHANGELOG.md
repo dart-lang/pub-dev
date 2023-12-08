@@ -2,6 +2,169 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20231206t130200-all`
+ * Bumped runtimeVersion to `2023.12.06`.
+ * Upgraded stable Dart analysis SDK to `3.2.2`.
+ * Upgraded stable Flutter analysis SDK to `3.16.2`.
+ * Upgraded preview Dart analysis SDK to `3.3.0-174.2.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.18.0-0.1.pre`.
+
+## `20231128t115900-all`
+ * Bumped runtimeVersion to `2023.11.28`.
+ * Upgraded stable Dart analysis SDK to `3.2.1`.
+ * Upgraded stable Flutter analysis SDK to `3.16.1`.
+ * Upgraded preview Dart analysis SDK to `3.3.0-166.0.dev`.
+ * Upgraded dartdoc to `8.0.0`.
+ * Note: Retrying HTTP failures on `SocketException`.
+
+## `20231121t102000-all`
+ * Bumped runtimeVersion to `2023.11.21`.
+ * Upgraded runtime Dart SDK to `3.2.0`.
+ * Upgraded pana to `0.21.43`.
+ * Upgraded dependencies.
+
+## `20231116t095000-all`
+ * Bumped runtimeVersion to `2023.11.16`.
+ * Upgraded stable Dart analysis SDK to `3.2.0`.
+ * Upgraded preview Dart analysis SDK to `3.3.0-120.0.dev`.
+ * Upgraded stable Flutter analysis SDK to `3.16.0`.
+ * Upgraded preview Flutter analysis SDK to `3.17.0-0.0.pre`.
+ * Upgraded pana to `0.21.42`.
+ * Note: Started running `dartdoc` from `pana`.
+
+## `20231115t090700-all`
+ * Hiding invalid popularity scores.
+
+## `20231109t095900-all`
+ * Resyncing all `SecurityAdvisory` entities to get `syncTime` fields backfilled.
+
+## `20231102t094900-all`
+ * Bumped runtimeVersion to `2023.11.02`.
+ * Upgraded stable Dart analysis SDK to `3.1.5`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-210.3.beta`.
+ * Upgraded stable Flutter analysis SDK to `3.13.9`.
+ * Upgraded preview Flutter analysis SDK to `3.16.0-0.3.pre`.
+ * Upgraded pana to `0.21.40`.
+
+## `20231019t115400-all`
+ * Moved search index building and seach GC jobs into `analyzer` instance.
+ * Increased memory on `analyzer` instances to 16G, running two of them.
+
+## `20231018t131100-all`
+ * Bumped runtimeVersion to `2023.10.18`.
+ * Upgraded pana to `0.21.39`.
+ * Upgraded dartdoc to `7.0.0`.
+ * Note: backfilling automated publishing field.
+
+## `20231012t082200-all`
+
+## `20231011t120800-all`
+ * Bumped runtimeVersion to `2023.10.10`.
+ * Upgraded stable Dart analysis SDK to `3.1.3`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-210.1.beta`.
+ * Upgraded stable Flutter analysis SDK to `3.13.6`.
+ * Upgraded pana to `0.21.38`.
+
+## `20230927t085100-all`
+ * Bumped runtimeVersion to `2023.09.26`.
+ * Upgraded stable Dart analysis SDK to `3.1.2`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-134.1.beta`.
+ * Upgraded stable Flutter analysis SDK to `3.13.5`.
+ * Upgraded preview Flutter analysis SDK to `3.15.0-15.2.pre`.
+ * Upgraded pana to `0.21.37`.
+ * Upgraded `package:tar` and other dependencies.
+ * Note: started to populate `PackageDocument.likeScore` and `popularityScore`.
+
+## `20230918t113400-all`
+ * Fix: search isolate renewal doesn't block ongoing traffic.
+
+## `20230914t133300-all`
+ * Bumped runtimeVersion to `2023.09.12`.
+ * Upgraded stable Dart analysis SDK to `3.1.1`.
+ * Upgraded stable Flutter analysis SDK to `3.13.3`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-42.2.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.14.0-0.2.pre`.
+ * Note: isolates do not automatically restart after they are closed with uncaught error.
+ * Note: no control isolate is used, first isolate is used as the HTTP-serving frontend.
+ * Note: `search` has now a separate index in an isolate that is renewed every 15 minutes.
+
+## `20230907t123500-all`
+ * Bumped runtimeVersion to `2023.09.05`.
+ * Upgraded dartdoc to `6.3.0`.
+ * Note: increased minimum instance count of `default` service to 32.
+
+## `20230904t124200-all`
+ * Note: Only a single frontend isolate will process HTTP requests.
+         Increased autoscaling of the default service.
+
+## `20230831t122900-all`
+ * Bumped runtimeVersion to `2023.08.29`.
+ * Upgraded runtime Dart SDK to `3.1.0`.
+ * Upgraded dependencies.
+ * Note: `DartdocRun`, `Job` and `ScoreCard` entities will be deleted in Datastore.
+ * Note: `dartdoc` backend no longer deletes entries from `Configuraiton.dartdocStorageBucketName`.
+         TODO: delete the bucket after this release becomes obsolete.
+
+## `20230822t112400-all`
+
+## `20230821t132100-all`
+
+## `20230818t145900-all`
+ * Bumped runtimeVersion to `2023.08.18`.
+
+## `20230817t142000-all`
+ * Bumped runtimeVersion to `2023.08.17`.
+ * Upgraded stable Dart analysis SDK to `3.1.0`.
+ * Upgraded stable Flutter analysis SDK to `3.13.0`.
+ * Upgraded preview Dart analysis SDK to `3.2.0-42.1.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.13.0`.
+ * Upgraded pana to `0.21.36`.
+ * Note: Upgraded `package:gcloud`.
+ * Note: `analyzer` and `dartdoc` processing is turned off.
+
+## `20230810t094700-all`
+ * Bumped runtimeVersion to `2023.08.08`.
+ * Upgraded stable Dart analysis SDK to `3.0.7`.
+ * Upgraded stable Flutter analysis SDK to `3.10.6`.
+ * Upgraded preview Dart analysis SDK to `3.1.0-262.3.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.13.0-0.3.pre`.
+
+## `20230804t105300-all`
+ * Bumped runtimeVersion to `2023.08.04`.
+
+## `20230727t102500-all`
+ * Bumped runtimeVersion to `2023.07.27`.
+ * Enabled sandboxing.
+
+## `20230725t162600-all`
+ * Bumped runtimeVersion to `2023.07.24`.
+ * Upgraded pana to `0.21.35`.
+ * Upgraded dependencies (incl. `appengine` and `markdown`).
+
+## `20230710t123000-all`
+ * Enable sandboxed output for sandboxed screenshots, dartdoc and ScoreCard.
+
+## `20230709t025700-all`
+ * Disable sandboxed output for sandboxed screenshots and dartdoc
+
+## `20230707t103900-all`
+ * Bumped runtimeVersion to `2023.07.06`.
+ * Removing all fallback runtimeVersions.
+ * Displaying sandboxed screenshots and dartdoc.
+
+## `20230623t075300-all`
+ * Bumped runtimeVersion to `2023.06.21`.
+ * Upgraded stable Dart analysis SDK to `3.0.5`.
+ * Upgraded stable Flutter analysis SDK to `3.10.5`.
+ * Upgraded preview Dart analysis SDK to `3.1.0-163.1.beta`.
+ * Upgraded preview Flutter analysis SDK to `3.12.0`.
+ * Upgraded pana to `0.21.33`.
+
+## `20230615t111100-all`
+ * Switch on task backend for output.
+
+## `20230613t121200-all`
  * Bumped runtimeVersion to `2023.06.12`.
  * Store sanitized dartdoc HTML as JSON files.
  * Switch to not use task backend for output.

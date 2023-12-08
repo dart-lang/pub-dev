@@ -21,9 +21,8 @@ final coreLibraryBadgeNode = packageBadgeNode(label: 'Core library');
 /// Renders the Flutter Favorite badge, used by package listing.
 final flutterFavoriteBadgeNode = packageBadgeNode(
   label: 'Flutter Favorite',
-  icon: d.Image(
+  icon: d.Image.decorative(
     src: staticUrls.flutterLogo32x32,
-    alt: 'Flutter logo',
     width: 13,
     height: 13,
   ),
@@ -40,7 +39,7 @@ d.Node nullSafeBadgeNode({String? title}) {
 /// Renders the Dart 3 compatible badge.
 final dart3CompatibleNode = packageBadgeNode(
   label: 'Dart 3 compatible',
-  title: 'Package is expected to be compatible with Dart 3.',
+  title: 'Package is compatible with Dart 3.',
 );
 
 /// Renders the Dart 3 incompatible badge.
@@ -167,7 +166,7 @@ d.Node tagsNodeFromPackageView({
     simpleTags.add(SimpleTag.pending());
   }
   if (simpleTags.isEmpty && badgeTags.isEmpty && discontinuedNode == null) {
-    final scorePageUrl = urls.pkgScoreUrl(package.name!, version: version);
+    final scorePageUrl = urls.pkgScoreUrl(package.name, version: version);
     if (package.tags.contains(PackageVersionTags.hasError)) {
       simpleTags.add(SimpleTag.analysisIssue(scorePageUrl: scorePageUrl));
     } else {
@@ -194,7 +193,7 @@ d.Node replacedByLink(String replacedBy) {
 /// Renders the labeled scores widget (the score values in a compact layout).
 d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
   return labeledScoresNode(
-    pkgScorePageUrl: urls.pkgScoreUrl(view.name!, version: version),
+    pkgScorePageUrl: urls.pkgScoreUrl(view.name, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
     popularity: view.popularity,

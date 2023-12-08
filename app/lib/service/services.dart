@@ -12,6 +12,9 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -30,7 +33,6 @@ import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/email_sender.dart';
 import '../frontend/handlers.dart';
-import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
 import '../package/screenshots/backend.dart';
@@ -40,9 +42,6 @@ import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
-import '../search/dart_sdk_mem_index.dart';
-import '../search/flutter_sdk_mem_index.dart';
-import '../search/mem_index.dart';
 import '../search/search_client.dart';
 import '../search/top_packages.dart';
 import '../search/updater.dart';
@@ -61,6 +60,7 @@ import '../task/cloudcompute/fakecloudcompute.dart';
 import '../task/cloudcompute/googlecloudcompute.dart';
 import '../tool/utils/http.dart';
 import 'announcement/backend.dart';
+import 'entrypoint/logging.dart';
 import 'secret/backend.dart';
 
 final _logger = Logger('pub.services');
@@ -76,11 +76,10 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     throw StateError('Already in withServices scope.');
   }
   return withAppEngineServices(() async {
+    if (envConfig.isRunningInAppengine) {
+      setupAppEngineLogging();
+    }
     return await fork(() async {
-      // retrying Datastore client
-      final origDbService = dbService;
-      registerDbService(RetryDatastoreDB(origDbService));
-
       // retrying auth client for storage service
       final authClient = await auth
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
@@ -116,7 +115,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       );
       registerCloudComputeClient(gceClient);
       registerScopeExitCallback(gceClient.close);
-      registertaskWorkerCloudCompute(createGoogleCloudCompute(
+      registerTaskWorkerCloudCompute(createGoogleCloudCompute(
         project: activeConfiguration.taskWorkerProject!,
         network: activeConfiguration.taskWorkerNetwork!,
         poolLabel:
@@ -139,9 +138,6 @@ Future<R> withFakeServices<R>({
   MemStorage? storage,
   FakeCloudCompute? cloudCompute,
 }) async {
-  if (Zone.current[_pubDevServicesInitializedKey] == true) {
-    return await fork(() async => await fn()) as R;
-  }
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
   }
@@ -150,7 +146,7 @@ Future<R> withFakeServices<R>({
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
-    registerDbService(RetryDatastoreDB(DatastoreDB(datastore!)));
+    registerDbService(DatastoreDB(datastore!));
     registerStorageService(storage!);
     IOServer? frontendServer;
     if (configuration == null) {
@@ -186,9 +182,10 @@ Future<R> withFakeServices<R>({
     registerUploadSigner(
         FakeUploadSignerService(configuration!.storageBaseUrl!));
 
-    registertaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
+    registerTaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 
     return await _withPubServices(() async {
+      await nameTracker.startTracking();
       await topPackages.start();
       await youtubeBackend.start();
       if (frontendServer != null) {
@@ -232,24 +229,20 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnnouncementBackend(AnnouncementBackend());
+    if (activeConfiguration.exportedApiBucketName != null) {
+      registerApiExporter(ApiExporter(
+          bucket: storageService
+              .bucket(activeConfiguration.exportedApiBucketName!)));
+    }
+    registerAsyncQueue(AsyncQueue());
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
-    registerDartdocBackend(
-      DartdocBackend(
-        dbService,
-        storageService.bucket(activeConfiguration.dartdocStorageBucketName!),
-      ),
-    );
-    registerDartSdkMemIndex(DartSdkMemIndex());
+    registerDartdocBackend(DartdocBackend());
     registerEmailBackend(EmailBackend(dbService));
-    registerFlutterSdkMemIndex(FlutterSdkMemIndex());
-    registerJobBackend(JobBackend(dbService));
     registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
-    registerPackageIndex(InMemoryPackageIndex(
-      popularityValueFn: (p) => popularityStorage.lookup(p),
-    ));
-    registerIndexUpdater(IndexUpdater(dbService, packageIndex));
+    registerPackageIndexHolder(PackageIndexHolder());
+    registerIndexUpdater(IndexUpdater(dbService));
     registerPopularityStorage(
       PopularityStorage(
           storageService.bucket(activeConfiguration.popularityDumpBucketName!)),
@@ -261,8 +254,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
     registerSecretBackend(SecretBackend(dbService));
-    registerSnapshotStorage(SnapshotStorage(
-        storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerImageStorage(ImageStorage(
         storageService.bucket(activeConfiguration.imageBucketName!)));
     registerTopPackages(TopPackages());
@@ -278,9 +269,9 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     ));
     registerTaskBackend(TaskBackend(
       dbService,
-      taskWorkerCloudCompute,
       storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));
+    registerSecurityAdvisoryBackend(SecurityAdvisoryBackend(dbService));
 
     await setupCache();
 
@@ -288,10 +279,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
-    registerScopeExitCallback(snapshotStorage.close);
-    registerScopeExitCallback(indexUpdater.close);
-    registerScopeExitCallback(dartSdkMemIndex.close);
-    registerScopeExitCallback(flutterSdkMemIndex.close);
     registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(scoreCardBackend.close);
     registerScopeExitCallback(searchClient.close);

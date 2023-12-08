@@ -6,34 +6,33 @@ environment:
   sdk: '^3.0.0'
 
 dependencies:
+  appengine: ^0.13.6
   json_annotation: ^4.3.0
   jsontool: ^1.1.0
-  pana: ^0.21.32
+  pana: ^0.21.43
+  lints: ^3.0.0 # required for pana
   meta: ^1.7.0
   api_builder:
     path: ../api_builder
   _pub_shared:
     path: ../_pub_shared
-  http: ^0.13.4
+  http: ^1.0.0
   http_parser: ^4.0.0
   retry: ^3.1.0
   logging: ^1.0.2
-  pub_dartdoc:
-    path: ../pub_dartdoc
   indexed_blob:
     path: ../indexed_blob
   clock: ^1.1.0
   html: ^0.15.0
-  pub_dartdoc_data:
-    path: ../pub_dartdoc_data
   pubspec_parse: ^1.2.1
-  tar: ^0.5.0
+  tar: ^1.0.0
   shelf: ^1.2.0
   shelf_router: ^1.1.2
   async: ^2.10.0
   collection: ^1.17.0
-  sanitize_html: ^2.0.0
+  sanitize_html: ^2.1.0
   stream_transform: ^2.0.0
+  stack_trace: ^1.11.1
 
 dev_dependencies:
   test: ^1.19.3
@@ -41,4 +40,3 @@ dev_dependencies:
   json_serializable: ^6.0.1
   shelf_router_generator: ^1.0.4
   args: ^2.3.1
-

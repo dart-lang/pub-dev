@@ -15,18 +15,20 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex();
-      await index.addPackage(PackageDocument(
-        package: 'angular',
-        version: '4.0.0',
-        description: compactDescription('Fast and productive web framework.'),
-      ));
-      await index.addPackage(PackageDocument(
-        package: 'angular_ui',
-        version: '0.6.5',
-        description: compactDescription('Port of Angular-UI to Dart.'),
-      ));
-      await index.markReady();
+      index = InMemoryPackageIndex(documents: [
+        PackageDocument(
+          package: 'angular',
+          version: '4.0.0',
+          description: compactDescription('Fast and productive web framework.'),
+          updated: DateTime(2020, 10, 1),
+        ),
+        PackageDocument(
+          package: 'angular_ui',
+          version: '0.6.5',
+          description: compactDescription('Port of Angular-UI to Dart.'),
+          updated: DateTime(2020, 9, 1),
+        ),
+      ]);
     });
 
     test('angular', () async {

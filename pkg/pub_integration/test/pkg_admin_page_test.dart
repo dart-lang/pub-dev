@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
-import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -49,6 +49,10 @@ void main() {
           await page.gotoOrigin('/packages/test_pkg/admin');
 
           await page.waitAndClick('#-pkg-admin-automated-github-enabled');
+          await page.waitForLayout([
+            '#-pkg-admin-automated-github-repository',
+            '#-pkg-admin-automated-github-tagpattern',
+          ]);
           await page.waitFocusAndType(
               '#-pkg-admin-automated-github-repository', 'dart-lang/pub-dev');
           await page.waitAndClick('#-pkg-admin-automated-button',

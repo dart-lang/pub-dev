@@ -23,11 +23,12 @@ import 'package:retry/retry.dart';
 final _log = Logger('pub_worker.process_payload');
 
 /// Gracefully shutdown and report versions as done without results, if
-/// processing takes more than 45 minutes.
-const _workerTimeout = Duration(minutes: 45);
+/// processing takes more than 55 minutes.
+const _workerTimeout = Duration(minutes: 55);
 
-/// Stop analysis if it takes more than 15 minutes.
-const _analysisTimeout = Duration(minutes: 15);
+/// Stop pana if it takes more than 50 minutes.
+/// This also includes pana running dartdoc.
+const _panaTimeout = Duration(minutes: 50);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
@@ -52,7 +53,7 @@ Future<void> analyze(Payload payload) async {
   await panaCacheDir.create(recursive: true);
 
   final workerDeadline = clock.now().add(_workerTimeout);
-  final client = Client();
+  final client = Client().withUserAgent(pubWorkerUserAgent);
   try {
     for (final p in payload.versions) {
       final api = PubApiClient(
@@ -125,43 +126,6 @@ Future<void> _analyzePackage(
     log.writeln('STARTED: ${clock.now().toUtc().toIso8601String()}');
     log.writeln(''); // empty-line before the next headline
 
-    // Run dartdoc
-    {
-      log.writeln('### Starting dartdoc');
-      final dartdocWrapper = await Isolate.resolvePackageUri(Uri.parse(
-        'package:pub_worker/src/bin/dartdoc_wrapper.dart',
-      ));
-      final proc = await Process.start(
-        Platform.resolvedExecutable,
-        [
-          dartdocWrapper!.toFilePath(),
-          outDir.path,
-          package,
-          version,
-        ],
-        workingDirectory: outDir.path,
-        includeParentEnvironment: true,
-        environment: {
-          'CI': 'true',
-          'PUB_HOSTED_URL': pubHostedUrl,
-          'PUB_CACHE': pubCache,
-        },
-      );
-      await proc.stdin.close();
-
-      await Future.wait<void>([
-        proc.stderr.forEach(log.add),
-        proc.stdout.forEach(log.add),
-        proc.exitOrTimeout(_analysisTimeout, () {
-          log.writeln('TIMEOUT: dartdoc sending SIGTERM/SIGKILL');
-        }),
-      ]).catchError((e) => const [/* ignore */]);
-      final exitCode = await proc.exitCode;
-
-      log.writeln('### Execution of dartdoc exited $exitCode');
-      log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
-    }
-
     // Run the analysis
     {
       log.writeln('### Starting pana');
@@ -190,7 +154,7 @@ Future<void> _analyzePackage(
       await Future.wait<void>([
         pana.stderr.forEach(log.add),
         pana.stdout.forEach(log.add),
-        pana.exitOrTimeout(_analysisTimeout, () {
+        pana.exitOrTimeout(_panaTimeout, () {
           log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
         }),
       ]).catchError((e) => const [/* ignore */]);

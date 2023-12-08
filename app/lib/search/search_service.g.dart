@@ -19,9 +19,11 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated'] as String),
       readme: json['readme'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      likeCount: json['likeCount'] as int? ?? 0,
-      grantedPoints: json['grantedPoints'] as int? ?? 0,
-      maxPoints: json['maxPoints'] as int? ?? 0,
+      likeCount: json['likeCount'] as int?,
+      likeScore: (json['likeScore'] as num?)?.toDouble(),
+      popularityScore: (json['popularityScore'] as num?)?.toDouble(),
+      grantedPoints: json['grantedPoints'] as int?,
+      maxPoints: json['maxPoints'] as int?,
       dependencies: (json['dependencies'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
@@ -36,20 +38,23 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       sourceUpdated: json['sourceUpdated'] == null
           ? null
           : DateTime.parse(json['sourceUpdated'] as String),
-    );
+    )..overallScore = (json['overallScore'] as num?)?.toDouble();
 
 Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
     <String, dynamic>{
       'package': instance.package,
       'version': instance.version,
       'description': instance.description,
-      'created': instance.created?.toIso8601String(),
-      'updated': instance.updated?.toIso8601String(),
+      'created': instance.created.toIso8601String(),
+      'updated': instance.updated.toIso8601String(),
       'readme': instance.readme,
       'tags': instance.tags,
       'likeCount': instance.likeCount,
+      'likeScore': instance.likeScore,
+      'popularityScore': instance.popularityScore,
       'grantedPoints': instance.grantedPoints,
       'maxPoints': instance.maxPoints,
+      'overallScore': instance.overallScore,
       'dependencies': instance.dependencies,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp.toIso8601String(),
