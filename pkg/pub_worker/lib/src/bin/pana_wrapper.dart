@@ -95,12 +95,26 @@ Future<void> main(List<String> args) async {
     pubspec.flutterSdkConstraint,
   );
 
+  // NOTE: This is a temporary workaround to use a different config directory for preview SDKs.
+  // TODO(https://github.com/dart-lang/pub-dev/issues/7270): Use per-SDK config directory.
+  final isPreviewSdk = flutterSdk?.version.isPreRelease ??
+      dartSdk?.version.isPreRelease ??
+      false;
+  final workerPreviewConfigDir = Directory('/home/worker/config/preview');
+  String? configDir;
+  if (isPreviewSdk && await workerPreviewConfigDir.exists()) {
+    configDir = workerPreviewConfigDir.path;
+  }
+
   final toolEnv = await ToolEnvironment.create(
     dartSdkDir: dartSdk?.path,
     flutterSdkDir: flutterSdk?.path,
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
-    environment: {'CI': 'true'},
+    environment: {
+      'CI': 'true',
+      if (configDir != null) 'XDG_CONFIG_HOME': configDir,
+    },
     useGlobalDartdoc: true,
     globalDartdocVersion: '8.0.0',
   );
