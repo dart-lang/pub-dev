@@ -33,4 +33,70 @@ void main() {
       ],
     );
   });
+
+  test('isValidTopicFormat', () {
+    expect(isValidTopicFormat('widget'), isTrue);
+    expect(isValidTopicFormat('abc'), isTrue);
+    expect(isValidTopicFormat('foo-bar'), isTrue);
+    expect(isValidTopicFormat('foo42'), isTrue);
+
+    expect(isValidTopicFormat('-widget'), isFalse);
+    expect(isValidTopicFormat('a'), isFalse);
+    expect(isValidTopicFormat('foo-'), isFalse);
+    expect(isValidTopicFormat('42bar'), isFalse);
+  });
+
+  test('validate doc/topics.yaml', () {
+    // First we ensure that topics are loaded, this validates the file format!
+    final topics = canonicalTopics;
+
+    // Check if there are any duplicate topics!
+    final duplicates = topics.duplicates();
+    if (duplicates.isNotEmpty) {
+      fail(
+        '"doc/topics.yaml" must not have duplicate entries, '
+        'found: ${duplicates.join(', ')}',
+      );
+    }
+
+    // Check if any canonical topics are aliases for other topics
+    for (final topic in topics.map((e) => e.topic)) {
+      if (topics.any((e) => e.aliases.contains(topic))) {
+        fail('The canonical topic "$topic" is also listed in "aliases"!');
+      }
+    }
+
+    // Check that each alias is only used once!
+    for (final alias in topics.expand((e) => e.aliases)) {
+      if (topics.where((e) => e.aliases.contains(alias)).length > 1) {
+        fail('The alias "$alias" is listed in "aliases" for two topics!');
+      }
+    }
+  });
+
+  test('duplicates', () {
+    expect([1, 2, 3, 4, 5, 1].duplicates(), contains(1));
+    expect([1, 2, 3, 4, 5].duplicates(), isEmpty);
+    expect([1, 2, 3, 4, 5, 5, 5].duplicates(), contains(5));
+    expect([1, 2, 1, 3, 4, 5, 5, 5].duplicates(), contains(5));
+    expect([5, 2, 1, 3, 4, 5, 5, 5].duplicates(), contains(5));
+  });
+}
+
+extension<T> on List<T> {
+  /// Return elements that appear more than once in this [List].
+  Set<T> duplicates() {
+    final duplicates = <T>{};
+    final N = length;
+    for (var i = 0; i < N; i++) {
+      final candidate = this[i];
+      for (var j = i + 1; j < N; j++) {
+        if (candidate == this[j]) {
+          duplicates.add(candidate);
+          break;
+        }
+      }
+    }
+    return duplicates;
+  }
 }
