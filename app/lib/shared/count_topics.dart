@@ -142,14 +142,4 @@ extension on YamlMap {
     }
     return value;
   }
-
-  Iterable<String> expectListOfString(String key) sync* {
-    for (final entry in expectList(key).nodes) {
-      if (entry.value case final String v) {
-        yield v;
-      } else {
-        throw SourceSpanFormatException('expected a string', entry.span);
-      }
-    }
-  }
 }
