@@ -5,7 +5,7 @@
 #   https://dart.dev/tools/pub/pubspec#topics
 #
 # The list of topics is free-form, and package authors are expected to make up
-# new topics as needed. Naturally, this will lead to duplicate and topics that
+# new topics as needed. Naturally, this will lead to duplicates and topics that
 # only differ in spelling. For example, one package might use the topic "widget"
 # while another package uses the topic "widgets".
 #
