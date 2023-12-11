@@ -100,39 +100,52 @@ void main() {
       final subs = logger.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final runner = IsolateRunner.fn(
-        logger: logger,
-        servicesWrapperFn: (fn) => fn(),
-        kind: 'test',
-        entryPoint: _main3,
+      final uncaughtErrors = [];
+      final zone = Zone.current.fork(
+        specification: ZoneSpecification(
+          handleUncaughtError: (self, parent, zone, e, st) {
+            uncaughtErrors.add(e);
+          },
+        ),
       );
-      await runner.start(1);
+      await zone.run(() async {
+        final runner = IsolateRunner.fn(
+          logger: logger,
+          servicesWrapperFn: (fn) => fn(),
+          kind: 'test',
+          entryPoint: _main3,
+        );
+        await runner.start(1);
 
-      await Future.delayed(Duration(seconds: 1));
-      expect(
-        messages,
-        [
-          'About to start test isolate #1 ...',
-          'test isolate #1 started.',
-          'ERROR from test isolate #1',
-          'About to close test isolate #1 ...',
-          'test isolate #1 closed.',
-        ],
-      );
-      // second isolate is not started
-      await Future.delayed(Duration(seconds: 7));
-      expect(
+        await Future.delayed(Duration(seconds: 1));
+        expect(
           messages,
-          isNot(containsAll([
-            'About to start test isolate #2 ...',
-            'test isolate #2 started.',
-            'ERROR from test isolate #2',
-            'About to close test isolate #2 ...',
-            'test isolate #2 closed.',
-          ])));
+          [
+            'About to start test isolate #1 ...',
+            'test isolate #1 started.',
+            'ERROR from test isolate #1',
+            'About to close test isolate #1 ...',
+            'test isolate #1 closed.',
+          ],
+        );
+        // second isolate is not started
+        await Future.delayed(Duration(seconds: 7));
+        expect(
+            messages,
+            isNot(containsAll([
+              'About to start test isolate #2 ...',
+              'test isolate #2 started.',
+              'ERROR from test isolate #2',
+              'About to close test isolate #2 ...',
+              'test isolate #2 closed.',
+            ])));
 
-      await runner.close();
+        await runner.close();
+      });
       await subs.cancel();
+      expect(uncaughtErrors, hasLength(1));
+      final ex = uncaughtErrors.single;
+      expect(ex.toString(), contains('test isolate #1 exited unexpectedly'));
     });
   });
 }

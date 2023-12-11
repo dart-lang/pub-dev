@@ -119,6 +119,9 @@ class IsolateRunner {
     _isolates.add(isolate);
     unawaited(isolate.done.then((_) async {
       _isolates.remove(isolate);
+      if (!_closing && !isolate.markedForRenew) {
+        throw Exception('$id exited unexpectedly.');
+      }
     }));
     if (entryPoint != null) {
       await isolate.spawnFn(
