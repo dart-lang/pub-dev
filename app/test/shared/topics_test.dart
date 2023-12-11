@@ -41,7 +41,7 @@ void main() {
     expect(isValidTopicFormat('foo42'), isTrue);
 
     expect(isValidTopicFormat('-widget'), isFalse);
-    expect(isValidTopicFormat('ab'), isFalse);
+    expect(isValidTopicFormat('a'), isFalse);
     expect(isValidTopicFormat('foo-'), isFalse);
     expect(isValidTopicFormat('42bar'), isFalse);
   });
