@@ -66,6 +66,7 @@ class FakeServerCommand extends Command {
     final watch = argResults!['watch'] == true;
 
     setupDebugEnvBasedLogging();
+    await updateLocalBuiltFilesIfNeeded();
 
     final state = LocalServerState();
     if (dataFile != null) {
@@ -136,7 +137,6 @@ class FakeServerCommand extends Command {
       return shelf.Response.notFound('Not Found.');
     }
 
-    await updateLocalBuiltFilesIfNeeded();
     await Future.wait(
       [
         storageServer.run(port: storagePort),

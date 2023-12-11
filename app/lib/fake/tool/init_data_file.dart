@@ -65,6 +65,7 @@ class FakeInitDataFileCommand extends Command {
     final profile = TestProfile.fromYaml(
       await File(argResults!['test-profile'] as String).readAsString(),
     );
+    await updateLocalBuiltFilesIfNeeded();
 
     final archiveCachePath = p.join(
       resolveAppDir(),
