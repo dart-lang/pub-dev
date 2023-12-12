@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/shared/env_config.dart';
+import 'package:retry/retry.dart';
 
 import '../account/agent.dart';
 import '../account/models.dart';
@@ -26,7 +28,6 @@ import '../tool/utils/http.dart';
 import 'configuration.dart';
 import 'datastore.dart';
 import 'email.dart' show looksLikeEmail;
-import 'env_config.dart';
 import 'storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
@@ -526,35 +527,13 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
     }
     if (!envConfig.isRunningLocally) {
-      final info =
-          await packageBackend.packageTarballinfo(pv.package, pv.version!);
-      if (info == null) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
-      }
-      final canonicalInfo = await storageService
-          .bucket(activeConfiguration.canonicalPackagesBucketName!)
-          // ignore: invalid_use_of_visible_for_testing_member
-          .tryInfo(tarballObjectName(pv.package, pv.version!));
-
-      if (canonicalInfo != null) {
-        if (!canonicalInfo.hasSameSignatureAs(info)) {
-          yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in old bucket.';
-        }
-
-        final publicInfo = await storageService
-            .bucket(activeConfiguration.publicPackagesBucketName!)
-            // ignore: invalid_use_of_visible_for_testing_member
-            .tryInfo(tarballObjectName(pv.package, pv.version!));
-        if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
-          yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
-        }
-      }
-
-      // Also issue a HTTP request.
-      final rs = await _httpClient.head(archiveDownloadUri);
-      if (rs.statusCode != 200) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
-      }
+      final tartballItems = await retry(
+        () async {
+          return await _checkTarballInBuckets(pv, archiveDownloadUri).toList();
+        },
+        maxAttempts: 2,
+      );
+      yield* Stream.fromIterable(tartballItems);
     }
 
     // TODO: remove null check after the backfill should have filled the property.
@@ -592,6 +571,39 @@ class IntegrityChecker {
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
       _logger.info('  .. $_versionChecked done (${pv.qualifiedVersionKey})');
+    }
+  }
+
+  Stream<String> _checkTarballInBuckets(
+      PackageVersion pv, Uri archiveDownloadUri) async* {
+    final info =
+        await packageBackend.packageTarballInfo(pv.package, pv.version!);
+    if (info == null) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
+    }
+    final canonicalInfo = await storageService
+        .bucket(activeConfiguration.canonicalPackagesBucketName!)
+        // ignore: invalid_use_of_visible_for_testing_member
+        .tryInfo(tarballObjectName(pv.package, pv.version!));
+
+    if (canonicalInfo != null) {
+      if (!canonicalInfo.hasSameSignatureAs(info)) {
+        yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in old bucket.';
+      }
+
+      final publicInfo = await storageService
+          .bucket(activeConfiguration.publicPackagesBucketName!)
+          // ignore: invalid_use_of_visible_for_testing_member
+          .tryInfo(tarballObjectName(pv.package, pv.version!));
+      if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
+        yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+      }
+    }
+
+    // Also issue a HTTP request.
+    final rs = await _httpClient.head(archiveDownloadUri);
+    if (rs.statusCode != 200) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
     }
   }
 
