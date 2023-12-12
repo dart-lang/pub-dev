@@ -43,7 +43,7 @@ d.Node searchBannerNode({
               image: d.Image(
                 src: staticUrls
                     .getAssetUrl('/static/img/search-filters-inactive.svg'),
-                alt: 'icon to toggle the display of search filters (inactive)',
+                alt: 'toggle the display of search filters (inactive)',
                 width: 42,
                 height: 42,
               ),
@@ -53,7 +53,7 @@ d.Node searchBannerNode({
               image: d.Image(
                 src: staticUrls
                     .getAssetUrl('/static/img/search-filters-active.svg'),
-                alt: 'icon to toggle the display of search filters (active)',
+                alt: 'toggle the display of search filters (active)',
                 width: 42,
                 height: 42,
               ),
