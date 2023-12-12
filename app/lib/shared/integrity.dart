@@ -527,13 +527,13 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
     }
     if (!envConfig.isRunningLocally) {
-      final tartballItems = await retry(
+      final tarballItems = await retry(
         () async {
           return await _checkTarballInBuckets(pv, archiveDownloadUri).toList();
         },
         maxAttempts: 2,
       );
-      yield* Stream.fromIterable(tartballItems);
+      yield* Stream.fromIterable(tarballItems);
     }
 
     // TODO: remove null check after the backfill should have filled the property.
