@@ -119,6 +119,8 @@ class IsolateRunner {
     _isolates.add(isolate);
     unawaited(isolate.done.then((_) async {
       _isolates.remove(isolate);
+      // The `done` callback may happen on schedule renewal, instance shutdown,
+      // or unexpected exits. We only need to propagate the issue on the later.
       if (!_closing && !isolate.markedForRenew) {
         throw Exception('$id exited unexpectedly.');
       }
