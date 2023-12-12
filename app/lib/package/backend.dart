@@ -1552,7 +1552,7 @@ class PackageBackend {
   }
 
   /// Gets the file info of a [package] in the given [version].
-  Future<ObjectInfo?> packageTarballinfo(String package, String version) async {
+  Future<ObjectInfo?> packageTarballInfo(String package, String version) async {
     return await _publicBucket.tryInfo(tarballObjectName(package, version));
   }
 
