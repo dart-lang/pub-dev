@@ -19,8 +19,15 @@
     white-space: nowrap;
 
     .sort-control-selected {
+      display: inline-block;
+      background: transparent;
       color: #1967d2;
+      font-size: 14px;
       font-weight: 400;
+      padding: 0;
+      text-align: left;
+      text-transform: uppercase;
+      white-space: nowrap;
 
       @media (max-width: $device-mobile-max-width) {
         display: none;
@@ -51,9 +58,12 @@
     z-index: $z-index-nav-mask;
 
     .sort-control-option {
+      display: block;
+      width: 100%;
       background: #ffffff;
       font-size: 14px;
-      padding: 8px 12px;
+      padding: 12px 12px;
+      text-align: left;
 
       &:hover {
         background: #fafafa;
@@ -65,7 +75,8 @@
     }
   }
 
-  &.hover {
+  &.hover,
+  &:focus-within {
     .sort-control-popup {
       display: block;
     }
