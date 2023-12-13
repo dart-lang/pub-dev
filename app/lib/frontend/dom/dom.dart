@@ -448,6 +448,8 @@ class Image {
 
   Image({
     required this.src,
+
+    /// Note: the `alt` text of elements should not include the element type (e.g. `icon`).
     required this.alt,
     required this.width,
     required this.height,

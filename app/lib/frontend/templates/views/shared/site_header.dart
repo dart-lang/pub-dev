@@ -237,7 +237,7 @@ d.Node _foldableMobileLinks(String label, Iterable<d.Node> children) {
             image: d.Image(
               src: staticUrls
                   .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
-              alt: 'icon to toggle folding of the section',
+              alt: 'toggle folding of the section',
               width: 13,
               height: 6,
             ),
