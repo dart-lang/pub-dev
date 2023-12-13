@@ -23,3 +23,8 @@ build/
 key.json
 
 node_modules/
+
+# test profile files are also not needed
+
+/app/dev-data-file.jsonl
+test-profile.yml

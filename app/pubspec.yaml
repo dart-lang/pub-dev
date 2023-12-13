@@ -55,7 +55,7 @@ dependencies:
   # 3rd-party packages with pinned versions
   mailer: '6.0.1'
   ulid: '2.0.0'
-  tar: '1.0.1'
+  tar: '1.0.3'
   api_builder:
     path: ../pkg/api_builder
 

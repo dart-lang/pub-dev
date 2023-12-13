@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/templates/views/pkg/one_click_install.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -67,6 +68,7 @@ d.Node packageInfoBoxNode({
     }
   }
   return d.fragment([
+    _oneClickInstall(package.name!),
     imageCarousel(),
     labeledScores,
     if (thumbnailUrl != null)
@@ -103,6 +105,10 @@ d.Node packageInfoBoxNode({
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(package.name!),
   ]);
+}
+
+d.Node _oneClickInstall(String packageName) {
+  return oneClickInstallNode(packageName: packageName);
 }
 
 d.Node _publisher(String? publisherId) {

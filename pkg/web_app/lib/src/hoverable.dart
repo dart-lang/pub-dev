@@ -10,6 +10,7 @@ import 'package:_pub_shared/format/x_ago_format.dart';
 void setupHoverable() {
   _setEventForHoverable();
   _setEventForPackageTitleCopyToClipboard();
+  _setEventForPackageInstallCopyToClipboard();
   _setEventForPreCodeCopyToClipboard();
   _updateXAgoLabels();
   _setEventForXAgo();
@@ -61,6 +62,21 @@ void _setEventForPackageTitleCopyToClipboard() {
   final root = document.querySelector('.pkg-page-title-copy');
   final icon = root?.querySelector('.pkg-page-title-copy-icon');
   final feedback = root?.querySelector('.pkg-page-title-copy-feedback');
+  if (root == null || icon == null || feedback == null) return;
+
+  final copyContent = icon.dataset['copy-content'];
+  if (copyContent == null || copyContent.isEmpty) return;
+
+  icon.onClick.listen((_) async {
+    _copyToClipboard(copyContent);
+    await _animateCopyFeedback(feedback);
+  });
+}
+
+void _setEventForPackageInstallCopyToClipboard() {
+  final root = document.querySelector('.pkg-page-install-copy');
+  final icon = root?.querySelector('.pkg-page-install-copy-icon');
+  final feedback = root?.querySelector('.pkg-page-install-copy-feedback');
   if (root == null || icon == null || feedback == null) return;
 
   final copyContent = icon.dataset['copy-content'];

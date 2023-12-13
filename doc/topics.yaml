@@ -1,0 +1,64 @@
+# Canonicalizing topics
+# =====================
+#
+# Packages published to pub.dev can define `topics` in `pubspec.yaml`, see;
+#   https://dart.dev/tools/pub/pubspec#topics
+#
+# The list of topics is free-form, and package authors are expected to make up
+# new topics as needed. Naturally, this will lead to duplicates and topics that
+# only differ in spelling. For example, one package might use the topic "widget"
+# while another package uses the topic "widgets".
+#
+# This file aims to mitigate duplicate topics by establishing _canonical topics_ 
+# with descriptions and a list of aliases.
+#
+# Aliases for a topic will be resolved when the `pubspec.yaml` is parsed.
+# Ensuring that a package tagged with the alias "widgets" will appear on pub.dev
+# as if it had been tagged with the canonical topic "widget".
+# Similarly, search queries will be normalized to canonical topics.
+#
+# Topic descriptions serve as documentation for next time an aliases is
+# proposed. Descriptions can also be used in tooltips or topic listings:
+#   https://pub.dev/topics
+#
+#
+# Canonical topic format
+# ----------------------
+#
+# Entries in the `topics` list in this document, must have the form:
+#
+# ```yaml
+# topics:
+# - topic: <canonical-topic>
+#   description: <description for use in tooltips, documentation, etc>
+#   aliases:
+#   - <aliases-topic>
+#   - ...
+# ```
+#
+#
+# Contributing
+# ------------
+#
+# You are welcome to submit pull-requests with additional aliases, canonical
+# topics and/or improved topic descriptions. 
+#
+# Please limit pull-requests to propose one topic per PR!
+#
+#
+# Editorial guidelines
+# --------------------
+#
+# The decision on whether or not to merge two similar topics can be difficult.
+# When in doubt we should error on the side of causion and avoid merging topics.
+# However, if mistakes are made these changes are reversible.
+# And we should not be afraid of accepting that sometimes a single topic can
+# have multiple meaning, even if this makes the topic hard to use.
+#
+# The editorial guidelines are intended to evolve as we gain more experience
+# merging/managing topics.
+topics:
+- topic: widget
+  description: Packages that contain Flutter widgets.
+  aliases:
+  - widgets

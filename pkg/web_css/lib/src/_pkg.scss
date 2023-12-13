@@ -49,7 +49,8 @@
   width: 100%;
   border-spacing: 0;
 
-  td, th {
+  td,
+  th {
     border-bottom: 1px solid #c8c8ca;
     padding: 8px 4px;
     text-align: left;
@@ -199,7 +200,7 @@
     min-width: 40px;
     max-width: 40px;
 
-    >.pkg-report-icon {
+    > .pkg-report-icon {
       width: 18px;
     }
   }
@@ -225,7 +226,7 @@
     }
 
     &.-is-yellow {
-      color: #FFA500;
+      color: #ffa500;
     }
 
     .foldable-icon {
@@ -233,7 +234,7 @@
       width: 12px;
 
       transform: rotate(180deg);
-      transition: transform .3s linear;
+      transition: transform 0.3s linear;
     }
   }
 
@@ -242,7 +243,6 @@
       transform: rotate(360deg);
     }
   }
-
 
   .pkg-report-content {
     padding-left: 40px;
@@ -278,14 +278,16 @@
   }
 }
 
-.pkg-page-title-copy {
+.pkg-page-title-copy,
+.pkg-page-install-copy {
   position: relative;
   display: inline-block;
   height: 20px;
   width: 20px;
   margin-left: 12px;
 
-  .pkg-page-title-copy-icon {
+  .pkg-page-title-copy-icon,
+  .pkg-page-install-copy-icon {
     display: block;
     width: 20px;
     height: 20px;
@@ -298,7 +300,8 @@
     }
   }
 
-  .pkg-page-title-copy-feedback {
+  .pkg-page-title-copy-feedback,
+  .pkg-page-install-copy-feedback {
     position: absolute;
     top: -12px;
     left: 32px;
@@ -312,7 +315,7 @@
     display: none;
     transition: opacity $copy-feedback-transition-opacity-delay;
 
-    >.code {
+    > .code {
       font-family: $font-family-google-sans-mono;
       display: block;
     }
@@ -325,6 +328,10 @@
       opacity: 0;
     }
   }
+}
+
+.pkg-page-install-copy {
+  top: 5px;
 }
 
 .tool-env-info {
@@ -346,7 +353,7 @@
         //
         // The scaling breaks down on smaller screens, keeping it for
         // desktop only.
-        font-size: 1.0vw;
+        font-size: 1vw;
       }
     }
   }
