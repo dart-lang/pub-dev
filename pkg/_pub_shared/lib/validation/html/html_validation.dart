@@ -53,7 +53,7 @@ void validateHtml(Node root) {
     if (alt != null) {
       if (alt.split(' ').contains('icon')) {
         throw AssertionError(
-            '"alt" attribute should not contain the type of the elemnt: ${elem.outerHtml}');
+            '"alt" attribute should not contain the type of the element: ${elem.outerHtml}');
       }
     }
   }
