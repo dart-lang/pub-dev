@@ -68,9 +68,9 @@ d.Node packageInfoBoxNode({
     }
   }
   return d.fragment([
-    _oneClickInstall(package.name!),
     imageCarousel(),
     labeledScores,
+    _oneClickInstall(package.name!),
     if (thumbnailUrl != null)
       d.div(classes: [
         'detail-screenshot-thumbnail'
