@@ -278,6 +278,38 @@
   }
 }
 
+.pkg-page-install-wrapper {
+  h3.title {
+    font-size: 16px;
+  }
+  .pkg-page-install {
+    background: $color-grey-bg;
+    border-radius: 5px;
+    padding: 10px 5px;
+    display: flex;
+    align-items: center;
+
+    .pkg-page-install-code {
+      font-size: 13px;
+      pre {
+        background: inherit;
+        line-height: inherit;
+        padding: 0px;
+        overflow-x: inherit;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: #d14; 
+      }
+    }
+
+    &:hover {
+      .pkg-page-install-copy-icon {
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
 .pkg-page-title-copy,
 .pkg-page-install-copy {
   position: relative;
@@ -328,10 +360,6 @@
       opacity: 0;
     }
   }
-}
-
-.pkg-page-install-copy {
-  top: 5px;
 }
 
 .tool-env-info {
