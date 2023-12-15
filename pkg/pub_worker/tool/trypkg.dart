@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_worker/payload.dart';
+import 'package:pub_worker/src/testing/docker_utils.dart';
 import 'package:pub_worker/src/testing/server.dart';
 
 final _argParser = ArgParser()
@@ -42,44 +43,27 @@ void main(List<String> args) async {
   final server = PubWorkerTestServer([], fallbackPubHostedUrl: pubHostedUrl);
 
   await server.start();
+  final payload = Payload(
+    package: package,
+    pubHostedUrl: '${server.baseUrl}',
+    versions: [
+      VersionTokenPair(
+        version: version,
+        token: 'secret-token',
+      ),
+    ],
+  );
 
   final Process worker;
   if (argResults['docker'] == true) {
-    print('Building worker docker image');
-    final buildProcess = await Process.start(
-      'docker',
-      ['build', '.', '--tag=pub_worker', '--file=Dockerfile.worker'],
-      workingDirectory: Platform.script.resolve('../../..').path,
-      mode: ProcessStartMode.inheritStdio,
-    );
-    final buildExitCode = await buildProcess.exitCode;
-    if (buildExitCode != 0) {
-      print('Building docker image failed (exit code $buildExitCode)');
+    try {
+      print('Building worker docker image');
+      await buildDockerImage();
+    } catch (e) {
+      print('Building worker docker image failed: $e');
       exit(-1);
     }
-    worker = await Process.start(
-      'docker',
-      [
-        'run',
-        '-it',
-        '--network=host',
-        '--entrypoint=dart',
-        '--rm',
-        'pub_worker',
-        'bin/pub_worker.dart',
-        json.encode(Payload(
-          package: package,
-          pubHostedUrl: '${server.baseUrl}',
-          versions: [
-            VersionTokenPair(
-              version: version,
-              token: 'secret-token',
-            ),
-          ],
-        )),
-      ],
-      mode: ProcessStartMode.inheritStdio,
-    );
+    worker = await startDockerAnalysis(payload);
   } else {
     worker = await Process.start(
       Platform.resolvedExecutable,
@@ -87,16 +71,7 @@ void main(List<String> args) async {
         'run',
         if (argResults['observe'] == true) '--observe',
         'pub_worker',
-        json.encode(Payload(
-          package: package,
-          pubHostedUrl: '${server.baseUrl}',
-          versions: [
-            VersionTokenPair(
-              version: version,
-              token: 'secret-token',
-            ),
-          ],
-        )),
+        json.encode(payload),
       ],
       mode: ProcessStartMode.inheritStdio,
     );
