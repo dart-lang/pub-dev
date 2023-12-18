@@ -212,8 +212,10 @@ bool _isInsideContent(Element e, Element content) {
 /// called to revert its original state.
 Function _disableFocusability(Element e) {
   final isLink = e.tagName.toLowerCase() == 'a';
+  final hasTabindex = e.hasAttribute('tabindex');
   final attributesToSet = <String, String>{
-    if (isLink) 'tabindex': '-1' else 'disabled': 'disabled',
+    if (isLink || hasTabindex) 'tabindex': '-1',
+    if (!isLink) 'disabled': 'disabled',
     'aria-hidden': 'true',
   };
   final attributesToRestore =
