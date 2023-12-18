@@ -64,7 +64,7 @@ bool shouldGCVersion(String version) =>
 final String runtimeSdkVersion = '3.2.0';
 final String toolStableDartSdkVersion = '3.2.3';
 final String toolStableFlutterSdkVersion = '3.16.4';
-final String toolPreviewDartSdkVersion = '3.3.0-174.3.beta';
+final String toolPreviewDartSdkVersion = '3.3.0-174.2.beta';
 final String toolPreviewFlutterSdkVersion = '3.18.0-0.2.pre';
 
 final semanticToolStableDartSdkVersion =

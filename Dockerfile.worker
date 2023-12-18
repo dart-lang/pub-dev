@@ -24,7 +24,7 @@ RUN mkdir -p /home/worker/config/preview
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
 RUN tool/setup-dart.sh /home/worker/dart 3.2.3
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
-RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-dart.sh /home/worker/dart 3.3.0-174.3.beta
+RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-dart.sh /home/worker/dart 3.3.0-174.2.beta
 RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
