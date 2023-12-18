@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2023.12.18`.
  * Upgraded stable Flutter analysis SDK to `3.16.4`.
  * Upgraded preview Flutter analysis SDK to `3.18.0-0.2.pre`.
+ * Upgraded pana to `0.21.45`.
 
 ## `20231212t114900-all`
  * Bumped runtimeVersion to `2023.12.08`.
