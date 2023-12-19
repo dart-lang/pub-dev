@@ -60,8 +60,8 @@ d.Node collectionsIcon() {
       staticUrls.getAssetUrl('/static/img/collections_white_24dp.svg');
   return d.img(
       classes: ['collections-icon'],
-      image: d.Image(
-          height: 30, width: 30, alt: 'image', src: collectionsIconWhite));
+      image:
+          d.Image.decorative(height: 30, width: 30, src: collectionsIconWhite));
 }
 
 d.Node screenshotThumbnailNode({
@@ -77,8 +77,10 @@ d.Node screenshotThumbnailNode({
     'data-ga-click-event': 'screenshot-thumbnail-click',
   }, children: [
     d.img(
-        classes: ['thumbnail-image'],
-        image: d.Image(
-            alt: 'screenshot', width: null, height: null, src: thumbnailUrl)),
+      classes: ['thumbnail-image'],
+      image: d.Image(
+          alt: 'screenshot', width: null, height: null, src: thumbnailUrl),
+      title: 'View screenshots',
+    ),
   ]);
 }
