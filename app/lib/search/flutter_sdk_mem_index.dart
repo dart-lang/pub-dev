@@ -33,8 +33,8 @@ const _allowedLibraries = <String>{
 };
 
 const _flutterApiPageDirWeights = <String, double>{
-  'cupertino/CupertinoIcons': 0.7,
-  'material/Icons': 0.7,
+  'cupertino/CupertinoIcons': 0.25,
+  'material/Icons': 0.25,
 };
 
 final _logger = Logger('search.flutter_sdk_mem_index');

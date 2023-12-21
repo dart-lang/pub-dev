@@ -117,7 +117,10 @@ class SdkMemIndex {
               },
             );
 
-      hits.add(_Hit(library, weightedResults));
+      final hit = _Hit(library, weightedResults);
+      if (hit.score > 0.25) {
+        hits.add(hit);
+      }
     }
     if (hits.isEmpty) return <SdkLibraryHit>[];
 
