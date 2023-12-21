@@ -17,6 +17,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/package/export_api_to_bucket.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
@@ -1047,8 +1048,6 @@ class PackageBackend {
     final outgoingEmail = emailBackend.prepareEntity(email);
 
     Package? package;
-    String? prevLatestStableVersion;
-    String? prevLatestPrereleaseVersion;
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -1058,8 +1057,6 @@ class PackageBackend {
       final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey!]));
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
-      prevLatestStableVersion = package?.latestVersion;
-      prevLatestPrereleaseVersion = package?.latestPrereleaseVersion;
 
       // If the version already exists, we fail.
       if (version != null) {
@@ -1144,13 +1141,8 @@ class PackageBackend {
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
     // automatically.
-    asyncQueue.addAsyncFn(() => _postUploadTasks(
-          package,
-          newVersion,
-          outgoingEmail,
-          prevLatestStableVersion: prevLatestStableVersion,
-          prevLatestPrereleaseVersion: prevLatestPrereleaseVersion,
-        ));
+    asyncQueue
+        .addAsyncFn(() => _postUploadTasks(package, newVersion, outgoingEmail));
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return pv;
@@ -1163,14 +1155,15 @@ class PackageBackend {
   Future<void> _postUploadTasks(
     Package? package,
     PackageVersion newVersion,
-    OutgoingEmail outgoingEmail, {
-    String? prevLatestStableVersion,
-    String? prevLatestPrereleaseVersion,
-  }) async {
+    OutgoingEmail outgoingEmail,
+  ) async {
     try {
       await Future.wait([
         emailBackend.trySendOutgoingEmail(outgoingEmail),
         taskBackend.trackPackage(newVersion.package, updateDependants: true),
+        if (apiExporter != null)
+          apiExporter!.updateAfterPackageUpload(
+              newVersion.package, newVersion.version!),
       ]);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
