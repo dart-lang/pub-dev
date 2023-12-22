@@ -156,6 +156,22 @@ void validateHtml(Node root) {
           'Element has the same `title` and `aria-label` attribute, keep the `title`: ${elem.outerHtml}');
     }
   }
+
+  // "role"="<role>" attributes should be on interactive components
+  final allowedForRole = {'a', 'form'};
+  for (final elem in querySelectorAll('[role]')) {
+    final tag = elem.localName!;
+    final role = elem.attributes['role'];
+    // image elements may have presentation role
+    if (tag == 'img' && role == 'presentation') continue;
+    // interactive elements
+    if (elem.attributes.containsKey('tabindex')) continue;
+    if (allowedForRole.contains(tag)) continue;
+    // material components
+    if (tag == 'th' && role == 'columnheader') continue;
+    throw AssertionError(
+        '<$tag> tag should not have role attribute, found: ${elem.outerHtml}');
+  }
 }
 
 /// "Google Search result usually points to the canonical page, unless one of
