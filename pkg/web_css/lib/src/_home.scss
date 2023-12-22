@@ -68,6 +68,11 @@
     margin-bottom: 0;
   }
 
+  a {
+    // To improve contrast, links have the same color as .home-block-title
+    color: #254a76;
+  }
+
   .home-block-context-info {
     font-size: 18px;
     margin-top: 0;
@@ -76,11 +81,6 @@
   &.home-block-ff,
   &.home-block-pow {
     background: #f5f5f7;
-
-    a {
-      // To improve contrast, links have the same color as .home-block-title
-      color: #254a76;
-    }
   }
 
   .home-block-image {
