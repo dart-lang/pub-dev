@@ -44,6 +44,14 @@ Future<bool> modalWindow({
   /// dialog is kept open (e.g. the user may update the form).
   FutureOr<bool> Function()? onExecute,
 }) async {
+  final focusableElements =
+      document.body!.querySelectorAll(_focusableSelectors.join(', '));
+  final restoreFocusabilityFns = <Function>[];
+  for (final e in focusableElements) {
+    if (!_isInsideContent(e, content)) {
+      restoreFocusabilityFns.add(_disableFocusability(e));
+    }
+  }
   final c = Completer<bool>();
   final root = _buildDialog(
     titleText: titleText,
@@ -65,6 +73,9 @@ Future<bool> modalWindow({
     dialog.listen('MDCDialog:closed', (e) => c.complete(false));
     await c.future;
   } finally {
+    for (final fn in restoreFocusabilityFns) {
+      fn();
+    }
     dialog.destroy();
     root.remove();
     // TODO: Investigate if this is a bug in the JS library or in `package:mdc_web`
@@ -164,4 +175,62 @@ String? materialDropdownSelected(Element? elem) {
   if (elem == null) return null;
   final item = elem.querySelector('.mdc-list-item--selected');
   return item?.dataset['value'];
+}
+
+/// These selectors provide the elements that are focusable through tab or
+/// keyboard navigation.
+const _focusableSelectors = <String>[
+  'a',
+  'audio',
+  'button',
+  'canvas',
+  'details',
+  'iframe',
+  'input',
+  'select',
+  'summary',
+  'textarea',
+  'video',
+  '[accesskey]',
+  '[contenteditable]',
+  '[tabindex]',
+];
+
+bool _isInsideContent(Element e, Element content) {
+  // check if [e] is under [content].
+  Element? p = e;
+  while (p != null) {
+    if (p == content) {
+      return true;
+    }
+    p = p.parent;
+  }
+  return false;
+}
+
+/// Update [e] to disable focusability and return a [Function] that can be
+/// called to revert its original state.
+Function _disableFocusability(Element e) {
+  final isLink = e.tagName.toLowerCase() == 'a';
+  final hasTabindex = e.hasAttribute('tabindex');
+  final attributesToSet = <String, String>{
+    if (isLink || hasTabindex) 'tabindex': '-1',
+    if (!isLink) 'disabled': 'disabled',
+    'aria-hidden': 'true',
+  };
+  final attributesToRestore =
+      attributesToSet.map((key, _) => MapEntry(key, e.getAttribute(key)));
+  for (final a in attributesToSet.entries) {
+    e.setAttribute(a.key, a.value);
+  }
+  return () {
+    for (final a in attributesToRestore.entries) {
+      final value = a.value;
+      if (value == null) {
+        e.removeAttribute(a.key);
+      } else {
+        e.setAttribute(a.key, value);
+      }
+    }
+  };
 }
