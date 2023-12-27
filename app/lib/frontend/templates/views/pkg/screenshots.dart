@@ -81,6 +81,9 @@ d.Node screenshotThumbnailNode({
       image: d.Image(
           alt: 'screenshot', width: null, height: null, src: thumbnailUrl),
       title: 'View screenshots',
+      attributes: {
+        'tabindex': '0',
+      },
     ),
   ]);
 }
