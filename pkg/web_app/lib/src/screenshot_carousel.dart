@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:web_app/src/_dom_helper.dart';
+
 void setupScreenshotCarousel() {
   _setEventForScreenshot();
 }
@@ -30,6 +32,7 @@ void _setEventForScreenshot() {
   }
 
   Element? focusedTriggerSourceElement;
+  Function? restoreFocusabilityFn;
   List<String> images = [];
   List<String> descriptions = [];
 
@@ -69,6 +72,12 @@ void _setEventForScreenshot() {
   int screenshotIndex = 0;
   for (final thumbnail in thumbnails) {
     void setup() {
+      restoreFocusabilityFn = disableAllFocusability(
+        allowedComponents: [
+          prev,
+          next,
+        ],
+      );
       focusedTriggerSourceElement = thumbnail;
       showElement(carousel);
       document.body!.classes.remove('overflow-auto');
@@ -103,16 +112,41 @@ void _setEventForScreenshot() {
     descriptions.clear();
     focusedTriggerSourceElement?.focus();
     focusedTriggerSourceElement = null;
+    if (restoreFocusabilityFn != null) {
+      restoreFocusabilityFn!();
+    }
+  }
+
+  void gotoPrev() {
+    showImage(--screenshotIndex);
+    prev.focus();
+  }
+
+  void gotoNext() {
+    showImage(++screenshotIndex);
+    next.focus();
   }
 
   prev.onClick.listen((event) {
     event.stopPropagation();
-    showImage(--screenshotIndex);
+    gotoPrev();
+  });
+  prev.onKeyDown.listen((event) {
+    if (event.key == 'Enter') {
+      event.stopPropagation();
+      gotoPrev();
+    }
   });
 
   next.onClick.listen((event) {
     event.stopPropagation();
-    showImage(++screenshotIndex);
+    gotoNext();
+  });
+  next.onKeyDown.listen((event) {
+    if (event.key == 'Enter') {
+      event.stopPropagation();
+      gotoNext();
+    }
   });
 
   imageElement.onClick.listen((event) => event.stopPropagation());
@@ -134,13 +168,13 @@ void _setEventForScreenshot() {
     if (event.key == 'ArrowLeft') {
       if (screenshotIndex > 0) {
         event.stopPropagation();
-        showImage(--screenshotIndex);
+        gotoPrev();
       }
     }
     if (event.key == 'ArrowRight') {
       if (screenshotIndex < images.length - 1) {
         event.stopPropagation();
-        showImage(++screenshotIndex);
+        gotoNext();
       }
     }
   });
