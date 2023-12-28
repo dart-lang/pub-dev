@@ -85,7 +85,11 @@ void main() {
     expect(
         dockerfileContent,
         contains(
-            'RUN tool/setup-dart.sh /home/worker/dart $toolStableDartSdkVersion'));
+            'RUN tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'));
+    expect(
+        dockerfileContent,
+        contains(
+            'tool/setup-dart.sh /home/worker/dart/preview $toolPreviewDartSdkVersion'));
   });
 
   test('Flutter SDK versions should match Dockerfile.worker', () async {
@@ -93,7 +97,11 @@ void main() {
     expect(
         dockerfileContent,
         contains(
-            'RUN tool/setup-flutter.sh /home/worker/flutter $toolStableFlutterSdkVersion'));
+            'RUN tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
+    expect(
+        dockerfileContent,
+        contains(
+            'tool/setup-flutter.sh /home/worker/flutter/preview $toolPreviewFlutterSdkVersion'));
   });
 
   test('analyzer version should match resolved pana version', () async {
