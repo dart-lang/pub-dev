@@ -14,10 +14,10 @@ then
   exit 1
 fi
 
-mkdir -p "$1"
-cd "$1"
-git clone -b "$2" --single-branch https://github.com/flutter/flutter.git flutter
+# Download and extract Flutter SDK into the target directory.
+git clone -b "$2" --single-branch https://github.com/flutter/flutter.git "$1"
 
 # Downloads the Dart SDK and disables analytics tracking – which we always want.
 # This will add 400 MB.
-./flutter/bin/flutter --no-version-check config --no-analytics
+cd "$1"
+./bin/flutter --no-version-check config --no-analytics

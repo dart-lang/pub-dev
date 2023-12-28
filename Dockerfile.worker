@@ -22,16 +22,12 @@ WORKDIR /home/worker/pub-dev
 RUN mkdir -p /home/worker/config/preview
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN tool/setup-dart.sh /home/worker/dart 3.2.3
-RUN mv /home/worker/dart/dart-sdk /home/worker/dart/stable
-RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-dart.sh /home/worker/dart 3.3.0-174.2.beta
-RUN mv /home/worker/dart/dart-sdk /home/worker/dart/preview
+RUN tool/setup-dart.sh /home/worker/dart/stable 3.2.3
+RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-dart.sh /home/worker/dart/preview 3.3.0-174.2.beta
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN tool/setup-flutter.sh /home/worker/flutter 3.16.4
-RUN mv /home/worker/flutter/flutter /home/worker/flutter/stable
-RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-flutter.sh /home/worker/flutter 3.18.0-0.2.pre
-RUN mv /home/worker/flutter/flutter /home/worker/flutter/preview
+RUN tool/setup-flutter.sh /home/worker/flutter/stable 3.16.4
+RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-flutter.sh /home/worker/flutter/preview 3.18.0-0.2.pre
 
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin
