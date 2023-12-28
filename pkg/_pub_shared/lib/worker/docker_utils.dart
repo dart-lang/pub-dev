@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:pub_worker/payload.dart';
+import 'package:_pub_shared/data/task_payload.dart';
 
 final _ciEnv = Platform.environment['CI']?.toLowerCase();
 final _isRunningOnCI = _ciEnv == 'true' || _ciEnv == '1';
