@@ -46,7 +46,6 @@ d.Node siteHeaderNode({
               autocomplete: 'on',
               attributes: {
                 'title': 'Search',
-                'aria-label': 'Search',
               },
             ),
           ),

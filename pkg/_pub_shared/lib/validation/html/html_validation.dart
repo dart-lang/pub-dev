@@ -129,10 +129,12 @@ void validateHtml(Node root) {
     }
   }
 
-  // Lighthouse flags buttons that don't have text content or an `aria-label` property.
+  // Lighthouse flags buttons that don't have text content or an `aria-label`/`title` property.
   final buttons = querySelectorAll('button');
   for (final elem in buttons) {
-    final text = elem.attributes['aria-label']?.trim() ?? elem.text.trim();
+    final text = elem.attributes['aria-label']?.trim() ??
+        elem.attributes['title']?.trim() ??
+        elem.text.trim();
     if (text.isEmpty) {
       // Exempt buttons in dartdoc output:
       // TODO: remove after dartdoc content is updated.
@@ -142,6 +144,16 @@ void validateHtml(Node root) {
       }
       throw AssertionError(
           'button tag text content or aria-label must not be empty, found: ${elem.outerHtml}');
+    }
+  }
+
+  // No need for `aria-label` if it has the same content as `title`.
+  for (final elem in querySelectorAll('[aria-label]')) {
+    final ariaLabel = elem.attributes['aria-label']!.trim();
+    final title = elem.attributes['title']?.trim();
+    if (title != null && title == ariaLabel) {
+      throw AssertionError(
+          'Element has the same `title` and `aria-label` attribute, keep the `title`: ${elem.outerHtml}');
     }
   }
 }

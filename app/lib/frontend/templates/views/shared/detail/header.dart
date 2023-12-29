@@ -107,10 +107,10 @@ d.Node detailHeaderNode({
                                 width: 18,
                                 height: 18,
                               ),
+                              title: isLiked
+                                  ? 'Unlike this package'
+                                  : 'Like this package',
                               attributes: {
-                                'aria-label': isLiked
-                                    ? 'Unlike this package'
-                                    : 'Like this package',
                                 'data-ga-click-event': 'toggle-like',
                                 'aria-pressed': isLiked ? 'true' : 'false',
                               },
