@@ -104,7 +104,7 @@
     <div class="_banner-bg">
       <div class="container">
         <form class="search-bar banner-item" action="/packages">
-          <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus" title="Search"/>
+          <input class="input" name="q" placeholder="Search packages" autocomplete="on" value="publisher:example.com" title="Search"/>
           <span class="icon"></span>
         </form>
       </div>
@@ -143,6 +143,9 @@
                 <ul class="detail-tabs-header">
                   <li class="detail-tab tab-link detail-tab-packages-title">
                     <a href="/publishers/example.com/packages" role="button">Packages</a>
+                  </li>
+                  <li class="detail-tab tab-link detail-tab-unlisted-packages-title">
+                    <a href="/publishers/example.com/unlisted-packages" role="button">Unlisted packages</a>
                   </li>
                   <li class="detail-tab tab-button detail-tab-admin-title -active -private">Admin</li>
                   <li class="detail-tab tab-link detail-tab-activity-log-title -private">
