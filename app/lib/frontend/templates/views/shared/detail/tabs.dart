@@ -19,7 +19,6 @@ d.Node detailTabsNode({
           children: tabs.map(
             (t) => d.li(
               classes: t.titleClasses,
-              attributes: {'role': 'button'},
               child: t.titleNode,
             ),
           ),

@@ -95,8 +95,13 @@ class Tab {
         if (isPrivate) '-private',
       ];
 
-  d.Node get titleNode =>
-      href == null ? d.text(title) : d.a(href: href, text: title);
+  d.Node get titleNode => href == null
+      ? d.text(title)
+      : d.a(
+          href: href,
+          text: title,
+          attributes: {'role': 'button'},
+        );
 
   bool get hasContent => contentNode != null;
 
