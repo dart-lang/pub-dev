@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/task_payload.dart';
+import 'package:_pub_shared/worker/docker_utils.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_worker/payload.dart';
-import 'package:pub_worker/src/testing/docker_utils.dart';
 import 'package:pub_worker/src/testing/server.dart';
 
 final _argParser = ArgParser()

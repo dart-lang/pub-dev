@@ -5,10 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/task_payload.dart';
+import 'package:_pub_shared/worker/docker_utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:pana/pana.dart';
-import 'package:pub_worker/payload.dart';
-import 'package:pub_worker/src/testing/docker_utils.dart';
 import 'package:pub_worker/src/testing/server.dart';
 import 'package:test/test.dart';
 
