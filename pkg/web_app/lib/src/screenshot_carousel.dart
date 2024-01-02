@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:web_app/src/_dom_helper.dart';
+
 void setupScreenshotCarousel() {
   _setEventForScreenshot();
 }
@@ -29,6 +31,8 @@ void _setEventForScreenshot() {
     imageElement.className = 'carousel-image';
   }
 
+  Element? focusedTriggerSourceElement;
+  Function? restoreFocusabilityFn;
   List<String> images = [];
   List<String> descriptions = [];
 
@@ -40,8 +44,7 @@ void _setEventForScreenshot() {
     element.style.display = 'flex';
   }
 
-  void showImage(int index, UIEvent event) {
-    event.stopPropagation();
+  void showImage(int index) {
     hideElement(description);
     hideElement(imageElement!);
     imageElement.src = images[index];
@@ -60,7 +63,7 @@ void _setEventForScreenshot() {
       showElement(next);
     }
 
-    imageElement.onLoad.listen((event) {
+    imageElement.onLoad.listen((_) {
       showElement(imageElement!);
       showElement(description);
     });
@@ -68,19 +71,36 @@ void _setEventForScreenshot() {
 
   int screenshotIndex = 0;
   for (final thumbnail in thumbnails) {
-    thumbnail.parent!.onClick.listen((event) {
+    void setup() {
+      restoreFocusabilityFn = disableAllFocusability(
+        allowedComponents: [
+          prev,
+          next,
+        ],
+      );
+      focusedTriggerSourceElement = thumbnail;
       showElement(carousel);
       document.body!.classes.remove('overflow-auto');
       document.body!.classes.add('overflow-hidden');
       images = thumbnail.dataset['thumbnail']!.split(',');
       final raw = jsonDecode(thumbnail.dataset['thumbnail-descriptions-json']!);
       descriptions = (raw as List).cast<String>();
-      showImage(screenshotIndex, event);
+      showImage(screenshotIndex);
+    }
+
+    thumbnail.parent!.onClick.listen((event) {
+      event.stopPropagation();
+      setup();
+    });
+    thumbnail.onKeyDown.listen((event) {
+      if (event.key == 'Enter') {
+        event.stopPropagation();
+        setup();
+      }
     });
   }
 
-  void closeCarousel(UIEvent event) {
-    event.stopPropagation;
+  void closeCarousel() {
     hideElement(carousel);
     hideElement(next);
     hideElement(prev);
@@ -88,15 +108,53 @@ void _setEventForScreenshot() {
     document.body!.classes.remove('overflow-hidden');
     document.body!.classes.add('overflow-auto');
     screenshotIndex = 0;
+    images.clear();
+    descriptions.clear();
+    focusedTriggerSourceElement?.focus();
+    focusedTriggerSourceElement = null;
+    if (restoreFocusabilityFn != null) {
+      restoreFocusabilityFn!();
+    }
   }
 
-  prev.onClick.listen((event) => showImage(--screenshotIndex, event));
+  void gotoPrev() {
+    showImage(--screenshotIndex);
+    prev.focus();
+  }
 
-  next.onClick.listen((event) => showImage(++screenshotIndex, event));
+  void gotoNext() {
+    showImage(++screenshotIndex);
+    next.focus();
+  }
+
+  prev.onClick.listen((event) {
+    event.stopPropagation();
+    gotoPrev();
+  });
+  prev.onKeyDown.listen((event) {
+    if (event.key == 'Enter') {
+      event.stopPropagation();
+      gotoPrev();
+    }
+  });
+
+  next.onClick.listen((event) {
+    event.stopPropagation();
+    gotoNext();
+  });
+  next.onKeyDown.listen((event) {
+    if (event.key == 'Enter') {
+      event.stopPropagation();
+      gotoNext();
+    }
+  });
 
   imageElement.onClick.listen((event) => event.stopPropagation());
 
-  carousel.onClick.listen((event) => closeCarousel(event));
+  carousel.onClick.listen((event) {
+    event.stopPropagation();
+    closeCarousel();
+  });
 
   document.onKeyDown.listen((event) {
     if (carousel.style.display == 'none') {
@@ -104,16 +162,19 @@ void _setEventForScreenshot() {
     }
 
     if (event.key == 'Escape') {
-      closeCarousel(event);
+      event.stopPropagation;
+      closeCarousel();
     }
     if (event.key == 'ArrowLeft') {
       if (screenshotIndex > 0) {
-        showImage(--screenshotIndex, event);
+        event.stopPropagation();
+        gotoPrev();
       }
     }
     if (event.key == 'ArrowRight') {
       if (screenshotIndex < images.length - 1) {
-        showImage(++screenshotIndex, event);
+        event.stopPropagation();
+        gotoNext();
       }
     }
   });

@@ -44,14 +44,8 @@ Future<bool> modalWindow({
   /// dialog is kept open (e.g. the user may update the form).
   FutureOr<bool> Function()? onExecute,
 }) async {
-  final focusableElements =
-      document.body!.querySelectorAll(_focusableSelectors.join(', '));
-  final restoreFocusabilityFns = <Function>[];
-  for (final e in focusableElements) {
-    if (!_isInsideContent(e, content)) {
-      restoreFocusabilityFns.add(_disableFocusability(e));
-    }
-  }
+  final restoreFocusabilityFn =
+      disableAllFocusability(allowedComponents: [content]);
   final c = Completer<bool>();
   final root = _buildDialog(
     titleText: titleText,
@@ -73,9 +67,7 @@ Future<bool> modalWindow({
     dialog.listen('MDCDialog:closed', (e) => c.complete(false));
     await c.future;
   } finally {
-    for (final fn in restoreFocusabilityFns) {
-      fn();
-    }
+    restoreFocusabilityFn();
     dialog.destroy();
     root.remove();
     // TODO: Investigate if this is a bug in the JS library or in `package:mdc_web`
@@ -206,6 +198,28 @@ bool _isInsideContent(Element e, Element content) {
     p = p.parent;
   }
   return false;
+}
+
+/// Disables all focusable elements, except for the elements inside
+/// [allowedComponents]. Returns a [Function] that will restore the
+/// original focusability state of the disabled elements.
+Function disableAllFocusability({
+  required List<Element> allowedComponents,
+}) {
+  final focusableElements =
+      document.body!.querySelectorAll(_focusableSelectors.join(', '));
+  final restoreFocusabilityFns = <Function>[];
+  for (final e in focusableElements) {
+    if (allowedComponents.any((content) => _isInsideContent(e, content))) {
+      continue;
+    }
+    restoreFocusabilityFns.add(_disableFocusability(e));
+  }
+  return () {
+    for (final fn in restoreFocusabilityFns) {
+      fn();
+    }
+  };
 }
 
 /// Update [e] to disable focusability and return a [Function] that can be

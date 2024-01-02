@@ -27,6 +27,7 @@ d.Node imageCarousel() {
       attributes: {
         'title': 'Next',
         'data-ga-click-event': 'screenshot-carousel-next-click',
+        'tabindex': '0',
       });
 
   final prev = material.floatingActionButton(
@@ -43,6 +44,7 @@ d.Node imageCarousel() {
       attributes: {
         'title': 'Previous',
         'data-ga-click-event': 'screenshot-carousel-prev-click',
+        'tabindex': '0',
       });
 
   final description =
@@ -81,6 +83,9 @@ d.Node screenshotThumbnailNode({
       image: d.Image(
           alt: 'screenshot', width: null, height: null, src: thumbnailUrl),
       title: 'View screenshots',
+      attributes: {
+        'tabindex': '0',
+      },
     ),
   ]);
 }
