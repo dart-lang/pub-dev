@@ -5,6 +5,7 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/data/publisher_api.dart' as api;
 import 'package:_pub_shared/search/search_form.dart' show SearchForm;
+import 'package:_pub_shared/search/tags.dart';
 
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
@@ -137,6 +138,7 @@ String renderPublisherAdminPage({
 }) {
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
+    _unlistedPackagesLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'admin',
       title: 'Admin',
@@ -165,6 +167,8 @@ String renderPublisherAdminPage({
     ),
     canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
     noIndex: true,
+    searchForm: SearchForm()
+        .toggleRequiredTag(PackageTags.publisherTag(publisher.publisherId)),
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
@@ -182,6 +186,7 @@ String renderPublisherActivityLogPage({
   );
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
+    _unlistedPackagesLinkTab(publisher.publisherId),
     _adminLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'activity-log',
@@ -206,6 +211,8 @@ String renderPublisherActivityLogPage({
     ),
     canonicalUrl: urls.publisherActivityLogUrl(publisher.publisherId),
     noIndex: true,
+    searchForm: SearchForm()
+        .toggleRequiredTag(PackageTags.publisherTag(publisher.publisherId)),
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
