@@ -32,6 +32,7 @@ d.Node landingPageNode({
         viewAllUrl:
             SearchForm(query: PackageTags.isFlutterFavorite).toSearchLink(),
         viewAllEvent: 'landing-flutter-favorites-view-all',
+        viewAllTitle: 'Search Flutter Favorites packages',
       ),
     if (_isNotEmptyList(mostPopularPackages))
       _block(
@@ -47,6 +48,7 @@ d.Node landingPageNode({
         content: miniListNode('most-popular', mostPopularPackages!),
         viewAllUrl: urls.listingByPopularity(),
         viewAllEvent: 'landing-most-popular-view-all',
+        viewAllTitle: 'Search popular packages',
       ),
     if (_isNotEmptyList(topFlutterPackages))
       _block(
@@ -63,6 +65,7 @@ d.Node landingPageNode({
         content: miniListNode('top-flutter', topFlutterPackages!),
         viewAllUrl: SearchForm(query: SdkTag.sdkFlutter).toSearchLink(),
         viewAllEvent: 'landing-top-flutter-view-all',
+        viewAllTitle: 'Search Flutter packages',
       ),
     if (_isNotEmptyList(topDartPackages))
       _block(
@@ -78,6 +81,7 @@ d.Node landingPageNode({
         content: miniListNode('top-dart', topDartPackages!),
         viewAllUrl: SearchForm(query: SdkTag.sdkDart).toSearchLink(),
         viewAllEvent: 'landing-top-dart-view-all',
+        viewAllTitle: 'Search Dart packages',
       ),
     if (_isNotEmptyList(topPoWVideos))
       _block(
@@ -90,6 +94,7 @@ d.Node landingPageNode({
             'https://www.youtube.com/playlist?list=PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK',
         viewAllLabel: 'View playlist',
         viewAllEvent: 'package-of-the-week-playlist',
+        viewAllTitle: 'Visit the YouTube playlist',
       ),
   ]);
 }
@@ -106,6 +111,7 @@ d.Node _block({
   required String viewAllUrl,
   required String viewAllEvent,
   String viewAllLabel = 'View all',
+  required String viewAllTitle,
 }) {
   final isExternalUrl = !viewAllUrl.startsWith('/');
   return d.div(
@@ -132,6 +138,7 @@ d.Node _block({
               target: isExternalUrl ? '_blank' : null,
               rel: isExternalUrl ? 'noopener nofollow' : 'nofollow',
               text: viewAllLabel,
+              title: viewAllTitle,
               attributes: {'data-ga-click-event': viewAllEvent},
             ),
           ),
