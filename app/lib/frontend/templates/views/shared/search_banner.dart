@@ -27,7 +27,6 @@ d.Node searchBannerNode({
         value: queryText,
         attributes: {
           'title': 'Search',
-          'aria-label': 'Search',
         },
       ),
       d.span(classes: ['icon']),
