@@ -29,7 +29,6 @@ void _setEventForFoldable() {
         return;
       }
 
-      num scrollDiff = 0;
       if (scrollContainer != null) {
         // Wait one animation frame before measurements.
         await window.animationFrame;
@@ -50,18 +49,12 @@ void _setEventForFoldable() {
         final screenLimit = scrollContainerHeight - buttonHeight;
 
         /// Scroll the smaller amount of the two.
-        scrollDiff = max(0, min(screenLimit, outsideViewDiff));
+        final scrollDiff = max(0, min(screenLimit, outsideViewDiff));
 
-        /// Do not scroll if the difference is small, otherwise scroll in small
-        /// steps synchronized to the animation frames.
+        /// Do not scroll if the difference is small.
         if (scrollDiff > 8) {
           final originalScrollTop = scrollContainer.scrollTop;
-          final maxSteps = 20;
-          for (var i = 1; i <= maxSteps; i++) {
-            if (i > 1) await window.animationFrame;
-            final nextPos = originalScrollTop + (scrollDiff * i / maxSteps);
-            scrollContainer.scrollTo(0, nextPos);
-          }
+          scrollContainer.scrollTo(0, originalScrollTop + scrollDiff);
         }
       }
     }
