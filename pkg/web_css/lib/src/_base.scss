@@ -380,8 +380,6 @@ pre {
 .foldable {
   .foldable-content {
     display: none;
-    overflow: hidden;
-    transition: max-height 0.6s ease;
   }
 
   &.-active {
