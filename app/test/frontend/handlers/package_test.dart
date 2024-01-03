@@ -18,8 +18,9 @@ void main() {
         await issueGet('/packages/oxygen'),
         present: [
           'oxygen 1.2.0',
-          '<a href="/packages/oxygen">1.2.0</a>',
-          '<a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>',
+          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+          RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
         ],
         absent: [
           'data-name="-admin-tab-"',
@@ -50,8 +51,9 @@ void main() {
         await issueGet('/packages/oxygen/versions'),
         present: [
           'oxygen 1.2.0',
-          '<a href="/packages/oxygen">1.2.0</a>',
-          '<a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>',
+          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+          RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
         ],
       );
     });
@@ -69,8 +71,9 @@ void main() {
         await issueGet('/packages/oxygen/versions/1.0.0'),
         present: [
           'oxygen 1.0.0',
-          '<a href="/packages/oxygen">1.2.0</a>',
-          '<a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>',
+          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+          RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
         ],
       );
     });
@@ -81,8 +84,9 @@ void main() {
         await issueGet('/packages/oxygen/versions/2.0.0%2Ddev'),
         present: [
           'oxygen 2.0.0-dev',
-          '<a href="/packages/oxygen">1.2.0</a>',
-          '<a href="/packages/oxygen/versions/2.0.0-dev">2.0.0-dev</a>',
+          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+          RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
         ],
       );
     });
