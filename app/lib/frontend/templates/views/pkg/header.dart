@@ -54,6 +54,7 @@ List<d.Node> _releases(String package, LatestReleases releases) {
       child: d.a(
         href: urls.pkgPageUrl(package),
         text: releases.stable.version,
+        title: 'View the latest version of $package',
       ),
     ),
     if (releases.showPreview)
