@@ -1162,8 +1162,8 @@ class PackageBackend {
         emailBackend.trySendOutgoingEmail(outgoingEmail),
         taskBackend.trackPackage(newVersion.package, updateDependants: true),
         if (apiExporter != null)
-          apiExporter!.updateAfterPackageUpload(
-              newVersion.package, newVersion.version!),
+          apiExporter!
+              .updatePackageVersion(newVersion.package, newVersion.version!),
       ]);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;

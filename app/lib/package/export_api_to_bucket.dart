@@ -178,8 +178,8 @@ class ApiExporter {
     await pool.close();
   }
 
-  /// Updates the API files after a package has been successfully uploaded.
-  Future<void> updateAfterPackageUpload(String package, String version) async {
+  /// Updates the API files after a version has changed (e.g. new version was uploaded).
+  Future<void> updatePackageVersion(String package, String version) async {
     await _uploadPackageToBucket(package);
   }
 
