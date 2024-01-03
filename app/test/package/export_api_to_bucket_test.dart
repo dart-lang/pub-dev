@@ -8,11 +8,14 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
+import '../shared/test_models.dart';
 import '../shared/test_services.dart';
+import 'backend_test_utils.dart';
 
 void main() {
   group('export API to bucket', () {
@@ -71,5 +74,25 @@ void main() {
         );
       },
     );
+
+    testWithProfile('new upload', fn: () async {
+      await apiExporter!.fullPkgScanAndUpload();
+
+      final bucket =
+          storageService.bucket(activeConfiguration.exportedApiBucketName!);
+      final originalBytes =
+          await bucket.readAsBytes('current/api/packages/oxygen');
+
+      final pubspecContent = generatePubspecYaml('oxygen', '9.0.0');
+      final message = await createPubApiClient(authToken: adminClientToken)
+          .uploadPackageBytes(
+              await packageArchiveBytes(pubspecContent: pubspecContent));
+      expect(message.success.message, contains('Successfully uploaded'));
+
+      await Future.delayed(Duration(seconds: 1));
+      final updatedBytes =
+          await bucket.readAsBytes('current/api/packages/oxygen');
+      expect(originalBytes.length, lessThan(updatedBytes.length));
+    });
   });
 }
