@@ -59,7 +59,7 @@ void main() {
       await tempDir.delete(recursive: true);
     });
 
-    test(
+    scopedTest(
       'run dartdoc',
       () async {
         final pr = await toolEnv.dartdoc(pkgDir, docDir, usesFlutter: false);
