@@ -92,6 +92,11 @@ extension DartDocPageRender on DartDocPage {
             rel: 'stylesheet',
             type: 'text/css',
             href: staticUrls.dartdocGithubCss),
+        if (activeConfiguration.isStaging)
+          d.link(
+              rel: 'stylesheet',
+              type: 'text/css',
+              href: staticUrls.getAssetUrl('/static/css/staging-ribbon.css')),
         d.link(
           rel: 'stylesheet',
           href:
