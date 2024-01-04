@@ -33,8 +33,9 @@ blockRobots: true
 productionHosts:
 - dartlang-pub-dev.appspot.com
 - '{{GAE_SERVICE}}-dot-dartlang-pub-dev.appspot.com'
-primaryApiUri: https://dartlang-pub-dev.appspot.com
-primarySiteUri: https://{{GAE_VERSION}}-dot-dartlang-pub-dev.appspot.com
+- staging.pub.dev
+primaryApiUri: https://staging.pub.dev
+primarySiteUri: https://staging.pub.dev
 admins:
 - oauthUserId: '111042304059633250784'
   email: istvan.soos@gmail.com
