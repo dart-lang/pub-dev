@@ -453,6 +453,7 @@ class Configuration {
 
   late final isProduction = projectId == 'dartlang-pub';
   late final isNotProduction = !isProduction;
+  late final isStaging = projectId == 'dartlang-pub-dev';
 }
 
 /// Data structure to describe an admin user.

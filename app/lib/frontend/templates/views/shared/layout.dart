@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/env_config.dart';
+
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
@@ -157,8 +160,11 @@ d.Node pageLayoutNode({
           classes: [
             ...?bodyClasses,
             'light-theme',
+            if (activeConfiguration.isStaging) 'staging-banner',
           ],
           children: [
+            if (activeConfiguration.isStaging)
+              d.div(classes: ['staging-ribbon'], text: 'staging'),
             // <!-- Google Tag Manager (noscript) -->
             d.element(
               'noscript',

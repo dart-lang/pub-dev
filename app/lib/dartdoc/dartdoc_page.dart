@@ -7,6 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/shared/configuration.dart';
 
 import '../shared/urls.dart';
 
@@ -263,12 +264,16 @@ extension DartDocPageRender on DartDocPage {
 
   d.Node _renderBody(DartDocPageOptions options) {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
-    return d.element('body', attributes: {
+    return d.element('body', classes: [
+      'light-theme',
+      if (activeConfiguration.isStaging) 'staging-banner',
+    ], attributes: {
       'data-base-href':
           baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
       'data-using-base-href': usingBaseHref ?? 'false',
-      'class': 'light-theme',
     }, children: [
+      if (activeConfiguration.isStaging)
+        d.div(classes: ['staging-ribbon'], text: 'staging'),
       d.element('noscript',
           child: d.element('iframe', attributes: {
             'src': 'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
