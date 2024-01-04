@@ -2,6 +2,7 @@
 // to reduce the number of HTTP requests.
 @use '../../../third_party/highlight/github.css';
 @use '../../../third_party/css/github-markdown.css';
+@use '../../../static/css/staging-ribbon.css';
 
 // Local styles and rules.
 @import 'src/_variables';

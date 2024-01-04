@@ -1,0 +1,21 @@
+body.staging-banner {
+  border: 4px solid red;
+}
+
+body.staging-banner .staging-ribbon {
+  position: fixed;
+  top: 35px;
+  right: -35px;
+  width: 170px;
+  height: 30px;
+  padding: 4px;
+  transform: rotate(45deg);
+  background: red;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  z-index: 100000;
+  opacity: 0.8;
+  pointer-events: none;
+}
