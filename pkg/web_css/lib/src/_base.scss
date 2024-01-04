@@ -206,6 +206,7 @@ pre {
     opacity: 0.15;
     transition: opacity 0.5s;
 
+    &:focus,
     &:hover {
       opacity: 1;
     }

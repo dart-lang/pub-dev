@@ -66,10 +66,11 @@ void _setEventForPackageTitleCopyToClipboard() {
   final copyContent = icon.dataset['copy-content'];
   if (copyContent == null || copyContent.isEmpty) return;
 
-  icon.onClick.listen((_) async {
-    _copyToClipboard(copyContent);
-    await _animateCopyFeedback(feedback);
-  });
+  _setupCopyAndFeedbackButton(
+    copy: icon,
+    feedback: feedback,
+    textFn: () => copyContent,
+  );
 }
 
 Future<void> _animateCopyFeedback(Element feedback) async {
@@ -112,11 +113,35 @@ void _setEventForPreCodeCopyToClipboard() {
       ..text = 'copied to clipboard';
     container.append(feedback);
 
-    button.onClick.listen((_) async {
-      final text = pre.dataset['textToCopy']?.trim() ?? pre.text!.trim();
-      _copyToClipboard(text);
-      await _animateCopyFeedback(feedback);
-    });
+    _setupCopyAndFeedbackButton(
+      copy: button,
+      feedback: feedback,
+      textFn: () => pre.dataset['textToCopy']?.trim() ?? pre.text!.trim(),
+    );
+  });
+}
+
+void _setupCopyAndFeedbackButton({
+  required Element copy,
+  required Element feedback,
+  required String Function() textFn,
+}) {
+  copy.attributes['tabindex'] = '0';
+
+  Future<void> doCopy() async {
+    final text = textFn();
+    _copyToClipboard(text);
+    await _animateCopyFeedback(feedback);
+    // return focus to the icon
+    copy.focus();
+  }
+
+  copy.onClick.listen((_) => doCopy());
+  copy.onKeyDown.listen((event) async {
+    if (event.key == 'Enter') {
+      event.preventDefault();
+      await doCopy();
+    }
   });
 }
 
