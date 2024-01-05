@@ -9,6 +9,7 @@ import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
 import 'package:pub_dev/admin/actions/secret.dart';
 import 'package:pub_dev/admin/actions/tool_execute.dart';
 import 'package:pub_dev/admin/actions/tool_list.dart';
+import 'package:pub_dev/admin/actions/uploader_count_report.dart';
 
 import '../../shared/exceptions.dart';
 import 'task_bump_priority.dart';
@@ -72,5 +73,6 @@ final class AdminAction {
     toolExecute,
     setSecret,
     toolList,
+    uploaderCountReport,
   ];
 }
