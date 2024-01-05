@@ -1054,9 +1054,18 @@ class PackageBackend {
     final pv = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
-      final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey!]));
+      final tuple = (await tx.lookup([
+        newVersion.key,
+        newVersion.packageKey!,
+        db.emptyKey.append(ModeratedPackage, id: newVersion.package),
+      ]));
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
+      final moderatedPackage = tuple[2] as ModeratedPackage?;
+
+      if (moderatedPackage != null) {
+        throw PackageRejectedException.nameReserved(newVersion.package);
+      }
 
       // If the version already exists, we fail.
       if (version != null) {

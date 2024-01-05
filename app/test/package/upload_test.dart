@@ -1103,9 +1103,9 @@ void main() {
     });
   });
 
-  group('other limits', () {
+  group('other rejections', () {
     testWithProfile(
-      'max versions',
+      'max version count',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         packages: <TestPackage>[
@@ -1131,5 +1131,38 @@ void main() {
       },
       timeout: Timeout.factor(1.5),
     );
+
+    testWithProfile('moderated package immediately re-published', fn: () async {
+      final pubspecContent = generatePubspecYaml('abcd_package', '1.0.0');
+      final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+      final message = await createPubApiClient(authToken: adminClientToken)
+          .uploadPackageBytes(bytes);
+      expect(message.success.message, contains('Successfully uploaded'));
+      await nameTracker.reloadFromDatastore();
+
+      await accountBackend.withBearerToken(
+          siteAdminToken, () => adminBackend.removePackage('abcd_package'));
+
+      // NOTE: do not refresh name tracker and publish again
+      final rs1 = createPubApiClient(authToken: adminClientToken)
+          .uploadPackageBytes(bytes);
+      await expectApiException(
+        rs1,
+        status: 400,
+        code: 'PackageRejected',
+        message: 'Package name abcd_package is reserved',
+      );
+
+      // NOTE: refresh name tracker and publish again
+      await nameTracker.reloadFromDatastore();
+      final rs2 = createPubApiClient(authToken: adminClientToken)
+          .uploadPackageBytes(bytes);
+      await expectApiException(
+        rs2,
+        status: 400,
+        code: 'PackageRejected',
+        message: 'is too similar to a moderated package',
+      );
+    });
   });
 }
