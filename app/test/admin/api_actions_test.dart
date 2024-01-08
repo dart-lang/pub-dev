@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -48,7 +46,7 @@ void main() {
       'create-publisher',
       AdminInvokeActionArguments(arguments: {
         'publisher': 'other.com',
-        'member-email': 'user@pub.dev'
+        'member-email': 'user@pub.dev',
       }),
     );
     expect(rs1.output, {
@@ -74,15 +72,13 @@ void main() {
     });
     final p1 = await publisherBackend.getPublisher('other.com');
     expect(p1, isNotNull);
-    // TODO(sigurdm): Migrate delete-publisher to be an Action.
-    final rs2 = await client.adminExecuteTool(
-      'delete-publisher',
-      Uri(pathSegments: [
-        '--publisher',
-        'other.com',
-      ]).toString(),
-    );
-    expect(utf8.decode(rs2), 'Publisher and 1 member(s) deleted.');
+    final rs2 = await client.adminInvokeAction('delete-publisher',
+        AdminInvokeActionArguments(arguments: {'publisher': 'other.com'}));
+    expect(rs2.output, {
+      'message': 'Publisher and all members deleted.',
+      'publisherId': 'other.com',
+      'members-count': 1,
+    });
     final p2 = await publisherBackend.getPublisher('other.com');
     expect(p2, isNull);
   });

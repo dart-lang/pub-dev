@@ -8,6 +8,7 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
@@ -133,6 +134,7 @@ class FakeAppengineEnv {
 
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
 /// with [testProfile] data.
+@isTest
 void testWithProfile(
   String name, {
   TestProfile? testProfile,
