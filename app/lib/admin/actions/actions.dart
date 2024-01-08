@@ -3,12 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/actions/create_publisher.dart';
-<<<<<<< HEAD
 import 'package:pub_dev/admin/actions/delete_publisher.dart';
-||||||| 238ea7d1f
-=======
 import 'package:pub_dev/admin/actions/merge_moderated_package_into_existing.dart';
->>>>>>> origin/master
 import 'package:pub_dev/admin/actions/publisher_block.dart';
 import 'package:pub_dev/admin/actions/publisher_members_list.dart';
 import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
