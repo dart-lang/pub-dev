@@ -48,7 +48,7 @@ const redirectPackageUrls = <String, String>{
   'flutter_test':
       'https://api.flutter.dev/flutter/flutter_test/flutter_test-library.html',
   'flutter_web_plugins':
-      'https://api.flutter.dev/flutter/package-flutter_web_plugins_flutter_web_plugins/package-flutter_web_plugins_flutter_web_plugins-library.html',
+      'https://api.flutter.dev/flutter/flutter_web_plugins/flutter_web_plugins-library.html',
 };
 
 /// Known packages that should be put in `dev_dependencies`
