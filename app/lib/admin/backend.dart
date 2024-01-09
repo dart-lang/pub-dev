@@ -42,7 +42,6 @@ import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
 import 'tools/set_user_blocked.dart';
 import 'tools/update_package_versions.dart';
-import 'tools/uploader_count_report.dart';
 import 'tools/user_merger.dart';
 
 final _logger = Logger('pub.admin.backend');
@@ -72,7 +71,6 @@ final Map<String, Tool> availableTools = {
   'set-user-blocked': executeSetUserBlocked,
   'user-merger': executeUserMergerTool,
   'list-tools': executeListTools,
-  'uploader-count-report': executeCountUploaderReport,
 };
 
 /// Represents the backend for the admin handling and authentication.

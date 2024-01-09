@@ -4,13 +4,14 @@
 
 import 'dart:async';
 
+import 'package:_pub_shared/data/admin_api.dart';
 import 'package:clock/clock.dart';
-import 'package:pub_dev/admin/tools/uploader_count_report.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../package/backend_test_utils.dart';
+import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 class UserAndTime {
@@ -58,9 +59,13 @@ environment:
     }
 
     await withClock(Clock.fixed(DateTime(2022, 12, 13)), () async {
-      final s = await executeCountUploaderReport([]);
+      final response =
+          await createPubApiClient(authToken: siteAdminToken).adminInvokeAction(
+        'uploader-count-report',
+        AdminInvokeActionArguments(arguments: {}),
+      );
 
-      expect(s, '''
+      expect(response.output['report'], '''
 Monthly unique uploading users:
 January 2022: 1
 February 2022: 3
