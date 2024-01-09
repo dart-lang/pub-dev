@@ -116,7 +116,8 @@ Future<void> main(List<String> args) async {
       if (configDir != null) 'XDG_CONFIG_HOME': configDir,
     },
     useGlobalDartdoc: true,
-    globalDartdocVersion: '8.0.0',
+    // keep in-sync with app/lib/shared/versions.dart
+    globalDartdocVersion: '8.0.3',
   );
 
   //final dartdocOutputDir =
