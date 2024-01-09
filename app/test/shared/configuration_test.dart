@@ -36,7 +36,7 @@ void main() {
         throwsA(isArgumentError));
   });
 
-  test('configuration files serialized', () async {
+  test('configuration files content', () async {
     final files = Directory('config')
         .listSync()
         .whereType<File>()
@@ -45,6 +45,7 @@ void main() {
     expect(files, hasLength(2));
 
     for (final f in files) {
+      // serialization
       final fileContent = f.readAsStringSync();
       final replacedContent = Configuration.replaceEnvVariables(fileContent, {
         'GOOGLE_CLOUD_PROJECT': 'test',
@@ -57,6 +58,25 @@ void main() {
           Configuration.fromJson(jsonContent as Map<String, dynamic>);
       final serialized = json.decode(json.encode(config.toJson()));
       expect(serialized, jsonContent);
+
+      // rate limit rules
+      final modelFileContent =
+          await File('lib/audit/models.dart').readAsString();
+      final rateLimits = config.rateLimits ?? <RateLimit>[];
+      for (final limit in rateLimits) {
+        expect(
+          modelFileContent.contains("'${limit.operation}'"),
+          isTrue,
+          reason: limit.operation,
+        );
+      }
+      // no duplicate rules
+      expect(rateLimits.map((e) => '${e.operation}/${e.scope}').toSet().length,
+          rateLimits.length);
+      // some rules for prod config
+      if (config.isProduction) {
+        expect(rateLimits, hasLength(greaterThan(10)));
+      }
     }
   });
 }
