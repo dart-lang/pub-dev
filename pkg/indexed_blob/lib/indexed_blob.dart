@@ -289,7 +289,7 @@ class BlobIndex {
     }
     final blobId = r.expectString();
 
-    // Expect a index key
+    // Expect an index key
     if (!_skipUntilKey(r, 'index')) {
       throw const FormatException('expected "index" key');
     }
@@ -328,7 +328,7 @@ class BlobIndex {
     }
     final blobId = r.expectString();
 
-    // Expect a index key
+    // Expect an index key
     if (!_skipUntilKey(r, 'index')) {
       throw const FormatException('expected "index" key');
     }
@@ -372,7 +372,7 @@ class BlobIndex {
     }
     final originalBlobId = r.expectString();
 
-    // Expect a index key
+    // Expect an index key
     if (!_skipUntilKey(r, 'index')) {
       throw const FormatException('expected "index" key');
     }
