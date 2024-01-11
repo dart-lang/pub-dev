@@ -18,4 +18,4 @@ advisory](https://docs.github.com/en/code-security/repository-security-advisorie
 feature to create a new security advisory. GitHub will review and ingest the
 advisory into the central [GitHub Advisory
 database](https://github.com/advisories) where you can also go search for
-vulnarabilities in the Pub ecosystem.
+vulnerabilities in the Pub ecosystem.
