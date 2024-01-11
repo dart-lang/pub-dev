@@ -1130,13 +1130,19 @@ class PackageBackend {
         ...entities.assets,
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           outgoingEmail,
-        ...AuditLogRecord.packagePublishedRecords(
+        if (isNew)
+          AuditLogRecord.packageCreated(
+            uploader: agent,
+            package: newVersion.package,
+            created: newVersion.created!,
+            publisherId: package!.publisherId,
+          ),
+        AuditLogRecord.packagePublished(
           uploader: agent,
           package: newVersion.package,
           version: newVersion.version!,
           created: newVersion.created!,
           publisherId: package!.publisherId,
-          isNew: isNew,
         ),
       ];
 

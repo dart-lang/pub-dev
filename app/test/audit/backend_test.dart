@@ -39,7 +39,7 @@ void main() {
 
   group('message test', () {
     test('user uploads a package', () {
-      final r = AuditLogRecord.packagePublishedRecords(
+      final r = AuditLogRecord.packagePublished(
         created: clock.now(),
         package: 'pkg',
         version: '1.0.0',
@@ -49,8 +49,7 @@ void main() {
             ..email = 'user@pub.dev',
           audience: 'fake-client-audience',
         ),
-        isNew: true,
-      ).last;
+      );
       expect(r.summary,
           'Package `pkg` version `1.0.0` was published by `user@pub.dev`.');
       expect(r.data, {
@@ -82,7 +81,7 @@ void main() {
         },
         signature: [],
       );
-      final r = AuditLogRecord.packagePublishedRecords(
+      final r = AuditLogRecord.packagePublished(
         created: clock.now(),
         package: 'pkg',
         version: '1.2.0',
@@ -90,8 +89,7 @@ void main() {
           idToken: token,
           payload: GitHubJwtPayload(token.payload),
         ),
-        isNew: false,
-      ).last;
+      );
       expect(
         r.summary,
         'Package `pkg` version `1.2.0` was published from GitHub Actions '
@@ -121,7 +119,7 @@ void main() {
         },
         signature: [],
       );
-      final r = AuditLogRecord.packagePublishedRecords(
+      final r = AuditLogRecord.packagePublished(
         created: clock.now(),
         package: 'pkg',
         version: '1.2.0',
@@ -129,8 +127,7 @@ void main() {
           idToken: token,
           payload: GcpServiceAccountJwtPayload(token.payload),
         ),
-        isNew: false,
-      ).last;
+      );
       expect(
           r.summary,
           'Package `pkg` version `1.2.0` was published by '
