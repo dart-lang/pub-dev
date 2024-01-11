@@ -131,7 +131,8 @@ void main() {
 
         final audits = await auditBackend.listRecordsForPackageVersion(
             'new_package', '1.2.3');
-        final publishedAudit = audits.records.first;
+        final publishedAudit = audits.records
+            .firstWhere((e) => e.kind == AuditLogRecordKind.packagePublished);
         expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
         expect(publishedAudit.created, isNotNull);
         expect(publishedAudit.expires!.year, greaterThan(9998));
