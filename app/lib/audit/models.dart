@@ -218,11 +218,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [if (publisherId != null) publisherId];
   }
 
-  factory AuditLogRecord.packagePublished({
+  static List<AuditLogRecord> packagePublishedRecords({
     required AuthenticatedAgent uploader,
     required String package,
     required String version,
     required DateTime created,
+    required bool isNew,
     String? publisherId,
   }) {
     final summaryParts = <String>[
@@ -260,24 +261,42 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         ' was published by `${uploader.displayId}`.',
       ].join();
     }
-    return AuditLogRecord()
-      ..id = createUuid()
-      ..created = created
-      ..expires = auditLogRecordExpiresInFarFuture
-      ..kind = AuditLogRecordKind.packagePublished
-      ..agent = uploader.agentId
-      ..summary = summary
-      ..data = {
-        'package': package,
-        'version': version,
-        if (uploader.email != null) 'email': uploader.email,
-        if (publisherId != null) 'publisherId': publisherId,
-        ...fields,
-      }
-      ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
-      ..packages = [package]
-      ..packageVersions = ['$package/$version']
-      ..publishers = [if (publisherId != null) publisherId];
+
+    AuditLogRecord createRecord({
+      required String kind,
+      required DateTime expires,
+    }) {
+      return AuditLogRecord()
+        ..id = createUuid()
+        ..created = created
+        ..expires = expires
+        ..kind = kind
+        ..agent = uploader.agentId
+        ..summary = summary
+        ..data = {
+          'package': package,
+          'version': version,
+          if (uploader.email != null) 'email': uploader.email,
+          if (publisherId != null) 'publisherId': publisherId,
+          ...fields,
+        }
+        ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
+        ..packages = [package]
+        ..packageVersions = ['$package/$version']
+        ..publishers = [if (publisherId != null) publisherId];
+    }
+
+    return [
+      if (isNew)
+        createRecord(
+          kind: AuditLogRecordKind.packageCreated,
+          expires: clock.now().toUtc().add(_defaultExpires),
+        ),
+      createRecord(
+        kind: AuditLogRecordKind.packagePublished,
+        expires: auditLogRecordExpiresInFarFuture,
+      ),
+    ];
   }
 
   factory AuditLogRecord.packageTransferred({
@@ -729,6 +748,11 @@ abstract class AuditLogRecordKind {
 
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';
+
+  /// Event that a new package was created. This event is created alonside the
+  /// [packagePublished] event, but is only kept until the default expirty period
+  /// (to enforce rate limits).
+  static const packageCreated = 'package-created';
 
   /// Event that a package was published.
   ///
