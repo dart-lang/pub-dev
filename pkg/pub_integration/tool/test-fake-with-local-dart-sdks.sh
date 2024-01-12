@@ -12,5 +12,5 @@ LOCAL_DART_SDKS_DIR="${PUB_INTEGRATION_DIR}/.local-dart-sdks"
 ls -1 ${LOCAL_DART_SDKS_DIR} | while read i;
 do
   echo "Running tests using ${i}..."
-  PUB_INTEGRATION_CLIENT_SDK_DIR="${LOCAL_DART_SDKS_DIR}/${i}" pub run test test/pub_integration_test.dart
+  PUB_INTEGRATION_CLIENT_SDK_DIR="${LOCAL_DART_SDKS_DIR}/${i}" run test test/pub_integration_test.dart
 done

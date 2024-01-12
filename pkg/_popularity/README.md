@@ -7,5 +7,5 @@ Not to be published.
 To update the generated code – `lib/popularity.g.dart` – run 
 
 ```console
-$ pub run build_runner build
+$ dart run build_runner build
 ```
