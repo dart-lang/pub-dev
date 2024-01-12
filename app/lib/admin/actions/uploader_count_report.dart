@@ -31,8 +31,6 @@ final uploaderCountReport = AdminAction(
 Returns a report of the number of uploaders for each of the last 12 months.
 
 The report is based on "UploadEvents".
-
-To pretty-print in the terminal pipe through `| jq -r .record'.
 ''',
     invoke: (args) async {
       final buckets = <DateTime, Set<String>>{};
@@ -49,14 +47,15 @@ To pretty-print in the terminal pipe through `| jq -r .record'.
             DateTime(created.year, created.month), () => {});
         bucket.add(agent);
       }
-      final buffer = StringBuffer();
-      buffer.writeln('Monthly unique uploading users:');
-
+      final report = <Map<String, Object>>[];
       for (int i = 11; i >= 0; i--) {
         final month = DateTime(now.year, now.month - i);
         final bucket = buckets[month] ?? {};
-        buffer.writeln(
-            '${_monthNames[month.month]} ${month.year}: ${bucket.length}');
+        report.add({
+          'year': month.year,
+          'month': _monthNames[month.month]!,
+          'unique uploading users': bucket.length,
+        });
       }
-      return {'report': buffer.toString()};
+      return {'report': report};
     });

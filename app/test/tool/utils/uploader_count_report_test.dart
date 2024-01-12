@@ -65,21 +65,20 @@ environment:
         AdminInvokeActionArguments(arguments: {}),
       );
 
-      expect(response.output['report'], '''
-Monthly unique uploading users:
-January 2022: 1
-February 2022: 3
-March 2022: 0
-April 2022: 0
-May 2022: 0
-June 2022: 0
-July 2022: 0
-August 2022: 0
-September 2022: 0
-October 2022: 0
-November 2022: 0
-December 2022: 1
-''');
+      expect(response.output['report'], [
+        {'year': 2022, 'month': 'January', 'unique uploading users': 1},
+        {'year': 2022, 'month': 'February', 'unique uploading users': 3},
+        {'year': 2022, 'month': 'March', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'April', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'May', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'June', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'July', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'August', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'September', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'October', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'November', 'unique uploading users': 0},
+        {'year': 2022, 'month': 'December', 'unique uploading users': 1}
+      ]);
     });
   });
 }
