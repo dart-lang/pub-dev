@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/admin_api.dart';
-import 'package:api_builder/_client_utils.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -91,24 +90,6 @@ void main() {
 
   testWithProfile('remove package from publisher', fn: () async {
     final api = createPubApiClient(authToken: siteAdminToken);
-
-    expect(
-        api.adminInvokeAction(
-          'delete-publisher',
-          AdminInvokeActionArguments(
-            arguments: {'publisher': 'example.com'},
-          ),
-        ),
-        throwsA(isA<RequestException>().having(
-          (e) => e.bodyAsJson()['error'],
-          '',
-          {
-            'code': 'NotAcceptable',
-            'message':
-                'Publisher \"example.com\" cannot be deleted, as it has package(s): neon.'
-          },
-        )));
-
     final result = await api.adminInvokeAction(
       'remove-package-from-publisher',
       AdminInvokeActionArguments(arguments: {'package': 'neon'}),

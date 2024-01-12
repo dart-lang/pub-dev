@@ -5,6 +5,8 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
+import 'package:_pub_shared/data/admin_api.dart';
+import 'package:api_builder/_client_utils.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
@@ -141,16 +143,24 @@ void main() {
     testWithProfile('publisher has packages', fn: () async {
       final p1 = await publisherBackend.getPublisher('example.com');
       expect(p1, isNotNull);
-      final rs =
-          await createPubApiClient(authToken: siteAdminToken).adminExecuteTool(
-        'delete-publisher',
-        Uri(pathSegments: [
-          '--publisher',
-          'example.com',
-        ]).toString(),
-      );
-      expect(utf8.decode(rs),
-          'Publisher "example.com" cannot be deleted, as it has package(s): neon.');
+
+      expect(
+          createPubApiClient(authToken: siteAdminToken).adminInvokeAction(
+            'delete-publisher',
+            AdminInvokeActionArguments(
+              arguments: {'publisher': 'example.com'},
+            ),
+          ),
+          throwsA(isA<RequestException>().having(
+            (e) => e.bodyAsJson()['error'],
+            '',
+            {
+              'code': 'NotAcceptable',
+              'message':
+                  'Publisher \"example.com\" cannot be deleted, as it has package(s): neon.'
+            },
+          )));
+
       final p2 = await publisherBackend.getPublisher('example.com');
       expect(p2, isNotNull);
     });
