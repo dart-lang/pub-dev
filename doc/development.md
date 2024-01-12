@@ -27,7 +27,7 @@ The main directories that one would be looking at:
 The in-memory server starts with no data. Prepopulated data can be created
 with test-profiles, using the following steps:
 
-### Create a test-profile description 
+### Create a test-profile description
 
 A test-profile is a short description of packages, publishers, users,
 their flags and relations.
@@ -39,14 +39,22 @@ defaultUser: 'your-email@example.com'
 packages:
   - name: retry
   - name: http
+publishers:
+  - # Only `example.com`` and `verified.com`` will verify.
+    # See app/lib/fake/backend/fake_domain_verifier.dart
+    name: example.com
+    members:
+      - email: your-email@example.com
+        role: admin
 ```
 
 ### Process and create data file
 
 Using the test-profile above, the following process will:
-- fetch the latest versions and the archive file from pub.dev
+- create the publishers and users.
+- fetch the latest versions and the archive file from pub.dev.
 - publish the archive locally under the name of the user or
-  the publisher in the test-profile description
+  the publisher in the test-profile description.
 - analyze the packages and runs dartdoc on them
 - stores the results and all the entities in a local file.
 
@@ -74,12 +82,14 @@ cd app/
 dart bin/fake_server.dart run --data-file=dev-data-file.jsonl
 ```
 
+The fake_server.dart script picks up changes and rebuilds your style sheets when initializing.
+
 ## Local accounts
 
 The web app and the API endpoints use a simple mechanism to map access tokens
-to authenticated accounts: `user-at-domain-dot-com` gets mapped to `user@domain.com`. 
+to authenticated accounts: `user-at-domain-dot-com` gets mapped to `user@domain.com`.
 
-- On the web app one can use this token by clicking on the `Sign in` top nav item.
+- On the web app, use `localhost:8080/sign-in?fake-email=your-email@example.com` to sign in.
 - On the API endpoints one should send the `Authorization` header with `Bearer $token` as value.
 
 ## Updating generated code
@@ -90,7 +100,7 @@ annotations. Input files are usually listed in `build.yaml`, and generated
 files usually suffixed `.g.dart`. To generate code use:
 
 ```bash
-dart pub run build_runner build
+dart run build_runner build
 ```
 
 ## Working with `mono_repo`
