@@ -18,6 +18,11 @@ abstract class KnownAgents {
   // Agent for pub admin actions.
   static const pubSupport = 'support@pub.dev';
 
+  static const _prefixValues = [
+    '$githubActions:',
+    '$gcpServiceAccount:',
+  ];
+
   static const _values = <String>{
     githubActions,
     gcpServiceAccount,
@@ -33,7 +38,8 @@ bool isValidUserId(String userId) {
 
 /// Whether the [agent] is a valid-looking identifier.
 bool isKnownServiceAgent(String agent) {
-  return KnownAgents._values.contains(agent);
+  return KnownAgents._values.contains(agent) ||
+      KnownAgents._prefixValues.any((prefix) => agent.startsWith(prefix));
 }
 
 /// Whether the [agent] is a valid-looking actor.
@@ -81,9 +87,14 @@ abstract class AuthenticatedAgent {
 }
 
 /// Holds the authenticated Github Action information.
+///
+/// The [agentId] has the following format: `service:github-actions:organization/repository`
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
-  String get agentId => KnownAgents.githubActions;
+  late final agentId = [
+    KnownAgents.githubActions,
+    if (payload.hasValidRepository) payload.repository,
+  ].join(':');
 
   @override
   String get displayId => KnownAgents.githubActions;
@@ -111,9 +122,14 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
 }
 
 /// Holds the authenticated Google Cloud Service account information.
+///
+/// The [agentId] has the following format: `service:gcp-service-account:user@examplec.com`
 class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   @override
-  String get agentId => KnownAgents.gcpServiceAccount;
+  late final agentId = [
+    KnownAgents.gcpServiceAccount,
+    email,
+  ].join(':');
 
   @override
   String get displayId => email;

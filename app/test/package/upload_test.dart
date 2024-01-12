@@ -671,7 +671,7 @@ void main() {
         expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
         expect(publishedAudit.created, isNotNull);
         expect(publishedAudit.expires!.year, greaterThan(9998));
-        expect(publishedAudit.agent, 'service:github-actions');
+        expect(publishedAudit.agent, 'service:github-actions:a/b');
         expect(publishedAudit.users, []);
         expect(publishedAudit.packages, ['_dummy_pkg']);
         expect(publishedAudit.packageVersions, ['_dummy_pkg/2.2.0']);
