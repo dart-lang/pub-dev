@@ -1126,7 +1126,8 @@ class PackageBackend {
         newVersion,
         entities.packageVersionInfo,
         ...entities.assets,
-        outgoingEmail,
+        if (activeConfiguration.isPublishedEmailNotificationEnabled)
+          outgoingEmail,
         AuditLogRecord.packagePublished(
           uploader: agent,
           package: newVersion.package,
@@ -1168,7 +1169,8 @@ class PackageBackend {
   ) async {
     try {
       await Future.wait([
-        emailBackend.trySendOutgoingEmail(outgoingEmail),
+        if (activeConfiguration.isPublishedEmailNotificationEnabled)
+          emailBackend.trySendOutgoingEmail(outgoingEmail),
         taskBackend.trackPackage(newVersion.package, updateDependants: true),
         if (apiExporter != null)
           apiExporter!
