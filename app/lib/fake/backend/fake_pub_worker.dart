@@ -92,25 +92,18 @@ Future<void> _processPayload(Payload payload) async {
           documented: documented,
           total: 20,
         );
-        final docSection = documentationCoverageSection(
-          documented: documented,
-          total: 20,
-        );
 
         late Summary summary;
-        if (packageStatus.isObsolete ||
-            packageStatus.isLegacy ||
-            packageStatus.isDiscontinued) {
+        if (packageStatus.isObsolete || packageStatus.isLegacy) {
           summary = _emptySummary(payload.package, v.version);
           dartdocFiles.clear();
         } else {
-          final s = await fakePanaSummary(
+          summary = await fakePanaSummary(
             package: payload.package,
             version: v.version,
             packageStatus: packageStatus,
+            documentedRatio: documented / 20,
           );
-          final updatedReport = s.report?.joinSection(docSection);
-          summary = s.change(report: updatedReport);
         }
 
         final r = await api.taskUploadResult(payload.package, v.version);

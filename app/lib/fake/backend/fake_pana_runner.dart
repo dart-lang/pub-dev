@@ -17,12 +17,14 @@ Future<Summary> fakePanaSummary({
   required String package,
   required String version,
   required PackageStatus packageStatus,
+  required double documentedRatio,
 }) async {
   final pv = await packageBackend.lookupPackageVersion(package, version);
   final pubspec = pv!.pubspec!;
   final hasher = createHasher([package, version].join('/'));
   final layoutPoints = hasher('points/layout', max: 30);
-  final examplePoints = hasher('points/example', max: 30);
+  final examplePoints =
+      hasher('points/example', max: 30) + (documentedRatio >= 0.2 ? 10 : 0);
   final hasSdkDart = hasher('sdk:dart', max: 10) > 0;
   final hasSdkFlutter =
       hasher('sdk:flutter', max: packageStatus.usesFlutter ? 20 : 10) > 0;
@@ -128,12 +130,12 @@ Future<Summary> fakePanaSummary({
           id: ReportSectionId.documentation,
           title: 'Fake documentation',
           grantedPoints: examplePoints,
-          maxPoints: 30,
+          maxPoints: 40,
           summary: renderSimpleSectionSummary(
             title: 'Example',
             description: 'Example score randomly set to $examplePoints...',
             grantedPoints: examplePoints,
-            maxPoints: 30,
+            maxPoints: 40,
           ),
           status:
               examplePoints > 20 ? ReportStatus.passed : ReportStatus.partial,
