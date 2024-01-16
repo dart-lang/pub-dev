@@ -144,7 +144,7 @@ void main() {
       final p1 = await publisherBackend.getPublisher('example.com');
       expect(p1, isNotNull);
 
-      expect(
+      await expectLater(
           createPubApiClient(authToken: siteAdminToken).adminInvokeAction(
             'delete-publisher',
             AdminInvokeActionArguments(
