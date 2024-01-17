@@ -123,7 +123,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
 
 /// Holds the authenticated Google Cloud Service account information.
 ///
-/// The [agentId] has the following format: `service:gcp-service-account:user@examplec.com`
+/// The [agentId] has the following format: `service:gcp-service-account:<user@examplec.com>`
 class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   @override
   late final agentId = [
