@@ -88,7 +88,7 @@ abstract class AuthenticatedAgent {
 
 /// Holds the authenticated Github Action information.
 ///
-/// The [agentId] has the following format: `service:github-actions:organization/repository`
+/// The [agentId] has the following format: `service:github-actions:<organization>/<repository>`
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
   late final agentId = [
