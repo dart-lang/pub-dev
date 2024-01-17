@@ -112,14 +112,4 @@ class GitHubJwtPayload {
       return null;
     }
   }
-
-  late final hasValidRepository = () {
-    if (repository.trim().isEmpty) {
-      return false;
-    }
-    if (repository.split('/').length != 2) {
-      return false;
-    }
-    return true;
-  }();
 }

@@ -93,7 +93,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
   late final agentId = [
     KnownAgents.githubActions,
-    if (payload.hasValidRepository) payload.repository,
+    payload.repository,
   ].join(':');
 
   @override
@@ -115,10 +115,22 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   AuthenticatedGithubAction({
     required this.idToken,
     required this.payload,
-  });
+  }) {
+    _checkRepository(payload.repository);
+  }
 
   @override
   String? get email => null;
+}
+
+void _checkRepository(String repository) {
+  InvalidInputException.check(repository.trim().isNotEmpty,
+      'The JWT from GitHub must have a non-empty `repository`.');
+  final parts = repository.split('/');
+  InvalidInputException.check(
+      parts.length == 2, 'The JWT from GitHub must have a valid `repository`.');
+  InvalidInputException.check(parts.every((e) => e.isNotEmpty),
+      'The JWT from GitHub must have a valid `repository`.');
 }
 
 /// Holds the authenticated Google Cloud Service account information.
