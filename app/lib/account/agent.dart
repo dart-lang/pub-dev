@@ -37,6 +37,10 @@ abstract class KnownAgents {
   static const pubSupport = 'support@pub.dev';
 
   /// Returns an agentId in the format of `service:github-actions:<repositoryOwnerId>/<repositoryId>`
+  ///
+  /// Note: [repositoryOwnerId] and [repositoryId] are opaque identifiers.
+  /// These are **NOT** the same as the repository name, these identifiers
+  /// remain stable when organizations and repositories are renamed!
   static String githubActionsAgentId({
     required String repositoryOwnerId,
     required String repositoryId,
