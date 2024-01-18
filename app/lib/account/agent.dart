@@ -22,16 +22,22 @@ final _uuidRegExp =
 /// Older identifiers may only describe the type of the agent.
 abstract class KnownAgents {
   /// Non-specific agent - only specifies it is from GitHub Actions.
-  ///  
+  ///
   /// Deprecated and should not be used for new audit-log entries.
   /// This value is still present in some older audit-log entries.
-  static const genericGithubActions = 'service:github-actions';
+  static const _genericGithubActions = 'service:github-actions';
 
   /// Non-specific agent - only specifies it is from GCP Service Account.
   ///
   /// Deprecated and should not be used for new audit-log entries.
   /// This value is still present in some older audit-log entries.
-  static const genericGcpServiceAccount = 'service:gcp-service-account';
+  static const _genericGcpServiceAccount = 'service:gcp-service-account';
+
+  /// The prefix for GitHub Actions agent identifiers.
+  static const _githubActionsPrefix = 'service:github-actions:';
+
+  /// The prefix for GCP Service Account agent identifiers.
+  static const _gcpServiceAccountPrefix = 'service:gcp-service-account:';
 
   // Agent for pub admin actions.
   static const pubSupport = 'support@pub.dev';
@@ -45,24 +51,24 @@ abstract class KnownAgents {
     required String repositoryOwnerId,
     required String repositoryId,
   }) {
-    return [genericGithubActions, '$repositoryOwnerId/$repositoryId'].join(':');
+    return [_githubActionsPrefix, '$repositoryOwnerId/$repositoryId'].join();
   }
 
   /// Returns an agentId in the format of `service:gcp-service-account:<oauthUserId>`
   static String gcpServiceAccountAgentId({
     required String oauthUserId,
   }) {
-    return [genericGcpServiceAccount, oauthUserId].join(':');
+    return [_gcpServiceAccountPrefix, oauthUserId].join();
   }
 
   static const _agentIdPrefixes = [
-    '$genericGithubActions:',
-    '$genericGcpServiceAccount:',
+    _githubActionsPrefix,
+    _gcpServiceAccountPrefix,
   ];
 
   static const _nonSpecificAgentIds = <String>{
-    genericGithubActions,
-    genericGcpServiceAccount,
+    _genericGithubActions,
+    _genericGcpServiceAccount,
     pubSupport,
   };
 }
@@ -134,7 +140,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   );
 
   @override
-  String get displayId => KnownAgents.genericGithubActions;
+  String get displayId => KnownAgents._genericGithubActions;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
