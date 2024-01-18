@@ -70,11 +70,83 @@ tools:
 rateLimits:
   - operation: package-published
     scope: package
-    burst: 10
-    hourly: 120
-    daily: 240
+    burst: 3
+    hourly: 6
+    daily: 12
   - operation: package-published
     scope: user
-    burst: 100
-    hourly: 1000
-    daily: 1250
+    burst: 10
+    hourly: 100
+    daily: 200
+  - operation: publisher-created
+    scope: user
+    daily: 8
+  - operation: package-transferred
+    scope: package
+    burst: 2
+    hourly: 5
+    daily: 10
+  - operation: package-transferred
+    scope: user
+    burst: 10
+    hourly: 100
+    daily: 200
+  
+  # Updating options
+  - operation: package-options-updated
+    scope: package
+    burst: 5
+    hourly: 10
+    daily: 100
+  - operation: package-options-updated
+    scope: user
+    burst: 20
+    hourly: 100
+    daily: 200
+  - operation: package-publication-automation-updated
+    scope: package
+    burst: 5
+    hourly: 10
+    daily: 100
+  - operation: package-publication-automation-updated
+    scope: user
+    burst: 20
+    hourly: 100
+    daily: 200
+  - operation: package-version-options-updated
+    scope: package
+    burst: 5
+    hourly: 10
+    daily: 100
+  - operation: package-version-options-updated
+    scope: user
+    burst: 20
+    hourly: 100
+    daily: 200
+  - operation: publisher-updated
+    scope: user
+    burst: 20
+    hourly: 100
+    daily: 200
+  
+  # Invites
+  - operation: publisher-contact-invited
+    scope: user
+    burst: 10
+    hourly: 100
+    daily: 200
+  - operation: publisher-member-invited
+    scope: user
+    burst: 10
+    hourly: 100
+    daily: 200
+  - operation: uploader-invited
+    scope: package
+    burst: 5
+    hourly: 10
+    daily: 48
+  - operation: uploader-invited
+    scope: user
+    burst: 10
+    hourly: 100
+    daily: 200
