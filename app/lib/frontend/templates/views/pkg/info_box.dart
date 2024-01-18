@@ -67,7 +67,6 @@ d.Node packageInfoBoxNode({
     }
   }
   return d.fragment([
-    imageCarousel(),
     labeledScores,
     if (thumbnailUrl != null)
       d.div(classes: [
