@@ -1008,6 +1008,7 @@ class PackageBackend {
     final newVersion = entities.packageVersion;
     final currentDartSdk = await getDartSdkVersion();
     final existingPackage = await lookupPackage(newVersion.package);
+    final isNew = existingPackage == null;
 
     // check authorizations before the transaction
     await _requireUploadAuthorization(
@@ -1036,6 +1037,7 @@ class PackageBackend {
     await verifyPackageUploadRateLimit(
       agent: agent,
       package: newVersion.package,
+      isNew: isNew,
     );
 
     final email = createPackageUploadedEmail(
@@ -1128,6 +1130,13 @@ class PackageBackend {
         ...entities.assets,
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           outgoingEmail,
+        if (isNew)
+          AuditLogRecord.packageCreated(
+            uploader: agent,
+            package: newVersion.package,
+            created: newVersion.created!,
+            publisherId: package!.publisherId,
+          ),
         AuditLogRecord.packagePublished(
           uploader: agent,
           package: newVersion.package,

@@ -218,30 +218,39 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [if (publisherId != null) publisherId];
   }
 
-  factory AuditLogRecord.packagePublished({
+  static Map<String, dynamic> _dataForPublishing({
+    required AuthenticatedAgent uploader,
+  }) {
+    if (uploader is AuthenticatedGithubAction) {
+      final runId = uploader.payload.runId;
+      final sha = uploader.payload.sha;
+      return <String, dynamic>{
+        'repository': uploader.payload.repository,
+        if (runId != null) 'run_id': runId,
+        if (sha != null) 'sha': sha,
+      };
+    } else {
+      return const {};
+    }
+  }
+
+  static String _summaryForPublishing({
     required AuthenticatedAgent uploader,
     required String package,
-    required String version,
-    required DateTime created,
+    String? version,
     String? publisherId,
   }) {
-    final summaryParts = <String>[
-      'Package `$package` version `$version`',
+    final prefix = <String>[
+      'Package `$package`',
+      if (version != null) ' version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
     ];
-    var fields = const <String, dynamic>{};
-    late String summary;
     if (uploader is AuthenticatedGithubAction) {
       final repository = uploader.payload.repository;
       final runId = uploader.payload.runId;
       final sha = uploader.payload.sha;
-      fields = <String, dynamic>{
-        'repository': repository,
-        if (runId != null) 'run_id': runId,
-        if (sha != null) 'sha': sha,
-      };
-      summary = [
-        ...summaryParts,
+      return [
+        ...prefix,
         ' was published from GitHub Actions',
         if (runId != null)
           ' (`run_id`: [`$runId`](https://github.com/$repository/actions/runs/$runId))',
@@ -250,29 +259,70 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         ' to the `$repository` repository.',
       ].join();
     } else if (uploader is AuthenticatedGcpServiceAccount) {
-      summary = [
-        ...summaryParts,
+      return [
+        ...prefix,
         ' was published by Google Cloud service account: `${uploader.payload.email}`.'
       ].join();
     } else {
-      summary = [
-        ...summaryParts,
+      return [
+        ...prefix,
         ' was published by `${uploader.displayId}`.',
       ].join();
     }
+  }
+
+  factory AuditLogRecord.packageCreated({
+    required AuthenticatedAgent uploader,
+    required String package,
+    required DateTime created,
+    String? publisherId,
+  }) {
+    return AuditLogRecord._init()
+      ..created = created
+      ..kind = AuditLogRecordKind.packageCreated
+      ..agent = uploader.agentId
+      ..summary = _summaryForPublishing(
+        uploader: uploader,
+        package: package,
+        publisherId: publisherId,
+      )
+      ..data = {
+        'package': package,
+        if (uploader.email != null) 'email': uploader.email,
+        if (publisherId != null) 'publisherId': publisherId,
+        ..._dataForPublishing(uploader: uploader),
+      }
+      ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [if (publisherId != null) publisherId];
+  }
+
+  factory AuditLogRecord.packagePublished({
+    required AuthenticatedAgent uploader,
+    required String package,
+    required String version,
+    required DateTime created,
+    String? publisherId,
+  }) {
     return AuditLogRecord()
       ..id = createUuid()
       ..created = created
       ..expires = auditLogRecordExpiresInFarFuture
       ..kind = AuditLogRecordKind.packagePublished
       ..agent = uploader.agentId
-      ..summary = summary
+      ..summary = _summaryForPublishing(
+        uploader: uploader,
+        package: package,
+        version: version,
+        publisherId: publisherId,
+      )
       ..data = {
         'package': package,
         'version': version,
         if (uploader.email != null) 'email': uploader.email,
         if (publisherId != null) 'publisherId': publisherId,
-        ...fields,
+        ..._dataForPublishing(uploader: uploader),
       }
       ..users = [if (uploader is AuthenticatedUser) uploader.user.userId]
       ..packages = [package]
@@ -729,6 +779,11 @@ abstract class AuditLogRecordKind {
 
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';
+
+  /// Event that a new package was created. This event is created alonside the
+  /// [packagePublished] event, but is only kept until the default expirty period
+  /// (to enforce rate limits).
+  static const packageCreated = 'package-created';
 
   /// Event that a package was published.
   ///

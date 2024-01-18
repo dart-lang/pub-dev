@@ -24,10 +24,11 @@ void main() {
 
   group('Upload rate limit', () {
     Future<void> upload({
+      String package = 'new_package',
       required String version,
       required Duration time,
     }) async {
-      final pubspecContent = '''name: new_package
+      final pubspecContent = '''name: $package
 version: $version
 author: $userAtPubDevEmail
 homepage: https://github.com/example/package
@@ -63,7 +64,7 @@ environment:
     }
 
     testWithProfile(
-      '1 per minute',
+      'new versions 1 per minute',
       testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
@@ -94,7 +95,7 @@ environment:
     );
 
     testWithProfile(
-      '12 per hour',
+      'new versions 12 per hour',
       testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
@@ -130,7 +131,7 @@ environment:
     );
 
     testWithProfile(
-      '24 per day',
+      'new versions 24 per day',
       testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
@@ -160,6 +161,41 @@ environment:
             );
             await upload(
                 version: '1.0.24', time: Duration(days: 1, minutes: 1));
+          },
+        );
+      },
+    );
+
+    testWithProfile(
+      'new packages 1 per minute',
+      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packageCreated,
+              scope: RateLimitScope.user,
+              burst: 1,
+            ),
+          ],
+          () async {
+            await upload(package: 'a', version: '1.0.0', time: Duration.zero);
+            await upload(
+                package: 'a', version: '1.1.0', time: Duration(seconds: 11));
+            final rs = upload(
+                package: 'b', version: '0.1.0', time: Duration(seconds: 23));
+            await expectLater(
+              rs,
+              throwsA(
+                isA<RateLimitException>().having(
+                  (e) => e.message,
+                  'message',
+                  contains('(1 in the last few minutes)'),
+                ),
+              ),
+            );
+            await upload(
+                package: 'b', version: '0.1.0', time: Duration(minutes: 3));
           },
         );
       },

@@ -17,25 +17,36 @@ import '../../shared/redis_cache.dart';
 Future<void> verifyPackageUploadRateLimit({
   required AuthenticatedAgent agent,
   required String package,
+  required bool isNew,
 }) async {
-  final operation = AuditLogRecordKind.packagePublished;
+  final packagePublishedOp = AuditLogRecordKind.packagePublished;
 
   if (agent is AuthenticatedUser) {
     await _verifyRateLimit(
-      rateLimit: _getRateLimit(operation, RateLimitScope.user),
+      rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
       userId: agent.userId,
     );
+
+    if (isNew) {
+      await _verifyRateLimit(
+        rateLimit: _getRateLimit(
+          AuditLogRecordKind.packageCreated,
+          RateLimitScope.user,
+        ),
+        userId: agent.userId,
+      );
+    }
   } else {
     // apply per-user rate limit on non-user agents as they were package-specific limits
     await _verifyRateLimit(
-      rateLimit: _getRateLimit(operation, RateLimitScope.user),
+      rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
       package: package,
     );
   }
 
   // regular package-specific limits
   await _verifyRateLimit(
-    rateLimit: _getRateLimit(operation, RateLimitScope.package),
+    rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.package),
     package: package,
   );
 }

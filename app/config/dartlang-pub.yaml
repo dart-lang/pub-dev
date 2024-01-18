@@ -68,6 +68,10 @@ tools:
   previewDartSdkPath: '/tool/preview/dart-sdk'
   previewFlutterSdkPath: '/tool/preview/flutter'
 rateLimits:
+  - operation: package-created
+    scope: user
+    burst: 4
+    daily: 12
   - operation: package-published
     scope: package
     burst: 3
