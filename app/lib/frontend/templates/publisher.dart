@@ -158,7 +158,7 @@ String renderPublisherAdminPage({
   return renderLayoutPage(
     PageType.publisher,
     content,
-    title: 'Publisher: ${publisher.publisherId}',
+    title: 'Publisher administration: ${publisher.publisherId}',
     pageData: PageData(
       publisher: PublisherData(
         publisherId: publisher.publisherId,
@@ -203,7 +203,7 @@ String renderPublisherActivityLogPage({
   return renderLayoutPage(
     PageType.publisher,
     content,
-    title: 'Publisher: ${publisher.publisherId}',
+    title: 'Publisher activity log: ${publisher.publisherId}',
     pageData: PageData(
       publisher: PublisherData(
         publisherId: publisher.publisherId,
