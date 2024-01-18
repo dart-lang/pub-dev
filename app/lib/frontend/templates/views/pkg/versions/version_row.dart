@@ -28,6 +28,7 @@ d.Node versionRowNode(
         child: d.a(
           href: urls.pkgPageUrl(package, version: version.version),
           text: version.version,
+          title: 'Visit $package ${version.version} page',
         ),
       ),
       d.td(

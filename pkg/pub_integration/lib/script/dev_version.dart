@@ -175,13 +175,15 @@ class DevVersionScript {
 
   void _expectContent(String? content,
       {List<Pattern>? present, List<Pattern>? absent}) {
+    // removing title attributes to keep patterns simple
+    content = content!.replaceAll(RegExp(' title=".*?"'), '');
     for (Pattern p in present ?? []) {
-      if (p.allMatches(content!).isEmpty) {
+      if (p.allMatches(content).isEmpty) {
         throw Exception('$p is missing from the content.');
       }
     }
     for (Pattern p in absent ?? []) {
-      if (p.allMatches(content!).isNotEmpty) {
+      if (p.allMatches(content).isNotEmpty) {
         throw Exception('$p is present in the content.');
       }
     }

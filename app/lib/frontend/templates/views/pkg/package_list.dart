@@ -89,6 +89,7 @@ d.Node _packageItem(
           version: isLatest ? null : release.version,
         ),
         text: release.version,
+        title: 'Visit ${view.name} ${release.version} page',
       ),
       d.text(' ('),
       d.xAgoTimestamp(release.published),

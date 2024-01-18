@@ -54,6 +54,7 @@ List<d.Node> _releases(String package, LatestReleases releases) {
       child: d.a(
         href: urls.pkgPageUrl(package),
         text: releases.stable.version,
+        title: 'View the latest version of $package',
       ),
     ),
     if (releases.showPreview)
@@ -61,13 +62,16 @@ List<d.Node> _releases(String package, LatestReleases releases) {
         package: package,
         version: releases.preview!.version,
         label: 'Preview',
-        title: 'Preview is a stable version that depends on a prerelease SDK.',
+        spanTitle:
+            'Preview is a stable version that depends on a prerelease SDK.',
+        linkTitle: 'Visit $package ${releases.preview!.version} page',
       ),
     if (releases.showPrerelease)
       ..._versionLink(
         package: package,
         version: releases.prerelease!.version,
         label: 'Prerelease',
+        linkTitle: 'Visit $package ${releases.prerelease!.version} page',
       ),
   ];
 }
@@ -76,15 +80,20 @@ List<d.Node> _versionLink({
   required String package,
   required String version,
   required String label,
-  String? title,
+  String? spanTitle,
+  required String linkTitle,
 }) {
   return [
     d.text(' / '),
     d.span(
-      attributes: title != null ? {'title': title} : null,
+      attributes: spanTitle != null ? {'title': spanTitle} : null,
       children: [
         d.text('$label: '),
-        d.a(href: urls.pkgPageUrl(package, version: version), text: version),
+        d.a(
+          href: urls.pkgPageUrl(package, version: version),
+          text: version,
+          title: linkTitle,
+        ),
       ],
     ),
   ];
