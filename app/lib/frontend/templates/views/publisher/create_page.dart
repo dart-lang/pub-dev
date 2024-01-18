@@ -92,6 +92,12 @@ d.Node createPublisherPageNode({
         ]),
       ]),
     ]),
+    d.p(children: [
+      d.text(
+          'We strongly recommend you invite other members of your organization as members to the verified publisher. '),
+      d.text(
+          'This ensures that your organization retains access to the publisher when you are not available. '),
+    ]),
     d.div(
       classes: ['-pub-form-textfield-row'],
       children: [
