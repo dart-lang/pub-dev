@@ -30,18 +30,19 @@ abstract class KnownAgents {
   // Agent for pub admin actions.
   static const pubSupport = 'support@pub.dev';
 
-  /// Returns an agentId in the format of `service:github-actions:<org/repo>`
+  /// Returns an agentId in the format of `service:github-actions:<repositoryOwnerId>/<repositoryId>`
   static String githubActionsAgentId({
-    required String repository,
+    required String repositoryOwnerId,
+    required String repositoryId,
   }) {
-    return [genericGithubActions, repository].join(':');
+    return [genericGithubActions, '$repositoryOwnerId/$repositoryId'].join(':');
   }
 
-  /// Returns an agentId in the format of `service:gcp-service-account:<user@example.com>`
+  /// Returns an agentId in the format of `service:gcp-service-account:<oauthUserId>`
   static String gcpServiceAccountAgentId({
-    required String email,
+    required String oauthUserId,
   }) {
-    return [genericGcpServiceAccount, email].join(':');
+    return [genericGcpServiceAccount, oauthUserId].join(':');
   }
 
   static const _agentIdPrefixes = [
@@ -114,11 +115,13 @@ abstract class AuthenticatedAgent {
 
 /// Holds the authenticated Github Action information.
 ///
-/// The [agentId] has the following format: `service:github-actions:<organization>/<repository>`
+/// The [agentId] has the following format: `service:github-actions:<repositoryOwnerId>/<repositoryId>`
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
-  late final agentId =
-      KnownAgents.githubActionsAgentId(repository: payload.repository);
+  late final agentId = KnownAgents.githubActionsAgentId(
+    repositoryOwnerId: payload.repositoryOwnerId,
+    repositoryId: payload.repositoryId,
+  );
 
   @override
   String get displayId => KnownAgents.genericGithubActions;
@@ -159,10 +162,11 @@ void _checkRepository(String repository) {
 
 /// Holds the authenticated Google Cloud Service account information.
 ///
-/// The [agentId] has the following format: `service:gcp-service-account:<user@examplec.com>`
+/// The [agentId] has the following format: `service:gcp-service-account:<oauthUserId>`
 class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   @override
-  late final agentId = KnownAgents.gcpServiceAccountAgentId(email: email);
+  late final agentId =
+      KnownAgents.gcpServiceAccountAgentId(oauthUserId: oauthUserId);
 
   @override
   String get displayId => email;
