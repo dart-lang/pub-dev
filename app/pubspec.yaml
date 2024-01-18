@@ -30,7 +30,7 @@ dependencies:
   json_annotation: '^4.3.0'
   lints: ^3.0.0
   logging: '>=0.9.3 <2.0.0'
-  markdown: ^7.1.1
+  markdown: ^7.2.0
   meta: ^1.1.2
   mime: '>=0.9.3 <2.0.0'
   neat_cache: ^2.0.1

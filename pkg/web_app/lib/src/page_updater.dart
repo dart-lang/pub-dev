@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:http/http.dart' deferred as http;
+import 'package:http/http.dart' deferred as http show get;
 
 typedef PopStateFn = Function();
 
