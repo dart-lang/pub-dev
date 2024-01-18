@@ -228,6 +228,18 @@ String renderPkgScorePage(PackagePageData data) {
   );
 }
 
+final _pagetTitleTabIdentifiers = <urls.PkgPageTab, String>{
+  urls.PkgPageTab.changelog: 'changelog',
+  urls.PkgPageTab.example: 'example',
+  urls.PkgPageTab.install: 'install',
+  urls.PkgPageTab.license: 'license',
+  urls.PkgPageTab.score: 'score',
+  urls.PkgPageTab.pubspec: 'pubspec',
+  urls.PkgPageTab.admin: 'admin',
+  urls.PkgPageTab.activityLog: 'activity log',
+  urls.PkgPageTab.versions: 'versions',
+};
+
 String _renderPkgPage({
   required PackagePageData data,
   required List<Tab> tabs,
@@ -245,10 +257,16 @@ String _renderPkgPage({
 
   final isFlutterPackage = data.version.pubspec!.usesFlutter;
   final packageAndVersion = data.isLatestStable
-      ? data.package.name
+      ? data.package.name!
       : '${data.package.name} ${data.version.version}';
-  final pageTitle =
-      '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
+  final pageTitleTabIdentifier = _pagetTitleTabIdentifiers[pkgPageTab];
+  final pageTitle = <String>[
+    packageAndVersion,
+    if (pageTitleTabIdentifier != null) pageTitleTabIdentifier,
+    '|',
+    isFlutterPackage ? 'Flutter' : 'Dart',
+    'package',
+  ].join(' ');
   final canonicalUrl = urls.pkgPageUrl(
     data.package.name!,
     version: data.isLatestStable ? null : data.version.version,
