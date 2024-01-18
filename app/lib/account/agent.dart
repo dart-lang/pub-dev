@@ -22,9 +22,15 @@ final _uuidRegExp =
 /// Older identifiers may only describe the type of the agent.
 abstract class KnownAgents {
   /// Non-specific agent - only specifies it is from GitHub Actions.
+  ///  
+  /// Deprecated and should not be used for new audit-log entries.
+  /// This value is still present in some older audit-log entries.
   static const genericGithubActions = 'service:github-actions';
 
   /// Non-specific agent - only specifies it is from GCP Service Account.
+  ///
+  /// Deprecated and should not be used for new audit-log entries.
+  /// This value is still present in some older audit-log entries.
   static const genericGcpServiceAccount = 'service:gcp-service-account';
 
   // Agent for pub admin actions.
