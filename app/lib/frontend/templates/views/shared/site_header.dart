@@ -55,6 +55,10 @@ d.Node siteHeaderNode({
           'site-header-nav',
           'scroll-container',
         ],
+        attributes: {
+          'role': 'navigation',
+          'aria-label': 'help and account navigation',
+        },
         children: [
           if (userSession == null || !userSession.isAuthenticated)
             d.div(

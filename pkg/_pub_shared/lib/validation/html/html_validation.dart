@@ -169,6 +169,12 @@ void validateHtml(Node root) {
     if (allowedForRole.contains(tag)) continue;
     // material components
     if (tag == 'th' && role == 'columnheader') continue;
+    // exception for site header navigation
+    if (tag == 'div' &&
+        role == 'navigation' &&
+        elem.classes.contains('site-header-nav')) {
+      continue;
+    }
     throw AssertionError(
         '<$tag> tag should not have role attribute, found: ${elem.outerHtml}');
   }
