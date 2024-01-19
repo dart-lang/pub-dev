@@ -24,12 +24,17 @@ final class DartDocPageOptions {
   /// Path of the current file relative to the documentation root.
   final String path;
 
+  /// The value of the `q=<query>` parameter when the request is on `search.html`,
+  /// `null` otherwise.
+  final String? searchQueryParameter;
+
   DartDocPageOptions({
     required this.package,
     required this.version,
     required this.urlSegment,
     required this.isLatestStable,
     required this.path,
+    this.searchQueryParameter,
   });
 
   String get latestStableDocumentationUrl => pkgDocUrl(package, isLatest: true);
@@ -58,10 +63,34 @@ extension DartDocPageRender on DartDocPage {
   d.Node get _right => d.unsafeRawHtml(right);
   d.Node get _content => d.unsafeRawHtml(content);
 
+  String _pageTitle(DartDocPageOptions options) {
+    if (options.searchQueryParameter == null) {
+      return title;
+    } else {
+      return '$title - search results for ${options.searchQueryParameter}';
+    }
+  }
+
+  bool _allowsRobotsIndexing(DartDocPageOptions options) {
+    // non-latest stables should not be indexed
+    if (!options.isLatestStable) {
+      return false;
+    }
+    // too deep pages should not be indexed
+    if (breadcrumbs.length > 3) {
+      return false;
+    }
+    // search.html page should not be indexed
+    if (options.searchQueryParameter != null) {
+      return false;
+    }
+    return true;
+  }
+
   d.Node _renderHead(DartDocPageOptions options) =>
       d.element('head', children: [
         // HACK: noindex logic is pub.dev specific
-        if (!options.isLatestStable || breadcrumbs.length > 3)
+        if (!_allowsRobotsIndexing(options))
           d.meta(name: 'robots', content: 'noindex'),
         d.script(
             type: 'text/javascript',
@@ -76,7 +105,7 @@ extension DartDocPageRender on DartDocPage {
                 'width=device-width, height=device-height, initial-scale=1, user-scalable=no'),
         d.meta(name: 'generator', content: 'made with love by dartdoc'),
         d.meta(name: 'description', content: description),
-        d.element('title', text: title),
+        d.element('title', text: _pageTitle(options)),
         d.link(rel: 'canonical', href: options.canonicalUrl),
         // HACK: Inject alternate link, if not is latest stable version
         if (!options.isLatestStable)

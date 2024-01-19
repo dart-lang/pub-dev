@@ -7,6 +7,7 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/urls.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -49,6 +50,29 @@ Future<shelf.Response> handleDartDoc(
   final version =
       InvalidInputException.checkSemanticVersion(resolvedDocUrlVersion.version);
 
+  final isSearch = path == 'search.html';
+  String? searchQueryParameter;
+  if (isSearch) {
+    // Redirect to documentation root when there is no query parameter, or when there
+    // are further parameters than `q`.
+    final paramKeys = request.requestedUri.queryParameters.keys.toList();
+    if (paramKeys.isEmpty || paramKeys.length > 1 || paramKeys.single != 'q') {
+      return redirectResponse(pkgDocUrl(
+        package,
+        version: resolvedDocUrlVersion.urlSegment,
+      ));
+    }
+
+    // Redirect to documentation root when the query parameter is empty.
+    searchQueryParameter = request.requestedUri.queryParameters['q']!.trim();
+    if (searchQueryParameter.isEmpty) {
+      return redirectResponse(pkgDocUrl(
+        package,
+        version: resolvedDocUrlVersion.urlSegment,
+      ));
+    }
+  }
+
   final ext = path.split('.').last;
 
   // Handle HTML requests
@@ -76,6 +100,7 @@ Future<shelf.Response> handleDartDoc(
           urlSegment: resolvedDocUrlVersion.urlSegment,
           isLatestStable: version == latestVersion,
           path: path,
+          searchQueryParameter: searchQueryParameter,
         ));
         return utf8.encode(html.toString());
       } on FormatException {

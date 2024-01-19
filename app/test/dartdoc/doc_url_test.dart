@@ -66,6 +66,28 @@ void main() {
     );
 
     testWithProfile(
+      'search.html redirects',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/latest/search.html'),
+          '/documentation/oxygen/latest/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/latest/search.html?q='),
+          '/documentation/oxygen/latest/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/latest/search.html?q=x&a=b'),
+          '/documentation/oxygen/latest/',
+        );
+        await expectHtmlResponse(
+            await issueGet('/documentation/oxygen/latest/search.html?q=abc'));
+      },
+      testProfile: _testProfile,
+      processJobsWithFakeRunners: true,
+    );
+
+    testWithProfile(
       'doc url missing',
       fn: () async {
         await expectNotFoundResponse(

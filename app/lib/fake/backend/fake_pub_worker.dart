@@ -190,6 +190,18 @@ Map<String, String> _fakeDartdocFiles(
     ).toJson()),
     'index.json': '{}',
     'pub-data.json': json.encode(pubData),
+    'search.html': json.encode(DartDocPage(
+      title: 'search',
+      description: 'search description',
+      breadcrumbs: [],
+      content: 'content',
+      left: 'left',
+      right: 'right',
+      baseHref: null,
+      usingBaseHref: null,
+      aboveSidebarUrl: null,
+      belowSidebarUrl: null,
+    ).toJson()),
   };
 }
 
