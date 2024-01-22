@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/actions/create_publisher.dart';
+import 'package:pub_dev/admin/actions/delete_publisher.dart';
+
 import 'package:pub_dev/admin/actions/merge_moderated_package_into_existing.dart';
 import 'package:pub_dev/admin/actions/publisher_block.dart';
 import 'package:pub_dev/admin/actions/publisher_members_list.dart';
@@ -67,6 +69,7 @@ final class AdminAction {
 
   static List<AdminAction> actions = [
     createPublisher,
+    deletePublisher,
     mergeModeratedPackageIntoExisting,
     publisherBlock,
     publisherMembersList,

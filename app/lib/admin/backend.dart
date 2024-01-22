@@ -31,7 +31,6 @@ import '../shared/exceptions.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
-import 'tools/delete_publisher.dart';
 import 'tools/list_package_blocked.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
@@ -58,7 +57,6 @@ typedef Tool = Future<String> Function(List<String> args);
 
 final Map<String, Tool> availableTools = {
   'delete-all-staging': executeDeleteAllStaging,
-  'delete-publisher': executeDeletePublisher,
   'list-package-blocked': executeListPackageBlocked,
   'notify-service': executeNotifyService,
   'package-discontinued': executeSetPackageDiscontinued,
