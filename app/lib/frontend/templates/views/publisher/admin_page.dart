@@ -50,6 +50,12 @@ d.Node publisherAdminPageNode({
       ),
     ),
     d.h2(text: 'Members'),
+    if (members.length == 1)
+      d.p(
+        text: 'This publisher only has a single member. '
+            'Consider adding more members to protect against losing control of the publisher.',
+        classes: ['warning'],
+      ),
     material.dataTable<api.PublisherMember>(
       id: '-pub-publisher-admin-members-table',
       ariaLabel: 'Members of publisher',

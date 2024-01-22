@@ -31,6 +31,11 @@ p {
   font-size: 16px;
 }
 
+p.warning {
+  border-left: 0.25em solid $color-input-danger;
+  padding-left: 10px;
+}
+
 body,
 .markdown-body {
   font-weight: 400;
