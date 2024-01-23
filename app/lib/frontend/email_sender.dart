@@ -120,8 +120,8 @@ class _GmailSmtpRelay implements EmailSender {
   final String _impersonatedGSuiteUser;
   final http.Client _authClient;
 
-  bool _forceReconnect = false;
-  Future<_GmailConnection>? _connection;
+  final _connectionsBySender = <String, Future<_GmailConnection>>{};
+  final _forceReconnectSenders = <String>{};
 
   DateTime _accessTokenRefreshed = DateTime(0);
   DateTime _backoffUntil = DateTime(0);
@@ -142,10 +142,11 @@ class _GmailSmtpRelay implements EmailSender {
         'from ${message.from} '
         'to ${message.recipients.join(', ')}';
     _logger.info('Sending email: $debugHeader...');
+    final sender = message.from.email;
     try {
       await retry(
         () async {
-          final c = await _getConnection();
+          final c = await _getConnection(sender);
           try {
             await c.connection.send(_toMessage(message));
           } finally {
@@ -160,7 +161,7 @@ class _GmailSmtpRelay implements EmailSender {
         delayFactor: Duration(seconds: 2),
         maxAttempts: 2,
         onRetry: (_) {
-          _forceReconnect = true;
+          _forceReconnectSenders.add(sender);
         },
       );
     } on SmtpMessageValidationException catch (e, st) {
@@ -169,7 +170,7 @@ class _GmailSmtpRelay implements EmailSender {
     } on SmtpClientAuthenticationException catch (e, st) {
       _logger.shout('Sending email failed due to invalid auth: $e', e, st);
       _backoffUntil = clock.now().add(Duration(minutes: 2));
-      _forceReconnect = true;
+      _forceReconnectSenders.add(sender);
       _accessToken = null;
       throw EmailSenderException.failed();
     } on MailerException catch (e, st) {
@@ -178,13 +179,14 @@ class _GmailSmtpRelay implements EmailSender {
     }
   }
 
-  Future<_GmailConnection> _getConnection() async {
-    final old = _connection == null ? null : await _connection;
-    if (!_forceReconnect && old != null && !old.isExpired) {
+  Future<_GmailConnection> _getConnection(String sender) async {
+    final connectionFuture = _connectionsBySender[sender];
+    final old = connectionFuture == null ? null : await connectionFuture;
+    final forceReconnect = _forceReconnectSenders.remove(sender);
+    if (!forceReconnect && old != null && !old.isExpired) {
       return old;
     }
-    _forceReconnect = false;
-    return _connection = Future.microtask(() async {
+    final newConnectionFuture = Future.microtask(() async {
       if (old != null) {
         try {
           await old.connection.close();
@@ -199,6 +201,8 @@ class _GmailSmtpRelay implements EmailSender {
         ),
       );
     });
+    _connectionsBySender[sender] = newConnectionFuture;
+    return newConnectionFuture;
   }
 
   Future<SmtpServer> _getSmtpServer() async {
