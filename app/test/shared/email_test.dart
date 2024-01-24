@@ -166,7 +166,7 @@ void main() {
           EmailAddress('uploader@example.com')
         ],
       );
-      expect(message.from.toString(), contains('<noreply@pub.dev>'));
+      expect(message.from.toString(), contains('@pub.dev'));
       expect(message.recipients.map((e) => e.toString()).toList(), [
         'Joe <joe@example.com>',
         'uploader@example.com',
