@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:test/test.dart';
 
@@ -86,7 +85,7 @@ void main() {
           .body!
           .querySelectorAll('a')
           .map((e) => e.attributes['href'])
-          .whereNotNull()
+          .nonNulls
           .where((p) => p.startsWith('/packages/'))
           .where((p) => p.endsWith('/score'))
           .map((p) => p.split('/')[2])

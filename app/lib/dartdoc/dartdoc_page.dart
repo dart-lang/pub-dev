@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/static_files.dart';

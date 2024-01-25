@@ -336,7 +336,7 @@ class SearchBackend {
     final sourceUpdated = [
       p.updated,
       scoreCard.updated,
-    ].whereNotNull().maxOrNull;
+    ].nonNulls.maxOrNull;
 
     return PackageDocument(
       package: pv.package,

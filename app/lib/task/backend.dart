@@ -1147,7 +1147,7 @@ List<Version> _versionsToTrack(
         .sorted(Comparable.compare)
         .reversed
         .take(5)
-  }.whereNotNull().toList();
+  }.nonNulls.toList();
 }
 
 List<String> _updatedDependencies(
