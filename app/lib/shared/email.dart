@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'urls.dart';
 
-const _noreplyAtPubDev = 'noreply@pub.dev';
+const _invitesAtPubDev = 'invites@pub.dev';
 const _notificationsAtPubDev = 'notifications@pub.dev';
 final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 
@@ -16,7 +16,7 @@ final _strictEmailRegExp = RegExp(
     r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''');
 
 final _invitesFrom = EmailAddress(
-  _noreplyAtPubDev,
+  _invitesAtPubDev,
   name: 'Dart package site admin',
 );
 
