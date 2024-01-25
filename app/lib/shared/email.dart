@@ -6,7 +6,8 @@ import 'dart:io';
 
 import 'urls.dart';
 
-const pubDartlangOrgEmail = 'noreply@pub.dev';
+const _invitesAtPubDev = 'invites@pub.dev';
+const _noreplyAtPubDev = 'noreply@pub.dev';
 final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 
 /// Strict regular expression used in <input type="email" />
@@ -14,9 +15,14 @@ final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 final _strictEmailRegExp = RegExp(
     r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''');
 
-final _defaultFrom = EmailAddress(
-  pubDartlangOrgEmail,
-  name: 'Dart package site admin',
+final _invitesFrom = EmailAddress(
+  _invitesAtPubDev,
+  name: 'Dart package site invites',
+);
+
+final _notificationsFrom = EmailAddress(
+  _noreplyAtPubDev,
+  name: 'Dart package site notifications',
 );
 
 String _footer(String action) {
@@ -178,7 +184,8 @@ For details, go to $url
 ${_footer('package')}
 ''';
 
-  return EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
+  return EmailMessage(
+      _notificationsFrom, authorizedUploaders, subject, bodyText);
 }
 
 /// Creates the [EmailMessage] that will be sent to users about new invitations
@@ -201,7 +208,7 @@ If you don’t want to accept it, simply ignore this email.
 ${_footer('invitation')}
 ''';
   return EmailMessage(
-      _defaultFrom, [EmailAddress(invitedEmail)], subject, bodyText);
+      _invitesFrom, [EmailAddress(invitedEmail)], subject, bodyText);
 }
 
 /// Creates the [EmailMessage] that we be sent on package transfer to a new publisher.
@@ -229,5 +236,5 @@ For details, go to $url
 ${_footer('transfer')}
 ''';
 
-  return EmailMessage(_defaultFrom, authorizedAdmins, subject, bodyText);
+  return EmailMessage(_notificationsFrom, authorizedAdmins, subject, bodyText);
 }
