@@ -7,7 +7,7 @@ import 'dart:io';
 import 'urls.dart';
 
 const _invitesAtPubDev = 'invites@pub.dev';
-const _notificationsAtPubDev = 'notifications@pub.dev';
+const _noreplyAtPubDev = 'noreply@pub.dev';
 final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 
 /// Strict regular expression used in <input type="email" />
@@ -17,11 +17,11 @@ final _strictEmailRegExp = RegExp(
 
 final _invitesFrom = EmailAddress(
   _invitesAtPubDev,
-  name: 'Dart package site admin',
+  name: 'Dart package site invites',
 );
 
 final _notificationsFrom = EmailAddress(
-  _notificationsAtPubDev,
+  _noreplyAtPubDev,
   name: 'Dart package site notifications',
 );
 
