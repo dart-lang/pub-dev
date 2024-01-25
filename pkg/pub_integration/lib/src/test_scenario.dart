@@ -6,61 +6,82 @@ import 'dart:async';
 
 import 'package:_pub_shared/pubapi.dart';
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 import 'package:puppeteer/puppeteer.dart';
 
-@sealed
-abstract class TestContext {
+/// Interface that provides all the information and access required to run an
+/// integration [TestScenario].
+final class TestContext {
+  TestContext({
+    required this.pubHostedUrl,
+    required this.client,
+    required this.publicApi,
+    required this.adminApi,
+    required this.adminServiceAccount,
+    required this.userA,
+    required this.userB,
+    required this.testPackage,
+    required this.tempDir,
+    required this.dartSdkRoot,
+  });
+
   /// `PUB_HOSTED_URL` for the server to be tested.
-  String get pubHostedUrl;
+  final String pubHostedUrl;
 
   /// An [http.Client] that can be used for making requests.
   ///
   /// This [client] will not retry failed requests, it is the responsibility to
   /// retry requests.
-  http.Client get client;
+  final http.Client client;
 
   /// A API client for accessing the API without authentication.
-  PubApiClient get publicApi;
+  final PubApiClient publicApi;
 
   /// A API client for accessing the API with admin authentication.
   ///
   /// Using this [PubApiClient] is equivalent to making a request authenticated
   /// with [adminServiceAccount].
-  PubApiClient get adminApi;
+  final PubApiClient adminApi;
 
   /// Service account that can call admin API on pub.dev
-  TestServiceAccount get adminServiceAccount;
+  final TestServiceAccount adminServiceAccount;
 
   /// A user that can be used for testing.
   ///
   /// This user is owner of testPackage;
-  TestUser get userA;
+  final TestUser userA;
 
   /// A user that can be used for testing.
-  TestUser get userB;
+  final TestUser userB;
 
   /// Name of a package that is owned by [userA], and which may be used for
   /// testing.
-  String get testPackage => '_dummy_pkg';
+  final String testPackage;
 
   /// Temporary directory which will be deleted after test are completed.
-  String get tempDir;
+  final String tempDir;
 
   /// Path to the Dart SDK root folder to be used for testing.
-  String get dartSdkRoot;
+  final String dartSdkRoot;
 }
 
-@sealed
-abstract class TestServiceAccount {
+/// Interface that provides all the information and access required to run an
+/// integration [TestScenario].
+final class TestServiceAccount {
+  final Future<String> Function() _getIdToken;
+
+  TestServiceAccount({
+    required this.email,
+    required Future<String> Function() getIdToken,
+  }) : _getIdToken = getIdToken;
+
   /// Get the identifier for this service account.
-  String get email;
+  final String email;
 
   /// Get `id_token` impersonating this service account with audience set to
   /// `https://pub.dev`.
   ///
   /// Valid for at-least 30 minutes.
-  Future<String> getIdToken();
+  Future<String> getIdToken() => _getIdToken();
 }
 
 typedef WithBrowserPageCallbackFn = Future<T> Function<T>(
@@ -68,8 +89,7 @@ typedef WithBrowserPageCallbackFn = Future<T> Function<T>(
 typedef ReadLatestEmailFn = FutureOr<String> Function();
 typedef CreateCredentialsFn = FutureOr<Map<String, Object?>> Function();
 
-@sealed
-class TestUser {
+final class TestUser {
   /// The email of the given test user.
   final String email;
 
@@ -99,8 +119,7 @@ class TestUser {
   });
 }
 
-@sealed
-class TestScenario {
+final class TestScenario {
   /// Human readable title for this test scenario.
   final String title;
 
