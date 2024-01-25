@@ -138,7 +138,7 @@ Future<void> _traveseLinksUnderPath({
     final res = await issueGet(target.toString(), headers: _headers);
     if (res.statusCode == 303) {
       htmlQueue.addAll([normalize(res.headers['location']!, target)]
-          .whereNotNull()
+          .nonNulls
           .whereNot(visited.contains)
           .whereNot(htmlQueue.contains)
           .whereNot(assetQueue.contains));
@@ -159,7 +159,7 @@ Future<void> _traveseLinksUnderPath({
       ...document
           .querySelectorAll('a')
           .map((a) => normalize(a.attributes['href'], target))
-          .whereNotNull()
+          .nonNulls
           .where(isUnderRoots) // only look at html under root
     ];
 
@@ -167,15 +167,15 @@ Future<void> _traveseLinksUnderPath({
       ...document
           .querySelectorAll('link')
           .map((e) => normalize(e.attributes['href'], target))
-          .whereNotNull(),
+          .nonNulls,
       ...document
           .querySelectorAll('script')
           .map((e) => normalize(e.attributes['src'], target))
-          .whereNotNull(),
+          .nonNulls,
       ...document
           .querySelectorAll('img')
           .map((e) => normalize(e.attributes['src'], target))
-          .whereNotNull()
+          .nonNulls
     ];
 
     htmlQueue.addAll(links
