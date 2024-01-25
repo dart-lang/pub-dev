@@ -38,12 +38,10 @@ abstract class EmailSender {
 
 EmailSender createGmailRelaySender(
   String serviceAccountEmail,
-  String impersonatedGSuiteUser,
   http.Client authClient,
 ) =>
     _GmailSmtpRelay(
       serviceAccountEmail,
-      impersonatedGSuiteUser,
       authClient,
     );
 
@@ -103,7 +101,7 @@ Address? _toAddress(EmailAddress? input) =>
 ///  * Is configured for [domain-wide delegation][3] with the
 ///    `https://mail.google.com/` scope on the given GSuite.
 ///
-/// This class then creates a JWT impersonating [_impersonatedGSuiteUser] and
+/// This class then creates a JWT impersonating the sender and
 /// signed by [_serviceAccountEmail] (using [signJwt API][4]). It then exchanges
 /// this JWT for an `access_token` using [OAuth 2 for service accounts][4].
 ///
@@ -117,7 +115,6 @@ class _GmailSmtpRelay implements EmailSender {
   static const _scopes = ['https://mail.google.com/'];
 
   final String _serviceAccountEmail;
-  final String _impersonatedGSuiteUser;
   final http.Client _authClient;
 
   final _connectionsBySender = <String, Future<_GmailConnection>>{};
@@ -129,7 +126,6 @@ class _GmailSmtpRelay implements EmailSender {
 
   _GmailSmtpRelay(
     this._serviceAccountEmail,
-    this._impersonatedGSuiteUser,
     this._authClient,
   );
 
@@ -196,7 +192,7 @@ class _GmailSmtpRelay implements EmailSender {
       }
       return _GmailConnection(
         PersistentConnection(
-          await _getSmtpServer(),
+          await _getSmtpServer(sender),
           timeout: Duration(seconds: 15),
         ),
       );
@@ -205,22 +201,22 @@ class _GmailSmtpRelay implements EmailSender {
     return newConnectionFuture;
   }
 
-  Future<SmtpServer> _getSmtpServer() async {
+  Future<SmtpServer> _getSmtpServer(String sender) async {
     final maxAge = clock.now().subtract(Duration(minutes: 20));
     if (_accessToken == null || _accessTokenRefreshed.isBefore(maxAge)) {
-      _accessToken = _createAccessToken();
+      _accessToken = _createAccessToken(sender);
       _accessTokenRefreshed = clock.now();
     }
 
     // For documentation see:
     // https://support.google.com/a/answer/176600?hl=en
-    return gmailRelaySaslXoauth2(_impersonatedGSuiteUser, await _accessToken!);
+    return gmailRelaySaslXoauth2(sender, await _accessToken!);
   }
 
-  /// Create an access_token for [_impersonatedGSuiteUser] using the
+  /// Create an access_token for [sender] using the
   /// [_serviceAccountEmail] configured for _domain-wide delegation_ following:
   /// https://developers.google.com/identity/protocols/oauth2/service-account
-  Future<String> _createAccessToken() async {
+  Future<String> _createAccessToken(String sender) async {
     final iam = iam_credentials.IAMCredentialsApi(_authClient);
     final iat = clock.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
@@ -233,7 +229,7 @@ class _GmailSmtpRelay implements EmailSender {
                 'aud': _googleOauth2TokenUrl.toString(),
                 'exp': iat + 3600,
                 'iat': iat,
-                'sub': _impersonatedGSuiteUser,
+                'sub': sender,
               }),
             'projects/-/serviceAccounts/$_serviceAccountEmail',
           ));
