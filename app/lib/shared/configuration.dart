@@ -193,17 +193,6 @@ class Configuration {
   /// **Optional**, if omitted email sending is disabled.
   final String? gmailRelayServiceAccount;
 
-  /// Email of the GSuite user account to impersonate when sending emails
-  /// through the gmail SMTP relay.
-  ///
-  /// This must be the email for an account within the GSuite used for sending
-  /// emails. It is important that the gmail SMTP relay is enabled for this
-  /// GSuite, for configuration see:
-  /// https://support.google.com/a/answer/176600?hl=en
-  ///
-  /// **Optional**, if omitted email sending is disabled.
-  final String? gmailRelayImpersonatedGSuiteUser;
-
   /// The email of the service account which has access rights to sign upload
   /// requests. The current service must be able to impersonate this account.
   ///
@@ -295,7 +284,6 @@ class Configuration {
     required this.pubServerAudience,
     required this.externalServiceAudience,
     required this.gmailRelayServiceAccount,
-    required this.gmailRelayImpersonatedGSuiteUser,
     required this.uploadSignerServiceAccount,
     required this.blockRobots,
     required this.productionHosts,
@@ -363,7 +351,6 @@ class Configuration {
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
-      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,
       blockRobots: false,
       productionHosts: ['localhost'],
@@ -415,7 +402,6 @@ class Configuration {
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
-      gmailRelayImpersonatedGSuiteUser: null, // disable email sending
       uploadSignerServiceAccount: null,
       blockRobots: true,
       productionHosts: ['localhost'],
@@ -454,9 +440,6 @@ class Configuration {
   late final isProduction = projectId == 'dartlang-pub';
   late final isNotProduction = !isProduction;
   late final isStaging = projectId == 'dartlang-pub-dev';
-
-  /// NOTE: email notification on package published is temporarily disabled.
-  late final isPublishedEmailNotificationEnabled = isNotProduction;
 }
 
 /// Data structure to describe an admin user.

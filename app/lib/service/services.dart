@@ -96,7 +96,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       registerDomainVerifier(DomainVerifier());
       registerEmailSender(
         activeConfiguration.gmailRelayServiceAccount != null &&
-                activeConfiguration.gmailRelayImpersonatedGSuiteUser != null
+                activeConfiguration.isProduction
             ? createGmailRelaySender(
                 activeConfiguration.gmailRelayServiceAccount!,
                 authClient,
