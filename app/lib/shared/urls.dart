@@ -154,9 +154,15 @@ String pkgDocUrl(
   String? version,
   bool includeHost = false,
   String? relativePath,
-  bool omitTrailingSlash = false,
   bool isLatest = false,
 }) {
+  final parsedRelativePathSegments = relativePath == null
+      ? const <String>[]
+      : Uri.parse(relativePath)
+          .pathSegments
+          .where((e) => e.isNotEmpty)
+          .toList();
+
   if (isLatest || version == null) {
     version = 'latest';
   }
@@ -164,20 +170,16 @@ String pkgDocUrl(
     'documentation',
     package,
     version,
+    ...parsedRelativePathSegments,
   ];
   final baseUri = includeHost ? _siteRootUri : _pathRootUri;
   String url = baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 
-  if (relativePath != null) {
-    url = p.join(url, relativePath);
-  } else if (!omitTrailingSlash) {
-    url = '$url/';
-  }
   if (url.endsWith('/index.html')) {
     url = url.substring(0, url.length - 'index.html'.length);
   }
-  if (omitTrailingSlash && url.endsWith('/')) {
-    url = url.substring(0, url.length - 1);
+  if (parsedRelativePathSegments.isEmpty && !url.endsWith('/')) {
+    url = '$url/';
   }
   return url;
 }
