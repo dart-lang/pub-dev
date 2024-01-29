@@ -34,6 +34,11 @@ void main() {
       expect(pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
           'https://pub.dev/documentation/foo_bar/1.0.0/');
     });
+
+    test('escaped segments', () {
+      expect(pkgDocUrl('foo', relativePath: 'árvíztűrő.png'),
+          '/documentation/foo/latest/%C3%A1rv%C3%ADzt%C5%B1r%C5%91.png');
+    });
   });
 
   group('SDK urls', () {
