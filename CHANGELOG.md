@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2024.01.30`.
+ * Upgraded dartdoc to `8.0.4`.
  * Note: re-enabled email notification on package published events.
 
 ## `20240125t125400-all`

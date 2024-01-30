@@ -117,7 +117,7 @@ Future<void> main(List<String> args) async {
     },
     useGlobalDartdoc: true,
     // keep in-sync with app/lib/shared/versions.dart
-    globalDartdocVersion: '8.0.3',
+    globalDartdocVersion: '8.0.4',
   );
 
   //final dartdocOutputDir =

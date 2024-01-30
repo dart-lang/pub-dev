@@ -229,9 +229,18 @@ void main() {
 
             expect(
               renderedXmlDoc
-                  .toXmlString(pretty: true, indent: '  ')
+                  .toXmlString(
+                    pretty: true,
+                    indent: '  ',
+                    sortAttributes: (a, b) =>
+                        a.localName.compareTo(b.localName),
+                  )
                   .replaceFirst('<html lang="en"/>', '<html lang="en"></html>'),
-              fileXmlDoc.toXmlString(pretty: true, indent: '  '),
+              fileXmlDoc.toXmlString(
+                pretty: true,
+                indent: '  ',
+                sortAttributes: (a, b) => a.localName.compareTo(b.localName),
+              ),
             );
           }
         }
