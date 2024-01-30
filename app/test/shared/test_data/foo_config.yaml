@@ -15,7 +15,6 @@ pubClientAudience: _pubClientAudience
 pubSiteAudience: 'foo-foo.apps.googleusercontent.com'
 externalServiceAudience: 'https://pub.dev'
 gmailRelayServiceAccount:
-gmailRelayImpersonatedGSuiteUser:
 uploadSignerServiceAccount: 'foo@dartlang-pub-dev.iam.gserviceaccount.com'
 blockRobots: true
 productionHosts:

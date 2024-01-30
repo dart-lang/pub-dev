@@ -30,7 +30,6 @@ pubSiteAudience: 818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleuserco
 pubServerAudience: 818368855108-ulq5tn5t51ga21hg8jkcavbooaljiasp.apps.googleusercontent.com
 externalServiceAudience: https://pub.dev
 gmailRelayServiceAccount: pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com
-gmailRelayImpersonatedGSuiteUser: noreply@pub.dev
 uploadSignerServiceAccount: package-uploader-signer@dartlang-pub.iam.gserviceaccount.com
 blockRobots: false
 productionHosts:

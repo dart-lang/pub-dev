@@ -40,7 +40,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'pubServerAudience',
             'externalServiceAudience',
             'gmailRelayServiceAccount',
-            'gmailRelayImpersonatedGSuiteUser',
             'uploadSignerServiceAccount',
             'blockRobots',
             'productionHosts',
@@ -101,8 +100,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('externalServiceAudience', (v) => v as String?),
           gmailRelayServiceAccount:
               $checkedConvert('gmailRelayServiceAccount', (v) => v as String?),
-          gmailRelayImpersonatedGSuiteUser: $checkedConvert(
-              'gmailRelayImpersonatedGSuiteUser', (v) => v as String?),
           uploadSignerServiceAccount: $checkedConvert(
               'uploadSignerServiceAccount', (v) => v as String?),
           blockRobots: $checkedConvert('blockRobots', (v) => v as bool),
@@ -166,8 +163,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'pubServerAudience': instance.pubServerAudience,
       'externalServiceAudience': instance.externalServiceAudience,
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
-      'gmailRelayImpersonatedGSuiteUser':
-          instance.gmailRelayImpersonatedGSuiteUser,
       'uploadSignerServiceAccount': instance.uploadSignerServiceAccount,
       'blockRobots': instance.blockRobots,
       'productionHosts': instance.productionHosts,
