@@ -31,6 +31,13 @@
 
   --main-number-filter: invert(0%);
   --main-icon-color: black;
+
+  /* alerts */
+  --alert-info: #e7f8ff;
+  --alert-tip: #ecfaf7;
+  --alert-important: #e2dbff;
+  --alert-warning: #fcf8e3;
+  --alert-error: #fde9ee;
 }
 
 .dark-theme {
@@ -64,6 +71,13 @@
 
   --main-number-filter: invert(100%);
   --main-icon-color: white;
+
+  /* alerts */
+  --alert-info: #043875;
+  --alert-tip: #065517;
+  --alert-important: #4a00b4;
+  --alert-warning: #7b6909;
+  --alert-error: #7a0c17;
 }
 
 #theme {
@@ -80,6 +94,19 @@
   color: var(--main-icon-color);
   user-select: none;
   cursor: pointer;
+}
+
+#theme-button .material-symbols-outlined:hover {
+  color: var(--main-hyperlinks-color);
+}
+
+li .material-symbols-outlined, dt .material-symbols-outlined {
+  font-size: 1em;
+  vertical-align: text-bottom;
+}
+
+dt .material-symbols-outlined {
+  text-indent: 0;
 }
 
 .light-theme #light-theme-button {
@@ -847,6 +874,10 @@ button {
   cursor: pointer;
 }
 
+#sidenav-left-toggle:hover {
+  color: var(--main-hyperlinks-color);
+}
+
 /* left-nav disappears, and can transition in from the left */
 @media screen and (max-width:840px) {
   #sidenav-left-toggle {
@@ -1196,4 +1227,72 @@ li.inherited a {
   a[href]:after {
    content: "" !important;
   }
+}
+
+/* github alert styles */
+
+.markdown-alert {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+}
+
+.markdown-alert-title:before {
+  font: 24px / 1 'Material Symbols Outlined';
+}
+
+/* note, tip, important, warning, caution */
+
+.markdown-alert.markdown-alert-note {
+  background-color: var(--alert-info);
+}
+
+.markdown-alert-note .markdown-alert-title:before {
+  content: 'info';
+}
+
+.markdown-alert.markdown-alert-tip {
+  background-color: var(--alert-tip);
+}
+
+.markdown-alert-tip .markdown-alert-title:before {
+  content: 'lightbulb';
+}
+
+.markdown-alert.markdown-alert-important {
+  background-color: var(--alert-important);
+}
+
+.markdown-alert-important .markdown-alert-title:before {
+  content: 'feedback';
+}
+
+.markdown-alert.markdown-alert-warning {
+  background-color: var(--alert-warning);
+}
+
+.markdown-alert-warning .markdown-alert-title:before {
+  content: 'warning';
+}
+
+.markdown-alert.markdown-alert-caution {
+  background-color: var(--alert-error);
+}
+
+.markdown-alert-caution .markdown-alert-title:before {
+  content: 'report';
 }

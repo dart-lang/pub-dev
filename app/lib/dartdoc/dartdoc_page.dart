@@ -133,7 +133,7 @@ extension DartDocPageRender on DartDocPage {
         d.link(
           rel: 'stylesheet',
           href:
-              'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0',
+              'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
         ),
 
         d.link(rel: 'stylesheet', href: staticUrls.dartdocStylesCss),
@@ -205,6 +205,7 @@ extension DartDocPageRender on DartDocPage {
         d.div(
           id: 'theme-button',
           classes: ['toggle'],
+          attributes: {'title': 'Toggle brightness'},
           child: d.label(
             attributes: {'for': 'theme'},
             children: [
@@ -212,11 +213,11 @@ extension DartDocPageRender on DartDocPage {
               d.span(
                   id: 'dark-theme-button',
                   classes: ['material-symbols-outlined'],
-                  text: 'brightness_4'),
+                  text: 'dark_mode'),
               d.span(
                   id: 'light-theme-button',
                   classes: ['material-symbols-outlined'],
-                  text: 'brightness_5'),
+                  text: 'light_mode'),
             ],
           ),
         ),
