@@ -154,9 +154,22 @@ String pkgDocUrl(
   String? version,
   bool includeHost = false,
   String? relativePath,
-  bool omitTrailingSlash = false,
   bool isLatest = false,
 }) {
+  final relativePathSegments = relativePath == null
+      ? const <String>[]
+      : Uri.parse(relativePath)
+          .pathSegments
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+  var forceEndingSlash = relativePathSegments.isEmpty;
+  if (relativePathSegments.isNotEmpty &&
+      relativePathSegments.last == 'index.html') {
+    relativePathSegments.removeLast();
+    forceEndingSlash = true;
+  }
+
   if (isLatest || version == null) {
     version = 'latest';
   }
@@ -164,22 +177,11 @@ String pkgDocUrl(
     'documentation',
     package,
     version,
+    ...relativePathSegments,
+    if (forceEndingSlash) '',
   ];
   final baseUri = includeHost ? _siteRootUri : _pathRootUri;
-  String url = baseUri.resolveUri(Uri(pathSegments: segments)).toString();
-
-  if (relativePath != null) {
-    url = p.join(url, relativePath);
-  } else if (!omitTrailingSlash) {
-    url = '$url/';
-  }
-  if (url.endsWith('/index.html')) {
-    url = url.substring(0, url.length - 'index.html'.length);
-  }
-  if (omitTrailingSlash && url.endsWith('/')) {
-    url = url.substring(0, url.length - 1);
-  }
-  return url;
+  return baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 }
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
