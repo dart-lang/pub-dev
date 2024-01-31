@@ -35,6 +35,7 @@ void _setEventForDetailMetadataToggle() {
   int? origX, origY;
 
   var isVisible = false;
+  // ignore: cancel_subscriptions
   StreamSubscription? stateSubscription;
   final currentTitle = document.head?.querySelector('title')?.text?.trim();
   final currentUrl = window.location.toString();
