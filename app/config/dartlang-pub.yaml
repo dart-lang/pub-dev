@@ -78,8 +78,8 @@ rateLimits:
     daily: 12
   - operation: package-published
     scope: user
-    burst: 10
-    hourly: 100
+    burst: 200
+    hourly: 200
     daily: 200
   - operation: publisher-created
     scope: user
