@@ -82,6 +82,7 @@ Future<void> _verifyRateLimit({
   List<AuditLogRecord>? auditEntriesFromLastDay;
 
   Future<void> check({
+    required String operation,
     required Duration window,
     required int? maxCount,
     required String windowAsText,
@@ -94,6 +95,7 @@ Future<void> _verifyRateLimit({
     final current = await entry.get();
     if (current != null && current.isAfter(clock.now())) {
       throw RateLimitException(
+        operation: operation,
         maxCount: maxCount,
         window: window,
         windowAsText: windowAsText,
@@ -117,6 +119,7 @@ Future<void> _verifyRateLimit({
           .reduce((a, b) => a.isBefore(b) ? a : b);
       await entry.set(firstTimestamp.add(window), window);
       throw RateLimitException(
+        operation: operation,
         maxCount: maxCount,
         window: window,
         windowAsText: windowAsText,
@@ -125,16 +128,19 @@ Future<void> _verifyRateLimit({
   }
 
   await check(
+    operation: rateLimit.operation,
     window: Duration(minutes: 2),
     maxCount: rateLimit.burst,
     windowAsText: 'last few minutes',
   );
   await check(
+    operation: rateLimit.operation,
     window: Duration(hours: 1),
     maxCount: rateLimit.hourly,
     windowAsText: 'last hour',
   );
   await check(
+    operation: rateLimit.operation,
     window: Duration(days: 1),
     maxCount: rateLimit.daily,
     windowAsText: 'last day',
