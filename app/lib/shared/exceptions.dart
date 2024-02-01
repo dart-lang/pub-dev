@@ -343,15 +343,18 @@ class OperationForbiddenException extends ResponseException {
 /// Thrown when the operation is rejected because a rate limit is reached.
 class RateLimitException extends ResponseException {
   RateLimitException({
+    required String operation,
     required int maxCount,
     required String windowAsText,
     required Duration window,
   }) : super._(
           429,
           'RateLimit',
-          'The operation is blocked, as rate limit in the current window '
+          'The "$operation" operation is blocked, as its rate limit '
               'has been reached ($maxCount in the $windowAsText). '
-              'Please try again later.',
+              'Please try again later. '
+              'Please report the issue on https://github.com/dart-lang/pub-dev/issues/new '
+              'if you think the limit should be increased to accommodate your use case.',
           headers: {
             'Retry-After': '${window.inSeconds}',
           },
