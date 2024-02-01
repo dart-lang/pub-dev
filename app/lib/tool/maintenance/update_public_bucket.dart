@@ -87,6 +87,8 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
       continue;
     }
 
+    await updateContentDispositionToAttachment(publicInfo, publicBucket);
+
     // Skip recently updated objects.
     if (publicInfo.age < ageCheckThreshold) {
       // Ignore recent files.

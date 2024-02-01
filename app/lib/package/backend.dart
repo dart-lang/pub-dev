@@ -1183,6 +1183,12 @@ class PackageBackend {
           apiExporter!
               .updatePackageVersion(newVersion.package, newVersion.version!),
       ]);
+      final objectName =
+          tarballObjectName(newVersion.package, newVersion.version!);
+      final info = await _publicBucket.tryInfo(objectName);
+      if (info != null) {
+        await updateContentDispositionToAttachment(info, _publicBucket);
+      }
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
