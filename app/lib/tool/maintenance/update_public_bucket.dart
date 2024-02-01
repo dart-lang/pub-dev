@@ -87,18 +87,7 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
       continue;
     }
 
-    if (publicInfo.metadata.contentDisposition != 'attachment') {
-      try {
-        await publicBucket.updateMetadata(entry.name,
-            publicInfo.metadata.replace(contentDisposition: 'attachment'));
-      } on Exception catch (e, st) {
-        _logger.warning(
-          'Failed to update content-disposition on ${entry.name} in public bucket',
-          e,
-          st,
-        );
-      }
-    }
+    await updateContentDispositionToAttachment(publicInfo, publicBucket);
 
     // Skip recently updated objects.
     if (publicInfo.age < ageCheckThreshold) {

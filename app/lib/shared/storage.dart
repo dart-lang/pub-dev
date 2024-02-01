@@ -190,6 +190,22 @@ Future<bool> deleteFromBucket(Bucket bucket, String objectName) async {
   );
 }
 
+Future<void> updateContentDispositionToAttachment(
+    ObjectInfo info, Bucket bucket) async {
+  if (info.metadata.contentDisposition != 'attachment') {
+    try {
+      await bucket.updateMetadata(
+          info.name, info.metadata.replace(contentDisposition: 'attachment'));
+    } on Exception catch (e, st) {
+      _logger.warning(
+        'Failed to update content-disposition on ${info.name} in public bucket',
+        e,
+        st,
+      );
+    }
+  }
+}
+
 /// Deletes a [folder] in a [bucket], recursively listing all of its subfolders.
 ///
 /// Returns the number of objects deleted.
