@@ -85,7 +85,11 @@ void main() {
                   as Map<String, dynamic>);
           final report = summary.report!;
           expect(report.maxPoints, greaterThan(100));
-          expect(report.grantedPoints, report.maxPoints);
+          expect(report.grantedPoints, report.maxPoints,
+              reason: report.sections
+                  .where((s) => s.grantedPoints != s.maxPoints)
+                  .map((e) => e.summary)
+                  .join('\n'));
         }
 
         // TODO: consider docker cleanup
