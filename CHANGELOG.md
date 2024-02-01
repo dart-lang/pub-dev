@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: temporarily disabled email notification on package published events.
 
 ## `20240130t131100-all`
  * Bumped runtimeVersion to `2024.01.30`.
