@@ -62,6 +62,12 @@ d.Node packageAdminPageNode({
             'Use the [create publisher](${urls.createPublisherUrl()}) page to create one.'),
       if (!pkgHasPublisher) ...[
         d.h3(text: 'Uploaders'),
+        if (uploaderUsers.length == 1)
+          d.p(
+            text:
+                'There is only a single uploader. Consider adding more uploaders to protect against losing control of the package.',
+            classes: ['warning'],
+          ),
         material.dataTable<User>(
           id: '-pkg-admin-uploaders-table',
           ariaLabel: 'Uploaders of package',
