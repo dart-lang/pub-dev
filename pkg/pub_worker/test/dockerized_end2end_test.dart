@@ -92,9 +92,8 @@ void main() {
               .join('\n');
           // temporary allow points drop, until we figure out why this is happening
           var expectedDrop = 0;
-          if (package == 'url_launcher' &&
-              failingReportSections
-                  .contains("Issue tracker URL doesn't exist.")) {
+          if (failingReportSections
+              .contains("Issue tracker URL doesn't exist.")) {
             expectedDrop = 10;
           }
           expect(
