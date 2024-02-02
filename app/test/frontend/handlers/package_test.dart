@@ -28,6 +28,18 @@ void main() {
       );
     });
 
+    testWithProfile(
+      'redirects MixedCase names, but only if it is the main page',
+      fn: () async {
+        await expectRedirectResponse(
+            await issueGet('/packages/OxyGen'), '/packages/oxygen');
+        await expectNotFoundResponse(
+            await issueGet('/packages/OxyGen/versions'));
+        await expectNotFoundResponse(
+            await issueGet('/packages/OxyGen/changelog'));
+      },
+    );
+
     testWithProfile('withheld package - not found', fn: () async {
       final pkg = await dbService.lookupValue<Package>(
           dbService.emptyKey.append(Package, id: 'oxygen'));

@@ -249,6 +249,19 @@ Future<shelf.Response> _handlePackagePage({
   if (redirectPackageUrls.containsKey(packageName)) {
     return redirectResponse(redirectPackageUrls[packageName]!);
   }
+  // May redirect to the lowercased package name, but only if [versionName] and
+  // [assetKind] is unspecified.
+  // NOTE: we have legitimate mixed-case package names that must not be redirected.
+  final lowerCasePackageName = packageName.toLowerCase();
+  if (versionName == null &&
+      packageName != lowerCasePackageName &&
+      assetKind == AssetKind.readme) {
+    if (!await packageBackend.isPackageVisible(packageName) &&
+        await packageBackend.isPackageVisible(lowerCasePackageName)) {
+      return redirectResponse(urls.pkgPageUrl(lowerCasePackageName));
+    }
+  }
+
   final Stopwatch sw = Stopwatch()..start();
   String? cachedPage;
   if (requestContext.uiCacheEnabled && cacheEntry != null) {
