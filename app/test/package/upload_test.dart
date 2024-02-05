@@ -613,6 +613,37 @@ void main() {
       });
 
       testWithProfile(
+          'successful upload with GitHub Actions through workflow_dispatch',
+          fn: () async {
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+          eventName: 'workflow_dispatch',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs = await createPubApiClient(authToken: token)
+            .uploadPackageBytes(bytes);
+        expect(rs.success.message,
+            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
+      });
+
+      testWithProfile(
           'successful upload with GitHub Actions (exempted package)',
           testProfile: TestProfile(
             packages: [
