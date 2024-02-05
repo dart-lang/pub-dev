@@ -24,10 +24,12 @@ import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
 import '../package/models.dart';
 import '../publisher/models.dart';
+import '../scorecard/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import '../task/backend.dart';
 import '../tool/utils/dart_sdk_version.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
@@ -476,6 +478,9 @@ class AdminBackend {
     );
 
     await purgePackageCache(packageName);
+    await purgeScorecardData(packageName, version, isLatest: true);
+    // trigger (eventual) re-analysis
+    await taskBackend.trackPackage(packageName);
   }
 
   /// Handles GET '/api/admin/packages/<package>/assigned-tags'

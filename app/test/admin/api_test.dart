@@ -20,6 +20,7 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -218,9 +219,14 @@ void main() {
       setupTestsWithAdminTokenIssues(
           (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'));
 
-      testWithProfile('OK', fn: () async {
+      testWithProfile('OK', processJobsWithFakeRunners: true, fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
         final removeVersion = '1.2.0';
+
+        // pre-delete check: latest scorecard is on the removed version
+        final sc1 =
+            await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
+        expect(sc1.packageVersion, removeVersion);
 
         final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
         final package = await dbService.lookupValue<Package>(pkgKey);
@@ -306,6 +312,11 @@ void main() {
           pkgAfter2ndRemoval.deletedVersions,
           pkgAfter1stRemoval.deletedVersions,
         );
+
+        // sanity check that scorecard is being loaded
+        final sc2 =
+            await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
+        expect(sc2.packageVersion, '1.0.0');
       });
     });
 
