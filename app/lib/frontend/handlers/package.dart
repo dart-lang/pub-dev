@@ -75,6 +75,7 @@ Future<shelf.Response> packageVersionsListHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    canonicalUrlFn: (p, v) => urls.pkgVersionsUrl(p),
     renderFn: (data) async {
       final versions = await packageBackend.listVersionsCached(packageName);
       if (versions.versions.isEmpty) {
@@ -105,6 +106,7 @@ Future<shelf.Response> packageChangelogHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.changelog,
+    canonicalUrlFn: (p, v) => urls.pkgChangelogUrl(p, version: v),
     renderFn: (data) {
       if (!data.hasChangelog) {
         return redirectResponse(
@@ -126,6 +128,7 @@ Future<shelf.Response> packageExampleHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.example,
+    canonicalUrlFn: (p, v) => urls.pkgExampleUrl(p, version: v),
     renderFn: (data) {
       if (!data.hasExample) {
         return redirectResponse(
@@ -147,6 +150,7 @@ Future<shelf.Response> packageInstallHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: null,
+    canonicalUrlFn: (p, v) => urls.pkgInstallUrl(p, version: v),
     renderFn: (data) => renderPkgInstallPage(data),
     cacheEntry: cache.uiPackageInstall(packageName, versionName),
   );
@@ -162,6 +166,7 @@ Future<shelf.Response> packageLicenseHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.license,
+    canonicalUrlFn: (p, v) => urls.pkgLicenseUrl(p, version: v),
     renderFn: (data) => renderPkgLicensePage(data),
     cacheEntry: cache.uiPackageLicense(packageName, versionName),
   );
@@ -177,6 +182,7 @@ Future<shelf.Response> packagePubspecHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.pubspec,
+    canonicalUrlFn: (p, v) => urls.pkgPubspecUrl(p, version: v),
     renderFn: (data) => renderPkgPubspecPage(data),
     cacheEntry: cache.uiPackagePubspec(packageName, versionName),
   );
@@ -192,6 +198,7 @@ Future<shelf.Response> packageScoreHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: null,
+    canonicalUrlFn: (p, v) => urls.pkgScoreUrl(p, version: v),
     renderFn: (data) => renderPkgScorePage(data),
     cacheEntry: cache.uiPackageScore(packageName, versionName),
   );
@@ -232,6 +239,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.readme,
+    canonicalUrlFn: (p, v) => urls.pkgReadmeUrl(p, version: v),
     renderFn: (data) => renderPkgShowPage(data),
     cacheEntry: cache.uiPackagePage(packageName, versionName),
   );
@@ -242,10 +250,19 @@ Future<shelf.Response> _handlePackagePage({
   required String packageName,
   required String? versionName,
   required String? assetKind,
+  required String Function(String package, String? version) canonicalUrlFn,
   required FutureOr Function(PackagePageData data) renderFn,
   Entry<String>? cacheEntry,
 }) async {
   checkPackageVersionParams(packageName, versionName);
+
+  final canonicalUrl = canonicalUrlFn(
+    await _canonicalPackageName(packageName),
+    canonicalizeVersion(versionName) ?? versionName,
+  );
+  if (request.requestedUri.path != canonicalUrl) {
+    return redirectResponse(canonicalUrl);
+  }
   if (redirectPackageUrls.containsKey(packageName)) {
     return redirectResponse(redirectPackageUrls[packageName]!);
   }
@@ -289,6 +306,23 @@ Future<shelf.Response> _handlePackagePage({
   return htmlResponse(cachedPage);
 }
 
+/// Returns the optionally lowercased version of [name], but only if there
+/// is no package with exact [name], and there exists a package with its
+/// lowercased version.
+Future<String> _canonicalPackageName(String name) async {
+  final lowerName = name.toLowerCase();
+  if (name == lowerName) {
+    return name;
+  }
+  if (await packageBackend.isPackageVisible(name)) {
+    return name;
+  }
+  if (await packageBackend.isPackageVisible(lowerName)) {
+    return lowerName;
+  }
+  return name;
+}
+
 /// Handles requests for /packages/<package>/admin
 /// Handles requests for /packages/<package>/versions/<version>/admin
 Future<shelf.Response> packageAdminHandler(
@@ -298,6 +332,7 @@ Future<shelf.Response> packageAdminHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    canonicalUrlFn: (p, v) => urls.pkgAdminUrl(p),
     renderFn: (data) async {
       final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
       if (unauthenticatedRs != null) {
@@ -333,6 +368,7 @@ Future<shelf.Response> packageActivityLogHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    canonicalUrlFn: (p, v) => urls.pkgActivityLogUrl(p),
     renderFn: (data) async {
       final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
       if (unauthenticatedRs != null) {

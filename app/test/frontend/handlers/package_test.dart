@@ -28,6 +28,21 @@ void main() {
       );
     });
 
+    testWithProfile('package name and version redirects', fn: () async {
+      await expectRedirectResponse(
+          await issueGet('/packages/oxYgen'), '/packages/oxygen');
+      await expectRedirectResponse(await issueGet('/packages/oxYgen/changelog'),
+          '/packages/oxygen/changelog');
+      await expectRedirectResponse(await issueGet('/packages/oxYgen/versions'),
+          '/packages/oxygen/versions');
+      await expectRedirectResponse(
+          await issueGet('/packages/oxYgen/versions/1.2.0/changelog'),
+          '/packages/oxygen/versions/1.2.0/changelog');
+      await expectRedirectResponse(
+          await issueGet('/packages/oxygen/versions/1.2.00/changelog'),
+          '/packages/oxygen/versions/1.2.0/changelog');
+    });
+
     testWithProfile('withheld package - not found', fn: () async {
       final pkg = await dbService.lookupValue<Package>(
           dbService.emptyKey.append(Package, id: 'oxygen'));
