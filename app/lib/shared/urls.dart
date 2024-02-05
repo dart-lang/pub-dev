@@ -126,6 +126,9 @@ String pkgScoreLogTxtUrl(String package, {String? version}) {
   return p.join(pkgScoreUrl(package, version: version), 'log.txt');
 }
 
+String pkgPubspecUrl(String package, {String? version}) =>
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.pubspec);
+
 String pkgAdminUrl(
   String package, {
   bool? includeHost,
