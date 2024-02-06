@@ -110,7 +110,7 @@ DocFilePath? parseRequestUri(Uri uri) {
   }
   // Only allow segments containing [a-z0-9._-]
   if (pathSegments
-      .any((s) => _dartdocPathSegmentRegExp.matchAsPrefix(s) == null)) {
+      .any((s) => _dartdocPathSegmentRegExp.stringMatch(s) == null)) {
     return null;
   }
   final path = p.normalize(p.joinAll(pathSegments));
