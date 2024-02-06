@@ -101,7 +101,7 @@ class IntegrityChecker {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
     yield* _queryWithPool<User>((user) async* {
-      if (!isValidUserId(user.userId)) {
+      if (!looksLikeUserId(user.userId)) {
         yield 'User has invalid userId: "${user.userId}".';
       }
 
@@ -152,7 +152,7 @@ class IntegrityChecker {
       if (mapping.userIdKey == null) {
         yield 'OAuthUserID "${mapping.oauthUserId}" has no `userId`.';
       } else {
-        if (!isValidUserId(mapping.userId)) {
+        if (!looksLikeUserId(mapping.userId)) {
           yield 'OAuthUserID "${mapping.oauthUserId}" has invalid `userId`: "${mapping.userId}".';
         }
         _oauthToUser[mapping.oauthUserId] = mapping.userId;
@@ -689,7 +689,7 @@ class IntegrityChecker {
 
     final users = r.users;
     if (users == null || users.isEmpty) {
-      if (isKnownServiceAgent(r.agent!)) {
+      if (looksLikeServiceAgent(r.agent!)) {
         // agent-initiated log records may not have users
       } else {
         yield 'AuditLogRecord "${r.id}" has no users.';
@@ -735,10 +735,10 @@ class IntegrityChecker {
   }) async* {
     final label =
         entityId == null ? '$entityType entity' : '$entityType "$entityId"';
-    if (!isValidUserIdOrServiceAgent(agent)) {
+    if (!looksLikeUserIdOrServiceAgent(agent)) {
       yield '$label references an invalid agent: "$agent".';
     }
-    if (isValidUserId(agent)) {
+    if (looksLikeUserId(agent)) {
       yield* _checkUserValid(
         agent,
         entityType: entityType,
@@ -759,7 +759,7 @@ class IntegrityChecker {
   }) async* {
     final label =
         entityId == null ? '$entityType entity' : '$entityType "$entityId"';
-    if (!isValidUserId(userId)) {
+    if (!looksLikeUserId(userId)) {
       yield '$label references an invalid userId: "$userId".';
     }
     if (!(await _userExists(userId))) {
