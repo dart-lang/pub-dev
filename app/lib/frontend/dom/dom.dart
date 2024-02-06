@@ -643,6 +643,25 @@ Node meta({
       text: text,
     );
 
+/// Creates a `<nav>` Element using the default [DomContext].
+Node nav({
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+  Iterable<Node>? children,
+  Node? child,
+  String? text,
+}) =>
+    dom.element(
+      'nav',
+      id: id,
+      classes: classes,
+      attributes: attributes,
+      children: children,
+      child: child,
+      text: text,
+    );
+
 /// Creates an `<option>` Element using the default [DomContext].
 Node option({
   String? id,
