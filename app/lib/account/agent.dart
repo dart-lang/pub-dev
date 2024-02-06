@@ -12,41 +12,90 @@ import 'models.dart';
 final _uuidRegExp =
     RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
 
+/// Agents identify authenticated users or automated system accounts.
+///
+/// The format and/or the content prefix identifies the type of the agent.
+/// Newer agent identifiers must contain a unique (but maybe opaque)
+/// part that corresponds with an internal or external authentication
+/// identifier (like email address or repository URL).
+///
+/// Older identifiers may only describe the type of the agent.
 abstract class KnownAgents {
-  static const githubActions = 'service:github-actions';
-  static const gcpServiceAccount = 'service:gcp-service-account';
+  /// Non-specific agent - only specifies it is from GitHub Actions.
+  ///
+  /// Deprecated and should not be used for new audit-log entries.
+  /// This value is still present in some older audit-log entries.
+  static const _genericGithubActions = 'service:github-actions';
+
+  /// Non-specific agent - only specifies it is from GCP Service Account.
+  ///
+  /// Deprecated and should not be used for new audit-log entries.
+  /// This value is still present in some older audit-log entries.
+  static const _genericGcpServiceAccount = 'service:gcp-service-account';
+
+  /// The prefix for GitHub Actions agent identifiers.
+  static const _githubActionsPrefix = 'service:github-actions:';
+
+  /// The prefix for GCP Service Account agent identifiers.
+  static const _gcpServiceAccountPrefix = 'service:gcp-service-account:';
+
   // Agent for pub admin actions.
   static const pubSupport = 'support@pub.dev';
 
-  static const _values = <String>{
-    githubActions,
-    gcpServiceAccount,
+  /// Returns an agentId in the format of `service:github-actions:<repositoryOwnerId>/<repositoryId>`
+  ///
+  /// Note: [repositoryOwnerId] and [repositoryId] are opaque identifiers.
+  /// These are **NOT** the same as the repository name, these identifiers
+  /// remain stable when organizations and repositories are renamed!
+  static String githubActionsAgentId({
+    required String repositoryOwnerId,
+    required String repositoryId,
+  }) {
+    return [_githubActionsPrefix, '$repositoryOwnerId/$repositoryId'].join();
+  }
+
+  /// Returns an agentId in the format of `service:gcp-service-account:<oauthUserId>`
+  static String gcpServiceAccountAgentId({
+    required String oauthUserId,
+  }) {
+    return [_gcpServiceAccountPrefix, oauthUserId].join();
+  }
+
+  static const _agentIdPrefixes = [
+    _githubActionsPrefix,
+    _gcpServiceAccountPrefix,
+  ];
+
+  static const _nonSpecificAgentIds = <String>{
+    _genericGithubActions,
+    _genericGcpServiceAccount,
     pubSupport,
   };
 }
 
 /// Whether the [userId] is valid-looking,
 /// without namespace or other special value.
-bool isValidUserId(String userId) {
+bool looksLikeUserId(String userId) {
   return _uuidRegExp.matchAsPrefix(userId) != null;
 }
 
 /// Whether the [agent] is a valid-looking identifier.
-bool isKnownServiceAgent(String agent) {
-  return KnownAgents._values.contains(agent);
+bool looksLikeServiceAgent(String agent) {
+  return KnownAgents._nonSpecificAgentIds.contains(agent) ||
+      KnownAgents._agentIdPrefixes.any((prefix) => agent.startsWith(prefix));
 }
 
 /// Whether the [agent] is a valid-looking actor.
-bool isValidUserIdOrServiceAgent(String agent) =>
-    isValidUserId(agent) || isKnownServiceAgent(agent);
+bool looksLikeUserIdOrServiceAgent(String agent) =>
+    looksLikeUserId(agent) || looksLikeServiceAgent(agent);
 
 void checkUserIdParam(String value) {
-  InvalidInputException.check(isValidUserId(value), 'Invalid "userId".');
+  InvalidInputException.check(looksLikeUserId(value), 'Invalid "userId".');
 }
 
 void checkAgentParam(String value) {
   InvalidInputException.check(
-      isValidUserIdOrServiceAgent(value), 'Invalid "agent".');
+      looksLikeUserIdOrServiceAgent(value), 'Invalid "agent".');
 }
 
 /// An [AuthenticatedAgent] represents an _agent_ (a user or automated service)
@@ -60,7 +109,7 @@ void checkAgentParam(String value) {
 ///  * A Github Action may authenticate using an OIDC `id_token`.
 abstract class AuthenticatedAgent {
   /// The unique identifier of the agent.
-  /// Must pass the [isValidUserIdOrServiceAgent] check.
+  /// Must pass the [looksLikeUserIdOrServiceAgent] check.
   ///
   /// Examples:
   ///  * For a regular user we use `User.userId`.
@@ -81,12 +130,17 @@ abstract class AuthenticatedAgent {
 }
 
 /// Holds the authenticated Github Action information.
+///
+/// The [agentId] has the following format: `service:github-actions:<repositoryOwnerId>/<repositoryId>`
 class AuthenticatedGithubAction implements AuthenticatedAgent {
   @override
-  String get agentId => KnownAgents.githubActions;
+  late final agentId = KnownAgents.githubActionsAgentId(
+    repositoryOwnerId: payload.repositoryOwnerId,
+    repositoryId: payload.repositoryId,
+  );
 
   @override
-  String get displayId => KnownAgents.githubActions;
+  String get displayId => KnownAgents._genericGithubActions;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
@@ -104,16 +158,35 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   AuthenticatedGithubAction({
     required this.idToken,
     required this.payload,
-  });
+  }) {
+    _assertRepository(payload.repository);
+  }
 
   @override
   String? get email => null;
 }
 
+void _assertRepository(String repository) {
+  if (repository.trim().isEmpty) {
+    throw AssertionError(
+        'The JWT from GitHub must have a non-empty `repository`.');
+  }
+  final parts = repository.split('/');
+  if (parts.length != 2) {
+    throw AssertionError('The JWT from GitHub must have a valid `repository`.');
+  }
+  if (parts.any((p) => p.trim().isEmpty)) {
+    throw AssertionError('The JWT from GitHub must have a valid `repository`.');
+  }
+}
+
 /// Holds the authenticated Google Cloud Service account information.
+///
+/// The [agentId] has the following format: `service:gcp-service-account:<oauthUserId>`
 class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   @override
-  String get agentId => KnownAgents.gcpServiceAccount;
+  late final agentId =
+      KnownAgents.gcpServiceAccountAgentId(oauthUserId: oauthUserId);
 
   @override
   String get displayId => email;

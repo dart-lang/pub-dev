@@ -9,38 +9,38 @@ import 'package:test/test.dart';
 void main() {
   group('userId', () {
     test('valid UUID', () {
-      expect(isValidUserId(createUuid()), isTrue);
+      expect(looksLikeUserId(createUuid()), isTrue);
     });
 
     test('invalid UUID', () {
-      expect(isValidUserId(createUuid().replaceAll('-', '')), isFalse);
-      expect(isValidUserId(createUuid().replaceAll('-', '.')), isFalse);
+      expect(looksLikeUserId(createUuid().replaceAll('-', '')), isFalse);
+      expect(looksLikeUserId(createUuid().replaceAll('-', '.')), isFalse);
     });
   });
 
   group('service agents', () {
     test('valid agent', () {
-      expect(isKnownServiceAgent('service:github-actions'), isTrue);
+      expect(looksLikeServiceAgent('service:github-actions'), isTrue);
     });
 
     test('invalid agent', () {
-      expect(isKnownServiceAgent('service:x'), isFalse);
-      expect(isKnownServiceAgent('x'), isFalse);
-      expect(isKnownServiceAgent(createUuid()), isFalse);
+      expect(looksLikeServiceAgent('service:x'), isFalse);
+      expect(looksLikeServiceAgent('x'), isFalse);
+      expect(looksLikeServiceAgent(createUuid()), isFalse);
     });
   });
 
   group('agents', () {
     test('valid agents', () {
-      expect(isValidUserIdOrServiceAgent(createUuid()), isTrue);
-      expect(isValidUserIdOrServiceAgent('service:github-actions'), isTrue);
+      expect(looksLikeUserIdOrServiceAgent(createUuid()), isTrue);
+      expect(looksLikeUserIdOrServiceAgent('service:github-actions'), isTrue);
     });
 
     test('invalid agents', () {
-      expect(isValidUserIdOrServiceAgent(createUuid().replaceAll('-', '')),
+      expect(looksLikeUserIdOrServiceAgent(createUuid().replaceAll('-', '')),
           isFalse);
-      expect(isValidUserIdOrServiceAgent('service:x'), isFalse);
-      expect(isValidUserIdOrServiceAgent('x'), isFalse);
+      expect(looksLikeUserIdOrServiceAgent('service:x'), isFalse);
+      expect(looksLikeUserIdOrServiceAgent('x'), isFalse);
     });
   });
 }
