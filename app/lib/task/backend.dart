@@ -17,6 +17,7 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -1044,7 +1045,12 @@ class TaskBackend {
             .map((e) => Version.parse(e.key))
             .latestVersion;
         if (bestVersion != null) {
-          return bestVersion.toString();
+          // sanity check: the version is not deleted
+          final pv = await packageBackend.lookupPackageVersion(
+              package, bestVersion.toString());
+          if (pv != null) {
+            return bestVersion.toString();
+          }
         }
       }
       return '';
