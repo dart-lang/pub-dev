@@ -50,7 +50,7 @@ d.Node siteHeaderNode({
             ),
           ),
         ),
-      d.div(
+      d.nav(
         classes: [
           'site-header-nav',
           'scroll-container',
