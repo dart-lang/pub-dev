@@ -67,6 +67,13 @@ void main() {
       testUri('/documentation/angular/4.0.0+2/file.html', 'angular', '4.0.0+2',
           'file.html');
     });
+
+    test('invalid path segments', () {
+      testUri('/documentation/pkg/latest/(https://github.com/a/b)', null);
+      testUri('/documentation/pkg/latest/(/x/y', null);
+      testUri('/documentation/pkg/latest/á/b', null);
+      testUri('/documentation/pkg/latest/!/b', null);
+    });
   });
 
   group('dartdoc handlers', () {
