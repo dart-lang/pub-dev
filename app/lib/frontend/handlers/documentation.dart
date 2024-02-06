@@ -108,7 +108,7 @@ DocFilePath? parseRequestUri(Uri uri) {
   if (relativeSegments.isEmpty || !relativeSegments.last.contains('.')) {
     pathSegments = [...relativeSegments, 'index.html'];
   }
-  // reject if any path segment is invalid
+  // Only allow segments containing [a-z0-9._-]
   if (pathSegments
       .any((s) => _dartdocPathSegmentRegExp.matchAsPrefix(s) == null)) {
     return null;
