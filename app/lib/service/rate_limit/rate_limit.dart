@@ -55,6 +55,10 @@ Future<void> _verifyRateLimit({
   String? agentId,
 }) async {
   assert(agentId != null || package != null);
+  if (agentId == KnownAgents.pubSupport) {
+    /// admin account actions are allowed without any rate limit
+    return;
+  }
   if (rateLimit == null) {
     return;
   }
