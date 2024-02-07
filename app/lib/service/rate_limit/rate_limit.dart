@@ -21,26 +21,18 @@ Future<void> verifyPackageUploadRateLimit({
 }) async {
   final packagePublishedOp = AuditLogRecordKind.packagePublished;
 
-  if (agent is AuthenticatedUser) {
-    await _verifyRateLimit(
-      rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
-      userId: agent.userId,
-    );
+  await _verifyRateLimit(
+    rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
+    agentId: agent.agentId,
+  );
 
-    if (isNew) {
-      await _verifyRateLimit(
-        rateLimit: _getRateLimit(
-          AuditLogRecordKind.packageCreated,
-          RateLimitScope.user,
-        ),
-        userId: agent.userId,
-      );
-    }
-  } else {
-    // apply per-user rate limit on non-user agents as they were package-specific limits
+  if (isNew) {
     await _verifyRateLimit(
-      rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
-      package: package,
+      rateLimit: _getRateLimit(
+        AuditLogRecordKind.packageCreated,
+        RateLimitScope.user,
+      ),
+      agentId: agent.agentId,
     );
   }
 
@@ -60,9 +52,13 @@ RateLimit? _getRateLimit(String operation, RateLimitScope scope) {
 Future<void> _verifyRateLimit({
   required RateLimit? rateLimit,
   String? package,
-  String? userId,
+  String? agentId,
 }) async {
-  assert(userId != null || package != null);
+  assert(agentId != null || package != null);
+  if (agentId == KnownAgents.pubSupport) {
+    /// admin account actions are allowed without any rate limit
+    return;
+  }
   if (rateLimit == null) {
     return;
   }
@@ -76,7 +72,7 @@ Future<void> _verifyRateLimit({
     rateLimit.operation,
     rateLimit.scope.name,
     if (package != null) 'package-$package',
-    if (userId != null) 'userId-$userId',
+    if (agentId != null) 'agentId-$agentId',
   ].join('/');
 
   List<AuditLogRecord>? auditEntriesFromLastDay;
@@ -110,7 +106,10 @@ Future<void> _verifyRateLimit({
         .where((e) => e.kind == rateLimit.operation)
         .where((e) => e.created!.isAfter(windowStart))
         .where((e) => package == null || _containsPackage(e.packages, package))
-        .where((e) => userId == null || _containsUserId(e.users, userId))
+        .where((e) =>
+            agentId == null ||
+            e.agent == agentId ||
+            _containsUserId(e.users, agentId))
         .toList();
 
     if (relevantEntries.length >= maxCount) {
