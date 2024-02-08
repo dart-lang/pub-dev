@@ -18,7 +18,7 @@ import '../../shared/handlers.dart';
 import '../../shared/urls.dart';
 
 final _dartdocPathSegmentRegExp =
-    RegExp(r'^[a-z0-9_\.\-]+$', caseSensitive: false);
+    RegExp(r'^[a-z0-9_\.\- ]+$', caseSensitive: false);
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
@@ -108,7 +108,7 @@ DocFilePath? parseRequestUri(Uri uri) {
   if (relativeSegments.isEmpty || !relativeSegments.last.contains('.')) {
     pathSegments = [...relativeSegments, 'index.html'];
   }
-  // Only allow segments containing [a-z0-9._-]
+  // Only allow segments containing [a-z0-9._- ]
   if (pathSegments
       .any((s) => _dartdocPathSegmentRegExp.stringMatch(s) == null)) {
     return null;
