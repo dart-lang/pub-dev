@@ -205,5 +205,13 @@ extension RequestExt on shelf.Request {
   }
 
   /// The IP address of the original client starting the request.
-  String? get sourceIp => headers['x-forwarded-for'];
+  ///
+  /// Returns `null` if there is no source IP associated with the request.
+  String? get sourceIp {
+    final xForwardedFor = headers['x-forwarded-for']?.split(',').first.trim();
+    if (xForwardedFor != null && xForwardedFor.isNotEmpty) {
+      return xForwardedFor;
+    }
+    return null;
+  }
 }
