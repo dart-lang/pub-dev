@@ -644,6 +644,43 @@ void main() {
       });
 
       testWithProfile(
+          'GitHub Actions through workflow_dispatch cannot upload without targeting a tag',
+          fn: () async {
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/heads/main',
+          eventName: 'workflow_dispatch',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(rs,
+            status: 403,
+            code: 'InsufficientPermissions',
+            message:
+                'The calling GitHub Action is not allowed to publish, because: '
+                'publishing is only allowed from \"tag\" refType, this token '
+                'has \"head\" refType.\n'
+                'See https://dart.dev/go/publishing-from-github');
+      });
+
+      testWithProfile(
           'successful upload with GitHub Actions (exempted package)',
           testProfile: TestProfile(
             packages: [
