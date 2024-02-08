@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: applied rate limit on search endpoints.
 
 ## `20240206t104500-all`
  * Bumped runtimeVersion to `2024.02.05`.

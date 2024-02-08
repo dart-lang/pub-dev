@@ -182,3 +182,17 @@ Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
   writeNotNull('url', instance.url);
   return val;
 }
+
+SearchRequestCounter _$SearchRequestCounterFromJson(
+        Map<String, dynamic> json) =>
+    SearchRequestCounter(
+      started: DateTime.parse(json['started'] as String),
+      value: json['value'] as int,
+    );
+
+Map<String, dynamic> _$SearchRequestCounterToJson(
+        SearchRequestCounter instance) =>
+    <String, dynamic>{
+      'started': instance.started.toIso8601String(),
+      'value': instance.value,
+    };

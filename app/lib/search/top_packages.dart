@@ -135,7 +135,11 @@ CachedValue<List<PackageView>> _cachedValue(
         order: order,
         pageSize: 100,
       );
-      final page = await searchAdapter.search(form);
+      final page = await searchAdapter.search(
+        form,
+        // Do not apply rate limit here.
+        rateLimitKey: null,
+      );
       return page.packageHits;
     },
   );
