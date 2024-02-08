@@ -9,6 +9,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
 
 part 'search_service.g.dart';
 
@@ -461,6 +462,52 @@ extension SearchFormExt on SearchForm {
       offset: offset,
       limit: pageSize,
       order: order,
+    );
+  }
+}
+
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class SearchRequestCounter {
+  final DateTime started;
+  final int value;
+
+  SearchRequestCounter({
+    required this.started,
+    required this.value,
+  });
+  SearchRequestCounter.init([this.value = 0]) : started = clock.now().toUtc();
+
+  factory SearchRequestCounter.fromJson(Map<String, dynamic> json) =>
+      _$SearchRequestCounterFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SearchRequestCounterToJson(this);
+
+  SearchRequestCounter incrementOrThrow({
+    required int limit,
+    required Duration window,
+    required String windowAsText,
+  }) {
+    final now = clock.now().toUtc();
+    final age = now.difference(started);
+    var newStarted = started;
+    var newValue = value + 1;
+    // reset the counter after the window has expired
+    if (age > window) {
+      newStarted = now;
+      newValue = 1;
+    }
+    // verify the counter is under the limit
+    if (newValue > limit) {
+      throw RateLimitException(
+        operation: 'search',
+        maxCount: limit,
+        windowAsText: windowAsText,
+        window: window,
+      );
+    }
+    return SearchRequestCounter(
+      started: newStarted,
+      value: newValue,
     );
   }
 }

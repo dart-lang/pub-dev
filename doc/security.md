@@ -19,3 +19,6 @@ feature to create a new security advisory. GitHub will review and ingest the
 advisory into the central [GitHub Advisory
 database](https://github.com/advisories) where you can also go search for
 vulnerabilities in the Pub ecosystem.
+
+For more information about pub and security advisories checkout out the
+[docs](https://dart.dev//go/pub-security-advisories).

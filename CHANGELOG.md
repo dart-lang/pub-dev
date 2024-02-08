@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Allowed `workflow_dispatch` events from GitHub Actions to publish. 
+ * Note: applied rate limit on search endpoints.
 
 ## `20240206t104500-all`
  * Bumped runtimeVersion to `2024.02.05`.

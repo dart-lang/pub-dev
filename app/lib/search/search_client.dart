@@ -16,6 +16,11 @@ import '../tool/utils/http.dart';
 
 import 'search_service.dart';
 
+/// The number of requests allowed over [_searchRateLimitWindow]
+const _searchRateLimit = 120;
+const _searchRateLimitWindow = Duration(minutes: 2);
+const _searchRateLimitWindowAsText = 'last 2 minutes';
+
 /// Sets the search client.
 void registerSearchClient(SearchClient client) =>
     ss.register(#_searchClient, client);
@@ -40,6 +45,7 @@ class SearchClient {
   /// Calls the search service (or uses cache) to serve the [query].
   Future<PackageSearchResult> search(
     ServiceSearchQuery query, {
+    required String? rateLimitKey,
     bool skipCache = false,
   }) async {
     // check validity first
@@ -88,6 +94,21 @@ class SearchClient {
       // There has been a generic issue with the service.
       return PackageSearchResult.empty(
           message: 'Service returned status code ${response.statusCode}.');
+    }
+
+    if (rateLimitKey != null) {
+      final counterCacheEntry = cache.searchRequestCounter(rateLimitKey);
+      final cachedCounter = await counterCacheEntry.get();
+      if (cachedCounter == null) {
+        await counterCacheEntry.set(SearchRequestCounter.init(1));
+      } else {
+        final nextCounter = cachedCounter.incrementOrThrow(
+          limit: _searchRateLimit,
+          window: _searchRateLimitWindow,
+          windowAsText: _searchRateLimitWindowAsText,
+        );
+        await counterCacheEntry.set(nextCounter);
+      }
     }
 
     if (skipCache) {

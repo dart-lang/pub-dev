@@ -68,7 +68,10 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   final sw = Stopwatch()..start();
-  final searchResult = await searchAdapter.search(searchForm);
+  final searchResult = await searchAdapter.search(
+    searchForm,
+    rateLimitKey: request.sourceIp,
+  );
   final int totalCount = searchResult.totalCount;
 
   final links = PageLinks(searchForm, totalCount);
