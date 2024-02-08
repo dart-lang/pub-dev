@@ -203,4 +203,7 @@ extension RequestExt on shelf.Request {
     if (set == null) return false;
     return set.contains('application/json') || set.contains('*/*');
   }
+
+  /// The IP address of the original client starting the request.
+  String? get sourceIp => headers['x-forwarded-for'];
 }

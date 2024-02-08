@@ -111,7 +111,11 @@ Future<shelf.Response> publisherPackagesPageHandler(
       break;
   }
 
-  final searchResult = await searchAdapter.search(appliedSearchForm);
+  final searchResult = await searchAdapter.search(
+    appliedSearchForm,
+    // Do not apply rate limit here.
+    rateLimitKey: null,
+  );
   final int totalCount = searchResult.totalCount;
   final links = PageLinks(appliedSearchForm, totalCount);
 

@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 import '../scorecard/backend.dart';
@@ -34,8 +35,9 @@ class SearchAdapter {
   ///
   /// When the `search` service fails, it falls back to use the name tracker to
   /// provide package names and perform search in that set.
-  Future<SearchResultPage> search(SearchForm form) async {
-    final result = await _searchOrFallback(form, true);
+  Future<SearchResultPage> search(SearchForm form,
+      {required String? rateLimitKey}) async {
+    final result = await _searchOrFallback(form, rateLimitKey, true);
     final views = await _getPackageViewsFromHits(
       [
         if (result?.packageHits != null) ...result!.packageHits,
@@ -55,10 +57,18 @@ class SearchAdapter {
   }
 
   Future<PackageSearchResult?> _searchOrFallback(
-      SearchForm searchForm, bool fallbackToNames) async {
+    SearchForm searchForm,
+    String? rateLimitKey,
+    bool fallbackToNames,
+  ) async {
     PackageSearchResult? result;
     try {
-      result = await searchClient.search(searchForm.toServiceQuery());
+      result = await searchClient.search(
+        searchForm.toServiceQuery(),
+        rateLimitKey: rateLimitKey,
+      );
+    } on RateLimitException {
+      rethrow;
     } catch (e, st) {
       if (envConfig.isRunningLocally) {
         // The fake server will start up the different instances with a slight

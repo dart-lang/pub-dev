@@ -22,7 +22,8 @@ import '../account/models.dart' show LikeData, SessionData;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
-import '../search/search_service.dart' show PackageSearchResult;
+import '../search/search_service.dart'
+    show PackageSearchResult, SearchRequestCounter;
 import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
 import '../task/models.dart';
@@ -195,6 +196,19 @@ class CachePatterns {
           decode: (d) =>
               PackageSearchResult.fromJson(d as Map<String, dynamic>),
         ))[url];
+  }
+
+  Entry<SearchRequestCounter> searchRequestCounter(String key) {
+    return _cache
+        .withPrefix('search-request-counter/')
+        .withTTL(const Duration(minutes: 3))
+        .withCodec(utf8)
+        .withCodec(json)
+        .withCodec(wrapAsCodec(
+          encode: (SearchRequestCounter r) => r.toJson(),
+          decode: (d) =>
+              SearchRequestCounter.fromJson(d as Map<String, dynamic>),
+        ))[key];
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache

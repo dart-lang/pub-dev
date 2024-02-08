@@ -490,6 +490,8 @@ class SearchBackend {
         // Do not cache response at the search client level, as we'll be caching
         // it in a processed form much longer.
         skipCache: true,
+        // Do not apply rate limit here.
+        rateLimitKey: null,
       );
 
       return gzip.encode(jsonUtf8Encoder.convert({
