@@ -29,7 +29,7 @@ Future<RsaKeyPair> generateRsaKeyPair({
   return withTempDirectory((dir) async {
     final privateKeyPath = p.join(dir.path, 'private-$uuid.pem');
     final publicKeyPath = p.join(dir.path, 'public-$uuid.pem');
-    final pr1 = await runProc(
+    final pr1 = await runConstrained(
       [
         'openssl',
         'genrsa',
@@ -47,7 +47,7 @@ Future<RsaKeyPair> generateRsaKeyPair({
             privateContent.replaceAll(' RSA PRIVATE KEY', ' PRIVATE KEY'))
         .single;
 
-    final pr2 = await runProc(
+    final pr2 = await runConstrained(
       [
         'openssl',
         'rsa',
@@ -86,7 +86,7 @@ Future<Uint8List> signTextWithRsa({
     await privateKeyFile.writeAsString(
         encodePemBlock(PemLabel.privateKey, privateKey)
             .replaceAll(' PRIVATE KEY', ' RSA PRIVATE KEY'));
-    final pr = await runProc(
+    final pr = await runConstrained(
       [
         'openssl',
         'dgst',

@@ -49,7 +49,7 @@ void main() {
       }
       await Directory(pubCacheDir).create(recursive: true);
       toolEnv = await ToolEnvironment.create(
-        globalDartdocVersion: dartdocVersion,
+        dartdocVersion: dartdocVersion,
         pubCacheDir: pubCacheDir,
       );
       await toolEnv.runUpgrade(pkgDir, false);
