@@ -112,7 +112,7 @@ Future<void> main(List<String> args) async {
       configHomePath: configDir,
     ),
     flutterSdkConfig: SdkConfig(
-      rootPath:  flutterSdk?.path,
+      rootPath: flutterSdk?.path,
       configHomePath: configDir,
     ),
     pubCacheDir: pubCache,
