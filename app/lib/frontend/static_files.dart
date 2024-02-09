@@ -10,7 +10,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
-import 'package:pana/pana.dart' show runProc;
+import 'package:pana/pana.dart' show runConstrained;
 import 'package:path/path.dart' as path;
 
 final _logger = Logger('pub.static_files');
@@ -297,7 +297,7 @@ Future<DateTime> _detectLastModified(Directory dir) async {
 }
 
 Future _runPubGet(Directory dir) async {
-  final pr = await runProc(
+  final pr = await runConstrained(
     ['dart', 'pub', 'get'],
     workingDirectory: dir.path,
     timeout: Duration(minutes: 2),
@@ -346,7 +346,7 @@ Future<void> updateWebAppBuild() async {
   final webAppDir = Directory(resolveWebAppDirPath());
 
   await _runPubGet(webAppDir);
-  final pr = await runProc(
+  final pr = await runConstrained(
     ['/bin/sh', 'build.sh'],
     workingDirectory: webAppDir.path,
     timeout: const Duration(minutes: 2),
@@ -364,7 +364,7 @@ Future<void> updateWebAppBuild() async {
 Future<void> updateWebCssBuild() async {
   final webCssDir = Directory(resolveWebCssDirPath());
   await _runPubGet(webCssDir);
-  final pr = await runProc(
+  final pr = await runConstrained(
     ['/bin/sh', 'build.sh'],
     workingDirectory: webCssDir.path,
     timeout: const Duration(minutes: 2),

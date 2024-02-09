@@ -107,17 +107,18 @@ Future<void> main(List<String> args) async {
   }
 
   final toolEnv = await ToolEnvironment.create(
-    dartSdkDir: dartSdk?.path,
-    flutterSdkDir: flutterSdk?.path,
+    dartSdkConfig: SdkConfig(
+      rootPath: dartSdk?.path,
+      configHomePath: configDir,
+    ),
+    flutterSdkConfig: SdkConfig(
+      rootPath: flutterSdk?.path,
+      configHomePath: configDir,
+    ),
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
-    environment: {
-      'CI': 'true',
-      if (configDir != null) 'XDG_CONFIG_HOME': configDir,
-    },
-    useGlobalDartdoc: true,
     // keep in-sync with app/lib/shared/versions.dart
-    globalDartdocVersion: '8.0.4',
+    dartdocVersion: '8.0.4',
   );
 
   //final dartdocOutputDir =
@@ -132,16 +133,12 @@ Future<void> main(List<String> args) async {
     version: version,
     options: InspectOptions(
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
-      checkRemoteRepository: true,
       dartdocTimeout: _dartdocTimeout,
       dartdocOutputDir: rawDartdocOutputFolder.path,
+      resourcesOutputDir: resourcesOutputDir.path,
+      totalTimeout: _dartdocTimeout,
     ),
     logger: _log,
-    storeResource: (filename, data) async {
-      final file = File(p.join(resourcesOutputDir.path, filename));
-      await file.parent.create(recursive: true);
-      await file.writeAsBytes(data);
-    },
   );
 
   await postPorcessDartdoc(

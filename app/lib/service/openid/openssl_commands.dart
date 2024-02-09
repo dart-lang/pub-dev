@@ -57,7 +57,7 @@ Future<bool> verifyTextWithRsaSignature({
     await signatureFile.writeAsBytes(signature);
     final publicKeyFile = File(p.join(dir.path, 'public.pem'));
     await publicKeyFile.writeAsString(publicKey.asPemString);
-    final pr = await runProc(
+    final pr = await runConstrained(
       [
         'openssl',
         'dgst',
