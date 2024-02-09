@@ -144,7 +144,7 @@ and do not format to also bump the runtimeVersion.''',
     final content =
         await File('../pkg/pub_worker/lib/src/bin/pana_wrapper.dart')
             .readAsString();
-    expect(content, contains("globalDartdocVersion: '$dartdocVersion'"));
+    expect(content, contains("dartdocVersion: '$dartdocVersion'"));
   });
 
   scopedTest('GC is not deleting currently accepted versions', () {
