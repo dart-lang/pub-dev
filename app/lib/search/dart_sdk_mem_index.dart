@@ -37,7 +37,7 @@ SdkMemIndex? get dartSdkMemIndex =>
 /// was an error parsing the file or building the index.
 Future<SdkMemIndex?> createDartSdkMemIndex() async {
   try {
-    final index = SdkMemIndex.dart();
+    final index = await SdkMemIndex.dart();
     final content = DartdocIndex.parseJsonText(
       await searchBackend.fetchSdkIndexContentAsString(
         baseUri: index.baseUri,
