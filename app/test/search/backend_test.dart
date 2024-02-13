@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
@@ -12,7 +13,7 @@ import '../shared/test_services.dart';
 void main() {
   group('search backend', () {
     testWithProfile('fetch SDK library description', fn: () async {
-      final index = SdkMemIndex.dart();
+      final index = SdkMemIndex.dart(version: runtimeSdkVersion);
       final descr = await searchBackend.fetchSdkLibraryDescriptions(
         baseUri: index.baseUri,
         libraryRelativeUrls: {

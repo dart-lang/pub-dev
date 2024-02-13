@@ -83,9 +83,11 @@ void main() {
   test('Dart SDK versions should match Dockerfile.worker', () async {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
-        dockerfileContent,
-        contains(
-            'RUN tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'));
+        dockerfileContent.contains(
+                'RUN tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/') ||
+            dockerfileContent.contains(
+                'RUN tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'),
+        isTrue);
     expect(
         dockerfileContent,
         contains(
