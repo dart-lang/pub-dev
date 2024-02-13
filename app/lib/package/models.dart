@@ -1080,29 +1080,32 @@ class PackagePageData {
   bool get isLatestStable => version.version == package.latestVersion;
 
   late final packageLinks = () {
-    // Trying to use verfied URLs
-    final result = scoreCard.panaReport?.result;
-    if (result != null) {
-      final baseUrl = urls.inferBaseUrl(
-        homepageUrl: result.homepageUrl,
-        repositoryUrl: result.repositoryUrl,
-      );
-      return PackageLinks._(
-        baseUrl,
-        homepageUrl: result.homepageUrl,
-        repositoryUrl: result.repositoryUrl,
-        issueTrackerUrl: result.issueTrackerUrl,
-        documentationUrl: result.documentationUrl,
-        contributingUrl: result.contributingUrl,
-      );
-    }
-    // Falling back to use URLs from pubspec.yaml.
+    // start with the URLs from pubspec.yaml
     final pubspec = version.pubspec!;
-    return PackageLinks.infer(
+    final inferred = PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
       repositoryUrl: pubspec.repository,
       issueTrackerUrl: pubspec.issueTracker,
+    );
+
+    // Use verified URLs when they are available.
+    final result = scoreCard.panaReport?.result;
+    if (result == null) {
+      return inferred;
+    }
+
+    final baseUrl = urls.inferBaseUrl(
+      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
+      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
+    );
+    return PackageLinks._(
+      baseUrl,
+      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
+      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
+      issueTrackerUrl: result.issueTrackerUrl ?? inferred.issueTrackerUrl,
+      documentationUrl: result.documentationUrl ?? inferred.documentationUrl,
+      contributingUrl: result.contributingUrl ?? inferred.contributingUrl,
     );
   }();
 
