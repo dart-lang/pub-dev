@@ -12,6 +12,7 @@ final _transientStatusCodes = {
   // See: https://cloud.google.com/storage/docs/xml-api/reference-status
   429,
   500,
+  502,
   503,
 };
 
