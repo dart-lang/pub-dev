@@ -41,8 +41,8 @@ class GlobalLock {
     final claimId = c._entry.claimId;
     var refreshed = Future.value(true);
     final done = Completer<void>();
-    try {
-      scheduleMicrotask(() async {
+    scheduleMicrotask(() async {
+      try {
         while (c.valid && !done.isCompleted) {
           // Await for 50% of the time until expiration is gone, then we refresh
           var delay = c.expires
@@ -63,21 +63,19 @@ class GlobalLock {
           // Try to refresh, if claim is still valid and we're not done.
           if (c.valid && !done.isCompleted) {
             refreshed = c.refresh();
-            try {
-              if (!await refreshed) {
-                _log.warning(
-                  'failed to refresh claim $claimId on $_lockId',
-                );
-                return; // Stop refreshing, if refresh failed.
-              }
-            } on Exception catch (e, st) {
-              // Stop refreshing, and log the error
-              _log.severe('Error refreshing claim $claimId on $_lockId', e, st);
-              return;
+            if (!await refreshed) {
+              _log.warning('failed to refresh claim $claimId on $_lockId');
+              return; // Stop refreshing, if refresh failed.
             }
           }
         }
-      });
+      } on Exception catch (e, st) {
+        // Stop refreshing, and log the error
+        _log.severe('Error refreshing claim $claimId on $_lockId', e, st);
+        return;
+      }
+    });
+    try {
       return await fn(c);
     } finally {
       done.complete();
