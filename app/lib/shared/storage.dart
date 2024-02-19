@@ -12,6 +12,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart'
     show DetailedApiRequestError, ApiRequestError;
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
@@ -261,9 +262,15 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
     },
     description: 'Upload to $objectName',
     shouldRetryOnError: (e) {
+      // upstream proxy or rate limit issue
       if (e is DetailedApiRequestError) {
         return _retryStatusCodes.contains(e.status);
       }
+      // network connection failures
+      if (e is http.ClientException || e is SocketException) {
+        return true;
+      }
+      // otherwise no retry
       return false;
     },
     sleep: Duration(seconds: 10),
