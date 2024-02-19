@@ -6,7 +6,8 @@
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
 
-import '../shared/versions.dart' show toolStableDartSdkVersion;
+import '../shared/versions.dart';
+import '../tool/utils/http.dart';
 import 'search_service.dart';
 import 'token_index.dart';
 
@@ -31,13 +32,38 @@ class SdkMemIndex {
         _version = version,
         _baseUri = baseUri;
 
-  factory SdkMemIndex.dart({String? version}) {
-    version ??= toolStableDartSdkVersion;
-    final branch = version.contains('beta') ? 'beta' : 'stable';
+  static Future<SdkMemIndex> dart() async {
+    final versions = <String>{
+      toolStableDartSdkVersion,
+      runtimeSdkVersion,
+    };
+    final client = httpRetryClient();
+    try {
+      for (final version in versions) {
+        final uri = _dartSdkBaseUri(version);
+        final rs = await client.head(uri);
+        if (rs.statusCode < 400) {
+          return SdkMemIndex(sdk: 'dart', version: version, baseUri: uri);
+        }
+      }
+    } finally {
+      client.close();
+    }
     return SdkMemIndex(
-        sdk: 'dart',
-        version: version,
-        baseUri: Uri.parse('https://api.dart.dev/$branch/$version/'));
+      sdk: 'dart',
+      version: runtimeSdkVersion,
+      baseUri: _dartSdkBaseUri(runtimeSdkVersion),
+    );
+  }
+
+  static Uri _dartSdkBaseUri(String version) {
+    var branch = 'stable';
+    if (version.contains('beta')) {
+      branch = 'beta';
+    } else if (version.contains('dev')) {
+      branch = 'dev';
+    }
+    return Uri.parse('https://api.dart.dev/$branch/$version/');
   }
 
   factory SdkMemIndex.flutter() {
