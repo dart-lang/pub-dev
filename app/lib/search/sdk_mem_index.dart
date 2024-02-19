@@ -32,12 +32,9 @@ class SdkMemIndex {
         _version = version,
         _baseUri = baseUri;
 
-  static Future<SdkMemIndex> dart({
-    Iterable<String>? versions,
-  }) async {
-    versions ??= <String>{
+  static Future<SdkMemIndex> dart() async {
+    final versions = <String>{
       toolStableDartSdkVersion,
-      toolPreviewDartSdkVersion,
       runtimeSdkVersion,
     };
     final client = httpRetryClient();
