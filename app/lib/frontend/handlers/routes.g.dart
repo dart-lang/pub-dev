@@ -350,6 +350,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/report',
+    service.reportPage,
+  );
+  router.add(
+    'GET',
     r'/experimental/task-summary/<package>/<version>/',
     service.taskSummary,
   );

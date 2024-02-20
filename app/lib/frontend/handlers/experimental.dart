@@ -6,7 +6,9 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{};
+const _publicFlags = <String>{
+  'report',
+};
 
 const _allFlags = <String>{
   ..._publicFlags,
@@ -75,6 +77,8 @@ class ExperimentalFlags {
     }
     return params;
   }
+
+  bool get isReportPageEnabled => isEnabled('report');
 
   String encodedAsCookie() => _enabled.join(':');
 

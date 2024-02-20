@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:pub_dev/shared/utils.dart';
+
 import 'urls.dart';
 
 const _invitesAtPubDev = 'invites@pub.dev';
@@ -103,6 +105,7 @@ class EmailMessage {
   final String? localMessageId;
   final EmailAddress from;
   final List<EmailAddress> recipients;
+  final List<EmailAddress> ccRecipients;
   final String subject;
   final String bodyText;
 
@@ -112,6 +115,7 @@ class EmailMessage {
     this.subject,
     String bodyText, {
     this.localMessageId,
+    this.ccRecipients = const <EmailAddress>[],
   }) : bodyText = reflowBodyText(bodyText);
 
   /// Throws [ArgumentError] if the [localMessageId] field doesn't look like
@@ -130,6 +134,7 @@ class EmailMessage {
       if (localMessageId != null) 'localMessageId': localMessageId,
       'from': from.email,
       'recipients': recipients.map((e) => e.email).toList(),
+      'ccRecipients': ccRecipients.map((e) => e.email).toList(),
       'subject': subject,
       'bodyText': bodyText,
     };
@@ -237,4 +242,20 @@ ${_footer('transfer')}
 ''';
 
   return EmailMessage(_notificationsFrom, authorizedAdmins, subject, bodyText);
+}
+
+/// Creates the report page [EmailMessage] that we be sent to pub dev admins.
+EmailMessage createReportPageAdminEmail({
+  required String id,
+  required String userEmail,
+  required String bodyText,
+}) {
+  return EmailMessage(
+    _notificationsFrom,
+    [EmailAddress('support@pub.dev')],
+    'New report: $id',
+    bodyText,
+    localMessageId: createUuid(),
+    ccRecipients: [EmailAddress(userEmail)],
+  );
 }

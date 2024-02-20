@@ -12,12 +12,14 @@ http.Client httpClientWithAuthorization({
   required Future<String?> Function() tokenProvider,
   required Future<String?> Function() sessionIdProvider,
   required Future<String?> Function() csrfTokenProvider,
+  Future<Map<String, String>?> Function()? cookieProvider,
   http.Client? client,
 }) {
   return _AuthenticatedClient(
     tokenProvider,
     sessionIdProvider,
     csrfTokenProvider,
+    cookieProvider,
     client ?? httpRetryClient(),
     client == null,
   );
@@ -29,6 +31,7 @@ class _AuthenticatedClient extends http.BaseClient {
   final Future<String?> Function() _tokenProvider;
   final Future<String?> Function() _sessionIdProvider;
   final Future<String?> Function() _csrfTokenProvider;
+  final Future<Map<String, String>?> Function()? _cookieProvider;
   final http.Client _client;
   final bool _closeInnerClient;
 
@@ -36,6 +39,7 @@ class _AuthenticatedClient extends http.BaseClient {
     this._tokenProvider,
     this._sessionIdProvider,
     this._csrfTokenProvider,
+    this._cookieProvider,
     this._client,
     this._closeInnerClient,
   );
@@ -46,17 +50,21 @@ class _AuthenticatedClient extends http.BaseClient {
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    final sessionId = await _sessionIdProvider();
-    if (sessionId != null) {
-      final currentCookies = request.headers['cookie'];
-      request.headers['cookie'] = [
-        if (currentCookies != null && currentCookies.isNotEmpty) currentCookies,
-        // ignore: invalid_use_of_visible_for_testing_member
-        '$clientSessionLaxCookieName=$sessionId',
-        // ignore: invalid_use_of_visible_for_testing_member
-        '$clientSessionStrictCookieName=$sessionId',
-      ].join('; ');
+    final currentCookies = request.headers['cookie'];
+    final providedCookies =
+        _cookieProvider == null ? null : await _cookieProvider!();
 
+    final sessionId = await _sessionIdProvider();
+    request.headers['cookie'] = [
+      if (currentCookies != null && currentCookies.isNotEmpty) currentCookies,
+      ...?providedCookies?.entries.map((e) => '${e.key}=${e.value}'),
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (sessionId != null) '$clientSessionLaxCookieName=$sessionId',
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (sessionId != null) '$clientSessionStrictCookieName=$sessionId',
+    ].join('; ');
+
+    if (sessionId != null) {
       final csrfToken = await _csrfTokenProvider();
       if (csrfToken != null) {
         request.headers['x-pub-csrf-token'] = csrfToken;

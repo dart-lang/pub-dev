@@ -4,6 +4,7 @@
 
 import 'dart:html';
 import 'package:_pub_shared/pubapi.dart';
+import 'package:api_builder/_client_utils.dart';
 
 import '../deferred/http.dart' as http;
 
@@ -25,4 +26,18 @@ PubApiClient get unauthenticatedClient =>
 /// The pub API client to use with account credentials.
 PubApiClient get client {
   return PubApiClient(_baseUrl, client: http.createClientWithCsrf());
+}
+
+Future<Map<String, dynamic>> requestJson(
+  String path,
+  Map<String, dynamic>? body, {
+  String verb = 'POST',
+}) async {
+  final client = http.createClientWithCsrf();
+  try {
+    final c = Client(_baseUrl, client: client);
+    return await c.requestJson(verb: verb, path: path, body: body);
+  } finally {
+    client.close();
+  }
 }

@@ -7,7 +7,7 @@ import 'dart:html';
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
-export 'package:http/http.dart' show Client;
+export 'package:http/http.dart';
 
 /// Creates an authenticated [Client] that extends request with the CSRF header.
 Client createClientWithCsrf() {

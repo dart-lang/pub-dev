@@ -94,11 +94,13 @@ d.Node floatingActionButton({
 d.Node raisedButton({
   String? id,
   Iterable<String>? classes,
+  Map<String, String>? attributes,
   required String label,
 }) {
   return button(
     id: id,
     classes: classes,
+    attributes: attributes,
     raised: true,
     label: label,
   );
@@ -143,6 +145,7 @@ d.Node iconButton({
 d.Node textField({
   required String id,
   required String? label,
+  String? name,
   String? value,
 }) {
   return d.div(
@@ -156,6 +159,7 @@ d.Node textField({
           d.input(
             type: 'text',
             id: id,
+            name: name,
             classes: ['mdc-text-field__input'],
             value: value,
           ),
@@ -179,6 +183,7 @@ d.Node textArea({
   required int rows,
   required int cols,
   int maxLength = 4096,
+  String? name,
   String? value,
 }) {
   return d.fragment([
@@ -196,6 +201,7 @@ d.Node textArea({
           id: id,
           classes: ['mdc-text-field__input'],
           attributes: {
+            if (name != null) 'name': name,
             'rows': '$rows',
             'cols': '$cols',
             'maxlength': '$maxLength',
