@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart' show Version, VersionConstraint;
+import 'package:pub_semver/pub_semver.dart' show Version;
 
 @sealed
 class InstalledSdk {
@@ -64,23 +64,5 @@ class InstalledSdk {
     }
     sdks.sortByCompare((s) => s.version, Version.prioritize);
     return sdks;
-  }
-
-  static InstalledSdk? prioritizedSdk(
-    List<InstalledSdk> sdks,
-    VersionConstraint? constraint,
-  ) {
-    constraint ??= VersionConstraint.any;
-    sdks = [...sdks]..sortByCompare((s) => s.version, Version.prioritize);
-    return sdks.where((s) => constraint!.allows(s.version)).lastOrNull ??
-        maxBy(sdks, (s) => s.version);
-  }
-
-  static InstalledSdk? futureSdk(List<InstalledSdk> sdks) {
-    if (sdks.isEmpty) {
-      return null;
-    }
-    sdks = [...sdks]..sort((a, b) => a.version.compareTo(b.version));
-    return sdks.last;
   }
 }
