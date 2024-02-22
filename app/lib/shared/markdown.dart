@@ -53,6 +53,12 @@ String markdownToHtml(
       nodes = _groupChangelogNodes(nodes).toList();
     }
     return _renderSafeHtml(nodes, disableHashIds: disableHashIds);
+  } catch (e, st) {
+    _logger.shout('Error rendering markdown.', e, st);
+    // disabling the opening and closing tags makes sure we don't have any
+    // HTML elements that would break out of the wrapper <pre>
+    final safeText = text.replaceAll('<', ' ').replaceAll('>', ' ');
+    return '<p>Error rendering markdown.</p>\n<pre><code>\n$safeText\n</code></pre>\n';
   } finally {
     if (sw.elapsed.inSeconds >= 3) {
       _logger.shout('Markdown rendering taking too long: ${sw.elapsed}');
