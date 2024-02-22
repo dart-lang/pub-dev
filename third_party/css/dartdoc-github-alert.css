@@ -1,0 +1,41 @@
+/* note, tip, important, warning, caution */
+
+.markdown-alert.markdown-alert-note {
+  background-color: var(--alert-info);
+}
+
+.markdown-alert-note .markdown-alert-title:before {
+  content: 'info';
+}
+
+.markdown-alert.markdown-alert-tip {
+  background-color: var(--alert-tip);
+}
+
+.markdown-alert-tip .markdown-alert-title:before {
+  content: 'lightbulb';
+}
+
+.markdown-alert.markdown-alert-important {
+  background-color: var(--alert-important);
+}
+
+.markdown-alert-important .markdown-alert-title:before {
+  content: 'feedback';
+}
+
+.markdown-alert.markdown-alert-warning {
+  background-color: var(--alert-warning);
+}
+
+.markdown-alert-warning .markdown-alert-title:before {
+  content: 'warning';
+}
+
+.markdown-alert.markdown-alert-caution {
+  background-color: var(--alert-error);
+}
+
+.markdown-alert-caution .markdown-alert-title:before {
+  content: 'report';
+}
