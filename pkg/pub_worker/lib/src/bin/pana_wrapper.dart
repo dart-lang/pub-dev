@@ -6,9 +6,11 @@ import 'dart:async';
 import 'dart:convert' show json, utf8;
 import 'dart:io' show Directory, File, Platform, exit, gzip;
 
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
@@ -74,51 +76,11 @@ Future<void> main(List<String> args) async {
     pubHostedUrl: pubHostedUrl,
   );
 
-  // Discover installed Dart and Flutter SDKs.
-  // This reads sibling folders to the Dart and Flutter SDK.
-  // TODO: Install Dart / Flutter SDKs into these folders ondemand in the future!
-  final dartSdks = await InstalledSdk.fromDirectory(
-    kind: 'dart',
-    path: Directory(
-      Platform.environment['DART_SDK'] ??
-          Directory(Platform.resolvedExecutable).parent.parent.path,
-    ).parent,
-  );
-  final flutterSdks = await InstalledSdk.fromDirectory(
-    kind: 'flutter',
-    path: Directory(Platform.environment['FLUTTER_ROOT'] ?? '').parent,
-  );
-
-  // Choose Dart and Flutter SDKs for analysis
-  final dartSdk = InstalledSdk.prioritizedSdk(
-    dartSdks,
-    pubspec.dartSdkConstraint,
-  );
-  final flutterSdk = InstalledSdk.prioritizedSdk(
-    flutterSdks,
-    pubspec.flutterSdkConstraint,
-  );
-
-  // NOTE: This is a temporary workaround to use a different config directory for preview SDKs.
-  // TODO(https://github.com/dart-lang/pub-dev/issues/7270): Use per-SDK config directory.
-  final isPreviewSdk = flutterSdk?.version.isPreRelease ??
-      dartSdk?.version.isPreRelease ??
-      false;
-  final workerPreviewConfigDir = Directory('/home/worker/config/preview');
-  String? configDir;
-  if (isPreviewSdk && await workerPreviewConfigDir.exists()) {
-    configDir = workerPreviewConfigDir.path;
-  }
+  final (dartSdkConfig, flutterSdkConfig) = await _detectSdks(pubspec);
 
   final toolEnv = await ToolEnvironment.create(
-    dartSdkConfig: SdkConfig(
-      rootPath: dartSdk?.path,
-      configHomePath: configDir,
-    ),
-    flutterSdkConfig: SdkConfig(
-      rootPath: flutterSdk?.path,
-      configHomePath: configDir,
-    ),
+    dartSdkConfig: dartSdkConfig,
+    flutterSdkConfig: flutterSdkConfig,
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
     dartdocVersion: _dartdocVersion,
@@ -181,4 +143,66 @@ Future<void> main(List<String> args) async {
   await File(
     p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
+}
+
+final _workerPreviewConfigDirectory = Directory('/home/worker/config/preview');
+late final _workerPreviewConfigPath = _workerPreviewConfigDirectory.existsSync()
+    ? _workerPreviewConfigDirectory.path
+    : null;
+
+Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
+  // Discover installed Dart and Flutter SDKs.
+  // This reads sibling folders to the Dart and Flutter SDK.
+  // TODO: Install Dart / Flutter SDKs into these folders ondemand in the future!
+  final dartSdks = await InstalledSdk.fromDirectory(
+    kind: 'dart',
+    path: Directory(
+      Platform.environment['DART_SDK'] ??
+          Directory(Platform.resolvedExecutable).parent.parent.path,
+    ).parent,
+  );
+  final flutterSdks = await InstalledSdk.fromDirectory(
+    kind: 'flutter',
+    path: Directory(Platform.environment['FLUTTER_ROOT'] ?? '').parent,
+  );
+
+  // Choose stable Dart and Flutter SDKs for analysis
+  var dartSdk = dartSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
+      (dartSdks.isNotEmpty ? dartSdks.first : null);
+  var flutterSdk =
+      flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
+          (flutterSdks.isNotEmpty ? flutterSdks.first : null);
+
+  // NOTE: This is a temporary workaround to use a different config directory for preview SDKs.
+  // TODO(https://github.com/dart-lang/pub-dev/issues/7270): Use per-SDK config directory.
+  String? configDir;
+
+  final needsNewer = _needsNewer(dartSdk?.version, pubspec.dartSdkConstraint) ||
+      _needsNewer(flutterSdk?.version, pubspec.flutterSdkConstraint);
+
+  if (needsNewer) {
+    configDir = _workerPreviewConfigPath;
+    dartSdk =
+        dartSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease) ?? dartSdk;
+    flutterSdk =
+        flutterSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease) ??
+            flutterSdk;
+  }
+
+  return (
+    SdkConfig(
+      rootPath: dartSdk?.path,
+      configHomePath: configDir,
+    ),
+    SdkConfig(
+      rootPath: flutterSdk?.path,
+      configHomePath: configDir,
+    ),
+  );
+}
+
+bool _needsNewer(Version? version, VersionConstraint? constraint) {
+  return version != null &&
+      constraint != null &&
+      !constraint.intersect(version).isEmpty;
 }
