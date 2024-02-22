@@ -84,9 +84,9 @@ void main() {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
         dockerfileContent.contains(
-                'RUN tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/') ||
+                'tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/') ||
             dockerfileContent.contains(
-                'RUN tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'),
+                'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'),
         isTrue);
     expect(
         dockerfileContent,
@@ -99,7 +99,7 @@ void main() {
     expect(
         dockerfileContent,
         contains(
-            'RUN tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
+            'tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
     expect(
         dockerfileContent,
         contains(
