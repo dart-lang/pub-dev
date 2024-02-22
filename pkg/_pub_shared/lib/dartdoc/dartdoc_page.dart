@@ -39,8 +39,14 @@ class DartDocSidebar {
     required this.content,
   });
 
-  static DartDocSidebar parse(String rawHtml) {
-    return DartDocSidebar(content: DartDocPage._sanitize(rawHtml));
+  static DartDocSidebar parse(
+    String rawHtml, {
+    required bool removeLeadingHrefParent,
+  }) {
+    final updatedHtml = removeLeadingHrefParent
+        ? rawHtml.replaceAll(' href="../', ' href="')
+        : rawHtml;
+    return DartDocSidebar(content: DartDocPage._sanitize(updatedHtml));
   }
 
   factory DartDocSidebar.fromJson(Map<String, dynamic> json) =>
