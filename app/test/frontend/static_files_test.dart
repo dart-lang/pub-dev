@@ -157,6 +157,7 @@ void main() {
         ])
         // third-party CSS files that are included in the style.scss are no longer referenced elsewhere
         ..removeAll([
+          '/static/css/dartdoc-github-alert.css',
           '/static/css/github-markdown.css',
           '/static/highlight/github.css',
         ])

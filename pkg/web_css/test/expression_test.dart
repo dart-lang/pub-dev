@@ -56,6 +56,7 @@ void main() {
 
       // remove third-party css expressions
       final thirdPartyCss = [
+        '../../third_party/css/dartdoc-github-alert.css',
         '../../third_party/css/github-markdown.css',
         '../../third_party/highlight/github.css',
       ];
