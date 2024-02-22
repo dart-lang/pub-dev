@@ -21,6 +21,7 @@ Future<void> postPorcessDartdoc({
   required String package,
   required String version,
   required String docDir,
+  required String dartdocVersion,
 }) async {
   _log.info('Running post-processing');
   final tmpOutDir = p.join(outputFolder, '_doc');
@@ -39,8 +40,11 @@ Future<void> postPorcessDartdoc({
       final page = DartDocPage.parse(await file.readAsString(encoding: _utf8));
       await targetFile.writeAsBytes(_jsonUtf8.encode(page.toJson()));
     } else if (isDartDocSidebar) {
-      final sidebar =
-          DartDocSidebar.parse(await file.readAsString(encoding: _utf8));
+      final sidebar = DartDocSidebar.parse(
+        await file.readAsString(encoding: _utf8),
+        removeLeadingHrefParent: dartdocVersion == '8.0.4' &&
+            file.path.endsWith('-extension-type-sidebar.html'),
+      );
       await targetFile.writeAsBytes(_jsonUtf8.encode(sidebar.toJson()));
     } else {
       await file.copy(targetFile.path);

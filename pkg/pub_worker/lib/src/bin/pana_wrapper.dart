@@ -22,6 +22,10 @@ final _reportSizeDropThreshold = 32 * 1024;
 /// Stop dartdoc if it takes more than 45 minutes.
 const _dartdocTimeout = Duration(minutes: 45);
 
+/// The dartdoc version to use.
+/// keep in-sync with app/lib/shared/versions.dart
+const _dartdocVersion = '8.0.4';
+
 /// Program to be used as subprocess for running pana, ensuring that we capture
 /// all the output, and only run analysis in a subprocess that can timeout and
 /// be killed.
@@ -117,8 +121,7 @@ Future<void> main(List<String> args) async {
     ),
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
-    // keep in-sync with app/lib/shared/versions.dart
-    dartdocVersion: '8.0.4',
+    dartdocVersion: _dartdocVersion,
   );
 
   //final dartdocOutputDir =
@@ -146,6 +149,7 @@ Future<void> main(List<String> args) async {
     package: package,
     version: version,
     docDir: rawDartdocOutputFolder.path,
+    dartdocVersion: _dartdocVersion,
   );
   await rawDartdocOutputFolder.delete(recursive: true);
 
