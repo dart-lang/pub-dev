@@ -62,7 +62,8 @@ String markdownToHtml(
         .replaceAll('>', '&gt;')
         .replaceAll("'", '&#39;')
         .replaceAll('"', '&quot;');
-    return '<p>Error rendering markdown.</p>\n<pre><code>\n$safeText\n</code></pre>\n';
+    return sanitizeHtml(
+        '<p>Error rendering markdown.</p>\n<pre><code>\n$safeText\n</code></pre>\n');
   } finally {
     if (sw.elapsed.inSeconds >= 3) {
       _logger.shout('Markdown rendering taking too long: ${sw.elapsed}');
