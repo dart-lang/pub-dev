@@ -145,10 +145,15 @@ Future<void> main(List<String> args) async {
   ).writeAsString(json.encode(summary));
 }
 
-final _workerPreviewConfigDirectory = Directory('/home/worker/config/preview');
-late final _workerPreviewConfigPath = _workerPreviewConfigDirectory.existsSync()
-    ? _workerPreviewConfigDirectory.path
-    : null;
+final _workerConfigDirectory = Directory('/home/worker/config');
+late final _workerConfigPath =
+    _workerConfigDirectory.existsSync() ? _workerConfigDirectory.path : null;
+String? _configHomePath(String sdk, String kind) {
+  if (_workerConfigPath == null) {
+    return null;
+  }
+  return p.join(_workerConfigPath!, '$sdk-$kind');
+}
 
 Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
   // Discover installed Dart and Flutter SDKs.
@@ -173,15 +178,12 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
           (flutterSdks.isNotEmpty ? flutterSdks.first : null);
 
-  // NOTE: This is a temporary workaround to use a different config directory for preview SDKs.
-  // TODO(https://github.com/dart-lang/pub-dev/issues/7270): Use per-SDK config directory.
-  String? configDir;
-
   final needsNewer = _needsNewer(dartSdk?.version, pubspec.dartSdkConstraint) ||
       _needsNewer(flutterSdk?.version, pubspec.flutterSdkConstraint);
 
+  String configKind = 'stable';
   if (needsNewer) {
-    configDir = _workerPreviewConfigPath;
+    configKind = 'preview';
     dartSdk =
         dartSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease) ?? dartSdk;
     flutterSdk =
@@ -192,11 +194,11 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
   return (
     SdkConfig(
       rootPath: dartSdk?.path,
-      configHomePath: configDir,
+      configHomePath: _configHomePath('dart', configKind),
     ),
     SdkConfig(
       rootPath: flutterSdk?.path,
-      configHomePath: configDir,
+      configHomePath: _configHomePath('flutter', configKind),
     ),
   );
 }
