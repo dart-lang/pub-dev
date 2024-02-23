@@ -73,26 +73,12 @@ String markdownToHtml(
 // extension set to use instead of m.ExtensionSet.gitHubWeb
 final _extensionSet = m.ExtensionSet(
   List<m.BlockSyntax>.unmodifiable(
-    <m.BlockSyntax>[
-      const m.FencedCodeBlockSyntax(),
-      const m.HeaderWithIdSyntax(),
-      const m.SetextHeaderWithIdSyntax(),
-      const m.TableSyntax(),
-      const m.UnorderedListWithCheckboxSyntax(),
-      const m.OrderedListWithCheckboxSyntax(),
-      const m.FootnoteDefSyntax(),
-      // alert syntax disabled as it is broken in 7.2.1
-      // const m.AlertBlockSyntax(),
-    ],
+    // alert syntax disabled as it is broken in 7.2.1
+    m.ExtensionSet.gitHubWeb.blockSyntaxes
+        .where((s) => s is! m.AlertBlockSyntax),
   ),
   List<m.InlineSyntax>.unmodifiable(
-    <m.InlineSyntax>[
-      m.InlineHtmlSyntax(),
-      m.StrikethroughSyntax(),
-      m.EmojiSyntax(),
-      m.ColorSwatchSyntax(),
-      m.AutolinkExtensionSyntax()
-    ],
+    m.ExtensionSet.gitHubWeb.inlineSyntaxes,
   ),
 );
 
