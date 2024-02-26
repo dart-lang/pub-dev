@@ -7,9 +7,11 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/advisories_api.dart'
     show ListAdvisoriesResponse;
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -26,7 +28,6 @@ import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
-import '../../tool/utils/dart_sdk_version.dart';
 
 import '../request_context.dart';
 import '../templates/misc.dart';
@@ -82,7 +83,8 @@ Future<shelf.Response> packageVersionsListHandler(
         return redirectToSearch(packageName);
       }
 
-      final dartSdkVersion = await getDartSdkVersion();
+      final dartSdkVersion =
+          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
       final taskStatus = await taskBackend.packageStatus(packageName);
       return renderPkgVersionsPage(
         data,

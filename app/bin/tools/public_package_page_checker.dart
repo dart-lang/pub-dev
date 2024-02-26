@@ -5,9 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:args/args.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/tool/utils/http.dart';
 
 /// Crawls and checks public package pages on pub.dev site, intended for pre-release
 /// checks for rendering user-generated content (esp. markdown).

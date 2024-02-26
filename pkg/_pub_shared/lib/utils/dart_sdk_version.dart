@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-import '../../shared/versions.dart';
-import 'http.dart' show httpRetryClient;
 
 final _logger = Logger('tool.sdk_version');
 
@@ -37,16 +36,19 @@ class DartSdkVersion {
 }
 
 /// Gets the latest Dart SDK version information (value may be cached).
-Future<DartSdkVersion> getDartSdkVersion() async {
+Future<DartSdkVersion> getDartSdkVersion({
+  required String lastKnownStable,
+}) async {
   if (_cached != null && !_cached!.isExpired) {
     return _cached!;
   }
-  return _fetchDartSdkVersion();
+  return _fetchDartSdkVersion(fallbackVersion: lastKnownStable);
 }
 
 /// Fetches the latest Dart SDK version information.
-Future<DartSdkVersion> _fetchDartSdkVersion() async {
-  // TODO: Migrate to proper retry logic
+Future<DartSdkVersion> _fetchDartSdkVersion({
+  String? fallbackVersion,
+}) async {
   final client = httpRetryClient();
   try {
     final rs = await client.get(Uri.parse(
@@ -63,7 +65,7 @@ Future<DartSdkVersion> _fetchDartSdkVersion() async {
     // If there exists a cached value, extend it.
     // If there is no cached value, use the runtime analysis SDK as the latest.
     return _cached = DartSdkVersion(
-      _cached?.version ?? toolStableDartSdkVersion,
+      _cached?.version ?? fallbackVersion ?? Platform.version.split(' ').first,
       _cached?.published ?? clock.now(),
       expires: clock.now().add(_failedFetchCacheDuration),
     );

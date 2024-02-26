@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/utils/http.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
 
 import '../shared/versions.dart';
-import '../tool/utils/http.dart';
 import 'search_service.dart';
 import 'token_index.dart';
 

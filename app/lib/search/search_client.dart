@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
@@ -12,7 +13,6 @@ import 'package:http/http.dart' as http;
 import '../shared/configuration.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
-import '../tool/utils/http.dart';
 
 import 'search_service.dart';
 

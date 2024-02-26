@@ -4,9 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:pub_dev/shared/env_config.dart';
-
-import '../../tool/utils/http.dart';
 
 import 'openid_models.dart';
 

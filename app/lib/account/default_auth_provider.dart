@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
@@ -21,7 +22,6 @@ import '../shared/email.dart' show looksLikeEmail;
 import '../shared/exceptions.dart';
 import '../shared/monitoring.dart';
 import '../shared/utils.dart' show fixedTimeEquals;
-import '../tool/utils/http.dart' show httpRetryClient;
 import 'auth_provider.dart';
 
 final _logger = Logger('pub.account.google_auth2');
