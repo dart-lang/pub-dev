@@ -10,10 +10,10 @@ import 'package:collection/collection.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
+import 'package:pub_worker/src/utils.dart';
 
 final _log = Logger('pana');
 
@@ -178,8 +178,12 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
           (flutterSdks.isNotEmpty ? flutterSdks.first : null);
 
-  final needsNewer = _needsNewer(dartSdk?.version, pubspec.dartSdkConstraint) ||
-      _needsNewer(flutterSdk?.version, pubspec.flutterSdkConstraint);
+  final needsNewer = needsNewerSdk(
+          sdkVersion: dartSdk?.version,
+          constraint: pubspec.dartSdkConstraint) ||
+      needsNewerSdk(
+          sdkVersion: flutterSdk?.version,
+          constraint: pubspec.flutterSdkConstraint);
 
   String configKind = 'stable';
   if (needsNewer) {
@@ -201,10 +205,4 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
       configHomePath: _configHomePath('flutter', configKind),
     ),
   );
-}
-
-bool _needsNewer(Version? version, VersionConstraint? constraint) {
-  return version != null &&
-      constraint != null &&
-      !constraint.intersect(version).isEmpty;
 }

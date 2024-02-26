@@ -96,6 +96,10 @@ void main() {
               .contains("Issue tracker URL doesn't exist.")) {
             expectedDrop += 10;
           }
+          if (failingReportSections
+              .contains("is deprecated and shouldn't be used")) {
+            expectedDrop += 10;
+          }
           expect(
             report.grantedPoints,
             greaterThanOrEqualTo(report.maxPoints - expectedDrop),

@@ -28,7 +28,7 @@ RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/wor
 RUN XDG_CONFIG_HOME=/home/worker/config/dart-preview tool/setup-dart.sh /home/worker/dart/preview 3.4.0-131.0.dev
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.19.0
+RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.19.1
 RUN XDG_CONFIG_HOME=/home/worker/config/flutter-preview tool/setup-flutter.sh /home/worker/flutter/preview 3.20.0-1.1.pre
 
 # Setup webp
