@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/utils/flutter_archive.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/tool/utils/flutter_archive.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 

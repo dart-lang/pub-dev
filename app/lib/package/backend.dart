@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -19,6 +20,7 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/package/export_api_to_bucket.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -41,7 +43,6 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-import '../tool/utils/dart_sdk_version.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -319,7 +320,9 @@ class PackageBackend {
   }) async {
     _logger.info("Checking Package's versions fields for package `$package`.");
     final pkgKey = db.emptyKey.append(Package, id: package);
-    dartSdkVersion ??= (await getDartSdkVersion()).semanticVersion;
+    dartSdkVersion ??=
+        (await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion))
+            .semanticVersion;
 
     // ordered version list by publish date
     final versions =
@@ -598,7 +601,8 @@ class PackageBackend {
     // the latest version or the restored version is newer than the latest.
     if (p.mayAffectLatestVersions(pv.semanticVersion)) {
       final versions = await tx.query<PackageVersion>(p.key).run().toList();
-      final currentDartSdk = await getDartSdkVersion();
+      final currentDartSdk =
+          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
       p.updateLatestVersionReferences(
         versions,
         dartSdkVersion: currentDartSdk.semanticVersion,
@@ -1006,7 +1010,8 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
-    final currentDartSdk = await getDartSdkVersion();
+    final currentDartSdk =
+        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
 
