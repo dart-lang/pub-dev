@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/tags.dart';
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
@@ -23,7 +24,6 @@ import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
-import '../tool/utils/http.dart';
 
 import 'configuration.dart';
 import 'datastore.dart';

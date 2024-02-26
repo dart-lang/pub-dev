@@ -4,12 +4,12 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../shared/versions.dart';
-import 'http.dart' show httpRetryClient;
 
 final _logger = Logger('tool.sdk_version');
 
@@ -46,7 +46,6 @@ Future<DartSdkVersion> getDartSdkVersion() async {
 
 /// Fetches the latest Dart SDK version information.
 Future<DartSdkVersion> _fetchDartSdkVersion() async {
-  // TODO: Migrate to proper retry logic
   final client = httpRetryClient();
   try {
     final rs = await client.get(Uri.parse(

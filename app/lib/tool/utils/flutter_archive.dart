@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:http/http.dart';
+import 'package:_pub_shared/utils/http.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'flutter_archive.g.dart';
@@ -15,7 +15,7 @@ part 'flutter_archive.g.dart';
 /// - https://flutter.dev/docs/development/tools/sdk/releases?tab=linux
 /// - https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
 Future<FlutterArchive> fetchFlutterArchive() async {
-  final client = Client();
+  final client = httpRetryClient();
   final rs = await client.get(Uri.parse(
       'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
   client.close();
