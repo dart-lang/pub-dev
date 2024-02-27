@@ -24,6 +24,9 @@ final _reportSizeDropThreshold = 32 * 1024;
 /// Stop dartdoc if it takes more than 45 minutes.
 const _dartdocTimeout = Duration(minutes: 45);
 
+/// Try to fit analysis into 50 minutes.
+const _totalTimeout = Duration(minutes: 50);
+
 /// The dartdoc version to use.
 /// keep in-sync with app/lib/shared/versions.dart
 const _dartdocVersion = '8.0.4';
@@ -101,7 +104,7 @@ Future<void> main(List<String> args) async {
       dartdocTimeout: _dartdocTimeout,
       dartdocOutputDir: rawDartdocOutputFolder.path,
       resourcesOutputDir: resourcesOutputDir.path,
-      totalTimeout: _dartdocTimeout,
+      totalTimeout: _totalTimeout,
     ),
     logger: _log,
   );

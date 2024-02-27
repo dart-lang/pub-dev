@@ -466,10 +466,10 @@ packages:
     dependency: "direct main"
     description:
       name: pana
-      sha256: ffe9ff001c2c05c972510410e810d55961190ccdadfc25bbb9660d72b090e07b
+      sha256: "56f1e0d448bd2910c0a16b64d4de4044833b8f7b9181122ebdf960e0a70f314f"
       url: "https://pub.dev"
     source: hosted
-    version: "0.22.1"
+    version: "0.22.2"
   path:
     dependency: transitive
     description:
@@ -503,7 +503,7 @@ packages:
     source: hosted
     version: "2.1.0"
   pub_semver:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pub_semver
       sha256: "40d3ab1bbd474c4c2328c91e3a7df8c6dd629b79ece4c4bd04bee496a224fb0c"
