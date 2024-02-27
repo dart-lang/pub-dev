@@ -47,6 +47,14 @@ void main() {
     expect(
       needsNewerSdk(
           sdkVersion: Version.parse('3.0.0'),
+          constraint: VersionConstraint.parse('^2.12.0')),
+      false,
+    );
+
+    // requires newer SDK
+    expect(
+      needsNewerSdk(
+          sdkVersion: Version.parse('3.0.0'),
           constraint: VersionConstraint.parse('^3.0.1')),
       true,
     );
