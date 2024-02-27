@@ -23,7 +23,25 @@ bool needsNewerSdk({
   required Version? sdkVersion,
   required VersionConstraint? constraint,
 }) {
-  return sdkVersion != null &&
-      constraint != null &&
-      constraint.intersect(sdkVersion).isEmpty;
+  // SDK version is missing
+  if (sdkVersion == null) {
+    return false;
+  }
+  // any SDK will do
+  if (constraint == null) {
+    return false;
+  }
+  // SDK matches constraint
+  if (!constraint.intersect(sdkVersion).isEmpty) {
+    return false;
+  }
+  if (constraint is VersionRange) {
+    final minVersion = constraint.min;
+    // SDK version < minVersion
+    if (minVersion != null && minVersion.compareTo(sdkVersion) >= 0) {
+      return true;
+    }
+  }
+  // Otherwise keep the current stable SDK.
+  return false;
 }
