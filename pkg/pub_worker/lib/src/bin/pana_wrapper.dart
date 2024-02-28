@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert' show json, utf8;
 import 'dart:io' show Directory, File, Platform, exit, gzip;
 
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/flutter_archive.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
@@ -160,8 +162,9 @@ Future<void> main(List<String> args) async {
 final _workerConfigDirectory = Directory('/home/worker/config');
 late final _workerConfigPath =
     _workerConfigDirectory.existsSync() ? _workerConfigDirectory.path : null;
+late final _isInsideDocker = _workerConfigPath != null;
 String? _configHomePath(String sdk, String kind) {
-  if (_workerConfigPath == null) {
+  if (!_isInsideDocker) {
     return null;
   }
   return p.join(_workerConfigPath!, '$sdk-$kind');
@@ -171,50 +174,103 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
   // Discover installed Dart and Flutter SDKs.
   // This reads sibling folders to the Dart and Flutter SDK.
   // TODO: Install Dart / Flutter SDKs into these folders ondemand in the future!
-  final dartSdks = await InstalledSdk.fromDirectory(
+  final dartSdks = await InstalledSdk.scanDirectory(
     kind: 'dart',
     path: Directory(
       Platform.environment['DART_SDK'] ??
           Directory(Platform.resolvedExecutable).parent.parent.path,
     ).parent,
   );
-  final flutterSdks = await InstalledSdk.fromDirectory(
+  final flutterSdks = await InstalledSdk.scanDirectory(
     kind: 'flutter',
     path: Directory(Platform.environment['FLUTTER_ROOT'] ?? '').parent,
   );
 
   // Choose stable Dart and Flutter SDKs for analysis
-  var dartSdk = dartSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
-      (dartSdks.isNotEmpty ? dartSdks.first : null);
-  var flutterSdk =
+  final installedDartSdk =
+      dartSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
+          (dartSdks.isNotEmpty ? dartSdks.first : null);
+  final installedFlutterSdk =
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
           (flutterSdks.isNotEmpty ? flutterSdks.first : null);
 
   final needsNewer = needsNewerSdk(
-          sdkVersion: dartSdk?.version,
+          sdkVersion: installedDartSdk?.version,
           constraint: pubspec.dartSdkConstraint) ||
       needsNewerSdk(
-          sdkVersion: flutterSdk?.version,
+          sdkVersion: installedFlutterSdk?.version,
           constraint: pubspec.flutterSdkConstraint);
 
+  var dartSdkPath = installedDartSdk?.path;
+  var flutterSdkPath = installedFlutterSdk?.path;
   String configKind = 'stable';
   if (needsNewer) {
     configKind = 'preview';
-    dartSdk =
-        dartSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease) ?? dartSdk;
-    flutterSdk =
-        flutterSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease) ??
-            flutterSdk;
+    dartSdkPath = await _previewDartSdk() ??
+        dartSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease)?.path ??
+        dartSdkPath;
+    flutterSdkPath = await _previewFlutterSdk() ??
+        flutterSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease)?.path ??
+        flutterSdkPath;
   }
 
   return (
     SdkConfig(
-      rootPath: dartSdk?.path,
+      rootPath: dartSdkPath,
       configHomePath: _configHomePath('dart', configKind),
     ),
     SdkConfig(
-      rootPath: flutterSdk?.path,
+      rootPath: flutterSdkPath,
       configHomePath: _configHomePath('flutter', configKind),
     ),
   );
+}
+
+Future<String?> _previewDartSdk() async {
+  final latestBeta = await fetchLatestDartSdkVersion(channel: 'beta');
+  return await _installSdk(
+    sdkKind: 'dart',
+    configKind: 'preview',
+    sdkPath: '/home/worker/dart/preview',
+    version: latestBeta?.version ?? 'master',
+  );
+}
+
+Future<String?> _previewFlutterSdk() async {
+  final archive = await fetchFlutterArchive();
+  return await _installSdk(
+    sdkKind: 'flutter',
+    configKind: 'preview',
+    sdkPath: '/home/worker/flutter/preview',
+    version: archive.latestBeta?.cleanVersion ?? 'master',
+  );
+}
+
+Future<String?> _installSdk({
+  required String sdkKind,
+  required String configKind,
+  required String sdkPath,
+  required String version,
+}) async {
+  if (!_isInsideDocker) {
+    return null;
+  }
+  if (!await Directory(sdkPath).exists()) {
+    final configHomePath = _configHomePath(sdkKind, configKind);
+    await runConstrained(
+      [
+        'tool/setup-$sdkKind.sh',
+        sdkPath,
+        version,
+      ],
+      workingDirectory: '/home/worker/pub-dev',
+      environment: {
+        if (configHomePath != null) 'XDG_CONFIG_HOME': configHomePath,
+        'PUB_HOSTED_URL': 'https://pub.dev',
+      },
+      timeout: const Duration(minutes: 5),
+      throwOnError: true,
+    );
+  }
+  return sdkPath;
 }

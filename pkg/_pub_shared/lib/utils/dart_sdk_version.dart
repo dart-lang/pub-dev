@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
@@ -35,40 +34,46 @@ class DartSdkVersion {
   bool get isExpired => clock.now().isAfter(expires);
 }
 
-/// Gets the latest Dart SDK version information (value may be cached).
+/// Gets the latest stable Dart SDK version information (value may be cached).
 Future<DartSdkVersion> getDartSdkVersion({
   required String lastKnownStable,
 }) async {
   if (_cached != null && !_cached!.isExpired) {
     return _cached!;
   }
-  return _fetchDartSdkVersion(fallbackVersion: lastKnownStable);
+
+  final current = await fetchLatestDartSdkVersion(channel: 'stable');
+  if (current != null) {
+    return _cached = current;
+  }
+
+  // If there exists a cached value, extend it.
+  // If there is no cached value, use the runtime analysis SDK as the latest.
+  return _cached = DartSdkVersion(
+    _cached?.version ?? lastKnownStable,
+    _cached?.published ?? clock.now(),
+    expires: clock.now().add(_failedFetchCacheDuration),
+  );
 }
 
 /// Fetches the latest Dart SDK version information.
-Future<DartSdkVersion> _fetchDartSdkVersion({
-  String? fallbackVersion,
+Future<DartSdkVersion?> fetchLatestDartSdkVersion({
+  required String channel,
 }) async {
   final client = httpRetryClient();
   try {
     final rs = await client.get(Uri.parse(
-        'https://storage.googleapis.com/dart-archive/channels/stable/release/latest/VERSION'));
+        'https://storage.googleapis.com/dart-archive/channels/$channel/release/latest/VERSION'));
     if (rs.statusCode != 200) {
       throw AssertionError('Expected OK status code, got: ${rs.statusCode}.');
     }
     final map = json.decode(rs.body) as Map<String, dynamic>;
     final version = map['version'] as String;
     final date = DateTime.parse(map['date'] as String);
-    return _cached = DartSdkVersion(version, date);
+    return DartSdkVersion(version, date);
   } catch (e, st) {
     _logger.warning('Unable to fetch the Dart SDK version', e, st);
-    // If there exists a cached value, extend it.
-    // If there is no cached value, use the runtime analysis SDK as the latest.
-    return _cached = DartSdkVersion(
-      _cached?.version ?? fallbackVersion ?? Platform.version.split(' ').first,
-      _cached?.published ?? clock.now(),
-      expires: clock.now().add(_failedFetchCacheDuration),
-    );
+    return null;
   } finally {
     client.close();
   }

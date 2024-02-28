@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:_pub_shared/utils/http.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 part 'flutter_archive.g.dart';
 
@@ -36,6 +37,14 @@ class FlutterArchive {
       _$FlutterArchiveFromJson(json);
 
   Map<String, dynamic> toJson() => _$FlutterArchiveToJson(this);
+
+  late final _betaVersions =
+      releases?.where((e) => e.channel == 'beta' && e.version != null).toList();
+
+  late final latestBeta = (_betaVersions?.isNotEmpty ?? false)
+      ? _betaVersions!.reduce(
+          (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a)
+      : null;
 }
 
 /// The hashes of the current Flutter releases on the different channels.
@@ -77,4 +86,9 @@ class FlutterRelease {
       _$FlutterReleaseFromJson(json);
 
   Map<String, dynamic> toJson() => _$FlutterReleaseToJson(this);
+
+  late final cleanVersion =
+      version!.startsWith('v') ? version!.substring(1) : version!;
+
+  late final semanticVersion = Version.parse(cleanVersion);
 }
