@@ -7,6 +7,7 @@ import 'dart:convert' show json, utf8, Utf8Codec;
 import 'dart:io';
 
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:path/path.dart' as p;
 import 'package:stream_transform/stream_transform.dart';
@@ -16,20 +17,26 @@ final _log = Logger('dartdoc');
 final _utf8 = Utf8Codec(allowMalformed: true);
 final _jsonUtf8 = json.fuse(utf8);
 
-Future<void> postPorcessDartdoc({
+Future<void> postProcessDartdoc({
   required String outputFolder,
   required String package,
   required String version,
   required String docDir,
   required String dartdocVersion,
+  required DateTime cutoffTimestamp,
 }) async {
-  _log.info('Running post-processing');
+  _log.info('Running dartdoc post-processing');
   final tmpOutDir = p.join(outputFolder, '_doc');
   await Directory(tmpOutDir).create(recursive: true);
   final files = Directory(docDir)
       .list(recursive: true, followLinks: false)
       .whereType<File>();
   await for (final file in files) {
+    if (cutoffTimestamp.isBefore(clock.now())) {
+      _log.warning(
+          'Cut-off timestamp reached during dartdoc file post-processing.');
+      return;
+    }
     final suffix = file.path.substring(docDir.length + 1);
     final targetFile = File(p.join(tmpOutDir, suffix));
     await targetFile.parent.create(recursive: true);
@@ -63,6 +70,11 @@ Future<void> postPorcessDartdoc({
         .list(recursive: true, followLinks: false)
         .whereType<File>();
     await for (final file in originalFiles) {
+      if (cutoffTimestamp.isBefore(clock.now())) {
+        _log.warning(
+            'Cut-off timestamp reached during dartdoc archive building.');
+        break;
+      }
       // inside the archive prefix the name with <package>/version/
       final relativePath = p.relative(file.path, from: originalDocDir.path);
       final tarEntryPath = p.join(package, version, relativePath);
