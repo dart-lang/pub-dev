@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show json, utf8;
 import 'dart:io' show Directory, File, Platform, exit, gzip;
 
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
@@ -39,6 +40,8 @@ Future<void> main(List<String> args) async {
     print('Usage: pana_wrapper.dart <output-folder> <package> <version>');
     exit(1);
   }
+
+  final cutoffTimestamp = clock.now().add(_totalTimeout);
 
   final outputFolder = args[0];
   final package = args[1];
@@ -109,14 +112,16 @@ Future<void> main(List<String> args) async {
     logger: _log,
   );
 
-  await postPorcessDartdoc(
-    outputFolder: outputFolder,
-    package: package,
-    version: version,
-    docDir: rawDartdocOutputFolder.path,
-    dartdocVersion: _dartdocVersion,
-  );
-  await rawDartdocOutputFolder.delete(recursive: true);
+  if (cutoffTimestamp.isAfter(clock.now())) {
+    await postProcessDartdoc(
+      outputFolder: outputFolder,
+      package: package,
+      version: version,
+      docDir: rawDartdocOutputFolder.path,
+      dartdocVersion: _dartdocVersion,
+      cutoffTimestamp: cutoffTimestamp,
+    );
+  }
 
   // sanity check on pana report size
   final reportSize =
@@ -146,6 +151,10 @@ Future<void> main(List<String> args) async {
   await File(
     p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
+
+  if (cutoffTimestamp.isAfter(clock.now())) {
+    await rawDartdocOutputFolder.delete(recursive: true);
+  }
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
