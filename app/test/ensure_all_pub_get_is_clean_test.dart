@@ -27,18 +27,12 @@ void main() {
       () async {
         final workingDirectory = p.join(Directory.current.path, '..', dir);
         await runConstrained(
-          ['dart', 'pub', 'get'],
+          ['dart', 'pub', 'get', '--enforce-lockfile'],
           workingDirectory: workingDirectory,
           throwOnError: true,
           retryOptions: RetryOptions(maxAttempts: 2),
           retryIf: (_) => true,
         );
-        final pr = await runConstrained(
-          ['git', 'diff', '--relative'],
-          workingDirectory: workingDirectory,
-          throwOnError: true,
-        );
-        expect(pr.stdout.asString, isEmpty);
       },
       timeout: Timeout(Duration(minutes: 2)),
     );
