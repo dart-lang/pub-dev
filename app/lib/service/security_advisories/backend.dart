@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/advisories_api.dart' show OSV;
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
@@ -86,12 +87,18 @@ class SecurityAdvisoryBackend {
 
       if (!_isValidAdvisory(osv)) return null;
 
+      final idAndAliases = [osv.id, ...osv.aliases];
+
+      osv.databaseSpecific ??= <String, dynamic>{};
+      osv.databaseSpecific?['pub_display_url'] =
+          _computeDisplayUrl(idAndAliases);
+
       final newAdvisory = SecurityAdvisory()
         ..id = osv.id
         ..modified = modified
         ..parentKey = _db.emptyKey
         ..osv = osv
-        ..aliases = [osv.id, ...osv.aliases]
+        ..aliases = idAndAliases
         ..affectedPackages =
             (osv.affected ?? []).map((a) => a.package.name).toList()
         ..published =
@@ -121,6 +128,21 @@ class SecurityAdvisoryBackend {
 
       return newAdvisory;
     });
+  }
+
+  String _computeDisplayUrl(List<String> idAndAliases) {
+    final githubId =
+        idAndAliases.firstWhereOrNull((id) => id.startsWith('GHSA'));
+    if (githubId != null) {
+      return 'https://github.com/advisories/$githubId';
+    }
+
+    final cveId = idAndAliases.firstWhereOrNull((id) => id.startsWith('CVE'));
+    if (cveId != null) {
+      return 'https://osv.dev/vulnerability/$cveId';
+    }
+
+    return idAndAliases.first;
   }
 
   Future<void> deleteAdvisory(

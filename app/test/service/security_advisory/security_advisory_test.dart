@@ -356,4 +356,89 @@ void main() {
     expect(neonRes.advisories, isEmpty);
     expect(neonRes.advisoriesUpdated, isNull);
   });
+
+  testWithProfile('display url', fn: () async {
+    final firstTime = DateTime(2022).toIso8601String();
+    final affectedA = Affected(
+      package: Package(ecosystem: 'pub', name: 'a'),
+      versions: ['1'],
+    );
+    final ghsaId = 'GHSA-0123-4567-8910';
+    final cveId = 'CVE-0123-4567-8910';
+    final id = 'ABCD-EFGH-IJKL-1234';
+    final id1 = 'ABCD-EFGH-IJKL-1235';
+    final id2 = 'ABCD-EFGH-IJKL-1236';
+
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: ghsaId,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv1 = OSV(
+      schemaVersion: '1.2.3',
+      id: cveId,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv2 = OSV(
+      schemaVersion: '1.2.3',
+      id: id,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv3 = OSV(
+        schemaVersion: '1.2.3',
+        id: id1,
+        modified: firstTime,
+        published: firstTime,
+        affected: [affectedA],
+        aliases: [ghsaId]);
+
+    final osv4 = OSV(
+        schemaVersion: '1.2.3',
+        id: id2,
+        modified: firstTime,
+        published: firstTime,
+        affected: [affectedA],
+        aliases: [cveId]);
+
+    final syncTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv1, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv3, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv4, syncTime);
+
+    final all = await securityAdvisoryBackend.listAdvisories();
+    expect(all, isNotNull);
+    expect(all.length, 5);
+    expect(all[0].id, ghsaId);
+    expect(all[1].id, cveId);
+    expect(all[2].id, id);
+    expect(all[3].id, id1);
+    expect(all[4].id, id2);
+    expect(all[0].aliases, contains(ghsaId));
+    expect(all[1].aliases, contains(cveId));
+
+    expect(all[0].osv!.databaseSpecific!['pub_display_url'],
+        'https://github.com/advisories/$ghsaId');
+
+    expect(all[1].osv!.databaseSpecific!['pub_display_url'],
+        'https://osv.dev/vulnerability/$cveId');
+
+    expect(all[2].osv!.databaseSpecific!['pub_display_url'], id);
+
+    expect(all[3].osv!.databaseSpecific!['pub_display_url'],
+        'https://github.com/advisories/$ghsaId');
+
+    expect(all[4].osv!.databaseSpecific!['pub_display_url'],
+        'https://osv.dev/vulnerability/$cveId');
+  });
 }
