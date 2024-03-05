@@ -5,6 +5,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2024.02.29`.
  * Upgraded dartdoc to `8.0.6`.
  * Note: preview analysis SDKs are downloaded dynamically.
+ * Resyncing all `SecurityAdvisory` entities to get `pub_display_url` in the
+  `database_specific` field backfilled.
+
 
 ## `20240227t140000-all`
  * Bumped runtimeVersion to `2024.02.27`.
