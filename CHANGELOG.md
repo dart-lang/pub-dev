@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2024.02.29`.
  * Upgraded dartdoc to `8.0.6`.
+ * Note: preview analysis SDKs are downloaded dynamically.
 
 ## `20240227t140000-all`
  * Bumped runtimeVersion to `2024.02.27`.
