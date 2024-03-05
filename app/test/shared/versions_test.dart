@@ -48,10 +48,8 @@ void main() {
     }
 
     check(toolStableDartSdkVersion, 'stable Dart analysis SDK');
-    check(toolPreviewDartSdkVersion, 'preview Dart analysis SDK');
     check(runtimeSdkVersion, 'runtime Dart SDK');
     check(toolStableFlutterSdkVersion, 'stable Flutter');
-    check(toolPreviewFlutterSdkVersion, 'preview Flutter');
     check(panaVersion, 'pana');
     check(dartdocVersion, 'dartdoc');
     check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
@@ -88,10 +86,6 @@ void main() {
             dockerfileContent.contains(
                 'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'),
         isTrue);
-    expect(
-        dockerfileContent,
-        contains(
-            'tool/setup-dart.sh /home/worker/dart/preview $toolPreviewDartSdkVersion'));
   });
 
   test('Flutter SDK versions should match Dockerfile.worker', () async {
@@ -100,10 +94,6 @@ void main() {
         dockerfileContent,
         contains(
             'tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
-    expect(
-        dockerfileContent,
-        contains(
-            'tool/setup-flutter.sh /home/worker/flutter/preview $toolPreviewFlutterSdkVersion'));
   });
 
   test('analyzer version should match resolved pana version', () async {
@@ -117,10 +107,6 @@ void main() {
     expect(
         flutterArchive.releases!
             .any((fr) => fr.version == toolStableFlutterSdkVersion),
-        isTrue);
-    expect(
-        flutterArchive.releases!
-            .any((fr) => fr.version == toolPreviewFlutterSdkVersion),
         isTrue);
   });
 
