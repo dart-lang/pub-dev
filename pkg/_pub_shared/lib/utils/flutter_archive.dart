@@ -17,10 +17,14 @@ part 'flutter_archive.g.dart';
 /// - https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
 Future<FlutterArchive> fetchFlutterArchive() async {
   final client = httpRetryClient();
-  final rs = await client.get(Uri.parse(
-      'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
-  client.close();
-  return FlutterArchive.fromJson(json.decode(rs.body) as Map<String, dynamic>);
+  try {
+    final rs = await client.get(Uri.parse(
+        'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
+    return FlutterArchive.fromJson(
+        json.decode(rs.body) as Map<String, dynamic>);
+  } finally {
+    client.close();
+  }
 }
 
 /// The latest released versions on all Flutter release channels.
