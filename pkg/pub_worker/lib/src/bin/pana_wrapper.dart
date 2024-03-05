@@ -189,10 +189,10 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
   // Choose stable Dart and Flutter SDKs for analysis
   final installedDartSdk =
       dartSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
-          (dartSdks.isNotEmpty ? dartSdks.first : null);
+          dartSdks.firstOrNull;
   final installedFlutterSdk =
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
-          (flutterSdks.isNotEmpty ? flutterSdks.first : null);
+          flutterSdks.firstOrNull;
 
   final needsNewer = needsNewerSdk(
           sdkVersion: installedDartSdk?.version,
