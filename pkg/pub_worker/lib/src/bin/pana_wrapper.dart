@@ -194,6 +194,11 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
           flutterSdks.firstOrNull;
 
+  // NOTE: this is very simple constraint check right now. Instead, we should:
+  //       - try to use the latest SDKs in the docker image, or
+  //       - try to use the latest downloadable SDKs, or
+  //       - try to use the latest beta/preview SDKs, or
+  //       - fall back to the latest dev/master branch.
   final needsNewer = needsNewerSdk(
           sdkVersion: installedDartSdk?.version,
           constraint: pubspec.dartSdkConstraint) ||
