@@ -257,6 +257,7 @@ Future<String?> _installSdk({
   }
   if (!await Directory(sdkPath).exists()) {
     final configHomePath = _configHomePath(sdkKind, configKind);
+    // TODO: setup/download with retries (optionally with CRC/hash checks)
     await runConstrained(
       [
         'tool/setup-$sdkKind.sh',
