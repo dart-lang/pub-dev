@@ -23,6 +23,9 @@ class PublicBucketUpdateStat {
     required this.archivesToBeDeleted,
     required this.archivesDeleted,
   });
+
+  bool get isAllZero =>
+      archivesUpdated == 0 && archivesToBeDeleted == 0 && archivesDeleted == 0;
 }
 
 /// Updates the public package archive:
@@ -31,6 +34,7 @@ class PublicBucketUpdateStat {
 ///
 /// Return the number of objects that were updated.
 Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
+  String? package,
   @visibleForTesting Duration ageCheckThreshold = const Duration(days: 1),
   @visibleForTesting Duration deleteIfOlder = const Duration(days: 7),
 }) async {
@@ -46,8 +50,10 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
   final objectNamesInPublicBucket = <String>{};
 
-  await for (final pv in dbService.query<PackageVersion>().run()) {
-    // ignore: invalid_use_of_visible_for_testing_member
+  final pvStream = package == null
+      ? dbService.query<PackageVersion>().run()
+      : packageBackend.streamVersionsOfPackage(package);
+  await for (final pv in pvStream) {
     final objectName = tarballObjectName(pv.package, pv.version!);
     final publicInfo = await publicBucket.tryInfo(objectName);
 
@@ -58,6 +64,8 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
           canonicalBucket.absoluteObjectName(objectName),
           publicBucket.absoluteObjectName(objectName),
         );
+        final newInfo = await publicBucket.info(objectName);
+        await updateContentDispositionToAttachment(newInfo, publicBucket);
         updatedCount++;
       } on Exception catch (e, st) {
         _logger.shout(
@@ -70,7 +78,9 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
     objectNamesInPublicBucket.add(objectName);
   }
 
-  await for (final entry in publicBucket.list()) {
+  final filterForNamePrefix =
+      package == null ? 'packages/' : tarballObjectNamePackagePrefix(package);
+  await for (final entry in publicBucket.list(prefix: filterForNamePrefix)) {
     // Skip non-objects.
     if (!entry.isObject) {
       continue;
