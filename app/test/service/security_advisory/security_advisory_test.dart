@@ -433,7 +433,8 @@ void main() {
     expect(all[1].osv!.databaseSpecific!['pub_display_url'],
         'https://osv.dev/vulnerability/$cveId');
 
-    expect(all[2].osv!.databaseSpecific!['pub_display_url'], id);
+    expect(all[2].osv!.databaseSpecific!['pub_display_url'],
+        'https://osv.dev/vulnerability/$id');
 
     expect(all[3].osv!.databaseSpecific!['pub_display_url'],
         'https://github.com/advisories/$ghsaId');

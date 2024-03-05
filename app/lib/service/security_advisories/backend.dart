@@ -142,7 +142,7 @@ class SecurityAdvisoryBackend {
       return 'https://osv.dev/vulnerability/$cveId';
     }
 
-    return idAndAliases.first;
+    return 'https://osv.dev/vulnerability/${idAndAliases.first}';
   }
 
   Future<void> deleteAdvisory(
