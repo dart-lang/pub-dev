@@ -247,7 +247,7 @@ Future<String?> _previewFlutterSdk() async {
     sdkKind: 'flutter',
     configKind: 'preview',
     sdkPath: '/home/worker/flutter/preview',
-    version: archive.latestBeta?.cleanVersion ?? 'master',
+    version: archive?.latestBeta?.cleanVersion ?? 'master',
   );
 }
 
