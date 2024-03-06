@@ -267,11 +267,16 @@ class PackageBackend {
     );
   }
 
-  /// Looks up all versions of a package.
+  /// Looks up all versions of a package and return them as a [List].
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
+    return streamVersionsOfPackage(packageName).toList();
+  }
+
+  /// Looks up all versions of a package and return them as a [Stream].
+  Stream<PackageVersion> streamVersionsOfPackage(String packageName) {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final query = db.query<PackageVersion>(ancestorKey: packageKey);
-    return await query.run().toList();
+    return query.run();
   }
 
   /// List the versions of [package] that are published in the last N [days].
@@ -1845,9 +1850,11 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 }
 
 /// The GCS object name of a tarball object - excluding leading '/'.
-@visibleForTesting
 String tarballObjectName(String package, String version) =>
-    'packages/$package-$version.tar.gz';
+    '${tarballObjectNamePackagePrefix(package)}$version.tar.gz';
+
+/// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
+String tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
 
 /// The GCS object name of an temporary object [guid] - excluding leading '/'.
 @visibleForTesting
