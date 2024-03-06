@@ -411,14 +411,12 @@ class AccountBackend {
       }
 
       // Create new user with oauth2 user_id mapping
-      final user = User()
+      final user = User.init()
         ..parentKey = emptyKey
         ..id = createUuid()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
-        ..created = clock.now().toUtc()
-        ..isBlocked = false
-        ..isDeleted = false;
+        ..created = clock.now().toUtc();
 
       tx.insert(user);
       tx.insert(

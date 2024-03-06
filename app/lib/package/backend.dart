@@ -1754,7 +1754,7 @@ Future<_UploadEntities> _createUploadEntities(
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
   final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
 
-  final version = PackageVersion()
+  final version = PackageVersion.init()
     ..id = versionString
     ..parentKey = packageKey
     ..version = versionString
@@ -1763,8 +1763,7 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = agent.agentId
-    ..sha256 = sha256Hash
-    ..isRetracted = false;
+    ..sha256 = sha256Hash;
 
   final derived = derivePackageVersionEntities(
     archive: archive,
