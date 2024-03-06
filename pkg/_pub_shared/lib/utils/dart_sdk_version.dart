@@ -60,21 +60,26 @@ Future<DartSdkVersion> getDartSdkVersion({
 Future<DartSdkVersion?> fetchLatestDartSdkVersion({
   required String channel,
 }) async {
-  final client = httpRetryClient();
-  try {
-    final rs = await client.get(Uri.parse(
-        'https://storage.googleapis.com/dart-archive/channels/$channel/release/latest/VERSION'));
-    if (rs.statusCode != 200) {
-      throw AssertionError('Expected OK status code, got: ${rs.statusCode}.');
+  for (var i = 0; i < 3; i++) {
+    final client = httpRetryClient();
+    try {
+      final rs = await client.get(Uri.parse(
+          'https://storage.googleapis.com/dart-archive/channels/$channel/release/latest/VERSION'));
+      if (rs.statusCode != 200) {
+        _logger.warning(
+            'Unable to fetch the Dart SDK version, status code: ${rs.statusCode}');
+        continue;
+      }
+      final map = json.decode(rs.body) as Map<String, dynamic>;
+      final version = map['version'] as String;
+      final date = DateTime.parse(map['date'] as String);
+      return DartSdkVersion(version, date);
+    } catch (e, st) {
+      _logger.warning('Unable to fetch the Dart SDK version', e, st);
+      continue;
+    } finally {
+      client.close();
     }
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    final version = map['version'] as String;
-    final date = DateTime.parse(map['date'] as String);
-    return DartSdkVersion(version, date);
-  } catch (e, st) {
-    _logger.warning('Unable to fetch the Dart SDK version', e, st);
-    return null;
-  } finally {
-    client.close();
   }
+  return null;
 }

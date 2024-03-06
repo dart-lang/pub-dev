@@ -105,7 +105,7 @@ void main() {
   test('Flutter is using a released version from any channel.', () async {
     final flutterArchive = await fetchFlutterArchive();
     expect(
-        flutterArchive.releases!
+        flutterArchive!.releases!
             .any((fr) => fr.version == toolStableFlutterSdkVersion),
         isTrue);
   });
@@ -114,7 +114,7 @@ void main() {
     'Flutter is using the latest stable',
     () async {
       final flutterArchive = await fetchFlutterArchive();
-      final currentStable = flutterArchive.releases!.firstWhereOrNull(
+      final currentStable = flutterArchive!.releases!.firstWhereOrNull(
         (r) => r.hash == flutterArchive.currentRelease!.stable,
       )!;
       expect(

@@ -6,21 +6,36 @@ import 'dart:convert';
 
 import 'package:_pub_shared/utils/http.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 part 'flutter_archive.g.dart';
+
+final _logger = Logger('flutter_archive');
 
 /// Returns the latest released versions on all Flutter release channels.
 ///
 /// See:
 /// - https://flutter.dev/docs/development/tools/sdk/releases?tab=linux
 /// - https://github.com/flutter/flutter/wiki/Flutter-build-release-channels
-Future<FlutterArchive> fetchFlutterArchive() async {
-  final client = httpRetryClient();
-  final rs = await client.get(Uri.parse(
-      'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
-  client.close();
-  return FlutterArchive.fromJson(json.decode(rs.body) as Map<String, dynamic>);
+///
+/// Returns `null` if the archive cannot be fetched.
+Future<FlutterArchive?> fetchFlutterArchive() async {
+  for (var i = 0; i < 3; i++) {
+    final client = httpRetryClient();
+    try {
+      final rs = await client.get(Uri.parse(
+          'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
+      return FlutterArchive.fromJson(
+          json.decode(rs.body) as Map<String, dynamic>);
+    } catch (e, st) {
+      _logger.warning('Unable to fetch the Flutter SDK archive', e, st);
+      continue;
+    } finally {
+      client.close();
+    }
+  }
+  return null;
 }
 
 /// The latest released versions on all Flutter release channels.
