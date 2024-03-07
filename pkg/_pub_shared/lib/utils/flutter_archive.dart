@@ -53,6 +53,15 @@ class FlutterArchive {
 
   Map<String, dynamic> toJson() => _$FlutterArchiveToJson(this);
 
+  late final _stableVersions = releases
+      ?.where((e) => e.channel == 'stable' && e.version != null)
+      .toList();
+
+  late final latestStable = (_stableVersions?.isNotEmpty ?? false)
+      ? _stableVersions!.reduce(
+          (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a)
+      : null;
+
   late final _betaVersions =
       releases?.where((e) => e.channel == 'beta' && e.version != null).toList();
 

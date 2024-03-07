@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
@@ -176,7 +177,6 @@ String? _configHomePath(String sdk, String kind) {
 Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
   // Discover installed Dart and Flutter SDKs.
   // This reads sibling folders to the Dart and Flutter SDK.
-  // TODO: Install Dart / Flutter SDKs into these folders ondemand in the future!
   final dartSdks = await InstalledSdk.scanDirectory(
     kind: 'dart',
     path: Directory(
@@ -197,58 +197,127 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
           flutterSdks.firstOrNull;
 
-  // NOTE: this is very simple constraint check right now. Instead, we should:
-  //       - try to use the latest SDKs in the docker image, or
-  //       - try to use the latest downloadable SDKs, or
-  //       - try to use the latest beta/preview SDKs, or
-  //       - fall back to the latest dev/master branch.
-  final needsNewer = needsNewerSdk(
-          sdkVersion: installedDartSdk?.version,
-          constraint: pubspec.dartSdkConstraint) ||
-      needsNewerSdk(
-          sdkVersion: installedFlutterSdk?.version,
-          constraint: pubspec.flutterSdkConstraint);
+  bool matchesSdks({
+    required Version? dart,
+    required Version? flutter,
+    bool allowsMissingVersion = false,
+  }) {
+    if (!allowsMissingVersion && (dart == null || flutter == null)) {
+      return false;
+    }
 
-  var dartSdkPath = installedDartSdk?.path;
-  var flutterSdkPath = installedFlutterSdk?.path;
-  String configKind = 'stable';
-  if (needsNewer) {
-    configKind = 'preview';
-    dartSdkPath = await _previewDartSdk() ??
-        dartSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease)?.path ??
-        dartSdkPath;
-    flutterSdkPath = await _previewFlutterSdk() ??
-        flutterSdks.firstWhereOrNull((sdk) => sdk.version.isPreRelease)?.path ??
-        flutterSdkPath;
+    return sdkMatchesConstraint(
+          sdkVersion: dart,
+          constraint: pubspec.dartSdkConstraint,
+        ) &&
+        sdkMatchesConstraint(
+          sdkVersion: flutter,
+          constraint: pubspec.flutterSdkConstraint,
+        );
   }
 
+  // try to use the latest SDKs in the docker image
+  final matchesInstallSdks = matchesSdks(
+    dart: installedDartSdk?.version,
+    flutter: installedFlutterSdk?.version,
+    allowsMissingVersion: true,
+  );
+  if (matchesInstallSdks) {
+    return (
+      SdkConfig(
+        rootPath: installedDartSdk?.path,
+        configHomePath: _configHomePath('dart', 'stable'),
+      ),
+      SdkConfig(
+        rootPath: installedFlutterSdk?.path,
+        configHomePath: _configHomePath('flutter', 'stable'),
+      ),
+    );
+  }
+
+  final flutterArchive = await fetchFlutterArchive();
+
+  // try to use the latest stable downloadable SDKs
+  final latestStableDartSdk =
+      await fetchLatestDartSdkVersion(channel: 'stable');
+  final latestStableDartSdkVersion = latestStableDartSdk?.semanticVersion;
+  final matchesLatestStable = matchesSdks(
+    dart: latestStableDartSdkVersion,
+    flutter: flutterArchive?.latestStable?.semanticVersion,
+  );
+  if (matchesLatestStable) {
+    final dartSdkPath = await _installSdk(
+      sdkKind: 'dart',
+      configKind: 'latest-stable',
+      version: latestStableDartSdkVersion!.toString(),
+    );
+    final flutterSdkPath = await _installSdk(
+      sdkKind: 'flutter',
+      configKind: 'latest-stable',
+      version: flutterArchive!.latestStable!.version!,
+    );
+    return (
+      SdkConfig(
+        rootPath: dartSdkPath,
+        configHomePath: _configHomePath('dart', 'latest-stable'),
+      ),
+      SdkConfig(
+        rootPath: flutterSdkPath,
+        configHomePath: _configHomePath('flutter', 'latest-stable'),
+      ),
+    );
+  }
+
+  // try to use the latest beta/preview SDKs
+  final latestBetaDartSdk = await fetchLatestDartSdkVersion(channel: 'beta');
+  final latestBetaDartSdkVersion = latestBetaDartSdk?.semanticVersion;
+  final matchesLatestBeta = matchesSdks(
+    dart: latestBetaDartSdkVersion,
+    flutter: flutterArchive?.latestBeta?.semanticVersion,
+  );
+  if (matchesLatestBeta) {
+    final dartSdkPath = await _installSdk(
+      sdkKind: 'dart',
+      configKind: 'latest-beta',
+      version: latestBetaDartSdkVersion!.toString(),
+    );
+    final flutterSdkPath = await _installSdk(
+      sdkKind: 'flutter',
+      configKind: 'latest-beta',
+      version: flutterArchive!.latestBeta!.version!,
+    );
+    return (
+      SdkConfig(
+        rootPath: dartSdkPath,
+        configHomePath: _configHomePath('dart', 'latest-beta'),
+      ),
+      SdkConfig(
+        rootPath: flutterSdkPath,
+        configHomePath: _configHomePath('flutter', 'latest-beta'),
+      ),
+    );
+  }
+
+  // fall back to the latest dev/master branch
+  final dartSdkPath = await _installSdk(
+    sdkKind: 'dart',
+    configKind: 'master',
+    version: 'master',
+  );
+  final flutterSdkPath = await _installSdk(
+    sdkKind: 'flutter',
+    configKind: 'master',
+    version: 'master',
+  );
   return (
     SdkConfig(
       rootPath: dartSdkPath,
-      configHomePath: _configHomePath('dart', configKind),
+      configHomePath: _configHomePath('dart', 'master'),
     ),
     SdkConfig(
       rootPath: flutterSdkPath,
-      configHomePath: _configHomePath('flutter', configKind),
+      configHomePath: _configHomePath('flutter', 'master'),
     ),
-  );
-}
-
-Future<String?> _previewDartSdk() async {
-  final latestBeta = await fetchLatestDartSdkVersion(channel: 'beta');
-  return await _installSdk(
-    sdkKind: 'dart',
-    configKind: 'preview',
-    version: latestBeta?.version ?? 'master',
-  );
-}
-
-Future<String?> _previewFlutterSdk() async {
-  final archive = await fetchFlutterArchive();
-  return await _installSdk(
-    sdkKind: 'flutter',
-    configKind: 'preview',
-    version: archive?.latestBeta?.cleanVersion ?? 'master',
   );
 }
 
