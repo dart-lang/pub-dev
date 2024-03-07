@@ -23,6 +23,7 @@ final _reservedPackageNames = <String>[
   'hummingbird',
   'in_app_purchase',
   'location_background',
+  'web_socket', // for bquinlan@
   'math',
   'mirrors',
   'developer',
