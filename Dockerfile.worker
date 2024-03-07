@@ -19,9 +19,7 @@ WORKDIR /home/worker/pub-dev
 
 # A config directory for preview SDKs.
 RUN mkdir -p /home/worker/config/dart-stable
-RUN mkdir -p /home/worker/config/dart-preview
 RUN mkdir -p /home/worker/config/flutter-stable
-RUN mkdir -p /home/worker/config/flutter-preview
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
 RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.3.0

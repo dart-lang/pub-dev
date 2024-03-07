@@ -17,6 +17,7 @@ import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 import 'package:pub_worker/src/utils.dart';
+import 'package:retry/retry.dart';
 
 final _log = Logger('pana');
 
@@ -167,7 +168,9 @@ String? _configHomePath(String sdk, String kind) {
   if (!_isInsideDocker) {
     return null;
   }
-  return p.join(_workerConfigPath!, '$sdk-$kind');
+  final path = p.join(_workerConfigPath!, '$sdk-$kind');
+  Directory(path).createSync(recursive: true);
+  return path;
 }
 
 Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
@@ -236,7 +239,6 @@ Future<String?> _previewDartSdk() async {
   return await _installSdk(
     sdkKind: 'dart',
     configKind: 'preview',
-    sdkPath: '/home/worker/dart/preview',
     version: latestBeta?.version ?? 'master',
   );
 }
@@ -246,7 +248,6 @@ Future<String?> _previewFlutterSdk() async {
   return await _installSdk(
     sdkKind: 'flutter',
     configKind: 'preview',
-    sdkPath: '/home/worker/flutter/preview',
     version: archive?.latestBeta?.cleanVersion ?? 'master',
   );
 }
@@ -254,29 +255,42 @@ Future<String?> _previewFlutterSdk() async {
 Future<String?> _installSdk({
   required String sdkKind,
   required String configKind,
-  required String sdkPath,
   required String version,
 }) async {
   if (!_isInsideDocker) {
     return null;
   }
-  if (!await Directory(sdkPath).exists()) {
-    final configHomePath = _configHomePath(sdkKind, configKind);
-    // TODO: setup/download with retries (optionally with CRC/hash checks)
-    await runConstrained(
-      [
-        'tool/setup-$sdkKind.sh',
-        sdkPath,
-        version,
-      ],
-      workingDirectory: '/home/worker/pub-dev',
-      environment: {
-        if (configHomePath != null) 'XDG_CONFIG_HOME': configHomePath,
-        'PUB_HOSTED_URL': 'https://pub.dev',
-      },
-      timeout: const Duration(minutes: 5),
-      throwOnError: true,
-    );
+  final sdkPath = p.join('/home/worker', sdkKind, configKind);
+  final sdkDir = Directory(sdkPath);
+  if (await sdkDir.exists()) {
+    return sdkPath;
   }
+  await RetryOptions(maxAttempts: 3).retry(
+    () async {
+      try {
+        final configHomePath = _configHomePath(sdkKind, configKind);
+        await runConstrained(
+          [
+            'tool/setup-$sdkKind.sh',
+            sdkPath,
+            version,
+          ],
+          workingDirectory: '/home/worker/pub-dev',
+          environment: {
+            if (configHomePath != null) 'XDG_CONFIG_HOME': configHomePath,
+            'PUB_HOSTED_URL': 'https://pub.dev',
+          },
+          timeout: const Duration(minutes: 5),
+          throwOnError: true,
+        );
+      } catch (_) {
+        // on any failure clearing the target directory
+        if (await sdkDir.exists()) {
+          await sdkDir.delete(recursive: true);
+        }
+      }
+    },
+    retryIf: (_) => true,
+  );
   return sdkPath;
 }
