@@ -137,6 +137,15 @@ class Package extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? blocked;
 
+  /// `true` if package was moderated (pending moderation or deletion).
+  /// TODO: set this to true after backfill and all versions use it
+  @db.BoolProperty(required: false)
+  bool? isModerated;
+
+  /// The timestamp when the package was moderated.
+  @db.DateTimeProperty()
+  DateTime? moderatedAt;
+
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
@@ -187,6 +196,7 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isBlocked = false
+      ..isModerated = false
       ..assignedTags = []
       ..deletedVersions = [];
   }
@@ -578,6 +588,22 @@ class PackageVersion extends db.ExpandoModel<String> {
   /// The timestamp when the version was retracted.
   @db.DateTimeProperty()
   DateTime? retracted;
+
+  /// `true` if package version was moderated (pending moderation or deletion).
+  /// TODO: set this to true after backfill and all versions use it
+  @db.BoolProperty(required: false)
+  bool? isModerated;
+
+  /// The timestamp when the package version was moderated.
+  @db.DateTimeProperty()
+  DateTime? moderatedAt;
+
+  PackageVersion();
+
+  PackageVersion.init() {
+    isModerated = false;
+    isRetracted = false;
+  }
 
   // Convenience Fields:
 

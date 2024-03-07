@@ -44,7 +44,7 @@ void main() {
         package: 'pkg',
         version: '1.0.0',
         uploader: AuthenticatedUser(
-          User()
+          User.init()
             ..id = 'user-id'
             ..email = 'user@pub.dev',
           audience: 'fake-client-audience',
