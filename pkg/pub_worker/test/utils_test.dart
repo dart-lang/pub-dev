@@ -52,6 +52,27 @@ void main() {
       true,
     );
 
+    expect(
+      sdkMatchesConstraint(
+          sdkVersion: Version.parse('3.0.0'),
+          constraint: VersionConstraint.parse('^1.0.0')),
+      true,
+    );
+
+    expect(
+      sdkMatchesConstraint(
+          sdkVersion: Version.parse('3.0.0'),
+          constraint: VersionConstraint.parse('>=0.0.0 <1.0.0')),
+      true,
+    );
+
+    expect(
+      sdkMatchesConstraint(
+          sdkVersion: Version.parse('3.0.0'),
+          constraint: VersionConstraint.parse('>=0.0.0 <4.0.0')),
+      true,
+    );
+
     // requires newer SDK
     expect(
       sdkMatchesConstraint(
