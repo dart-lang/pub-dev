@@ -217,12 +217,12 @@ Future<(SdkConfig, SdkConfig)> _detectSdks(Pubspec pubspec) async {
   }
 
   // try to use the latest SDKs in the docker image
-  final matchesInstallSdks = matchesSdks(
+  final matchesInstalledSdks = matchesSdks(
     dart: installedDartSdk?.version,
     flutter: installedFlutterSdk?.version,
     allowsMissingVersion: true,
   );
-  if (matchesInstallSdks) {
+  if (matchesInstalledSdks) {
     return (
       SdkConfig(
         rootPath: installedDartSdk?.path,
