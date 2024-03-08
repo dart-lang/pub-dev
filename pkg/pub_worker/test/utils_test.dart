@@ -73,6 +73,13 @@ void main() {
       true,
     );
 
+    expect(
+      sdkMatchesConstraint(
+          sdkVersion: Version.parse('3.0.0'),
+          constraint: VersionConstraint.any),
+      true,
+    );
+
     // requires newer SDK
     expect(
       sdkMatchesConstraint(
