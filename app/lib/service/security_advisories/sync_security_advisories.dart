@@ -57,8 +57,7 @@ Future<(Map<String, OSV>, List<String>)> loadAdvisoriesFromDir(
   return (osvs, failedFiles);
 }
 
-Future<void> updateAdvisories(Map<String, OSV> osvs,
-    {bool resync = false}) async {
+Future<void> updateAdvisories(Map<String, OSV> osvs) async {
   final syncTime = clock.now();
 
   final oldAdvisories = await securityAdvisoryBackend.listAdvisories();
@@ -70,20 +69,19 @@ Future<void> updateAdvisories(Map<String, OSV> osvs,
   }
 
   for (final osv in osvs.values) {
-    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime,
-        resync: resync);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
   }
 }
 
 /// Synchronizes the security advisory backend with security advisories from
 /// osv.dev, overwriting existing advisories with the same id, if the fetched
-/// advisories are newer or overwriting unconditionally if [resync] is set.
-Future<void> syncSecurityAdvisories({bool resync = false}) async {
+/// advisories are newer.
+Future<void> syncSecurityAdvisories() async {
   final tempDir = await Directory.systemTemp.createTemp();
   try {
     await fetchAdvisories(tempDir);
     final (osvs, failedFiles) = await loadAdvisoriesFromDir(tempDir);
-    await updateAdvisories(osvs, resync: resync);
+    await updateAdvisories(osvs);
 
     if (failedFiles.isNotEmpty) {
       throw Exception(
