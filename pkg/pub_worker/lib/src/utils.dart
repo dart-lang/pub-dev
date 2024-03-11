@@ -19,29 +19,29 @@ String stripTrailingSlashes(String u) {
   return u;
 }
 
-bool needsNewerSdk({
+bool sdkMatchesConstraint({
   required Version? sdkVersion,
   required VersionConstraint? constraint,
 }) {
   // SDK version is missing
   if (sdkVersion == null) {
-    return false;
+    return true;
   }
   // any SDK will do
   if (constraint == null) {
-    return false;
+    return true;
   }
   // SDK matches constraint
   if (!constraint.intersect(sdkVersion).isEmpty) {
-    return false;
+    return true;
   }
   if (constraint is VersionRange) {
     final minVersion = constraint.min;
     // SDK version < minVersion
     if (minVersion != null && minVersion.compareTo(sdkVersion) >= 0) {
-      return true;
+      return false;
     }
   }
   // Otherwise keep the current stable SDK.
-  return false;
+  return true;
 }
