@@ -233,6 +233,48 @@ void main() {
     expect(list3.length, 1);
     expect(list3.first.advisory.id, id);
   });
+
+  testWithProfile(
+      'Only include affected packages with "Pub" as specified ecosystem.',
+      fn: () async {
+    final firstTime = DateTime(2022).toIso8601String();
+    final id = 'GHSA-0123-4567-8910';
+
+    final affectedA = Affected(
+      package: Package(ecosystem: 'Pub', name: 'a'),
+      versions: ['1'],
+    );
+    final affectedNotPub = Affected(
+      package: Package(ecosystem: 'NotPub', name: 'b'),
+      versions: ['1'],
+    );
+
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: id,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA, affectedNotPub],
+    );
+
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, clock.now());
+
+    final advisory = await securityAdvisoryBackend.lookupById(id);
+    expect(advisory, isNotNull);
+    expect(advisory!.id, id);
+    expect(advisory.affectedPackages!.length, 1);
+    expect(advisory.affectedPackages!.first, affectedA.package.name);
+
+    final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
+    expect(list, isNotNull);
+    expect(list.length, 1);
+    expect(list.first.advisory.id, id);
+
+    final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories('b');
+    expect(list2, isNotNull);
+    expect(list2, isEmpty);
+  });
+
   group('Validate osv', () {
     test('Modified date should not be in the future', () async {
       final firstTime = DateTime(2022).toIso8601String();
