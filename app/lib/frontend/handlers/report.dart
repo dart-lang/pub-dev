@@ -54,7 +54,6 @@ Future<String> processReportPageHandler(
 
   final bodyText = <String>[
     'New report recieved on ${now.toIso8601String()}: $id',
-    'Form content:',
     'Description:\n${form.description}',
   ].join('\n\n');
 
