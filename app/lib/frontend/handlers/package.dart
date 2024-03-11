@@ -277,6 +277,10 @@ Future<shelf.Response> _handlePackagePage({
   if (cachedPage == null) {
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null || !package.isVisible) {
+      if (package?.isModerated ?? false) {
+        final content = renderModeratedPackagePage(packageName);
+        return htmlResponse(content, status: 404);
+      }
       if (await packageBackend.isPackageModerated(packageName)) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);

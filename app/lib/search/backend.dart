@@ -381,6 +381,7 @@ class SearchBackend {
   Stream<PackageDocument> loadMinimumPackageIndex() async* {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
+      if (p.isNotVisible) continue;
       final releases = await packageBackend.latestReleases(p);
       yield PackageDocument(
         package: p.name!,
