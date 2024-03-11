@@ -28,10 +28,14 @@ PubApiClient get client {
   return PubApiClient(_baseUrl, client: http.createClientWithCsrf());
 }
 
-Future<Map<String, dynamic>> requestJson(
-  String path,
-  Map<String, dynamic>? body, {
-  String verb = 'POST',
+/// Sends a JSON request to the [path] endpoint using [verb] method with [body] content.
+///
+/// Sets the `Content-Type` header to `application/json; charset="utf-8` and
+/// expects a valid JSON response body.
+Future<Map<String, dynamic>> sendJson({
+  required String verb,
+  required String path,
+  required Map<String, dynamic>? body,
 }) async {
   final client = http.createClientWithCsrf();
   try {

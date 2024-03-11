@@ -49,7 +49,8 @@ void _initGenericForm() {
           }
         }
         await api_client.rpc(
-          fn: () => api_client.requestJson(endpoint, body),
+          fn: () =>
+              api_client.sendJson(verb: 'POST', path: endpoint, body: body),
           successMessage: null,
           onSuccess: (result) async {
             final message =
