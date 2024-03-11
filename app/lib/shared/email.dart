@@ -253,7 +253,7 @@ EmailMessage createReportPageAdminEmail({
   return EmailMessage(
     _notificationsFrom,
     [EmailAddress('support@pub.dev')],
-    'New report: $id',
+    'pub.dev case-id: $id',
     bodyText,
     localMessageId: createUuid(),
     ccRecipients: [EmailAddress(userEmail)],
