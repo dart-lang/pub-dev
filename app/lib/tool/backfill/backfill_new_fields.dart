@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/service/security_advisories/sync_security_advisories.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
 final _logger = Logger('backfill_new_fields');
@@ -16,6 +17,10 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
+  _logger.info('Resyncing all security advisories...');
+  // This will backfill the `pub_display_url` in the `database_specific` field on the `SecurityAdvisory` entity.
+  await syncSecurityAdvisories(resync: true);
+
   _logger.info('Backfilling isModerated fileds...');
   await for (final e in dbService.query<Package>().run()) {
     if (e.isModerated != null) continue;
