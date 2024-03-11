@@ -65,8 +65,7 @@ class Publisher extends db.ExpandoModel<String> {
   bool isBlocked = false;
 
   /// `true` if publisher was moderated (pending moderation or deletion).
-  /// TODO: set this to true after backfill and all versions use it
-  @db.BoolProperty(required: false)
+  @db.BoolProperty(required: true)
   bool? isModerated;
 
   /// The timestamp when the publisher was moderated.

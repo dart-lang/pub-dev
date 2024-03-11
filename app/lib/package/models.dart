@@ -138,8 +138,7 @@ class Package extends db.ExpandoModel<String> {
   DateTime? blocked;
 
   /// `true` if package was moderated (pending moderation or deletion).
-  /// TODO: set this to true after backfill and all versions use it
-  @db.BoolProperty(required: false)
+  @db.BoolProperty(required: true)
   bool? isModerated;
 
   /// The timestamp when the package was moderated.
@@ -590,8 +589,7 @@ class PackageVersion extends db.ExpandoModel<String> {
   DateTime? retracted;
 
   /// `true` if package version was moderated (pending moderation or deletion).
-  /// TODO: set this to true after backfill and all versions use it
-  @db.BoolProperty(required: false)
+  @db.BoolProperty(required: true)
   bool? isModerated;
 
   /// The timestamp when the package version was moderated.
