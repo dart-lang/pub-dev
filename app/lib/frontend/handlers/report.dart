@@ -23,6 +23,7 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.isReportPageEnabled) {
     return notFoundHandler(request);
   }
+  // TODO: Final report page cannot require authentication!
   final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
