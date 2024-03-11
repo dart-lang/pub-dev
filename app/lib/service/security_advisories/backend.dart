@@ -99,8 +99,10 @@ class SecurityAdvisoryBackend {
         ..parentKey = _db.emptyKey
         ..osv = osv
         ..aliases = idAndAliases
-        ..affectedPackages =
-            (osv.affected ?? []).map((a) => a.package.name).toList()
+        ..affectedPackages = (osv.affected ?? [])
+            .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
+            .map((a) => a.package.name)
+            .toList()
         ..published =
             osv.published != null ? DateTime.parse(osv.published!) : modified
         ..syncTime = syncTime;
