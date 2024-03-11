@@ -6,7 +6,6 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
-import 'package:pub_dev/service/security_advisories/sync_security_advisories.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
 final _logger = Logger('backfill_new_fields');
