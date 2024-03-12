@@ -37,7 +37,7 @@ Set the moderated flag on a package (updating the flag and the timestamp).
         break;
     }
 
-    var p = await packageBackend.lookupPackage(package!);
+    final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
       throw NotFoundException.resource(package);
     }
@@ -45,7 +45,7 @@ Set the moderated flag on a package (updating the flag and the timestamp).
     Package? p2;
     if (valueToSet != null) {
       p2 = await withRetryTransaction(dbService, (tx) async {
-        final pkg = await tx.lookupValue<Package>(p!.key);
+        final pkg = await tx.lookupValue<Package>(p.key);
         pkg.updateIsModerated(isModerated: valueToSet!);
         tx.insert(pkg);
         return pkg;
