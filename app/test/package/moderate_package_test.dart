@@ -38,7 +38,7 @@ void main() {
       final r2 = await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'true'}),
+            arguments: {'package': 'oxygen', 'state': 'true'}),
       );
       expect(r2.output, {
         'package': 'oxygen',
@@ -83,7 +83,7 @@ void main() {
       final r2 = await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'true'}),
+            arguments: {'package': 'oxygen', 'state': 'true'}),
       );
       expect(r2.output, {
         'package': 'oxygen',
@@ -97,7 +97,7 @@ void main() {
       final r3 = await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'false'}),
+            arguments: {'package': 'oxygen', 'state': 'false'}),
       );
       expect(r3.output, {
         'package': 'oxygen',
@@ -136,7 +136,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'true'}),
+            arguments: {'package': 'oxygen', 'state': 'true'}),
       );
       for (final url in jsonUrls) {
         await expectJsonMapResponse(await issueGet(url), status: 404);
@@ -145,7 +145,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'false'}),
+            arguments: {'package': 'oxygen', 'state': 'false'}),
       );
       await expectAvailable();
     });
@@ -179,7 +179,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'true'}),
+            arguments: {'package': 'oxygen', 'state': 'true'}),
       );
       for (final url in htmlUrls) {
         await expectHtmlResponse(
@@ -193,7 +193,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'false'}),
+            arguments: {'package': 'oxygen', 'state': 'false'}),
       );
       await expectAvailable();
     });
@@ -211,7 +211,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'true'}),
+            arguments: {'package': 'oxygen', 'state': 'true'}),
       );
 
       final minimumIndex =
@@ -229,7 +229,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'false'}),
+            arguments: {'package': 'oxygen', 'state': 'false'}),
       );
 
       final minimumIndex2 =
@@ -262,7 +262,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'true'}),
+            arguments: {'package': 'oxygen', 'state': 'true'}),
       );
 
       await expectStatusCode(404);
@@ -274,7 +274,7 @@ void main() {
       await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'value': 'false'}),
+            arguments: {'package': 'oxygen', 'state': 'false'}),
       );
       await expectStatusCode(200);
       // another check after background tasks are running

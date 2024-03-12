@@ -16,8 +16,8 @@ Set the moderated flag on a package (updating the flag and the timestamp).
 ''',
   options: {
     'package': 'The package name to be moderated',
-    'value':
-        'The value to set (`true` or `false`). When absent, we will return the actual status.',
+    'state':
+        'Set moderated state true / false. Returns current state if omitted.',
   },
   invoke: (options) async {
     final package = options['package'];
@@ -26,9 +26,9 @@ Set the moderated flag on a package (updating the flag and the timestamp).
       'package must be given',
     );
 
-    final value = options['value'];
+    final state = options['state'];
     bool? valueToSet;
-    switch (value) {
+    switch (state) {
       case 'true':
         valueToSet = true;
         break;
