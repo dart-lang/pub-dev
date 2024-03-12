@@ -34,7 +34,7 @@ const _totalTimeout = Duration(minutes: 50);
 
 /// The dartdoc version to use.
 /// keep in-sync with app/lib/shared/versions.dart
-const _dartdocVersion = '8.0.6';
+const _dartdocVersion = '8.0.7';
 
 /// Program to be used as subprocess for running pana, ensuring that we capture
 /// all the output, and only run analysis in a subprocess that can timeout and
