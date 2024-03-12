@@ -22,11 +22,11 @@ import '../shared/test_services.dart';
 import 'backend_test_utils.dart';
 
 void main() {
-  group('Package moderated', () {
-    testWithProfile('moderate package', fn: () async {
+  group('Moderate package', () {
+    testWithProfile('update state', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final r1 = await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
       );
       expect(r1.output, {
@@ -36,7 +36,7 @@ void main() {
       });
 
       final r2 = await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'true'}),
       );
@@ -71,7 +71,7 @@ void main() {
     testWithProfile('clear moderation flag', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final r1 = await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
       );
       expect(r1.output, {
@@ -81,7 +81,7 @@ void main() {
       });
 
       final r2 = await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'true'}),
       );
@@ -95,7 +95,7 @@ void main() {
 
       // clear flag
       final r3 = await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'false'}),
       );
@@ -134,7 +134,7 @@ void main() {
 
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'true'}),
       );
@@ -143,7 +143,7 @@ void main() {
       }
 
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'false'}),
       );
@@ -177,7 +177,7 @@ void main() {
 
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'true'}),
       );
@@ -191,7 +191,7 @@ void main() {
       }
 
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'false'}),
       );
@@ -209,7 +209,7 @@ void main() {
 
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'true'}),
       );
@@ -227,7 +227,7 @@ void main() {
       expect(docs2!.where((d) => d.package == 'oxygen'), isEmpty);
 
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'false'}),
       );
@@ -260,7 +260,7 @@ void main() {
 
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'true'}),
       );
@@ -272,7 +272,7 @@ void main() {
       await expectStatusCode(404);
 
       await api.adminInvokeAction(
-        'package-moderated',
+        'moderate-package',
         AdminInvokeActionArguments(
             arguments: {'package': 'oxygen', 'value': 'false'}),
       );

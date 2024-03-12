@@ -8,8 +8,8 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 
-final packageModerated = AdminAction(
-  name: 'package-moderated',
+final moderatePackage = AdminAction(
+  name: 'moderate-package',
   summary: 'Set the moderated flag on a package (making it not visible).',
   description: '''
 Set the moderated flag on a package (updating the flag and the timestamp).

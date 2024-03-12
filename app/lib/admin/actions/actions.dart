@@ -6,7 +6,7 @@ import 'package:pub_dev/admin/actions/create_publisher.dart';
 import 'package:pub_dev/admin/actions/delete_publisher.dart';
 
 import 'package:pub_dev/admin/actions/merge_moderated_package_into_existing.dart';
-import 'package:pub_dev/admin/actions/package_moderated.dart';
+import 'package:pub_dev/admin/actions/moderate_package.dart';
 import 'package:pub_dev/admin/actions/publisher_block.dart';
 import 'package:pub_dev/admin/actions/publisher_members_list.dart';
 import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
@@ -72,7 +72,7 @@ final class AdminAction {
     createPublisher,
     deletePublisher,
     mergeModeratedPackageIntoExisting,
-    packageModerated,
+    moderatePackage,
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
