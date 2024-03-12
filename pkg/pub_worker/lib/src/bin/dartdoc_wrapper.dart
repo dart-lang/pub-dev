@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert' show json, utf8, Utf8Codec;
 import 'dart:io';
 
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:stream_transform/stream_transform.dart';
 import 'package:tar/tar.dart';
 
 final _log = Logger('dartdoc');
@@ -28,9 +29,10 @@ Future<void> postProcessDartdoc({
   _log.info('Running dartdoc post-processing');
   final tmpOutDir = p.join(outputFolder, '_doc');
   await Directory(tmpOutDir).create(recursive: true);
-  final files = Directory(docDir)
-      .list(recursive: true, followLinks: false)
-      .whereType<File>();
+  final files = listFilesWithTimeout(
+    path: docDir,
+    cutoffTimestamp: cutoffTimestamp,
+  );
   await for (final file in files) {
     if (cutoffTimestamp.isBefore(clock.now())) {
       _log.warning(
@@ -66,9 +68,10 @@ Future<void> postProcessDartdoc({
   _log.info('Creating .tar.gz archive');
   Stream<TarEntry> _list() async* {
     final originalDocDir = Directory(docDir);
-    final originalFiles = originalDocDir
-        .list(recursive: true, followLinks: false)
-        .whereType<File>();
+    final originalFiles = listFilesWithTimeout(
+      path: docDir,
+      cutoffTimestamp: cutoffTimestamp,
+    );
     await for (final file in originalFiles) {
       if (cutoffTimestamp.isBefore(clock.now())) {
         _log.warning(
@@ -97,4 +100,34 @@ Future<void> postProcessDartdoc({
   await tmpTar.rename(p.join(outputFolder, 'doc', 'package.tar.gz'));
 
   _log.info('Finished .tar.gz archive');
+}
+
+@visibleForTesting
+Stream<File> listFilesWithTimeout({
+  required String path,
+  required DateTime cutoffTimestamp,
+}) async* {
+  final root = Directory(path);
+  final queue = Queue<Directory>.from([root]);
+  while (queue.isNotEmpty) {
+    if (cutoffTimestamp.isBefore(clock.now())) {
+      _log.warning(
+          'Cut-off timestamp reached during dartdoc file post-processing.');
+      return;
+    }
+
+    final dir = queue.removeFirst();
+    await for (final e in dir.list(followLinks: false)) {
+      if (cutoffTimestamp.isBefore(clock.now())) {
+        _log.warning(
+            'Cut-off timestamp reached during dartdoc file post-processing.');
+        return;
+      }
+      if (e is Directory) {
+        queue.add(e);
+      } else if (e is File) {
+        yield e;
+      }
+    }
+  }
 }
