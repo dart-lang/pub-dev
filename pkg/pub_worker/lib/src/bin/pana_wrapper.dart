@@ -128,7 +128,6 @@ Future<void> main(List<String> args) async {
       package: package,
       version: version,
       docDir: rawDartdocOutputFolder.path,
-      dartdocVersion: _dartdocVersion,
       cutoffTimestamp: cutoffTimestamp,
     );
   }
