@@ -26,8 +26,8 @@ final _log = Logger('pana');
 /// replaced with a placeholder report.
 final _reportSizeDropThreshold = 32 * 1024;
 
-/// Stop dartdoc if it takes more than 45 minutes.
-const _dartdocTimeout = Duration(minutes: 45);
+/// Stop dartdoc if it takes more than 30 minutes.
+const _dartdocTimeout = Duration(minutes: 30);
 
 /// Try to fit analysis into 50 minutes.
 const _totalTimeout = Duration(minutes: 50);
@@ -45,7 +45,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
 
-  final cutoffTimestamp = clock.now().add(_totalTimeout);
+  final startedTimestamp = clock.now();
 
   final outputFolder = args[0];
   final package = args[1];
@@ -122,16 +122,6 @@ Future<void> main(List<String> args) async {
     logger: _log,
   );
 
-  if (cutoffTimestamp.isAfter(clock.now())) {
-    await postProcessDartdoc(
-      outputFolder: outputFolder,
-      package: package,
-      version: version,
-      docDir: rawDartdocOutputFolder.path,
-      cutoffTimestamp: cutoffTimestamp,
-    );
-  }
-
   // sanity check on pana report size
   final reportSize =
       gzip.encode(utf8.encode(json.encode(summary.toJson()))).length;
@@ -161,9 +151,23 @@ Future<void> main(List<String> args) async {
     p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
 
-  if (cutoffTimestamp.isAfter(clock.now())) {
-    await rawDartdocOutputFolder.delete(recursive: true);
+  // Post-processing of the dartdoc-generated files seems to take at least as
+  // much time as running pana+dartdoc in the first place. If we don't seem to
+  // have enough time to complete, it is better to not start at all.
+  final cutoffTimestamp = startedTimestamp.add(_totalTimeout * 0.5);
+  if (cutoffTimestamp.isBefore(clock.now())) {
+    _log.warning(
+        'Cut-off timestamp reached, skipping dartdoc post-processing.');
+    return;
   }
+  await postProcessDartdoc(
+    outputFolder: outputFolder,
+    package: package,
+    version: version,
+    docDir: rawDartdocOutputFolder.path,
+  );
+
+  await rawDartdocOutputFolder.delete(recursive: true);
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
