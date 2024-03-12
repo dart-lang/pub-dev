@@ -22,7 +22,6 @@ Future<void> postProcessDartdoc({
   required String package,
   required String version,
   required String docDir,
-  required String dartdocVersion,
   required DateTime cutoffTimestamp,
 }) async {
   _log.info('Running dartdoc post-processing');
