@@ -31,8 +31,7 @@ void main() {
       );
       expect(r1.output, {
         'package': 'oxygen',
-        'isModerated': false,
-        'moderatedAt': null,
+        'before': {'isModerated': false, 'moderatedAt': null},
       });
 
       final r2 = await api.adminInvokeAction(
@@ -42,8 +41,8 @@ void main() {
       );
       expect(r2.output, {
         'package': 'oxygen',
-        'isModerated': true,
-        'moderatedAt': isNotEmpty,
+        'before': {'isModerated': false, 'moderatedAt': null},
+        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isTrue);
@@ -76,8 +75,7 @@ void main() {
       );
       expect(r1.output, {
         'package': 'oxygen',
-        'isModerated': false,
-        'moderatedAt': null,
+        'before': {'isModerated': false, 'moderatedAt': null},
       });
 
       final r2 = await api.adminInvokeAction(
@@ -87,8 +85,8 @@ void main() {
       );
       expect(r2.output, {
         'package': 'oxygen',
-        'isModerated': true,
-        'moderatedAt': isNotEmpty,
+        'before': {'isModerated': false, 'moderatedAt': null},
+        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isTrue);
@@ -101,8 +99,8 @@ void main() {
       );
       expect(r3.output, {
         'package': 'oxygen',
-        'isModerated': false,
-        'moderatedAt': null,
+        'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'after': {'isModerated': false, 'moderatedAt': null},
       });
       final p3 = await packageBackend.lookupPackage('oxygen');
       expect(p3!.isModerated, isFalse);
