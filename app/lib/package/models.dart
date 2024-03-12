@@ -203,12 +203,13 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isBlocked;
+  bool get isVisible => !isBlocked && !(isModerated ?? false);
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
     final now = clock.now();
     return isVisible &&
+        !(isModerated ?? false) &&
         !isDiscontinued &&
         !isUnlisted &&
         now.difference(created!) > robotsVisibilityMinAge &&
@@ -412,6 +413,14 @@ class Package extends db.ExpandoModel<String> {
     this.isBlocked = isBlocked;
     blockedReason = reason;
     blocked = isBlocked ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
+  }
+
+  void updateIsModerated({
+    required bool isModerated,
+  }) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
   }
 }

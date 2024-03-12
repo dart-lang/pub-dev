@@ -5,6 +5,7 @@
 library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -132,6 +133,19 @@ Future<String> expectHtmlResponse(
     }
   }
   return content;
+}
+
+Future<Map<String, dynamic>> expectJsonMapResponse(
+  shelf.Response response, {
+  int status = 200,
+  Object? matcher,
+}) async {
+  expect(response.statusCode, status);
+  expect(response.headers['content-type'], 'application/json; charset="utf-8"');
+  final content = await response.readAsString();
+  final map = json.decode(content) as Map<String, dynamic>;
+  expect(map, matcher ?? isNotNull);
+  return map;
 }
 
 Future<String> expectAtomXmlResponse(shelf.Response response,

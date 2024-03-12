@@ -4,7 +4,6 @@
 
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -35,14 +34,14 @@ class PublicBucketUpdateStat {
 /// Return the number of objects that were updated.
 Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
   String? package,
-  @visibleForTesting Duration ageCheckThreshold = const Duration(days: 1),
-  @visibleForTesting Duration deleteIfOlder = const Duration(days: 7),
+  Duration ageCheckThreshold = const Duration(days: 1),
+  Duration deleteIfOlder = const Duration(days: 7),
 }) async {
   _logger.info('Scanning PackageVersions for public bucket updates...');
 
   var updatedCount = 0;
   var toBeDeletedCount = 0;
-  final deleteObjects = <String>[];
+  final deleteObjects = <String>{};
   final canonicalBucket =
       storageService.bucket(activeConfiguration.canonicalPackagesBucketName!);
   final publicBucket =
@@ -50,12 +49,26 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
 
   final objectNamesInPublicBucket = <String>{};
 
+  Package? lastPackage;
   final pvStream = package == null
       ? dbService.query<PackageVersion>().run()
       : packageBackend.streamVersionsOfPackage(package);
   await for (final pv in pvStream) {
+    if (lastPackage?.name != pv.package) {
+      lastPackage = await packageBackend.lookupPackage(pv.package);
+    }
+    final isModerated =
+        (lastPackage!.isModerated ?? false) || (pv.isModerated ?? false);
+
     final objectName = tarballObjectName(pv.package, pv.version!);
     final publicInfo = await publicBucket.tryInfo(objectName);
+
+    if (isModerated) {
+      if (publicInfo != null) {
+        deleteObjects.add(objectName);
+      }
+      continue;
+    }
 
     if (publicInfo == null) {
       _logger.warning('Updating missing object in public bucket: $objectName');
@@ -87,6 +100,9 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
     }
     // Skip objects that were matched in the previous step.
     if (objectNamesInPublicBucket.contains(entry.name)) {
+      continue;
+    }
+    if (deleteObjects.contains(entry.name)) {
       continue;
     }
 
