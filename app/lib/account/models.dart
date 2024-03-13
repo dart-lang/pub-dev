@@ -69,6 +69,9 @@ class User extends db.ExpandoModel<String> {
     isDeleted = false;
     isModerated = false;
   }
+
+  late final isVisible = !isBlocked && !(isModerated ?? false);
+  late final isNotVisible = !isVisible;
 }
 
 /// Maps Oauth user_id to User.id

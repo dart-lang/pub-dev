@@ -140,9 +140,16 @@ class IntegrityChecker {
         yield 'User "${user.userId}" is recently created, but has no `oauthUserId`.';
       }
 
-      if (user.isBlocked) {
+      if (user.isNotVisible) {
         _blockedUsers.add(user.userId);
       }
+
+      yield* _checkModeratedFlags(
+        kind: 'User',
+        id: user.userId,
+        isModerated: user.isModerated,
+        moderatedAt: user.moderatedAt,
+      );
     });
   }
 
@@ -197,6 +204,13 @@ class IntegrityChecker {
     _logger.info('Scanning Publishers...');
     yield* _queryWithPool<Publisher>((p) async* {
       publisherAttributes.addPublisher(p);
+
+      yield* _checkModeratedFlags(
+        kind: 'Publisher',
+        id: p.publisherId,
+        isModerated: p.isModerated,
+        moderatedAt: p.moderatedAt,
+      );
     });
   }
 
@@ -286,13 +300,13 @@ class IntegrityChecker {
     // empty uploaders
     if (p.uploaders == null || p.uploaders!.isEmpty) {
       // no publisher
-      if (p.publisherId == null && !p.isBlocked && !p.isDiscontinued) {
+      if (p.publisherId == null && p.isVisible && !p.isDiscontinued) {
         yield 'Package "${p.name}" has no uploaders, must be marked discontinued.';
       }
 
       if (p.publisherId != null &&
           publisherAttributes.isAbandoned(p.publisherId!) &&
-          !p.isBlocked &&
+          p.isVisible &&
           !p.isDiscontinued) {
         yield 'Package "${p.name}" has an abandoned publisher, must be marked discontinued.';
       }
@@ -399,6 +413,12 @@ class IntegrityChecker {
     } else if (!versionKeys.contains(p.latestPreviewVersionKey)) {
       yield 'Package "${p.name}" has missing `latestPreviewVersionKey`: "${p.latestPreviewVersionKey!.id}".';
     }
+    yield* _checkModeratedFlags(
+      kind: 'Package',
+      id: p.name!,
+      isModerated: p.isModerated,
+      moderatedAt: p.moderatedAt,
+    );
 
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
     final pviQuery = _db.query<PackageVersionInfo>()
@@ -535,6 +555,13 @@ class IntegrityChecker {
       );
       yield* Stream.fromIterable(tarballItems);
     }
+
+    yield* _checkModeratedFlags(
+      kind: 'PackageVersion',
+      id: pv.qualifiedVersionKey.toString(),
+      isModerated: pv.isModerated,
+      moderatedAt: pv.moderatedAt,
+    );
 
     // TODO: remove null check after the backfill should have filled the property.
     final sha256Hash = pv.sha256;
@@ -877,5 +904,22 @@ class _PublisherAttributes {
     _abandoned.clear();
     _withoutContact.clear();
     _memberCount.clear();
+  }
+}
+
+Stream<String> _checkModeratedFlags({
+  required String kind,
+  required String id,
+  required bool? isModerated,
+  required DateTime? moderatedAt,
+}) async* {
+  if (isModerated == null) {
+    yield '$kind "$id" has an `isModerated` property which is null.';
+  }
+  if ((isModerated ?? false) && moderatedAt == null) {
+    yield '$kind "$id" has `isModerated = true` but `moderatedAt` is null.';
+  }
+  if (!(isModerated ?? false) && moderatedAt != null) {
+    yield '$kind "$id" has `isModerated = false` but `moderatedAt` is not null.';
   }
 }
