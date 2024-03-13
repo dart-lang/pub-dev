@@ -131,6 +131,9 @@ class ScoreCardBackend {
     if (package == null) {
       throw NotFoundException('Package "$packageName" does not exist.');
     }
+    if (package.isNotVisible) {
+      throw ModeratedException.package(packageName);
+    }
     final version =
         await packageBackend.lookupPackageVersion(packageName, packageVersion);
     if (version == null) {

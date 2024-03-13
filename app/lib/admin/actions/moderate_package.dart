@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
+import '../../package/backend.dart';
+import '../../package/models.dart';
+import '../../shared/datastore.dart';
+import '../../task/backend.dart';
+import '../../tool/maintenance/update_public_bucket.dart';
+import 'actions.dart';
 
 final moderatePackage = AdminAction(
   name: 'moderate-package',
@@ -51,13 +52,14 @@ Set the moderated flag on a package (updating the flag and the timestamp).
         return pkg;
       });
 
-      // retract public archive files
+      // retract or re-populate public archive files
       await updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,
       );
 
+      await taskBackend.trackPackage(package);
       await purgePackageCache(package);
     }
 
