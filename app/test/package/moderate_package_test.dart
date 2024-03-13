@@ -8,8 +8,11 @@ import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
+import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
@@ -280,5 +283,46 @@ void main() {
       final restoredBytes = await expectStatusCode(200);
       expect(restoredBytes, bytes);
     });
+
+    testWithProfile(
+      'analysis results are cleared',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final score1 =
+            await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
+        expect(score1.grantedPubPoints, greaterThan(40));
+
+        final api = createPubApiClient(authToken: siteAdminToken);
+        await api.adminInvokeAction(
+          'moderate-package',
+          AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'state': 'true'}),
+        );
+
+        // score is not accessible
+        await expectLater(
+          () => scoreCardBackend.getScoreCardData('oxygen', '1.2.0'),
+          throwsA(isA<ModeratedException>()),
+        );
+        // search snapshot does not break
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+
+        // restore state
+        await api.adminInvokeAction(
+          'moderate-package',
+          AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'state': 'false'}),
+        );
+        await processTasksWithFakePanaAndDartdoc();
+
+        final score3 =
+            await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
+        expect(score3.grantedPubPoints, greaterThan(40));
+      },
+    );
   });
 }
