@@ -907,6 +907,7 @@ class _PublisherAttributes {
   }
 }
 
+/// Check that `isModerated` and `moderatedAt` are consistent.
 Stream<String> _checkModeratedFlags({
   required String kind,
   required String id,
