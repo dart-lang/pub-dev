@@ -911,16 +911,13 @@ class _PublisherAttributes {
 Stream<String> _checkModeratedFlags({
   required String kind,
   required String id,
-  required bool? isModerated,
+  required bool isModerated,
   required DateTime? moderatedAt,
 }) async* {
-  if (isModerated == null) {
-    yield '$kind "$id" has an `isModerated` property which is null.';
-  }
-  if ((isModerated ?? false) && moderatedAt == null) {
+  if (isModerated && moderatedAt == null) {
     yield '$kind "$id" has `isModerated = true` but `moderatedAt` is null.';
   }
-  if (!(isModerated ?? false) && moderatedAt != null) {
+  if (!isModerated && moderatedAt != null) {
     yield '$kind "$id" has `isModerated = false` but `moderatedAt` is not null.';
   }
 }

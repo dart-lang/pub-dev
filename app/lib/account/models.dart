@@ -56,7 +56,7 @@ class User extends db.ExpandoModel<String> {
 
   /// `true` if user was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
-  bool? isModerated;
+  bool isModerated = false;
 
   /// The timestamp when the user was moderated.
   @db.DateTimeProperty()
@@ -69,7 +69,7 @@ class User extends db.ExpandoModel<String> {
     isModerated = false;
   }
 
-  late final isVisible = !isBlocked && !(isModerated ?? false);
+  late final isVisible = !isBlocked && !isModerated;
   late final isNotVisible = !isVisible;
 }
 

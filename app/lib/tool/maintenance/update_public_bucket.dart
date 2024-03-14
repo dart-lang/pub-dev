@@ -57,8 +57,7 @@ Future<PublicBucketUpdateStat> updatePublicArchiveBucket({
     if (lastPackage?.name != pv.package) {
       lastPackage = await packageBackend.lookupPackage(pv.package);
     }
-    final isModerated =
-        (lastPackage!.isModerated ?? false) || (pv.isModerated ?? false);
+    final isModerated = lastPackage!.isModerated || pv.isModerated;
 
     final objectName = tarballObjectName(pv.package, pv.version!);
     final publicInfo = await publicBucket.tryInfo(objectName);
