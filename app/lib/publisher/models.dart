@@ -66,7 +66,7 @@ class Publisher extends db.ExpandoModel<String> {
 
   /// `true` if publisher was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
-  bool? isModerated;
+  bool isModerated = false;
 
   /// The timestamp when the publisher was moderated.
   @db.DateTimeProperty()

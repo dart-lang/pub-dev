@@ -139,7 +139,7 @@ class Package extends db.ExpandoModel<String> {
 
   /// `true` if package was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
-  bool? isModerated;
+  bool isModerated = false;
 
   /// The timestamp when the package was moderated.
   @db.DateTimeProperty()
@@ -202,13 +202,13 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isBlocked && !(isModerated ?? false);
+  bool get isVisible => !isBlocked && !isModerated;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
     final now = clock.now();
     return isVisible &&
-        !(isModerated ?? false) &&
+        !isModerated &&
         !isDiscontinued &&
         !isUnlisted &&
         now.difference(created!) > robotsVisibilityMinAge &&
@@ -599,7 +599,7 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   /// `true` if package version was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
-  bool? isModerated;
+  bool isModerated = false;
 
   /// The timestamp when the package version was moderated.
   @db.DateTimeProperty()
