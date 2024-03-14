@@ -71,21 +71,9 @@ String markdownToHtml(
   }
 }
 
-// extension set to use instead of m.ExtensionSet.gitHubWeb
-final _extensionSet = m.ExtensionSet(
-  List<m.BlockSyntax>.unmodifiable(
-    // alert syntax disabled as it is broken in 7.2.1
-    m.ExtensionSet.gitHubWeb.blockSyntaxes
-        .where((s) => s is! m.AlertBlockSyntax),
-  ),
-  List<m.InlineSyntax>.unmodifiable(
-    m.ExtensionSet.gitHubWeb.inlineSyntaxes,
-  ),
-);
-
 /// Parses markdown [source].
 List<m.Node> _parseMarkdownSource(String source) {
-  final document = m.Document(extensionSet: _extensionSet);
+  final document = m.Document(extensionSet: m.ExtensionSet.gitHubWeb);
   final lines = source.replaceAll('\r\n', '\n').split('\n');
   return document.parseLines(lines);
 }

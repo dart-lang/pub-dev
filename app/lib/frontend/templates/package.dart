@@ -538,6 +538,6 @@ List<Tab> buildPackageTabs({
 
 /// Renders the package page when the package has been moderated.
 String renderModeratedPackagePage(String packageName) {
-  final message = 'The package `$packageName` has been removed.';
+  final message = 'The package `$packageName` has been moderated.';
   return renderErrorPage(default404NotFound, message);
 }

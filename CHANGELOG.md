@@ -2,6 +2,11 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20240314t121900-all`
+ * Bumped runtimeVersion to `2024.03.12`.
+ * Upgraded dartdoc to `8.0.7`.
+ * Upgraded dependencies including `markdown 7.2.2`.
  * Note: dynamic SDK selection may download latest stable, beta or master branches.
 
 ## `20240307t093000-all`

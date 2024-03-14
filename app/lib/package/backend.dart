@@ -635,7 +635,7 @@ class PackageBackend {
   /// Returns false if the user is not an admin.
   /// Returns false if the package is not visible e.g. blocked.
   Future<bool> isPackageAdmin(Package p, String userId) async {
-    if (p.isBlocked) {
+    if (p.isNotVisible) {
       return false;
     }
     if (p.publisherId == null) {
