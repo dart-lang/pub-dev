@@ -459,6 +459,9 @@ class PackageBackend {
       if (pv == null) {
         throw NotFoundException.resource(version);
       }
+      if (pv.isModerated) {
+        throw ModeratedException.packageVersion(package, version);
+      }
 
       if (options.isRetracted != null &&
           options.isRetracted != pv.isRetracted) {

@@ -577,6 +577,9 @@ class RemovedPackageException extends NotFoundException {
 class ModeratedException extends NotFoundException {
   ModeratedException.package(String package)
       : super('Package "$package" has been moderated.');
+
+  ModeratedException.packageVersion(String package, String version)
+      : super('PackageVersion "$package" "$version" has been moderated.');
 }
 
 /// Thrown when API endpoint is not implemented.
