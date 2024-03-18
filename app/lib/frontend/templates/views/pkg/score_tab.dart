@@ -26,7 +26,8 @@ d.Node scoreTabNode({
 
   final report = card.report;
   final showReport = report != null;
-  final showPending = report == null && (card.isPending || isLatestStable);
+  final showPending = !showReport &&
+      (card.isPending || (card.hasNoTaskStatus && isLatestStable));
   final showNoReport = !showReport && !showPending;
 
   final toolEnvInfo = showReport
@@ -73,19 +74,20 @@ d.Node scoreTabNode({
         ),
         _reportNode(report),
         if (toolEnvInfo != null) toolEnvInfo,
-        d.p(
-          classes: ['analysis-info'],
-          children: [
-            d.text('Check the '),
-            d.a(
-              href: urls.pkgScoreLogTxtUrl(package,
-                  version: isLatestStable ? null : version),
-              text: 'analysis log',
-            ),
-            d.text(' for details.'),
-          ],
-        ),
       ]),
+    if (!showPending)
+      d.p(
+        classes: ['analysis-info'],
+        children: [
+          d.text('Check the '),
+          d.a(
+            href: urls.pkgScoreLogTxtUrl(package,
+                version: isLatestStable ? null : version),
+            text: 'analysis log',
+          ),
+          d.text(' for details.'),
+        ],
+      ),
   ]);
 }
 
