@@ -36,7 +36,7 @@ productionHosts:
 - pub.dartlang.org
 - pub.dev
 - api.pub.dev
-primaryApiUri: https://pub.dartlang.org/
+primaryApiUri: https://pub.dev/
 primarySiteUri: https://pub.dev/
 admins:
 - oauthUserId: '106306194842560376600'
