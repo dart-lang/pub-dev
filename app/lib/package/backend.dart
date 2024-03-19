@@ -33,7 +33,6 @@ import '../audit/models.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
 import '../service/email/models.dart';
-import '../service/rate_limit/rate_limit.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -1042,13 +1041,6 @@ class PackageBackend {
       throw AssertionError(
           'Package "${newVersion.package}" has no admin email to notify.');
     }
-
-    // check rate limits before the transaction
-    await verifyPackageUploadRateLimit(
-      agent: agent,
-      package: newVersion.package,
-      isNew: isNew,
-    );
 
     final email = createPackageUploadedEmail(
       packageName: newVersion.package,
