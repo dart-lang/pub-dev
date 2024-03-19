@@ -220,7 +220,10 @@ Future<shelf.Response> packageScoreLogTxtHandler(
   if (!await packageBackend.isPackageVisible(package)) {
     return shelf.Response.notFound('no such package');
   }
-  version ??= (await packageBackend.getLatestVersion(package))!;
+  version ??= (await packageBackend.getLatestVersion(package));
+  if (version == null) {
+    return shelf.Response.notFound('no such package');
+  }
   final log = await taskBackend.taskLog(package, version);
   return shelf.Response(
     log == null ? 404 : 200,
