@@ -136,7 +136,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     if (!context.uiCacheEnabled && !CacheHeaders.hasCacheHeader(rs.headers)) {
       // Indicates that the response is intended for a single user and must not
       // be stored by a shared cache. A private cache may store the response.
-      rs = rs.change(headers: CacheHeaders.private());
+      rs = rs.change(headers: CacheHeaders.defaultPrivate());
     }
     return rs;
   };

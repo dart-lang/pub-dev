@@ -126,9 +126,13 @@ class PubApi {
       Request request, String uploadId) async {
     final pv = await packageBackend.publishUploadedBlob(uploadId);
     return SuccessMessage(
-        success: Message(
-            message:
-                'Successfully uploaded ${urls.pkgPageUrl(pv.package, includeHost: true)} version ${pv.version}.'));
+      success: Message(
+        message: 'Successfully uploaded '
+            '${urls.pkgPageUrl(pv.package, includeHost: true)} '
+            'version ${pv.version}, '
+            'it may take up-to 10 minutes before the new version is available.',
+      ),
+    );
   }
 
   /// Adding a new uploader

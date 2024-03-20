@@ -10,6 +10,7 @@ import 'package:_pub_shared/data/advisories_api.dart'
 import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -494,6 +495,7 @@ Future<shelf.Response> listVersionsHandler(
       if (supportsGzip) 'content-encoding': 'gzip',
       'content-type': 'application/json; charset="utf-8"',
       'x-content-type-options': 'nosniff',
+      ...CacheHeaders.versionListingApi(),
     },
   );
 }
