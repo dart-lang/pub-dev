@@ -212,6 +212,28 @@ List<String> sanityCheckOSV(OSV osv) {
     errors.add('Invalid id, id too long (over 255 characters).');
   }
 
+  if (osv.affected == null || osv.affected!.isEmpty) {
+    errors.add('No affected packages for advisory ${osv.id}');
+  } else {
+    bool noAffectedHasVersion = true;
+    osv.affected!
+        .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
+        .forEach((affected) {
+      if (affected.versions == null || affected.versions!.isEmpty) {
+        logger.warning('No versions specified for affected package '
+            '${affected.package.name} in advisory ${osv.id}.');
+      } else {
+        noAffectedHasVersion = false;
+      }
+    });
+
+    if (noAffectedHasVersion) {
+      errors.add(
+          'Non of the affected packages in advisory ${osv.id} has specified '
+          'affected versions');
+    }
+  }
+
   final invalids = <int>[];
   // Check that [osv.id] consists of printable ASCII.
   osv.id.runes.forEach((element) {

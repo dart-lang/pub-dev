@@ -285,12 +285,56 @@ void main() {
         id: id,
         modified: futureTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1'],
+          )
+        ],
       );
 
       final errors = sanityCheckOSV(osv);
       expect(errors, isNotEmpty);
       expect(errors.first, contains('Invalid modified date'));
+    });
+
+    test('Affected packages should be non-empty', () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final id = '123';
+      final osv = OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: firstTime,
+        published: firstTime,
+        affected: [],
+      );
+
+      final errors = sanityCheckOSV(osv);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('No affected packages'));
+    });
+
+    test(
+        'At least one affected package should contain a non-empty versions list',
+        () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final id = '123';
+      final osv = OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: firstTime,
+        published: firstTime,
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: [],
+          )
+        ],
+      );
+
+      final errors = sanityCheckOSV(osv);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('specified affected versions'));
     });
 
     test('Id should be less than 255 characters', () async {
@@ -305,7 +349,12 @@ void main() {
         id: longid,
         modified: firstTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1'],
+          )
+        ],
       );
       final errors = sanityCheckOSV(osv2);
       expect(errors, isNotEmpty);
@@ -320,7 +369,12 @@ void main() {
         id: invalidId,
         modified: firstTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1'],
+          )
+        ],
       );
       final errors = sanityCheckOSV(osv3);
       expect(errors, isNotEmpty);
@@ -339,7 +393,12 @@ void main() {
         id: id,
         modified: firstTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1'],
+          )
+        ],
         databaseSpecific: largeMap,
       );
 
