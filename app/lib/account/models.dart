@@ -69,8 +69,15 @@ class User extends db.ExpandoModel<String> {
     isModerated = false;
   }
 
-  late final isVisible = !isBlocked && !isModerated;
+  late final isVisible = !isBlocked && !isModerated && !isDeleted;
   late final isNotVisible = !isVisible;
+
+  void updateIsModerated({
+    required bool isModerated,
+  }) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
+  }
 }
 
 /// Maps Oauth user_id to User.id

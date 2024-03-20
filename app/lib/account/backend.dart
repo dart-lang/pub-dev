@@ -137,7 +137,7 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   if (user == null) {
     throw AuthenticationException.failed();
   }
-  if (user.isBlocked) {
+  if (user.isBlocked || user.isModerated) {
     throw AuthorizationException.blocked();
   }
   if (user.isDeleted) {
@@ -475,7 +475,7 @@ class AccountBackend {
     final info = await authProvider.callTokenInfoWithAccessToken(
         accessToken: profile.accessToken ?? '');
     final user = await _lookupOrCreateUserByOauthUserId(profile);
-    if (user == null || user.isBlocked || user.isDeleted) {
+    if (user == null || user.isBlocked || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }
     final data = await withRetryTransaction(_db, (tx) async {
@@ -552,7 +552,7 @@ class AccountBackend {
     }
 
     final user = await lookupUserById(session.userId!);
-    if (user == null || user.isBlocked || user.isDeleted) {
+    if (user == null || user.isBlocked || user.isModerated || user.isDeleted) {
       return null;
     }
     return AuthenticatedUser(user,
@@ -647,6 +647,22 @@ class AccountBackend {
     if (expireSessions) {
       await _expireAllSessions(userId);
     }
+  }
+
+  /// Updates the moderated status of a user.
+  ///
+  /// Expires all existing user sessions.
+  Future<void> updateModeratedFlag(String userId, bool isModerated) async {
+    await withRetryTransaction(_db, (tx) async {
+      final user =
+          await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+      if (user == null) throw NotFoundException.resource('User:$userId');
+
+      user.updateIsModerated(isModerated: isModerated);
+      tx.insert(user);
+    });
+    await _expireAllSessions(userId);
+    await purgeAccountCache(userId: userId);
   }
 
   /// Retrieves a list of all uploader events that happened between [begin] and

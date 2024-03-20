@@ -350,7 +350,7 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
   List<String> requiredScopes = const <String>[],
 }) async {
   if (requestContext.isNotAuthenticated) {
-    return htmlResponse(renderUnauthenticatedPage());
+    return htmlResponse(renderUnauthenticatedPage(), status: 401);
   }
 
   final now = clock.now();
