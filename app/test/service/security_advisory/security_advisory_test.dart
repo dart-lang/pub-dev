@@ -72,7 +72,7 @@ void main() {
     final futureTime = clock.now().add(Duration(days: 1)).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
     final id = '123';
     final id2 = '456';
@@ -107,7 +107,7 @@ void main() {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
     final id = '123';
     final id2 = '456';
@@ -158,17 +158,17 @@ void main() {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final affectedB = Affected(
       package: Package(ecosystem: 'pub', name: 'b'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final affectedC = Affected(
       package: Package(ecosystem: 'pub', name: 'c'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final id = '123';
@@ -242,11 +242,11 @@ void main() {
 
     final affectedA = Affected(
       package: Package(ecosystem: 'Pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
     final affectedNotPub = Affected(
       package: Package(ecosystem: 'NotPub', name: 'b'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final osv = OSV(
@@ -288,7 +288,7 @@ void main() {
         affected: [
           Affected(
             package: Package(ecosystem: 'pub', name: 'oxygen'),
-            versions: ['1'],
+            versions: ['1.0.0'],
           )
         ],
       );
@@ -352,7 +352,7 @@ void main() {
         affected: [
           Affected(
             package: Package(ecosystem: 'pub', name: 'oxygen'),
-            versions: ['1'],
+            versions: ['1.0.0'],
           )
         ],
       );
@@ -372,7 +372,7 @@ void main() {
         affected: [
           Affected(
             package: Package(ecosystem: 'pub', name: 'oxygen'),
-            versions: ['1'],
+            versions: ['1.0.0'],
           )
         ],
       );
@@ -396,7 +396,7 @@ void main() {
         affected: [
           Affected(
             package: Package(ecosystem: 'pub', name: 'oxygen'),
-            versions: ['1'],
+            versions: ['1.0.0'],
           )
         ],
         databaseSpecific: largeMap,
@@ -424,7 +424,7 @@ void main() {
       affected: [
         Affected(
           package: Package(ecosystem: 'pub', name: 'oxygen'),
-          versions: ['1'],
+          versions: ['1.0.0'],
         )
       ],
     );
@@ -462,7 +462,7 @@ void main() {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
     final ghsaId = 'GHSA-0123-4567-8910';
     final cveId = 'CVE-0123-4567-8910';
