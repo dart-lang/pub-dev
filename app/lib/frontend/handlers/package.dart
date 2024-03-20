@@ -481,24 +481,21 @@ Future<shelf.Response> listVersionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
 
-  shelf.Response createResponse(List<int> body, {required bool isGzip}) {
-    return shelf.Response(
-      200,
-      body: body,
-      headers: {
-        if (isGzip) 'content-encoding': 'gzip',
-        'content-type': 'application/json; charset="utf-8"',
-        'x-content-type-options': 'nosniff',
-      },
-    );
+  var body = await packageBackend.listVersionsGzCachedBytes(package);
+  final supportsGzip = request.acceptsGzipEncoding();
+  if (!supportsGzip) {
+    body = gzip.decode(body);
   }
-
-  final body = await packageBackend.listVersionsCachedBytes(package);
-  if (request.acceptsGzipEncoding()) {
-    return createResponse(body, isGzip: true);
-  } else {
-    return createResponse(gzip.decode(body), isGzip: false);
-  }
+  return shelf.Response(
+    200,
+    body: body,
+    headers: {
+      'vary': 'Accept-Encoding', // body varies depending on accept-encoding!
+      if (supportsGzip) 'content-encoding': 'gzip',
+      'content-type': 'application/json; charset="utf-8"',
+      'x-content-type-options': 'nosniff',
+    },
+  );
 }
 
 /// Handles requests for /packages/<package>/publisher
