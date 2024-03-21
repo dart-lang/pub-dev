@@ -72,7 +72,7 @@ class PublishingScript {
       await dart.getDependencies(_dummyDir.path);
       await dart.publish(_dummyDir.path,
           expectedOutputContains:
-              'Successfully uploaded https://pub.dev/packages/_dummy_pkg version $_newDummyVersion.');
+              'Successfully uploaded https://pub.dev/packages/_dummy_pkg version $_newDummyVersion');
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg();
 
