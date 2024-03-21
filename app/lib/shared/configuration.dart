@@ -405,7 +405,7 @@ class Configuration {
       uploadSignerServiceAccount: null,
       blockRobots: true,
       productionHosts: ['localhost'],
-      primaryApiUri: primaryApiUri ?? Uri.parse('https://pub.dartlang.org/'),
+      primaryApiUri: primaryApiUri ?? Uri.parse('https://pub.dev/'),
       primarySiteUri: primarySiteUri ?? Uri.parse('https://pub.dev/'),
       admins: [
         AdminId(

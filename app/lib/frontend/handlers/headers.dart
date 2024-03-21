@@ -69,6 +69,12 @@ class CacheHeaders {
     public: true,
   );
 
+  /// Response that redirects to download URL for a package archive
+  static final packageDownloadApi = CacheHeaders._(
+    Duration(hours: 1),
+    public: true,
+  );
+
   /// The package name completion API endpoint serves the cached names
   /// of top packages.
   static final packageNameCompletion = CacheHeaders._(
