@@ -193,14 +193,14 @@ void main() {
   group('archive url', () {
     test('without base uri', () {
       expect(pkgArchiveDownloadUrl('foo', '1.0.0+1'),
-          '/packages/foo/versions/1.0.0%2B1.tar.gz');
+          '/api/archives/foo-1.0.0%2B1.tar.gz');
     });
 
     test('with base uri', () {
       expect(
         pkgArchiveDownloadUrl('foo', '1.0.0+1',
             baseUri: Uri.parse('https://pub.dev/')),
-        'https://pub.dev/packages/foo/versions/1.0.0%2B1.tar.gz',
+        'https://pub.dev/api/archives/foo-1.0.0%2B1.tar.gz',
       );
     });
   });
