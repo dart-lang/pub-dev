@@ -21,6 +21,7 @@ void main() {
           '/report',
           headers: {'cookie': '$experimentalCookieName=report'},
         ),
+        status: 401,
         present: ['Authentication required'],
         absent: ['Please describe the issue you want to report:'],
       );

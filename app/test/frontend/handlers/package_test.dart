@@ -127,6 +127,7 @@ void main() {
       fn: () async {
         await expectHtmlResponse(
           await issueGet('/packages/oxygen/admin'),
+          status: 401,
           present: [],
           absent: [
             '<li class="tab-button -active" data-name="-admin-tab-" role="button">',

@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/actions/create_publisher.dart';
-import 'package:pub_dev/admin/actions/delete_publisher.dart';
-
-import 'package:pub_dev/admin/actions/merge_moderated_package_into_existing.dart';
-import 'package:pub_dev/admin/actions/moderate_package.dart';
-import 'package:pub_dev/admin/actions/publisher_block.dart';
-import 'package:pub_dev/admin/actions/publisher_members_list.dart';
-import 'package:pub_dev/admin/actions/remove_package_from_publisher.dart';
-import 'package:pub_dev/admin/actions/secret.dart';
-import 'package:pub_dev/admin/actions/tool_execute.dart';
-import 'package:pub_dev/admin/actions/tool_list.dart';
-import 'package:pub_dev/admin/actions/uploader_count_report.dart';
-
 import '../../shared/exceptions.dart';
+
+import 'create_publisher.dart';
+import 'delete_publisher.dart';
+import 'merge_moderated_package_into_existing.dart';
+import 'moderate_package.dart';
+import 'moderate_user.dart';
+import 'publisher_block.dart';
+import 'publisher_members_list.dart';
+import 'remove_package_from_publisher.dart';
+import 'secret.dart';
 import 'task_bump_priority.dart';
+import 'tool_execute.dart';
+import 'tool_list.dart';
+import 'uploader_count_report.dart';
 
 export '../../shared/exceptions.dart';
 
@@ -73,6 +73,7 @@ final class AdminAction {
     deletePublisher,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
+    moderateUser,
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
