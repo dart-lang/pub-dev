@@ -85,7 +85,7 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
 /// Throws [AuthorizationException] if it doesn't have the permission.
 Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
     AdminPermission permission) async {
-  final agent = await requireAuthenticatedAgent();
+  final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedGcpServiceAccount) {
     final admin = activeConfiguration.admins!.firstWhereOrNull(
         (a) => a.oauthUserId == agent.oauthUserId && a.email == agent.email);
@@ -106,7 +106,7 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
 ///
 /// For users it verifies that the audience is for the pub client.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
-  final agent = await requireAuthenticatedAgent();
+  final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedUser &&
       agent.audience != activeConfiguration.pubClientAudience) {
     throw AuthenticationException.tokenInvalid(
@@ -117,7 +117,7 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
 
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
-Future<AuthenticatedAgent> requireAuthenticatedAgent() async {
+Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
     throw AuthenticationException.authenticationRequired();
