@@ -103,6 +103,8 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
 
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
+///
+/// For users it verifies that the audience is for the pub client.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedUser &&
@@ -113,6 +115,8 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   return agent;
 }
 
+/// Verifies the current bearer token in the request scope and returns the
+/// current authenticated user or a service agent with the available data.
 Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {

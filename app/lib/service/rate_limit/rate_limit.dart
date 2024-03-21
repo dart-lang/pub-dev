@@ -12,35 +12,19 @@ import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/redis_cache.dart';
 
-/// Verifies if the current package upload has a rate limit and throws
-/// if the limit has been exceeded.
-Future<void> verifyPackageUploadRateLimit({
-  required AuthenticatedAgent agent,
-  required String package,
-  required bool isNew,
-}) async {
-  final packagePublishedOp = AuditLogRecordKind.packagePublished;
-
+Future<void> verifyAuditLogRecordRateLimits(AuditLogRecord record) async {
+  final agentId = record.agent;
   await _verifyRateLimit(
-    rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
-    agentId: agent.agentId,
+    rateLimit: _getRateLimit(record.kind!, RateLimitScope.user),
+    agentId: agentId,
   );
-
-  if (isNew) {
-    await _verifyRateLimit(
-      rateLimit: _getRateLimit(
-        AuditLogRecordKind.packageCreated,
-        RateLimitScope.user,
-      ),
-      agentId: agent.agentId,
-    );
+  final packages = record.packages;
+  if (packages != null && packages.isNotEmpty) {
+    final rateLimit = _getRateLimit(record.kind!, RateLimitScope.package);
+    for (final p in packages) {
+      await _verifyRateLimit(rateLimit: rateLimit, package: p);
+    }
   }
-
-  // regular package-specific limits
-  await _verifyRateLimit(
-    rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.package),
-    package: package,
-  );
 }
 
 RateLimit? _getRateLimit(String operation, RateLimitScope scope) {

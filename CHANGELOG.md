@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2024.03.19`.
  * Upgraded stable Dart analysis SDK to `3.3.1`
  * Upgraded stable Flutter analysis SDK to `3.19.3`.
+ * Note: started using generic rate limiting in transactions.
 
 ## `20240314t121900-all`
  * Bumped runtimeVersion to `2024.03.12`.
