@@ -10,7 +10,8 @@ import 'actions.dart';
 
 final moderateUser = AdminAction(
   name: 'moderate-user',
-  summary: 'Set the moderated flag on a user (making user invisible and unable to login).',
+  summary:
+      'Set the moderated flag on a user (making user invisible and unable to login).',
   description: '''
 Set the moderated flag on a user (updating the flag and the timestamp).
 ''',
