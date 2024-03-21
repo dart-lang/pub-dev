@@ -13,7 +13,10 @@ final moderateUser = AdminAction(
   summary:
       'Set the moderated flag on a user (making user invisible and unable to login).',
   description: '''
-Set the moderated flag on a user (updating the flag and the timestamp).
+Set the moderated flag on a user (updating the flag and the timestamp). The
+moderated user will not be able to sign-in or be authenticated via JWT token,
+and actions that they may be able to do will be blocked because of that.
+The active web sessions of the user will be expired.
 ''',
   options: {
     'user': 'The user-id or the email of the user to be moderated',
