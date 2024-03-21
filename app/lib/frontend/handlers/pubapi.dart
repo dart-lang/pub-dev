@@ -24,6 +24,7 @@ import 'account.dart';
 import 'custom_api.dart';
 import 'listing.dart';
 import 'package.dart';
+import 'report.dart';
 
 part 'pubapi.g.dart';
 
@@ -547,4 +548,10 @@ class PubApi {
     String package,
   ) =>
       listAdvisoriesForPackage(request, package);
+
+  @EndPoint.post('/api/report')
+  Future<Message> postReport(Request request, ReportForm body) async {
+    final message = await processReportPageHandler(request, body);
+    return Message(message: message);
+  }
 }

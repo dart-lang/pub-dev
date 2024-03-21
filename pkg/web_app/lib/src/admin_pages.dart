@@ -24,7 +24,44 @@ void initAdminPages() {
     _createPublisherWidget.init();
     _publisherAdminWidget.init();
     _consentWidget.init();
+    _initGenericForm();
   });
+}
+
+void _initGenericForm() {
+  for (final form in document.querySelectorAll('[data-form-api-endpoint]')) {
+    final endpoint = form.dataset['form-api-endpoint']!;
+
+    for (final button in form.querySelectorAll('[data-form-api-button]')) {
+      button.onClick.listen((event) async {
+        final body = <String, Object?>{};
+        for (final field in form.querySelectorAll('[name]')) {
+          final name = field.attributes['name']!;
+          if (field is InputElement &&
+              !(field.disabled ?? false) &&
+              field.value != null) {
+            body[name] = field.value;
+          }
+          if (field is TextAreaElement &&
+              !field.disabled &&
+              field.value != null) {
+            body[name] = field.value;
+          }
+        }
+        await api_client.rpc(
+          fn: () =>
+              api_client.sendJson(verb: 'POST', path: endpoint, body: body),
+          successMessage: null,
+          onSuccess: (result) async {
+            final message =
+                result == null ? null : result['message']?.toString();
+            await modalMessage('Success', text(message ?? 'OK.'));
+            window.location.reload();
+          },
+        );
+      });
+    }
+  }
 }
 
 /// Active on /packages/<package>/admin page.

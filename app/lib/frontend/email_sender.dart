@@ -72,6 +72,7 @@ Message _toMessage(EmailMessage input) {
     ..headers = {'Message-ID': '<${input.localMessageId}@pub.dev>'}
     ..from = _toAddress(input.from)
     ..recipients = input.recipients.map(_toAddress).toList()
+    ..ccRecipients = input.ccRecipients.map(_toAddress).toList()
     ..subject = input.subject
     ..text = input.bodyText;
 }

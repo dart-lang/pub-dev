@@ -10,6 +10,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/frontend/handlers/experimental.dart';
 
 import '../../frontend/handlers/pubapi.client.dart';
 import '../../service/services.dart';
@@ -98,12 +99,16 @@ Future<R> withHttpPubApiClient<R>({
   String? sessionId,
   String? csrfToken,
   String? pubHostedUrl,
+  Set<String>? experimental,
   required Future<R> Function(PubApiClient client) fn,
 }) async {
   final httpClient = httpClientWithAuthorization(
     tokenProvider: () async => bearerToken,
     sessionIdProvider: () async => sessionId,
     csrfTokenProvider: () async => csrfToken,
+    cookieProvider: () async => {
+      if (experimental != null) experimentalCookieName: experimental.join(':'),
+    },
   );
   try {
     final apiClient = PubApiClient(
