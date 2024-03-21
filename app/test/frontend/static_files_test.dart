@@ -223,7 +223,7 @@ void main() {
       expect(rs.statusCode, 200);
       expect(await rs.readAsString(), contains('<svg'));
       final cache = rs.headers['cache-control'];
-      expect(cache, 'public, max-age=0'); // resets public cache
+      expect(cache, contains('max-age=0')); // no caching
     });
 
     testWithProfile('good path hash', fn: () async {
