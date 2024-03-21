@@ -1128,7 +1128,8 @@ class PackageBackend {
         );
       }
       await _storage.copyObject(
-        _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+        _canonicalBucket.absoluteObjectName(
+            tarballObjectName(newVersion.package, newVersion.version!)),
         _publicBucket.absoluteObjectName(
             tarballObjectName(newVersion.package, newVersion.version!)),
       );
