@@ -235,12 +235,20 @@ void expectGoldenFile(
   expect(xmlContent.split('\n'), golden.split('\n'), reason: 'in $fileName');
 }
 
+final _sdkVersionsToReplace = [
+  runtimeSdkVersion,
+  toolStableDartSdkVersion,
+  Platform.version.split(' ').first,
+];
+
 final _goldenReplacements = <Pattern, String>{
   'Pana <code>$panaVersion</code>,': 'Pana <code>%%pana-version%%</code>,',
-  'Dart <code>$runtimeSdkVersion</code>':
-      'Dart <code>%%stable-dart-version%%</code>',
-  'Dart <code>$toolStableDartSdkVersion</code>':
-      'Dart <code>%%stable-dart-version%%</code>',
+  for (final sdkVersion in _sdkVersionsToReplace)
+    'api.dart.dev/stable/$sdkVersion/':
+        'api.dart.dev/stable/%%stable-dart-version%%/',
+  for (final sdkVersion in _sdkVersionsToReplace)
+    'Dart <code>$sdkVersion</code>':
+        'Dart <code>%%stable-dart-version%%</code>',
   '/static/hash-${staticFileCache.etag}/': '/static/hash-%%etag%%/',
   _timestampPattern: '%%timestamp%%',
   _escapedTimestampPattern: '%%escaped-timestamp%%',

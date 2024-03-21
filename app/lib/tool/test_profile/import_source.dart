@@ -65,8 +65,10 @@ class _PubDevImportSource implements ImportSource {
     final file = File(p.join(archiveCachePath, archiveName));
     // download package archive if not already in the cache
     if (!await file.exists()) {
+      // TODO: Use archive_url from version-listing, that is stable!
       final rs = await _client.get(Uri.parse(
-          '${urls.siteRoot}${urls.pkgArchiveDownloadUrl(package, version)}'));
+        '${urls.siteRoot}/packages/$package/versions/$version.tar.gz',
+      ));
       await file.parent.create(recursive: true);
       await file.writeAsBytes(rs.bodyBytes);
     }

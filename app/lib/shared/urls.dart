@@ -143,8 +143,9 @@ String pkgActivityLogUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.activityLog);
 
 String pkgArchiveDownloadUrl(String package, String version, {Uri? baseUri}) {
-  final path =
-      '/packages/${Uri.encodeComponent(package)}/versions/${Uri.encodeComponent(version)}.tar.gz';
+  final p = Uri.encodeComponent(package);
+  final v = Uri.encodeComponent(version);
+  final path = '/api/archives/$p-$v.tar.gz';
   if (baseUri == null) {
     return path;
   } else {
