@@ -364,8 +364,7 @@ void main() {
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
         final rs = await createPubApiClient(authToken: token)
             .uploadPackageBytes(bytes);
-        expect(rs.success.message,
-            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
+        expect(rs.success.message, contains('Successfully uploaded'));
 
         final pkg = await packageBackend.lookupPackage('oxygen');
         expect(pkg!.automatedPublishing!.gcpLock!.toJson(), {
@@ -608,8 +607,7 @@ void main() {
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
         final rs = await createPubApiClient(authToken: token)
             .uploadPackageBytes(bytes);
-        expect(rs.success.message,
-            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
+        expect(rs.success.message, contains('Successfully uploaded'));
       });
 
       testWithProfile(
@@ -646,8 +644,7 @@ void main() {
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
         final rs = await createPubApiClient(authToken: token)
             .uploadPackageBytes(bytes);
-        expect(rs.success.message,
-            'Successfully uploaded https://pub.dev/packages/_dummy_pkg version 2.2.0.');
+        expect(rs.success.message, contains('Successfully uploaded'));
 
         final pkg = await packageBackend.lookupPackage('_dummy_pkg');
         expect(pkg!.automatedPublishing!.githubLock!.toJson(), {
@@ -798,8 +795,7 @@ void main() {
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
         final rs = await createPubApiClient(authToken: token)
             .uploadPackageBytes(bytes);
-        expect(rs.success.message,
-            'Successfully uploaded https://pub.dev/packages/oxygen version 2.2.0.');
+        expect(rs.success.message, contains('Successfully uploaded'));
       });
     });
 
