@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../shared/exceptions.dart';
-
 import 'create_publisher.dart';
 import 'delete_publisher.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
+import 'moderate_package_versions.dart';
 import 'moderate_user.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
@@ -73,6 +73,7 @@ final class AdminAction {
     deletePublisher,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
+    moderatePackageVersion,
     moderateUser,
     publisherBlock,
     publisherMembersList,

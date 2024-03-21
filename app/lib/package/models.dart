@@ -289,7 +289,12 @@ class Package extends db.ExpandoModel<String> {
   }) {
     final versions = allVersions
         .map((v) => v.version == replaced?.version ? replaced! : v)
+        .where((v) => !v.isModerated)
         .toList();
+    if (versions.isEmpty) {
+      throw NotAcceptableException('No visible versions left.');
+    }
+
     final oldStableVersion = latestSemanticVersion;
     final oldPrereleaseVersion = latestPrereleaseSemanticVersion;
     final oldPreviewVersion = latestPreviewSemanticVersion;
@@ -666,6 +671,13 @@ class PackageVersion extends db.ExpandoModel<String> {
   bool get canUndoRetracted =>
       isRetracted &&
       retracted!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
+
+  void updateIsModerated({
+    required bool isModerated,
+  }) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
+  }
 }
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
