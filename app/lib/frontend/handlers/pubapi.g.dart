@@ -96,6 +96,28 @@ Router _$PubApiRouter(PubApi service) {
   );
   router.add(
     'GET',
+    r'/api/archives/<package>-<version>.tar.gz',
+    (
+      Request request,
+      String package,
+      String version,
+    ) async {
+      try {
+        final _$result = await service.fetchPackage(
+          request,
+          package,
+          version,
+        );
+        return _$result;
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
+    'GET',
     r'/api/packages/versions/new',
     (Request request) async {
       try {
