@@ -30,19 +30,23 @@ class CacheHeaders {
   CacheHeaders._(
     this.maxAge, {
     bool private = false,
-    bool public = true,
+    bool public = false,
   })  : public = public,
         private = private {
-    assert(!private && !public, 'both private and public is not allowed');
+    assert(!private || !public, 'both private and public is not allowed');
   }
 
   Map<String, String> call() {
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
-        if (private || (!public && requestContext.isNotAuthenticated))
+        if (private)
           'private'
+        else if (public)
+          'public'
+        else if (requestContext.isNotAuthenticated)
+          'public'
         else
-          'public',
+          'private',
         if (maxAge >= Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
