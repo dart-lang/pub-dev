@@ -26,22 +26,28 @@ import 'backend_test_utils.dart';
 
 void main() {
   group('Moderate package', () {
-    testWithProfile('update state', fn: () async {
+    Future<AdminInvokeActionResponse> _moderate(
+      String package, {
+      bool? state,
+    }) async {
       final api = createPubApiClient(authToken: siteAdminToken);
-      final r1 = await api.adminInvokeAction(
+      return await api.adminInvokeAction(
         'moderate-package',
-        AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
+        AdminInvokeActionArguments(arguments: {
+          'package': package,
+          if (state != null) 'state': state.toString(),
+        }),
       );
+    }
+
+    testWithProfile('update state', fn: () async {
+      final r1 = await _moderate('oxygen');
       expect(r1.output, {
         'package': 'oxygen',
         'before': {'isModerated': false, 'moderatedAt': null},
       });
 
-      final r2 = await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'true'}),
-      );
+      final r2 = await _moderate('oxygen', state: true);
       expect(r2.output, {
         'package': 'oxygen',
         'before': {'isModerated': false, 'moderatedAt': null},
@@ -71,21 +77,13 @@ void main() {
     });
 
     testWithProfile('clear moderation flag', fn: () async {
-      final api = createPubApiClient(authToken: siteAdminToken);
-      final r1 = await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
-      );
+      final r1 = await _moderate('oxygen');
       expect(r1.output, {
         'package': 'oxygen',
         'before': {'isModerated': false, 'moderatedAt': null},
       });
 
-      final r2 = await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'true'}),
-      );
+      final r2 = await _moderate('oxygen', state: true);
       expect(r2.output, {
         'package': 'oxygen',
         'before': {'isModerated': false, 'moderatedAt': null},
@@ -95,11 +93,7 @@ void main() {
       expect(p2!.isModerated, isTrue);
 
       // clear flag
-      final r3 = await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'false'}),
-      );
+      final r3 = await _moderate('oxygen', state: false);
       expect(r3.output, {
         'package': 'oxygen',
         'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
@@ -133,21 +127,12 @@ void main() {
 
       await expectAvailable();
 
-      final api = createPubApiClient(authToken: siteAdminToken);
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'true'}),
-      );
+      await _moderate('oxygen', state: true);
       for (final url in jsonUrls) {
         await expectJsonMapResponse(await issueGet(url), status: 404);
       }
 
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'false'}),
-      );
+      await _moderate('oxygen', state: false);
       await expectAvailable();
     });
 
@@ -176,12 +161,7 @@ void main() {
 
       await expectAvailable();
 
-      final api = createPubApiClient(authToken: siteAdminToken);
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'true'}),
-      );
+      await _moderate('oxygen', state: true);
       for (final url in htmlUrls) {
         await expectHtmlResponse(
           await issueGet(url),
@@ -191,11 +171,7 @@ void main() {
         );
       }
 
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'false'}),
-      );
+      await _moderate('oxygen', state: false);
       await expectAvailable();
     });
 
@@ -208,12 +184,7 @@ void main() {
       final docs = await searchBackend.fetchSnapshotDocuments();
       expect(docs!.where((d) => d.package == 'oxygen'), isNotEmpty);
 
-      final api = createPubApiClient(authToken: siteAdminToken);
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'true'}),
-      );
+      await _moderate('oxygen', state: true);
 
       final minimumIndex =
           await searchBackend.loadMinimumPackageIndex().toList();
@@ -227,11 +198,7 @@ void main() {
       final docs2 = await searchBackend.fetchSnapshotDocuments();
       expect(docs2!.where((d) => d.package == 'oxygen'), isEmpty);
 
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'false'}),
-      );
+      await _moderate('oxygen', state: false);
 
       final minimumIndex2 =
           await searchBackend.loadMinimumPackageIndex().toList();
@@ -259,24 +226,14 @@ void main() {
 
       final bytes = await expectStatusCode(200);
 
-      final api = createPubApiClient(authToken: siteAdminToken);
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'true'}),
-      );
-
+      await _moderate('oxygen', state: true);
       await expectStatusCode(404);
 
       // another check after background tasks are running
       await updatePublicArchiveBucket();
       await expectStatusCode(404);
 
-      await api.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'state': 'false'}),
-      );
+      await _moderate('oxygen', state: false);
       await expectStatusCode(200);
       // another check after background tasks are running
       await updatePublicArchiveBucket();
@@ -292,13 +249,7 @@ void main() {
             await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
         expect(score1.grantedPubPoints, greaterThan(40));
 
-        final api = createPubApiClient(authToken: siteAdminToken);
-        await api.adminInvokeAction(
-          'moderate-package',
-          AdminInvokeActionArguments(
-              arguments: {'package': 'oxygen', 'state': 'true'}),
-        );
-
+        await _moderate('oxygen', state: true);
         // score is not accessible
         await expectLater(
           () => scoreCardBackend.getScoreCardData('oxygen', '1.2.0'),
@@ -312,11 +263,7 @@ void main() {
         );
 
         // restore state
-        await api.adminInvokeAction(
-          'moderate-package',
-          AdminInvokeActionArguments(
-              arguments: {'package': 'oxygen', 'state': 'false'}),
-        );
+        await _moderate('oxygen', state: false);
         await processTasksWithFakePanaAndDartdoc();
 
         final score3 =
