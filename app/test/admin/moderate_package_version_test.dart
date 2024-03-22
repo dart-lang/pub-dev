@@ -174,7 +174,7 @@ void main() {
       expect(message.success.message, contains('Successfully uploaded'));
     });
 
-    testWithProfile('can not re-publish moderated version', fn: () async {
+    testWithProfile('cannot re-publish moderated version', fn: () async {
       await _moderate('oxygen', '1.0.0', state: true);
 
       final pubspecContent = generatePubspecYaml('oxygen', '1.0.0');
