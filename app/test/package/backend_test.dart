@@ -261,7 +261,7 @@ void main() {
         });
       });
 
-      testWithProfile('cannot remove non-existent uploader', fn: () async {
+      testWithProfile('cannot remove nonexistent uploader', fn: () async {
         await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.removeUploader('oxygen', 'foo2@bar.com');
           await expectLater(
@@ -413,7 +413,7 @@ void main() {
         });
       });
 
-      testWithProfile('replaced by - with invalid / non existing package',
+      testWithProfile('replaced by - with invalid / nonexistent package',
           fn: () async {
         await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.updateOptions('oxygen',

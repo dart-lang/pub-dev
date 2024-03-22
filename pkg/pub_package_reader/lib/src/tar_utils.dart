@@ -102,7 +102,7 @@ class TarArchive {
     return null;
   }
 
-  /// Returns the broken links (that point outside, or to a non-existent file).
+  /// Returns the broken links (that point outside, or to a nonexistent file).
   Map<String, String> brokenSymlinks() {
     final broken = <String, String>{};
     for (final from in _symlinks.keys) {
