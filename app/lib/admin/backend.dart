@@ -130,7 +130,7 @@ class AdminBackend {
     }
 
     final users = await query.run().toList();
-    // We may return a page with users less then a limit, but we always
+    // We may return a page with users less than a limit, but we always
     // set the continuation token to the correct value.
     final newContinuationToken = users.length < limit
         ? null
