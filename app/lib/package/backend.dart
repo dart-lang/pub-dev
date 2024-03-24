@@ -1282,9 +1282,11 @@ class PackageBackend {
 
     // TODO: consider allowing other events from
     //       https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
-    if (agent.payload.eventName != 'push') {
+    if (agent.payload.eventName != 'push' &&
+        agent.payload.eventName != 'workflow_dispatch') {
       throw AuthorizationException.githubActionIssue(
-          'publishing is only allowed from "push" events, this token originates from a "${agent.payload.eventName}" event');
+          'publishing is only allowed from "push" and "workflow_dispatch events, '
+          'this token originates from a "${agent.payload.eventName}" event');
     }
 
     if (agent.payload.refType != 'tag') {
