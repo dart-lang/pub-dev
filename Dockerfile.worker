@@ -18,16 +18,14 @@ COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
 # A config directory for preview SDKs.
-# TODO(https://github.com/dart-lang/pub-dev/issues/7270): Use per-SDK config directory.
-RUN mkdir -p /home/worker/config/preview
+RUN mkdir -p /home/worker/config/dart-stable
+RUN mkdir -p /home/worker/config/flutter-stable
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN tool/setup-dart.sh /home/worker/dart/stable 3.2.6
-RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-dart.sh /home/worker/dart/preview 3.3.0-279.3.beta
+RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.3.1
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN tool/setup-flutter.sh /home/worker/flutter/stable 3.16.9
-RUN XDG_CONFIG_HOME=/home/worker/config/preview tool/setup-flutter.sh /home/worker/flutter/preview 3.19.0-0.4.pre
+RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.19.3
 
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin

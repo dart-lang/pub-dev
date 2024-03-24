@@ -22,6 +22,7 @@ import 'listing.dart';
 import 'misc.dart';
 import 'package.dart';
 import 'publisher.dart';
+import 'report.dart';
 
 part 'routes.g.dart';
 
@@ -360,6 +361,14 @@ class PubSiteService {
   @Route.get('/consent')
   Future<Response> consentPage(Request request) =>
       consentPageHandler(request, request.requestedUri.queryParameters['id']);
+
+  // ****
+  // **** Reporting and moderation
+  // ****
+
+  @Route.get('/report')
+  Future<Response> reportPage(Request request) async =>
+      reportPageHandler(request);
 
   // ****
   // **** Experimental task end-points

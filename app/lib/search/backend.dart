@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -39,7 +40,6 @@ import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/global_lock.dart';
 import '../task/models.dart';
-import '../tool/utils/http.dart';
 
 import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
@@ -381,6 +381,7 @@ class SearchBackend {
   Stream<PackageDocument> loadMinimumPackageIndex() async* {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
+      if (p.isNotVisible) continue;
       final releases = await packageBackend.latestReleases(p);
       yield PackageDocument(
         package: p.name!,

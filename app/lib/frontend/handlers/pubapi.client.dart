@@ -588,4 +588,12 @@ class PubApiClient {
       path: '/api/packages/$package/advisories',
     ));
   }
+
+  Future<_i3.Message> postReport(_i4.ReportForm payload) async {
+    return _i3.Message.fromJson(await _client.requestJson(
+      verb: 'post',
+      path: '/api/report',
+      body: payload.toJson(),
+    ));
+  }
 }

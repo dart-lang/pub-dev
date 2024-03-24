@@ -13,21 +13,40 @@ class CacheHeaders {
   /// The maximum age while a response may be cached.
   final Duration maxAge;
 
-  /// The cache storage category used for signed-in users.
-  /// `private` by default.
-  final String? signedInStorage;
+  /// Add the `private` directive, indicating that the response must not be
+  /// stored in public cache (such as a CDN).
+  ///
+  /// If neither [private] or [public] is specified, `Cache-Control` will
+  /// set `private` if the request was authenticated.
+  final bool private;
+
+  /// Add the `public` directive, indicating that the response may be
+  /// stored in public cache (such as a CDN).
+  ///
+  /// If neither [private] or [public] is specified, `Cache-Control` will
+  /// set `private` if the request was authenticated.
+  final bool public;
 
   CacheHeaders._(
     this.maxAge, {
-    this.signedInStorage,
-  });
+    bool private = false,
+    bool public = false,
+  })  : public = public,
+        private = private {
+    assert(!private || !public, 'both private and public is not allowed');
+  }
 
   Map<String, String> call() {
     return <String, String>{
       HttpHeaders.cacheControlHeader: <String>[
-        requestContext.isNotAuthenticated
-            ? 'public'
-            : (signedInStorage ?? 'private'),
+        if (private)
+          'private'
+        else if (public)
+          'public'
+        else if (requestContext.isNotAuthenticated)
+          'public'
+        else
+          'private',
         if (maxAge >= Duration.zero) 'max-age=${maxAge.inSeconds}',
       ].join(', '),
     };
@@ -39,25 +58,46 @@ class CacheHeaders {
   }
 
   /// Default private-only caching.
-  static final private = CacheHeaders._(Duration.zero);
+  static final defaultPrivate = CacheHeaders._(Duration.zero, private: true);
 
   /// Everything under the /documentation/ endpoint.
   static final dartdocAsset = CacheHeaders._(Duration(minutes: 15));
 
+  /// Version listing API used by `dart pub` client
+  static final versionListingApi = CacheHeaders._(
+    Duration(minutes: 10),
+    public: true,
+  );
+
+  /// Response that redirects to download URL for a package archive
+  static final packageDownloadApi = CacheHeaders._(
+    Duration(hours: 1),
+    public: true,
+  );
+
   /// The package name completion API endpoint serves the cached names
   /// of top packages.
-  static final packageNameCompletion = CacheHeaders._(Duration(hours: 8));
+  static final packageNameCompletion = CacheHeaders._(
+    Duration(hours: 8),
+    public: true,
+  );
 
   /// The package names API endpoint serves the cached names of all packages.
-  static final packageNames = CacheHeaders._(Duration(hours: 2));
+  static final packageNames = CacheHeaders._(
+    Duration(hours: 2),
+    public: true,
+  );
 
   /// The topic name completion API endpoint serves the cached topic names of
   /// all topics.
-  static final topicNameCompletion = CacheHeaders._(Duration(hours: 8));
+  static final topicNameCompletion = CacheHeaders._(
+    Duration(hours: 8),
+    public: true,
+  );
 
   /// Everything under the /static/ endpoint.
   static final staticAsset = CacheHeaders._(
     Duration(days: 7),
-    signedInStorage: 'public',
+    public: true,
   );
 }

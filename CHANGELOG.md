@@ -3,6 +3,52 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Allowed `workflow_dispatch` events from GitHub Actions to publish. 
+ * Bumped runtimeVersion to `2024.03.21`.
+ * Upgraded stable Dart analysis SDK to `3.3.1`
+ * Upgraded stable Flutter analysis SDK to `3.19.3`.
+ * Note: started using generic rate limiting in transactions.
+
+## `20240314t121900-all`
+ * Bumped runtimeVersion to `2024.03.12`.
+ * Upgraded dartdoc to `8.0.7`.
+ * Upgraded dependencies including `markdown 7.2.2`.
+ * Note: dynamic SDK selection may download latest stable, beta or master branches.
+
+## `20240307t093000-all`
+ * Bumped runtimeVersion to `2024.03.05`.
+ * Upgraded stable Flutter analysis SDK to `3.19.2`.
+ * Upgraded dartdoc to `8.0.6`.
+ * Note: preview analysis SDKs are downloaded dynamically.
+ * Note: started to backfill `isModerated` flags in `Package`, `PackageVersion`, `Publisher` and `User`.
+ * Resyncing all `SecurityAdvisory` entities to get `pub_display_url` in the
+  `database_specific` field backfilled.
+
+## `20240227t140000-all`
+ * Bumped runtimeVersion to `2024.02.27`.
+ * Upgraded pana to `0.22.2`.
+
+## `20240226t093600-all`
+ * Bumped runtimeVersion to `2024.02.26`.
+ * Upgraded stable Flutter analysis SDK to `3.19.1`.
+ * Note: Analysis SDK directories with separate config homes.
+
+## `20240223t113900-all`
+ * Note: removed alert block syntax from markdown rendering.
+
+## `20240222t112000-all`
+ * Bumped runtimeVersion to `2024.02.21`.
+ * Upgraded runtime Dart SDK to `3.3.0`.
+ * Upgraded dependencies including `markdown: ^7.2.1`.
+
+## `20240220t074300-all`
+ * Bumped runtimeVersion to `2024.02.16`.
+ * Upgraded stable Flutter analysis SDK to `3.19.0`.
+ * Upgraded preview Flutter analysis SDK to `3.20.0-1.1.pre`.
+
+## `20240213t125700-all`
+ * Bumped runtimeVersion to `2024.02.13`.
+ * Upgraded stable Dart analysis SDK to `3.3.0` (hash: `74ea934a1e9b9f01e7fd06b1d872c9cf822c1d71`).
+ * Upgraded preview Dart analysis SDK to `3.4.0-131.0.dev`.
 
 ## `20240209t135900-all`
  * Bumped runtimeVersion to `2024.02.09`.

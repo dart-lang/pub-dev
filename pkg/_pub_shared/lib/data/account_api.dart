@@ -178,3 +178,17 @@ class InviteStatus {
       _$InviteStatusFromJson(json);
   Map<String, dynamic> toJson() => _$InviteStatusToJson(this);
 }
+
+@JsonSerializable()
+class ReportForm {
+  final String description;
+
+  ReportForm({
+    required this.description,
+  });
+
+  factory ReportForm.fromJson(Map<String, dynamic> json) =>
+      _$ReportFormFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReportFormToJson(this);
+}

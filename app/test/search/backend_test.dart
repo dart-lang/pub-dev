@@ -12,7 +12,7 @@ import '../shared/test_services.dart';
 void main() {
   group('search backend', () {
     testWithProfile('fetch SDK library description', fn: () async {
-      final index = SdkMemIndex.dart();
+      final index = await SdkMemIndex.dart();
       final descr = await searchBackend.fetchSdkLibraryDescriptions(
         baseUri: index.baseUri,
         libraryRelativeUrls: {

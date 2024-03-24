@@ -5,10 +5,12 @@
 library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
@@ -100,11 +102,14 @@ Future<String> acquireSessionCookies(String email) async {
 
   // complete sign-in
   final nextStep = Uri.parse(rs.headers['location']!);
-  await _doHttp(
+  final rs2 = await _doHttp(
     method: 'GET',
     uri: nextStep,
     headers: {'cookie': result},
   );
+  if (rs2.statusCode >= 400) {
+    throw AuthenticationException.failed();
+  }
   return result;
 }
 
@@ -132,6 +137,19 @@ Future<String> expectHtmlResponse(
     }
   }
   return content;
+}
+
+Future<Map<String, dynamic>> expectJsonMapResponse(
+  shelf.Response response, {
+  int status = 200,
+  Object? matcher,
+}) async {
+  expect(response.statusCode, status);
+  expect(response.headers['content-type'], 'application/json; charset="utf-8"');
+  final content = await response.readAsString();
+  final map = json.decode(content) as Map<String, dynamic>;
+  expect(map, matcher ?? isNotNull);
+  return map;
 }
 
 Future<String> expectAtomXmlResponse(shelf.Response response,

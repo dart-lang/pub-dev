@@ -22,8 +22,10 @@ import '../../shared/urls.dart' as urls;
 import '../../task/backend.dart' show taskBackend;
 import 'account.dart';
 import 'custom_api.dart';
+import 'headers.dart';
 import 'listing.dart';
 import 'package.dart';
+import 'report.dart';
 
 part 'pubapi.g.dart';
 
@@ -58,6 +60,7 @@ class PubApi {
   /// clients, so while this is deprecated we need to support it indefinitely.
   @EndPoint.get('/api/packages/<package>/versions/<version>/archive.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
+  @EndPoint.get('/api/archives/<package>-<version>.tar.gz')
   Future<Response> fetchPackage(
     Request request,
     String package,
@@ -65,7 +68,11 @@ class PubApi {
   ) async {
     checkPackageVersionParams(package, version);
     return Response.seeOther(
-        await packageBackend.downloadUrl(package, version));
+      await packageBackend.downloadUrl(package, version),
+      headers: {
+        ...CacheHeaders.packageDownloadApi(),
+      },
+    );
   }
 
   /// Start async upload.
@@ -125,9 +132,13 @@ class PubApi {
       Request request, String uploadId) async {
     final pv = await packageBackend.publishUploadedBlob(uploadId);
     return SuccessMessage(
-        success: Message(
-            message:
-                'Successfully uploaded ${urls.pkgPageUrl(pv.package, includeHost: true)} version ${pv.version}.'));
+      success: Message(
+        message: 'Successfully uploaded '
+            '${urls.pkgPageUrl(pv.package, includeHost: true)} '
+            'version ${pv.version}, '
+            'it may take up-to 10 minutes before the new version is available.',
+      ),
+    );
   }
 
   /// Adding a new uploader
@@ -547,4 +558,10 @@ class PubApi {
     String package,
   ) =>
       listAdvisoriesForPackage(request, package);
+
+  @EndPoint.post('/api/report')
+  Future<Message> postReport(Request request, ReportForm body) async {
+    final message = await processReportPageHandler(request, body);
+    return Message(message: message);
+  }
 }

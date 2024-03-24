@@ -2,6 +2,7 @@
 // to reduce the number of HTTP requests.
 @use '../../../third_party/highlight/github.css';
 @use '../../../third_party/css/github-markdown.css';
+@use '../../../third_party/css/dartdoc-github-alert.css';
 @use '../../../static/css/staging-ribbon.css';
 
 // Local styles and rules.
@@ -15,6 +16,7 @@
 @import 'src/_list';
 @import 'src/_home';
 @import 'src/_pkg';
+@import 'src/_report';
 @import 'src/_scores';
 @import 'src/_search';
 @import 'src/_tags';

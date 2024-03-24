@@ -72,7 +72,7 @@ void main() {
     final futureTime = clock.now().add(Duration(days: 1)).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
     final id = '123';
     final id2 = '456';
@@ -107,7 +107,7 @@ void main() {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
     final id = '123';
     final id2 = '456';
@@ -158,17 +158,17 @@ void main() {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final affectedB = Affected(
       package: Package(ecosystem: 'pub', name: 'b'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final affectedC = Affected(
       package: Package(ecosystem: 'pub', name: 'c'),
-      versions: ['1'],
+      versions: ['1.0.0'],
     );
 
     final id = '123';
@@ -233,6 +233,48 @@ void main() {
     expect(list3.length, 1);
     expect(list3.first.advisory.id, id);
   });
+
+  testWithProfile(
+      'Only include affected packages with "Pub" as specified ecosystem.',
+      fn: () async {
+    final firstTime = DateTime(2022).toIso8601String();
+    final id = 'GHSA-0123-4567-8910';
+
+    final affectedA = Affected(
+      package: Package(ecosystem: 'Pub', name: 'a'),
+      versions: ['1.0.0'],
+    );
+    final affectedNotPub = Affected(
+      package: Package(ecosystem: 'NotPub', name: 'b'),
+      versions: ['1.0.0'],
+    );
+
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: id,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA, affectedNotPub],
+    );
+
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, clock.now());
+
+    final advisory = await securityAdvisoryBackend.lookupById(id);
+    expect(advisory, isNotNull);
+    expect(advisory!.id, id);
+    expect(advisory.affectedPackages!.length, 1);
+    expect(advisory.affectedPackages!.first, affectedA.package.name);
+
+    final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
+    expect(list, isNotNull);
+    expect(list.length, 1);
+    expect(list.first.advisory.id, id);
+
+    final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories('b');
+    expect(list2, isNotNull);
+    expect(list2, isEmpty);
+  });
+
   group('Validate osv', () {
     test('Modified date should not be in the future', () async {
       final firstTime = DateTime(2022).toIso8601String();
@@ -243,12 +285,56 @@ void main() {
         id: id,
         modified: futureTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1.0.0'],
+          )
+        ],
       );
 
       final errors = sanityCheckOSV(osv);
       expect(errors, isNotEmpty);
       expect(errors.first, contains('Invalid modified date'));
+    });
+
+    test('Affected packages should be non-empty', () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final id = '123';
+      final osv = OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: firstTime,
+        published: firstTime,
+        affected: [],
+      );
+
+      final errors = sanityCheckOSV(osv);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('No affected packages'));
+    });
+
+    test(
+        'At least one affected package should contain a non-empty versions list',
+        () async {
+      final firstTime = DateTime(2022).toIso8601String();
+      final id = '123';
+      final osv = OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: firstTime,
+        published: firstTime,
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: [],
+          )
+        ],
+      );
+
+      final errors = sanityCheckOSV(osv);
+      expect(errors, isNotEmpty);
+      expect(errors.first, contains('specified affected versions'));
     });
 
     test('Id should be less than 255 characters', () async {
@@ -263,7 +349,12 @@ void main() {
         id: longid,
         modified: firstTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1.0.0'],
+          )
+        ],
       );
       final errors = sanityCheckOSV(osv2);
       expect(errors, isNotEmpty);
@@ -278,7 +369,12 @@ void main() {
         id: invalidId,
         modified: firstTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1.0.0'],
+          )
+        ],
       );
       final errors = sanityCheckOSV(osv3);
       expect(errors, isNotEmpty);
@@ -297,7 +393,12 @@ void main() {
         id: id,
         modified: firstTime,
         published: firstTime,
-        affected: [],
+        affected: [
+          Affected(
+            package: Package(ecosystem: 'pub', name: 'oxygen'),
+            versions: ['1.0.0'],
+          )
+        ],
         databaseSpecific: largeMap,
       );
 
@@ -323,7 +424,7 @@ void main() {
       affected: [
         Affected(
           package: Package(ecosystem: 'pub', name: 'oxygen'),
-          versions: ['1'],
+          versions: ['1.0.0'],
         )
       ],
     );
@@ -355,5 +456,91 @@ void main() {
     final neonRes = await client.getPackageAdvisories('neon');
     expect(neonRes.advisories, isEmpty);
     expect(neonRes.advisoriesUpdated, isNull);
+  });
+
+  testWithProfile('display url', fn: () async {
+    final firstTime = DateTime(2022).toIso8601String();
+    final affectedA = Affected(
+      package: Package(ecosystem: 'pub', name: 'a'),
+      versions: ['1.0.0'],
+    );
+    final ghsaId = 'GHSA-0123-4567-8910';
+    final cveId = 'CVE-0123-4567-8910';
+    final id = 'ABCD-EFGH-IJKL-1234';
+    final id1 = 'ABCD-EFGH-IJKL-1235';
+    final id2 = 'ABCD-EFGH-IJKL-1236';
+
+    final osv = OSV(
+      schemaVersion: '1.2.3',
+      id: ghsaId,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv1 = OSV(
+      schemaVersion: '1.2.3',
+      id: cveId,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv2 = OSV(
+      schemaVersion: '1.2.3',
+      id: id,
+      modified: firstTime,
+      published: firstTime,
+      affected: [affectedA],
+    );
+
+    final osv3 = OSV(
+        schemaVersion: '1.2.3',
+        id: id1,
+        modified: firstTime,
+        published: firstTime,
+        affected: [affectedA],
+        aliases: [ghsaId]);
+
+    final osv4 = OSV(
+        schemaVersion: '1.2.3',
+        id: id2,
+        modified: firstTime,
+        published: firstTime,
+        affected: [affectedA],
+        aliases: [cveId]);
+
+    final syncTime = clock.now();
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv1, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv2, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv3, syncTime);
+    await securityAdvisoryBackend.ingestSecurityAdvisory(osv4, syncTime);
+
+    final all = await securityAdvisoryBackend.listAdvisories();
+    expect(all, isNotNull);
+    expect(all.length, 5);
+    expect(all[0].id, ghsaId);
+    expect(all[1].id, cveId);
+    expect(all[2].id, id);
+    expect(all[3].id, id1);
+    expect(all[4].id, id2);
+    expect(all[0].aliases, contains(ghsaId));
+    expect(all[1].aliases, contains(cveId));
+
+    expect(all[0].osv!.databaseSpecific!['pub_display_url'],
+        'https://github.com/advisories/$ghsaId');
+
+    expect(all[1].osv!.databaseSpecific!['pub_display_url'],
+        'https://osv.dev/vulnerability/$cveId');
+
+    expect(all[2].osv!.databaseSpecific!['pub_display_url'],
+        'https://osv.dev/vulnerability/$id');
+
+    expect(all[3].osv!.databaseSpecific!['pub_display_url'],
+        'https://github.com/advisories/$ghsaId');
+
+    expect(all[4].osv!.databaseSpecific!['pub_display_url'],
+        'https://osv.dev/vulnerability/$cveId');
   });
 }

@@ -329,7 +329,7 @@ class _PublishSequence {
 
   void publish(String version, {int sdk = 0}) {
     final minSdk = sdk > 0 ? _futureSdk : (sdk < 0 ? _pastSdk : _currentSdk);
-    final pv = PackageVersion()
+    final pv = PackageVersion.init()
       ..parentKey = _p.key
       ..id = version
       ..version = version

@@ -9,6 +9,7 @@ import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -28,7 +29,10 @@ void main() {
     );
     final combiner = SearchResultCombiner(
       primaryIndex: primaryIndex,
-      dartSdkMemIndex: SdkMemIndex.dart()
+      dartSdkMemIndex: SdkMemIndex(
+          sdk: 'dart',
+          version: runtimeSdkVersion,
+          baseUri: Uri.parse('https://api.dart.dev/stable/$runtimeSdkVersion/'))
         ..addDartdocIndex(
           DartdocIndex.fromJsonList([
             {

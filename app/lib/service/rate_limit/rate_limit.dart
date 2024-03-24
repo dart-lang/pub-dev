@@ -43,6 +43,21 @@ Future<void> verifyPackageUploadRateLimit({
   );
 }
 
+Future<void> verifyAuditLogRecordRateLimits(AuditLogRecord record) async {
+  final agentId = record.agent;
+  await _verifyRateLimit(
+    rateLimit: _getRateLimit(record.kind!, RateLimitScope.user),
+    agentId: agentId,
+  );
+  final packages = record.packages;
+  if (packages != null && packages.isNotEmpty) {
+    final rateLimit = _getRateLimit(record.kind!, RateLimitScope.package);
+    for (final p in packages) {
+      await _verifyRateLimit(rateLimit: rateLimit, package: p);
+    }
+  }
+}
+
 RateLimit? _getRateLimit(String operation, RateLimitScope scope) {
   return activeConfiguration.rateLimits?.firstWhereOrNull(
     (r) => r.operation == operation && r.scope == scope,

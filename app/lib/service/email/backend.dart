@@ -73,8 +73,10 @@ class EmailBackend {
   ///
   /// This method should be called right after the entries
   /// are saved in the Datastore.
-  Future<void> trySendOutgoingEmail(OutgoingEmail email) async {
-    await _trySendOutgoingEmail(email.uuid);
+  ///
+  /// Returns the number of emails that were sent successfully.
+  Future<int> trySendOutgoingEmail(OutgoingEmail email) async {
+    return await _trySendOutgoingEmail(email.uuid);
   }
 
   /// Tries to send email with the given [id]. The

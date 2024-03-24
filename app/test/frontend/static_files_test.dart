@@ -157,6 +157,7 @@ void main() {
         ])
         // third-party CSS files that are included in the style.scss are no longer referenced elsewhere
         ..removeAll([
+          '/static/css/dartdoc-github-alert.css',
           '/static/css/github-markdown.css',
           '/static/highlight/github.css',
         ])
@@ -200,7 +201,7 @@ void main() {
     test('script.dart.js and parts size check', () {
       final file = cache.getFile('/static/js/script.dart.js');
       expect(file, isNotNull);
-      expect((file!.bytes.length / 1024).round(), closeTo(319, 1));
+      expect((file!.bytes.length / 1024).round(), closeTo(322, 1));
 
       final parts = cache.paths
           .where((path) =>
@@ -222,7 +223,7 @@ void main() {
       expect(rs.statusCode, 200);
       expect(await rs.readAsString(), contains('<svg'));
       final cache = rs.headers['cache-control'];
-      expect(cache, 'public, max-age=0'); // resets public cache
+      expect(cache, contains('max-age=0')); // no caching
     });
 
     testWithProfile('good path hash', fn: () async {

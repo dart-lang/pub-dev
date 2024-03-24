@@ -103,6 +103,8 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
 
 /// Verifies the current bearer token in the request scope and returns the
 /// current authenticated user or a service agent with the available data.
+///
+/// For users it verifies that the audience is for the pub client.
 Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedUser &&
@@ -113,6 +115,8 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   return agent;
 }
 
+/// Verifies the current bearer token in the request scope and returns the
+/// current authenticated user or a service agent with the available data.
 Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   final token = _getBearerToken();
   if (token == null || token.isEmpty) {
@@ -133,7 +137,7 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   if (user == null) {
     throw AuthenticationException.failed();
   }
-  if (user.isBlocked) {
+  if (user.isBlocked || user.isModerated) {
     throw AuthorizationException.blocked();
   }
   if (user.isDeleted) {
@@ -411,14 +415,12 @@ class AccountBackend {
       }
 
       // Create new user with oauth2 user_id mapping
-      final user = User()
+      final user = User.init()
         ..parentKey = emptyKey
         ..id = createUuid()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
-        ..created = clock.now().toUtc()
-        ..isBlocked = false
-        ..isDeleted = false;
+        ..created = clock.now().toUtc();
 
       tx.insert(user);
       tx.insert(
@@ -473,7 +475,7 @@ class AccountBackend {
     final info = await authProvider.callTokenInfoWithAccessToken(
         accessToken: profile.accessToken ?? '');
     final user = await _lookupOrCreateUserByOauthUserId(profile);
-    if (user == null || user.isBlocked || user.isDeleted) {
+    if (user == null || user.isBlocked || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }
     final data = await withRetryTransaction(_db, (tx) async {
@@ -550,7 +552,7 @@ class AccountBackend {
     }
 
     final user = await lookupUserById(session.userId!);
-    if (user == null || user.isBlocked || user.isDeleted) {
+    if (user == null || user.isBlocked || user.isModerated || user.isDeleted) {
       return null;
     }
     return AuthenticatedUser(user,
@@ -645,6 +647,22 @@ class AccountBackend {
     if (expireSessions) {
       await _expireAllSessions(userId);
     }
+  }
+
+  /// Updates the moderated status of a user.
+  ///
+  /// Expires all existing user sessions.
+  Future<void> updateModeratedFlag(String userId, bool isModerated) async {
+    await withRetryTransaction(_db, (tx) async {
+      final user =
+          await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+      if (user == null) throw NotFoundException.resource('User:$userId');
+
+      user.updateIsModerated(isModerated: isModerated);
+      tx.insert(user);
+    });
+    await _expireAllSessions(userId);
+    await purgeAccountCache(userId: userId);
   }
 
   /// Retrieves a list of all uploader events that happened between [begin] and

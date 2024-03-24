@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -19,6 +20,8 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/package/export_api_to_bucket.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/service/rate_limit/rate_limit.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -31,7 +34,6 @@ import '../audit/models.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
 import '../service/email/models.dart';
-import '../service/rate_limit/rate_limit.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -41,7 +43,6 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-import '../tool/utils/dart_sdk_version.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -266,11 +267,16 @@ class PackageBackend {
     );
   }
 
-  /// Looks up all versions of a package.
+  /// Looks up all versions of a package and return them as a [List].
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
+    return streamVersionsOfPackage(packageName).toList();
+  }
+
+  /// Looks up all versions of a package and return them as a [Stream].
+  Stream<PackageVersion> streamVersionsOfPackage(String packageName) {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final query = db.query<PackageVersion>(ancestorKey: packageKey);
-    return await query.run().toList();
+    return query.run();
   }
 
   /// List the versions of [package] that are published in the last N [days].
@@ -319,7 +325,9 @@ class PackageBackend {
   }) async {
     _logger.info("Checking Package's versions fields for package `$package`.");
     final pkgKey = db.emptyKey.append(Package, id: package);
-    dartSdkVersion ??= (await getDartSdkVersion()).semanticVersion;
+    dartSdkVersion ??=
+        (await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion))
+            .semanticVersion;
 
     // ordered version list by publish date
     final versions =
@@ -450,6 +458,9 @@ class PackageBackend {
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
       if (pv == null) {
         throw NotFoundException.resource(version);
+      }
+      if (pv.isModerated) {
+        throw ModeratedException.packageVersion(package, version);
       }
 
       if (options.isRetracted != null &&
@@ -598,7 +609,8 @@ class PackageBackend {
     // the latest version or the restored version is newer than the latest.
     if (p.mayAffectLatestVersions(pv.semanticVersion)) {
       final versions = await tx.query<PackageVersion>(p.key).run().toList();
-      final currentDartSdk = await getDartSdkVersion();
+      final currentDartSdk =
+          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
       p.updateLatestVersionReferences(
         versions,
         dartSdkVersion: currentDartSdk.semanticVersion,
@@ -626,7 +638,7 @@ class PackageBackend {
   /// Returns false if the user is not an admin.
   /// Returns false if the package is not visible e.g. blocked.
   Future<bool> isPackageAdmin(Package p, String userId) async {
-    if (p.isBlocked) {
+    if (p.isNotVisible) {
       return false;
     }
     if (p.publisherId == null) {
@@ -766,8 +778,8 @@ class PackageBackend {
   /// Returns the known versions of [package] (via [listVersions]),
   /// getting it from cache if available.
   ///
-  /// The data is converted to JSON and UTF-8 (and stored like that in the cache).
-  Future<List<int>> listVersionsCachedBytes(String package) async {
+  /// This returns gzipped UTF-8 encoded JSON.
+  Future<List<int>> listVersionsGzCachedBytes(String package) async {
     final body = await cache.packageDataGz(package).get(() async {
       final data = await listVersions(package);
       final raw = jsonUtf8Encoder.convert(data.toJson());
@@ -781,7 +793,7 @@ class PackageBackend {
   ///
   ///  The available versions are sorted by their semantic version number (ascending).
   Future<api.PackageData> listVersionsCached(String package) async {
-    final data = await listVersionsCachedBytes(package);
+    final data = await listVersionsGzCachedBytes(package);
     return api.PackageData.fromJson(
         utf8JsonDecoder.convert(gzip.decode(data)) as Map<String, dynamic>);
   }
@@ -1006,7 +1018,8 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
-    final currentDartSdk = await getDartSdkVersion();
+    final currentDartSdk =
+        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
 
@@ -1118,7 +1131,8 @@ class PackageBackend {
         );
       }
       await _storage.copyObject(
-        _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+        _canonicalBucket.absoluteObjectName(
+            tarballObjectName(newVersion.package, newVersion.version!)),
         _publicBucket.absoluteObjectName(
             tarballObjectName(newVersion.package, newVersion.version!)),
       );
@@ -1746,7 +1760,7 @@ Future<_UploadEntities> _createUploadEntities(
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
   final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
 
-  final version = PackageVersion()
+  final version = PackageVersion.init()
     ..id = versionString
     ..parentKey = packageKey
     ..version = versionString
@@ -1755,8 +1769,7 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = agent.agentId
-    ..sha256 = sha256Hash
-    ..isRetracted = false;
+    ..sha256 = sha256Hash;
 
   final derived = derivePackageVersionEntities(
     archive: archive,
@@ -1842,9 +1855,11 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 }
 
 /// The GCS object name of a tarball object - excluding leading '/'.
-@visibleForTesting
 String tarballObjectName(String package, String version) =>
-    'packages/$package-$version.tar.gz';
+    '${tarballObjectNamePackagePrefix(package)}$version.tar.gz';
+
+/// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
+String tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
 
 /// The GCS object name of an temporary object [guid] - excluding leading '/'.
 @visibleForTesting

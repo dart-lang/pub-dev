@@ -20,7 +20,7 @@ Future<R?> rpc<R>({
   Future<R?> Function()? fn,
 
   /// Message to show when the RPC returns without exceptions.
-  required Element successMessage,
+  required Element? successMessage,
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
@@ -119,7 +119,9 @@ Future<R?> rpc<R>({
     }
   }
 
-  await modalMessage('Success', successMessage);
+  if (successMessage != null) {
+    await modalMessage('Success', successMessage);
+  }
   if (onSuccess != null) {
     await onSuccess(result);
   }

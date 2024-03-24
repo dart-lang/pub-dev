@@ -6,12 +6,19 @@ import 'dart:async';
 import 'dart:convert' show json, utf8;
 import 'dart:io' show Directory, File, Platform, exit, gzip;
 
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/flutter_archive.dart';
+import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
+import 'package:pub_worker/src/utils.dart';
+import 'package:retry/retry.dart';
 
 final _log = Logger('pana');
 
@@ -19,8 +26,15 @@ final _log = Logger('pana');
 /// replaced with a placeholder report.
 final _reportSizeDropThreshold = 32 * 1024;
 
-/// Stop dartdoc if it takes more than 45 minutes.
-const _dartdocTimeout = Duration(minutes: 45);
+/// Stop dartdoc if it takes more than 30 minutes.
+const _dartdocTimeout = Duration(minutes: 30);
+
+/// Try to fit analysis into 50 minutes.
+const _totalTimeout = Duration(minutes: 50);
+
+/// The dartdoc version to use.
+/// keep in-sync with app/lib/shared/versions.dart
+const _dartdocVersion = '8.0.7';
 
 /// Program to be used as subprocess for running pana, ensuring that we capture
 /// all the output, and only run analysis in a subprocess that can timeout and
@@ -30,6 +44,8 @@ Future<void> main(List<String> args) async {
     print('Usage: pana_wrapper.dart <output-folder> <package> <version>');
     exit(1);
   }
+
+  final startedTimestamp = clock.now();
 
   final outputFolder = args[0];
   final package = args[1];
@@ -70,55 +86,20 @@ Future<void> main(List<String> args) async {
     pubHostedUrl: pubHostedUrl,
   );
 
-  // Discover installed Dart and Flutter SDKs.
-  // This reads sibling folders to the Dart and Flutter SDK.
-  // TODO: Install Dart / Flutter SDKs into these folders ondemand in the future!
-  final dartSdks = await InstalledSdk.fromDirectory(
-    kind: 'dart',
-    path: Directory(
-      Platform.environment['DART_SDK'] ??
-          Directory(Platform.resolvedExecutable).parent.parent.path,
-    ).parent,
-  );
-  final flutterSdks = await InstalledSdk.fromDirectory(
-    kind: 'flutter',
-    path: Directory(Platform.environment['FLUTTER_ROOT'] ?? '').parent,
-  );
-
-  // Choose Dart and Flutter SDKs for analysis
-  final dartSdk = InstalledSdk.prioritizedSdk(
-    dartSdks,
-    pubspec.dartSdkConstraint,
-  );
-  final flutterSdk = InstalledSdk.prioritizedSdk(
-    flutterSdks,
-    pubspec.flutterSdkConstraint,
-  );
-
-  // NOTE: This is a temporary workaround to use a different config directory for preview SDKs.
-  // TODO(https://github.com/dart-lang/pub-dev/issues/7270): Use per-SDK config directory.
-  final isPreviewSdk = flutterSdk?.version.isPreRelease ??
-      dartSdk?.version.isPreRelease ??
-      false;
-  final workerPreviewConfigDir = Directory('/home/worker/config/preview');
-  String? configDir;
-  if (isPreviewSdk && await workerPreviewConfigDir.exists()) {
-    configDir = workerPreviewConfigDir.path;
-  }
+  final detected = await _detectSdks(pubspec);
 
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
-      rootPath: dartSdk?.path,
-      configHomePath: configDir,
+      rootPath: detected.dartSdkPath,
+      configHomePath: _configHomePath('dart', detected.configKind),
     ),
     flutterSdkConfig: SdkConfig(
-      rootPath: flutterSdk?.path,
-      configHomePath: configDir,
+      rootPath: detected.flutterSdkPath,
+      configHomePath: _configHomePath('flutter', detected.configKind),
     ),
     pubCacheDir: pubCache,
     panaCacheDir: Platform.environment['PANA_CACHE'],
-    // keep in-sync with app/lib/shared/versions.dart
-    dartdocVersion: '8.0.4',
+    dartdocVersion: _dartdocVersion,
   );
 
   //final dartdocOutputDir =
@@ -136,18 +117,10 @@ Future<void> main(List<String> args) async {
       dartdocTimeout: _dartdocTimeout,
       dartdocOutputDir: rawDartdocOutputFolder.path,
       resourcesOutputDir: resourcesOutputDir.path,
-      totalTimeout: _dartdocTimeout,
+      totalTimeout: _totalTimeout,
     ),
     logger: _log,
   );
-
-  await postPorcessDartdoc(
-    outputFolder: outputFolder,
-    package: package,
-    version: version,
-    docDir: rawDartdocOutputFolder.path,
-  );
-  await rawDartdocOutputFolder.delete(recursive: true);
 
   // sanity check on pana report size
   final reportSize =
@@ -177,4 +150,222 @@ Future<void> main(List<String> args) async {
   await File(
     p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
+
+  // Post-processing of the dartdoc-generated files seems to take at least as
+  // much time as running pana+dartdoc in the first place. If we don't seem to
+  // have enough time to complete, it is better to not start at all.
+  final cutoffTimestamp = startedTimestamp.add(_totalTimeout * 0.5);
+  if (cutoffTimestamp.isBefore(clock.now())) {
+    _log.warning(
+        'Cut-off timestamp reached, skipping dartdoc post-processing.');
+    return;
+  }
+  await postProcessDartdoc(
+    outputFolder: outputFolder,
+    package: package,
+    version: version,
+    docDir: rawDartdocOutputFolder.path,
+  );
+
+  await rawDartdocOutputFolder.delete(recursive: true);
+}
+
+final _workerConfigDirectory = Directory('/home/worker/config');
+late final _workerConfigPath =
+    _workerConfigDirectory.existsSync() ? _workerConfigDirectory.path : null;
+late final _isInsideDocker = _workerConfigPath != null;
+String? _configHomePath(String sdk, String kind) {
+  if (!_isInsideDocker) {
+    return null;
+  }
+  final path = p.join(_workerConfigPath!, '$sdk-$kind');
+  Directory(path).createSync(recursive: true);
+  return path;
+}
+
+Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
+    _detectSdks(Pubspec pubspec) async {
+  // Discover installed Dart and Flutter SDKs.
+  // This reads sibling folders to the Dart and Flutter SDK.
+  final dartSdks = await InstalledSdk.scanDirectory(
+    kind: 'dart',
+    path: Directory(
+      Platform.environment['DART_SDK'] ??
+          Directory(Platform.resolvedExecutable).parent.parent.path,
+    ).parent,
+  );
+  final flutterSdks = await InstalledSdk.scanDirectory(
+    kind: 'flutter',
+    path: Directory(Platform.environment['FLUTTER_ROOT'] ?? '').parent,
+  );
+
+  // Choose stable Dart and Flutter SDKs for analysis
+  final installedDartSdk =
+      dartSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
+          dartSdks.firstOrNull;
+  final installedFlutterSdk =
+      flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
+          flutterSdks.firstOrNull;
+
+  bool matchesSdks({
+    required Version? dart,
+    required Version? flutter,
+    bool allowsMissingVersion = false,
+  }) {
+    if (!allowsMissingVersion && (dart == null || flutter == null)) {
+      return false;
+    }
+
+    return sdkMatchesConstraint(
+          sdkVersion: dart,
+          constraint: pubspec.dartSdkConstraint,
+        ) &&
+        sdkMatchesConstraint(
+          sdkVersion: flutter,
+          constraint: pubspec.flutterSdkConstraint,
+        );
+  }
+
+  // try to use the latest SDKs in the docker image
+  final matchesInstalledSdks = matchesSdks(
+    dart: installedDartSdk?.version,
+    flutter: installedFlutterSdk?.version,
+    allowsMissingVersion: true,
+  );
+  if (matchesInstalledSdks) {
+    return (
+      configKind: 'stable',
+      dartSdkPath: installedDartSdk?.path,
+      flutterSdkPath: installedFlutterSdk?.path,
+    );
+  }
+
+  // try to use the latest stable downloadable SDKs, or
+  // try to use the latest beta/preview SDKs, or
+  // fall back to the latest dev/master branch (last item always present and matching)
+  final latestSdkBundles = await _detectSdkBundles();
+  for (final bundle in latestSdkBundles) {
+    final matchesBundle = bundle.configKind == 'master' ||
+        matchesSdks(
+          dart: bundle.semanticDartVersion,
+          flutter: bundle.semanticFlutterVersion,
+        );
+    if (matchesBundle) {
+      final dartSdkPath = await _installSdk(
+        sdkKind: 'dart',
+        configKind: bundle.configKind,
+        version: bundle.dart,
+      );
+      final flutterSdkPath = await _installSdk(
+        sdkKind: 'flutter',
+        configKind: bundle.configKind,
+        version: bundle.flutter,
+      );
+
+      return (
+        configKind: bundle.configKind,
+        dartSdkPath: dartSdkPath,
+        flutterSdkPath: flutterSdkPath,
+      );
+    }
+  }
+
+  // should not happen, but instead of failing, let's return the installed SDKs
+  return (
+    configKind: 'stable',
+    dartSdkPath: installedDartSdk?.path,
+    flutterSdkPath: installedFlutterSdk?.path,
+  );
+}
+
+Future<String?> _installSdk({
+  required String sdkKind,
+  required String configKind,
+  required String version,
+}) async {
+  if (!_isInsideDocker) {
+    return null;
+  }
+  final sdkPath = p.join('/home/worker', sdkKind, configKind);
+  final sdkDir = Directory(sdkPath);
+  if (await sdkDir.exists()) {
+    return sdkPath;
+  }
+  await RetryOptions(maxAttempts: 3).retry(
+    () async {
+      try {
+        final configHomePath = _configHomePath(sdkKind, configKind);
+        await runConstrained(
+          [
+            'tool/setup-$sdkKind.sh',
+            sdkPath,
+            version,
+          ],
+          workingDirectory: '/home/worker/pub-dev',
+          environment: {
+            if (configHomePath != null) 'XDG_CONFIG_HOME': configHomePath,
+            'PUB_HOSTED_URL': 'https://pub.dev',
+          },
+          timeout: const Duration(minutes: 5),
+          throwOnError: true,
+        );
+      } catch (_) {
+        // on any failure clearing the target directory
+        if (await sdkDir.exists()) {
+          await sdkDir.delete(recursive: true);
+        }
+      }
+    },
+    retryIf: (_) => true,
+  );
+  return sdkPath;
+}
+
+class _SdkBundle {
+  final String configKind;
+  final String dart;
+  final String flutter;
+
+  _SdkBundle({
+    required this.configKind,
+    required this.dart,
+    required this.flutter,
+  });
+
+  late final semanticDartVersion = Version.parse(dart);
+  late final semanticFlutterVersion = Version.parse(flutter);
+}
+
+Future<List<_SdkBundle>> _detectSdkBundles() async {
+  final flutterArchive = await fetchFlutterArchive();
+  final latestStableFlutterSdkVersion = flutterArchive?.latestStable?.version;
+  final latestBetaFlutterSdkVersion = flutterArchive?.latestBeta?.version;
+
+  final latestStableDartSdk =
+      await fetchLatestDartSdkVersion(channel: 'stable');
+  final latestStableDartSdkVersion = latestStableDartSdk?.version;
+
+  final latestBetaDartSdk = await fetchLatestDartSdkVersion(channel: 'beta');
+  final latestBetaDartSdkVersion = latestBetaDartSdk?.version;
+
+  return [
+    if (latestStableDartSdkVersion != null &&
+        latestStableFlutterSdkVersion != null)
+      _SdkBundle(
+        configKind: 'latest-stable',
+        dart: latestStableDartSdkVersion,
+        flutter: latestStableFlutterSdkVersion,
+      ),
+    if (latestBetaDartSdkVersion != null && latestBetaFlutterSdkVersion != null)
+      _SdkBundle(
+        configKind: 'latest-beta',
+        dart: latestBetaDartSdkVersion,
+        flutter: latestBetaFlutterSdkVersion,
+      ),
+    _SdkBundle(
+      configKind: 'master',
+      dart: 'master',
+      flutter: 'master',
+    ),
+  ];
 }

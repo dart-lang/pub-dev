@@ -53,6 +53,17 @@ String markdownToHtml(
       nodes = _groupChangelogNodes(nodes).toList();
     }
     return _renderSafeHtml(nodes, disableHashIds: disableHashIds);
+  } catch (e, st) {
+    _logger.shout('Error rendering markdown.', e, st);
+    // safe content inside the <pre> element
+    final safeText = text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll("'", '&#39;')
+        .replaceAll('"', '&quot;');
+    return sanitizeHtml(
+        '<p>Error rendering markdown.</p>\n<pre><code>\n$safeText\n</code></pre>\n');
   } finally {
     if (sw.elapsed.inSeconds >= 3) {
       _logger.shout('Markdown rendering taking too long: ${sw.elapsed}');
@@ -62,9 +73,7 @@ String markdownToHtml(
 
 /// Parses markdown [source].
 List<m.Node> _parseMarkdownSource(String source) {
-  final document = m.Document(
-      extensionSet: m.ExtensionSet.gitHubWeb,
-      blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
+  final document = m.Document(extensionSet: m.ExtensionSet.gitHubWeb);
   final lines = source.replaceAll('\r\n', '\n').split('\n');
   return document.parseLines(lines);
 }

@@ -3,6 +3,7 @@ import 'dart:io' show gzip;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
@@ -138,7 +139,9 @@ Future<shelf.Response> handleDartDoc(
     acceptsGzip ? dataGz : gzip.decode(dataGz),
     headers: {
       'Content-Type': mime,
+      'Vary': 'Accept-Encoding', // body depends on accept-encoding!
       if (acceptsGzip) 'Content-Encoding': 'gzip',
+      ...CacheHeaders.dartdocAsset(),
     },
   );
 }

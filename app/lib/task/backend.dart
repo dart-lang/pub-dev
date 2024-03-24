@@ -366,6 +366,15 @@ class TaskBackend {
         if (state != null) {
           tx.delete(state.key);
         }
+        // also delete earlier runtime versions
+        for (final rv
+            in acceptedRuntimeVersions.where((rv) => rv != runtimeVersion)) {
+          final key = PackageState.createKey(_db, rv, packageName);
+          final s = await tx.lookupOrNull(key);
+          if (s != null) {
+            tx.delete(s.key);
+          }
+        }
         return true;
       }
 

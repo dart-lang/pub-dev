@@ -49,7 +49,7 @@ void main() {
                   'topics': ['chemical-element'],
                 },
                 'archive_url':
-                    '${activeConfiguration.primaryApiUri}/packages/oxygen/versions/1.2.0.tar.gz',
+                    '${activeConfiguration.primaryApiUri}/api/archives/oxygen-1.2.0.tar.gz',
                 'package_url':
                     '${activeConfiguration.primaryApiUri}/api/packages/oxygen',
                 'url':
@@ -80,7 +80,7 @@ void main() {
                   'topics': ['chemical-element'],
                 },
                 'archive_url':
-                    '${activeConfiguration.primaryApiUri}/packages/flutter_titanium/versions/1.10.0.tar.gz',
+                    '${activeConfiguration.primaryApiUri}/api/archives/flutter_titanium-1.10.0.tar.gz',
                 'package_url':
                     '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium',
                 'url':
@@ -109,7 +109,7 @@ void main() {
                   'topics': ['chemical-element'],
                 },
                 'archive_url':
-                    '${activeConfiguration.primaryApiUri}/packages/neon/versions/1.0.0.tar.gz',
+                    '${activeConfiguration.primaryApiUri}/api/archives/neon-1.0.0.tar.gz',
                 'package_url':
                     '${activeConfiguration.primaryApiUri}/api/packages/neon',
                 'url':

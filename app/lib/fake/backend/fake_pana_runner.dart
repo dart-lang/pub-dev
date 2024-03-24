@@ -95,7 +95,7 @@ Future<Summary> fakePanaSummary({
     packageVersion: Version.parse(version),
     runtimeInfo: PanaRuntimeInfo(
       sdkVersion: packageStatus.usesPreviewAnalysisSdk
-          ? toolPreviewDartSdkVersion
+          ? semanticToolStableDartSdkVersion.nextMinor.toString()
           : toolStableDartSdkVersion,
       panaVersion: panaVersion,
       flutterVersions: {},

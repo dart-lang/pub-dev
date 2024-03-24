@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
+import 'package:_pub_shared/utils/flutter_archive.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/tool/utils/flutter_archive.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -48,10 +48,8 @@ void main() {
     }
 
     check(toolStableDartSdkVersion, 'stable Dart analysis SDK');
-    check(toolPreviewDartSdkVersion, 'preview Dart analysis SDK');
     check(runtimeSdkVersion, 'runtime Dart SDK');
     check(toolStableFlutterSdkVersion, 'stable Flutter');
-    check(toolPreviewFlutterSdkVersion, 'preview Flutter');
     check(panaVersion, 'pana');
     check(dartdocVersion, 'dartdoc');
     check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
@@ -83,13 +81,11 @@ void main() {
   test('Dart SDK versions should match Dockerfile.worker', () async {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
-        dockerfileContent,
-        contains(
-            'RUN tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'));
-    expect(
-        dockerfileContent,
-        contains(
-            'tool/setup-dart.sh /home/worker/dart/preview $toolPreviewDartSdkVersion'));
+        dockerfileContent.contains(
+                'tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/') ||
+            dockerfileContent.contains(
+                'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'),
+        isTrue);
   });
 
   test('Flutter SDK versions should match Dockerfile.worker', () async {
@@ -97,11 +93,7 @@ void main() {
     expect(
         dockerfileContent,
         contains(
-            'RUN tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
-    expect(
-        dockerfileContent,
-        contains(
-            'tool/setup-flutter.sh /home/worker/flutter/preview $toolPreviewFlutterSdkVersion'));
+            'tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
   });
 
   test('analyzer version should match resolved pana version', () async {
@@ -113,12 +105,8 @@ void main() {
   test('Flutter is using a released version from any channel.', () async {
     final flutterArchive = await fetchFlutterArchive();
     expect(
-        flutterArchive.releases!
+        flutterArchive!.releases!
             .any((fr) => fr.version == toolStableFlutterSdkVersion),
-        isTrue);
-    expect(
-        flutterArchive.releases!
-            .any((fr) => fr.version == toolPreviewFlutterSdkVersion),
         isTrue);
   });
 
@@ -126,7 +114,7 @@ void main() {
     'Flutter is using the latest stable',
     () async {
       final flutterArchive = await fetchFlutterArchive();
-      final currentStable = flutterArchive.releases!.firstWhereOrNull(
+      final currentStable = flutterArchive!.releases!.firstWhereOrNull(
         (r) => r.hash == flutterArchive.currentRelease!.stable,
       )!;
       expect(
@@ -144,7 +132,7 @@ and do not format to also bump the runtimeVersion.''',
     final content =
         await File('../pkg/pub_worker/lib/src/bin/pana_wrapper.dart')
             .readAsString();
-    expect(content, contains("dartdocVersion: '$dartdocVersion'"));
+    expect(content, contains("const _dartdocVersion = '$dartdocVersion';"));
   });
 
   scopedTest('GC is not deleting currently accepted versions', () {

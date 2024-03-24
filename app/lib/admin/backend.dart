@@ -7,12 +7,14 @@ import 'dart:convert';
 import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
@@ -30,7 +32,6 @@ import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../task/backend.dart';
-import '../tool/utils/dart_sdk_version.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
 import 'tools/list_package_blocked.dart';
@@ -425,7 +426,8 @@ class AdminBackend {
     _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName $version');
 
-    final currentDartSdk = await getDartSdkVersion();
+    final currentDartSdk =
+        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
     await withRetryTransaction(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);

@@ -64,6 +64,14 @@ class Publisher extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isBlocked = false;
 
+  /// `true` if publisher was moderated (pending moderation or deletion).
+  @db.BoolProperty(required: true)
+  bool isModerated = false;
+
+  /// The timestamp when the publisher was moderated.
+  @db.DateTimeProperty()
+  DateTime? moderatedAt;
+
   Publisher();
 
   Publisher.init({
@@ -80,6 +88,7 @@ class Publisher extends db.ExpandoModel<String> {
     websiteUrl = defaultPublisherWebsite(publisherId);
     isAbandoned = false;
     isBlocked = false;
+    isModerated = false;
   }
 
   /// Clears most properties on the entity and sets the [isBlocked] flag.

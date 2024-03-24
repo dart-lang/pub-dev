@@ -2,39 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
+import 'package:_pub_shared/utils/http.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/retry.dart';
 import 'package:pub_dev/account/session_cookie.dart';
-
-final _transientStatusCodes = {
-  // See: https://cloud.google.com/storage/docs/xml-api/reference-status
-  429,
-  500,
-  503,
-};
-
-/// Creates a HTTP client that retries transient status codes.
-///
-/// When [lenient] is set, we retry on more errors and status codes.
-http.Client httpRetryClient({
-  http.Client? innerClient,
-  int? retries,
-  bool lenient = false,
-}) {
-  return RetryClient(
-    innerClient ?? http.Client(),
-    when: (r) =>
-        (lenient && r.statusCode >= 500) ||
-        _transientStatusCodes.contains(r.statusCode),
-    retries: retries ?? 5,
-    // TOOD: Consider implementing whenError to handle DNS + handshake errors.
-    //       These are safe, retrying after partially sending data is more
-    //       sketchy, but probably safe in our application.
-    whenError: (e, st) => lenient || e is SocketException,
-  );
-}
 
 /// Returns an [http.Client] which sends a `Bearer` token as `Authorization`
 /// header for each request.
@@ -42,13 +12,15 @@ http.Client httpClientWithAuthorization({
   required Future<String?> Function() tokenProvider,
   required Future<String?> Function() sessionIdProvider,
   required Future<String?> Function() csrfTokenProvider,
+  Future<Map<String, String>?> Function()? cookieProvider,
   http.Client? client,
 }) {
   return _AuthenticatedClient(
     tokenProvider,
     sessionIdProvider,
     csrfTokenProvider,
-    client ?? http.Client(),
+    cookieProvider,
+    client ?? httpRetryClient(),
     client == null,
   );
 }
@@ -59,6 +31,7 @@ class _AuthenticatedClient extends http.BaseClient {
   final Future<String?> Function() _tokenProvider;
   final Future<String?> Function() _sessionIdProvider;
   final Future<String?> Function() _csrfTokenProvider;
+  final Future<Map<String, String>?> Function()? _cookieProvider;
   final http.Client _client;
   final bool _closeInnerClient;
 
@@ -66,6 +39,7 @@ class _AuthenticatedClient extends http.BaseClient {
     this._tokenProvider,
     this._sessionIdProvider,
     this._csrfTokenProvider,
+    this._cookieProvider,
     this._client,
     this._closeInnerClient,
   );
@@ -76,17 +50,21 @@ class _AuthenticatedClient extends http.BaseClient {
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    final sessionId = await _sessionIdProvider();
-    if (sessionId != null) {
-      final currentCookies = request.headers['cookie'];
-      request.headers['cookie'] = [
-        if (currentCookies != null && currentCookies.isNotEmpty) currentCookies,
-        // ignore: invalid_use_of_visible_for_testing_member
-        '$clientSessionLaxCookieName=$sessionId',
-        // ignore: invalid_use_of_visible_for_testing_member
-        '$clientSessionStrictCookieName=$sessionId',
-      ].join('; ');
+    final currentCookies = request.headers['cookie'];
+    final providedCookies =
+        _cookieProvider == null ? null : await _cookieProvider!();
 
+    final sessionId = await _sessionIdProvider();
+    request.headers['cookie'] = [
+      if (currentCookies != null && currentCookies.isNotEmpty) currentCookies,
+      ...?providedCookies?.entries.map((e) => '${e.key}=${e.value}'),
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (sessionId != null) '$clientSessionLaxCookieName=$sessionId',
+      // ignore: invalid_use_of_visible_for_testing_member
+      if (sessionId != null) '$clientSessionStrictCookieName=$sessionId',
+    ].join('; ');
+
+    if (sessionId != null) {
       final csrfToken = await _csrfTokenProvider();
       if (csrfToken != null) {
         request.headers['x-pub-csrf-token'] = csrfToken;

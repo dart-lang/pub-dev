@@ -83,7 +83,7 @@ class OSV {
 
   /// A map holding additional information about the vulnerability as defined by
   /// the database from which the record was obtained. The meaning of the values
-  ///  within the object is entirely defined by the database.
+  /// within the object is entirely defined by the database.
   @JsonKey(name: 'database_specific')
   Map<String, dynamic>? databaseSpecific;
 

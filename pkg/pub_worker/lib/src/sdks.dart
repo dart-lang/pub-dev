@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart' show Version, VersionConstraint;
+import 'package:pub_semver/pub_semver.dart' show Version;
 
 @sealed
 class InstalledSdk {
@@ -22,7 +22,7 @@ class InstalledSdk {
   /// List SDKs installed into [path].
   ///
   /// This looks for sub-folders containing `version` files.
-  static Future<List<InstalledSdk>> fromDirectory({
+  static Future<List<InstalledSdk>> scanDirectory({
     required String kind,
     required Directory path,
   }) async {
@@ -54,8 +54,7 @@ class InstalledSdk {
           }
         }
 
-        final v = await File(p.join(d.path, 'version')).readAsString();
-        sdks.add(InstalledSdk(kind, d.path, Version.parse(v.trim())));
+        sdks.add(await fromDirectory(kind: kind, path: d.path));
       } on FormatException {
         continue;
       } on IOException {
@@ -66,21 +65,11 @@ class InstalledSdk {
     return sdks;
   }
 
-  static InstalledSdk? prioritizedSdk(
-    List<InstalledSdk> sdks,
-    VersionConstraint? constraint,
-  ) {
-    constraint ??= VersionConstraint.any;
-    sdks = [...sdks]..sortByCompare((s) => s.version, Version.prioritize);
-    return sdks.where((s) => constraint!.allows(s.version)).lastOrNull ??
-        maxBy(sdks, (s) => s.version);
-  }
-
-  static InstalledSdk? futureSdk(List<InstalledSdk> sdks) {
-    if (sdks.isEmpty) {
-      return null;
-    }
-    sdks = [...sdks]..sort((a, b) => a.version.compareTo(b.version));
-    return sdks.last;
+  static Future<InstalledSdk> fromDirectory({
+    required String kind,
+    required String path,
+  }) async {
+    final v = await File(p.join(path, 'version')).readAsString();
+    return InstalledSdk(kind, path, Version.parse(v.trim()));
   }
 }

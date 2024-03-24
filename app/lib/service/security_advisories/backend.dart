@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/advisories_api.dart' show OSV;
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
@@ -68,7 +69,9 @@ class SecurityAdvisoryBackend {
   /// It's assumed that security advisory database owners take care to keep the
   /// security advisories sound, and that inconsistencies are intentional.
   Future<SecurityAdvisory?> ingestSecurityAdvisory(
-      OSV osv, DateTime syncTime) async {
+    OSV osv,
+    DateTime syncTime,
+  ) async {
     return await withRetryTransaction(_db, (tx) async {
       DateTime modified;
       try {
@@ -86,14 +89,22 @@ class SecurityAdvisoryBackend {
 
       if (!_isValidAdvisory(osv)) return null;
 
+      final idAndAliases = [osv.id, ...osv.aliases];
+
+      osv.databaseSpecific ??= <String, dynamic>{};
+      osv.databaseSpecific?['pub_display_url'] =
+          _computeDisplayUrl(idAndAliases);
+
       final newAdvisory = SecurityAdvisory()
         ..id = osv.id
         ..modified = modified
         ..parentKey = _db.emptyKey
         ..osv = osv
-        ..aliases = [osv.id, ...osv.aliases]
-        ..affectedPackages =
-            (osv.affected ?? []).map((a) => a.package.name).toList()
+        ..aliases = idAndAliases
+        ..affectedPackages = (osv.affected ?? [])
+            .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
+            .map((a) => a.package.name)
+            .toList()
         ..published =
             osv.published != null ? DateTime.parse(osv.published!) : modified
         ..syncTime = syncTime;
@@ -121,6 +132,21 @@ class SecurityAdvisoryBackend {
 
       return newAdvisory;
     });
+  }
+
+  String _computeDisplayUrl(List<String> idAndAliases) {
+    final githubId =
+        idAndAliases.firstWhereOrNull((id) => id.startsWith('GHSA'));
+    if (githubId != null) {
+      return 'https://github.com/advisories/$githubId';
+    }
+
+    final cveId = idAndAliases.firstWhereOrNull((id) => id.startsWith('CVE'));
+    if (cveId != null) {
+      return 'https://osv.dev/vulnerability/$cveId';
+    }
+
+    return 'https://osv.dev/vulnerability/${idAndAliases.first}';
   }
 
   Future<void> deleteAdvisory(
@@ -183,6 +209,28 @@ List<String> sanityCheckOSV(OSV osv) {
 
   if (osv.id.length > 255) {
     errors.add('Invalid id, id too long (over 255 characters).');
+  }
+
+  if (osv.affected == null || osv.affected!.isEmpty) {
+    errors.add('No affected packages for advisory ${osv.id}');
+  } else {
+    bool noAffectedHasVersion = true;
+    osv.affected!
+        .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
+        .forEach((affected) {
+      if (affected.versions == null || affected.versions!.isEmpty) {
+        logger.warning('No versions specified for affected package '
+            '${affected.package.name} in advisory ${osv.id}.');
+      } else {
+        noAffectedHasVersion = false;
+      }
+    });
+
+    if (noAffectedHasVersion) {
+      errors.add(
+          'Non of the affected packages in advisory ${osv.id} has specified '
+          'affected versions');
+    }
   }
 
   final invalids = <int>[];

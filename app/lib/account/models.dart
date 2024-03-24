@@ -53,6 +53,31 @@ class User extends db.ExpandoModel<String> {
   /// to perform any action.
   @db.BoolProperty(required: true)
   bool isBlocked = false;
+
+  /// `true` if user was moderated (pending moderation or deletion).
+  @db.BoolProperty(required: true)
+  bool isModerated = false;
+
+  /// The timestamp when the user was moderated.
+  @db.DateTimeProperty()
+  DateTime? moderatedAt;
+
+  User();
+  User.init() {
+    isBlocked = false;
+    isDeleted = false;
+    isModerated = false;
+  }
+
+  late final isVisible = !isBlocked && !isModerated && !isDeleted;
+  late final isNotVisible = !isVisible;
+
+  void updateIsModerated({
+    required bool isModerated,
+  }) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
+  }
 }
 
 /// Maps Oauth user_id to User.id

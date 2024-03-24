@@ -4,6 +4,7 @@
 
 import 'dart:async' show FutureOr, Zone;
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
@@ -58,7 +59,6 @@ import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/cloudcompute/fakecloudcompute.dart';
 import '../task/cloudcompute/googlecloudcompute.dart';
-import '../tool/utils/http.dart';
 import 'announcement/backend.dart';
 import 'entrypoint/logging.dart';
 import 'secret/backend.dart';

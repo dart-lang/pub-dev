@@ -39,9 +39,8 @@ void main() {
     }
 
     test('parse Dart SDK index.json', () async {
-      final file = await getCachedFile(
-          'dart-sdk-$toolStableDartSdkVersion.json',
-          'https://api.dart.dev/stable/$toolStableDartSdkVersion/index.json');
+      final file = await getCachedFile('dart-sdk-$runtimeSdkVersion.json',
+          'https://api.dart.dev/stable/$runtimeSdkVersion/index.json');
       final textContent = await file.readAsString();
       final index = DartdocIndex.parseJsonText(await file.readAsString());
       expect(index.entries, hasLength(greaterThan(10000)));

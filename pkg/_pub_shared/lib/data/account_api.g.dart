@@ -130,3 +130,12 @@ Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
       'emailSent': instance.emailSent,
       'nextNotification': instance.nextNotification.toIso8601String(),
     };
+
+ReportForm _$ReportFormFromJson(Map<String, dynamic> json) => ReportForm(
+      description: json['description'] as String,
+    );
+
+Map<String, dynamic> _$ReportFormToJson(ReportForm instance) =>
+    <String, dynamic>{
+      'description': instance.description,
+    };

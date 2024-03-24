@@ -96,6 +96,28 @@ Router _$PubApiRouter(PubApi service) {
   );
   router.add(
     'GET',
+    r'/api/archives/<package>-<version>.tar.gz',
+    (
+      Request request,
+      String package,
+      String version,
+    ) async {
+      try {
+        final _$result = await service.fetchPackage(
+          request,
+          package,
+          version,
+        );
+        return _$result;
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
+    'GET',
     r'/api/packages/versions/new',
     (Request request) async {
       try {
@@ -1306,6 +1328,24 @@ Router _$PubApiRouter(PubApi service) {
         final _$result = await service.getPackageAdvisories(
           request,
           package,
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
+    'POST',
+    r'/api/report',
+    (Request request) async {
+      try {
+        final _$result = await service.postReport(
+          request,
+          await $utilities.decodeJson<ReportForm>(
+              request, (o) => ReportForm.fromJson(o)),
         );
         return $utilities.jsonResponse(_$result.toJson());
       } on ApiResponseException catch (e) {

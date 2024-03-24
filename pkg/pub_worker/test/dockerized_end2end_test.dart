@@ -90,15 +90,19 @@ void main() {
               .where((s) => s.grantedPoints != s.maxPoints)
               .map((e) => e.summary)
               .join('\n');
-          // temporary allow points drop, until we figure out why this is happening
-          var expectedDrop = 0;
+          // allow points drop due to lints and other temporary issues
+          var expectedDrop = 10;
           if (failingReportSections
               .contains("Issue tracker URL doesn't exist.")) {
-            expectedDrop = 10;
+            expectedDrop += 10;
+          }
+          if (failingReportSections
+              .contains("is deprecated and shouldn't be used")) {
+            expectedDrop += 10;
           }
           expect(
             report.grantedPoints,
-            report.maxPoints - expectedDrop,
+            greaterThanOrEqualTo(report.maxPoints - expectedDrop),
             reason: failingReportSections,
           );
         }

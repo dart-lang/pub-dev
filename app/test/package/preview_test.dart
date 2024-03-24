@@ -5,12 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_dev/tool/utils/dart_sdk_version.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +25,8 @@ void main() {
 
   group('SDK version changing', () {
     setUpAll(() async {
-      final current = await getDartSdkVersion();
+      final current =
+          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
       currentSdkVersion = current.semanticVersion;
       futureSdkVersion = Version.parse('3.99.0');
     });

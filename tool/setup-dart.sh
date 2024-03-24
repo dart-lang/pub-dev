@@ -9,6 +9,7 @@ then
 fi
 
 # Expected version argument formats:
+# - master
 # - stable/raw/hash/<hash>
 # - 3.2.5 (stable/release/<version>)
 # - 3.2.5-beta (beta/release/<version>)
@@ -20,7 +21,10 @@ then
 fi
 
 # Infer the download URL
-if [[ "$2" == */raw/hash/* ]]
+if [[ "$2" == "master" ]]
+then
+  DOWNLOAD_URL="https://storage.googleapis.com/dart-archive/channels/main/raw/latest/sdk/dartsdk-linux-x64-release.zip"
+elif [[ "$2" == */raw/hash/* ]]
 then
   DOWNLOAD_URL="https://storage.googleapis.com/dart-archive/channels/$2/sdk/dartsdk-linux-x64-release.zip"
 elif [[ "$2" == *.* ]]

@@ -137,6 +137,14 @@ class Package extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? blocked;
 
+  /// `true` if package was moderated (pending moderation or deletion).
+  @db.BoolProperty(required: true)
+  bool isModerated = false;
+
+  /// The timestamp when the package was moderated.
+  @db.DateTimeProperty()
+  DateTime? moderatedAt;
+
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
@@ -187,18 +195,20 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isBlocked = false
+      ..isModerated = false
       ..assignedTags = []
       ..deletedVersions = [];
   }
 
   // Convenience Fields:
 
-  bool get isVisible => !isBlocked;
+  bool get isVisible => !isBlocked && !isModerated;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
     final now = clock.now();
     return isVisible &&
+        !isModerated &&
         !isDiscontinued &&
         !isUnlisted &&
         now.difference(created!) > robotsVisibilityMinAge &&
@@ -279,7 +289,12 @@ class Package extends db.ExpandoModel<String> {
   }) {
     final versions = allVersions
         .map((v) => v.version == replaced?.version ? replaced! : v)
+        .where((v) => !v.isModerated)
         .toList();
+    if (versions.isEmpty) {
+      throw NotAcceptableException('No visible versions left.');
+    }
+
     final oldStableVersion = latestSemanticVersion;
     final oldPrereleaseVersion = latestPrereleaseSemanticVersion;
     final oldPreviewVersion = latestPreviewSemanticVersion;
@@ -402,6 +417,14 @@ class Package extends db.ExpandoModel<String> {
     this.isBlocked = isBlocked;
     blockedReason = reason;
     blocked = isBlocked ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
+  }
+
+  void updateIsModerated({
+    required bool isModerated,
+  }) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
   }
 }
@@ -579,6 +602,21 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? retracted;
 
+  /// `true` if package version was moderated (pending moderation or deletion).
+  @db.BoolProperty(required: true)
+  bool isModerated = false;
+
+  /// The timestamp when the package version was moderated.
+  @db.DateTimeProperty()
+  DateTime? moderatedAt;
+
+  PackageVersion();
+
+  PackageVersion.init() {
+    isModerated = false;
+    isRetracted = false;
+  }
+
   // Convenience Fields:
 
   late final semanticVersion = Version.parse(version!);
@@ -633,6 +671,13 @@ class PackageVersion extends db.ExpandoModel<String> {
   bool get canUndoRetracted =>
       isRetracted &&
       retracted!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
+
+  void updateIsModerated({
+    required bool isModerated,
+  }) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
+  }
 }
 
 /// A derived entity that holds derived/cleaned content of [PackageVersion].
@@ -1080,29 +1125,32 @@ class PackagePageData {
   bool get isLatestStable => version.version == package.latestVersion;
 
   late final packageLinks = () {
-    // Trying to use verfied URLs
-    final result = scoreCard.panaReport?.result;
-    if (result != null) {
-      final baseUrl = urls.inferBaseUrl(
-        homepageUrl: result.homepageUrl,
-        repositoryUrl: result.repositoryUrl,
-      );
-      return PackageLinks._(
-        baseUrl,
-        homepageUrl: result.homepageUrl,
-        repositoryUrl: result.repositoryUrl,
-        issueTrackerUrl: result.issueTrackerUrl,
-        documentationUrl: result.documentationUrl,
-        contributingUrl: result.contributingUrl,
-      );
-    }
-    // Falling back to use URLs from pubspec.yaml.
+    // start with the URLs from pubspec.yaml
     final pubspec = version.pubspec!;
-    return PackageLinks.infer(
+    final inferred = PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
       repositoryUrl: pubspec.repository,
       issueTrackerUrl: pubspec.issueTracker,
+    );
+
+    // Use verified URLs when they are available.
+    final result = scoreCard.panaReport?.result;
+    if (result == null) {
+      return inferred;
+    }
+
+    final baseUrl = urls.inferBaseUrl(
+      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
+      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
+    );
+    return PackageLinks._(
+      baseUrl,
+      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
+      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
+      issueTrackerUrl: result.issueTrackerUrl ?? inferred.issueTrackerUrl,
+      documentationUrl: result.documentationUrl ?? inferred.documentationUrl,
+      contributingUrl: result.contributingUrl ?? inferred.contributingUrl,
     );
   }();
 

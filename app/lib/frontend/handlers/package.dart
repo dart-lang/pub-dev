@@ -7,9 +7,12 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/advisories_api.dart'
     show ListAdvisoriesResponse;
+import 'package:_pub_shared/utils/dart_sdk_version.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -26,7 +29,6 @@ import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
-import '../../tool/utils/dart_sdk_version.dart';
 
 import '../request_context.dart';
 import '../templates/misc.dart';
@@ -82,7 +84,8 @@ Future<shelf.Response> packageVersionsListHandler(
         return redirectToSearch(packageName);
       }
 
-      final dartSdkVersion = await getDartSdkVersion();
+      final dartSdkVersion =
+          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
       final taskStatus = await taskBackend.packageStatus(packageName);
       return renderPkgVersionsPage(
         data,
@@ -218,7 +221,10 @@ Future<shelf.Response> packageScoreLogTxtHandler(
   if (!await packageBackend.isPackageVisible(package)) {
     return shelf.Response.notFound('no such package');
   }
-  version ??= (await packageBackend.getLatestVersion(package))!;
+  version ??= (await packageBackend.getLatestVersion(package));
+  if (version == null) {
+    return shelf.Response.notFound('no such package');
+  }
   final log = await taskBackend.taskLog(package, version);
   return shelf.Response(
     log == null ? 404 : 200,
@@ -275,6 +281,10 @@ Future<shelf.Response> _handlePackagePage({
   if (cachedPage == null) {
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null || !package.isVisible) {
+      if (package?.isModerated ?? false) {
+        final content = renderModeratedPackagePage(packageName);
+        return htmlResponse(content, status: 404);
+      }
       if (await packageBackend.isPackageModerated(packageName)) {
         final content = renderModeratedPackagePage(packageName);
         return htmlResponse(content, status: 404);
@@ -472,24 +482,22 @@ Future<shelf.Response> listVersionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
 
-  shelf.Response createResponse(List<int> body, {required bool isGzip}) {
-    return shelf.Response(
-      200,
-      body: body,
-      headers: {
-        if (isGzip) 'content-encoding': 'gzip',
-        'content-type': 'application/json; charset="utf-8"',
-        'x-content-type-options': 'nosniff',
-      },
-    );
+  var body = await packageBackend.listVersionsGzCachedBytes(package);
+  final supportsGzip = request.acceptsGzipEncoding();
+  if (!supportsGzip) {
+    body = gzip.decode(body);
   }
-
-  final body = await packageBackend.listVersionsCachedBytes(package);
-  if (request.acceptsGzipEncoding()) {
-    return createResponse(body, isGzip: true);
-  } else {
-    return createResponse(gzip.decode(body), isGzip: false);
-  }
+  return shelf.Response(
+    200,
+    body: body,
+    headers: {
+      'vary': 'Accept-Encoding', // body varies depending on accept-encoding!
+      if (supportsGzip) 'content-encoding': 'gzip',
+      'content-type': 'application/json; charset="utf-8"',
+      'x-content-type-options': 'nosniff',
+      ...CacheHeaders.versionListingApi(),
+    },
+  );
 }
 
 /// Handles requests for /packages/<package>/publisher

@@ -133,10 +133,6 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
         'dart': toolStableDartSdkVersion,
         'flutter': toolStableFlutterSdkVersion,
       },
-      'preview': {
-        'dart': toolPreviewDartSdkVersion,
-        'flutter': toolPreviewFlutterSdkVersion,
-      }
     },
   };
   if (data != null) {

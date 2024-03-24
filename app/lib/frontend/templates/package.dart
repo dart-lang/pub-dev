@@ -275,7 +275,7 @@ String _renderPkgPage({
   );
   final noIndex = pkgPageTab == urls.PkgPageTab.install ||
       pkgPageTab == urls.PkgPageTab.score ||
-      card.isSkipped ||
+      card.hasNoTaskStatus ||
       (card.grantedPubPoints == 0) ||
       data.package.isExcludedInRobots;
   return renderLayoutPage(
@@ -538,6 +538,6 @@ List<Tab> buildPackageTabs({
 
 /// Renders the package page when the package has been moderated.
 String renderModeratedPackagePage(String packageName) {
-  final message = 'The package `$packageName` has been removed.';
+  final message = 'The package `$packageName` has been moderated.';
   return renderErrorPage(default404NotFound, message);
 }

@@ -30,7 +30,7 @@ dependencies:
   json_annotation: '^4.3.0'
   lints: ^3.0.0
   logging: '>=0.9.3 <2.0.0'
-  markdown: ^7.2.0
+  markdown: ^7.2.2
   meta: ^1.1.2
   mime: '>=0.9.3 <2.0.0'
   neat_cache: ^2.0.1
@@ -51,7 +51,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.22.0'
+  pana: '0.22.2'
   # 3rd-party packages with pinned versions
   mailer: '6.0.1'
   ulid: '2.0.0'
