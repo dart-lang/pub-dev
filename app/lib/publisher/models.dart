@@ -107,7 +107,14 @@ class Publisher extends db.ExpandoModel<String> {
   bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
 
   /// Whether we should not list the publisher page in sitemap or promote it in search engines.
-  bool get isUnlisted => isBlocked || isAbandoned;
+  bool get isUnlisted => isBlocked || isAbandoned || isModerated;
+  bool get isVisible => !isUnlisted;
+
+  void updateIsModerated({required bool isModerated}) {
+    this.isModerated = isModerated;
+    moderatedAt = isModerated ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
+  }
 }
 
 /// Derived publisher data.
