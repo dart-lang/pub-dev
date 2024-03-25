@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('fetch version is valid', () async {
-    final v = await getDartSdkVersion(lastKnownStable: '3.0.0');
+    final v = await getCachedDartSdkVersion(lastKnownStable: '3.0.0');
     expect(v, isNotNull);
     expect(v.version, isNotEmpty);
     expect(v.published, isNotNull);

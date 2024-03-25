@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -322,12 +322,16 @@ class PackageBackend {
   Future<bool> updatePackageVersions(
     String package, {
     Version? dartSdkVersion,
+    Version? flutterSdkVersion,
   }) async {
     _logger.info("Checking Package's versions fields for package `$package`.");
     final pkgKey = db.emptyKey.append(Package, id: package);
-    dartSdkVersion ??=
-        (await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion))
-            .semanticVersion;
+    dartSdkVersion ??= (await getCachedDartSdkVersion(
+            lastKnownStable: toolStableDartSdkVersion))
+        .semanticVersion;
+    flutterSdkVersion ??= (await getCachedFlutterSdkVersion(
+            lastKnownStable: toolStableFlutterSdkVersion))
+        .semanticVersion;
 
     // ordered version list by publish date
     final versions =
@@ -339,8 +343,11 @@ class PackageBackend {
         throw NotFoundException.resource('package "$package"');
       }
 
-      final changed = p.updateLatestVersionReferences(versions,
-          dartSdkVersion: dartSdkVersion!);
+      final changed = p.updateLatestVersionReferences(
+        versions,
+        dartSdkVersion: dartSdkVersion!,
+        flutterSdkVersion: flutterSdkVersion!,
+      );
 
       if (!changed) {
         _logger.info('No version field updates for package `$package`.');
@@ -609,11 +616,14 @@ class PackageBackend {
     // the latest version or the restored version is newer than the latest.
     if (p.mayAffectLatestVersions(pv.semanticVersion)) {
       final versions = await tx.query<PackageVersion>(p.key).run().toList();
-      final currentDartSdk =
-          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+      final currentDartSdk = await getCachedDartSdkVersion(
+          lastKnownStable: toolStableDartSdkVersion);
+      final currentFlutterSdk = await getCachedFlutterSdkVersion(
+          lastKnownStable: toolStableFlutterSdkVersion);
       p.updateLatestVersionReferences(
         versions,
         dartSdkVersion: currentDartSdk.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
         replaced: pv,
       );
     }
@@ -1018,8 +1028,10 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
-    final currentDartSdk =
-        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+    final currentDartSdk = await getCachedDartSdkVersion(
+        lastKnownStable: toolStableDartSdkVersion);
+    final currentFlutterSdk = await getCachedFlutterSdkVersion(
+        lastKnownStable: toolStableFlutterSdkVersion);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
 
@@ -1111,8 +1123,11 @@ class PackageBackend {
       newVersion.publisherId = package!.publisherId;
 
       // Keep the latest version in the package object up-to-date.
-      package!.updateVersion(newVersion,
-          dartSdkVersion: currentDartSdk.semanticVersion);
+      package!.updateVersion(
+        newVersion,
+        dartSdkVersion: currentDartSdk.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
+      );
       package!.updated = clock.now().toUtc();
       package!.versionCount++;
 

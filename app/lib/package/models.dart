@@ -285,6 +285,7 @@ class Package extends db.ExpandoModel<String> {
   bool updateLatestVersionReferences(
     Iterable<PackageVersion> allVersions, {
     required Version dartSdkVersion,
+    required Version flutterSdkVersion,
     PackageVersion? replaced,
   }) {
     final versions = allVersions
@@ -304,13 +305,23 @@ class Package extends db.ExpandoModel<String> {
     latestPrereleaseVersionKey = null;
     latestPreviewVersionKey = null;
 
-    versions
-      ..where((v) => !v.isRetracted)
-          .forEach((v) => updateVersion(v, dartSdkVersion: dartSdkVersion));
+    for (final v in versions.where((v) => !v.isRetracted)) {
+      updateVersion(
+        v,
+        dartSdkVersion: dartSdkVersion,
+        flutterSdkVersion: flutterSdkVersion,
+      );
+    }
 
     if (latestVersionKey == null) {
       // All versions are retracted, we use the latest regardless of retracted status.
-      versions.forEach((v) => updateVersion(v, dartSdkVersion: dartSdkVersion));
+      for (final v in versions) {
+        updateVersion(
+          v,
+          dartSdkVersion: dartSdkVersion,
+          flutterSdkVersion: flutterSdkVersion,
+        );
+      }
     }
 
     final unchanged = oldStableVersion == latestSemanticVersion &&
@@ -328,9 +339,13 @@ class Package extends db.ExpandoModel<String> {
   void updateVersion(
     PackageVersion pv, {
     required Version dartSdkVersion,
+    required Version flutterSdkVersion,
   }) {
     final newVersion = pv.semanticVersion;
-    final isOnStableSdk = !pv.pubspec!.isPreviewForCurrentSdk(dartSdkVersion);
+    final isOnStableSdk = !pv.pubspec!.isPreviewForCurrentSdk(
+      dartSdkVersion: dartSdkVersion,
+      flutterSdkVersion: flutterSdkVersion,
+    );
 
     if (latestVersionKey == null ||
         (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&

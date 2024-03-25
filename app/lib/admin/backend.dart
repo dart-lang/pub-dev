@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -426,8 +426,10 @@ class AdminBackend {
     _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName $version');
 
-    final currentDartSdk =
-        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+    final currentDartSdk = await getCachedDartSdkVersion(
+        lastKnownStable: toolStableDartSdkVersion);
+    final currentFlutterSdk = await getCachedFlutterSdkVersion(
+        lastKnownStable: toolStableFlutterSdkVersion);
     await withRetryTransaction(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
@@ -454,8 +456,10 @@ class AdminBackend {
 
       if (package.mayAffectLatestVersions(Version.parse(version))) {
         package.updateLatestVersionReferences(
-            versions.where((v) => v.version != version).toList(),
-            dartSdkVersion: currentDartSdk.semanticVersion);
+          versions.where((v) => v.version != version).toList(),
+          dartSdkVersion: currentDartSdk.semanticVersion,
+          flutterSdkVersion: currentFlutterSdk.semanticVersion,
+        );
       }
 
       package.deletedVersions ??= <String>[];
