@@ -76,7 +76,7 @@ class CacheHeaders {
 
   /// Default cache-control for API responses
   static final defaultApi = CacheHeaders._(
-    Duration(minutes: 30),
+    Duration(minutes: 10),
     // public / private is inferred from authentication + session header
   );
 
