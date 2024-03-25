@@ -17,6 +17,7 @@ import '../../shared/handlers.dart';
 import 'account.dart';
 import 'atom_feed.dart';
 import 'documentation.dart';
+import 'headers.dart';
 import 'landing.dart';
 import 'listing.dart';
 import 'misc.dart';
@@ -35,7 +36,10 @@ class PubSiteService {
   // ****
 
   @Route.get('/liveness_check')
-  Future<Response> livenessCheck(Request request) async => htmlResponse('OK');
+  Future<Response> livenessCheck(Request request) async => htmlResponse(
+        'OK',
+        headers: CacheHeaders.privateZero(),
+      );
 
   @Route.get('/readiness_check')
   Future<Response> readinessCheck(Request request) async =>

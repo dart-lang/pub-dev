@@ -17,6 +17,7 @@ import '../../shared/handlers.dart';
 import '../../shared/utils.dart';
 import '../request_context.dart';
 import '../templates/report.dart';
+import 'headers.dart';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
@@ -29,9 +30,14 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
     return unauthenticatedRs;
   }
 
-  return htmlResponse(renderReportPage(
-    sessionData: requestContext.sessionData,
-  ));
+  return htmlResponse(
+    renderReportPage(
+      sessionData: requestContext.sessionData,
+    ),
+    headers: {
+      ...CacheHeaders.privateZero(),
+    },
+  );
 }
 
 /// Handles POST /api/report

@@ -68,9 +68,16 @@ Future<shelf.Response> securityPageHandler(shelf.Request request) async {
 /// Handles requests for /readiness_check
 Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   if (nameTracker.isReady) {
-    return htmlResponse('OK');
+    return htmlResponse(
+      'OK',
+      headers: CacheHeaders.privateZero(),
+    );
   } else {
-    return htmlResponse('Service Unavailable', status: 503);
+    return htmlResponse(
+      'Service Unavailable',
+      status: 503,
+      headers: CacheHeaders.privateZero(),
+    );
   }
 }
 
@@ -182,6 +189,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
         acceptsGzipEncoding ? staticFile.gzippedBytes : staticFile.bytes;
     final headers = <String, String>{
       if (acceptsGzipEncoding) HttpHeaders.contentEncodingHeader: 'gzip',
+      'Vary': 'Accept-Encoding',
       HttpHeaders.contentTypeHeader: staticFile.contentType,
       HttpHeaders.contentLengthHeader: bytes.length.toString(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
@@ -232,6 +240,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
       value: flags.encodedAsCookie(),
       maxAge: experimentalCookieDuration,
     ),
+    ...CacheHeaders.privateZero(),
   });
 }
 

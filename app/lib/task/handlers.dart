@@ -176,7 +176,10 @@ Future<shelf.Response> handleTaskResource(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse('');
+    return htmlResponse(
+      '',
+      headers: CacheHeaders.defaultPublicUI(),
+    );
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();
@@ -185,6 +188,8 @@ Future<shelf.Response> handleTaskResource(
     headers: {
       'Content-Type': mime,
       if (acceptsGzip) 'Content-Encoding': 'gzip',
+      'Vary': 'Accept-Encoding',
+      ...CacheHeaders.defaultPublicUI(),
     },
   );
 }

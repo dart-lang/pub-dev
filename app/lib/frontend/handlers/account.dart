@@ -26,6 +26,7 @@ import '../../shared/urls.dart' as urls;
 import '../templates/admin.dart';
 import '../templates/consent.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
+import 'headers.dart';
 
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
@@ -55,10 +56,13 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   );
   return redirectResponse(
     oauth2Url.toString(),
-    headers: session_cookie.createClientSessionCookie(
-      sessionId: session.sessionId,
-      maxAge: session.maxAge,
-    ),
+    headers: {
+      ...session_cookie.createClientSessionCookie(
+        sessionId: session.sessionId,
+        maxAge: session.maxAge,
+      ),
+      ...CacheHeaders.privateZero(),
+    },
   );
 }
 
@@ -109,10 +113,13 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   );
   return redirectResponse(
     go,
-    headers: session_cookie.createClientSessionCookie(
-      sessionId: newSession.sessionId,
-      maxAge: newSession.maxAge,
-    ),
+    headers: {
+      ...session_cookie.createClientSessionCookie(
+        sessionId: newSession.sessionId,
+        maxAge: newSession.maxAge,
+      ),
+      ...CacheHeaders.privateZero(),
+    },
   );
 }
 
@@ -174,6 +181,9 @@ Future<shelf.Response> consentPageHandler(
     // Consent pages have the consent ID in the URL. Browsers should not pass on
     // this ID to the pages that are linked from the consent page.
     noReferrer: true,
+    headers: {
+      ...CacheHeaders.privateZero(),
+    },
   );
 }
 

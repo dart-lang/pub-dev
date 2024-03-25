@@ -43,7 +43,9 @@ class CacheHeaders {
           'private'
         else if (public)
           'public'
-        else if (requestContext.isNotAuthenticated)
+        else if (requestContext.isNotAuthenticated &&
+            requestContext.uiCacheEnabled &&
+            requestContext.sessionData == null)
           'public'
         else
           'private',
@@ -57,8 +59,26 @@ class CacheHeaders {
     return headers.containsKey(HttpHeaders.cacheControlHeader);
   }
 
-  /// Default private-only caching.
-  static final defaultPrivate = CacheHeaders._(Duration.zero, private: true);
+  /// Private-only max-age zero.
+  static final privateZero = CacheHeaders._(Duration.zero, private: true);
+
+  /// Default cache-control for public user-interface
+  static final defaultPublicUI = CacheHeaders._(
+    Duration(minutes: 10),
+    public: true,
+  );
+
+  /// Default cache-control for user-interface
+  static final defaultUI = CacheHeaders._(
+    Duration(minutes: 10),
+    // public / private is inferred from authentication + session header
+  );
+
+  /// Default cache-control for API responses
+  static final defaultApi = CacheHeaders._(
+    Duration(minutes: 30),
+    // public / private is inferred from authentication + session header
+  );
 
   /// Everything under the /documentation/ endpoint.
   static final dartdocAsset = CacheHeaders._(Duration(minutes: 15));

@@ -231,6 +231,7 @@ Future<shelf.Response> packageScoreLogTxtHandler(
     body: log ?? 'no log',
     headers: {
       'content-type': 'text/plain;charset=UTF-8',
+      ...CacheHeaders.defaultPublicUI(),
     },
   );
 }
