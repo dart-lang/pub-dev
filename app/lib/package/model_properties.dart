@@ -99,16 +99,34 @@ class Pubspec {
     return MinSdkVersion.tryParse(_inner.environment?['sdk']);
   }
 
-  /// True if the min Dart SDK version constraint is higher than the current SDK.
-  bool isPreviewForCurrentSdk(Version currentSdkVersion) {
-    final msv = minSdkVersion;
-    return msv != null && msv.value.compareTo(currentSdkVersion) > 0;
+  /// Returns the minimal SDK version for the Flutter SDK.
+  ///
+  /// Returns null if the constraint is missing or does not follow the
+  /// `>=<version>` pattern.
+  late final _minFlutterSdkVersion = () {
+    _load();
+    return MinSdkVersion.tryParse(_inner.environment?['flutter']);
+  }();
+
+  /// True if the min SDK version constraint is higher than the current SDK.
+  bool isPreviewForCurrentSdk({
+    required Version dartSdkVersion,
+    required Version flutterSdkVersion,
+  }) {
+    final minDartVersion = minSdkVersion;
+    return (minDartVersion != null &&
+            minDartVersion.value.compareTo(dartSdkVersion) > 0) ||
+        (_minFlutterSdkVersion != null &&
+            _minFlutterSdkVersion!.value.compareTo(flutterSdkVersion) > 0);
   }
 
   /// True if either the Dart or the Flutter SDK constraint is higher than the
   /// stable analysis SDK in the current runtime.
   bool usesPreviewAnalysisSdk() {
-    if (isPreviewForCurrentSdk(versions.semanticToolStableDartSdkVersion)) {
+    if (isPreviewForCurrentSdk(
+      dartSdkVersion: versions.semanticToolStableDartSdkVersion,
+      flutterSdkVersion: versions.semanticToolStableFlutterSdkVersion,
+    )) {
       return true;
     }
     final v = MinSdkVersion.tryParse(_inner.environment?['flutter']);

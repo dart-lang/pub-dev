@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/advisories_api.dart'
     show ListAdvisoriesResponse;
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/frontend/handlers/headers.dart';
@@ -84,14 +84,17 @@ Future<shelf.Response> packageVersionsListHandler(
         return redirectToSearch(packageName);
       }
 
-      final dartSdkVersion =
-          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+      final dartSdkVersion = await getCachedDartSdkVersion(
+          lastKnownStable: toolStableDartSdkVersion);
+      final currentFlutterSdk = await getCachedFlutterSdkVersion(
+          lastKnownStable: toolStableFlutterSdkVersion);
       final taskStatus = await taskBackend.packageStatus(packageName);
       return renderPkgVersionsPage(
         data,
         // output is expected in descending versions order
         versions.descendingVersions,
         dartSdkVersion: dartSdkVersion.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
         taskStatus: taskStatus,
       );
     },

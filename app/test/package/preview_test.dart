@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -25,8 +25,8 @@ void main() {
 
   group('SDK version changing', () {
     setUpAll(() async {
-      final current =
-          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+      final current = await getCachedDartSdkVersion(
+          lastKnownStable: toolStableDartSdkVersion);
       currentSdkVersion = current.semanticVersion;
       futureSdkVersion = Version.parse('3.99.0');
     });
@@ -52,13 +52,32 @@ void main() {
         final pv1 =
             (await packageBackend.lookupPackageVersion('pkg', '1.0.0'))!;
         expect(
-            pv1.pubspec!.isPreviewForCurrentSdk(currentSdkVersion!), isFalse);
-        expect(pv1.pubspec!.isPreviewForCurrentSdk(futureSdkVersion!), isFalse);
+            pv1.pubspec!.isPreviewForCurrentSdk(
+              dartSdkVersion: currentSdkVersion!,
+              flutterSdkVersion: Version(3, 20, 0),
+            ),
+            isFalse);
+        expect(
+            pv1.pubspec!.isPreviewForCurrentSdk(
+              dartSdkVersion: futureSdkVersion!,
+              flutterSdkVersion: Version(3, 20, 0),
+            ),
+            isFalse);
 
         final pv2 =
             (await packageBackend.lookupPackageVersion('pkg', '1.2.0'))!;
-        expect(pv2.pubspec!.isPreviewForCurrentSdk(currentSdkVersion!), isTrue);
-        expect(pv2.pubspec!.isPreviewForCurrentSdk(futureSdkVersion!), isFalse);
+        expect(
+            pv2.pubspec!.isPreviewForCurrentSdk(
+              dartSdkVersion: currentSdkVersion!,
+              flutterSdkVersion: Version(3, 20, 0),
+            ),
+            isTrue);
+        expect(
+            pv2.pubspec!.isPreviewForCurrentSdk(
+              dartSdkVersion: futureSdkVersion!,
+              flutterSdkVersion: Version(3, 20, 0),
+            ),
+            isFalse);
 
         final p0 = (await packageBackend.lookupPackage('pkg'))!;
         expect(p0.latestVersion, '1.0.0');
