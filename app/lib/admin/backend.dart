@@ -648,7 +648,7 @@ class AdminBackend {
         final r = p.uploaders!.remove(uploaderUser.userId);
         if (r) {
           removed = true;
-          tx.insert(AuditLogRecord.uploaderRemoved(
+          tx.insert(await AuditLogRecord.uploaderRemoved(
             agent: authenticatedUser,
             package: packageName,
             uploaderUser: uploaderUser,
@@ -658,7 +658,7 @@ class AdminBackend {
       if (removed) {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
-          tx.insert(AuditLogRecord.packageOptionsUpdated(
+          tx.insert(await AuditLogRecord.packageOptionsUpdated(
             agent: authenticatedUser,
             package: packageName,
             publisherId: p.publisherId,

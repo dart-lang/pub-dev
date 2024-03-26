@@ -222,7 +222,7 @@ class PublisherBackend {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        AuditLogRecord.publisherCreated(
+        await AuditLogRecord.publisherCreated(
           user: user,
           publisherId: publisherId,
         ),
@@ -330,7 +330,7 @@ class PublisherBackend {
       p.updated = clock.now().toUtc();
 
       tx.insert(p);
-      tx.insert(AuditLogRecord.publisherUpdated(
+      tx.insert(await AuditLogRecord.publisherUpdated(
         user: user,
         publisherId: publisherId,
       ));
@@ -363,7 +363,7 @@ class PublisherBackend {
       p.contactEmail = contactEmail;
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(AuditLogRecord.publisherContactInviteAccepted(
+      tx.insert(await AuditLogRecord.publisherContactInviteAccepted(
         user: user,
         publisherId: publisherId,
         contactEmail: contactEmail,
@@ -518,7 +518,7 @@ class PublisherBackend {
     final pm = await _db.lookupOrNull<PublisherMember>(key);
     if (pm != null) {
       final memberUser = await accountBackend.lookupUserById(userId);
-      final auditLogRecord = AuditLogRecord.publisherMemberRemoved(
+      final auditLogRecord = await AuditLogRecord.publisherMemberRemoved(
         publisherId: publisherId,
         activeUser: user,
         memberToRemove: memberUser!,
@@ -557,7 +557,7 @@ class PublisherBackend {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        AuditLogRecord.publisherMemberInviteAccepted(
+        await AuditLogRecord.publisherMemberInviteAccepted(
           user: user!,
           publisherId: publisherId,
         ),
