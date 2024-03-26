@@ -11,7 +11,6 @@ import 'package:shelf_router/shelf_router.dart';
 import '../shared/handlers.dart';
 import '../shared/urls.dart';
 
-import 'handlers/headers.dart';
 import 'handlers/misc.dart';
 import 'handlers/pubapi.dart';
 import 'handlers/redirects.dart';
@@ -69,21 +68,11 @@ shelf.Handler createAppHandler() {
 
     final rs = await pubApiHandler(request);
     if (rs != Router.routeNotFound) {
-      if (rs.statusCode == 200 &&
-          request.method == 'GET' &&
-          !CacheHeaders.hasCacheHeader(rs.headers)) {
-        return rs.change(headers: CacheHeaders.defaultApi());
-      }
       return rs;
     }
 
     final res = await pubSiteHandler(request);
     if (res != Router.routeNotFound) {
-      if (rs.statusCode == 200 &&
-          request.method == 'GET' &&
-          !CacheHeaders.hasCacheHeader(rs.headers)) {
-        return rs.change(headers: CacheHeaders.defaultUI());
-      }
       return res;
     }
 

@@ -26,7 +26,7 @@ import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
-import 'headers.dart';
+import 'cache_control.dart';
 
 final _log = Logger('pub.handlers.misc');
 
@@ -70,13 +70,13 @@ Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   if (nameTracker.isReady) {
     return htmlResponse(
       'OK',
-      headers: CacheHeaders.privateZero(),
+      headers: CacheControl.explicitlyPrivate.headers,
     );
   } else {
     return htmlResponse(
       'Service Unavailable',
       status: 503,
-      headers: CacheHeaders.privateZero(),
+      headers: CacheControl.explicitlyPrivate.headers,
     );
   }
 }
@@ -196,7 +196,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
       HttpHeaders.etagHeader: staticFile.etag,
       if (parsed.urlHash == staticFile.etag ||
           parsed.pathHash == staticFileCache.etag)
-        ...CacheHeaders.staticAsset(),
+        ...CacheControl.staticFiles.headers,
     };
     return shelf.Response.ok(bytes, headers: headers);
   }
@@ -240,7 +240,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
       value: flags.encodedAsCookie(),
       maxAge: experimentalCookieDuration,
     ),
-    ...CacheHeaders.privateZero(),
+    ...CacheControl.explicitlyPrivate.headers,
   });
 }
 

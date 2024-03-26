@@ -70,7 +70,7 @@ void main() {
 
   test('cache-control is set only in frontend/handlers/headers.dart', () async {
     final exceptions = [
-      'lib/frontend/handlers/headers.dart',
+      'lib/frontend/handlers/cache_control.dart',
     ];
     final files = Directory('lib')
         .listSync(recursive: true)

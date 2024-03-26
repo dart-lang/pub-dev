@@ -9,6 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 import 'package:pub_dev/shared/env_config.dart';
@@ -18,7 +19,6 @@ import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
 import '../frontend/dom/dom.dart' as d;
-import '../frontend/handlers/headers.dart';
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 import '../service/csp/default_csp.dart';
@@ -132,11 +132,18 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final context = await buildRequestContext(request: request);
     registerRequestContext(context);
-    shelf.Response rs = await handler(request);
-    if (!context.uiCacheEnabled && !CacheHeaders.hasCacheHeader(rs.headers)) {
-      // Indicates that the response is intended for a single user and must not
-      // be stored by a shared cache. A private cache may store the response.
-      rs = rs.change(headers: CacheHeaders.privateZero());
+    var rs = await handler(request);
+    if (!rs.hasCacheControl) {
+      if (request.method == 'GET' &&
+          rs.statusCode == 200 &&
+          context.uiCacheEnabled &&
+          context.isNotAuthenticated &&
+          context.sessionData == null &&
+          (context.csrfToken?.isEmpty ?? false)) {
+        rs = CacheControl.defaultPublic.apply(rs);
+      } else {
+        rs = CacheControl.defaultPrivate.apply(rs);
+      }
     }
     return rs;
   };
