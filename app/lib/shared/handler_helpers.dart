@@ -134,16 +134,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     registerRequestContext(context);
     var rs = await handler(request);
     if (!rs.hasCacheControl) {
-      if (request.method == 'GET' &&
-          rs.statusCode == 200 &&
-          context.uiCacheEnabled &&
-          context.isNotAuthenticated &&
-          context.sessionData == null &&
-          (context.csrfToken?.isEmpty ?? false)) {
-        rs = CacheControl.defaultPublic.apply(rs);
-      } else {
-        rs = CacheControl.defaultPrivate.apply(rs);
-      }
+      rs = CacheControl.defaultPrivate.apply(rs);
     }
     return rs;
   };

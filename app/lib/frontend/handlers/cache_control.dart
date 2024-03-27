@@ -69,12 +69,6 @@ final class CacheControl {
     public: true,
   );
 
-  /// `Cache-Control` headers for all unauthenticated responses.
-  static const defaultPublic = CacheControl(
-    maxAge: Duration(minutes: 10),
-    public: true,
-  );
-
   /// `Cache-Control` headers for all authenticated responses, and responses we
   /// haven't decided to add `Cache-Control` headers for yet.
   static const defaultPrivate = CacheControl(

@@ -3,7 +3,6 @@ import 'dart:io' show gzip;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
-import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
@@ -175,10 +174,7 @@ Future<shelf.Response> handleTaskResource(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse(
-      '',
-      headers: CacheControl.defaultPublic.headers,
-    );
+    return htmlResponse('');
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();
@@ -188,7 +184,6 @@ Future<shelf.Response> handleTaskResource(
       'Content-Type': mime,
       if (acceptsGzip) 'Content-Encoding': 'gzip',
       'Vary': 'Accept-Encoding',
-      ...CacheControl.defaultPublic.headers,
     },
   );
 }
