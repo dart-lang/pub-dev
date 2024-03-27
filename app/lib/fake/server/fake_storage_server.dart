@@ -45,7 +45,23 @@ class FakeStorageServer {
   }
 
   Future<Response> _handler(Request request) async {
-    if (request.method == 'GET') {
+    if (request.method == 'HEAD') {
+      _logger.info('Requested: ${request.requestedUri.path}');
+      final segments = request.requestedUri.pathSegments;
+      if (segments.length < 2) {
+        return Response.notFound('404 Not Found');
+      }
+      final bucketName = segments.first;
+      final objectName = segments.skip(1).join('/');
+      final bucket = _storage.bucket(bucketName);
+      final exists = await bucket.tryInfo(objectName);
+      if (exists == null) {
+        return Response.notFound('404 Not Found');
+      }
+      final contentType = lookupMimeType(objectName);
+      return Response.ok(<int>[],
+          headers: {if (contentType != null) 'Content-Type': contentType});
+    } else if (request.method == 'GET') {
       _logger.info('Requested: ${request.requestedUri.path}');
       final segments = request.requestedUri.pathSegments;
       if (segments.length < 2) {
