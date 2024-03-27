@@ -7,6 +7,7 @@ import 'package:pub_package_reader/pub_package_reader.dart'
 
 /// Package names that are reserved for the Dart or Flutter team.
 final _reservedPackageNames = <String>[
+  '_macros',
   'brick',
   'core',
   'dart',
