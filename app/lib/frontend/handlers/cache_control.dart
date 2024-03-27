@@ -36,7 +36,7 @@ final class CacheControl {
 
   /// Create `Cache-Control` and `Expires` headers for this [CacheControl]
   /// configration.
-  Map<String, String> get headers => UnmodifiableMapView({
+  Map<String, String> get headers => {
         'Cache-Control': [
           if (noStore) 'no-store',
           if (noCache) 'no-cache',
@@ -48,7 +48,7 @@ final class CacheControl {
         'Expires': HttpDate.format(clock.fromNowBy(
           maxAge ?? Duration(minutes: -5),
         )),
-      });
+      };
 
   /// `Cache-Control` headers for static files where the URL includes a hash!
   static const staticFiles = CacheControl(
