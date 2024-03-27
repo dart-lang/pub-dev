@@ -96,7 +96,7 @@ Router _$PubApiRouter(PubApi service) {
   );
   router.add(
     'GET',
-    r'/api/archives/<package>-<version>.tar.gz',
+    r'/api/archives/<package|[^-/]+>-<version>.tar.gz',
     (
       Request request,
       String package,

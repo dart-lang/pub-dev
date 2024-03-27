@@ -60,7 +60,7 @@ class PubApi {
   /// clients, so while this is deprecated we need to support it indefinitely.
   @EndPoint.get('/api/packages/<package>/versions/<version>/archive.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
-  @EndPoint.get('/api/archives/<package>-<version>.tar.gz')
+  @EndPoint.get('/api/archives/<package|[^-/]+>-<version>.tar.gz')
   Future<Response> fetchPackage(
     Request request,
     String package,
