@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:clock/clock.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/agent.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
@@ -143,14 +145,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     dataJson = value == null ? null : json.encode(value);
   }
 
-  factory AuditLogRecord.packageOptionsUpdated({
+  /// Returns [AuditLogRecord] for the package options updated operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> packageOptionsUpdated({
     required AuthenticatedAgent agent,
     required String package,
     required String? publisherId,
     required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageOptionsUpdated
       ..agent = agent.agentId
       ..summary =
@@ -166,15 +171,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [if (publisherId != null) publisherId];
+      ..publishers = [if (publisherId != null) publisherId]);
   }
 
-  factory AuditLogRecord.packagePublicationAutomationUpdated({
+  /// Returns [AuditLogRecord] for the package automatic publishing settings updated operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> packagePublicationAutomationUpdated({
     required String package,
     required String? publisherId,
     required User user,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packagePublicationAutomationUpdated
       ..agent = user.userId
       ..summary =
@@ -187,10 +195,13 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [if (publisherId != null) publisherId];
+      ..publishers = [if (publisherId != null) publisherId]);
   }
 
-  factory AuditLogRecord.packageVersionOptionsUpdated({
+  /// Returns [AuditLogRecord] for the package version options updated operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> packageVersionOptionsUpdated({
     required AuthenticatedAgent agent,
     required String package,
     required String version,
@@ -198,7 +209,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required List<String> options,
   }) {
     final optionsStr = options.map((o) => '`$o`').join(', ');
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageVersionOptionsUpdated
       ..agent = agent.agentId
       ..summary = '`${agent.displayId}` updated $optionsStr of '
@@ -215,7 +226,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ]
       ..packages = [package]
       ..packageVersions = ['$package/$version']
-      ..publishers = [if (publisherId != null) publisherId];
+      ..publishers = [if (publisherId != null) publisherId]);
   }
 
   static Map<String, dynamic> _dataForPublishing({
@@ -271,6 +282,9 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     }
   }
 
+  /// Returns [AuditLogRecord] for the package created operation.
+  ///
+  /// NOTE: rate limit check must happen outside of the transaction.
   factory AuditLogRecord.packageCreated({
     required AuthenticatedAgent uploader,
     required String package,
@@ -298,6 +312,9 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [if (publisherId != null) publisherId];
   }
 
+  /// Returns [AuditLogRecord] for the package published operation.
+  ///
+  /// NOTE: rate limit check must happen outside of the transaction.
   factory AuditLogRecord.packagePublished({
     required AuthenticatedAgent uploader,
     required String package,
@@ -330,13 +347,16 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [if (publisherId != null) publisherId];
   }
 
-  factory AuditLogRecord.packageTransferred({
+  /// Returns [AuditLogRecord] for the package option updated operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> packageTransferred({
     required User user,
     required String package,
     required String? fromPublisherId,
     required String toPublisherId,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageTransferred
       ..agent = user.userId
       ..summary = [
@@ -357,16 +377,19 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [
         if (fromPublisherId != null) fromPublisherId,
         toPublisherId,
-      ];
+      ]);
   }
 
-  factory AuditLogRecord.packageRemovedFromPublisher({
+  /// Returns [AuditLogRecord] for the package removed from publisher operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> packageRemovedFromPublisher({
     required String package,
     required String fromPublisherId,
   }) {
     // For now this is always done as an administrative action, so we hardcode
     // the email.
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.packageRemovedFromPublisher
       ..agent = KnownAgents.pubSupport
       ..summary = [
@@ -382,15 +405,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = []
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [fromPublisherId];
+      ..publishers = [fromPublisherId]);
   }
 
-  factory AuditLogRecord.publisherContactInviteAccepted({
+  /// Returns [AuditLogRecord] for the publisher contact invite accepted operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherContactInviteAccepted({
     required User user,
     required String publisherId,
     required String contactEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInviteAccepted
       ..agent = user.userId
       ..summary = [
@@ -405,15 +431,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherContactInvited({
+  /// Returns [AuditLogRecord] for the pubilsher contact invited operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherContactInvited({
     required User user,
     required String publisherId,
     required String contactEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInvited
       ..agent = user.userId
       ..summary = [
@@ -428,15 +457,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherContactInviteExpired({
+  /// Returns [AuditLogRecord] for the publisher contact invite expired operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherContactInviteExpired({
     required String fromUserId,
     required String publisherId,
     required String contactEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInviteExpired
       ..agent = fromUserId
       ..summary = 'Contact invite for publisher `$publisherId` expired, '
@@ -449,10 +481,13 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [fromUserId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherContactInviteRejected({
+  /// Returns [AuditLogRecord] for the publisher contact invite rejected operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherContactInviteRejected({
     required String fromUserId,
     required String publisherId,
     required String contactEmail,
@@ -464,7 +499,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     final summary = (userEmail == null || userEmail == contactEmail)
         ? '`$contactEmail` rejected contact invite for publisher `$publisherId`.'
         : '`$userEmail` rejected contact invite of `$contactEmail` for publisher `$publisherId`.';
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInviteRejected
       ..agent = userId ?? fromUserId
       ..summary = summary
@@ -478,14 +513,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [fromUserId, if (userId != null) userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherCreated({
+  /// Returns [AuditLogRecord] for the publisher created operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherCreated({
     required User user,
     required String publisherId,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherCreated
       ..agent = user.userId
       ..summary = '`${user.email}` created publisher `$publisherId`.'
@@ -496,15 +534,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherMemberInvited({
+  /// Returns [AuditLogRecord] for the publisher member invited operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherMemberInvited({
     required AuthenticatedAgent agent,
     required String publisherId,
     required String memberEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInvited
       ..agent = agent.agentId
       ..summary = [
@@ -519,14 +560,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [if (agent is AuthenticatedUser) agent.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherMemberInviteAccepted({
+  /// Returns [AuditLogRecord] for the publisher member invite accepted operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherMemberInviteAccepted({
     required User user,
     required String publisherId,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteAccepted
       ..agent = user.userId
       ..summary =
@@ -538,15 +582,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherMemberInviteExpired({
+  /// Returns [AuditLogRecord] for the publisher member invite expired operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherMemberInviteExpired({
     required String fromUserId,
     required String publisherId,
     required String memberEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteExpired
       ..agent = fromUserId
       ..summary = 'Member invite for publisher `$publisherId` expired, '
@@ -559,10 +606,13 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [fromUserId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherMemberInviteRejected({
+  /// Returns [AuditLogRecord] for the publisher member invite rejected operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherMemberInviteRejected({
     required String fromUserId,
     required String publisherId,
     required String memberEmail,
@@ -570,7 +620,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     /// Optional, in the future we may allow invite rejection without sign-in.
     required String? userId,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteRejected
       ..agent = userId ?? fromUserId
       ..summary =
@@ -584,15 +634,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [fromUserId, if (userId != null) userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherMemberRemoved({
+  /// Returns [AuditLogRecord] for the publisher member removed operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherMemberRemoved({
     required User activeUser,
     required String publisherId,
     required User memberToRemove,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberRemoved
       ..agent = activeUser.userId
       ..summary = [
@@ -607,14 +660,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [activeUser.userId, memberToRemove.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.publisherUpdated({
+  /// Returns [AuditLogRecord] for the publisher updated operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> publisherUpdated({
     required User user,
     required String publisherId,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherUpdated
       ..agent = user.userId
       ..summary = '`${user.email}` updated publisher `$publisherId`.'
@@ -625,15 +681,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = []
       ..packageVersions = []
-      ..publishers = [publisherId];
+      ..publishers = [publisherId]);
   }
 
-  factory AuditLogRecord.uploaderAdded({
+  /// Returns [AuditLogRecord] for the package uploader added operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> uploaderAdded({
     required User activeUser,
     required String package,
     required User uploaderUser,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderAdded
       ..agent = activeUser.userId
       ..summary = [
@@ -648,15 +707,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [activeUser.userId, uploaderUser.userId]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = []);
   }
 
-  factory AuditLogRecord.uploaderInvited({
+  /// Returns [AuditLogRecord] for the package uploader invited operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> uploaderInvited({
     required AuthenticatedAgent agent,
     required String package,
     required String uploaderEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInvited
       ..agent = agent.agentId
       ..summary = [
@@ -673,14 +735,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = []);
   }
 
-  factory AuditLogRecord.uploaderInviteAccepted({
+  /// Returns [AuditLogRecord] for the package uploader invite accepted operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> uploaderInviteAccepted({
     required User user,
     required String package,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteAccepted
       ..agent = user.userId
       ..summary = [
@@ -693,15 +758,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [user.userId]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = []);
   }
 
-  factory AuditLogRecord.uploaderInviteExpired({
+  /// Returns [AuditLogRecord] for the package uploader invite expired operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> uploaderInviteExpired({
     required String fromUserId,
     required String package,
     required String uploaderEmail,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteExpired
       ..agent = fromUserId
       ..summary = 'Uploader invite for package `$package` expired, '
@@ -714,10 +782,13 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [fromUserId]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = []);
   }
 
-  factory AuditLogRecord.uploaderInviteRejected({
+  /// Returns [AuditLogRecord] for the package uploader invite rejected operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> uploaderInviteRejected({
     required String fromUserId,
     required String package,
     required String uploaderEmail,
@@ -725,7 +796,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     /// Optional, in the future we may allow invite rejection without sign-in.
     required String? userId,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteRejected
       ..agent = userId ?? fromUserId
       ..summary =
@@ -739,15 +810,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..users = [fromUserId, if (userId != null) userId]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = []);
   }
 
-  factory AuditLogRecord.uploaderRemoved({
+  /// Returns [AuditLogRecord] for the package uploader removed operation.
+  ///
+  /// Throws [RateLimitException] when the configured rate limit is reached.
+  static Future<AuditLogRecord> uploaderRemoved({
     required AuthenticatedAgent agent,
     required String package,
     required User uploaderUser,
   }) {
-    return AuditLogRecord._init()
+    return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderRemoved
       ..agent = agent.agentId
       ..summary = [
@@ -765,7 +839,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ]
       ..packages = [package]
       ..packageVersions = []
-      ..publishers = [];
+      ..publishers = []);
   }
 }
 
@@ -851,4 +925,9 @@ abstract class AuditLogRecordKind {
 
   /// Event that an uploader was removed from a package.
   static const uploaderRemoved = 'uploader-removed';
+}
+
+Future<AuditLogRecord> _checkRateLimit(AuditLogRecord record) async {
+  await verifyAuditLogRecordRateLimits(record);
+  return record;
 }

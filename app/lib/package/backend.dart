@@ -437,7 +437,7 @@ class PackageBackend {
           'isDiscontinued: ${p.isDiscontinued} '
           'isUnlisted: ${p.isUnlisted}');
       tx.insert(p);
-      tx.insert(AuditLogRecord.packageOptionsUpdated(
+      tx.insert(await AuditLogRecord.packageOptionsUpdated(
         agent: authenticatedUser,
         package: p.name!,
         publisherId: p.publisherId,
@@ -587,7 +587,7 @@ class PackageBackend {
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
+      tx.insert(await AuditLogRecord.packagePublicationAutomationUpdated(
         package: p.name!,
         publisherId: p.publisherId,
         user: user,
@@ -633,7 +633,7 @@ class PackageBackend {
 
     tx.insert(p);
     tx.insert(pv);
-    tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
+    tx.insert(await AuditLogRecord.packageVersionOptionsUpdated(
       agent: agent,
       package: p.name!,
       version: pv.version!,
@@ -725,7 +725,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(AuditLogRecord.packageTransferred(
+      tx.insert(await AuditLogRecord.packageTransferred(
         user: user,
         package: package.name!,
         fromPublisherId: currentPublisherId,
@@ -1486,7 +1486,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(AuditLogRecord.uploaderInviteAccepted(
+      tx.insert(await AuditLogRecord.uploaderInviteAccepted(
         user: uploader,
         package: packageName,
       ));
@@ -1561,7 +1561,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(AuditLogRecord.uploaderRemoved(
+      tx.insert(await AuditLogRecord.uploaderRemoved(
         agent: authenticatedUser,
         package: packageName,
         uploaderUser: uploader,
