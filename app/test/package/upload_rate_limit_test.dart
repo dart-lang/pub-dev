@@ -167,6 +167,47 @@ environment:
     );
 
     testWithProfile(
+      'retried failures report the correct window',
+      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packagePublished,
+              scope: RateLimitScope.package,
+              burst: 2,
+              hourly: 4,
+              daily: 24,
+            ),
+          ],
+          () async {
+            for (var i = 0; i < 24; i++) {
+              await upload(version: '1.0.$i', time: Duration(minutes: i * 60));
+            }
+
+            for (var i = 0; i < 10; i++) {
+              final rs = upload(
+                  version: '1.0.24',
+                  time: Duration(minutes: 23 * 60, seconds: 5));
+              await expectLater(
+                rs,
+                throwsA(
+                  isA<RateLimitException>().having(
+                    (e) => e.message,
+                    'message',
+                    contains('(24 in the last day)'),
+                  ),
+                ),
+              );
+            }
+            await upload(
+                version: '1.0.24', time: Duration(days: 1, minutes: 1));
+          },
+        );
+      },
+    );
+
+    testWithProfile(
       'new packages 1 per minute',
       testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
       fn: () async {
