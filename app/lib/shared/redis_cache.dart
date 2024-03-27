@@ -278,6 +278,16 @@ class CachePatterns {
         decode: (data) => PublisherPage.fromJson(data as Map<String, dynamic>),
       ))['$userId'];
 
+  Entry<bool> publisherVisible(String publisherId) => _cache
+      .withPrefix('publisher-visible/')
+      .withTTL(Duration(days: 7))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (bool value) => value,
+        decode: (d) => d as bool,
+      ))[publisherId];
+
   Entry<String> atomFeedXml() => _cache
       .withPrefix('atom-feed-xml/')
       .withTTL(Duration(minutes: 3))

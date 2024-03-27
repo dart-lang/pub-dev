@@ -8,6 +8,7 @@ import 'delete_publisher.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
+import 'moderate_publisher.dart';
 import 'moderate_user.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
@@ -74,6 +75,7 @@ final class AdminAction {
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
+    moderatePublisher,
     moderateUser,
     publisherBlock,
     publisherMembersList,

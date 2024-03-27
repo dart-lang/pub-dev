@@ -19,6 +19,7 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/publisher/backend.dart';
 
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -258,6 +259,14 @@ class SearchBackend {
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
+    if (p.publisherId != null) {
+      final publisherVisible =
+          await publisherBackend.isPublisherVisible(p.publisherId!);
+      if (!publisherVisible) {
+        throw RemovedPackageException();
+      }
+    }
+
     // Get the scorecard with the latest version available with finished analysis.
     final scoreCard =
         await scoreCardBackend.getLatestFinishedScoreCardData(packageName);
@@ -382,6 +391,11 @@ class SearchBackend {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
       if (p.isNotVisible) continue;
+      if (p.publisherId != null) {
+        final publisherVisible =
+            await publisherBackend.isPublisherVisible(p.publisherId!);
+        if (!publisherVisible) continue;
+      }
       final releases = await packageBackend.latestReleases(p);
       yield PackageDocument(
         package: p.name!,
