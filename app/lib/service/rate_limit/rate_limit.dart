@@ -83,13 +83,6 @@ Future<void> _verifyRateLimit({
     return;
   }
 
-  final cacheEntryKey = [
-    rateLimit.operation,
-    rateLimit.scope.name,
-    if (package != null) 'package-$package',
-    if (agentId != null) 'agentId-$agentId',
-  ].join('/');
-
   List<AuditLogRecord>? auditEntriesFromLastDay;
 
   Future<void> check({
@@ -101,6 +94,14 @@ Future<void> _verifyRateLimit({
     if (maxCount == null || maxCount <= 0) {
       return;
     }
+
+    final cacheEntryKey = [
+      rateLimit.operation,
+      rateLimit.scope.name,
+      if (package != null) 'package-$package',
+      if (agentId != null) 'agentId-$agentId',
+      window.inSeconds,
+    ].join('/');
 
     final entry = cache.rateLimitUntil(cacheEntryKey);
     final current = await entry.get();
