@@ -29,7 +29,7 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show jsonUtf8Encoder;
 import '../../task/backend.dart';
 import '../../task/models.dart';
-import 'headers.dart';
+import 'cache_control.dart';
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -88,7 +88,6 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.packageNames(),
   });
 }
 
@@ -108,7 +107,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.packageNameCompletion(),
+    ...CacheControl.completionData.headers,
   });
 }
 
@@ -278,7 +277,7 @@ Future<shelf.Response> apiTopicNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.topicNameCompletion(),
+    ...CacheControl.completionData.headers
   });
 }
 

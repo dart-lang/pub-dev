@@ -10,7 +10,6 @@ import 'package:_pub_shared/data/advisories_api.dart'
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -37,6 +36,7 @@ import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
 
 import 'account.dart' show checkAuthenticatedPageRequest;
+import 'cache_control.dart';
 import 'misc.dart' show formattedNotFoundHandler;
 
 // Non-revealing metrics to monitor the search service behavior from outside.
@@ -234,7 +234,6 @@ Future<shelf.Response> packageScoreLogTxtHandler(
     body: log ?? 'no log',
     headers: {
       'content-type': 'text/plain;charset=UTF-8',
-      ...CacheHeaders.defaultPublicUI(),
     },
   );
 }
@@ -499,7 +498,7 @@ Future<shelf.Response> listVersionsHandler(
       if (supportsGzip) 'content-encoding': 'gzip',
       'content-type': 'application/json; charset="utf-8"',
       'x-content-type-options': 'nosniff',
-      ...CacheHeaders.versionListingApi(),
+      ...CacheControl.clientApi.headers,
     },
   );
 }

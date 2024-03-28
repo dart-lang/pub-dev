@@ -21,8 +21,8 @@ import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
 import '../../task/backend.dart' show taskBackend;
 import 'account.dart';
+import 'cache_control.dart';
 import 'custom_api.dart';
-import 'headers.dart';
 import 'listing.dart';
 import 'package.dart';
 import 'report.dart';
@@ -69,9 +69,7 @@ class PubApi {
     checkPackageVersionParams(package, version);
     return Response.seeOther(
       await packageBackend.downloadUrl(package, version),
-      headers: {
-        ...CacheHeaders.packageDownloadApi(),
-      },
+      headers: CacheControl.clientApi.headers,
     );
   }
 

@@ -3,7 +3,6 @@ import 'dart:io' show gzip;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
-import 'package:pub_dev/frontend/handlers/headers.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
@@ -141,7 +140,6 @@ Future<shelf.Response> handleDartDoc(
       'Content-Type': mime,
       'Vary': 'Accept-Encoding', // body depends on accept-encoding!
       if (acceptsGzip) 'Content-Encoding': 'gzip',
-      ...CacheHeaders.dartdocAsset(),
     },
   );
 }
@@ -176,10 +174,7 @@ Future<shelf.Response> handleTaskResource(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse(
-      '',
-      headers: CacheHeaders.defaultPublicUI(),
-    );
+    return htmlResponse('');
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();
@@ -189,7 +184,6 @@ Future<shelf.Response> handleTaskResource(
       'Content-Type': mime,
       if (acceptsGzip) 'Content-Encoding': 'gzip',
       'Vary': 'Accept-Encoding',
-      ...CacheHeaders.defaultPublicUI(),
     },
   );
 }
