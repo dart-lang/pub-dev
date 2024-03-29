@@ -6,12 +6,11 @@ import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
-import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/frontend/email_sender.dart';
-import 'package:pub_dev/frontend/handlers/account.dart';
-import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/backend.dart';
+import '../../frontend/email_sender.dart';
+import '../../frontend/handlers/cache_control.dart';
 import '../../shared/email.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
@@ -23,11 +22,6 @@ import '../templates/report.dart';
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.isReportPageEnabled) {
     return notFoundHandler(request);
-  }
-  // TODO: Final report page cannot require authentication!
-  final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
-  if (unauthenticatedRs != null) {
-    return unauthenticatedRs;
   }
 
   return htmlResponse(
@@ -44,10 +38,21 @@ Future<String> processReportPageHandler(
   if (!requestContext.experimentalFlags.isReportPageEnabled) {
     throw NotFoundException('Experimental flag is not enabled.');
   }
-  final user = await requireAuthenticatedWebUser();
-
   final now = clock.now().toUtc();
   final id = '${now.toIso8601String().split('T').first}/${createUuid()}';
+
+  final isAuthenticated = requestContext.sessionData?.isAuthenticated ?? false;
+  final user = isAuthenticated ? await requireAuthenticatedWebUser() : null;
+  final userEmail = user?.email ?? form.email;
+
+  if (!isAuthenticated) {
+    InvalidInputException.check(
+      userEmail != null && isValidEmail(userEmail),
+      'Email is invalid or missing.',
+    );
+  } else {
+    InvalidInputException.checkNull(form.email, 'email');
+  }
 
   InvalidInputException.checkStringLength(
     form.description,
@@ -63,7 +68,7 @@ Future<String> processReportPageHandler(
 
   await emailSender.sendMessage(createReportPageAdminEmail(
     id: id,
-    userEmail: user.email!,
+    userEmail: userEmail!,
     bodyText: bodyText,
   ));
 
