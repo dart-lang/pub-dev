@@ -9,6 +9,7 @@ import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/frontend/email_sender.dart';
 import 'package:pub_dev/frontend/handlers/account.dart';
+import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../shared/email.dart';
@@ -17,7 +18,6 @@ import '../../shared/handlers.dart';
 import '../../shared/utils.dart';
 import '../request_context.dart';
 import '../templates/report.dart';
-import 'headers.dart';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
@@ -34,9 +34,7 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
     renderReportPage(
       sessionData: requestContext.sessionData,
     ),
-    headers: {
-      ...CacheHeaders.privateZero(),
-    },
+    headers: CacheControl.explicitlyPrivate.headers,
   );
 }
 
