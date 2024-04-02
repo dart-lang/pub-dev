@@ -64,7 +64,7 @@ final class CacheControl {
 
   /// `Cache-Control` headers for API used by the client.
   static const clientApi = CacheControl(
-    maxAge: Duration(minutes: 10),
+    maxAge: Duration(minutes: 2),
     public: true,
   );
 
