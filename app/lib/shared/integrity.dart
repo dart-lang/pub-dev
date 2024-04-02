@@ -623,7 +623,7 @@ class IntegrityChecker {
     }
 
     if (!canonicalInfo.hasSameSignatureAs(info)) {
-      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in old bucket.';
+      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
     }
 
     final publicInfo = await storageService
