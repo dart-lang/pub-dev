@@ -8,7 +8,6 @@ import 'package:clock/clock.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
@@ -928,6 +927,7 @@ abstract class AuditLogRecordKind {
 }
 
 Future<AuditLogRecord> _checkRateLimit(AuditLogRecord record) async {
-  await verifyAuditLogRecordRateLimits(record);
+  // TODO: remove comment once we are sure this is not causing issues.
+  // await verifyAuditLogRecordRateLimits(record);
   return record;
 }
