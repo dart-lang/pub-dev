@@ -302,6 +302,10 @@ Future<shelf.Response> _handlePackagePage({
     } on NotFoundException {
       return formattedNotFoundHandler(request);
     }
+    if (data.version.isModerated) {
+      final content = renderModeratedPackagePage(packageName);
+      return htmlResponse(content, status: 404);
+    }
     _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
     final renderedResult = await renderFn(data);
     if (renderedResult is String) {

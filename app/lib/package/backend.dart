@@ -765,7 +765,9 @@ class PackageBackend {
     if (pkg == null || pkg.isNotVisible) {
       throw NotFoundException.resource('package "$package"');
     }
-    final packageVersions = await packageBackend.versionsOfPackage(package);
+    final packageVersions = (await packageBackend.versionsOfPackage(package))
+        .where((v) => !v.isModerated)
+        .toList();
     if (packageVersions.isEmpty) {
       throw NotFoundException.resource('package "$package"');
     }
