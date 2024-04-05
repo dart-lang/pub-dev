@@ -25,6 +25,7 @@ import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -940,10 +941,17 @@ class PackageBackend {
       }
 
       // check existences of referenced packages
-      final dependencies = <String>{
-        ...pubspec.dependencies.keys,
-      };
-      for (final name in dependencies) {
+      for (final MapEntry(key: name, :value) in pubspec.dependencies.entries) {
+        if (value is! pubspec_parse.HostedDependency) {
+          // We disallow git/path dependencies elsewhere, but for the purpose
+          // of checking of the dependency exists we can skip them.
+          continue;
+        }
+        if (value.hosted?.url != null) {
+          // we disallow hosted dependencies with a URL elsewhere, but for the
+          // purpose of checking if the dependency exists, we skip them.
+          continue;
+        }
         if (isSoftRemoved(name)) {
           continue;
         }
