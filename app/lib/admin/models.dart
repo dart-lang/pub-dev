@@ -33,7 +33,7 @@ class ModerationCase extends db.ExpandoModel<String> {
   /// The source of the case, one of:
   /// - `external-notification`,
   /// - `internal-notification` (only used for reports from @google.com accounts), or,
-  /// - `automated-detection. (will not be used)
+  /// - `automated-detection`. (will not be used)
   @db.StringProperty(required: true)
   late String detectedBy;
 
