@@ -1049,6 +1049,32 @@ void main() {
         );
       });
 
+      testWithProfile('has dependency does not exist', fn: () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent:
+                generatePubspecYaml('xyz', '1.0.0') + '  abc: ^1.0.0\n');
+        final rs = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Dependency `abc` does not exist.',
+        );
+      });
+
+      testWithProfile('has SDK-dependency', fn: () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('xyz', '1.2.3') +
+                '  my_sdk_dep:\n'
+                    '    sdk: dart\n');
+        final message = await createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball);
+        expect(message.success.message, contains('Successfully uploaded'));
+        expect(message.success.message, contains('xyz'));
+        expect(message.success.message, contains('1.2.3'));
+      });
+
       testWithProfile('has git dependency', fn: () async {
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('xyz', '1.0.0') +
