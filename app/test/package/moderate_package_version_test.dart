@@ -15,6 +15,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 import 'package:test/test.dart';
 
+import '../frontend/handlers/_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -225,10 +226,124 @@ void main() {
       expect(docs3!.firstWhere((d) => d.package == 'oxygen').version, '1.2.0');
     });
 
+    testWithProfile(
+        'moderated version is not visible in API (other version is)',
+        fn: () async {
+      await _moderate('oxygen', '1.0.0', state: true);
+      final rs1 = await packageBackend.listVersionsCached('oxygen');
+      expect(rs1.latest.version, '1.2.0');
+      expect(rs1.versions.where((v) => v.version == '1.0.0'), isEmpty);
+      expect(rs1.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
+
+      await _moderate('oxygen', '1.0.0', state: false);
+      final rs2 = await packageBackend.listVersionsCached('oxygen');
+      expect(rs2.latest.version, '1.2.0');
+      expect(rs2.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
+      expect(rs2.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
+
+      await _moderate('oxygen', '1.2.0', state: true);
+      final rs3 = await packageBackend.listVersionsCached('oxygen');
+      expect(rs3.latest.version, '1.0.0');
+      expect(rs3.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
+      expect(rs3.versions.where((v) => v.version == '1.2.0'), isEmpty);
+
+      await _moderate('oxygen', '1.2.0', state: false);
+      final rs4 = await packageBackend.listVersionsCached('oxygen');
+      expect(rs4.latest.version, '1.2.0');
+      expect(rs4.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
+      expect(rs4.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
+    });
+
+    testWithProfile('moderated versions are not displayed on versions tab',
+        fn: () async {
+      await _moderate('oxygen', '1.2.0', state: true);
+      await expectHtmlResponse(
+        await issueGet('/packages/oxygen/versions'),
+        absent: ['1.2.0'],
+        present: ['1.0.0'],
+      );
+      await _moderate('oxygen', '1.2.0', state: false);
+      await expectHtmlResponse(
+        await issueGet('/packages/oxygen/versions'),
+        present: ['1.0.0', '1.2.0'],
+      );
+    });
+
+    testWithProfile('moderated version page are note displayed', fn: () async {
+      List<String> pagePaths(String version) {
+        return [
+          '/packages/oxygen/versions/$version',
+          '/packages/oxygen/versions/$version/changelog',
+          '/packages/oxygen/versions/$version/install',
+          '/packages/oxygen/versions/$version/score',
+          '/packages/oxygen/versions/$version/pubspec',
+          '/packages/oxygen/versions/$version/license',
+        ];
+      }
+
+      for (final path in pagePaths('1.0.0')) {
+        await expectHtmlResponse(
+          await issueGet(path),
+          absent: ['moderated'],
+          present: ['1.2.0'],
+        );
+      }
+      for (final path in pagePaths('1.2.0')) {
+        await expectHtmlResponse(
+          await issueGet(path),
+          absent: ['moderated'],
+          present: ['1.2.0'],
+        );
+      }
+
+      await _moderate('oxygen', '1.2.0', state: true);
+      await expectHtmlResponse(
+        await issueGet('/packages/oxygen'),
+        absent: [
+          '1.2.0',
+          'moderated',
+        ],
+        present: ['1.0.0'],
+      );
+      for (final path in pagePaths('1.0.0')) {
+        await expectHtmlResponse(
+          await issueGet(path),
+          absent: ['moderated', '1.2.0'],
+        );
+      }
+      for (final path in pagePaths('1.2.0')) {
+        await expectHtmlResponse(
+          await issueGet(path),
+          present: ['moderated'],
+          status: 404,
+        );
+      }
+
+      await _moderate('oxygen', '1.2.0', state: false);
+      await expectHtmlResponse(
+        await issueGet('/packages/oxygen'),
+        absent: [
+          'moderated',
+        ],
+        present: ['1.2.0'],
+      );
+      for (final path in pagePaths('1.0.0')) {
+        await expectHtmlResponse(
+          await issueGet(path),
+          absent: ['moderated'],
+          present: ['1.2.0'],
+        );
+      }
+      for (final path in pagePaths('1.2.0')) {
+        await expectHtmlResponse(
+          await issueGet(path),
+          absent: ['moderated'],
+        );
+      }
+    });
+
     // TODO(https://github.com/dart-lang/pub-dev/issues/7535):
-    // moderated version is not visible in API (other version is)
     // moderated version pages are not visible (other version is)
-    // moderated versions tab does not display version
     // moderated version is not selected for analysis
     // moderated analysis is cleared and new analysis is scheduled
   });
