@@ -58,6 +58,7 @@ class ModerationCase extends db.ExpandoModel<String> {
   String? appealedCaseId;
 
   /// One of:
+  /// - `pending`, if this is an appeal and we haven't decided anything yet.
   /// - `no-action`, if this is a notification (kind = notification) and
   ///   we decided to take no action.
   /// - `moderation-applied`, if this is a notification (kind = notification) and
@@ -70,7 +71,7 @@ class ModerationCase extends db.ExpandoModel<String> {
   ///   where we applied content moderation, and we decided to uphold that decision.
   /// - `moderation-reverted`, if this is an appeal (kind = appeal) of a notification
   ///   where we applied content moderation, and we decided to revert that decision.
-  @db.StringProperty()
+  @db.StringProperty(required: true)
   String? resolution;
 
   ModerationCase();
