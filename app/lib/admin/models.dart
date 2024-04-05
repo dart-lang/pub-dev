@@ -72,7 +72,7 @@ class ModerationCase extends db.ExpandoModel<String> {
   /// - `moderation-reverted`, if this is an appeal (kind = appeal) of a notification
   ///   where we applied content moderation, and we decided to revert that decision.
   @db.StringProperty(required: true)
-  String? resolution;
+  String? status;
 
   ModerationCase();
 
@@ -81,6 +81,7 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.reporterEmail,
     required this.detectedBy,
     required this.kind,
+    required this.status,
   }) {
     id = createUuid();
     opened = clock.now().toUtc();
