@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/audit/backend.dart';
 
 import '../../account/agent.dart';
@@ -11,6 +12,8 @@ import '../../audit/models.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/redis_cache.dart';
+
+final _logger = Logger('rate_limit');
 
 /// Verifies if the current package upload has a rate limit and throws
 /// if the limit has been exceeded.
@@ -83,6 +86,7 @@ Future<void> _verifyRateLimit({
     return;
   }
 
+  final sw = Stopwatch()..start();
   List<AuditLogRecord>? auditEntriesFromLastDay;
 
   Future<void> check({
@@ -160,6 +164,8 @@ Future<void> _verifyRateLimit({
     maxCount: rateLimit.daily,
     windowAsText: 'last day',
   );
+  sw.stop();
+  _logger.info('[rate-limit-verified] Rate limit verified in ${sw.elapsed}');
 }
 
 bool _containsPackage(
