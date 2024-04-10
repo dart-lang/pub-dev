@@ -434,12 +434,12 @@ Future<void> setupCache() async {
 /// Read redis connection string from the secret backend and initialize redis
 /// cache.
 Future _registerRedisCache() async {
-  final connectionString =
-      await secretBackend.lookup(SecretKey.redisConnectionString);
+  final connectionString = 'redis://10.137.253.92:6379';
+  /*    await secretBackend.lookup(SecretKey.redisConnectionString);
   // Validate that we got a connection string
   if (connectionString == null || connectionString.isEmpty) {
     throw Exception('Secret ${SecretKey.redisConnectionString} is missing');
-  }
+  }*/
   final connectionUri = Uri.parse(connectionString);
 
   // Create and register a cache
