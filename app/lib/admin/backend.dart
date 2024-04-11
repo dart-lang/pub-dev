@@ -707,7 +707,7 @@ class AdminBackend {
     );
 
     final result = await action.invoke({
-      for (final k in action.options.keys) k: args[k] ?? '',
+      for (final k in action.options.keys) k: args[k],
     });
 
     return api.AdminInvokeActionResponse(output: result);

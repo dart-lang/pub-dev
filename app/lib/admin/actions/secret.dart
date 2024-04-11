@@ -12,9 +12,7 @@ final setSecret = AdminAction(
 Get, set or remove a "secret" admin value affecting the site.
 
 If a `--value` is given, the secret will be set to that value. An empty value
-will clear the secret.
-
-To just inspect a secret, use the `get-secret` action.
+will set the secret to empty string, effectively clearing it.
 
 Possible secrets are [${SecretKey.values}] or prefixed ${SecretKey.oauthPrefix}.
 
@@ -49,15 +47,22 @@ Valid values for `upload-restriction` are:
       ' ${SecretKey.oauthPrefix}.',
     );
 
-    final value = options['value']!;
+    final value = options['value'];
 
     final currentValue = await secretBackend.lookup(secretId);
 
-    await secretBackend.update(secretId, value);
-    return {
-      'message': 'Value updated.',
-      'previousValue': currentValue,
-      'newValue': value
-    };
+    if (value != null) {
+      await secretBackend.update(secretId, value);
+      return {
+        'message': 'Value updated.',
+        'previousValue': currentValue,
+        'newValue': value
+      };
+    } else {
+      return {
+        'message': 'Value retrieved.',
+        'value': currentValue,
+      };
+    }
   },
 );
