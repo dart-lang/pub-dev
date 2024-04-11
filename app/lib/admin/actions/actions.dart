@@ -48,7 +48,7 @@ final class AdminAction {
   /// [ResponseException].
   /// Any other exception will be considered an internal error.
   final Future<Map<String, Object?>> Function(
-    Map<String, String> arguments,
+    Map<String, String?> arguments,
   ) invoke;
 
   AdminAction({

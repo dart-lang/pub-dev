@@ -155,4 +155,28 @@ void main() {
         .uploadPackageBytes(bytes);
     expect(rs2.success.message, contains('Successfully uploaded'));
   });
+
+  testWithProfile('setting and viewing secrets', fn: () async {
+    // verify that new upload is blocked
+    // merge tombstone
+    final api = createPubApiClient(authToken: siteAdminToken);
+    final result = await api.adminInvokeAction(
+      'secret',
+      AdminInvokeActionArguments(
+          arguments: {'id': 'upload-restriction', 'value': 'no-uploads'}),
+    );
+    expect(result.output, {
+      'message': 'Value updated.',
+      'previousValue': anything,
+      'newValue': 'no-uploads',
+    });
+    final result2 = await api.adminInvokeAction(
+      'secret',
+      AdminInvokeActionArguments(arguments: {'id': 'upload-restriction'}),
+    );
+    expect(result2.output, {
+      'message': 'Value retrieved.',
+      'value': 'no-uploads',
+    });
+  });
 }

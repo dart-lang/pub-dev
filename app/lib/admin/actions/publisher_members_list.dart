@@ -15,11 +15,8 @@ Get information about a publisher and list all its members.
     'publisher': 'Publisher for which to list members, eg `dart.dev`',
   },
   invoke: (options) async {
-    final publisherId = options['publisher']!;
-    InvalidInputException.check(
-      publisherId.isNotEmpty,
-      'publisher must be given',
-    );
+    final publisherId = options['publisher'] ??
+        (throw InvalidInputException('Missing --publisher argument.'));
 
     final publisher = await publisherBackend.getPublisher(publisherId);
     if (publisher == null) {
