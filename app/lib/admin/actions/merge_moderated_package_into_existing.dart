@@ -30,7 +30,8 @@ Fails if that package has no existing Package entity.
         'The name of ModeratedPackage to merge into its existing Package.',
   },
   invoke: (args) async {
-    final packageName = args['package'] as String;
+    final packageName = args['package'] ??
+        (throw InvalidInputException('Missing --package argument.'));
 
     await withRetryTransaction(dbService, (tx) async {
       // check ModeratedPackage existence
