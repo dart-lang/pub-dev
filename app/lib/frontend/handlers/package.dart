@@ -299,6 +299,9 @@ Future<shelf.Response> _handlePackagePage({
     late PackagePageData data;
     try {
       data = await loadPackagePageData(package, versionName, assetKind);
+    } on ModeratedException {
+      final content = renderModeratedPackagePage(packageName);
+      return htmlResponse(content, status: 404);
     } on NotFoundException {
       return formattedNotFoundHandler(request);
     }
