@@ -437,19 +437,24 @@ class TaskBackend {
           .latestVersion;
 
       // Make changes!
-      state.versions!
-        // Remove versions that have been deselected - but keep the latest finished one
-        ..removeWhere((v, _) =>
-            deselectedVersions.contains(v) &&
-            v != latestFinishedVersion.toString())
-        // Add versions we should be tracking
-        ..addAll({
-          for (final v in untrackedVersions)
-            v: PackageVersionStateInfo(
-              scheduled: initialTimestamp,
-              attempts: 0,
-            ),
-        });
+      for (final v in deselectedVersions) {
+        // Remove versions that have been deselected, but:
+        // - keep the latest finished one, unless it is moderated
+        final pv = packageVersions.firstWhereOrNull((pv) => pv.version == v);
+        final remove = pv == null ||
+            pv.isModerated ||
+            v != latestFinishedVersion.toString();
+        if (remove) {
+          state.versions!.remove(v);
+        }
+      }
+      // Add versions we should be tracking
+      for (final v in untrackedVersions) {
+        state.versions![v] = PackageVersionStateInfo(
+          scheduled: initialTimestamp,
+          attempts: 0,
+        );
+      }
       state.derivePendingAt();
 
       _log.info('Update state tracking for $packageName');
@@ -1151,6 +1156,8 @@ List<Version> _versionsToTrack(
     ...packageVersions
         // Ignore prereleases and retracted versions
         .where((pv) => !pv.isRetracted && !pv.semanticVersion.isPreRelease)
+        // Ignore moderated versions
+        .where((pv) => !pv.isModerated)
         .map((pv) => pv.semanticVersion)
         // Create a map from major version to latest version in series.
         .groupFoldBy<int, Version>(

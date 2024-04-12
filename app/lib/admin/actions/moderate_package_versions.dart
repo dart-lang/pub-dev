@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 
 import '../../package/backend.dart';
 import '../../package/models.dart';
+import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
 import '../../task/backend.dart';
@@ -97,6 +98,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
 
       await taskBackend.trackPackage(package);
       await purgePackageCache(package);
+      await purgeScorecardData(package, version, isLatest: true);
     }
 
     return {

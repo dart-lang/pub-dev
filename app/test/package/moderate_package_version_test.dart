@@ -9,9 +9,13 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 import 'package:test/test.dart';
 
@@ -269,7 +273,7 @@ void main() {
       );
     });
 
-    testWithProfile('moderated version page are note displayed', fn: () async {
+    testWithProfile('moderated version pages are not displayed', fn: () async {
       List<String> pagePaths(String version) {
         return [
           '/packages/oxygen/versions/$version',
@@ -342,9 +346,58 @@ void main() {
       }
     });
 
-    // TODO(https://github.com/dart-lang/pub-dev/issues/7535):
-    // moderated version pages are not visible (other version is)
-    // moderated version is not selected for analysis
-    // moderated analysis is cleared and new analysis is scheduled
+    testWithProfile(
+      'moderated version trigger new analysis',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final score1 =
+            await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
+        expect(score1.grantedPubPoints, greaterThan(40));
+
+        await _moderate('oxygen', '1.2.0', state: true);
+        final status1 = await taskBackend.packageStatus('oxygen');
+        expect(status1.versions.containsKey('1.0.0'), isTrue);
+        expect(status1.versions.containsKey('1.2.0'), isFalse);
+        // score is not accessible
+        await expectLater(
+          () => scoreCardBackend.getScoreCardData('oxygen', '1.2.0'),
+          throwsA(isA<ModeratedException>()),
+        );
+        // search snapshot does not break
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+
+        // re-analysis
+        await processTasksWithFakePanaAndDartdoc();
+        // score is not accessible
+        await expectLater(
+          () => scoreCardBackend.getScoreCardData('oxygen', '1.2.0'),
+          throwsA(isA<ModeratedException>()),
+        );
+        // search snapshot does not break
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+        // latest stable has score
+        expect(
+          (await scoreCardBackend.getScoreCardData('oxygen', '1.0.0'))
+              .grantedPubPoints,
+          greaterThan(30),
+        );
+
+        // restore state
+        await _moderate('oxygen', '1.2.0', state: false);
+        await processTasksWithFakePanaAndDartdoc();
+
+        final score3 =
+            await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
+        expect(score3.grantedPubPoints, greaterThan(40));
+      },
+    );
   });
 }
