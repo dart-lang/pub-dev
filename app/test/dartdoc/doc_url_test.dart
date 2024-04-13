@@ -20,8 +20,10 @@ void main() {
           name: 'oxygen',
           versions: [
             TestVersion(version: '1.0.0'), // won't get analyzed
+            TestVersion(version: '1.0.1'), // won't get analyzed
             TestVersion(version: '1.1.0'), // will get analyzed
             TestVersion(version: '2.0.0'), // won't get analyzed
+            TestVersion(version: '2.0.1'), // will get analyzed
             TestVersion(version: '2.1.0'), // will get analyzed
           ],
         ),
@@ -32,7 +34,7 @@ void main() {
     testWithProfile(
       'doc url is serving',
       fn: () async {
-        final segments = ['1.1.0', '2.1.0', 'latest'];
+        final segments = ['1.1.0', '2.0.1', '2.1.0', 'latest'];
         for (final segment in segments) {
           await expectHtmlResponse(
               await issueGet('/documentation/oxygen/$segment/'),
@@ -53,12 +55,20 @@ void main() {
           '/documentation/oxygen/1.1.0/',
         );
         await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.1/'),
+          '/documentation/oxygen/1.1.0/',
+        );
+        await expectRedirectResponse(
           await issueGet('/documentation/oxygen/1.0.0/x.html'),
           '/documentation/oxygen/1.1.0/x.html',
         );
         await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.1/x.html'),
+          '/documentation/oxygen/1.1.0/x.html',
+        );
+        await expectRedirectResponse(
           await issueGet('/documentation/oxygen/2.0.0/'),
-          '/documentation/oxygen/2.1.0/',
+          '/documentation/oxygen/2.0.1/',
         );
       },
       testProfile: _testProfile,
