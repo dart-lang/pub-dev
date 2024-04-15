@@ -208,6 +208,19 @@ class PackageBackend {
     );
   }
 
+  /// Streams package names where the [userId] is an uploader.
+  Stream<String> streamPackagesForUser(String userId) async* {
+    var page = await listPackagesForUser(userId);
+    while (page.packages.isNotEmpty) {
+      yield* Stream.fromIterable(page.packages);
+      if (page.nextPackage == null) {
+        break;
+      } else {
+        page = await listPackagesForUser(userId, next: page.nextPackage);
+      }
+    }
+  }
+
   /// Returns the latest releases info of a package.
   Future<LatestReleases> latestReleases(Package package) async {
     // TODO: implement runtimeVersion-specific release calculation
