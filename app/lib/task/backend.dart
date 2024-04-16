@@ -431,30 +431,18 @@ class TaskBackend {
         return false;
       }
 
-      final latestFinishedVersion = state.versions?.entries
-          .where((e) => e.value.finished)
-          .map((e) => Version.parse(e.key))
-          .latestVersion;
-
       // Make changes!
-      for (final v in deselectedVersions) {
-        // Remove versions that have been deselected, but:
-        // - keep the latest finished one, unless it is moderated
-        final pv = packageVersions.firstWhereOrNull((pv) => pv.version == v);
-        final remove = pv == null ||
-            pv.isModerated ||
-            v != latestFinishedVersion.toString();
-        if (remove) {
-          state.versions!.remove(v);
-        }
-      }
-      // Add versions we should be tracking
-      for (final v in untrackedVersions) {
-        state.versions![v] = PackageVersionStateInfo(
-          scheduled: initialTimestamp,
-          attempts: 0,
-        );
-      }
+      state.versions!
+        // Remove versions that have been deselected
+        ..removeWhere((v, _) => deselectedVersions.contains(v))
+        // Add versions we should be tracking
+        ..addAll({
+          for (final v in untrackedVersions)
+            v: PackageVersionStateInfo(
+              scheduled: initialTimestamp,
+              attempts: 0,
+            ),
+        });
       state.derivePendingAt();
 
       _log.info('Update state tracking for $packageName');
@@ -1135,7 +1123,7 @@ String? _extractBearerToken(shelf.Request request) {
 /// tracked for analysis.
 ///
 /// We don't analyze all versions, instead we aim to only analyze:
-///  * Latest stable release;
+///  * Latest two stable releases (or latest release if it is not yet stable);
 ///  * Latest preview release (if newer than latest stable release);
 ///  * Latest prerelease (if newer than latest preview release);
 ///  * 5 latest major versions (if any).
@@ -1143,9 +1131,24 @@ List<Version> _versionsToTrack(
   Package package,
   List<PackageVersion> packageVersions,
 ) {
+  final visibleVersions = packageVersions
+      // Ignore retracted versions
+      .where((pv) => !pv.isRetracted)
+      // Ignore moderated versions
+      .where((pv) => !pv.isModerated)
+      .map((pv) => pv.semanticVersion)
+      .toSet();
+  final visibleStableVersions = visibleVersions
+      // Ignore prerelease versions
+      .where((v) => !v.isPreRelease)
+      .toList()
+    ..sort((a, b) => -a.compareTo(b));
   return {
-    // Always analyze latest stable version
+    // Always analyze latest version (may be non-stable if package has only prerelease versions).
     package.latestSemanticVersion,
+
+    // Consider latest two stable versions to keep previously analyzed results on new package publishing.
+    ...visibleStableVersions.take(2),
 
     // Only consider prerelease and preview versions, if they are newer than
     // the current stable release.
@@ -1153,12 +1156,7 @@ List<Version> _versionsToTrack(
     if (package.showPreviewVersion) package.latestPreviewSemanticVersion,
 
     // Consider 5 latest major versions, if any:
-    ...packageVersions
-        // Ignore prereleases and retracted versions
-        .where((pv) => !pv.isRetracted && !pv.semanticVersion.isPreRelease)
-        // Ignore moderated versions
-        .where((pv) => !pv.isModerated)
-        .map((pv) => pv.semanticVersion)
+    ...visibleStableVersions
         // Create a map from major version to latest version in series.
         .groupFoldBy<int, Version>(
           (v) => v.major,
@@ -1169,7 +1167,7 @@ List<Version> _versionsToTrack(
         .sorted(Comparable.compare)
         .reversed
         .take(5)
-  }.nonNulls.toList();
+  }.nonNulls.where(visibleVersions.contains).toList();
 }
 
 List<String> _updatedDependencies(

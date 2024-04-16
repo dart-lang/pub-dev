@@ -49,7 +49,26 @@ extension on FakeCloudInstance {
 FakeCloudCompute get cloud => taskWorkerCloudCompute as FakeCloudCompute;
 
 void main() {
-  testWithFakeTime('tasks can scheduled and processed', (fakeTime) async {
+  testWithFakeTime('tasks can scheduled and processed',
+      testProfile: TestProfile(
+        defaultUser: 'admin@pub.dev',
+        packages: [
+          TestPackage(
+            name: 'oxygen',
+            versions: [
+              TestVersion(version: '1.0.0'),
+              TestVersion(version: '1.1.0'),
+              TestVersion(version: '1.2.0'),
+              TestVersion(version: '2.0.0-dev'),
+            ],
+          ),
+          TestPackage(name: 'neon'),
+          TestPackage(name: 'flutter_titanium'),
+        ],
+        users: [
+          TestUser(email: 'admin@pub.dev', likes: []),
+        ],
+      ), (fakeTime) async {
     await taskBackend.backfillTrackingState();
     await fakeTime.elapse(minutes: 1);
 
@@ -87,7 +106,8 @@ void main() {
         expect(
           payload.package != 'oxygen' || v.version != '1.0.0',
           isTrue,
-          reason: 'oxygen 1.0.0 should not be analyzed when 1.2.0 exists',
+          reason:
+              'oxygen 1.0.0 should not be analyzed when 1.1.0 and 1.2.0 exists',
         );
 
         // Use token to get the upload information

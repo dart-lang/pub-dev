@@ -165,6 +165,7 @@ void testWithProfile(
 }
 
 /// Execute [fn] with [FakeTime.run] inside [testWithProfile].
+@isTest
 void testWithFakeTime(
   String name,
   FutureOr<void> Function(FakeTime fakeTime) fn, {
