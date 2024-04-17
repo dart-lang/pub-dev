@@ -15,19 +15,20 @@ import '_utils.dart';
 
 void main() {
   group('Report handlers test', () {
-    testWithProfile('requires authentication', fn: () async {
+    testWithProfile('page does not require authentication', fn: () async {
       await expectHtmlResponse(
         await issueGet(
           '/report',
           headers: {'cookie': '$experimentalCookieName=report'},
         ),
-        status: 401,
-        present: ['Authentication required'],
-        absent: ['Please describe the issue you want to report:'],
+        present: [
+          'Please describe the issue you want to report:',
+          'Contact information',
+        ],
       );
     });
 
-    testWithProfile('OK', fn: () async {
+    testWithProfile('page works with signed-in session', fn: () async {
       final cookies = await acquireSessionCookies('user@pub.dev');
       await expectHtmlResponse(
         await issueGet(
@@ -35,13 +36,13 @@ void main() {
           headers: {'cookie': '$experimentalCookieName=report; $cookies'},
         ),
         present: ['Please describe the issue you want to report:'],
-        absent: ['Authentication required'],
+        absent: ['Contact information'],
       );
     });
   });
 
   group('Report API test', () {
-    testWithProfile('authentication required', fn: () async {
+    testWithProfile('unauthenticated email missing', fn: () async {
       await withHttpPubApiClient(
         experimental: {'report'},
         fn: (client) async {
@@ -49,12 +50,37 @@ void main() {
             client.postReport(ReportForm(
               description: 'Problem.',
             )),
-            status: 401,
-            code: 'MissingAuthentication',
+            status: 400,
+            code: 'InvalidInput',
+            message: 'Email is invalid or missing.',
           );
           expect(fakeEmailSender.sentMessages, isEmpty);
         },
       );
+    });
+
+    testWithProfile('authenticated email must be absent', fn: () async {
+      await withFakeAuthRequestContext('user@pub.dev', () async {
+        final sessionId = requestContext.sessionData?.sessionId;
+        final csrfToken = requestContext.csrfToken;
+        await withHttpPubApiClient(
+          experimental: {'report'},
+          sessionId: sessionId,
+          csrfToken: csrfToken,
+          fn: (client) async {
+            await expectApiException(
+              client.postReport(ReportForm(
+                email: 'any@pub.dev',
+                description: 'Problem.',
+              )),
+              status: 400,
+              code: 'InvalidInput',
+              message: '\"email\" must be `null`',
+            );
+            expect(fakeEmailSender.sentMessages, isEmpty);
+          },
+        );
+      });
     });
 
     testWithProfile('too short description', fn: () async {
@@ -80,7 +106,26 @@ void main() {
       });
     });
 
-    testWithProfile('OK', fn: () async {
+    testWithProfile('unauthenticated success', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          final msg = await client.postReport(ReportForm(
+            email: 'user@pub.dev',
+            description: 'Huston, we have a problem.',
+          ));
+
+          expect(msg.message, 'Report submitted successfully.');
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.from.email, 'noreply@pub.dev');
+          expect(email.recipients.single.email, 'support@pub.dev');
+          expect(email.ccRecipients.single.email, 'user@pub.dev');
+        },
+      );
+    });
+
+    testWithProfile('authenticated success', fn: () async {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;

@@ -22,6 +22,15 @@ String renderReportPage({
         },
         children: [
           d.h1(text: 'Report a problem'),
+          if (!(sessionData?.isAuthenticated ?? false))
+            d.fragment([
+              d.p(text: 'Contact information:'),
+              material.textField(
+                id: 'email',
+                name: 'email',
+                label: 'Email',
+              ),
+            ]),
           d.p(text: 'Please describe the issue you want to report:'),
           material.textArea(
             id: 'description',
@@ -29,7 +38,7 @@ String renderReportPage({
             label: 'Description',
             rows: 5,
             cols: 60,
-            maxLength: 8192,
+            maxLength: 4096,
           ),
           material.raisedButton(
             label: 'Submit',
