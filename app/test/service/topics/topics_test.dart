@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/service/topics/count_topics.dart';
+import 'package:pub_dev/service/topics/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
@@ -49,6 +50,9 @@ void main() {
   test('validate doc/topics.yaml', () {
     // First we ensure that topics are loaded, this validates the file format!
     final topics = canonicalTopics.topics;
+
+    // Check that we have some data.
+    expect(topics, isNotEmpty);
 
     // Check if there are any duplicate topics!
     final duplicates = topics.map((e) => e.topic).toList().duplicates();

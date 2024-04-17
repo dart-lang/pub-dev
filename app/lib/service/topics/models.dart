@@ -3,11 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:yaml/yaml.dart';
 
 part 'models.g.dart';
+
+final _log = Logger('topics');
+
+late final canonicalTopics = () {
+  try {
+    final f = File(p.join(resolveAppDir(), '../doc/topics.yaml'));
+    final content = CanonicalTopicFileContent.fromYaml(f.readAsStringSync());
+    content.verifyContent();
+    return content;
+  } on Exception catch (e, st) {
+    _log.shout('failed to load doc/topics.yaml', e, st);
+
+    // This is sad, but we can just ignore it!
+    return CanonicalTopicFileContent(topics: <CanonicalTopic>[]);
+  }
+}();
 
 @JsonSerializable(
   checked: true,
@@ -30,7 +51,37 @@ class CanonicalTopicFileContent {
   }
 
   Map<String, Object?> toJson() => _$CanonicalTopicFileContentToJson(this);
+
+  void verifyContent() {
+    for (final topic in topics) {
+      if (topic.topic.length > 32) {
+        throw FormatException(
+            '"${topic.topic}" must be shorter than 32 characters.');
+      }
+      if (!isValidTopicFormat(topic.topic)) {
+        throw FormatException('"${topic.topic}" must be valid topic.');
+      }
+      if (topic.description.length > 160) {
+        throw FormatException(
+            '"${topic.topic}" description must be shorter than 160 characters.');
+      }
+      for (final alias in topic.aliases) {
+        if (!isValidTopicFormat(alias)) {
+          throw FormatException(
+              '"${topic.topic}" must have valid aliases ("$alias").');
+        }
+      }
+    }
+  }
 }
+
+/// True, if [topic] is formatted like a valid topic.
+@visibleForTesting
+bool isValidTopicFormat(String topic) =>
+    RegExp(r'^[a-z0-9-]{2,32}$').hasMatch(topic) &&
+    !topic.contains('--') &&
+    topic.startsWith(RegExp(r'^[a-z]')) &&
+    !topic.endsWith('-');
 
 @JsonSerializable(
   checked: true,
