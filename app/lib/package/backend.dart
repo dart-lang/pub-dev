@@ -209,7 +209,7 @@ class PackageBackend {
   }
 
   /// Streams package names where the [userId] is an uploader.
-  Stream<String> streamPackagesForUser(String userId) async* {
+  Stream<String> streamPackagesWhereUserIsUploader(String userId) async* {
     var page = await listPackagesForUser(userId);
     while (page.packages.isNotEmpty) {
       yield* Stream.fromIterable(page.packages);

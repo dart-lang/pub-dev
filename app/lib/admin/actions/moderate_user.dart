@@ -65,7 +65,7 @@ The active web sessions of the user will be expired.
 
       if (valueToSet) {
         await for (final p
-            in packageBackend.streamPackagesForUser(user.userId)) {
+            in packageBackend.streamPackagesWhereUserIsUploader(user.userId)) {
           await withRetryTransaction(dbService, (tx) async {
             final key = dbService.emptyKey.append(Package, id: p);
             final pkg = await tx.lookupOrNull<Package>(key);
