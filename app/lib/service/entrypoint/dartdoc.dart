@@ -7,10 +7,10 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
-import '../../dartdoc/handlers.dart';
 import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
+import '../../shared/handlers.dart';
 
 final Logger logger = Logger('pub.dartdoc');
 
@@ -25,7 +25,7 @@ class DartdocCommand extends Command {
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      await runHandler(logger, dartdocServiceHandler);
+      await runHandler(logger, notFoundHandler);
     });
   }
 }
