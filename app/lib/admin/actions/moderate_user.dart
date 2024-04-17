@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/account/agent.dart';
-import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/models.dart';
+import 'package:clock/clock.dart';
+
+import '../../account/agent.dart';
+import '../../account/backend.dart';
+import '../../account/models.dart';
+import '../../package/backend.dart';
+import '../../package/models.dart';
+import '../../publisher/backend.dart';
+import '../../shared/datastore.dart';
 
 import 'actions.dart';
 
@@ -56,6 +62,60 @@ The active web sessions of the user will be expired.
     if (valueToSet != null) {
       await accountBackend.updateModeratedFlag(user!.userId, valueToSet);
       user2 = await accountBackend.lookupUserById(user.userId);
+
+      if (valueToSet) {
+        await for (final p
+            in packageBackend.streamPackagesWhereUserIsUploader(user.userId)) {
+          await withRetryTransaction(dbService, (tx) async {
+            final key = dbService.emptyKey.append(Package, id: p);
+            final pkg = await tx.lookupOrNull<Package>(key);
+            if (pkg == null || pkg.isDiscontinued || pkg.uploaderCount != 1) {
+              return;
+            }
+            pkg.isDiscontinued = true;
+            pkg.updated = clock.now().toUtc();
+            tx.insert(pkg);
+          });
+        }
+
+        final publishers =
+            await publisherBackend.listPublishersForUser(user.userId);
+        for (final e in publishers.publishers!) {
+          final p = await publisherBackend.getPublisher(e.publisherId);
+          if (p == null) {
+            continue;
+          }
+          // Only restrict publishers where the user was a single active admin.
+          // Note: at this point the User.isModerated flag is already set.
+          final members =
+              await publisherBackend.listPublisherMembers(e.publisherId);
+          var nonBlockedCount = 0;
+          for (final member in members) {
+            final mu = await accountBackend.lookupUserById(member.userId);
+            if (mu?.isVisible ?? false) {
+              nonBlockedCount++;
+            }
+          }
+          if (nonBlockedCount > 0) {
+            continue;
+          }
+
+          final query = dbService.query<Package>()
+            ..filter('publisherId =', e.publisherId);
+          await for (final p in query.run()) {
+            if (p.isDiscontinued) continue;
+            await withRetryTransaction(dbService, (tx) async {
+              final pkg = await tx.lookupOrNull<Package>(p.key);
+              if (pkg == null || pkg.isDiscontinued) {
+                return;
+              }
+              pkg.isDiscontinued = true;
+              pkg.updated = clock.now().toUtc();
+              tx.insert(pkg);
+            });
+          }
+        }
+      }
     }
 
     return {

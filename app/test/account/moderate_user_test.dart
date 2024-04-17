@@ -10,6 +10,7 @@ import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
@@ -163,8 +164,43 @@ void main() {
       expect(rs.websiteUrl, 'https://other.com/');
     });
 
-    // TODO(https://github.com/dart-lang/pub-dev/issues/7535):
-    // - single packages owned exclusively by the user are marked discontinued
-    // - publisher packages owned exclusively by the user are marked discontinued
+    testWithProfile('single packages marked discontinued', fn: () async {
+      final pubspecContent = generatePubspecYaml('foo', '1.0.0');
+      final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+      await createPubApiClient(authToken: userClientToken)
+          .uploadPackageBytes(bytes);
+
+      await _moderate('user@pub.dev', state: true);
+      final p1 = await packageBackend.lookupPackage('foo');
+      expect(p1!.isDiscontinued, true);
+
+      await _moderate('user@pub.dev', state: false);
+      final p2 = await packageBackend.lookupPackage('foo');
+      expect(p2!.isDiscontinued, true);
+    });
+
+    testWithProfile('publisher packages marked discontinued', fn: () async {
+      final client = await createFakeAuthPubApiClient(
+          email: 'user@pub.dev', scopes: [webmasterScope]);
+      await client.createPublisher('verified.com');
+
+      final pubspecContent = generatePubspecYaml('foo', '1.0.0');
+      final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+      await createPubApiClient(authToken: userClientToken)
+          .uploadPackageBytes(bytes);
+      await (await createFakeAuthPubApiClient(email: 'user@pub.dev'))
+          .setPackagePublisher(
+              'foo', PackagePublisherInfo(publisherId: 'verified.com'));
+
+      await _moderate('user@pub.dev', state: true);
+      final p1 = await packageBackend.lookupPackage('foo');
+      expect(p1!.publisherId, isNotEmpty);
+      expect(p1.isDiscontinued, true);
+
+      await _moderate('user@pub.dev', state: false);
+      final p2 = await packageBackend.lookupPackage('foo');
+      expect(p2!.publisherId, isNotEmpty);
+      expect(p2.isDiscontinued, true);
+    });
   });
 }
