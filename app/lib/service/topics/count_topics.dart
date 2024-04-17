@@ -15,7 +15,7 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 
-import '../frontend/static_files.dart';
+import '../../frontend/static_files.dart';
 
 final topicsJsonFileName = 'topics.json';
 

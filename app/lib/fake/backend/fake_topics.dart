@@ -4,8 +4,8 @@
 
 import 'package:gcloud/storage.dart';
 
+import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
-import '../../shared/count_topics.dart';
 import '../../shared/utils.dart';
 
 Future<void> generateFakeTopicValues() async {

@@ -4,12 +4,12 @@
 import 'dart:convert';
 
 import 'package:gcloud/storage.dart';
+import 'package:pub_dev/service/topics/count_topics.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/count_topics.dart';
 import 'package:test/test.dart';
 
-import '../frontend/handlers/_utils.dart';
-import '../shared/test_services.dart';
+import '../../frontend/handlers/_utils.dart';
+import '../../shared/test_services.dart';
 
 void main() {
   testWithProfile('succesful topics upload', fn: () async {
