@@ -48,10 +48,10 @@ void main() {
 
   test('validate doc/topics.yaml', () {
     // First we ensure that topics are loaded, this validates the file format!
-    final topics = canonicalTopics;
+    final topics = canonicalTopics.topics;
 
     // Check if there are any duplicate topics!
-    final duplicates = topics.duplicates();
+    final duplicates = topics.map((e) => e.topic).toList().duplicates();
     if (duplicates.isNotEmpty) {
       fail(
         '"doc/topics.yaml" must not have duplicate entries, '
