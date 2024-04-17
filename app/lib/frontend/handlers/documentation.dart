@@ -17,9 +17,6 @@ import '../../package/overrides.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart';
 
-final _dartdocPathSegmentRegExp =
-    RegExp(r'^[a-z0-9_\.\- ]+$', caseSensitive: false);
-
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
@@ -107,11 +104,6 @@ DocFilePath? parseRequestUri(Uri uri) {
   var pathSegments = relativeSegments;
   if (relativeSegments.isEmpty || !relativeSegments.last.contains('.')) {
     pathSegments = [...relativeSegments, 'index.html'];
-  }
-  // Only allow segments containing [a-z0-9._- ]
-  if (pathSegments
-      .any((s) => _dartdocPathSegmentRegExp.stringMatch(s) == null)) {
-    return null;
   }
   final path = p.normalize(p.joinAll(pathSegments));
   return DocFilePath(package, version, path);

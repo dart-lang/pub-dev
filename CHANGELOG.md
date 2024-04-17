@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2024.04.16`.
  * Upgraded dartdoc to `8.0.8`.
+ * Note: Path values in `/documentation/<p>/<v>/<path>` are no longer restricted.
 
 ## `20240410t034000-all`
  * Bumped runtimeVersion to `2024.04.08`.
