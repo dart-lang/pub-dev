@@ -85,9 +85,18 @@ The active web sessions of the user will be expired.
           if (p == null) {
             continue;
           }
+          // Only restrict publishers where the user was a single active admin.
+          // Note: at this point the User.isModerated flag is already set.
           final members =
               await publisherBackend.listPublisherMembers(e.publisherId);
-          if (members.length != 1) {
+          var nonBlockedCount = 0;
+          for (final member in members) {
+            final mu = await accountBackend.lookupUserById(member.userId);
+            if (mu?.isVisible ?? false) {
+              nonBlockedCount++;
+            }
+          }
+          if (nonBlockedCount > 0) {
             continue;
           }
 
