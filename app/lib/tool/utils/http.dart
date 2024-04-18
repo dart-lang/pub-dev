@@ -5,6 +5,7 @@
 import 'package:_pub_shared/utils/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_dev/account/session_cookie.dart';
+import 'package:pub_dev/frontend/request_context.dart' show csrfTokenHeaderName;
 
 /// Returns an [http.Client] which sends a `Bearer` token as `Authorization`
 /// header for each request.
@@ -67,7 +68,7 @@ class _AuthenticatedClient extends http.BaseClient {
     if (sessionId != null) {
       final csrfToken = await _csrfTokenProvider();
       if (csrfToken != null) {
-        request.headers['x-pub-csrf-token'] = csrfToken;
+        request.headers[csrfTokenHeaderName] = csrfToken;
       }
     }
     return await _client.send(request);
