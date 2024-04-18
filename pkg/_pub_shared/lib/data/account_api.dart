@@ -182,11 +182,11 @@ class InviteStatus {
 @JsonSerializable()
 class ReportForm {
   final String? email;
-  final String description;
+  final String message;
 
   ReportForm({
     this.email,
-    required this.description,
+    required this.message,
   });
 
   factory ReportForm.fromJson(Map<String, dynamic> json) =>

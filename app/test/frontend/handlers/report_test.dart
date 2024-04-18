@@ -48,7 +48,7 @@ void main() {
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
-              description: 'Problem.',
+              message: 'Problem.',
             )),
             status: 400,
             code: 'InvalidInput',
@@ -71,7 +71,7 @@ void main() {
             await expectApiException(
               client.postReport(ReportForm(
                 email: 'any@pub.dev',
-                description: 'Problem.',
+                message: 'Problem.',
               )),
               status: 400,
               code: 'InvalidInput',
@@ -83,7 +83,7 @@ void main() {
       });
     });
 
-    testWithProfile('too short description', fn: () async {
+    testWithProfile('too short message', fn: () async {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
@@ -94,11 +94,11 @@ void main() {
           fn: (client) async {
             await expectApiException(
               client.postReport(ReportForm(
-                description: 'Problem.',
+                message: 'Problem.',
               )),
               status: 400,
               code: 'InvalidInput',
-              message: '\"description\" must be longer than 20 charaters',
+              message: '\"message\" must be longer than 20 charaters',
             );
             expect(fakeEmailSender.sentMessages, isEmpty);
           },
@@ -112,7 +112,7 @@ void main() {
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user@pub.dev',
-            description: 'Huston, we have a problem.',
+            message: 'Huston, we have a problem.',
           ));
 
           expect(msg.message, 'Report submitted successfully.');
@@ -135,7 +135,7 @@ void main() {
           csrfToken: csrfToken,
           fn: (client) async {
             final msg = await client.postReport(ReportForm(
-              description: 'Huston, we have a problem.',
+              message: 'Huston, we have a problem.',
             ));
             expect(msg.message, 'Report submitted successfully.');
             expect(fakeEmailSender.sentMessages, hasLength(1));

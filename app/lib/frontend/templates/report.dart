@@ -33,12 +33,12 @@ String renderReportPage({
             ]),
           d.p(text: 'Please describe the issue you want to report:'),
           material.textArea(
-            id: 'description',
-            name: 'description',
-            label: 'Description',
-            rows: 5,
+            id: 'message',
+            name: 'message',
+            label: 'Message',
+            rows: 10,
             cols: 60,
-            maxLength: 4096,
+            maxLength: 8192,
           ),
           material.raisedButton(
             label: 'Submit',

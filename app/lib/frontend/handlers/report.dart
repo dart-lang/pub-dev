@@ -55,15 +55,15 @@ Future<String> processReportPageHandler(
   }
 
   InvalidInputException.checkStringLength(
-    form.description,
-    'description',
+    form.message,
+    'message',
     minimum: 20,
     maximum: 8192,
   );
 
   final bodyText = <String>[
     'New report recieved on ${now.toIso8601String()}: $id',
-    'Description:\n${form.description}',
+    'Message:\n${form.message}',
   ].join('\n\n');
 
   await emailSender.sendMessage(createReportPageAdminEmail(
