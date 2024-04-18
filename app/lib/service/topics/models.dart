@@ -19,9 +19,7 @@ final _log = Logger('topics');
 late final canonicalTopics = () {
   try {
     final f = File(p.join(resolveAppDir(), '../doc/topics.yaml'));
-    final content = CanonicalTopicFileContent.fromYaml(f.readAsStringSync());
-    content.verifyContent();
-    return content;
+    return CanonicalTopicFileContent.fromYaml(f.readAsStringSync());
   } on Exception catch (e, st) {
     _log.shout('failed to load doc/topics.yaml', e, st);
 
@@ -40,19 +38,8 @@ class CanonicalTopicFileContent {
 
   CanonicalTopicFileContent({
     required this.topics,
-  });
-
-  factory CanonicalTopicFileContent.fromJson(Map<String, Object?> json) =>
-      _$CanonicalTopicFileContentFromJson(json);
-
-  factory CanonicalTopicFileContent.fromYaml(String content) {
-    return CanonicalTopicFileContent.fromJson(
-        json.decode(json.encode(loadYaml(content))) as Map<String, Object?>);
-  }
-
-  Map<String, Object?> toJson() => _$CanonicalTopicFileContentToJson(this);
-
-  void verifyContent() {
+  }) {
+    // verify that content is with the correct semantics
     for (final topic in topics) {
       if (topic.topic.length > 32) {
         throw FormatException(
@@ -73,6 +60,16 @@ class CanonicalTopicFileContent {
       }
     }
   }
+
+  factory CanonicalTopicFileContent.fromJson(Map<String, Object?> json) =>
+      _$CanonicalTopicFileContentFromJson(json);
+
+  factory CanonicalTopicFileContent.fromYaml(String content) {
+    return CanonicalTopicFileContent.fromJson(
+        json.decode(json.encode(loadYaml(content))) as Map<String, Object?>);
+  }
+
+  Map<String, Object?> toJson() => _$CanonicalTopicFileContentToJson(this);
 }
 
 /// True, if [topic] is formatted like a valid topic.
