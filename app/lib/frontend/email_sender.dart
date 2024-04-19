@@ -135,7 +135,7 @@ class _GmailSmtpRelay implements EmailSender {
 
   @override
   Future<void> sendMessage(EmailMessage message) async {
-    final debugHeader = '${message.localMessageId} (${message.subject}) '
+    final debugHeader = 'Message-ID:${message.localMessageId} (${message.subject}) '
         'from ${message.from} '
         'to ${message.recipients.join(', ')}';
     _logger.info('Sending email: $debugHeader...');
