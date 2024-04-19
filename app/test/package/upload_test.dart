@@ -844,7 +844,8 @@ void main() {
       });
 
       testWithProfile('upload restriction - no uploads', fn: () async {
-        await secretBackend.update(SecretKey.uploadRestriction, 'no-uploads');
+        (secretBackend as FakeSecretBackend)
+            .update(SecretKey.uploadRestriction, 'no-uploads');
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '2.3.0'));
         final rs = createPubApiClient(authToken: adminClientToken)
@@ -858,7 +859,8 @@ void main() {
       });
 
       testWithProfile('upload restriction - no new packages', fn: () async {
-        await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
+        (secretBackend as FakeSecretBackend)
+            .update(SecretKey.uploadRestriction, 'only-updates');
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('some_new_package', '1.2.3'));
         final rs = createPubApiClient(authToken: adminClientToken)
@@ -872,7 +874,8 @@ void main() {
       });
 
       testWithProfile('upload restriction - update is accepted', fn: () async {
-        await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
+        (secretBackend as FakeSecretBackend)
+            .update(SecretKey.uploadRestriction, 'only-updates');
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.4.5'));
         final message = await createPubApiClient(authToken: adminClientToken)

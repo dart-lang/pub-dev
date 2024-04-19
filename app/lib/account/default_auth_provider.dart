@@ -94,8 +94,10 @@ class DefaultAuthProvider extends BaseAuthProvider {
   String _getOauthSiteAudience() => activeConfiguration.pubServerAudience!;
 
   Future<String?> _getOauthSiteAudienceSecret(String audience) async {
-    return await secretBackend
-        .getCachedValue('${SecretKey.oauthPrefix}$audience');
+    return await secretBackend.lookup(
+      '${SecretKey.oauthPrefix}$audience',
+      maxAge: Duration(hours: 6),
+    );
   }
 
   @override
