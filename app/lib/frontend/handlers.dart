@@ -15,13 +15,15 @@ import 'handlers/misc.dart';
 import 'handlers/pubapi.dart';
 import 'handlers/redirects.dart';
 import 'handlers/routes.dart';
+import 'request_context.dart';
 
 final _pubHeaderLogger = Logger('pub.header_logger');
 
 void _logPubHeaders(shelf.Request request) {
   request.headers.forEach((String key, String value) {
     final lowerCaseKey = key.toLowerCase();
-    if (lowerCaseKey.startsWith('x-pub')) {
+    if (lowerCaseKey.startsWith('x-pub') &&
+        lowerCaseKey != csrfTokenHeaderName) {
       _pubHeaderLogger.info('$key: $value');
     }
   });

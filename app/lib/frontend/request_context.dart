@@ -15,6 +15,9 @@ import '../shared/cookie_utils.dart';
 
 import 'handlers/experimental.dart';
 
+/// The header key for the CSRF token.
+const csrfTokenHeaderName = 'x-pub-csrf-token';
+
 /// Sets the active [RequestContext].
 void registerRequestContext(RequestContext value) =>
     ss.register(#_request_context, value);
@@ -85,7 +88,7 @@ Future<RequestContext> buildRequestContext({
         .getSessionData(clientSessionCookieStatus.sessionId!);
   }
 
-  final csrfToken = request.headers['x-pub-csrf-token']?.trim();
+  final csrfToken = request.headers[csrfTokenHeaderName]?.trim();
 
   final indentJson = request.requestedUri.queryParameters.containsKey('pretty');
 
