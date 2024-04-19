@@ -4,12 +4,13 @@
 import 'dart:convert';
 
 import 'package:gcloud/storage.dart';
+import 'package:pub_dev/service/topics/count_topics.dart';
+import 'package:pub_dev/service/topics/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/count_topics.dart';
 import 'package:test/test.dart';
 
-import '../frontend/handlers/_utils.dart';
-import '../shared/test_services.dart';
+import '../../frontend/handlers/_utils.dart';
+import '../../shared/test_services.dart';
 
 void main() {
   testWithProfile('succesful topics upload', fn: () async {
@@ -48,10 +49,13 @@ void main() {
 
   test('validate doc/topics.yaml', () {
     // First we ensure that topics are loaded, this validates the file format!
-    final topics = canonicalTopics;
+    final topics = canonicalTopics.topics;
+
+    // Check that we have some data.
+    expect(topics, isNotEmpty);
 
     // Check if there are any duplicate topics!
-    final duplicates = topics.duplicates();
+    final duplicates = topics.map((e) => e.topic).toList().duplicates();
     if (duplicates.isNotEmpty) {
       fail(
         '"doc/topics.yaml" must not have duplicate entries, '
