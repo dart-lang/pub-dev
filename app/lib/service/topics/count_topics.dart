@@ -19,11 +19,11 @@ Future<void> countTopics() async {
   await for (final p in pq.run()) {
     final v =
         await packageBackend.lookupPackageVersion(p.name!, p.latestVersion!);
-
-    if (v!.pubspec!.topics != null) {
-      for (final t in v.pubspec!.topics!) {
-        topics.update(t, (value) => value + 1, ifAbsent: () => 1);
-      }
+    if (v == null) {
+      continue;
+    }
+    for (final t in v.pubspec!.canonicalizedTopics) {
+      topics.update(t, (value) => value + 1, ifAbsent: () => 1);
     }
   }
 

@@ -14,6 +14,7 @@ import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
     show Dependency, Pubspec;
 import 'package:yaml/yaml.dart';
 
+import '../../service/topics/models.dart';
 import '../shared/datastore.dart';
 import '../shared/utils.dart' show canonicalizeVersion;
 import '../shared/versions.dart' as versions;
@@ -80,6 +81,11 @@ class Pubspec {
   String? get description => _inner.description;
 
   List<String>? get topics => _inner.topics;
+
+  late final canonicalizedTopics = (_inner.topics ?? const <String>[])
+      .map((e) => canonicalTopics.aliasToCanonicalMap[e] ?? e)
+      .toSet()
+      .toList();
 
   Map<String, dynamic>? get executables {
     _load();
@@ -198,7 +204,7 @@ class Pubspec {
   }
 
   late final List<Uri> funding = _inner.funding ?? const <Uri>[];
-  late final hasTopic = topics?.isNotEmpty ?? false;
+  late final hasTopic = canonicalizedTopics.isNotEmpty;
 }
 
 class MinSdkVersion {

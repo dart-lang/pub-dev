@@ -27,6 +27,7 @@ import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:retry/retry.dart';
 
+import '../../service/topics/models.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
@@ -338,7 +339,7 @@ class SearchBackend {
 
     final descriptionAndTopics = <String>[
       pv.pubspec!.description ?? '',
-      ...?pv.pubspec!.topics,
+      ...pv.pubspec!.canonicalizedTopics,
     ].join(' ');
 
     // select the latest entity updated timestamp (when available)
@@ -519,6 +520,30 @@ class SearchBackend {
   Future<void> close() async {
     _snapshotStorage.close();
     _http.close();
+  }
+}
+
+/// Returns a new search form that may overrides predicates to their canonical forms.
+/// Returns `null` if no change was made.
+SearchForm? canonicalizeSearchForm(SearchForm form) {
+  final query = form.parsedQuery;
+  final tags = query.tagsPredicate;
+  TagsPredicate? newTags;
+  if (tags.hasTagPrefix('topic:')) {
+    newTags = tags.canonicalizeKeys((key) {
+      if (key.startsWith('topic:')) {
+        final topic = key.substring(6);
+        final canonicalTopic = canonicalTopics.aliasToCanonicalMap[topic];
+        return canonicalTopic == null ? null : 'topic:$canonicalTopic';
+      } else {
+        return null;
+      }
+    });
+  }
+  if (newTags != null) {
+    return form.change(query: query.change(tagsPredicate: newTags).toString());
+  } else {
+    return null;
   }
 }
 

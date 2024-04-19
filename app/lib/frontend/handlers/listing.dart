@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
 import '../../package/search_adapter.dart';
+import '../../search/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/utils.dart' show DurationTracker;
 
@@ -64,10 +65,14 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// Handles:
 /// - /packages - package listing
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
+  final sw = Stopwatch()..start();
   final openSections =
       request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-  final sw = Stopwatch()..start();
+  final canonicalForm = canonicalizeSearchForm(searchForm);
+  if (canonicalForm != null) {
+    return redirectResponse(canonicalForm.toSearchLink());
+  }
   final searchResult = await searchAdapter.search(
     searchForm,
     rateLimitKey: request.sourceIp,
