@@ -261,24 +261,6 @@ class AccountBackend {
     return users.single;
   }
 
-  /// Verifies that the access token belongs to the [owner].
-  ///
-  /// Throws [AuthenticationException] if token cannot be authenticated or the
-  /// OAuth userId differs from [owner].
-  Future<void> verifyAccessTokenOwnership(
-      String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticateAsUser(accessToken);
-    if (auth == null) {
-      throw AuthenticationException.accessTokenInvalid();
-    }
-    if (owner.oauthUserId != auth.oauthUserId) {
-      throw AuthenticationException.accessTokenMissmatch();
-    }
-    if (auth.audience != activeConfiguration.pubSiteAudience) {
-      throw AuthenticationException.accessTokenMissmatch();
-    }
-  }
-
   /// Stores the bearer [token] in a new scope.
   ///
   /// The method returns with the response of [fn].

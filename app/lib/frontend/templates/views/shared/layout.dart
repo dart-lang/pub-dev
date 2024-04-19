@@ -13,7 +13,6 @@ d.Node pageLayoutNode({
   required String? canonicalUrl,
   required String faviconUrl,
   required bool noIndex,
-  required String? oauthClientId,
   required String? csrfToken,
   required String? pageDataEncoded,
   required List<String>? bodyClasses,
