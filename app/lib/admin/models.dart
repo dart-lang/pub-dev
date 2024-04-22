@@ -42,15 +42,23 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   late String kind;
 
-  /// The package this notification or appeal concerns.
-  /// In the case of an appeal, reporter must be owner of said package.
+  /// The kind of the entity this notification or appeal concerns. On of:
+  /// `package`, `package-version` or `publisher`.
   @db.StringProperty()
-  String? subjectPackage;
+  String? subjectKind;
 
-  /// The publisher this notification or appeal concerns.
-  /// In the case of an appeal, reporter must be a member of said publisher.
+  /// The fully qualified name of the entity this notification or appeal concerns.
+  /// - `package:<package>`
+  /// - `package-version:<package>/<version>`
+  /// - `publisher:<publisherId>`
   @db.StringProperty()
-  String? subjectPublisher;
+  String? subjectFqn;
+
+  /// The local name of the entity (without the type qualifier) this notification or appeal concerns.
+  /// - `package`: the package name
+  /// - `package-version`: the `<package>/<version>`
+  /// - `publisher`: the publisher ID
+  String? subjectLocalName;
 
   /// The `caseId` of the appeal (or null).
   @db.StringProperty()
@@ -82,9 +90,17 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.detectedBy,
     required this.kind,
     required this.status,
+    this.subjectKind,
+    this.subjectLocalName,
   }) {
     id = caseId;
     opened = clock.now().toUtc();
+    if (subjectKind != null &&
+        subjectKind!.isNotEmpty &&
+        subjectLocalName != null &&
+        subjectLocalName!.isNotEmpty) {
+      subjectFqn = '$subjectKind:$subjectLocalName';
+    }
   }
 }
 
