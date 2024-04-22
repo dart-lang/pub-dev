@@ -7,7 +7,6 @@ import 'package:_pub_shared/search/search_form.dart';
 
 import '../../frontend/request_context.dart';
 import '../../service/announcement/backend.dart';
-import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../dom/dom.dart' as d;
@@ -70,7 +69,6 @@ String renderLayoutPage(
     canonicalUrl: canonicalUrl,
     faviconUrl: faviconUrl ?? staticUrls.smallDartFavicon,
     noIndex: noIndex,
-    oauthClientId: activeConfiguration.pubSiteAudience,
     csrfToken: session?.csrfToken,
     pageDataEncoded:
         pageData == null ? null : pageDataJsonCodec.encode(pageData.toJson()),
