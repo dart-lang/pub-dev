@@ -106,6 +106,18 @@ DocFilePath? parseRequestUri(Uri uri) {
     pathSegments = [...relativeSegments, 'index.html'];
   }
   final path = p.normalize(p.joinAll(pathSegments));
+  try {
+    final parsedPath = Uri.parse(path);
+    // a bad link embedded as path segment
+    if (parsedPath.hasScheme) {
+      return null;
+    }
+    // trigger lazy initialization issues
+    parsedPath.queryParameters;
+  } catch (_) {
+    // ignore URL issues
+    return null;
+  }
   return DocFilePath(package, version, path);
 }
 

@@ -68,6 +68,12 @@ void main() {
           'file.html');
     });
 
+    test('bad path segment with URL', () {
+      testUri(
+          '/documentation/permission_handler/5.0.0/(https:/github.com/Baseflow/flutter-permission-handler/blob/develop/example/android/app/src/main/AndroidManifest.xml)',
+          null);
+    });
+
     test('various characters in the path segments', () {
       testUri(
           '/documentation/pkg/1.0.0/A%20_0.html', 'pkg', '1.0.0', 'A _0.html');
