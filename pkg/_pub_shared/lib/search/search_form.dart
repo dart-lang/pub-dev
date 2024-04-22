@@ -125,7 +125,7 @@ class TagsPredicate {
 
   /// Update the predicates by using their canonical version (if there is any available).
   /// Does not change the predicates status (unless the canonical one is also present,
-  /// in this case the behavior is undefinited).
+  /// in this case the behavior is undefined).
   ///
   /// Returns `null` if no update was needed.
   TagsPredicate? canonicalizeKeys(String? Function(String key) fn) {

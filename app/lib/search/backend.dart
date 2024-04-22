@@ -523,7 +523,7 @@ class SearchBackend {
   }
 }
 
-/// Returns a new search form that may overrides predicates to their canonical forms.
+/// Returns a new search form that may override predicates to their canonical forms.
 /// Returns `null` if no change was made.
 SearchForm? canonicalizeSearchForm(SearchForm form) {
   final query = form.parsedQuery;
