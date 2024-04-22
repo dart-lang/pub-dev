@@ -44,21 +44,21 @@ class ModerationCase extends db.ExpandoModel<String> {
   late String kind;
 
   /// The kind of the entity this notification or appeal concerns. On of:
-  /// `Package`, `PackageVersion` or `Publisher`.
+  /// `package`, `package-version` or `publisher`.
   @db.StringProperty()
   String? subjectKind;
 
   /// The fully qualified name of the entity this notification or appeal concerns.
-  /// - `Package:<package>`
-  /// - `PackageVersion:<package>/<version>`
-  /// - `Publisher:<publisherId>`
+  /// - `package:<package>`
+  /// - `package-version:<package>/<version>`
+  /// - `publisher:<publisherId>`
   @db.StringProperty()
   String? subjectFqn;
 
   /// The local name of the entity (without the type qualifier) this notification or appeal concerns.
-  /// - `Package`: the package name
-  /// - `PackageVersion`: the `<package>/<version>`
-  /// - `Publisher`: the publisher ID
+  /// - `package`: the package name
+  /// - `package-version`: the `<package>/<version>`
+  /// - `publisher`: the publisher ID
   String? subjectLocalName;
 
   /// The `caseId` of the appeal (or null).
