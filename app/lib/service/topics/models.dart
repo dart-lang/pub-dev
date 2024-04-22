@@ -59,6 +59,10 @@ class CanonicalTopicFileContent {
         }
       }
     }
+    // also check for alias map built successfully
+    if (aliasToCanonicalMap.isEmpty) {
+      throw FormatException('Expected to have at least one alias.');
+    }
   }
 
   factory CanonicalTopicFileContent.fromJson(Map<String, Object?> json) =>
@@ -70,6 +74,19 @@ class CanonicalTopicFileContent {
   }
 
   Map<String, Object?> toJson() => _$CanonicalTopicFileContentToJson(this);
+
+  late final aliasToCanonicalMap = () {
+    final map = <String, String>{};
+    for (final t in topics) {
+      for (final alias in t.aliases) {
+        if (map.containsKey(alias)) {
+          throw FormatException('"$alias" has more than one canonical topic.');
+        }
+        map[alias] = t.topic;
+      }
+    }
+    return map;
+  }();
 }
 
 /// True, if [topic] is formatted like a valid topic.

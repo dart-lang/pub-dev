@@ -51,7 +51,7 @@ d.Node packageInfoBoxNode({
     );
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
-  final topics = _topicstNode(version.pubspec?.topics);
+  final topics = _topicstNode(version.pubspec?.canonicalizedTopics);
 
   final screenshots = data.scoreCard.panaReport?.screenshots;
   String? thumbnailUrl;

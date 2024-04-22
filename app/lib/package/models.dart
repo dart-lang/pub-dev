@@ -1007,7 +1007,7 @@ class PackageView {
           scoreCard.panaReport?.licenses?.map((e) => e.spdxIdentifier).toList(),
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
-      topics: version?.pubspec?.topics,
+      topics: version?.pubspec?.canonicalizedTopics,
       popularity: popularity,
     );
   }
