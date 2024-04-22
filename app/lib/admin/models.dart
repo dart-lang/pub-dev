@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
-import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore.dart' as db;
 
@@ -77,13 +76,26 @@ class ModerationCase extends db.ExpandoModel<String> {
   ModerationCase();
 
   ModerationCase.init({
+    required String caseId,
     required this.reporterUserId,
     required this.reporterEmail,
     required this.detectedBy,
     required this.kind,
     required this.status,
   }) {
-    id = createUuid();
+    id = caseId;
     opened = clock.now().toUtc();
   }
+}
+
+abstract class ModerationDetectedBy {
+  static const externalNotification = 'external-notification';
+}
+
+abstract class ModerationKind {
+  static const notification = 'notification';
+}
+
+abstract class ModerationStatus {
+  static const pending = 'pending';
 }

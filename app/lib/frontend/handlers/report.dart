@@ -9,8 +9,10 @@ import 'package:clock/clock.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
+import '../../admin/models.dart';
 import '../../frontend/email_sender.dart';
 import '../../frontend/handlers/cache_control.dart';
+import '../../shared/datastore.dart';
 import '../../shared/email.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
@@ -39,7 +41,7 @@ Future<String> processReportPageHandler(
     throw NotFoundException('Experimental flag is not enabled.');
   }
   final now = clock.now().toUtc();
-  final id = '${now.toIso8601String().split('T').first}/${createUuid()}';
+  final caseId = '${now.toIso8601String().split('T').first}/${createUuid()}';
 
   final isAuthenticated = requestContext.sessionData?.isAuthenticated ?? false;
   final user = isAuthenticated ? await requireAuthenticatedWebUser() : null;
@@ -61,13 +63,27 @@ Future<String> processReportPageHandler(
     maximum: 8192,
   );
 
+  // If the email sending fails, we may have pending [ModerationCase] entities
+  // in the datastore. These would be reviewed and processed manually.
+  await withRetryTransaction(dbService, (tx) async {
+    final mc = ModerationCase.init(
+      caseId: caseId,
+      reporterUserId: user?.userId,
+      reporterEmail: userEmail!,
+      detectedBy: ModerationDetectedBy.externalNotification,
+      kind: ModerationKind.notification,
+      status: ModerationStatus.pending,
+    );
+    tx.insert(mc);
+  });
+
   final bodyText = <String>[
-    'New report recieved on ${now.toIso8601String()}: $id',
+    'New report recieved on ${now.toIso8601String()}: $caseId',
     'Message:\n${form.message}',
   ].join('\n\n');
 
   await emailSender.sendMessage(createReportPageAdminEmail(
-    id: id,
+    id: caseId,
     userEmail: userEmail!,
     bodyText: bodyText,
   ));
