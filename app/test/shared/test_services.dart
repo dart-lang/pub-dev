@@ -257,7 +257,7 @@ void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
   testWithProfile('Regular user token from the website.', fn: () async {
     final token = createFakeAuthTokenForEmail(
       'unauthorized@pub.dev',
-      audience: activeConfiguration.pubSiteAudience,
+      audience: activeConfiguration.pubServerAudience,
     );
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs, status: 401, code: 'MissingAuthentication');

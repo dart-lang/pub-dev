@@ -169,7 +169,7 @@ class FakeAuthProvider extends BaseAuthProvider {
     }
     final token = _createGcpToken(
       email: email,
-      audience: activeConfiguration.pubSiteAudience!,
+      audience: activeConfiguration.pubServerAudience!,
       signature: null,
       extraPayload: {
         'nonce': nonce,

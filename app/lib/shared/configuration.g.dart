@@ -36,7 +36,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'taskWorkerServiceAccount',
             'storageBaseUrl',
             'pubClientAudience',
-            'pubSiteAudience',
             'pubServerAudience',
             'externalServiceAudience',
             'gmailRelayServiceAccount',
@@ -92,8 +91,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('storageBaseUrl', (v) => v as String?),
           pubClientAudience:
               $checkedConvert('pubClientAudience', (v) => v as String?),
-          pubSiteAudience:
-              $checkedConvert('pubSiteAudience', (v) => v as String?),
           pubServerAudience:
               $checkedConvert('pubServerAudience', (v) => v as String?),
           externalServiceAudience:
@@ -159,7 +156,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'taskWorkerServiceAccount': instance.taskWorkerServiceAccount,
       'storageBaseUrl': instance.storageBaseUrl,
       'pubClientAudience': instance.pubClientAudience,
-      'pubSiteAudience': instance.pubSiteAudience,
       'pubServerAudience': instance.pubServerAudience,
       'externalServiceAudience': instance.externalServiceAudience,
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
