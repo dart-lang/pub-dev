@@ -13,10 +13,6 @@ class ModerationCase extends db.ExpandoModel<String> {
   /// A random UUID id.
   String get caseId => id!;
 
-  /// The `userId` of the reporter (may be null for non-authenticated reporter).
-  @db.StringProperty()
-  String? reporterUserId;
-
   /// The email of the reporter.
   @db.StringProperty(required: true)
   late String reporterEmail;
@@ -34,7 +30,7 @@ class ModerationCase extends db.ExpandoModel<String> {
   /// - `internal-notification` (only used for reports from @google.com accounts), or,
   /// - `automated-detection`. (will not be used)
   @db.StringProperty(required: true)
-  late String detectedBy;
+  late String source;
 
   /// The kind of the case, one of:
   /// - `notification`, or,
@@ -85,9 +81,8 @@ class ModerationCase extends db.ExpandoModel<String> {
 
   ModerationCase.init({
     required String caseId,
-    required this.reporterUserId,
     required this.reporterEmail,
-    required this.detectedBy,
+    required this.source,
     required this.kind,
     required this.status,
     this.subjectKind,
