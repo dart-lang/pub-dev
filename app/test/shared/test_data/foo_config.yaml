@@ -12,7 +12,7 @@ searchServicePrefix: 'https://search-dot-dartlang-pub-dev.appspot.com'
 defaultServiceBaseUrl: http://localhost:8080
 storageBaseUrl: 'https://storage.googleapis.com/'
 pubClientAudience: _pubClientAudience
-pubSiteAudience: 'foo-foo.apps.googleusercontent.com'
+pubServerAudience: 'foo-foo.apps.googleusercontent.com'
 externalServiceAudience: 'https://pub.dev'
 gmailRelayServiceAccount:
 uploadSignerServiceAccount: 'foo@dartlang-pub-dev.iam.gserviceaccount.com'

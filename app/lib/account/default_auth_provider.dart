@@ -282,7 +282,6 @@ abstract class BaseAuthProvider extends AuthProvider {
     }
     final allowedAudiences = <String>[
       activeConfiguration.pubClientAudience!,
-      activeConfiguration.pubSiteAudience!,
       activeConfiguration.pubServerAudience!,
     ];
     if (!allowedAudiences.contains(audience)) {

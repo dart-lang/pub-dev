@@ -36,10 +36,6 @@ void registerActiveConfiguration(Configuration configuration) {
 /// Special value to indicate that the client is running in fake mode.
 const _fakeClientAudience = 'fake-client-audience';
 
-/// Special value to indicate that the site is running in fake mode, and the
-/// client side authentication should use the fake authentication tokens.
-const _fakeSiteAudience = 'fake-site-audience';
-
 /// Special value to indicate that the site is running in fake mode.
 const _fakeServerAudience = 'fake-server-audience';
 
@@ -161,9 +157,6 @@ class Configuration {
   /// The OAuth audience (`client_id`) that the `pub` client uses.
   final String? pubClientAudience;
 
-  /// The OAuth audience (`client_id`) that the pub site's JS frontend uses.
-  final String? pubSiteAudience;
-
   /// The OAuth audience that the pub site server backend uses.
   final String? pubServerAudience;
 
@@ -280,7 +273,6 @@ class Configuration {
     required this.fallbackSearchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
-    required this.pubSiteAudience,
     required this.pubServerAudience,
     required this.externalServiceAudience,
     required this.gmailRelayServiceAccount,
@@ -346,7 +338,6 @@ class Configuration {
       fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: _fakeClientAudience,
-      pubSiteAudience: _fakeSiteAudience,
       pubServerAudience: _fakeServerAudience,
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
@@ -397,7 +388,6 @@ class Configuration {
       fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,
-      pubSiteAudience: _fakeSiteAudience,
       pubServerAudience: _fakeServerAudience,
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',

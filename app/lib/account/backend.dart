@@ -538,7 +538,7 @@ class AccountBackend {
       return null;
     }
     return AuthenticatedUser(user,
-        audience: activeConfiguration.pubSiteAudience!);
+        audience: activeConfiguration.pubServerAudience!);
   }
 
   /// Returns the user session associated with the [sessionId] or null if it

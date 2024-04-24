@@ -180,7 +180,7 @@ void main() {
             profile: AuthResult(
               oauthUserId: oauthUserId,
               email: email,
-              audience: activeConfiguration.pubSiteAudience!,
+              audience: activeConfiguration.pubServerAudience!,
               accessToken: createFakeServiceAccountToken(
                 email: email,
                 audience: activeConfiguration.pubServerAudience,
@@ -218,7 +218,7 @@ void main() {
             profile: AuthResult(
               oauthUserId: oauthUserId,
               email: email,
-              audience: activeConfiguration.pubSiteAudience!,
+              audience: activeConfiguration.pubServerAudience!,
               accessToken: createFakeServiceAccountToken(
                 email: email,
                 audience: activeConfiguration.pubServerAudience,
@@ -241,7 +241,7 @@ void main() {
             profile: AuthResult(
               oauthUserId: oauthUserId,
               email: email,
-              audience: activeConfiguration.pubSiteAudience!,
+              audience: activeConfiguration.pubServerAudience!,
               accessToken: createFakeServiceAccountToken(
                 email: email,
                 audience: activeConfiguration.pubServerAudience,
@@ -264,7 +264,7 @@ void main() {
             profile: AuthResult(
               oauthUserId: oauthUserId,
               email: email,
-              audience: activeConfiguration.pubSiteAudience!,
+              audience: activeConfiguration.pubServerAudience!,
               accessToken: createFakeServiceAccountToken(
                 email: email,
                 audience: activeConfiguration.pubServerAudience,
@@ -288,7 +288,7 @@ void main() {
             profile: AuthResult(
               oauthUserId: fakeOauthUserIdFromEmail(newEmail),
               email: newEmail,
-              audience: activeConfiguration.pubSiteAudience!,
+              audience: activeConfiguration.pubServerAudience!,
               accessToken: createFakeServiceAccountToken(
                 email: email,
                 audience: activeConfiguration.pubServerAudience,
