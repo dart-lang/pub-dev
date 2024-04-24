@@ -3,13 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../account/models.dart';
+import '../../admin/models.dart';
 import '../dom/dom.dart' as d;
 import '../dom/material.dart' as material;
 import 'layout.dart';
 
+const _subjectKindLabels = {
+  ModerationSubjectKind.package: 'Package: ',
+  ModerationSubjectKind.packageVersion: 'Package version: ',
+  ModerationSubjectKind.publisher: 'Publisher: ',
+};
+
 /// Renders the create publisher page.
 String renderReportPage({
   SessionData? sessionData,
+  ModerationSubject? subject,
 }) {
   return renderLayoutPage(
     PageType.standalone,
@@ -30,6 +38,14 @@ String renderReportPage({
                 name: 'email',
                 label: 'Email',
               ),
+            ]),
+          if (subject != null)
+            d.fragment([
+              d.input(type: 'hidden', name: 'subject', value: subject.fqn),
+              d.p(children: [
+                d.text(_subjectKindLabels[subject.kind] ?? ''),
+                d.code(text: subject.localName),
+              ]),
             ]),
           d.p(text: 'Please describe the issue you want to report:'),
           material.textArea(
