@@ -5,8 +5,10 @@
 import 'dart:async';
 
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/dartdoc/backend.dart';
+import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/handlers.dart';
 // ignore: implementation_imports
 import 'package:pub_package_reader/src/names.dart';
@@ -46,7 +48,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
 
   final package = docFilePath.package;
   final version = docFilePath.version!;
-  final resolved = await dartdocBackend.resolveDocUrlVersion(package, version);
+  final resolved = await _resolveDocUrlVersion(package, version);
   if (resolved.isEmpty) {
     return notFoundHandler(request);
   }
@@ -130,4 +132,41 @@ bool _isValidVersion(String version) {
     return false;
   }
   return true;
+}
+
+/// Resolves the best version to display for a /documentation/[package]/[version]/
+/// request. Also resolves the best URL it should be displayed under, in case it
+/// needs a redirect.
+///
+/// Returns empty version and URL segment when there is no displayable version found.
+Future<ResolvedDocUrlVersion> _resolveDocUrlVersion(
+    String package, String version) async {
+  return await cache.resolvedDocUrlVersion(package, version).get(() async {
+    // Keep the `/latest/` URL if the latest finished is the latest version,
+    // otherwise redirect to the latest finished version.
+    if (version == 'latest') {
+      final latestFinished = await taskBackend.latestFinishedVersion(package);
+      if (latestFinished == null) {
+        return ResolvedDocUrlVersion.empty();
+      }
+      final latestVersion = await packageBackend.getLatestVersion(package);
+      return ResolvedDocUrlVersion(
+        version: latestFinished,
+        urlSegment: latestFinished == latestVersion ? 'latest' : latestFinished,
+      );
+    }
+
+    // Do not resolve if package version does not exists.
+    final pv = await packageBackend.lookupPackageVersion(package, version);
+    if (pv == null) {
+      return ResolvedDocUrlVersion.empty();
+    }
+
+    // Select the closest version (may be the same as version) that has a finished analysis.
+    final closest = await taskBackend.closestFinishedVersion(package, version);
+    return ResolvedDocUrlVersion(
+      version: closest ?? version,
+      urlSegment: closest ?? version,
+    );
+  }) as ResolvedDocUrlVersion;
 }
