@@ -25,7 +25,6 @@ import '../account/default_auth_provider.dart';
 import '../account/like_backend.dart';
 import '../admin/backend.dart';
 import '../audit/backend.dart';
-import '../dartdoc/backend.dart';
 import '../fake/backend/fake_auth_provider.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
@@ -236,7 +235,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAsyncQueue(AsyncQueue());
     registerAuditBackend(AuditBackend(dbService));
     registerConsentBackend(ConsentBackend(dbService));
-    registerDartdocBackend(DartdocBackend());
     registerEmailBackend(EmailBackend(dbService));
     registerLikeBackend(LikeBackend(dbService));
     registerNameTracker(NameTracker(dbService));
