@@ -26,14 +26,14 @@ String renderReportPage({
             d.fragment([
               d.p(text: 'Contact information:'),
               material.textField(
-                id: 'email',
+                id: 'report-email',
                 name: 'email',
                 label: 'Email',
               ),
             ]),
           d.p(text: 'Please describe the issue you want to report:'),
           material.textArea(
-            id: 'message',
+            id: 'report-message',
             name: 'message',
             label: 'Message',
             rows: 10,
@@ -42,6 +42,7 @@ String renderReportPage({
           ),
           material.raisedButton(
             label: 'Submit',
+            id: 'report-submit',
             attributes: {
               'data-form-api-button': 'submit',
             },
