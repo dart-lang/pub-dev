@@ -7,7 +7,6 @@ projectId: dartlang-pub-dev
 searchServicePrefix: https://{{GAE_VERSION}}-dot-search-dot-dartlang-pub-dev.appspot.com
 fallbackSearchServicePrefix: https://search-dot-dartlang-pub-dev.appspot.com
 defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
-dartdocStorageBucketName: dartlang-pub-dev--dartdoc-storage
 popularityDumpBucketName: dartlang-pub-dev--popularity
 searchSnapshotBucketName: dartlang-pub-dev--search-snapshot
 exportedApiBucketName: null

@@ -102,9 +102,6 @@ class Configuration {
   /// safe, as services may be deployed independently.
   final String defaultServiceBaseUrl;
 
-  /// The name of the Cloud Storage bucket to use for dartdoc generated output.
-  final String? dartdocStorageBucketName;
-
   /// The name of the Cloud Storage bucket to use for popularity data dumps.
   final String? popularityDumpBucketName;
 
@@ -257,7 +254,6 @@ class Configuration {
     required this.projectId,
     required this.imageBucketName,
     required this.reportsBucketName,
-    required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
     required this.exportedApiBucketName,
@@ -322,7 +318,6 @@ class Configuration {
       projectId: 'dartlang-pub-fake',
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
-      dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
@@ -372,7 +367,6 @@ class Configuration {
       projectId: 'dartlang-pub-test',
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
-      dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
@@ -416,7 +410,6 @@ class Configuration {
   /// All the bucket names inside this configuration.
   late final allBucketNames = List<String>.unmodifiable(<String>[
     canonicalPackagesBucketName!,
-    dartdocStorageBucketName!,
     imageBucketName!,
     reportsBucketName!,
     incomingPackagesBucketName!,
