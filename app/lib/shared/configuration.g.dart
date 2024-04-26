@@ -84,7 +84,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           taskWorkerServiceAccount:
               $checkedConvert('taskWorkerServiceAccount', (v) => v as String?),
           searchServicePrefix:
-              $checkedConvert('searchServicePrefix', (v) => v as String),
+              $checkedConvert('searchServicePrefix', (v) => v as String?),
           fallbackSearchServicePrefix: $checkedConvert(
               'fallbackSearchServicePrefix', (v) => v as String?),
           storageBaseUrl:

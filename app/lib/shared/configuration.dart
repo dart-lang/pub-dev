@@ -89,7 +89,7 @@ class Configuration {
   final String projectId;
 
   /// The scheme://host:port prefix for the search service.
-  final String searchServicePrefix;
+  final String? searchServicePrefix;
 
   /// The scheme://host:port prefix for the search service.
   final String? fallbackSearchServicePrefix;
@@ -384,7 +384,7 @@ class Configuration {
       taskWorkerNetwork: '-',
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
-      searchServicePrefix: 'http://localhost:0',
+      searchServicePrefix: null,
       fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,

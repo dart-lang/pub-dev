@@ -61,6 +61,12 @@ class SearchClient {
     // returns null on timeout (after 5 seconds)
     Future<http.Response?> doCallHttpServiceEndpoint({String? prefix}) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
+      if (httpHostPort == null) {
+        // Skip calling the HTTP endpoint if no value was configured.
+        // Must happen only in local tests.
+        assert(activeConfiguration.isNotProduction);
+        return null;
+      }
       final serviceUrl = '$httpHostPort/search$serviceUrlParams';
       try {
         return await _httpClient
