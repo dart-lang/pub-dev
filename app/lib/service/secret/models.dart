@@ -14,10 +14,10 @@ class Secret extends db.Model {
 
 /// Identifiers of the [Secret] keys.
 abstract class SecretKey {
-  static const String redisConnectionString = 'redis.connectionString';
+  static const String redisConnectionString = 'redis-connection-string';
 
-  /// OAuth audiences have separate secrets for each audience.
-  static const String oauthPrefix = 'oauth.secret-';
+  /// OAuth client secret.
+  static const String oauthClientSecret = 'oauth-client-secret';
 
   /// Site-wide announcement.
   static const String announcement = 'announcement';
@@ -38,6 +38,7 @@ abstract class SecretKey {
   /// List of all keys.
   static const values = [
     redisConnectionString,
+    oauthClientSecret,
     announcement,
     uploadRestriction,
     youtubeApiKey,
@@ -46,7 +47,6 @@ abstract class SecretKey {
   /// Whether the key is valid.
   static bool isValid(String key) {
     if (values.contains(key)) return true;
-    if (key.startsWith(oauthPrefix)) return true;
     return false;
   }
 }
