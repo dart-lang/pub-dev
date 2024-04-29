@@ -1598,8 +1598,11 @@ class PackageBackend {
   }
 
   Future<UploadRestrictionStatus> getUploadRestrictionStatus() async {
-    final value =
-        await secretBackend.getCachedValue(SecretKey.uploadRestriction) ?? '';
+    final value = await secretBackend.lookup(
+          SecretKey.uploadRestriction,
+          maxAge: Duration(minutes: 5),
+        ) ??
+        '';
     switch (value) {
       case 'no-uploads':
         return UploadRestrictionStatus.noUploads;

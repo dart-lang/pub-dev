@@ -103,6 +103,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
             : loggingEmailSender,
       );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
+      registerSecretBackend(GcpSecretBackend(authClient));
 
       // Confiugure a CloudCompute pool for later use in TaskBackend
       //
@@ -171,6 +172,7 @@ Future<R> withFakeServices<R>({
     }
 
     // register fake services that would have external dependencies
+    registerSecretBackend(FakeSecretBackend({}));
     registerAuthProvider(FakeAuthProvider());
     registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(FakeDomainVerifier());
@@ -250,7 +252,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
-    registerSecretBackend(SecretBackend(dbService));
+
     registerImageStorage(ImageStorage(
         storageService.bucket(activeConfiguration.imageBucketName!)));
     registerTopPackages(TopPackages());
