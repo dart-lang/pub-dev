@@ -68,9 +68,8 @@ Future<String> processReportPageHandler(
   await withRetryTransaction(dbService, (tx) async {
     final mc = ModerationCase.init(
       caseId: caseId,
-      reporterUserId: user?.userId,
       reporterEmail: userEmail!,
-      detectedBy: ModerationDetectedBy.externalNotification,
+      source: ModerationDetectedBy.externalNotification,
       kind: ModerationKind.notification,
       status: ModerationStatus.pending,
     );
