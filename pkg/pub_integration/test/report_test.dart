@@ -49,7 +49,7 @@ void main() {
           await page.gotoOrigin('/experimental?report=1');
           await Future.delayed(Duration(seconds: 1));
 
-          await page.gotoOrigin('/report');
+          await page.gotoOrigin('/report?subject=package:oxygen');
           await page.waitFocusAndType('#report-email', 'user@pub.dev');
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');

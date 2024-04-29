@@ -42,8 +42,8 @@ class ModerationCase extends db.ExpandoModel<String> {
   /// - `package:<package>`
   /// - `package-version:<package>/<version>`
   /// - `publisher:<publisherId>`
-  @db.StringProperty()
-  String? subject;
+  @db.StringProperty(required: true)
+  late String subject;
 
   /// The `caseId` of the appeal (or null).
   @db.StringProperty()
@@ -74,7 +74,7 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.source,
     required this.kind,
     required this.status,
-    this.subject,
+    required this.subject,
   }) {
     id = caseId;
     opened = clock.now().toUtc();
@@ -173,7 +173,6 @@ class ModerationSubject {
 }
 
 class ModerationSubjectKind {
-  static const unspecified = 'unspecified';
   static const package = 'package';
   static const packageVersion = 'package-version';
   static const publisher = 'publisher';

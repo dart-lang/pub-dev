@@ -29,14 +29,11 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   }
 
   final subjectParam = request.requestedUri.queryParameters['subject'];
-  ModerationSubject? subject;
-  if (subjectParam != null) {
-    subject = ModerationSubject.tryParse(subjectParam);
-    if (subject == null) {
-      throw InvalidInputException('Invalid "subject" parameter.');
-    }
-    await _verifySubject(subject);
-  }
+
+  InvalidInputException.checkNotNull(subjectParam, 'subject');
+  final subject = ModerationSubject.tryParse(subjectParam!);
+  InvalidInputException.check(subject != null, 'Invalid "subject" parameter.');
+  await _verifySubject(subject!);
 
   return htmlResponse(
     renderReportPage(
@@ -94,12 +91,10 @@ Future<String> processReportPageHandler(
     InvalidInputException.checkNull(form.email, 'email');
   }
 
-  ModerationSubject? subject;
-  if (form.subject != null) {
-    subject = ModerationSubject.tryParse(form.subject!);
-    InvalidInputException.check(subject != null, 'Invalid subject.');
-    await _verifySubject(subject);
-  }
+  InvalidInputException.checkNotNull(form.subject, 'subject');
+  final subject = ModerationSubject.tryParse(form.subject!);
+  InvalidInputException.check(subject != null, 'Invalid subject.');
+  await _verifySubject(subject!);
 
   InvalidInputException.checkStringLength(
     form.message,
@@ -117,14 +112,14 @@ Future<String> processReportPageHandler(
       source: ModerationDetectedBy.externalNotification,
       kind: ModerationKind.notification,
       status: ModerationStatus.pending,
-      subject: subject?.fqn,
+      subject: subject.fqn,
     );
     tx.insert(mc);
   });
 
   final bodyText = <String>[
     'New report recieved on ${now.toIso8601String()}: $caseId',
-    if (subject != null) 'Subject: ${subject.fqn}',
+    'Subject: ${subject.fqn}',
     'Message:\n${form.message}',
   ].join('\n\n');
 
