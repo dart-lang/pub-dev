@@ -23,7 +23,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'searchServicePrefix',
             'fallbackSearchServicePrefix',
             'defaultServiceBaseUrl',
-            'dartdocStorageBucketName',
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
             'maxTaskInstances',
@@ -61,8 +60,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('imageBucketName', (v) => v as String?),
           reportsBucketName:
               $checkedConvert('reportsBucketName', (v) => v as String?),
-          dartdocStorageBucketName:
-              $checkedConvert('dartdocStorageBucketName', (v) => v as String?),
           popularityDumpBucketName:
               $checkedConvert('popularityDumpBucketName', (v) => v as String?),
           searchSnapshotBucketName:
@@ -143,7 +140,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'searchServicePrefix': instance.searchServicePrefix,
       'fallbackSearchServicePrefix': instance.fallbackSearchServicePrefix,
       'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
-      'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'maxTaskInstances': instance.maxTaskInstances,

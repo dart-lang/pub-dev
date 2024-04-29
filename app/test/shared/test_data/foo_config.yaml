@@ -1,6 +1,5 @@
 projectId: foo
 imageBucketName: foo
-dartdocStorageBucketName: foo
 popularityDumpBucketName: foo
 searchSnapshotBucketName: foo
 canonicalPackagesBucketName: foo
