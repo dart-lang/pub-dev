@@ -364,6 +364,7 @@ class Configuration {
     String? storageBaseUrl,
     Uri? primaryApiUri,
     Uri? primarySiteUri,
+    String? searchServicePrefix,
   }) {
     return Configuration(
       canonicalPackagesBucketName: 'fake-canonical-packages',
@@ -384,7 +385,7 @@ class Configuration {
       taskWorkerNetwork: '-',
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
-      searchServicePrefix: 'http://localhost:0',
+      searchServicePrefix: searchServicePrefix ?? 'http://localhost:0',
       fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,

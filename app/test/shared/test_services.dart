@@ -19,9 +19,11 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/search/top_packages.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/shared/logging.dart';
@@ -109,6 +111,8 @@ class FakeAppengineEnv {
           await nameTracker.reloadFromDatastore();
           await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
+          await topPackages.start();
+          await youtubeBackend.start();
           await asyncQueue.ongoingProcessing;
           fakeEmailSender.sentMessages.clear();
 
