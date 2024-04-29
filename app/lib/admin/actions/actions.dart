@@ -13,6 +13,7 @@ import 'moderate_user.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
+import 'secret.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
@@ -81,6 +82,7 @@ final class AdminAction {
     removePackageFromPublisher,
     taskBumpPriority,
     toolExecute,
+    setSecret,
     toolList,
     uploaderCountReport,
   ];
