@@ -23,10 +23,12 @@ class AnnouncementBackend {
   final _announcementHtml = CachedValue<String>(
     name: 'announcement-html',
     maxAge: Duration(hours: 12),
-    // the redis-cached secret value has 60 minutes TTL
-    interval: Duration(minutes: 1),
+    interval: Duration(minutes: 60),
     updateFn: () async {
-      final value = await secretBackend.getCachedValue(SecretKey.announcement);
+      final value = await secretBackend.lookup(
+        SecretKey.announcement,
+        maxAge: Duration(minutes: 5),
+      );
       if (value != null && value.trim().isNotEmpty) {
         return sanitizeHtml(value.trim());
       } else {
