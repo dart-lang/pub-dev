@@ -182,10 +182,12 @@ class InviteStatus {
 @JsonSerializable()
 class ReportForm {
   final String? email;
+  final String? subject;
   final String message;
 
   ReportForm({
     this.email,
+    this.subject,
     required this.message,
   });
 

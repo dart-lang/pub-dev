@@ -293,3 +293,10 @@ bool fixedTimeIntListEquals(List<int> a, List<int> b) {
   }
   return result == 0;
 }
+
+extension StringExt on String {
+  String? trimToNull() {
+    final v = trim();
+    return v.isEmpty ? null : v;
+  }
+}

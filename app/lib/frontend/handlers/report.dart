@@ -12,6 +12,8 @@ import '../../account/backend.dart';
 import '../../admin/models.dart';
 import '../../frontend/email_sender.dart';
 import '../../frontend/handlers/cache_control.dart';
+import '../../package/backend.dart';
+import '../../publisher/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/email.dart';
 import '../../shared/exceptions.dart';
@@ -26,12 +28,48 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
 
+  final subjectParam = request.requestedUri.queryParameters['subject'];
+  ModerationSubject? subject;
+  if (subjectParam != null) {
+    subject = ModerationSubject.tryParse(subjectParam);
+    if (subject == null) {
+      throw InvalidInputException('Invalid "subject" parameter.');
+    }
+    await _verifySubject(subject);
+  }
+
   return htmlResponse(
     renderReportPage(
       sessionData: requestContext.sessionData,
+      subject: subject,
     ),
     headers: CacheControl.explicitlyPrivate.headers,
   );
+}
+
+Future<void> _verifySubject(ModerationSubject? subject) async {
+  final package = subject?.package;
+  final version = subject?.version;
+  final publisherId = subject?.publisherId;
+  if (package != null) {
+    final p = await packageBackend.lookupPackage(package);
+    if (p == null) {
+      throw NotFoundException('Package "$package" does not exist.');
+    }
+    if (version != null) {
+      final pv = await packageBackend.lookupPackageVersion(package, version);
+      if (pv == null) {
+        throw NotFoundException(
+            'Package version "$package/$version" does not exist.');
+      }
+    }
+  }
+  if (publisherId != null) {
+    final p = await publisherBackend.getPublisher(publisherId);
+    if (p == null) {
+      throw NotFoundException('Publisher "$publisherId" does not exist.');
+    }
+  }
 }
 
 /// Handles POST /api/report
@@ -56,6 +94,13 @@ Future<String> processReportPageHandler(
     InvalidInputException.checkNull(form.email, 'email');
   }
 
+  ModerationSubject? subject;
+  if (form.subject != null) {
+    subject = ModerationSubject.tryParse(form.subject!);
+    InvalidInputException.check(subject != null, 'Invalid subject.');
+    await _verifySubject(subject);
+  }
+
   InvalidInputException.checkStringLength(
     form.message,
     'message',
@@ -72,12 +117,14 @@ Future<String> processReportPageHandler(
       source: ModerationDetectedBy.externalNotification,
       kind: ModerationKind.notification,
       status: ModerationStatus.pending,
+      subject: subject?.fqn,
     );
     tx.insert(mc);
   });
 
   final bodyText = <String>[
     'New report recieved on ${now.toIso8601String()}: $caseId',
+    if (subject != null) 'Subject: ${subject.fqn}',
     'Message:\n${form.message}',
   ].join('\n\n');
 

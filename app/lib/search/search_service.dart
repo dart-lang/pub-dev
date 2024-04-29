@@ -10,6 +10,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 part 'search_service.g.dart';
 
@@ -148,8 +149,6 @@ class ApiDocPage {
   Map<String, dynamic> toJson() => _$ApiDocPageToJson(this);
 }
 
-String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
-
 class ServiceSearchQuery {
   final String? query;
   final ParsedQueryText parsedQuery;
@@ -176,7 +175,7 @@ class ServiceSearchQuery {
     this.limit,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
-        publisherId = _stringToNull(publisherId);
+        publisherId = publisherId?.trimToNull();
 
   factory ServiceSearchQuery.parse({
     String? query,
@@ -188,7 +187,7 @@ class ServiceSearchQuery {
     int offset = 0,
     int? limit = 10,
   }) {
-    final q = _stringToNull(query?.trim());
+    final q = query?.trimToNull();
     return ServiceSearchQuery._(
       query: q,
       tagsPredicate: tagsPredicate,

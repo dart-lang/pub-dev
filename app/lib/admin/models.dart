@@ -38,23 +38,12 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   late String kind;
 
-  /// The kind of the entity this notification or appeal concerns. On of:
-  /// `package`, `package-version` or `publisher`.
-  @db.StringProperty()
-  String? subjectKind;
-
   /// The fully qualified name of the entity this notification or appeal concerns.
   /// - `package:<package>`
   /// - `package-version:<package>/<version>`
   /// - `publisher:<publisherId>`
   @db.StringProperty()
-  String? subjectFqn;
-
-  /// The local name of the entity (without the type qualifier) this notification or appeal concerns.
-  /// - `package`: the package name
-  /// - `package-version`: the `<package>/<version>`
-  /// - `publisher`: the publisher ID
-  String? subjectLocalName;
+  String? subject;
 
   /// The `caseId` of the appeal (or null).
   @db.StringProperty()
@@ -85,17 +74,10 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.source,
     required this.kind,
     required this.status,
-    this.subjectKind,
-    this.subjectLocalName,
+    this.subject,
   }) {
     id = caseId;
     opened = clock.now().toUtc();
-    if (subjectKind != null &&
-        subjectKind!.isNotEmpty &&
-        subjectLocalName != null &&
-        subjectLocalName!.isNotEmpty) {
-      subjectFqn = '$subjectKind:$subjectLocalName';
-    }
   }
 }
 
@@ -109,4 +91,90 @@ abstract class ModerationKind {
 
 abstract class ModerationStatus {
   static const pending = 'pending';
+}
+
+/// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
+class ModerationSubject {
+  /// The kind of moderation as described by [ModerationSubjectKind], one of:
+  /// - package,
+  /// - package-version,
+  /// - publisher.
+  final String kind;
+
+  /// The local name part of the subject, may be a composite, one of:
+  /// - <package>,
+  /// - <package>/<version>,
+  /// - <publisherId>.
+  final String localName;
+
+  /// The package name of the subject (if not a publisher).
+  final String? package;
+
+  /// The package version of the subject (if the version was specified).
+  final String? version;
+
+  /// The publisher id (if not a package or package/version).
+  final String? publisherId;
+
+  ModerationSubject._({
+    required this.kind,
+    required this.localName,
+    this.package,
+    this.version,
+    this.publisherId,
+  });
+
+  /// Tries to parse subject [value] and returns a [ModerationSubject]
+  /// if it is recognized, or `null` if the format is not recognizable.
+  static ModerationSubject? tryParse(String value) {
+    final parts = value.split(':');
+    if (parts.length != 2) {
+      return null;
+    }
+    if (parts.any((p) => p.isEmpty || p.trim() != p)) {
+      return null;
+    }
+    final kind = parts.first;
+    switch (kind) {
+      case ModerationSubjectKind.package:
+        final package = parts[1];
+        return ModerationSubject._(
+          kind: kind,
+          localName: package,
+          package: package,
+        );
+      case ModerationSubjectKind.packageVersion:
+        final localName = parts[1];
+        final pvParts = localName.split('/');
+        if (pvParts.length != 2) {
+          return null;
+        }
+        final package = pvParts.first;
+        final version = pvParts[1];
+        return ModerationSubject._(
+          kind: kind,
+          localName: localName,
+          package: package,
+          version: version,
+        );
+      case ModerationSubjectKind.publisher:
+        final publisherId = parts[1];
+        return ModerationSubject._(
+          kind: kind,
+          localName: publisherId,
+          publisherId: publisherId,
+        );
+      default:
+        return null;
+    }
+  }
+
+  late final fqn = '$kind:$localName';
+}
+
+class ModerationSubjectKind {
+  static const unspecified = 'unspecified';
+  static const package = 'package';
+  static const packageVersion = 'package-version';
+  static const publisher = 'publisher';
 }

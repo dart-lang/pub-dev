@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -37,6 +39,35 @@ void main() {
         ),
         present: ['Please describe the issue you want to report:'],
         absent: ['Contact information'],
+      );
+    });
+
+    testWithProfile('page with bad subject', fn: () async {
+      await expectHtmlResponse(
+        await issueGet(
+          '/report?subject=x',
+          headers: {'cookie': '$experimentalCookieName=report'},
+        ),
+        present: [
+          'Invalid &quot;subject&quot; parameter.',
+        ],
+        absent: [
+          'Please describe the issue you want to report:',
+        ],
+        status: 400,
+      );
+    });
+
+    testWithProfile('page with package version subject', fn: () async {
+      await expectHtmlResponse(
+        await issueGet(
+          '/report?subject=package-version:oxygen/1.0.0',
+          headers: {'cookie': '$experimentalCookieName=report'},
+        ),
+        present: [
+          'Please describe the issue you want to report:',
+          'oxygen/1.0.0',
+        ],
       );
     });
   });
@@ -111,7 +142,7 @@ void main() {
         experimental: {'report'},
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
-            email: 'user@pub.dev',
+            email: 'user2@pub.dev',
             message: 'Huston, we have a problem.',
           ));
 
@@ -120,7 +151,11 @@ void main() {
           final email = fakeEmailSender.sentMessages.single;
           expect(email.from.email, 'noreply@pub.dev');
           expect(email.recipients.single.email, 'support@pub.dev');
-          expect(email.ccRecipients.single.email, 'user@pub.dev');
+          expect(email.ccRecipients.single.email, 'user2@pub.dev');
+
+          final mc = await dbService.query<ModerationCase>().run().single;
+          expect(mc.subject, isNull);
+          expect(mc.reporterEmail, 'user2@pub.dev');
         },
       );
     });
@@ -136,13 +171,19 @@ void main() {
           fn: (client) async {
             final msg = await client.postReport(ReportForm(
               message: 'Huston, we have a problem.',
+              subject: 'package:oxygen',
             ));
             expect(msg.message, 'Report submitted successfully.');
             expect(fakeEmailSender.sentMessages, hasLength(1));
             final email = fakeEmailSender.sentMessages.single;
+            expect(email.bodyText, contains('Subject: package:oxygen'));
             expect(email.from.email, 'noreply@pub.dev');
             expect(email.recipients.single.email, 'support@pub.dev');
             expect(email.ccRecipients.single.email, 'user@pub.dev');
+
+            final mc = await dbService.query<ModerationCase>().run().single;
+            expect(mc.subject, 'package:oxygen');
+            expect(mc.reporterEmail, 'user@pub.dev');
           },
         );
       });
