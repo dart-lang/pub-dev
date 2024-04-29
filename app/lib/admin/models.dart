@@ -93,11 +93,27 @@ abstract class ModerationStatus {
   static const pending = 'pending';
 }
 
+/// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
 class ModerationSubject {
+  /// The kind of moderation as described by [ModerationSubjectKind], one of:
+  /// - package,
+  /// - package-version,
+  /// - publisher.
   final String kind;
+
+  /// The local name part of the subject, may be a composite, one of:
+  /// - <package>,
+  /// - <package>/<version>,
+  /// - <publisherId>.
   final String localName;
+
+  /// The package name of the subject (if not a publisher).
   final String? package;
+
+  /// The package version of the subject (if the version was specified).
   final String? version;
+
+  /// The publisher id (if not a package or package/version).
   final String? publisherId;
 
   ModerationSubject._({
@@ -108,6 +124,8 @@ class ModerationSubject {
     this.publisherId,
   });
 
+  /// Tries to parse subject [value] and returns a [ModerationSubject]
+  /// if it is recognized, or `null` if the format is not recognizable.
   static ModerationSubject? tryParse(String value) {
     final parts = value.split(':');
     if (parts.length != 2) {
