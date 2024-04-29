@@ -353,7 +353,7 @@ Future<String> _acquireFakeSessionId({
         path: '/sign-in',
         queryParameters: {
           'fake-email': email,
-          'go': '/',
+          'go': '/help',
           if (scopes != null) 'scope': scopes.join(' '),
         },
       ),

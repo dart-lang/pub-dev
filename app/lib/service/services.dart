@@ -14,6 +14,7 @@ import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -147,6 +148,7 @@ Future<R> withFakeServices<R>({
     registerDbService(DatastoreDB(datastore!));
     registerStorageService(storage!);
     IOServer? frontendServer;
+    IOServer? searchServer;
     if (configuration == null) {
       // start storage server
       final storageServer = FakeStorageServer(storage);
@@ -158,11 +160,15 @@ Future<R> withFakeServices<R>({
           Uri.parse('http://localhost:${frontendServer.server.port}');
       registerScopeExitCallback(frontendServer.close);
 
+      searchServer = await IOServer.bind('localhost', 0);
+      registerScopeExitCallback(searchServer.close);
+
       // update configuration
       configuration = Configuration.test(
         storageBaseUrl: 'http://localhost:${storageServer.port}',
         primaryApiUri: frontendServerUri,
         primarySiteUri: frontendServerUri,
+        searchServicePrefix: 'http://localhost:${searchServer.server.port}',
       );
     }
     registerActiveConfiguration(configuration!);
@@ -183,9 +189,16 @@ Future<R> withFakeServices<R>({
     registerTaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 
     return await _withPubServices(() async {
+      // start search server before top packages
+      if (searchServer != null) {
+        final handler = wrapHandler(_logger, searchServiceHandler);
+        final subscription = searchServer.server.listen((rq) async {
+          await fork(() => handleRequest(rq, handler));
+        });
+        registerScopeExitCallback(subscription.cancel);
+      }
+
       await nameTracker.startTracking();
-      await topPackages.start();
-      await youtubeBackend.start();
       if (frontendServer != null) {
         final handler = wrapHandler(
             _logger, _fakeClockWrapper(createAppHandler()),

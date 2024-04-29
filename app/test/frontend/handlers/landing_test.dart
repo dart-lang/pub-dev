@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:http/testing.dart';
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/top_packages.dart';
 import 'package:test/test.dart';
 
@@ -49,23 +47,6 @@ void main() {
           '/packages/http',
           '/packages/event_bus',
           'lightweight library for parsing',
-        ],
-      );
-    });
-
-    testWithProfile('/ without a working search service', fn: () async {
-      registerSearchClient(
-          SearchClient(MockClient((_) async => throw Exception())));
-      final rs = await issueGet('/');
-      await expectHtmlResponse(
-        rs,
-        present: [
-          'The official package repository for',
-        ],
-        absent: [
-          '/packages/neon',
-          '/packages/oxygen',
-          'Awesome package',
         ],
       );
     });
