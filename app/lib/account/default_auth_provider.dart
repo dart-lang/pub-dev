@@ -91,13 +91,11 @@ class DefaultAuthProvider extends BaseAuthProvider {
     return await token.verifySignature(openIdData.jwks);
   }
 
-  String _getOauthServerAudience() => activeConfiguration.pubServerAudience!;
+  String _getOauthSiteAudience() => activeConfiguration.pubServerAudience!;
 
-  Future<String?> _getOauthServerClientSecret() async {
-    return await secretBackend.lookup(
-      SecretKey.oauthClientSecret,
-      maxAge: Duration(hours: 3),
-    );
+  Future<String?> _getOauthSiteAudienceSecret(String audience) async {
+    return await secretBackend
+        .getCachedValue('${SecretKey.oauthPrefix}$audience');
   }
 
   @override
@@ -112,7 +110,7 @@ class DefaultAuthProvider extends BaseAuthProvider {
     // Using https://developers.google.com/identity/protocols/oauth2/web-server#httprest_1
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
       queryParameters: {
-        'client_id': _getOauthServerAudience(),
+        'client_id': _getOauthSiteAudience(),
         'redirect_uri': getOauthRedirectUri(),
         'response_type': 'code',
         'scope': [
@@ -136,8 +134,8 @@ class DefaultAuthProvider extends BaseAuthProvider {
     required String expectedNonce,
   }) async {
     try {
-      final audience = _getOauthServerAudience();
-      final secret = await _getOauthServerClientSecret();
+      final audience = _getOauthSiteAudience();
+      final secret = await _getOauthSiteAudienceSecret(audience);
       final tokenUri = Uri.parse('https://oauth2.googleapis.com/token');
       final formData = {
         'code': code,
