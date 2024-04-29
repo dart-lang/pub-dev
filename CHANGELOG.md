@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: disabled email notification on package published events.
 
 ## `20240429t092800-all`
  * Note: re-enabled email notification on package published events.
