@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:pub_dev/admin/models.dart';
 
 import '../../frontend/request_context.dart';
 import '../../service/announcement/backend.dart';
@@ -63,6 +64,24 @@ String renderLayoutPage(
   ];
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
   final session = requestContext.sessionData;
+  final moderationSubject = () {
+    if (!requestContext.experimentalFlags.isReportPageEnabled) {
+      return null;
+    }
+    if (pageData == null) {
+      return null;
+    }
+    if (pageData.isPackagePage) {
+      final pkgData = pageData.pkgData!;
+      return ModerationSubject.package(
+        pkgData.package,
+        pkgData.isLatest ? null : pkgData.version,
+      );
+    } else if (pageData.isPublisherPage) {
+      return ModerationSubject.publisher(pageData.publisher!.publisherId);
+    }
+    return null;
+  }();
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,
@@ -92,6 +111,7 @@ String renderLayoutPage(
     mainContent: contentNode,
     includeHighlightJs: type == PageType.package,
     schemaOrgSearchActionJson: isRoot ? _schemaOrgSearchAction : null,
+    moderationSubject: moderationSubject,
   ).toString();
 }
 

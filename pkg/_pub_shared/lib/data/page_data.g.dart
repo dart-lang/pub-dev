@@ -39,6 +39,7 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
       publisherId: json['publisherId'] as String?,
       isDiscontinued: json['isDiscontinued'] as bool,
       likes: json['likes'] as int,
+      isLatest: json['isLatest'] as bool,
     );
 
 Map<String, dynamic> _$PkgDataToJson(PkgData instance) {
@@ -56,6 +57,7 @@ Map<String, dynamic> _$PkgDataToJson(PkgData instance) {
 
   writeNotNull('publisherId', instance.publisherId);
   val['isDiscontinued'] = instance.isDiscontinued;
+  val['isLatest'] = instance.isLatest;
   return val;
 }
 
