@@ -75,7 +75,7 @@ final class GcpSecretBackend extends SecretBackend {
       final api = secretmanager.SecretManagerApi(_client);
       final secret = await retry(
         () async => await api.projects.secrets.versions.access(
-          'projects/${activeConfiguration.projectId}/secrets/$id/latest',
+          'projects/${activeConfiguration.projectId}/secrets/$id/versions/latest',
         ),
       );
       final data = secret.payload?.data;
