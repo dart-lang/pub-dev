@@ -119,13 +119,17 @@ void main() {
     final oxygen = await packageBackend.lookupPackage('oxygen');
 
     expect(result.output, {
-      'userId': oxygen!.uploaders!.first,
-      'email': 'admin@pub.dev',
-      'packages': ['flutter_titanium', 'oxygen'],
-      'publishers': ['example.com'],
-      'moderated': false,
-      'created': isA<String>(),
-      'deleted': false
+      'users': [
+        {
+          'userId': oxygen!.uploaders!.first,
+          'email': 'admin@pub.dev',
+          'packages': ['flutter_titanium', 'oxygen'],
+          'publishers': ['example.com'],
+          'moderated': false,
+          'created': isA<String>(),
+          'deleted': false
+        }
+      ]
     });
   });
 

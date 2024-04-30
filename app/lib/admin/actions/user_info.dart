@@ -20,13 +20,17 @@ Retrieves info about a user.
 Output is on this form:
 ```
 {
-  'userId': 'e55b9604-933f-4492-bf55-66cb6c57d7b0',
-  'email': 'admin@pub.dev',
-  'packages': ['flutter_titanium', 'oxygen'],
-  'publishers': ['example.com'],
-  'moderated': false,
-  'created': '2024-04-30T07:32:19.000041Z',
-  'deleted': false
+  'users': [
+    {
+      'userId': '1c385f28-3a0c-4967-9d74-418bed3ab8b8',
+      'email': 'admin@pub.dev',
+      'packages': ['flutter_titanium', 'oxygen'],
+      'publishers': ['example.com'],
+      'moderated': false,
+      'created': '2024-04-30T08:16:00.065419Z',
+      'deleted': false
+    }
+  ]
 }
 ```
 ''',
@@ -40,36 +44,37 @@ Output is on this form:
       'user must be given',
     );
 
-    User? user;
+    final List<User> users;
     if (looksLikeUserId(userIdOrEmail!)) {
-      user = await accountBackend.lookupUserById(userIdOrEmail);
+      final user = await accountBackend.lookupUserById(userIdOrEmail);
+      users = [if (user != null) user];
     } else {
-      final users = await accountBackend.lookupUsersByEmail(userIdOrEmail);
-      InvalidInputException.check(users.length == 1,
-          'Expected a single User, got ${users.length}: ${users.map((e) => e.userId).join(', ')}.');
-      user = users.single;
+      users = await accountBackend.lookupUsersByEmail(userIdOrEmail);
     }
-    if (user == null) {
+    if (users.isEmpty) {
       throw InvalidInputException('Unable to locate user.');
     }
+    final result = <dynamic>[];
+    for (final user in users) {
+      final publishers =
+          await publisherBackend.listPublishersForUser(user.userId);
 
-    final publishers =
-        await publisherBackend.listPublishersForUser(user.userId);
+      final packages = await packageBackend
+          .streamPackagesWhereUserIsUploader(user.userId)
+          .toList();
 
-    final packages = await packageBackend
-        .streamPackagesWhereUserIsUploader(user.userId)
-        .toList();
-
-    return {
-      'userId': user.userId,
-      'email': user.email,
-      'packages': packages,
-      'publishers':
-          (publishers.publishers ?? []).map((d) => d.publisherId).toList(),
-      'moderated': user.isModerated,
-      if (user.isModerated) 'moderatedAt': user.moderatedAt,
-      'created': user.created?.toIso8601String(),
-      'deleted': user.isDeleted,
-    };
+      result.add({
+        'userId': user.userId,
+        'email': user.email,
+        'packages': packages,
+        'publishers':
+            (publishers.publishers ?? []).map((d) => d.publisherId).toList(),
+        'moderated': user.isModerated,
+        if (user.isModerated) 'moderatedAt': user.moderatedAt,
+        'created': user.created?.toIso8601String(),
+        'deleted': user.isDeleted,
+      });
+    }
+    return {'users': result};
   },
 );
