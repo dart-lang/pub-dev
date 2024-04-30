@@ -20,7 +20,7 @@ void main() {
     testWithProfile('page does not require authentication', fn: () async {
       await expectHtmlResponse(
         await issueGet(
-          '/report',
+          '/report?subject=package:oxygen',
           headers: {'cookie': '$experimentalCookieName=report'},
         ),
         present: [
@@ -34,11 +34,27 @@ void main() {
       final cookies = await acquireSessionCookies('user@pub.dev');
       await expectHtmlResponse(
         await issueGet(
-          '/report',
+          '/report?subject=package:oxygen',
           headers: {'cookie': '$experimentalCookieName=report; $cookies'},
         ),
         present: ['Please describe the issue you want to report:'],
         absent: ['Contact information'],
+      );
+    });
+
+    testWithProfile('page with missing subject', fn: () async {
+      await expectHtmlResponse(
+        await issueGet(
+          '/report',
+          headers: {'cookie': '$experimentalCookieName=report'},
+        ),
+        present: [
+          '&quot;subject&quot; cannot be `null`',
+        ],
+        absent: [
+          'Please describe the issue you want to report:',
+        ],
+        status: 400,
       );
     });
 
@@ -114,6 +130,100 @@ void main() {
       });
     });
 
+    testWithProfile('subject missing', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user@pub.dev',
+              message: 'Huston, we have a problem.',
+            )),
+            status: 400,
+            code: 'InvalidInput',
+            message: '\"subject\" cannot be `null`',
+          );
+          expect(fakeEmailSender.sentMessages, isEmpty);
+        },
+      );
+    });
+
+    testWithProfile('subject is invalid', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user@pub.dev',
+              subject: 'x',
+              message: 'Huston, we have a problem.',
+            )),
+            status: 400,
+            code: 'InvalidInput',
+            message: 'Invalid subject.',
+          );
+          expect(fakeEmailSender.sentMessages, isEmpty);
+        },
+      );
+    });
+
+    testWithProfile('package missing', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user@pub.dev',
+              subject: 'package:x',
+              message: 'Huston, we have a problem.',
+            )),
+            status: 404,
+            code: 'NotFound',
+            message: 'Package \"x\" does not exist.',
+          );
+          expect(fakeEmailSender.sentMessages, isEmpty);
+        },
+      );
+    });
+
+    testWithProfile('version missing', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user@pub.dev',
+              subject: 'package-version:oxygen/4.0.0',
+              message: 'Huston, we have a problem.',
+            )),
+            status: 404,
+            code: 'NotFound',
+            message: 'Package version \"oxygen/4.0.0\" does not exist.',
+          );
+          expect(fakeEmailSender.sentMessages, isEmpty);
+        },
+      );
+    });
+
+    testWithProfile('publisher missing', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user@pub.dev',
+              subject: 'publisher:unknown-domain.com',
+              message: 'Huston, we have a problem.',
+            )),
+            status: 404,
+            code: 'NotFound',
+            message: 'Publisher \"unknown-domain.com\" does not exist.',
+          );
+          expect(fakeEmailSender.sentMessages, isEmpty);
+        },
+      );
+    });
+
     testWithProfile('too short message', fn: () async {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
@@ -125,6 +235,7 @@ void main() {
           fn: (client) async {
             await expectApiException(
               client.postReport(ReportForm(
+                subject: 'package:oxygen',
                 message: 'Problem.',
               )),
               status: 400,
@@ -143,6 +254,7 @@ void main() {
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
+            subject: 'package:oxygen',
             message: 'Huston, we have a problem.',
           ));
 
@@ -154,7 +266,7 @@ void main() {
           expect(email.ccRecipients.single.email, 'user2@pub.dev');
 
           final mc = await dbService.query<ModerationCase>().run().single;
-          expect(mc.subject, isNull);
+          expect(mc.subject, 'package:oxygen');
           expect(mc.reporterEmail, 'user2@pub.dev');
         },
       );
