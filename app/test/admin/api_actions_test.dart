@@ -109,6 +109,27 @@ void main() {
     expect(emails, {'admin@pub.dev'});
   });
 
+  testWithProfile('user-info', fn: () async {
+    final api = createPubApiClient(authToken: siteAdminToken);
+    final result = await api.adminInvokeAction(
+      'user-info',
+      AdminInvokeActionArguments(arguments: {'user': 'admin@pub.dev'}),
+    );
+
+    final oxygen = await packageBackend.lookupPackage('oxygen');
+
+    expect(result.output, {
+      'userId': oxygen!.uploaders!.first,
+      'email': 'admin@pub.dev',
+      'packages': ['flutter_titanium', 'oxygen'],
+      'publishers': ['example.com'],
+      'moderated': false,
+      'created': isA<String>(),
+      'oauthUserId': 'admin-pub-dev',
+      'deleted': false
+    });
+  });
+
   testWithProfile('merge existing moderated package into existing',
       fn: () async {
     final originalVersionList = await packageBackend.listVersions('oxygen');

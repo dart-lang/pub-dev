@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/actions/user_info.dart';
+
 import '../../shared/exceptions.dart';
 import 'create_publisher.dart';
 import 'delete_publisher.dart';
@@ -72,6 +74,7 @@ final class AdminAction {
   static List<AdminAction> actions = [
     createPublisher,
     deletePublisher,
+    userInfo,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
