@@ -125,7 +125,6 @@ void main() {
       'publishers': ['example.com'],
       'moderated': false,
       'created': isA<String>(),
-      'oauthUserId': 'admin-pub-dev',
       'deleted': false
     });
   });
