@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/actions/user_info.dart';
-
 import '../../shared/exceptions.dart';
 import 'create_publisher.dart';
 import 'delete_publisher.dart';
@@ -20,6 +18,7 @@ import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
 import 'uploader_count_report.dart';
+import 'user_info.dart';
 
 export '../../shared/exceptions.dart';
 
