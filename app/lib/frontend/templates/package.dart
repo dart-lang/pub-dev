@@ -306,6 +306,7 @@ PageData pkgPageData(
       publisherId: package.publisherId,
       isDiscontinued: package.isDiscontinued,
       likes: package.likes,
+      isLatest: package.latestVersion == selectedVersion.version,
     ),
     sessionAware: editable,
   );

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/models.dart';
+
 import '../../../../shared/configuration.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
@@ -25,6 +27,7 @@ d.Node pageLayoutNode({
   required d.Node mainContent,
   required bool includeHighlightJs,
   required Map<String, dynamic>? schemaOrgSearchActionJson,
+  required ModerationSubject? moderationSubject,
 }) {
   return d.fragment([
     d.unsafeRawHtml('<!DOCTYPE html>\n'),
@@ -227,7 +230,7 @@ d.Node pageLayoutNode({
               ),
 
             d.element('main', classes: mainClasses, child: mainContent),
-            _siteFooterNode(),
+            _siteFooterNode(moderationSubject: moderationSubject),
             if (includeHighlightJs)
               d.fragment([
                 d.script(
@@ -246,7 +249,9 @@ d.Node pageLayoutNode({
 }
 
 /// Renders the footer content.
-d.Node _siteFooterNode() {
+d.Node _siteFooterNode({
+  required ModerationSubject? moderationSubject,
+}) {
   d.Node link(String href, String label, {bool sep = true}) =>
       d.a(classes: ['link', if (sep) 'sep'], href: href, text: label);
 
@@ -262,11 +267,34 @@ d.Node _siteFooterNode() {
         ),
       );
 
+  final moderationNode = () {
+    if (moderationSubject == null) {
+      return null;
+    }
+    if (moderationSubject.package != null) {
+      return link(
+        urls.reportPage(subject: moderationSubject.fqn),
+        'Report package',
+        sep: false,
+      );
+    }
+    if (moderationSubject.publisherId != null) {
+      return link(
+        urls.reportPage(subject: moderationSubject.fqn),
+        'Report publisher',
+        sep: false,
+      );
+    }
+    throw ArgumentError('Unknown subject: ${moderationSubject.fqn}');
+  }();
+
   return d.element(
     'footer',
     classes: ['site-footer'],
     children: [
-      link('${urls.dartSiteRoot}/', 'Dart language', sep: false),
+      if (moderationNode != null) moderationNode,
+      link('${urls.dartSiteRoot}/', 'Dart language',
+          sep: moderationNode != null),
       link('/policy', 'Policy'),
       link('https://www.google.com/intl/en/policies/terms/', 'Terms'),
       link('https://developers.google.com/terms/', 'API Terms'),

@@ -124,6 +124,25 @@ class ModerationSubject {
     this.publisherId,
   });
 
+  factory ModerationSubject.package(String package, [String? version]) {
+    return ModerationSubject._(
+      kind: version == null
+          ? ModerationSubjectKind.package
+          : ModerationSubjectKind.packageVersion,
+      localName: [package, if (version != null) version].join('/'),
+      package: package,
+      version: version,
+    );
+  }
+
+  factory ModerationSubject.publisher(String publisherId) {
+    return ModerationSubject._(
+      kind: ModerationSubjectKind.publisher,
+      localName: publisherId,
+      publisherId: publisherId,
+    );
+  }
+
   /// Tries to parse subject [value] and returns a [ModerationSubject]
   /// if it is recognized, or `null` if the format is not recognizable.
   static ModerationSubject? tryParse(String value) {
