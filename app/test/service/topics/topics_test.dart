@@ -4,6 +4,7 @@
 import 'dart:convert';
 
 import 'package:gcloud/storage.dart';
+import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/service/topics/count_topics.dart';
 import 'package:pub_dev/service/topics/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -76,6 +77,14 @@ void main() {
         fail('The alias "$alias" is listed in "aliases" for two topics!');
       }
     }
+  });
+
+  test('topics are canonicalized', () {
+    final pubspec = Pubspec.fromJson({
+      'name': 'x',
+      'topics': ['widget', 'widgets', 'x'],
+    });
+    expect(pubspec.canonicalizedTopics, ['widget', 'x']);
   });
 
   test('duplicates', () {

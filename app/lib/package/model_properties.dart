@@ -80,8 +80,6 @@ class Pubspec {
 
   String? get description => _inner.description;
 
-  List<String>? get topics => _inner.topics;
-
   late final canonicalizedTopics = (_inner.topics ?? const <String>[])
       .map((e) => canonicalTopics.aliasToCanonicalMap[e] ?? e)
       .toSet()
