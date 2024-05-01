@@ -50,6 +50,7 @@ void main() {
           await Future.delayed(Duration(seconds: 1));
 
           await page.gotoOrigin('/report?subject=package:oxygen');
+          await page.waitAndClick('.report-page-direct-report');
           await page.waitFocusAndType('#report-email', 'user@pub.dev');
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');
