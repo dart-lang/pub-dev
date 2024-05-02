@@ -58,7 +58,6 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     ]),
     tagsNode: null,
     replacedBy: null,
-    copyIcon: null,
     apiPages: hit.apiPages
         ?.where((page) => page.url != null)
         .map((page) => _ApiPageUrl(
