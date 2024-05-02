@@ -17,6 +17,7 @@ import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
 import 'uploader_count_report.dart';
+import 'user_info.dart';
 
 export '../../shared/exceptions.dart';
 
@@ -71,6 +72,7 @@ final class AdminAction {
   static List<AdminAction> actions = [
     createPublisher,
     deletePublisher,
+    userInfo,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
