@@ -2,9 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:clock/clock.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
+
+part 'models.g.dart';
 
 /// Tracks the status of the moderation or appeal case.
 @db.Kind(name: 'ModerationCase', idType: db.IdType.String)
@@ -66,6 +71,10 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? status;
 
+  /// The JSON-encoded array of [ModerationActionLog] entries.
+  @db.StringProperty(propertyName: 'actionLog', indexed: false)
+  String? actionLogField;
+
   ModerationCase();
 
   ModerationCase.init({
@@ -78,6 +87,34 @@ class ModerationCase extends db.ExpandoModel<String> {
   }) {
     id = caseId;
     opened = clock.now().toUtc();
+  }
+
+  ModerationActionLog getActionLog() {
+    if (actionLogField == null) {
+      return ModerationActionLog(entries: []);
+    }
+    return ModerationActionLog.fromJson(
+        json.decode(actionLogField!) as Map<String, Object?>);
+  }
+
+  void setActionLog(ModerationActionLog value) {
+    actionLogField = json.encode(value.toJson());
+  }
+
+  /// Adds a new entry after deduplication (skipping the current
+  /// [subject]+[isModerated] pair if an identical exists as the last state).
+  void addActionLogEntryWithDeduplication(String subject, bool isModerated) {
+    final log = getActionLog();
+    final lastEntry = log.entries.where((e) => e.subject == subject).lastOrNull;
+    if (lastEntry != null && lastEntry.isModerated == isModerated) {
+      // duplicate entry found, skip inserting
+      return;
+    }
+    log.entries.add(ModerationActionLogEntry(
+        timestamp: clock.now().toUtc(),
+        subject: subject,
+        isModerated: isModerated));
+    setActionLog(log);
   }
 }
 
@@ -211,4 +248,36 @@ class ModerationSubjectKind {
   static const packageVersion = 'package-version';
   static const publisher = 'publisher';
   static const user = 'user';
+}
+
+@JsonSerializable(includeIfNull: false)
+class ModerationActionLog {
+  final List<ModerationActionLogEntry> entries;
+
+  ModerationActionLog({
+    required this.entries,
+  });
+
+  factory ModerationActionLog.fromJson(Map<String, Object?> json) =>
+      _$ModerationActionLogFromJson(json);
+
+  Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class ModerationActionLogEntry {
+  final DateTime timestamp;
+  final String subject;
+  final bool isModerated;
+
+  ModerationActionLogEntry({
+    required this.timestamp,
+    required this.subject,
+    required this.isModerated,
+  });
+
+  factory ModerationActionLogEntry.fromJson(Map<String, Object?> json) =>
+      _$ModerationActionLogEntryFromJson(json);
+
+  Map<String, Object?> toJson() => _$ModerationActionLogEntryToJson(this);
 }
