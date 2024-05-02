@@ -217,8 +217,14 @@ String dartSdkMainUrl(String version) {
   return '$url/';
 }
 
-String reportPage({required String subject}) {
-  return Uri(path: '/report', queryParameters: {'subject': subject}).toString();
+String reportPage({
+  required String subject,
+  required String? url,
+}) {
+  return Uri(path: '/report', queryParameters: {
+    'subject': subject,
+    if (url != null) 'url': url,
+  }).toString();
 }
 
 /// Parses GitHub and GitLab urls, and returns the root of the repository.

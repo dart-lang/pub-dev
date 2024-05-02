@@ -230,7 +230,10 @@ d.Node pageLayoutNode({
               ),
 
             d.element('main', classes: mainClasses, child: mainContent),
-            _siteFooterNode(moderationSubject: moderationSubject),
+            _siteFooterNode(
+              canonicalUrl: canonicalUrl,
+              moderationSubject: moderationSubject,
+            ),
             if (includeHighlightJs)
               d.fragment([
                 d.script(
@@ -250,6 +253,7 @@ d.Node pageLayoutNode({
 
 /// Renders the footer content.
 d.Node _siteFooterNode({
+  required String? canonicalUrl,
   required ModerationSubject? moderationSubject,
 }) {
   d.Node link(String href, String label, {bool sep = true}) =>
@@ -273,14 +277,20 @@ d.Node _siteFooterNode({
     }
     if (moderationSubject.package != null) {
       return link(
-        urls.reportPage(subject: moderationSubject.fqn),
+        urls.reportPage(
+          subject: moderationSubject.fqn,
+          url: canonicalUrl,
+        ),
         'Report package',
         sep: false,
       );
     }
     if (moderationSubject.publisherId != null) {
       return link(
-        urls.reportPage(subject: moderationSubject.fqn),
+        urls.reportPage(
+          subject: moderationSubject.fqn,
+          url: canonicalUrl,
+        ),
         'Report publisher',
         sep: false,
       );
