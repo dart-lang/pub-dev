@@ -20,6 +20,7 @@ import '../../package_misc.dart';
 import '../shared/images.dart';
 import 'license.dart';
 import 'screenshots.dart';
+import 'title_content.dart';
 
 /// Renders the listing page (list of packages).
 d.Node listOfPackagesNode({
@@ -57,6 +58,7 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     ]),
     tagsNode: null,
     replacedBy: null,
+    copyIcon: null,
     apiPages: hit.apiPages
         ?.where((page) => page.url != null)
         .map((page) => _ApiPageUrl(
@@ -176,6 +178,8 @@ d.Node _packageItem(
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
     metadataNode: metadataNode,
+    copyIcon:
+        copyIcon(package: view.name, version: view.releases.stable.version),
     tagsNode: tagsNodeFromPackageView(searchForm: searchForm, package: view),
     replacedBy: view.replacedBy,
     apiPages: view.apiPages
@@ -205,6 +209,7 @@ d.Node _item({
   required String description,
   required d.Node metadataNode,
   required d.Node? tagsNode,
+  d.Node? copyIcon,
   required String? replacedBy,
   required List<_ApiPageUrl>? apiPages,
 }) {
@@ -216,10 +221,12 @@ d.Node _item({
       d.div(
         classes: ['packages-header'],
         children: [
-          d.h3(
-            classes: ['packages-title'],
-            child: d.a(href: url, text: name),
-          ),
+          d.h3(classes: [
+            'packages-title'
+          ], children: [
+            d.a(href: url, text: name),
+            if (copyIcon != null) copyIcon,
+          ]),
           if (age != null && age.inDays <= 30)
             d.div(
               classes: ['packages-recent'],

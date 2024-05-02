@@ -11,31 +11,35 @@ d.Node titleContentNode({
 }) {
   return d.fragment([
     d.text('$package $version '),
-    d.span(
-      classes: ['pkg-page-title-copy'],
-      children: [
-        d.img(
-          classes: ['pkg-page-title-copy-icon'],
-          attributes: {
-            'data-copy-content': '$package: ^$version',
-            'data-ga-click-event': 'copy-package-version',
-          },
-          image: d.Image(
-            src: staticUrls.getAssetUrl('/static/img/content-copy-icon.svg'),
-            alt: 'copy "$package: ^$version" to clipboard',
-            width: 18,
-            height: 18,
-          ),
-          title: 'Copy "$package: ^$version" to clipboard',
-        ),
-        d.div(
-          classes: ['pkg-page-title-copy-feedback'],
-          children: [
-            d.span(classes: ['code'], text: '$package: ^$version'),
-            d.text(' copied to clipboard'),
-          ],
-        ),
-      ],
-    ),
+    copyIcon(package: package, version: version),
   ]);
+}
+
+d.Node copyIcon({required String package, required String version}) {
+  return d.span(
+    classes: ['pkg-page-title-copy'],
+    children: [
+      d.img(
+        classes: ['pkg-page-title-copy-icon'],
+        attributes: {
+          'data-copy-content': '$package: ^$version',
+          'data-ga-click-event': 'copy-package-version',
+        },
+        image: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/content-copy-icon.svg'),
+          alt: 'copy "$package: ^$version" to clipboard',
+          width: 18,
+          height: 18,
+        ),
+        title: 'Copy "$package: ^$version" to clipboard',
+      ),
+      d.div(
+        classes: ['pkg-page-title-copy-feedback'],
+        children: [
+          d.span(classes: ['code'], text: '$package: ^$version'),
+          d.text(' copied to clipboard'),
+        ],
+      ),
+    ],
+  );
 }
