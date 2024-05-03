@@ -11,6 +11,7 @@ import 'package:pana/pana.dart';
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
+import '../../../../service/topics/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 
@@ -156,15 +157,17 @@ d.Node _packageItem(
 
   List<d.Node> _topicsNode(List<String>? topics) {
     if (topics == null || topics.isEmpty) return [];
-    return topics
-        .map(
-          (topic) => d.a(
-              classes: ['topics-tag'],
-              href: urls.searchUrl(q: 'topic:$topic'),
-              text: '#$topic',
-              rel: 'nofollow'),
-        )
-        .toList();
+    return topics.map(
+      (topic) {
+        final ct = canonicalTopics.asMap[topic];
+        final description = ct?.description;
+        return d.a(
+            classes: ['topics-tag'],
+            href: urls.searchUrl(q: 'topic:$topic'),
+            text: description ?? '#$topic',
+            rel: 'nofollow');
+      },
+    ).toList();
   }
 
   return _item(
