@@ -21,6 +21,7 @@ void main() {
       expect(ms.package, 'x');
       expect(ms.version, isNull);
       expect(ms.publisherId, isNull);
+      expect(ms.email, isNull);
     });
 
     test('package version', () {
@@ -30,6 +31,7 @@ void main() {
       expect(ms.package, 'x');
       expect(ms.version, '1.0.0');
       expect(ms.publisherId, isNull);
+      expect(ms.email, isNull);
     });
 
     test('publisher', () {
@@ -39,6 +41,17 @@ void main() {
       expect(ms.package, isNull);
       expect(ms.version, isNull);
       expect(ms.publisherId, 'example.com');
+      expect(ms.email, isNull);
+    });
+
+    test('user', () {
+      final ms = ModerationSubject.tryParse('user:a@example.com');
+      expect(ms!.kind, ModerationSubjectKind.user);
+      expect(ms.localName, 'a@example.com');
+      expect(ms.package, isNull);
+      expect(ms.version, isNull);
+      expect(ms.publisherId, isNull);
+      expect(ms.email, 'a@example.com');
     });
   });
 }

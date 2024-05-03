@@ -47,7 +47,6 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
 Future<void> _verifySubject(ModerationSubject? subject) async {
   final package = subject?.package;
   final version = subject?.version;
-  final publisherId = subject?.publisherId;
   if (package != null) {
     final p = await packageBackend.lookupPackage(package);
     if (p == null) {
@@ -61,11 +60,22 @@ Future<void> _verifySubject(ModerationSubject? subject) async {
       }
     }
   }
+
+  final publisherId = subject?.publisherId;
   if (publisherId != null) {
     final p = await publisherBackend.getPublisher(publisherId);
     if (p == null) {
       throw NotFoundException('Publisher "$publisherId" does not exist.');
     }
+  }
+
+  final email = subject?.email;
+  if (email != null) {
+    InvalidInputException.check(
+        isValidEmail(email), '"$email" is not a valid email.');
+
+    // NOTE: We are not going to lookup and reject the requests based on the
+    //       email address, as it would leak the existence of user accounts.
   }
 }
 
