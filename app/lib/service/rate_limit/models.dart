@@ -18,7 +18,8 @@ class RateLimitRequestCounter {
     required this.started,
     required this.value,
   });
-  RateLimitRequestCounter.init([this.value = 0]) : started = clock.now().toUtc();
+  RateLimitRequestCounter.init([this.value = 0])
+      : started = clock.now().toUtc();
 
   factory RateLimitRequestCounter.fromJson(Map<String, dynamic> json) =>
       _$RateLimitRequestCounterFromJson(json);
