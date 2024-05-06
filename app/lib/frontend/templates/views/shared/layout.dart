@@ -252,6 +252,8 @@ d.Node pageLayoutNode({
 }
 
 /// Renders the footer content.
+///
+/// The [canonicalUrl] must be the canonical URL for the current page.
 d.Node _siteFooterNode({
   required String? canonicalUrl,
   required ModerationSubject? moderationSubject,
