@@ -98,23 +98,28 @@ class ModerationSubject {
   /// The kind of moderation as described by [ModerationSubjectKind], one of:
   /// - package,
   /// - package-version,
-  /// - publisher.
+  /// - publisher,
+  /// - user.
   final String kind;
 
   /// The local name part of the subject, may be a composite, one of:
   /// - <package>,
   /// - <package>/<version>,
-  /// - <publisherId>.
+  /// - <publisherId>,
+  /// - <email>.
   final String localName;
 
-  /// The package name of the subject (if not a publisher).
+  /// The package name of the subject (if not a publisher, or user).
   final String? package;
 
   /// The package version of the subject (if the version was specified).
   final String? version;
 
-  /// The publisher id (if not a package or package/version).
+  /// The publisher id (if not a package or package/version, or user).
   final String? publisherId;
+
+  /// The email address of the user (if not a package or publisher).
+  final String? email;
 
   ModerationSubject._({
     required this.kind,
@@ -122,6 +127,7 @@ class ModerationSubject {
     this.package,
     this.version,
     this.publisherId,
+    this.email,
   });
 
   factory ModerationSubject.package(String package, [String? version]) {
@@ -183,6 +189,13 @@ class ModerationSubject {
           localName: publisherId,
           publisherId: publisherId,
         );
+      case ModerationSubjectKind.user:
+        final email = parts[1];
+        return ModerationSubject._(
+          kind: kind,
+          localName: email,
+          email: email,
+        );
       default:
         return null;
     }
@@ -195,4 +208,5 @@ class ModerationSubjectKind {
   static const package = 'package';
   static const packageVersion = 'package-version';
   static const publisher = 'publisher';
+  static const user = 'user';
 }
