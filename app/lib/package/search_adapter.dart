@@ -58,14 +58,14 @@ class SearchAdapter {
 
   Future<PackageSearchResult?> _searchOrFallback(
     SearchForm searchForm,
-    String? rateLimitKey,
+    String? sourceIp,
     bool fallbackToNames,
   ) async {
     PackageSearchResult? result;
     try {
       result = await searchClient.search(
         searchForm.toServiceQuery(),
-        rateLimitKey: rateLimitKey,
+        sourceIp: sourceIp,
       );
     } on RateLimitException {
       rethrow;

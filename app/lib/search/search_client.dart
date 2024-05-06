@@ -10,6 +10,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 
+import '../../../service/rate_limit/rate_limit.dart';
 import '../shared/configuration.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
@@ -45,7 +46,7 @@ class SearchClient {
   /// Calls the search service (or uses cache) to serve the [query].
   Future<PackageSearchResult> search(
     ServiceSearchQuery query, {
-    required String? rateLimitKey,
+    required String? sourceIp,
     bool skipCache = false,
   }) async {
     // check validity first
@@ -103,19 +104,14 @@ class SearchClient {
           message: 'Service returned status code ${response.statusCode}.');
     }
 
-    if (rateLimitKey != null) {
-      final counterCacheEntry = cache.searchRequestCounter(rateLimitKey);
-      final cachedCounter = await counterCacheEntry.get();
-      if (cachedCounter == null) {
-        await counterCacheEntry.set(SearchRequestCounter.init(1));
-      } else {
-        final nextCounter = cachedCounter.incrementOrThrow(
-          limit: _searchRateLimit,
-          window: _searchRateLimitWindow,
-          windowAsText: _searchRateLimitWindowAsText,
-        );
-        await counterCacheEntry.set(nextCounter);
-      }
+    if (sourceIp != null) {
+      await verifyRequestCounts(
+        sourceIp: sourceIp,
+        operation: 'search',
+        limit: _searchRateLimit,
+        window: _searchRateLimitWindow,
+        windowAsText: _searchRateLimitWindowAsText,
+      );
     }
 
     if (skipCache) {

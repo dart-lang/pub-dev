@@ -8,6 +8,7 @@ import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../../service/rate_limit/rate_limit.dart';
 import '../../account/backend.dart';
 import '../../admin/models.dart';
 import '../../frontend/email_sender.dart';
@@ -21,6 +22,11 @@ import '../../shared/handlers.dart';
 import '../../shared/utils.dart';
 import '../request_context.dart';
 import '../templates/report.dart';
+
+/// The number of requests allowed over [_reportRateLimitWindow]
+const _reportRateLimit = 5;
+const _reportRateLimitWindow = Duration(minutes: 10);
+const _reportRateLimitWindowAsText = 'last 10 minutes';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
@@ -75,6 +81,18 @@ Future<String> processReportPageHandler(
   if (!requestContext.experimentalFlags.isReportPageEnabled) {
     throw NotFoundException('Experimental flag is not enabled.');
   }
+
+  final sourceIp = request.sourceIp;
+  if (sourceIp != null) {
+    await verifyRequestCounts(
+      sourceIp: sourceIp,
+      operation: 'report',
+      limit: _reportRateLimit,
+      window: _reportRateLimitWindow,
+      windowAsText: _reportRateLimitWindowAsText,
+    );
+  }
+
   final now = clock.now().toUtc();
   final caseId = '${now.toIso8601String().split('T').first}/${createUuid()}';
 

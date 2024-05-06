@@ -286,7 +286,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   final sr = await searchClient.search(
     searchForm.toServiceQuery(),
-    rateLimitKey: request.sourceIp,
+    sourceIp: request.sourceIp,
   );
   final packages = sr.packageHits.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
