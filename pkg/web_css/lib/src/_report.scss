@@ -10,4 +10,38 @@
     width: 100%;
     margin-bottom: 12px;
   }
+
+  .report-page-section {
+    border-top: 1px solid #eee;
+    margin: 12px 0px;
+  }
+
+  .report-page-section-title {
+    font-size: 18px;
+    font-weight: 500;
+    padding: 8px 0px;
+    cursor: pointer;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+  }
+
+  .report-page-section-body {
+    padding-left: 16px;
+  }
+
+  .foldable-icon {
+    margin: 0px 8px 3px 8px;
+    width: 12px;
+
+    transform: rotate(90deg);
+    transition: transform .3s linear;
+  }
+
+  .foldable.-active {
+    .foldable-icon {
+      transform: rotate(180deg);
+    }
+  }
 }

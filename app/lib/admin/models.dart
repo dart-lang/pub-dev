@@ -202,6 +202,8 @@ class ModerationSubject {
   }
 
   late final fqn = '$kind:$localName';
+  bool get isPackage => package != null;
+  bool get isPublisher => publisherId != null;
 }
 
 class ModerationSubjectKind {

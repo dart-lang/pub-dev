@@ -59,7 +59,10 @@ void _setEventForFoldable() {
       }
     }
 
-    h.querySelector('.foldable-icon')!.attributes['tabindex'] = '0';
+    final foldableIcon = h.querySelector('.foldable-icon');
+    if (foldableIcon != null) {
+      foldableIcon.attributes['tabindex'] = '0';
+    }
 
     // listen on trigger events
     h.onClick.listen((e) async {
