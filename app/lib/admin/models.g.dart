@@ -25,13 +25,29 @@ ModerationActionLogEntry _$ModerationActionLogEntryFromJson(
     ModerationActionLogEntry(
       timestamp: DateTime.parse(json['timestamp'] as String),
       subject: json['subject'] as String,
-      isModerated: json['isModerated'] as bool,
+      moderationAction: $enumDecode(_$ApplyOrRevertEnumMap, json['applyOrRevert']),
+      message: json['message'] as String?,
     );
 
 Map<String, dynamic> _$ModerationActionLogEntryToJson(
-        ModerationActionLogEntry instance) =>
-    <String, dynamic>{
-      'timestamp': instance.timestamp.toIso8601String(),
-      'subject': instance.subject,
-      'isModerated': instance.isModerated,
-    };
+    ModerationActionLogEntry instance) {
+  final val = <String, dynamic>{
+    'timestamp': instance.timestamp.toIso8601String(),
+    'subject': instance.subject,
+    'applyOrRevert': _$ApplyOrRevertEnumMap[instance.moderationAction]!,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('message', instance.message);
+  return val;
+}
+
+const _$ApplyOrRevertEnumMap = {
+  ModerationAction.apply: 'apply',
+  ModerationAction.revert: 'revert',
+};

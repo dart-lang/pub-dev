@@ -102,18 +102,24 @@ class ModerationCase extends db.ExpandoModel<String> {
   }
 
   /// Adds a new entry after deduplication (skipping the current
-  /// [subject]+[isModerated] pair if an identical exists as the last state).
-  void addActionLogEntryWithDeduplication(String subject, bool isModerated) {
+  /// [subject]+[moderationAction] pair if an identical exists as the last state).
+  void addActionLogEntryWithDeduplication(
+    String subject,
+    ModerationAction moderationAction,
+    String? message,
+  ) {
     final log = getActionLog();
     final lastEntry = log.entries.where((e) => e.subject == subject).lastOrNull;
-    if (lastEntry != null && lastEntry.isModerated == isModerated) {
+    if (lastEntry != null && lastEntry.moderationAction == moderationAction) {
       // duplicate entry found, skip inserting
       return;
     }
     log.entries.add(ModerationActionLogEntry(
-        timestamp: clock.now().toUtc(),
-        subject: subject,
-        isModerated: isModerated));
+      timestamp: clock.now().toUtc(),
+      subject: subject,
+      moderationAction: moderationAction,
+      message: message,
+    ));
     setActionLog(log);
   }
 }
@@ -264,16 +270,23 @@ class ModerationActionLog {
   Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
 }
 
+enum ModerationAction {
+  apply,
+  revert,
+}
+
 @JsonSerializable(includeIfNull: false)
 class ModerationActionLogEntry {
   final DateTime timestamp;
   final String subject;
-  final bool isModerated;
+  final ModerationAction moderationAction;
+  final String? message;
 
   ModerationActionLogEntry({
     required this.timestamp,
     required this.subject,
-    required this.isModerated,
+    required this.moderationAction,
+    required this.message,
   });
 
   factory ModerationActionLogEntry.fromJson(Map<String, Object?> json) =>
