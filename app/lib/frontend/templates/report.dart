@@ -27,7 +27,8 @@ String renderReportPage({
       Uri.parse('https://reportcontent.google.com/troubleshooter').replace(
     queryParameters: {
       'product': 'dart_pub',
-      'content_id': subject.fqn, // TODO: Use subject.canonicalUrl, also add canonicalUrl
+      'content_id':
+          subject.fqn, // TODO: Use subject.canonicalUrl, also add canonicalUrl
     },
   );
   return renderLayoutPage(
@@ -49,7 +50,7 @@ String renderReportPage({
           d.input(type: 'hidden', name: 'subject', value: subject.fqn),
           d.p(text: ''),
           // illegal content
-          if (subject.hasPackage)
+          if (subject.isPackage)
             _block(
               title: 'I believe the package contains illegal content.',
               children: [
@@ -57,7 +58,7 @@ String renderReportPage({
                     '[illegal content reporting form here]($lcpsDeepLink).')
               ],
             )
-          else if (subject.hasPublisher)
+          else if (subject.isPublisher)
             _block(
               title: 'I believe the publisher contains illegal content.',
               children: [
@@ -67,7 +68,7 @@ String renderReportPage({
             ),
 
           // contact
-          if (subject.hasPackage)
+          if (subject.isPackage)
             _block(
               title:
                   'I have found a bug in the package / I need help using the package.',
@@ -88,7 +89,7 @@ String renderReportPage({
                     '[community channels](https://dart.dev/community).')
               ],
             )
-          else if (subject.hasPublisher)
+          else if (subject.isPublisher)
             _block(
               title: 'I want to contact the publisher.',
               children: [
