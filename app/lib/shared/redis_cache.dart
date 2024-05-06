@@ -13,17 +13,17 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
-import 'package:pub_dev/dartdoc/models.dart';
-import 'package:pub_dev/service/async_queue/async_queue.dart';
-import 'package:pub_dev/service/security_advisories/models.dart';
-import 'package:pub_dev/shared/env_config.dart';
 
+import '../../../service/async_queue/async_queue.dart';
+import '../../../service/rate_limit/models.dart';
+import '../../../service/security_advisories/models.dart';
+import '../../dartdoc/models.dart';
+import '../../shared/env_config.dart';
 import '../account/models.dart' show LikeData, SessionData;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
-import '../search/search_service.dart'
-    show PackageSearchResult, SearchRequestCounter;
+import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
 import '../task/models.dart';
@@ -198,17 +198,18 @@ class CachePatterns {
         ))[url];
   }
 
-  Entry<SearchRequestCounter> searchRequestCounter(String key) {
+  Entry<RateLimitRequestCounter> rateLimitRequestCounter(
+      String sourceIp, String operation) {
     return _cache
-        .withPrefix('search-request-counter/')
+        .withPrefix('rate-limit-request-counter/')
         .withTTL(const Duration(minutes: 3))
         .withCodec(utf8)
         .withCodec(json)
         .withCodec(wrapAsCodec(
-          encode: (SearchRequestCounter r) => r.toJson(),
+          encode: (RateLimitRequestCounter r) => r.toJson(),
           decode: (d) =>
-              SearchRequestCounter.fromJson(d as Map<String, dynamic>),
-        ))[key];
+              RateLimitRequestCounter.fromJson(d as Map<String, dynamic>),
+        ))['$sourceIp/$operation'];
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
