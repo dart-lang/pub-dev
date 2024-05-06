@@ -95,6 +95,23 @@ void validateHtml(Node root) {
     }
   }
 
+  // Link to report page must have url attribute.
+  for (final elem in links) {
+    final href = elem.attributes['href'];
+    if (href == null || !href.contains('/report?')) continue;
+    final uri = Uri.parse(href);
+
+    final subject = uri.queryParameters['subject'];
+    if (subject == null || subject.isEmpty) {
+      throw AssertionError('Report page URL must have `subject` attribute.');
+    }
+
+    final url = uri.queryParameters['url'];
+    if (url == null || url.isEmpty) {
+      throw AssertionError('Report page URL must have `url` attribute.');
+    }
+  }
+
   // No inline script tag.
   final scripts = querySelectorAll('script');
   for (Element elem in scripts) {
