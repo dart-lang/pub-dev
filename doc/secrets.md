@@ -1,15 +1,10 @@
 # Secrets
 
 While the application is open-source, we still need to store and access
-secrets, for example SMTP credentials. For that we are using the `Secret`
-entity in Datastore, where the `id` is the key of the secret, while the
-`value` contains the current credential value.
+secrets, for example SMTP credentials.
 
-There is a command-line tool to change the secret value in Datastore:
-
-````bash
-dart bin/tools/set_secret.dart [key] [value]
-````
+For that we are using
+[secret-manager](https://cloud.google.com/security/products/secret-manager).
 
 Currently used keys are listed in `SecretKey.values`. For example:
 - Redis connection string: `redis.connectionString`.
