@@ -799,7 +799,12 @@ void main() {
     });
 
     testWithProfile('topics page', fn: () async {
-      final html = renderTopicsPage({'ui': 5, 'network': 7, 'http': 4});
+      final html = renderTopicsPage({
+        'ui': 5,
+        'network': 7,
+        'http': 4,
+        'widget': 1,
+      });
       expectGoldenFile(html, 'topics_page.html');
     });
 

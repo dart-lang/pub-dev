@@ -75,6 +75,8 @@ class CanonicalTopicFileContent {
 
   Map<String, Object?> toJson() => _$CanonicalTopicFileContentToJson(this);
 
+  late final asMap = Map.fromEntries(topics.map((e) => MapEntry(e.topic, e)));
+
   late final aliasToCanonicalMap = () {
     final map = <String, String>{};
     for (final t in topics) {
