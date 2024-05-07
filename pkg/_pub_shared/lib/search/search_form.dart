@@ -398,7 +398,8 @@ class SearchForm {
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isNullSafe) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isDart3Compatible) ||
-      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin);
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin) ||
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isWasmReady);
 
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
