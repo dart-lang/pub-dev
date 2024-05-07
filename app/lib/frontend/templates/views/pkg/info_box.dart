@@ -193,9 +193,11 @@ d.Node? _topicstNode(List<String>? topics) {
     final ct = canonicalTopics.asMap[topic];
     final description = ct?.description;
     final node = d.a(
-        href: urls.searchUrl(q: 'topic:$topic'),
-        text: description ?? '#$topic',
-        rel: 'nofollow');
+      href: urls.searchUrl(q: 'topic:$topic'),
+      text: '#$topic',
+      title: description,
+      rel: 'nofollow',
+    );
     nodes.add(node);
   }
   return d.fragment(nodes);

@@ -162,10 +162,12 @@ d.Node _packageItem(
         final ct = canonicalTopics.asMap[topic];
         final description = ct?.description;
         return d.a(
-            classes: ['topics-tag'],
-            href: urls.searchUrl(q: 'topic:$topic'),
-            text: description ?? '#$topic',
-            rel: 'nofollow');
+          classes: ['topics-tag'],
+          href: urls.searchUrl(q: 'topic:$topic'),
+          text: '#$topic',
+          title: description,
+          rel: 'nofollow',
+        );
       },
     ).toList();
   }
