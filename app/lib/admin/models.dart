@@ -2,9 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:clock/clock.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
+
+part 'models.g.dart';
 
 /// Tracks the status of the moderation or appeal case.
 @db.Kind(name: 'ModerationCase', idType: db.IdType.String)
@@ -66,6 +71,10 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? status;
 
+  /// The JSON-encoded array of [ModerationActionLog] entries.
+  @db.StringProperty(propertyName: 'actionLog', indexed: false)
+  String? actionLogField;
+
   ModerationCase();
 
   ModerationCase.init({
@@ -78,6 +87,34 @@ class ModerationCase extends db.ExpandoModel<String> {
   }) {
     id = caseId;
     opened = clock.now().toUtc();
+  }
+
+  ModerationActionLog getActionLog() {
+    if (actionLogField == null) {
+      return ModerationActionLog(entries: []);
+    }
+    return ModerationActionLog.fromJson(
+        json.decode(actionLogField!) as Map<String, Object?>);
+  }
+
+  void setActionLog(ModerationActionLog value) {
+    actionLogField = json.encode(value.toJson());
+  }
+
+  /// Adds a new entry to the log with the current timestamp.
+  void addActionLogEntry(
+    String subject,
+    ModerationAction moderationAction,
+    String? message,
+  ) {
+    final log = getActionLog();
+    log.entries.add(ModerationActionLogEntry(
+      timestamp: clock.now().toUtc(),
+      subject: subject,
+      moderationAction: moderationAction,
+      message: message,
+    ));
+    setActionLog(log);
   }
 }
 
@@ -211,4 +248,43 @@ class ModerationSubjectKind {
   static const packageVersion = 'package-version';
   static const publisher = 'publisher';
   static const user = 'user';
+}
+
+@JsonSerializable(includeIfNull: false)
+class ModerationActionLog {
+  final List<ModerationActionLogEntry> entries;
+
+  ModerationActionLog({
+    required this.entries,
+  });
+
+  factory ModerationActionLog.fromJson(Map<String, Object?> json) =>
+      _$ModerationActionLogFromJson(json);
+
+  Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
+}
+
+enum ModerationAction {
+  apply,
+  revert,
+}
+
+@JsonSerializable(includeIfNull: false)
+class ModerationActionLogEntry {
+  final DateTime timestamp;
+  final String subject;
+  final ModerationAction moderationAction;
+  final String? message;
+
+  ModerationActionLogEntry({
+    required this.timestamp,
+    required this.subject,
+    required this.moderationAction,
+    required this.message,
+  });
+
+  factory ModerationActionLogEntry.fromJson(Map<String, Object?> json) =>
+      _$ModerationActionLogEntryFromJson(json);
+
+  Map<String, Object?> toJson() => _$ModerationActionLogEntryToJson(this);
 }
