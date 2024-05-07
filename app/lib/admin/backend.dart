@@ -14,13 +14,13 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
+import '../admin/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
@@ -31,6 +31,7 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import '../shared/versions.dart';
 import '../task/backend.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
@@ -715,5 +716,10 @@ class AdminBackend {
     });
 
     return api.AdminInvokeActionResponse(output: result);
+  }
+
+  Future<ModerationCase?> lookupModerationCase(String caseId) async {
+    return await dbService.lookupOrNull<ModerationCase>(
+        dbService.emptyKey.append(ModerationCase, id: caseId));
   }
 }

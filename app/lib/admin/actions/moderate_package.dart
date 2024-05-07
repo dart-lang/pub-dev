@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../admin/backend.dart';
+import '../../admin/models.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
@@ -16,11 +18,19 @@ final moderatePackage = AdminAction(
 Set the moderated flag on a package (updating the flag and the timestamp).
 ''',
   options: {
+    'case': 'The ModerationCase.caseId that this action is part of.',
     'package': 'The package name to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
+    'message': 'Optional message to store and send out.'
   },
   invoke: (options) async {
+    final caseId = options['case'];
+    InvalidInputException.check(
+      caseId != null && caseId.isNotEmpty,
+      'case must be given',
+    );
+
     final package = options['package'];
     InvalidInputException.check(
       package != null && package.isNotEmpty,
@@ -38,6 +48,13 @@ Set the moderated flag on a package (updating the flag and the timestamp).
         break;
     }
 
+    final message = options['message'];
+
+    final refCase = await adminBackend.lookupModerationCase(caseId!);
+    if (refCase == null) {
+      throw NotFoundException.resource(caseId);
+    }
+
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
       throw NotFoundException.resource(package);
@@ -49,6 +66,15 @@ Set the moderated flag on a package (updating the flag and the timestamp).
         final pkg = await tx.lookupValue<Package>(p.key);
         pkg.updateIsModerated(isModerated: valueToSet!);
         tx.insert(pkg);
+
+        final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+        mc.addActionLogEntry(
+          ModerationSubject.package(package).fqn,
+          valueToSet ? ModerationAction.apply : ModerationAction.revert,
+          message,
+        );
+        tx.insert(mc);
+
         return pkg;
       });
 
