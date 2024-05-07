@@ -45,6 +45,10 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   late String subject;
 
+  /// The URL of the page from where the reporter navigated to the report page.
+  @db.StringProperty()
+  late String? url;
+
   /// The `caseId` of the appeal (or null).
   @db.StringProperty()
   String? appealedCaseId;
@@ -75,6 +79,7 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.kind,
     required this.status,
     required this.subject,
+    required this.url,
   }) {
     id = caseId;
     opened = clock.now().toUtc();

@@ -183,11 +183,13 @@ class InviteStatus {
 class ReportForm {
   final String? email;
   final String? subject;
+  final String? url;
   final String message;
 
   ReportForm({
     this.email,
     this.subject,
+    this.url,
     required this.message,
   });
 
