@@ -49,8 +49,7 @@ String renderReportPage({
             d.text('?'),
           ]),
           d.input(type: 'hidden', name: 'subject', value: subject.fqn),
-          if (url != null)
-            d.input(type: 'hidden', name: 'url', value: url),
+          if (url != null) d.input(type: 'hidden', name: 'url', value: url),
           d.p(text: ''),
           // illegal content
           if (subject.isPackage)
