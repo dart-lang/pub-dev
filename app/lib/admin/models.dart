@@ -101,19 +101,13 @@ class ModerationCase extends db.ExpandoModel<String> {
     actionLogField = json.encode(value.toJson());
   }
 
-  /// Adds a new entry after deduplication (skipping the current
-  /// [subject]+[moderationAction] pair if an identical exists as the last state).
-  void addActionLogEntryWithDeduplication(
+  /// Adds a new entry to the log with the current timestamp.
+  void addActionLogEntry(
     String subject,
     ModerationAction moderationAction,
     String? message,
   ) {
     final log = getActionLog();
-    final lastEntry = log.entries.where((e) => e.subject == subject).lastOrNull;
-    if (lastEntry != null && lastEntry.moderationAction == moderationAction) {
-      // duplicate entry found, skip inserting
-      return;
-    }
     log.entries.add(ModerationActionLogEntry(
       timestamp: clock.now().toUtc(),
       subject: subject,
