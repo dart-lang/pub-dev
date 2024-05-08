@@ -13,7 +13,7 @@ d.Node renderTopicsList(Map<String, int> topics) {
   return d.div(classes: [
     'topics-page'
   ], children: [
-    d.h1(text: 'Topics '),
+    d.h1(text: 'Topics'),
     ...sortedTopics.map((e) => _topic(e.key, e.value)),
   ]);
 }
