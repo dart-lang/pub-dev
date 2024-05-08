@@ -3,6 +3,10 @@
    BSD-style license that can be found in the LICENSE file. */
 
 .topics-page {
+  h1 {
+    margin-bottom: 0;
+  }
+
   .topic-item {
     padding: 0;
     margin-bottom: 16px;
