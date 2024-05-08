@@ -20,6 +20,7 @@ const _subjectKindLabels = {
 String renderReportPage({
   SessionData? sessionData,
   required ModerationSubject subject,
+  required String? url,
 }) {
   final kindLabel = _subjectKindLabels[subject.kind] ?? 'about';
   // TODO: also add `url`
@@ -48,6 +49,7 @@ String renderReportPage({
             d.text('?'),
           ]),
           d.input(type: 'hidden', name: 'subject', value: subject.fqn),
+          if (url != null) d.input(type: 'hidden', name: 'url', value: url),
           d.p(text: ''),
           // illegal content
           if (subject.isPackage)

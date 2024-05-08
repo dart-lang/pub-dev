@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../../service/rate_limit/rate_limit.dart';
@@ -35,16 +36,19 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   }
 
   final subjectParam = request.requestedUri.queryParameters['subject'];
-
   InvalidInputException.checkNotNull(subjectParam, 'subject');
   final subject = ModerationSubject.tryParse(subjectParam!);
   InvalidInputException.check(subject != null, 'Invalid "subject" parameter.');
   await _verifySubject(subject!);
 
+  final url = request.requestedUri.queryParameters['url'];
+  _verifyUrl(url);
+
   return htmlResponse(
     renderReportPage(
       sessionData: requestContext.sessionData,
       subject: subject,
+      url: url,
     ),
     headers: CacheControl.explicitlyPrivate.headers,
   );
@@ -82,6 +86,19 @@ Future<void> _verifySubject(ModerationSubject? subject) async {
 
     // NOTE: We are not going to lookup and reject the requests based on the
     //       email address, as it would leak the existence of user accounts.
+  }
+}
+
+void _verifyUrl(String? urlParam) {
+  if (urlParam != null) {
+    InvalidInputException.check(
+      urlParam.startsWith(activeConfiguration.primarySiteUri.toString()),
+      'Invalid "url" parameter.',
+    );
+    InvalidInputException.check(
+      Uri.tryParse(urlParam) != null,
+      'Invalid "url" parameter.',
+    );
   }
 }
 
@@ -124,6 +141,8 @@ Future<String> processReportPageHandler(
   InvalidInputException.check(subject != null, 'Invalid subject.');
   await _verifySubject(subject!);
 
+  _verifyUrl(form.url);
+
   InvalidInputException.checkStringLength(
     form.message,
     'message',
@@ -141,12 +160,14 @@ Future<String> processReportPageHandler(
       kind: ModerationKind.notification,
       status: ModerationStatus.pending,
       subject: subject.fqn,
+      url: form.url,
     );
     tx.insert(mc);
   });
 
   final bodyText = <String>[
-    'New report recieved on ${now.toIso8601String()}: $caseId',
+    'New report received on ${now.toIso8601String()}: $caseId',
+    if (form.url != null) 'URL: ${form.url}',
     'Subject: ${subject.fqn}',
     'Message:\n${form.message}',
   ].join('\n\n');
