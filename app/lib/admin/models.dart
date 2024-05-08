@@ -8,6 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/datastore.dart' as db;
+import '../shared/urls.dart' as urls;
 
 part 'models.g.dart';
 
@@ -246,6 +247,20 @@ class ModerationSubject {
   late final fqn = '$kind:$localName';
   bool get isPackage => package != null;
   bool get isPublisher => publisherId != null;
+  bool get isUser => email != null;
+
+  late final canonicalUrl = () {
+    if (isPackage) {
+      return urls.pkgPageUrl(package!, version: version, includeHost: true);
+    }
+    if (isPublisher) {
+      return urls.publisherUrl(publisherId!, includeHost: true);
+    }
+    if (isUser) {
+      return email!;
+    }
+    throw UnimplementedError('Unknown subject kind: "$fqn"');
+  }();
 }
 
 class ModerationSubjectKind {

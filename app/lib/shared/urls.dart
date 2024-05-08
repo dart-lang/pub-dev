@@ -188,7 +188,18 @@ String pkgDocUrl(
   return baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 }
 
-String publisherUrl(String publisherId) => '/publishers/$publisherId';
+String publisherUrl(
+  String publisherId, {
+  bool includeHost = false,
+}) {
+  final path = '/publishers/$publisherId';
+  if (includeHost) {
+    return _siteRootUri.resolve(path).toString();
+  } else {
+    return path;
+  }
+}
+
 String publisherPackagesUrl(String publisherId) =>
     '/publishers/$publisherId/packages';
 String publisherUnlistedPackagesUrl(String publisherId) =>
