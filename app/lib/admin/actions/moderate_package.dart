@@ -22,7 +22,7 @@ Set the moderated flag on a package (updating the flag and the timestamp).
     'package': 'The package name to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'message': 'Optional message to store and send out.'
+    'message': 'Optional message to store.'
   },
   invoke: (options) async {
     final caseId = options['case'];
