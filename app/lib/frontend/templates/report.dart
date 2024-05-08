@@ -28,8 +28,7 @@ String renderReportPage({
       Uri.parse('https://reportcontent.google.com/troubleshooter').replace(
     queryParameters: {
       'product': 'dart_pub',
-      'content_id':
-          subject.fqn, // TODO: Use subject.canonicalUrl, also add canonicalUrl
+      'content_id': subject.canonicalUrl,
     },
   );
   return renderLayoutPage(

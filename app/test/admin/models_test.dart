@@ -22,6 +22,7 @@ void main() {
       expect(ms.version, isNull);
       expect(ms.publisherId, isNull);
       expect(ms.email, isNull);
+      expect(ms.canonicalUrl, 'https://pub.dev/packages/x');
     });
 
     test('package version', () {
@@ -32,6 +33,7 @@ void main() {
       expect(ms.version, '1.0.0');
       expect(ms.publisherId, isNull);
       expect(ms.email, isNull);
+      expect(ms.canonicalUrl, 'https://pub.dev/packages/x/versions/1.0.0');
     });
 
     test('publisher', () {
@@ -42,6 +44,7 @@ void main() {
       expect(ms.version, isNull);
       expect(ms.publisherId, 'example.com');
       expect(ms.email, isNull);
+      expect(ms.canonicalUrl, 'https://pub.dev/publishers/example.com');
     });
 
     test('user', () {
@@ -52,6 +55,7 @@ void main() {
       expect(ms.version, isNull);
       expect(ms.publisherId, isNull);
       expect(ms.email, 'a@example.com');
+      expect(ms.canonicalUrl, 'a@example.com');
     });
   });
 }
