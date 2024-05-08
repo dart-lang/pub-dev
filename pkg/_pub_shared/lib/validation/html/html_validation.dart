@@ -84,7 +84,10 @@ void validateHtml(Node root) {
       throw AssertionError('Unable to parse URL: "$href".');
     }
     if (uri.query.contains('//')) {
-      throw AssertionError('Double-slash URL detected: "$href".');
+      // exempt report page deep links
+      if (!uri.query.contains('content_id=')) {
+        throw AssertionError('Double-slash URL detected: "$href".');
+      }
     }
     if (uri.path == '/packages' && uri.queryParameters.containsKey('q')) {
       final rel = elem.attributes['rel'] ?? '';
