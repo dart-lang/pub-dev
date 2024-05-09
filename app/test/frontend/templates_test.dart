@@ -11,6 +11,7 @@ import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
@@ -27,6 +28,7 @@ import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
+import 'package:pub_dev/frontend/templates/report.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -806,6 +808,30 @@ void main() {
         'widget': 1,
       });
       expectGoldenFile(html, 'topics_page.html');
+    });
+
+    testWithProfile('report page', fn: () async {
+      registerRequestContext(
+          RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
+      final html = renderReportPage(
+        sessionData: null,
+        subject: ModerationSubject.package('oxygen'),
+        url: 'https://pub.dev/packages/oxygen/example',
+        caseId: null,
+      );
+      expectGoldenFile(html, 'report_page.html');
+    });
+
+    testWithProfile('report page - appeal', fn: () async {
+      registerRequestContext(
+          RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
+      final html = renderReportPage(
+        sessionData: null,
+        subject: ModerationSubject.package('oxygen'),
+        url: null,
+        caseId: 'fake-case-id',
+      );
+      expectGoldenFile(html, 'report_page_appeal.html');
     });
 
     scopedTest('pagination: single page', () {

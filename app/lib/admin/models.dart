@@ -90,6 +90,7 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.status,
     required this.subject,
     required this.url,
+    required this.appealedCaseId,
   }) {
     id = caseId;
     opened = clock.now().toUtc();
@@ -130,6 +131,7 @@ abstract class ModerationDetectedBy {
 
 abstract class ModerationKind {
   static const notification = 'notification';
+  static const appeal = 'appeal';
 }
 
 abstract class ModerationStatus {

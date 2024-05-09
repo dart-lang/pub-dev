@@ -55,8 +55,8 @@ void main() {
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');
           await page.waitAndClick('#report-submit', waitForOneResponse: true);
-          expect(
-              await page.content, contains('Report submitted successfully.'));
+          expect(await page.content,
+              contains('The report was submitted successfully.'));
           await page.waitAndClickOnDialogOk();
         },
       );
