@@ -422,11 +422,9 @@ class Configuration {
   ]);
 
   late final isProduction = projectId == 'dartlang-pub';
-  late final isNotProduction = !isProduction;
   late final isStaging = projectId == 'dartlang-pub-dev';
 
-  /// NOTE: email notification on package published is temporarily disabled.
-  late final isPublishedEmailNotificationEnabled = isNotProduction;
+  late final isPublishedEmailNotificationEnabled = true;
 }
 
 /// Data structure to describe an admin user.
