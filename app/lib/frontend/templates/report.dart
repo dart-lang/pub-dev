@@ -23,12 +23,12 @@ String renderReportPage({
   required String? url,
 }) {
   final kindLabel = _subjectKindLabels[subject.kind] ?? 'about';
-  // TODO: also add `url`
   final lcpsDeepLink =
       Uri.parse('https://reportcontent.google.com/troubleshooter').replace(
     queryParameters: {
       'product': 'dart_pub',
       'content_id': subject.canonicalUrl,
+      if (url != null) 'url': url,
     },
   );
   return renderLayoutPage(
