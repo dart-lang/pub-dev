@@ -58,19 +58,20 @@ void registerHoverable(Element h) {
 }
 
 void _setEventForPackageTitleCopyToClipboard() {
-  final root = document.querySelector('.pkg-page-title-copy');
-  final icon = root?.querySelector('.pkg-page-title-copy-icon');
-  final feedback = root?.querySelector('.pkg-page-title-copy-feedback');
-  if (root == null || icon == null || feedback == null) return;
-
-  final copyContent = icon.dataset['copy-content'];
-  if (copyContent == null || copyContent.isEmpty) return;
-
-  _setupCopyAndFeedbackButton(
-    copy: icon,
-    feedback: feedback,
-    textFn: () => copyContent,
-  );
+  final roots = document.querySelectorAll('.pkg-page-title-copy');
+  for (final root in roots) {
+    final icon = root.querySelector('.pkg-page-title-copy-icon');
+    if (icon == null) continue;
+    final feedback = root.querySelector('.pkg-page-title-copy-feedback');
+    if (feedback == null) continue;
+    final copyContent = icon.dataset['copy-content'];
+    if (copyContent == null || copyContent.isEmpty) continue;
+    _setupCopyAndFeedbackButton(
+      copy: icon,
+      feedback: feedback,
+      textFn: () => copyContent,
+    );
+  }
 }
 
 Future<void> _animateCopyFeedback(Element feedback) async {
