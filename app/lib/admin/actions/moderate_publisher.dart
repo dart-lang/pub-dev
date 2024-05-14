@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/publisher/backend.dart';
-import 'package:pub_dev/publisher/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
+import '../../publisher/backend.dart';
+import '../../publisher/models.dart';
+import '../../shared/datastore.dart';
+import '../backend.dart';
+import '../models.dart';
 
 import 'actions.dart';
 
@@ -18,11 +20,19 @@ moderated package page page says it is moderated, packages owned by publisher
 can't be updated, administrators must not be able to update publisher options.
 ''',
   options: {
+    'case': 'The ModerationCase.caseId that this action is part of.',
     'publisher': 'The publisherId to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
+    'message': 'Optional message to store.'
   },
   invoke: (options) async {
+    final caseId = options['case'];
+    InvalidInputException.check(
+      caseId != null && caseId.isNotEmpty,
+      'case must be given',
+    );
+
     final publisherId = options['publisher'];
     InvalidInputException.check(
       publisherId != null && publisherId.isNotEmpty,
@@ -44,12 +54,31 @@ can't be updated, administrators must not be able to update publisher options.
         break;
     }
 
+    final message = options['message'];
+
+    final refCase = await adminBackend.lookupModerationCase(caseId!);
+    if (refCase == null) {
+      throw NotFoundException.resource(caseId);
+    }
+    if (refCase.status != ModerationStatus.pending) {
+      throw InvalidInputException('ModerationCase is already closed.');
+    }
+
     Publisher? publisher2;
     if (valueToSet != null) {
       publisher2 = await withRetryTransaction(dbService, (tx) async {
         final p = await tx.lookupValue<Publisher>(publisher!.key);
         p.updateIsModerated(isModerated: valueToSet!);
         tx.insert(p);
+
+        final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+        mc.addActionLogEntry(
+          ModerationSubject.publisher(publisherId).fqn,
+          valueToSet ? ModerationAction.apply : ModerationAction.revert,
+          message,
+        );
+        tx.insert(mc);
+
         return p;
       });
       await purgePublisherCache(publisherId: publisherId);
