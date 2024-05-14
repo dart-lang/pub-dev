@@ -184,12 +184,14 @@ class ReportForm {
   final String? email;
   final String? subject;
   final String? url;
+  final String? caseId;
   final String message;
 
   ReportForm({
     this.email,
     this.subject,
     this.url,
+    this.caseId,
     required this.message,
   });
 

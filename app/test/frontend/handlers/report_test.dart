@@ -248,7 +248,7 @@ void main() {
       });
     });
 
-    testWithProfile('unauthenticated success', fn: () async {
+    testWithProfile('unauthenticated report success', fn: () async {
       await withHttpPubApiClient(
         experimental: {'report'},
         fn: (client) async {
@@ -258,7 +258,7 @@ void main() {
             message: 'Huston, we have a problem.',
           ));
 
-          expect(msg.message, 'Report submitted successfully.');
+          expect(msg.message, 'The report was submitted successfully.');
           expect(fakeEmailSender.sentMessages, hasLength(1));
           final email = fakeEmailSender.sentMessages.single;
           expect(email.from.email, 'noreply@pub.dev');
@@ -266,13 +266,14 @@ void main() {
           expect(email.ccRecipients.single.email, 'user2@pub.dev');
 
           final mc = await dbService.query<ModerationCase>().run().single;
+          expect(mc.kind, 'notification');
           expect(mc.subject, 'package:oxygen');
           expect(mc.reporterEmail, 'user2@pub.dev');
         },
       );
     });
 
-    testWithProfile('authenticated success', fn: () async {
+    testWithProfile('authenticated report success', fn: () async {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
@@ -285,7 +286,7 @@ void main() {
               message: 'Huston, we have a problem.',
               subject: 'package:oxygen',
             ));
-            expect(msg.message, 'Report submitted successfully.');
+            expect(msg.message, 'The report was submitted successfully.');
             expect(fakeEmailSender.sentMessages, hasLength(1));
             final email = fakeEmailSender.sentMessages.single;
             expect(email.bodyText, contains('Subject: package:oxygen'));
@@ -299,6 +300,123 @@ void main() {
           },
         );
       });
+    });
+  });
+
+  group('Appeal API test', () {
+    Future<void> _prepareApplied({
+      String? logSubject,
+      String? status,
+    }) async {
+      final mc = ModerationCase.init(
+        caseId: 'case/1',
+        reporterEmail: 'somebody@pub.dev',
+        source: ModerationDetectedBy.externalNotification,
+        kind: ModerationKind.notification,
+        status: status ?? ModerationStatus.moderationApplied,
+        subject: 'package:oxygen',
+        url: 'https://pub.dev/packages/oxygen/example',
+        appealedCaseId: null,
+      );
+      if (logSubject != null) {
+        mc.addActionLogEntry(logSubject, ModerationAction.apply, null);
+      }
+      await dbService.commit(inserts: [mc]);
+    }
+
+    testWithProfile('failure: case does not exists', fn: () async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user2@pub.dev',
+              subject: 'package-version:oxygen/1.2.0',
+              caseId: 'case/1',
+              message: 'Huston, we have a problem.',
+            )),
+            code: 'NotFound',
+            status: 404,
+            message: 'Could not find `case_id \"case/1\"`.',
+          );
+        },
+      );
+    });
+
+    testWithProfile('failure: case is not closed', fn: () async {
+      await _prepareApplied(status: ModerationStatus.pending);
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user2@pub.dev',
+              subject: 'package-version:oxygen/1.2.0',
+              caseId: 'case/1',
+              message: 'Huston, we have a problem.',
+            )),
+            code: 'InvalidInput',
+            status: 400,
+            message: 'The reported case is not closed yet.',
+          );
+        },
+      );
+    });
+
+    testWithProfile('failure: subject is not on the case', fn: () async {
+      await _prepareApplied();
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await expectApiException(
+            client.postReport(ReportForm(
+              email: 'user2@pub.dev',
+              subject: 'package-version:oxygen/1.2.0',
+              caseId: 'case/1',
+              message: 'Huston, we have a problem.',
+            )),
+            code: 'InvalidInput',
+            status: 400,
+            message:
+                'The reported case has no resolution on subject "package-version:oxygen/1.2.0".',
+          );
+        },
+      );
+    });
+
+    testWithProfile('unauthenticated appeal success', fn: () async {
+      await _prepareApplied(
+        logSubject: 'package-version:oxygen/1.2.0',
+      );
+
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          final msg = await client.postReport(ReportForm(
+            email: 'user2@pub.dev',
+            subject: 'package-version:oxygen/1.2.0',
+            caseId: 'case/1',
+            message: 'Huston, we have a problem.',
+          ));
+
+          expect(msg.message, 'The appeal was submitted successfully.');
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.from.email, 'noreply@pub.dev');
+          expect(email.recipients.single.email, 'support@pub.dev');
+          expect(email.ccRecipients.single.email, 'user2@pub.dev');
+
+          final mc = await dbService
+              .query<ModerationCase>()
+              .run()
+              .where((e) => e.caseId != 'case/1')
+              .single;
+          expect(mc.kind, 'appeal');
+          expect(mc.subject, 'package-version:oxygen/1.2.0');
+          expect(mc.reporterEmail, 'user2@pub.dev');
+          expect(mc.appealedCaseId, 'case/1');
+        },
+      );
     });
   });
 }
