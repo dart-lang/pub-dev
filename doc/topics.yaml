@@ -68,3 +68,7 @@ topics:
   - logger
   - logs
   - log
+- topic: testing
+  description: Packages that facilitate testing
+  aliases:
+  - test
