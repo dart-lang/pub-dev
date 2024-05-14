@@ -179,4 +179,34 @@ void main() {
         .uploadPackageBytes(bytes);
     expect(rs2.success.message, contains('Successfully uploaded'));
   });
+
+  testWithProfile('package-version-retraction', fn: () async {
+    final latest = await packageBackend.getLatestVersion('oxygen');
+
+    final api = createPubApiClient(authToken: siteAdminToken);
+    final result = await api.adminInvokeAction(
+      'package-version-retraction',
+      AdminInvokeActionArguments(arguments: {
+        'package': 'oxygen',
+        'version': latest!,
+        'set-retracted': 'true',
+      }),
+    );
+
+    expect(result.output, {
+      'before': {
+        'package': 'oxygen',
+        'version': latest,
+        'isRetracted': false,
+      },
+      'after': {
+        'package': 'oxygen',
+        'version': latest,
+        'isRetracted': true,
+      },
+    });
+
+    final newLatest = await packageBackend.getLatestVersion('oxygen');
+    expect(newLatest != latest, isTrue);
+  });
 }
