@@ -63,7 +63,7 @@ topics:
   aliases:
   - widgets
 - topic: logging
-  decription: Packages for writing log messages.
+  description: Packages for writing log messages.
   aliases:
   - logger
   - logs
