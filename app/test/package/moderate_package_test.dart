@@ -327,5 +327,17 @@ void main() {
         expect(score3.grantedPubPoints, greaterThan(40));
       },
     );
+
+    testWithProfile('status already closed', fn: () async {
+      final mc = await _report('oxygen');
+      await dbService.commit(inserts: [mc..status = ModerationStatus.noAction]);
+
+      await expectApiException(
+        _moderate('oxygen', state: true, caseId: mc.caseId),
+        code: 'InvalidInput',
+        status: 400,
+        message: 'ModerationCase is already closed',
+      );
+    });
   });
 }

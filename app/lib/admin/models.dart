@@ -134,6 +134,8 @@ abstract class ModerationKind {
 
 abstract class ModerationStatus {
   static const pending = 'pending';
+  static const noAction = 'no-action';
+  static const moderationApplied = 'moderation-applied';
 }
 
 /// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
