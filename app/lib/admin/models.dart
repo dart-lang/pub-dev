@@ -270,7 +270,7 @@ class ModerationSubjectKind {
   static const user = 'user';
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ModerationActionLog {
   final List<ModerationActionLogEntry> entries;
 
@@ -289,7 +289,7 @@ enum ModerationAction {
   revert,
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ModerationActionLogEntry {
   final DateTime timestamp;
   final String subject;

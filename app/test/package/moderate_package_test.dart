@@ -159,6 +159,40 @@ void main() {
           await (await createFakeAuthPubApiClient(email: adminAtPubDevEmail))
               .setPackageOptions('oxygen', PkgOptions(isUnlisted: true));
       expect(optionsUpdates.isUnlisted, true);
+
+      final api = createPubApiClient(authToken: siteAdminToken);
+      final info = await api.adminInvokeAction(
+        'moderation-case-info',
+        AdminInvokeActionArguments(arguments: {
+          'case': mc.caseId,
+        }),
+      );
+      expect(info.toJson(), {
+        'output': {
+          'caseId': isNotEmpty,
+          'reporterEmail': 'user@pub.dev',
+          'kind': 'notification',
+          'opened': isNotEmpty,
+          'source': 'external-notification',
+          'status': 'pending',
+          'subject': 'package:oxygen',
+          'url': null,
+          'actionLog': {
+            'entries': [
+              {
+                'timestamp': isNotEmpty,
+                'subject': 'package:oxygen',
+                'moderationAction': 'apply'
+              },
+              {
+                'timestamp': isNotEmpty,
+                'subject': 'package:oxygen',
+                'moderationAction': 'revert'
+              }
+            ]
+          }
+        }
+      });
     });
 
     testWithProfile('API endpoints return not found', fn: () async {
