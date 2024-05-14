@@ -66,3 +66,5 @@ topics:
   decription: Packages for writing log messages.
   aliases:
   - logger
+  - logs
+  - log
