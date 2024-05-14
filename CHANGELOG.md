@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
 
 ## `20240514t110800-all`
+ * Fixes copy icon issue.
 
 ## `20240514t085700-all`
  * Bumped runtimeVersion to `2024.05.14`.
