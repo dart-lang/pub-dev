@@ -49,7 +49,7 @@ value of `set-retracted`, which should either be `true` or `false`.
       final packageVersion =
           await packageBackend.lookupPackageVersion(packageName, version);
       if (packageVersion == null) {
-        throw InvalidInputException('No such package version');
+        throw NotFoundException.resource(version);
       }
       final before = {
         'package': packageVersion.package,
