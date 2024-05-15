@@ -10,7 +10,6 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
@@ -22,6 +21,7 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 import 'package:test/test.dart';
 
+import '../admin/models_test.dart';
 import '../frontend/handlers/_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -61,31 +61,16 @@ void main() {
       );
     }
 
-    Future<void> _expectActions(
-      String caseId, {
-      String? subject,
-      required List<ModerationAction> actions,
-    }) async {
-      final mc = await adminBackend.lookupModerationCase(caseId);
-      final list = mc!
-          .getActionLog()
-          .entries
-          .where((e) => subject == null || e.subject == subject)
-          .map((e) => e.moderationAction)
-          .toList();
-      expect(list, actions);
-    }
-
     testWithProfile('update state', fn: () async {
       final mc = await _report('neon');
 
-      await _expectActions(mc.caseId, actions: []);
+      await expectModerationActions(mc.caseId, actions: []);
       final r1 = await _moderate('oxygen', caseId: mc.caseId);
       expect(r1.output, {
         'package': 'oxygen',
         'before': {'isModerated': false, 'moderatedAt': null},
       });
-      await _expectActions(mc.caseId, actions: []);
+      await expectModerationActions(mc.caseId, actions: []);
 
       final r2 = await _moderate('oxygen', state: true, caseId: mc.caseId);
       expect(r2.output, {
@@ -95,7 +80,8 @@ void main() {
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isTrue);
-      await _expectActions(mc.caseId, actions: [ModerationAction.apply]);
+      await expectModerationActions(mc.caseId,
+          actions: [ModerationAction.apply]);
 
       final pubspecContent = generatePubspecYaml('oxygen', '3.0.0');
       final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
@@ -119,13 +105,13 @@ void main() {
 
     testWithProfile('clear moderation flag', fn: () async {
       final mc = await _report('oxygen');
-      await _expectActions(mc.caseId, actions: []);
+      await expectModerationActions(mc.caseId, actions: []);
       final r1 = await _moderate('oxygen', caseId: mc.caseId);
       expect(r1.output, {
         'package': 'oxygen',
         'before': {'isModerated': false, 'moderatedAt': null},
       });
-      await _expectActions(mc.caseId, actions: []);
+      await expectModerationActions(mc.caseId, actions: []);
 
       final r2 = await _moderate('oxygen', state: true, caseId: mc.caseId);
       expect(r2.output, {
@@ -135,7 +121,8 @@ void main() {
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isTrue);
-      await _expectActions(mc.caseId, actions: [ModerationAction.apply]);
+      await expectModerationActions(mc.caseId,
+          actions: [ModerationAction.apply]);
 
       // clear flag
       final r3 = await _moderate('oxygen', state: false, caseId: mc.caseId);
@@ -146,7 +133,7 @@ void main() {
       });
       final p3 = await packageBackend.lookupPackage('oxygen');
       expect(p3!.isModerated, isFalse);
-      await _expectActions(mc.caseId,
+      await expectModerationActions(mc.caseId,
           actions: [ModerationAction.apply, ModerationAction.revert]);
 
       final pubspecContent = generatePubspecYaml('oxygen', '3.0.0');
@@ -159,6 +146,40 @@ void main() {
           await (await createFakeAuthPubApiClient(email: adminAtPubDevEmail))
               .setPackageOptions('oxygen', PkgOptions(isUnlisted: true));
       expect(optionsUpdates.isUnlisted, true);
+
+      final api = createPubApiClient(authToken: siteAdminToken);
+      final info = await api.adminInvokeAction(
+        'moderation-case-info',
+        AdminInvokeActionArguments(arguments: {
+          'case': mc.caseId,
+        }),
+      );
+      expect(info.toJson(), {
+        'output': {
+          'caseId': isNotEmpty,
+          'reporterEmail': 'user@pub.dev',
+          'kind': 'notification',
+          'opened': isNotEmpty,
+          'source': 'external-notification',
+          'status': 'pending',
+          'subject': 'package:oxygen',
+          'url': null,
+          'actionLog': {
+            'entries': [
+              {
+                'timestamp': isNotEmpty,
+                'subject': 'package:oxygen',
+                'moderationAction': 'apply'
+              },
+              {
+                'timestamp': isNotEmpty,
+                'subject': 'package:oxygen',
+                'moderationAction': 'revert'
+              }
+            ]
+          }
+        }
+      });
     });
 
     testWithProfile('API endpoints return not found', fn: () async {
@@ -182,7 +203,7 @@ void main() {
 
       await _moderate('oxygen', state: false, caseId: mc.caseId);
       await expectAvailable();
-      await _expectActions(mc.caseId,
+      await expectModerationActions(mc.caseId,
           actions: [ModerationAction.apply, ModerationAction.revert]);
     });
 
@@ -224,7 +245,7 @@ void main() {
 
       await _moderate('oxygen', state: false, caseId: mc.caseId);
       await expectAvailable();
-      await _expectActions(mc.caseId,
+      await expectModerationActions(mc.caseId,
           actions: [ModerationAction.apply, ModerationAction.revert]);
     });
 
@@ -327,5 +348,17 @@ void main() {
         expect(score3.grantedPubPoints, greaterThan(40));
       },
     );
+
+    testWithProfile('status already closed', fn: () async {
+      final mc = await _report('oxygen');
+      await dbService.commit(inserts: [mc..status = ModerationStatus.noAction]);
+
+      await expectApiException(
+        _moderate('oxygen', state: true, caseId: mc.caseId),
+        code: 'InvalidInput',
+        status: 400,
+        message: 'ModerationCase is already closed',
+      );
+    });
   });
 }

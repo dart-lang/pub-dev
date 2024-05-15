@@ -12,6 +12,7 @@ import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
 import 'moderate_publisher.dart';
 import 'moderate_user.dart';
+import 'moderation_case_info.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
@@ -79,6 +80,7 @@ final class AdminAction {
     moderatePackageVersion,
     moderatePublisher,
     moderateUser,
+    moderationCaseInfo,
     packageVersionRetraction,
     publisherBlock,
     publisherMembersList,

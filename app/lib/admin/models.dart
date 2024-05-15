@@ -90,6 +90,7 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.status,
     required this.subject,
     required this.url,
+    required this.appealedCaseId,
   }) {
     id = caseId;
     opened = clock.now().toUtc();
@@ -130,10 +131,13 @@ abstract class ModerationDetectedBy {
 
 abstract class ModerationKind {
   static const notification = 'notification';
+  static const appeal = 'appeal';
 }
 
 abstract class ModerationStatus {
   static const pending = 'pending';
+  static const noAction = 'no-action';
+  static const moderationApplied = 'moderation-applied';
 }
 
 /// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
@@ -270,7 +274,7 @@ class ModerationSubjectKind {
   static const user = 'user';
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ModerationActionLog {
   final List<ModerationActionLogEntry> entries;
 
@@ -289,7 +293,7 @@ enum ModerationAction {
   revert,
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ModerationActionLogEntry {
   final DateTime timestamp;
   final String subject;

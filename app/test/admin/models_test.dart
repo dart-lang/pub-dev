@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:test/test.dart';
 
@@ -58,4 +59,19 @@ void main() {
       expect(ms.canonicalUrl, 'a@example.com');
     });
   });
+}
+
+Future<void> expectModerationActions(
+  String caseId, {
+  String? subject,
+  required List<ModerationAction> actions,
+}) async {
+  final mc = await adminBackend.lookupModerationCase(caseId);
+  final list = mc!
+      .getActionLog()
+      .entries
+      .where((e) => subject == null || e.subject == subject)
+      .map((e) => e.moderationAction)
+      .toList();
+  expect(list, actions);
 }

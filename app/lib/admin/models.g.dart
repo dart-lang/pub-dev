@@ -17,7 +17,7 @@ ModerationActionLog _$ModerationActionLogFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ModerationActionLogToJson(
         ModerationActionLog instance) =>
     <String, dynamic>{
-      'entries': instance.entries,
+      'entries': instance.entries.map((e) => e.toJson()).toList(),
     };
 
 ModerationActionLogEntry _$ModerationActionLogEntryFromJson(

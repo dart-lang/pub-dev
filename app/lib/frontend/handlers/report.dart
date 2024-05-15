@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -44,11 +45,15 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   final url = request.requestedUri.queryParameters['url'];
   _verifyUrl(url);
 
+  final caseId = request.requestedUri.queryParameters['appeal'];
+  await _verifyCaseId(caseId, subject);
+
   return htmlResponse(
     renderReportPage(
       sessionData: requestContext.sessionData,
       subject: subject,
       url: url,
+      caseId: caseId,
     ),
     headers: CacheControl.explicitlyPrivate.headers,
   );
@@ -102,6 +107,24 @@ void _verifyUrl(String? urlParam) {
   }
 }
 
+Future<void> _verifyCaseId(String? caseId, ModerationSubject subject) async {
+  if (caseId == null) {
+    return null;
+  }
+
+  final mc = await adminBackend.lookupModerationCase(caseId);
+  if (mc == null) {
+    throw NotFoundException.resource('case_id "$caseId"');
+  }
+  InvalidInputException.check(mc.status != ModerationStatus.pending,
+      'The reported case is not closed yet.');
+
+  final hasSubject = mc.subject == subject.fqn ||
+      mc.getActionLog().entries.any((e) => e.subject == subject.fqn);
+  InvalidInputException.check(hasSubject,
+      'The reported case has no resolution on subject "${subject.fqn}".');
+}
+
 /// Handles POST /api/report
 Future<String> processReportPageHandler(
     shelf.Request request, ReportForm form) async {
@@ -142,6 +165,7 @@ Future<String> processReportPageHandler(
   await _verifySubject(subject!);
 
   _verifyUrl(form.url);
+  await _verifyCaseId(form.caseId, subject);
 
   InvalidInputException.checkStringLength(
     form.message,
@@ -150,6 +174,8 @@ Future<String> processReportPageHandler(
     maximum: 8192,
   );
 
+  final isAppeal = form.caseId != null;
+
   // If the email sending fails, we may have pending [ModerationCase] entities
   // in the datastore. These would be reviewed and processed manually.
   await withRetryTransaction(dbService, (tx) async {
@@ -157,17 +183,20 @@ Future<String> processReportPageHandler(
       caseId: caseId,
       reporterEmail: userEmail!,
       source: ModerationDetectedBy.externalNotification,
-      kind: ModerationKind.notification,
+      kind: isAppeal ? ModerationKind.appeal : ModerationKind.notification,
       status: ModerationStatus.pending,
       subject: subject.fqn,
       url: form.url,
+      appealedCaseId: form.caseId,
     );
     tx.insert(mc);
   });
 
+  final kind = isAppeal ? 'appeal' : 'report';
   final bodyText = <String>[
-    'New report received on ${now.toIso8601String()}: $caseId',
+    'New $kind received on ${now.toIso8601String()}: $caseId',
     if (form.url != null) 'URL: ${form.url}',
+    if (isAppeal) 'Appealed case ID: ${form.caseId}',
     'Subject: ${subject.fqn}',
     'Message:\n${form.message}',
   ].join('\n\n');
@@ -178,5 +207,5 @@ Future<String> processReportPageHandler(
     bodyText: bodyText,
   ));
 
-  return 'Report submitted successfully.';
+  return 'The $kind was submitted successfully.';
 }

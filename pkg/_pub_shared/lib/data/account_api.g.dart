@@ -135,6 +135,7 @@ ReportForm _$ReportFormFromJson(Map<String, dynamic> json) => ReportForm(
       email: json['email'] as String?,
       subject: json['subject'] as String?,
       url: json['url'] as String?,
+      caseId: json['caseId'] as String?,
       message: json['message'] as String,
     );
 
@@ -143,5 +144,6 @@ Map<String, dynamic> _$ReportFormToJson(ReportForm instance) =>
       'email': instance.email,
       'subject': instance.subject,
       'url': instance.url,
+      'caseId': instance.caseId,
       'message': instance.message,
     };

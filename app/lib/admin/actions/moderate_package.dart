@@ -54,6 +54,9 @@ Set the moderated flag on a package (updating the flag and the timestamp).
     if (refCase == null) {
       throw NotFoundException.resource(caseId);
     }
+    if (refCase.status != ModerationStatus.pending) {
+      throw InvalidInputException('ModerationCase is already closed.');
+    }
 
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
