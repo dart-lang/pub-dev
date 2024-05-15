@@ -69,7 +69,7 @@ Map<String, dynamic> _$PackageLikeResponseToJson(
 PackageLikesCount _$PackageLikesCountFromJson(Map<String, dynamic> json) =>
     PackageLikesCount(
       package: json['package'] as String?,
-      likes: json['likes'] as int?,
+      likes: (json['likes'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageLikesCountToJson(PackageLikesCount instance) =>

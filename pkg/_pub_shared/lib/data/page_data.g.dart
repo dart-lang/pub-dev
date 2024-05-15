@@ -38,7 +38,7 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
       version: json['version'] as String,
       publisherId: json['publisherId'] as String?,
       isDiscontinued: json['isDiscontinued'] as bool,
-      likes: json['likes'] as int,
+      likes: (json['likes'] as num).toInt(),
       isLatest: json['isLatest'] as bool,
     );
 

@@ -52,7 +52,7 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
       retractedVersions: (json['retractedVersions'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      likeCount: json['likeCount'] as int?,
+      likeCount: (json['likeCount'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
