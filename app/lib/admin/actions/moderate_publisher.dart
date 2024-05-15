@@ -28,10 +28,6 @@ can't be updated, administrators must not be able to update publisher options.
   },
   invoke: (options) async {
     final caseId = options['case'];
-    InvalidInputException.check(
-      caseId != null && caseId.isNotEmpty,
-      'case must be given',
-    );
 
     final publisherId = options['publisher'];
     InvalidInputException.check(
@@ -56,13 +52,11 @@ can't be updated, administrators must not be able to update publisher options.
 
     final message = options['message'];
 
-    final refCase = await adminBackend.lookupModerationCase(caseId!);
-    if (refCase == null) {
-      throw NotFoundException.resource(caseId);
-    }
-    if (refCase.status != ModerationStatus.pending) {
-      throw InvalidInputException('ModerationCase is already closed.');
-    }
+    final refCase =
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
+      caseId,
+      status: ModerationStatus.pending,
+    );
 
     Publisher? publisher2;
     if (valueToSet != null) {
@@ -71,13 +65,15 @@ can't be updated, administrators must not be able to update publisher options.
         p.updateIsModerated(isModerated: valueToSet!);
         tx.insert(p);
 
-        final mc = await tx.lookupValue<ModerationCase>(refCase.key);
-        mc.addActionLogEntry(
-          ModerationSubject.publisher(publisherId).fqn,
-          valueToSet ? ModerationAction.apply : ModerationAction.revert,
-          message,
-        );
-        tx.insert(mc);
+        if (refCase != null) {
+          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          mc.addActionLogEntry(
+            ModerationSubject.publisher(publisherId).fqn,
+            valueToSet ? ModerationAction.apply : ModerationAction.revert,
+            message,
+          );
+          tx.insert(mc);
+        }
 
         return p;
       });

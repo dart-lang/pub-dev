@@ -722,4 +722,31 @@ class AdminBackend {
     return await dbService.lookupOrNull<ModerationCase>(
         dbService.emptyKey.append(ModerationCase, id: caseId));
   }
+
+  /// Returns a valid [ModerationCase] if it exists and [status] is matching.
+  /// Returns `null` if [caseId] is `none`.
+  ///
+  /// Throws exceptions otherwise.
+  Future<ModerationCase?> loadAndVerifyModerationCaseForAdminAction(
+    String? caseId, {
+    required String? status,
+  }) async {
+    InvalidInputException.check(
+      caseId != null && caseId.isNotEmpty,
+      'case must be given',
+    );
+    if (caseId == 'none') {
+      return null;
+    }
+
+    final refCase = await adminBackend.lookupModerationCase(caseId!);
+    if (refCase == null) {
+      throw NotFoundException.resource(caseId);
+    }
+    if (status != null && refCase.status != status) {
+      throw InvalidInputException(
+          'ModerationCase.status ("${refCase.status}") != "$status".');
+    }
+    return refCase;
+  }
 }
