@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:test/test.dart';
@@ -57,6 +58,119 @@ void main() {
       expect(ms.publisherId, isNull);
       expect(ms.email, 'a@example.com');
       expect(ms.canonicalUrl, 'a@example.com');
+    });
+  });
+
+  group('ModerationActionLog', () {
+    test('empty action log', () {
+      expect(ModerationActionLog(entries: []).moderatedSubjects(), []);
+    });
+
+    test('applied + reverted', () {
+      final log = ModerationActionLog(entries: [
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.revert,
+          message: null,
+        ),
+      ]);
+      expect(log.moderatedSubjects(), []);
+    });
+
+    test('applied + reverted + re-applied', () {
+      final log = ModerationActionLog(entries: [
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.revert,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+      ]);
+      expect(log.moderatedSubjects(), ['package:x']);
+    });
+
+    test('multiple subjects', () {
+      final log = ModerationActionLog(entries: [
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package-version:x/1.0.0',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:y',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+      ]);
+      expect(log.moderatedSubjects(), [
+        'package-version:x/1.0.0',
+        'package:y',
+      ]);
+    });
+
+    test('multiple subjects with subset', () {
+      final log = ModerationActionLog(entries: [
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package-version:x/1.0.0',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+      ]);
+      expect(log.moderatedSubjects(), [
+        'package:x',
+      ]);
+    });
+
+    test('subset applied, superset reverted', () {
+      final log = ModerationActionLog(entries: [
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package-version:x/1.0.0',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.apply,
+          message: null,
+        ),
+        ModerationActionLogEntry(
+          timestamp: clock.now(),
+          subject: 'package:x',
+          moderationAction: ModerationAction.revert,
+          message: null,
+        ),
+      ]);
+      expect(log.moderatedSubjects(), ['package-version:x/1.0.0']);
     });
   });
 }

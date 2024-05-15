@@ -177,7 +177,8 @@ void main() {
                 'moderationAction': 'revert'
               }
             ]
-          }
+          },
+          'moderatedSubjects': [],
         }
       });
     });

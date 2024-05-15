@@ -27,6 +27,7 @@ Loads and displays the moderation case information.
       throw NotFoundException.resource(caseId);
     }
 
+    final actionLog = mc.getActionLog();
     return {
       'caseId': mc.caseId,
       'reporterEmail': mc.reporterEmail,
@@ -38,7 +39,8 @@ Loads and displays the moderation case information.
       'subject': mc.subject,
       'url': mc.url,
       if (mc.appealedCaseId != null) 'appealedCaseId': mc.appealedCaseId,
-      'actionLog': mc.getActionLog().toJson(),
+      'actionLog': actionLog.toJson(),
+      'moderatedSubjects': actionLog.moderatedSubjects(),
     };
   },
 );

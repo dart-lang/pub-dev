@@ -265,6 +265,25 @@ class ModerationSubject {
     }
     throw UnimplementedError('Unknown subject kind: "$fqn"');
   }();
+
+  /// Return true if [other] is a subset of this [ModerationSubject].
+  /// E.g. a `package-version:x/1.0.0` is a subset of `package:x`.
+  bool contains(ModerationSubject other) {
+    if (kind == ModerationSubjectKind.package &&
+        other.kind == ModerationSubjectKind.packageVersion &&
+        package == other.package) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => fqn.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ModerationSubject && fqn == other.fqn;
+  }
 }
 
 class ModerationSubjectKind {
@@ -286,6 +305,27 @@ class ModerationActionLog {
       _$ModerationActionLogFromJson(json);
 
   Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
+
+  /// Returns the list of subjects that have a final state as moderated.
+  /// If a package version and also a package is moderated, returns
+  /// only the package.
+  List<String> moderatedSubjects() {
+    final applied = <String>{};
+    for (final e in entries) {
+      if (e.moderationAction == ModerationAction.apply) {
+        applied.add(e.subject);
+      } else {
+        applied.remove(e.subject);
+      }
+    }
+    final subjects =
+        applied.map((s) => ModerationSubject.tryParse(s)!).toList();
+    final superset = subjects
+        .where((s) => !subjects.any((x) => x.contains(s)))
+        .toList()
+      ..sort((a, b) => a.fqn.compareTo(b.fqn));
+    return superset.map((e) => e.fqn).toList();
+  }
 }
 
 enum ModerationAction {
