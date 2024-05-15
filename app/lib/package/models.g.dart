@@ -104,9 +104,9 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       created: DateTime.parse(json['created'] as String),
       publisherId: json['publisherId'] as String?,
       isPending: json['isPending'] as bool?,
-      likes: json['likes'] as int,
-      grantedPubPoints: json['grantedPubPoints'] as int?,
-      maxPubPoints: json['maxPubPoints'] as int?,
+      likes: (json['likes'] as num).toInt(),
+      grantedPubPoints: (json['grantedPubPoints'] as num?)?.toInt(),
+      maxPubPoints: (json['maxPubPoints'] as num?)?.toInt(),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       replacedBy: json['replacedBy'] as String?,
       spdxIdentifiers: (json['spdxIdentifiers'] as List<dynamic>?)
@@ -117,7 +117,7 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
           .toList(),
       topics:
           (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      popularity: json['popularity'] as int,
+      popularity: (json['popularity'] as num).toInt(),
     );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) {

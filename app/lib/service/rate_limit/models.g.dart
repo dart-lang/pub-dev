@@ -10,7 +10,7 @@ RateLimitRequestCounter _$RateLimitRequestCounterFromJson(
         Map<String, dynamic> json) =>
     RateLimitRequestCounter(
       started: DateTime.parse(json['started'] as String),
-      value: json['value'] as int,
+      value: (json['value'] as num).toInt(),
     );
 
 Map<String, dynamic> _$RateLimitRequestCounterToJson(

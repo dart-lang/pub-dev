@@ -19,11 +19,11 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated'] as String),
       readme: json['readme'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      likeCount: json['likeCount'] as int?,
+      likeCount: (json['likeCount'] as num?)?.toInt(),
       likeScore: (json['likeScore'] as num?)?.toDouble(),
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
-      grantedPoints: json['grantedPoints'] as int?,
-      maxPoints: json['maxPoints'] as int?,
+      grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
+      maxPoints: (json['maxPoints'] as num?)?.toInt(),
       dependencies: (json['dependencies'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
@@ -78,7 +78,7 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
       timestamp: json['timestamp'] == null
           ? null
           : DateTime.parse(json['timestamp'] as String),
-      totalCount: json['totalCount'] as int,
+      totalCount: (json['totalCount'] as num).toInt(),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),

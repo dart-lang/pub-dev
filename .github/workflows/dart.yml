@@ -47,16 +47,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_package_reader-pkg/web_app-pkg/web_css;commands:format-analyze_0"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_package_reader-pkg/web_app-pkg/web_css;commands:format-analyze_0"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_package_reader-pkg/web_app-pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app-pkg/_popularity-pkg/_pub_shared-pkg/api_builder-pkg/fake_gcloud-pkg/pub_package_reader-pkg/web_app-pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -172,16 +172,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/indexed_blob;commands:format-analyze_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob;commands:format-analyze_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/indexed_blob
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -206,16 +206,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration;commands:format-analyze_2-analyze_3"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:format-analyze_2-analyze_3"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -244,16 +244,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker;commands:format-analyze_4"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:format-analyze_4"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -278,16 +278,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_app;commands:command_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app;commands:command_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -314,16 +314,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_css;commands:command_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css;commands:command_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -350,16 +350,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_00"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_00"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -392,16 +392,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_01"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_01"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -434,16 +434,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_02"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_02"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -476,16 +476,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_03"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_03"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -518,16 +518,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_04"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_04"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -560,16 +560,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_05"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_05"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -602,16 +602,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_06"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_06"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -644,16 +644,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app;commands:command_0-test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_07"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -686,16 +686,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/_popularity;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_popularity;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/_popularity
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_popularity
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -724,16 +724,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/_pub_shared;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_pub_shared;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/_pub_shared
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_pub_shared
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -762,16 +762,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/fake_gcloud;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/fake_gcloud;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/fake_gcloud
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/fake_gcloud
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -800,16 +800,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/indexed_blob;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/indexed_blob
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -838,16 +838,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_package_reader;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_package_reader;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_package_reader
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_package_reader
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -876,16 +876,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_app;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_app
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -914,16 +914,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_css;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css;commands:test_08"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/web_css
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -952,16 +952,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration;commands:test_09"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_09"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -990,16 +990,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration;commands:test_10"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_10"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -1028,16 +1028,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration;commands:test_11"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_11"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -1066,16 +1066,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration;commands:test_12"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_12"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_integration
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -1104,16 +1104,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker;commands:test_13"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_13"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -1142,16 +1142,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker;commands:test_14"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_14"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -1180,16 +1180,16 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker;commands:test_15"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_15"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0;packages:pkg/pub_worker
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.3.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         with:
-          sdk: "3.3.0"
+          sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c

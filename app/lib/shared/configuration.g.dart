@@ -67,8 +67,9 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           exportedApiBucketName:
               $checkedConvert('exportedApiBucketName', (v) => v as String?),
           maxTaskInstances:
-              $checkedConvert('maxTaskInstances', (v) => v as int),
-          maxTaskRunHours: $checkedConvert('maxTaskRunHours', (v) => v as int),
+              $checkedConvert('maxTaskInstances', (v) => (v as num).toInt()),
+          maxTaskRunHours:
+              $checkedConvert('maxTaskRunHours', (v) => (v as num).toInt()),
           taskResultBucketName:
               $checkedConvert('taskResultBucketName', (v) => v as String?),
           taskWorkerImage:
@@ -252,9 +253,9 @@ RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
           operation: $checkedConvert('operation', (v) => v as String),
           scope: $checkedConvert(
               'scope', (v) => $enumDecode(_$RateLimitScopeEnumMap, v)),
-          burst: $checkedConvert('burst', (v) => v as int?),
-          hourly: $checkedConvert('hourly', (v) => v as int?),
-          daily: $checkedConvert('daily', (v) => v as int?),
+          burst: $checkedConvert('burst', (v) => (v as num?)?.toInt()),
+          hourly: $checkedConvert('hourly', (v) => (v as num?)?.toInt()),
+          daily: $checkedConvert('daily', (v) => (v as num?)?.toInt()),
         );
         return val;
       },
