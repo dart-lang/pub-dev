@@ -34,9 +34,9 @@ Map<String, dynamic> _$VoteTotalsToJson(VoteTotals instance) =>
     };
 
 VoteData _$VoteDataFromJson(Map<String, dynamic> json) => VoteData(
-      json['votes_direct'] as int,
-      json['votes_dev'] as int,
-      json['votes_total'] as int,
+      (json['votes_direct'] as num).toInt(),
+      (json['votes_dev'] as num).toInt(),
+      (json['votes_total'] as num).toInt(),
     );
 
 Map<String, dynamic> _$VoteDataToJson(VoteData instance) => <String, dynamic>{
