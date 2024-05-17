@@ -13,6 +13,9 @@ import '../../shared/versions.dart';
 import '../../task/backend.dart';
 import '../../tool/maintenance/update_public_bucket.dart';
 
+import '../backend.dart';
+import '../models.dart';
+
 import 'actions.dart';
 
 final moderatePackageVersion = AdminAction(
@@ -23,12 +26,16 @@ final moderatePackageVersion = AdminAction(
 Set the moderated flag on a package version (updating the flag and the timestamp).
 ''',
   options: {
+    'case': 'The ModerationCase.caseId that this action is part of.',
     'package': 'The package name to be moderated',
     'version': 'The version to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
+    'message': 'Optional message to store.'
   },
   invoke: (options) async {
+    final caseId = options['case'];
+
     final package = options['package'];
     InvalidInputException.check(
       package != null && package.isNotEmpty,
@@ -50,6 +57,14 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         valueToSet = false;
         break;
     }
+
+    final message = options['message'];
+
+    final refCase =
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
+      caseId,
+      status: ModerationStatus.pending,
+    );
 
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
@@ -85,6 +100,16 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         }
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);
+
+        if (refCase != null) {
+          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          mc.addActionLogEntry(
+            ModerationSubject.package(package, version).fqn,
+            valueToSet ? ModerationAction.apply : ModerationAction.revert,
+            message,
+          );
+          tx.insert(mc);
+        }
 
         return v;
       });

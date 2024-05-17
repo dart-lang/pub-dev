@@ -4,16 +4,20 @@
 
 import 'dart:typed_data';
 
+import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
+import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
@@ -27,15 +31,32 @@ import 'backend_test_utils.dart';
 
 void main() {
   group('Moderate package version', () {
+    Future<ModerationCase> _report(String package, String version) async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await client.postReport(ReportForm(
+            email: 'user@pub.dev',
+            subject: 'package-version:$package/$version',
+            message: 'Huston, we have a problem.',
+          ));
+        },
+      );
+      final list = await dbService.query<ModerationCase>().run().toList();
+      return list.reduce((a, b) => a.opened.isAfter(b.opened) ? a : b);
+    }
+
     Future<AdminInvokeActionResponse> _moderate(
       String package,
       String version, {
+      String caseId = 'none',
       bool? state,
     }) async {
       final api = createPubApiClient(authToken: siteAdminToken);
       return await api.adminInvokeAction(
         'moderate-package-version',
         AdminInvokeActionArguments(arguments: {
+          'case': caseId,
           'package': package,
           'version': version,
           if (state != null) 'state': state.toString(),
@@ -44,6 +65,7 @@ void main() {
     }
 
     testWithProfile('update state', fn: () async {
+      final mc = await _report('oxygen', '1.0.0');
       final r1 = await _moderate('oxygen', '1.0.0');
       expect(r1.output, {
         'package': 'oxygen',
@@ -51,7 +73,8 @@ void main() {
         'before': {'isModerated': false, 'moderatedAt': null},
       });
 
-      final r2 = await _moderate('oxygen', '1.0.0', state: true);
+      final r2 =
+          await _moderate('oxygen', '1.0.0', caseId: mc.caseId, state: true);
       expect(r2.output, {
         'package': 'oxygen',
         'version': '1.0.0',
@@ -81,6 +104,9 @@ void main() {
       expect(optionsUpdates.isRetracted, true);
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.latestVersion, '2.0.0-dev');
+
+      final mc2 = await adminBackend.lookupModerationCase(mc.caseId);
+      expect(mc2!.getActionLog().entries, hasLength(1));
     });
 
     testWithProfile('clear moderation flag', fn: () async {

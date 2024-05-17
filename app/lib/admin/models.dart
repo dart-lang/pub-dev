@@ -196,6 +196,14 @@ class ModerationSubject {
     );
   }
 
+  factory ModerationSubject.user(String email) {
+    return ModerationSubject._(
+      kind: ModerationSubjectKind.user,
+      localName: email,
+      email: email,
+    );
+  }
+
   /// Tries to parse subject [value] and returns a [ModerationSubject]
   /// if it is recognized, or `null` if the format is not recognizable.
   static ModerationSubject? tryParse(String value) {

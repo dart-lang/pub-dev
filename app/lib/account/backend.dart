@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/admin/models.dart';
 
 import '../audit/models.dart';
 import '../frontend/request_context.dart';
@@ -634,7 +635,12 @@ class AccountBackend {
   /// Updates the moderated status of a user.
   ///
   /// Expires all existing user sessions.
-  Future<void> updateModeratedFlag(String userId, bool isModerated) async {
+  Future<void> updateModeratedFlag(
+    String userId,
+    bool isModerated, {
+    required Key? refCaseKey,
+    required String? message,
+  }) async {
     await withRetryTransaction(_db, (tx) async {
       final user =
           await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
@@ -642,6 +648,16 @@ class AccountBackend {
 
       user.updateIsModerated(isModerated: isModerated);
       tx.insert(user);
+
+      if (refCaseKey != null) {
+        final mc = await tx.lookupValue<ModerationCase>(refCaseKey);
+        mc.addActionLogEntry(
+          ModerationSubject.user(user.email!).fqn,
+          isModerated ? ModerationAction.apply : ModerationAction.revert,
+          message,
+        );
+        tx.insert(mc);
+      }
     });
     await _expireAllSessions(userId);
     await purgeAccountCache(userId: userId);
