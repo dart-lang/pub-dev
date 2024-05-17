@@ -16,7 +16,7 @@ void main() {
       final rs1 = await client.adminInvokeAction(
         'send-email',
         AdminInvokeActionArguments(arguments: {
-          'to-email': 'a@pub.dev,b@pub.dev',
+          'to': 'a@pub.dev,b@pub.dev',
           'subject': 'Test email',
           'body': 'Test body',
         }),
@@ -41,7 +41,7 @@ void main() {
       final rs1 = await client.adminInvokeAction(
         'send-email',
         AdminInvokeActionArguments(arguments: {
-          'to-subject-admin': 'package:oxygen',
+          'to': 'package:oxygen',
           'subject': 'Test email',
           'body': 'Test body',
         }),

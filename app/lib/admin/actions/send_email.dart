@@ -24,9 +24,8 @@ emails to send out messages. Uses the provided `email-subject` and `email-body`
 without changing anything in it.
 ''',
   options: {
-    'to-email': 'A comma separated list of email addresses.',
-    'to-subject-admin':
-        'A comma separated list of subjects where the admins will get the emails.',
+    'to':
+        'A comma separated list of email addresses or subjects (where the admins will get the emails).',
     'from': 'The email address to impersonate (`support@pub.dev` by default).',
     'subject': 'The subject of the email message.',
     'body': 'The text content of the email body.',
@@ -46,15 +45,18 @@ without changing anything in it.
 
     final from = options['from'] ?? KnownAgents.pubSupport;
 
-    final emails = <String>{};
-    final toEmail = options['to-email']?.split(',');
-    for (final value in toEmail ?? const <String>[]) {
-      InvalidInputException.check(isValidEmail(value), 'Invalid email: $value');
-      emails.add(value);
-    }
+    final to = options['to'];
+    InvalidInputException.check(
+      to != null && to.isNotEmpty,
+      'to must be given',
+    );
 
-    final toSubjectAdmin = options['to-subject-admin']?.split(',');
-    for (final value in toSubjectAdmin ?? const <String>[]) {
+    final emails = <String>{};
+    for (final value in to!.split(',')) {
+      if (isValidEmail(value)) {
+        emails.add(value);
+        continue;
+      }
       final ms = ModerationSubject.tryParse(value);
       InvalidInputException.check(ms != null, 'Invalid subject: $value');
 
