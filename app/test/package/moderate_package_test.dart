@@ -357,7 +357,7 @@ void main() {
         _moderate('oxygen', state: true, caseId: mc.caseId),
         code: 'InvalidInput',
         status: 400,
-        message: 'ModerationCase is already closed',
+        message: 'ModerationCase.status ("no-action") != "pending".',
       );
     });
   });

@@ -26,10 +26,6 @@ Set the moderated flag on a package (updating the flag and the timestamp).
   },
   invoke: (options) async {
     final caseId = options['case'];
-    InvalidInputException.check(
-      caseId != null && caseId.isNotEmpty,
-      'case must be given',
-    );
 
     final package = options['package'];
     InvalidInputException.check(
@@ -50,13 +46,11 @@ Set the moderated flag on a package (updating the flag and the timestamp).
 
     final message = options['message'];
 
-    final refCase = await adminBackend.lookupModerationCase(caseId!);
-    if (refCase == null) {
-      throw NotFoundException.resource(caseId);
-    }
-    if (refCase.status != ModerationStatus.pending) {
-      throw InvalidInputException('ModerationCase is already closed.');
-    }
+    final refCase =
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
+      caseId,
+      status: ModerationStatus.pending,
+    );
 
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
@@ -70,13 +64,15 @@ Set the moderated flag on a package (updating the flag and the timestamp).
         pkg.updateIsModerated(isModerated: valueToSet!);
         tx.insert(pkg);
 
-        final mc = await tx.lookupValue<ModerationCase>(refCase.key);
-        mc.addActionLogEntry(
-          ModerationSubject.package(package).fqn,
-          valueToSet ? ModerationAction.apply : ModerationAction.revert,
-          message,
-        );
-        tx.insert(mc);
+        if (refCase != null) {
+          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          mc.addActionLogEntry(
+            ModerationSubject.package(package).fqn,
+            valueToSet ? ModerationAction.apply : ModerationAction.revert,
+            message,
+          );
+          tx.insert(mc);
+        }
 
         return pkg;
       });
