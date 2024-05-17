@@ -28,20 +28,20 @@ without changing anything in it.
     'to-subject-admin':
         'A comma separated list of subjects where the admins will get the emails.',
     'from': 'The email address to impersonate (`support@pub.dev` by default).',
-    'email-subject': 'The subject of the email message.',
-    'email-body': 'The text content of the email body.',
+    'subject': 'The subject of the email message.',
+    'body': 'The text content of the email body.',
   },
   invoke: (options) async {
-    final emailSubject = options['email-subject'];
+    final emailSubject = options['subject'];
     InvalidInputException.check(
       emailSubject != null && emailSubject.isNotEmpty,
-      'email-subject must be given',
+      'subject must be given',
     );
 
-    final emailBody = options['email-body'];
+    final emailBody = options['body'];
     InvalidInputException.check(
       emailBody != null && emailBody.isNotEmpty,
-      'email-body must be given',
+      'body must be given',
     );
 
     final from = options['from'] ?? KnownAgents.pubSupport;

@@ -17,8 +17,8 @@ void main() {
         'send-email',
         AdminInvokeActionArguments(arguments: {
           'to-email': 'a@pub.dev,b@pub.dev',
-          'email-subject': 'Test email',
-          'email-body': 'Test body',
+          'subject': 'Test email',
+          'body': 'Test body',
         }),
       );
       expect(rs1.output, {
@@ -42,8 +42,8 @@ void main() {
         'send-email',
         AdminInvokeActionArguments(arguments: {
           'to-subject-admin': 'package:oxygen',
-          'email-subject': 'Test email',
-          'email-body': 'Test body',
+          'subject': 'Test email',
+          'body': 'Test body',
         }),
       );
       expect(rs1.output, {
