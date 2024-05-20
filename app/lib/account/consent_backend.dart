@@ -347,7 +347,7 @@ class _PackageUploaderAction extends ConsentAction {
     final packageName = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.uploaderInviteRejected(
-        fromUserId: consent.fromUserId!,
+        fromUserId: consent.fromUserId,
         package: packageName,
         uploaderEmail: user?.email ?? consent.email!,
         userId: user?.userId,
@@ -360,7 +360,7 @@ class _PackageUploaderAction extends ConsentAction {
     final packageName = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.uploaderInviteExpired(
-        fromUserId: consent.fromUserId!,
+        fromUserId: consent.fromUserId,
         package: packageName,
         uploaderEmail: consent.email!,
       ));
@@ -413,7 +413,7 @@ class _PublisherContactAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherContactInviteRejected(
-        fromUserId: consent.fromUserId!,
+        fromUserId: consent.fromUserId,
         publisherId: publisherId,
         contactEmail: consent.email!,
         userEmail: user?.email,
@@ -427,7 +427,7 @@ class _PublisherContactAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherContactInviteExpired(
-        fromUserId: consent.fromUserId!,
+        fromUserId: consent.fromUserId,
         publisherId: publisherId,
         contactEmail: consent.email!,
       ));
@@ -493,7 +493,7 @@ class _PublisherMemberAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherMemberInviteRejected(
-        fromUserId: consent.fromUserId!,
+        fromUserId: consent.fromUserId,
         publisherId: publisherId,
         memberEmail: user?.email ?? consent.email!,
         userId: user?.userId,
@@ -506,7 +506,7 @@ class _PublisherMemberAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherMemberInviteExpired(
-        fromUserId: consent.fromUserId!,
+        fromUserId: consent.fromUserId,
         publisherId: publisherId,
         memberEmail: consent.email!,
       ));
