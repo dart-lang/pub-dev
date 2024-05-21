@@ -135,7 +135,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
         publisher, requestContext.authenticatedUserId),
-    messageFromBackend: searchResult.message,
+    messageFromBackend: searchResult.errorMessage,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);

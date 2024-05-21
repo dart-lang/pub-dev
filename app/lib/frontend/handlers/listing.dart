@@ -80,8 +80,8 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
     rateLimitKey: request.sourceIp,
   );
   final int totalCount = searchResult.totalCount;
-  if (searchResult.message != null) {
-    _logger.severe('[pub-search-not-working] ${searchResult.message}');
+  if (searchResult.errorMessage != null) {
+    _logger.severe('[pub-search-not-working] ${searchResult.errorMessage}');
   }
 
   final links = PageLinks(searchForm, totalCount);
@@ -90,10 +90,10 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       searchResult,
       links,
       searchForm: searchForm,
-      messageFromBackend: searchResult.message,
+      messageFromBackend: searchResult.errorMessage,
       openSections: openSections,
     ),
-    status: searchResult.message == null ? 200 : 500,
+    status: searchResult.errorMessage == null ? 200 : 500,
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;
