@@ -188,7 +188,7 @@ class CachePatterns {
   Entry<PackageSearchResult> packageSearchResult(String url) {
     return _cache
         .withPrefix('search-result/')
-        .withTTL(const Duration(minutes: 5))
+        .withTTL(const Duration(minutes: 1))
         .withCodec(utf8)
         .withCodec(json)
         .withCodec(wrapAsCodec(
