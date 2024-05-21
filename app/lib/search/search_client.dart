@@ -54,6 +54,7 @@ class SearchClient {
     if (validity.isRejected) {
       return PackageSearchResult.empty(
         message: 'Search query rejected. ${validity.rejectReason}',
+        statusCode: 400,
       );
     }
 

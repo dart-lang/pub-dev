@@ -93,7 +93,9 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       messageFromBackend: searchResult.errorMessage,
       openSections: openSections,
     ),
-    status: searchResult.errorMessage == null ? 200 : 500,
+    status: searchResult.errorMessage == null
+        ? 200
+        : (searchResult.statusCode ?? 500),
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;
