@@ -320,7 +320,10 @@ class PackageSearchResult {
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
+  /// TODO: migrate to use `errorMessage` name.
   final String? message;
+
+  final int? statusCode;
 
   PackageSearchResult({
     required this.timestamp,
@@ -328,10 +331,11 @@ class PackageSearchResult {
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.message,
+    this.statusCode,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageHit>[];
 
-  PackageSearchResult.empty({this.message})
+  PackageSearchResult.empty({this.message, this.statusCode})
       : timestamp = clock.now().toUtc(),
         totalCount = 0,
         sdkLibraryHits = <SdkLibraryHit>[],

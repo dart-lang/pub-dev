@@ -54,6 +54,7 @@ class SearchClient {
     if (validity.isRejected) {
       return PackageSearchResult.empty(
         message: 'Search query rejected. ${validity.rejectReason}',
+        statusCode: 400,
       );
     }
 
@@ -118,7 +119,17 @@ class SearchClient {
       return await searchFn();
     } else {
       final cacheEntry = cache.packageSearchResult(serviceUrlParams.toString());
-      return (await cacheEntry.get(searchFn))!;
+      final cached = await cacheEntry.get();
+      if (cached != null) {
+        return cached;
+      }
+      final r = await searchFn();
+      await cacheEntry.set(
+          r,
+          r.message == null
+              ? const Duration(minutes: 3)
+              : const Duration(minutes: 1));
+      return r;
     }
   }
 

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
@@ -16,6 +17,7 @@ import '../../shared/utils.dart' show DurationTracker;
 
 import '../templates/listing.dart';
 
+final _logger = Logger('listing_page');
 final _searchOverallLatencyTracker = DurationTracker();
 
 Map searchDebugStats() {
@@ -78,6 +80,9 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
     rateLimitKey: request.sourceIp,
   );
   final int totalCount = searchResult.totalCount;
+  if (searchResult.errorMessage != null) {
+    _logger.severe('[pub-search-not-working] ${searchResult.errorMessage}');
+  }
 
   final links = PageLinks(searchForm, totalCount);
   final result = htmlResponse(
@@ -85,9 +90,12 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       searchResult,
       links,
       searchForm: searchForm,
-      messageFromBackend: searchResult.message,
+      messageFromBackend: searchResult.errorMessage,
       openSections: openSections,
     ),
+    status: searchResult.errorMessage == null
+        ? 200
+        : (searchResult.statusCode ?? 500),
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;

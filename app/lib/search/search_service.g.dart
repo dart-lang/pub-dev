@@ -86,6 +86,7 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
           ?.map((e) => PackageHit.fromJson(e as Map<String, dynamic>))
           .toList(),
       message: json['message'] as String?,
+      statusCode: (json['statusCode'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
@@ -103,6 +104,7 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
       instance.sdkLibraryHits.map((e) => e.toJson()).toList();
   val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();
   writeNotNull('message', instance.message);
+  writeNotNull('statusCode', instance.statusCode);
   return val;
 }
 

@@ -52,7 +52,8 @@ class SearchAdapter {
           .where((v) => v != null)
           .cast<PackageView>()
           .toList(),
-      message: result.message,
+      errorMessage: result.message,
+      statusCode: result.statusCode,
     );
   }
 
@@ -150,18 +151,22 @@ class SearchResultPage {
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
-  final String? message;
+  final String? errorMessage;
+
+  /// The non-200 status code that will be used to render the [errorMessage].
+  final int? statusCode;
 
   SearchResultPage(
     this.form,
     this.totalCount, {
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageView>? packageHits,
-    this.message,
+    this.errorMessage,
+    this.statusCode,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageView>[];
 
-  SearchResultPage.empty(this.form, {this.message})
+  SearchResultPage.empty(this.form, {this.errorMessage, this.statusCode})
       : totalCount = 0,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = [];
