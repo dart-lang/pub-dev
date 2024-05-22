@@ -346,6 +346,11 @@ class Consent extends db.Model {
   String? fromUserId;
 
   /// May be an `User.userId` or `support@pub.dev`.
+  /// TODO: Migrate to use [fromAgent] instead of [fromUserId].
+  ///       As [Consent] expires after a week, we don't need to wait for long
+  ///       to migrate this in multiple releases. Once the current release is
+  ///       stable for more then a week, we are safe to migrate the code to use
+  ///       the new field and remove the old one.
   @db.StringProperty()
   String? fromAgent;
 
