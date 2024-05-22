@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/actions/package_version_retraction.dart';
-
 import '../../shared/exceptions.dart';
 import 'create_publisher.dart';
 import 'delete_publisher.dart';
@@ -13,9 +11,11 @@ import 'moderate_package_versions.dart';
 import 'moderate_publisher.dart';
 import 'moderate_user.dart';
 import 'moderation_case_info.dart';
+import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
+import 'send_email.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
@@ -85,6 +85,7 @@ final class AdminAction {
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
+    sendEmail,
     taskBumpPriority,
     toolExecute,
     toolList,
