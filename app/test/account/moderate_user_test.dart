@@ -9,6 +9,8 @@ import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -23,14 +25,31 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Moderate User', () {
+    Future<ModerationCase> _report(String package) async {
+      await withHttpPubApiClient(
+        experimental: {'report'},
+        fn: (client) async {
+          await client.postReport(account_api.ReportForm(
+            email: 'user@pub.dev',
+            subject: 'package:$package',
+            message: 'Huston, we have a problem.',
+          ));
+        },
+      );
+      final list = await dbService.query<ModerationCase>().run().toList();
+      return list.reduce((a, b) => a.opened.isAfter(b.opened) ? a : b);
+    }
+
     Future<AdminInvokeActionResponse> _moderate(
       String email, {
       bool? state,
+      String caseId = 'none',
     }) async {
       final api = createPubApiClient(authToken: siteAdminToken);
       return await api.adminInvokeAction(
         'moderate-user',
         AdminInvokeActionArguments(arguments: {
+          'case': caseId,
           'user': email,
           if (state != null) 'state': state.toString(),
         }),
@@ -38,13 +57,16 @@ void main() {
     }
 
     testWithProfile('update state and clearing it', fn: () async {
+      final mc = await _report('oxygen');
+
       final r1 = await _moderate('user@pub.dev');
       expect(r1.output, {
         'userId': isNotEmpty,
         'before': {'isModerated': false, 'moderatedAt': null},
       });
 
-      final r2 = await _moderate('user@pub.dev', state: true);
+      final r2 =
+          await _moderate('user@pub.dev', caseId: mc.caseId, state: true);
       expect(r2.output, {
         'userId': isNotEmpty,
         'before': {'isModerated': false, 'moderatedAt': null},
@@ -54,7 +76,8 @@ void main() {
       expect(u2.isModerated, isTrue);
       expect(u2.isVisible, false);
 
-      final r3 = await _moderate('user@pub.dev', state: false);
+      final r3 =
+          await _moderate('user@pub.dev', caseId: mc.caseId, state: false);
       expect(r3.output, {
         'userId': isNotEmpty,
         'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
@@ -63,6 +86,9 @@ void main() {
       final u3 = await accountBackend.lookupUserByEmail('user@pub.dev');
       expect(u3.isModerated, isFalse);
       expect(u3.isVisible, true);
+
+      final mc2 = await adminBackend.lookupModerationCase(mc.caseId);
+      expect(mc2!.getActionLog().entries, hasLength(2));
     });
 
     testWithProfile('sign-in disabled', fn: () async {
