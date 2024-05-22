@@ -53,7 +53,7 @@ class SearchClient {
     final validity = query.evaluateValidity();
     if (validity.isRejected) {
       return PackageSearchResult.empty(
-        message: 'Search query rejected. ${validity.rejectReason}',
+        errorMessage: 'Search query rejected. ${validity.rejectReason}',
         statusCode: 400,
       );
     }
@@ -88,7 +88,7 @@ class SearchClient {
       }
       if (response == null) {
         return PackageSearchResult.empty(
-            message: 'Search is temporarily unavailable.');
+            errorMessage: 'Search is temporarily unavailable.');
       }
       if (response.statusCode == 200) {
         return PackageSearchResult.fromJson(
@@ -98,11 +98,11 @@ class SearchClient {
       // Search request before the service initialization completed.
       if (response.statusCode == searchIndexNotReadyCode) {
         return PackageSearchResult.empty(
-            message: 'Search is temporarily unavailable.');
+            errorMessage: 'Search is temporarily unavailable.');
       }
       // There has been a generic issue with the service.
       return PackageSearchResult.empty(
-          message: 'Service returned status code ${response.statusCode}.');
+          errorMessage: 'Service returned status code ${response.statusCode}.');
     }
 
     if (sourceIp != null) {
@@ -126,7 +126,7 @@ class SearchClient {
       final r = await searchFn();
       await cacheEntry.set(
           r,
-          r.message == null
+          r.errorMessage == null
               ? const Duration(minutes: 3)
               : const Duration(minutes: 1));
       return r;
