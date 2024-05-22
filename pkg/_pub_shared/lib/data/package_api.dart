@@ -90,18 +90,28 @@ class GithubPublishingConfig {
   /// The GitHub environment where the publishing is required from.
   String? environment;
 
+  /// Whether the (default) `push` event is disabled.
+  bool? disablePushEvent;
+
+  /// Whether the `workflow_dispatch` event is enabled.
+  bool? enableWorkflowDispatchEvent;
+
   GithubPublishingConfig({
     this.isEnabled,
     this.repository,
     this.tagPattern,
     this.requireEnvironment,
     this.environment,
+    this.disablePushEvent,
+    this.enableWorkflowDispatchEvent,
   });
 
   factory GithubPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$GithubPublishingConfigFromJson(json);
 
   Map<String, dynamic> toJson() => _$GithubPublishingConfigToJson(this);
+
+  bool get isPushEventEnabled => !(disablePushEvent ?? false);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

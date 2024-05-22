@@ -67,6 +67,8 @@ GithubPublishingConfig _$GithubPublishingConfigFromJson(
       tagPattern: json['tagPattern'] as String?,
       requireEnvironment: json['requireEnvironment'] as bool?,
       environment: json['environment'] as String?,
+      disablePushEvent: json['disablePushEvent'] as bool?,
+      enableWorkflowDispatchEvent: json['enableWorkflowDispatchEvent'] as bool?,
     );
 
 Map<String, dynamic> _$GithubPublishingConfigToJson(
@@ -84,6 +86,9 @@ Map<String, dynamic> _$GithubPublishingConfigToJson(
   writeNotNull('tagPattern', instance.tagPattern);
   writeNotNull('requireEnvironment', instance.requireEnvironment);
   writeNotNull('environment', instance.environment);
+  writeNotNull('disablePushEvent', instance.disablePushEvent);
+  writeNotNull(
+      'enableWorkflowDispatchEvent', instance.enableWorkflowDispatchEvent);
   return val;
 }
 
