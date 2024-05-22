@@ -52,7 +52,7 @@ class SearchAdapter {
           .where((v) => v != null)
           .cast<PackageView>()
           .toList(),
-      errorMessage: result.message,
+      errorMessage: result.errorMessage,
       statusCode: result.statusCode,
     );
   }
@@ -92,7 +92,7 @@ class SearchAdapter {
     // Some search queries must not be served with the fallback search.
     if (form.parsedQuery.tagsPredicate.isNotEmpty) {
       return PackageSearchResult.empty(
-          message: 'Search is temporarily unavailable.');
+          errorMessage: 'Search is temporarily unavailable.');
     }
 
     final names = await nameTracker
@@ -118,7 +118,7 @@ class SearchAdapter {
         timestamp: clock.now().toUtc(),
         packageHits: packageHits,
         totalCount: totalCount,
-        message:
+        errorMessage:
             'Search is temporarily impaired, filtering and ranking may be incorrect.');
   }
 

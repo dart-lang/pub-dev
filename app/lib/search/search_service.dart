@@ -320,8 +320,7 @@ class PackageSearchResult {
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
-  /// TODO: migrate to use `errorMessage` name.
-  final String? message;
+  final String? errorMessage;
 
   final int? statusCode;
 
@@ -330,19 +329,24 @@ class PackageSearchResult {
     required this.totalCount,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
-    this.message,
+    this.errorMessage,
     this.statusCode,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageHit>[];
 
-  PackageSearchResult.empty({this.message, this.statusCode})
+  PackageSearchResult.empty({this.errorMessage, this.statusCode})
       : timestamp = clock.now().toUtc(),
         totalCount = 0,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
-  factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
-      _$PackageSearchResultFromJson(json);
+  factory PackageSearchResult.fromJson(Map<String, dynamic> json) {
+    return _$PackageSearchResultFromJson({
+      // TODO: remove fallback in the next release
+      'errorMessage': json['message'],
+      ...json,
+    });
+  }
 
   Duration get age => clock.now().difference(timestamp!);
 
