@@ -24,10 +24,10 @@ import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 import 'package:test/test.dart';
 
 import '../frontend/handlers/_utils.dart';
+import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
-import 'backend_test_utils.dart';
 
 void main() {
   group('Moderate package version', () {
