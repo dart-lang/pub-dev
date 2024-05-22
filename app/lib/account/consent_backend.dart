@@ -100,6 +100,7 @@ class ConsentBackend {
   /// - if it already exists, re-send the notification, or
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> _invite({
+    required AuthenticatedAgent activeAgent,
     required User activeUser,
     required String email,
     required String kind,
@@ -110,7 +111,7 @@ class ConsentBackend {
     return retry(() async {
       // First check for existing consents with identical dedupId.
       final dedupId = consentDedupId(
-        fromUserId: activeUser.userId,
+        fromAgentId: activeAgent.agentId,
         email: email,
         kind: kind,
         args: args,
@@ -132,6 +133,7 @@ class ConsentBackend {
       }
       // Create a new entry.
       final consent = Consent.init(
+        fromAgent: activeAgent.agentId,
         fromUserId: activeUser.userId,
         email: email,
         kind: kind,
@@ -155,6 +157,7 @@ class ConsentBackend {
     bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
+      activeAgent: agent,
       activeUser: activeUser,
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
@@ -176,6 +179,7 @@ class ConsentBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     return await _invite(
+      activeAgent: authenticatedUser,
       activeUser: user,
       email: contactEmail,
       kind: ConsentKind.publisherContact,
@@ -195,6 +199,7 @@ class ConsentBackend {
     bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
+      activeAgent: authenticatedAgent,
       activeUser: activeUser,
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,

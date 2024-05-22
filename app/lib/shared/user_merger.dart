@@ -169,6 +169,7 @@ class UserMerger {
           final consent = await tx.lookupValue<Consent>(m.key);
           if (consent.fromUserId == fromUserId) {
             consent.fromUserId = toUserId;
+            consent.fromAgent = toUserId;
             tx.insert(consent);
           }
         });
