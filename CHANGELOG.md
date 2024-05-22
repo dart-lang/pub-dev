@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded runtime Dart SDK to `3.4.0`.
  * Upgraded dependencies.
  * Upgraded dartdoc to `8.0.9`.
+ * Note: started to populate `Consent.fromAgent` field.
 
 ## `20240514t110800-all`
  * Fixes copy icon issue.

@@ -348,6 +348,7 @@ void main() {
             .where((c) => c.email == email || email == null)
             .map((c) => {
                   'id': c.consentId,
+                  'fromAgent': c.fromAgent,
                   'fromUserId': c.fromUserId,
                   'email': c.email,
                   'kind': c.kind,
@@ -400,6 +401,7 @@ void main() {
           () => requireAuthenticatedWebUser(),
         );
         final consent = Consent.init(
+          fromAgent: adminUser.userId,
           fromUserId: adminUser.userId,
           email: 'other@pub.dev',
           kind: 'PublisherMember',
@@ -416,6 +418,7 @@ void main() {
         expect(await queryConstents(email: 'other@pub.dev'), [
           {
             'id': isNotNull,
+            'fromAgent': adminUser.userId,
             'fromUserId': adminUser.userId,
             'email': 'other@pub.dev',
             'kind': 'PublisherMember',
@@ -445,6 +448,7 @@ void main() {
         expect(await queryConstents(email: 'newuser@example.com'), [
           {
             'id': isNotNull,
+            'fromAgent': user.userId,
             'fromUserId': user.userId,
             'email': 'newuser@example.com',
             'kind': 'PublisherMember',
@@ -464,6 +468,7 @@ void main() {
         expect(await queryConstents(email: 'user@pub.dev'), [
           {
             'id': isNotNull,
+            'fromAgent': user.userId,
             'fromUserId': user.userId,
             'email': 'user@pub.dev',
             'kind': 'PublisherMember',

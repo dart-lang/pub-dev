@@ -292,7 +292,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,
-    if (sr.message != null) 'message': sr.message,
+    if (sr.errorMessage != null) 'message': sr.errorMessage,
   };
   if (hasNextPage) {
     final newParams =

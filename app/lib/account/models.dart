@@ -345,6 +345,15 @@ class Consent extends db.Model {
   @db.StringProperty()
   String? fromUserId;
 
+  /// May be an `User.userId` or `support@pub.dev`.
+  /// TODO: Migrate to use [fromAgent] instead of [fromUserId].
+  ///       As [Consent] expires after a week, we don't need to wait for long
+  ///       to migrate this in multiple releases. Once the current release is
+  ///       stable for more then a week, we are safe to migrate the code to use
+  ///       the new field and remove the old one.
+  @db.StringProperty()
+  String? fromAgent;
+
   @db.DateTimeProperty()
   DateTime? created;
 
@@ -364,6 +373,7 @@ class Consent extends db.Model {
 
   Consent.init({
     required this.fromUserId,
+    required this.fromAgent,
     required this.email,
     required this.kind,
     required this.args,
@@ -372,7 +382,7 @@ class Consent extends db.Model {
   }) {
     id = Ulid().toString();
     dedupId = consentDedupId(
-      fromUserId: fromUserId,
+      fromAgentId: fromAgent!,
       email: email,
       kind: kind,
       args: args!,
@@ -394,12 +404,12 @@ class Consent extends db.Model {
 
 /// Calculates the dedupId of a consent request.
 String consentDedupId({
-  required String? fromUserId,
+  required String fromAgentId,
   required String? email,
   required String? kind,
   required List<String> args,
 }) =>
-    [fromUserId, email, kind, ...args]
+    [fromAgentId, email, kind, ...args]
         .where((s) => s != null)
         .whereType<String>()
         .map(Uri.encodeComponent)
