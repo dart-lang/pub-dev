@@ -148,9 +148,9 @@ class InvalidInputException extends ResponseException {
     assert(name != null, '"name" must not be `null`');
     assert(name != null, '"name" must not be `null`');
     _check((minimum == null || value!.length >= minimum),
-        () => '"$name" must be longer than $minimum charaters');
+        () => '"$name" must be longer than $minimum characters');
     _check((maximum == null || value!.length <= maximum),
-        () => '"$name" must be less than $maximum charaters');
+        () => '"$name" must be less than $maximum characters');
   }
 
   /// Throw [InvalidInputException] if [value] is shorter than [minimum] or
