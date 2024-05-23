@@ -83,7 +83,7 @@ class TaskBackend {
   /// `null` when not started yet, or we have been fully stopped.
   Completer<void>? _aborted;
 
-  /// If background processes created by [start] have stoppped.
+  /// If background processes created by [start] have stopped.
   ///
   /// This won't be resolved if [start] has not been called!
   /// `null` when not started yet.
