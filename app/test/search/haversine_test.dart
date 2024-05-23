@@ -307,7 +307,7 @@ while (true) {
 
     isBlackMoved = true;
   } else {
-    stderr.writeln('No avaiable Black move');
+    stderr.writeln('No available Black move');
   }
 
   // The round of white player, which is bot.
@@ -317,7 +317,7 @@ while (true) {
     b[mw] = Disc.White;
     isWhiteMoved = true;
   } else {
-    stderr.writeln('No avaliable White move');
+    stderr.writeln('No available White move');
   }
 
   if (!isBlackMoved && !isWhiteMoved) {
