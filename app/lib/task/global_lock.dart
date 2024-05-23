@@ -55,7 +55,7 @@ class GlobalLock {
           // This logic ensures that we try to refresh when 50% of expiration
           // has passed, at this point we refresh every 10% of expiration. This
           // ensures that if refreshing fails, then we have a few attempts to
-          // refresh, before it's truely expired.
+          // refresh, before it's truly expired.
 
           // Wait for done or delay
           await done.future.timeout(delay, onTimeout: () => null);
