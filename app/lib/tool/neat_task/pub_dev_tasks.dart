@@ -114,9 +114,9 @@ void _setupGenericPeriodicTasks() {
     task: updatePublicArchiveBucket,
   );
 
-  // Exports the package name completetion data to a bucket.
+  // Exports the package name completion data to a bucket.
   _daily(
-    name: 'export-package-name-completition-data-to-bucket',
+    name: 'export-package-name-completion-data-to-bucket',
     isRuntimeVersioned: true,
     task: () async => await apiExporter?.uploadPkgNameCompletionData(),
   );
