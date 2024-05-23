@@ -577,6 +577,9 @@ void main() {
             'isEnabled': false,
             'repository': 'a/b',
             'tagPattern': '{{version}}',
+            'requireEnvironment': false,
+            'isPushEventEnabled': true,
+            'isWorkflowDispatchEventEnabled': false,
           });
         }
       });

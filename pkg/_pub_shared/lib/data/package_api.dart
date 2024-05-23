@@ -67,7 +67,7 @@ class AutomatedPublishingConfig {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GithubPublishingConfig {
-  bool? isEnabled;
+  late bool isEnabled;
 
   /// The `owner/repository` path of the project on github.com.
   String? repository;
@@ -85,42 +85,40 @@ class GithubPublishingConfig {
   String? tagPattern;
 
   /// Whether to require the action from a specific environment.
-  bool? requireEnvironment;
+  late bool requireEnvironment;
 
   /// The GitHub environment where the publishing is required from.
   String? environment;
 
-  /// Whether the (default) `push` event is disabled.
-  bool? disablePushEvent;
+  /// Whether the (default) `push` event is enabled.
+  late bool isPushEventEnabled;
 
   /// Whether the `workflow_dispatch` event is enabled.
-  bool? enableWorkflowDispatchEvent;
+  late bool isWorkflowDispatchEventEnabled;
 
   GithubPublishingConfig({
-    this.isEnabled,
+    this.isEnabled = false,
     this.repository,
     this.tagPattern,
-    this.requireEnvironment,
+    this.requireEnvironment = false,
     this.environment,
-    this.disablePushEvent,
-    this.enableWorkflowDispatchEvent,
+    this.isPushEventEnabled = true,
+    this.isWorkflowDispatchEventEnabled = false,
   });
 
   factory GithubPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$GithubPublishingConfigFromJson(json);
 
   Map<String, dynamic> toJson() => _$GithubPublishingConfigToJson(this);
-
-  bool get isPushEventEnabled => !(disablePushEvent ?? false);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GcpPublishingConfig {
-  bool? isEnabled;
+  late bool isEnabled;
   String? serviceAccountEmail;
 
   GcpPublishingConfig({
-    this.isEnabled,
+    this.isEnabled = false,
     this.serviceAccountEmail,
   });
 

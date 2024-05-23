@@ -512,14 +512,12 @@ class PackageBackend {
       final githubConfig = body.github;
       final gcpConfig = body.gcp;
       if (githubConfig != null) {
-        final isEnabled = githubConfig.isEnabled ?? false;
+        final isEnabled = githubConfig.isEnabled;
         // normalize input values
         final repository = githubConfig.repository?.trim() ?? '';
         githubConfig.repository = repository.isEmpty ? null : repository;
         final tagPattern = githubConfig.tagPattern?.trim() ?? '';
         githubConfig.tagPattern = tagPattern.isEmpty ? null : tagPattern;
-        final requireEnvironment = githubConfig.requireEnvironment ?? false;
-        githubConfig.requireEnvironment = requireEnvironment ? true : null;
         final environment = githubConfig.environment?.trim() ?? '';
         githubConfig.environment = environment.isEmpty ? null : environment;
 
@@ -546,7 +544,7 @@ class PackageBackend {
             'The `tagPattern` field has invalid characters.');
 
         InvalidInputException.check(
-            !requireEnvironment || environment.isNotEmpty,
+            !githubConfig.requireEnvironment || environment.isNotEmpty,
             'The `environment` field must not be empty when enabled.');
 
         if (environment.isNotEmpty) {
@@ -556,7 +554,7 @@ class PackageBackend {
         }
       }
       if (gcpConfig != null) {
-        final isEnabled = gcpConfig.isEnabled ?? false;
+        final isEnabled = gcpConfig.isEnabled;
         // normalize input values
         final serviceAccountEmail = gcpConfig.serviceAccountEmail?.trim() ?? '';
         gcpConfig.serviceAccountEmail = serviceAccountEmail;
@@ -1306,7 +1304,7 @@ class PackageBackend {
       throw AssertionError(
           'Configured tag pattern does not include `{{version}}`');
     }
-    final requireEnvironment = githubConfig.requireEnvironment ?? false;
+    final requireEnvironment = githubConfig.requireEnvironment;
     final environment = githubConfig.environment;
     if (requireEnvironment && (environment == null || environment.isEmpty)) {
       throw AssertionError('Missing or empty environment.');
