@@ -29,7 +29,7 @@ http.Client httpRetryClient({
         (lenient && r.statusCode >= 500) ||
         _transientStatusCodes.contains(r.statusCode),
     retries: retries ?? 5,
-    // TOOD: Consider implementing whenError to handle DNS + handshake errors.
+    // TODO: Consider implementing whenError to handle DNS + handshake errors.
     //       These are safe, retrying after partially sending data is more
     //       sketchy, but probably safe in our application.
     whenError: (e, st) => lenient || e is SocketException,
