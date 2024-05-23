@@ -128,7 +128,7 @@ class GlobalLock {
     } on TransactionAbortedError {
       // Note: withRetryTransaction will have retried this, so this means we
       // a high write congestion -- or, many connection exceptions.
-      _log.shout('Write congestion tryingt to claim $_lockId');
+      _log.shout('Write congestion trying to claim $_lockId');
       return null;
     }
   }
@@ -237,7 +237,7 @@ class GlobalLockClaim {
     } on TransactionAbortedError {
       // Note: withRetryTransaction will have retried this, so this means we
       // a high write congestion -- or, many connection exceptions.
-      _log.shout('Write congestion tryingt to refresh $_entry.lockId');
+      _log.shout('Write congestion trying to refresh $_entry.lockId');
       return false;
     }
   }
