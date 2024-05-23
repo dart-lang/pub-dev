@@ -532,7 +532,7 @@ class TaskBackend {
     //      this is the matching logic we leverage here.
     //
     // We only update [PackageState] to have [lastDependencyChanged], this
-    // ensures that there is no risk of indefinite propergation.
+    // ensures that there is no risk of indefinite propagation.
     final q = _db.query<PackageState>()
       ..filter('dependencies =', package)
       ..filter('lastDependencyChanged <', publishedAt);
