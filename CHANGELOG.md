@@ -107,7 +107,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.16.9`.
  * Upgraded preview Dart analysis SDK to `3.3.0-279.3.beta`.
  * Upgraded preview Flutter analysis SDK to `3.19.0-0.4.pre`.
- * Note: started to populare audit log records with extended `agentId` for service accounts.
+ * Note: started to populate audit log records with extended `agentId` for service accounts.
 
 ## `20240201t145300-all`
  * Note: temporarily disabled email notification on package published events.
