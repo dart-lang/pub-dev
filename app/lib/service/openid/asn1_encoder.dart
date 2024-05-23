@@ -29,7 +29,7 @@ List<int> encodeLength(int length) {
   }
 }
 
-/// Encodes the [bytes] as integer, using the big-endian enconding.
+/// Encodes the [bytes] as integer, using the big-endian encoding.
 @visibleForTesting
 List<int> encodeIntegerFromBytes(List<int> bytes) {
   final padBytes = bytes.isNotEmpty && (bytes.first & 0x80 > 0);
