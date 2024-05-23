@@ -155,7 +155,7 @@ class PackageState extends db.ExpandoModel<String> {
   /// are going to be pending soon too. Hence, we return a version if:
   ///   * `now - scheduled > 21 days`,
   ///   * `lastDependencyChanged > scheduled`, or,
-  ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attemps^2`
+  ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
   List<String> pendingVersions({DateTime? at}) {
     final at_ = at ?? clock.now();
     Duration timeSince(DateTime past) => at_.difference(past);
