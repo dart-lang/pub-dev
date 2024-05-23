@@ -1095,7 +1095,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
          `delete-expired-consents`, `delete-expired-sessions`,
          `delete-old-jobs`, `delete-old-scorecards`.
  * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
-   runtimeVerions when we are no-longer serving old generated dartdoc files.
+   runtimeVersions when we are no-longer serving old generated dartdoc files.
 
 ## `20210203t120700-all`
 
