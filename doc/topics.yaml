@@ -50,7 +50,7 @@
 # --------------------
 #
 # The decision on whether or not to merge two similar topics can be difficult.
-# When in doubt we should error on the side of causion and avoid merging topics.
+# When in doubt we should error on the side of caution and avoid merging topics.
 # However, if mistakes are made these changes are reversible.
 # And we should not be afraid of accepting that sometimes a single topic can
 # have multiple meaning, even if this makes the topic hard to use.
