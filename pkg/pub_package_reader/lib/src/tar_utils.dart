@@ -61,7 +61,7 @@ class TarArchive {
         if (indexOfMapped < 0) continue;
         final builder = BytesBuilder();
         await for (final chunk in reader.current.contents) {
-          // We need to read all content chuncks before proceeding with
+          // We need to read all content chunks before proceeding with
           // the next file, however, if the buffer is over the maximum
           // length, we can drop the chunks.
           if (maxLength == 0 || builder.length <= maxLength) {
