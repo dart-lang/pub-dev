@@ -358,7 +358,7 @@ class TaskBackend {
       latestVersion = package.latestVersion;
 
       // Update the timestamp for when the last version was published.
-      // This is used if we need to update dependants.
+      // This is used if we need to update dependents.
       lastVersionCreated = packageVersions.map((pv) => pv.created!).max;
 
       // If package is not visible, we should remove it!
