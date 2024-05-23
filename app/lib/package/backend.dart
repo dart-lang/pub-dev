@@ -1758,7 +1758,7 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
     );
     await stream.pipe(targetFile.openWrite());
   } catch (e, st) {
-    _logger.warning('An error occured while streaming tarball to FS.', e, st);
+    _logger.warning('An error occurred while streaming tarball to FS.', e, st);
     rethrow;
   }
   _logger.info('Finished streaming tarball to FS (elapsed: ${sw.elapsed}).');
