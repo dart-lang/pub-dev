@@ -249,7 +249,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded runtime Dart SDK to `3.1.0`.
  * Upgraded dependencies.
  * Note: `DartdocRun`, `Job` and `ScoreCard` entities will be deleted in Datastore.
- * Note: `dartdoc` backend no longer deletes entries from `Configuraiton.dartdocStorageBucketName`.
+ * Note: `dartdoc` backend no longer deletes entries from `Configuration.dartdocStorageBucketName`.
          TODO: delete the bucket after this release becomes obsolete.
 
 ## `20230822t112400-all`
