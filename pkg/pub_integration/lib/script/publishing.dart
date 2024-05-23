@@ -73,7 +73,7 @@ class PublishingScript {
       await dart.publish(_dummyDir.path,
           expectedOutputContains:
               'Successfully uploaded https://pub.dev/packages/_dummy_pkg version $_newDummyVersion');
-      // On appengine we may experiece a longer cache period for the public API.
+      // On appengine we may experience a longer cache period for the public API.
       // Waiting for up to 150 seconds for the version to be updated.
       for (var i = 1; i <= 50; i++) {
         await Future.delayed(Duration(seconds: 3));
