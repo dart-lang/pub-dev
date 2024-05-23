@@ -30,7 +30,7 @@ void main() {
       expect(form.toSearchLink(page: 3), '/packages?q=web+framework&page=3');
     });
 
-    test('query with with sdk context', () {
+    test('query with sdk context', () {
       final form = SearchForm(query: 'sdk:flutter some framework');
       expect(form.toSearchLink(), '/packages?q=sdk%3Aflutter+some+framework');
       expect(form.toSearchLink(page: 1),
@@ -39,7 +39,7 @@ void main() {
           '/packages?q=sdk%3Aflutter+some+framework&page=2');
     });
 
-    test('query with with a single sdk parameter', () {
+    test('query with a single sdk parameter', () {
       final form = SearchForm.parse({'q': 'sdk:dart some framework'});
       // pages
       expect(form.toSearchLink(), '/packages?q=sdk%3Adart+some+framework');
