@@ -322,7 +322,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## `20230606t110900-all`
  * Bumped runtimeVersion to `2023.05.31`.
- * Note: Dart 3 compatiblity check uses the same SDK as the analysis.
+ * Note: Dart 3 compatibility check uses the same SDK as the analysis.
 
 ## `20230531t083600-all`
  * Bumped runtimeVersion to `2023.05.30`.
