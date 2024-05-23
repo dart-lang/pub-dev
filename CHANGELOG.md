@@ -194,7 +194,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded pana to `0.21.40`.
 
 ## `20231019t115400-all`
- * Moved search index building and seach GC jobs into `analyzer` instance.
+ * Moved search index building and search GC jobs into `analyzer` instance.
  * Increased memory on `analyzer` instances to 16G, running two of them.
 
 ## `20231018t131100-all`
