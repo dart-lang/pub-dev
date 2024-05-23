@@ -340,7 +340,7 @@ if (w == Win.Black) {
 }
 ```
 
-We shipped a console Reversi program for demo purpose. Currently, there is only one level of bot. See the source of our console program for more details. More bots and applicaions are on the way.
+We shipped a console Reversi program for demo purpose. Currently, there is only one level of bot. See the source of our console program for more details. More bots and applications are on the way.
 
 You may implement your own Reversi bot. You only need to fulfill this interface:
 
