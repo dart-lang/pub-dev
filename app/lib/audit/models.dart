@@ -434,7 +434,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId]);
   }
 
-  /// Returns [AuditLogRecord] for the pubilsher contact invited operation.
+  /// Returns [AuditLogRecord] for the publisher contact invited operation.
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInvited({
