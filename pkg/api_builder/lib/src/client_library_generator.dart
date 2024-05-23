@@ -59,7 +59,7 @@ code.Class _buildClientClass(
         ..docs.addAll([
           '/// Client for invoking `${cls.name}` through the generated router.',
           '///',
-          '/// Reponses other than 2xx causes the methods to throw',
+          '/// Responses other than 2xx causes the methods to throw',
           '/// `RequestException`. JSON encoding/decoding errors are not',
           '/// handled gracefully. End-points that does not return a JSON',
           '/// structure result in a method that returns the response body',
