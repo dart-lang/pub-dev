@@ -403,7 +403,7 @@ class TaskBackend {
             ..finished = initialTimestamp
             ..derivePendingAt(),
         );
-        return true; // no more work for this package, state is sync'ed
+        return true; // no more work for this package, state is synced
       }
 
       // List versions that not tracked, but should be
