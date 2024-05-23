@@ -311,7 +311,7 @@ extension PageExt on Page {
     return await goto('$origin$path', wait: Until.networkIdle);
   }
 
-  /// Returns the [property] value of the first elemented by [selector].
+  /// Returns the [property] value of the first element by [selector].
   Future<String> propertyValue(String selector, String property) async {
     final h = await $(selector);
     return await h.propertyValue(property);
