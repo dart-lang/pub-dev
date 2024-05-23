@@ -57,7 +57,7 @@ void main() {
       isEmpty,
     );
 
-    // Travese all package pages and generated documentation,
+    // Traverse all package pages and generated documentation,
     // create golden files and check for dead links and assets
     await _traverseLinksUnderPath(
       seed: [

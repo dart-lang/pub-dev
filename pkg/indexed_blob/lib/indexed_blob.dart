@@ -333,20 +333,20 @@ class BlobIndex {
       throw const FormatException('expected "index" key');
     }
 
-    // Travese object
-    Iterable<FileRange> travese(String parent) sync* {
+    // Traverse object
+    Iterable<FileRange> traverse(String parent) sync* {
       r.expectObject();
       while (r.hasNextKey()) {
         final name = parent + r.nextKey()!;
         if (r.checkString()) {
           yield FileRange._fromJson(name, r.expectString(), blobId);
         } else {
-          yield* travese('$name/');
+          yield* traverse('$name/');
         }
       }
     }
 
-    yield* travese('');
+    yield* traverse('');
   }
 
   Uint8List asBytes() => _indexFile;
