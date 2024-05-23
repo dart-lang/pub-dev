@@ -117,7 +117,7 @@ class IndexedBlobBuilder {
   /// is not allowed.
   ///
   /// The [blobId] is a free-form string that is included when a FileRange is
-  /// returend by [BlobIndex.lookup]. It is intended to store an identifier for
+  /// returned by [BlobIndex.lookup]. It is intended to store an identifier for
   /// blob containing the file, or a URL to the blob.
   Future<BlobIndex> buildIndex(String blobId) async {
     _checkState();
