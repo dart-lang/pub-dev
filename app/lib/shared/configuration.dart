@@ -141,9 +141,9 @@ class Configuration {
   /// This service account need the following roles:
   ///  * Logs Writer (`roles/logging.logWriter`),
   ///  * Storage Object Viewer (`roles/storage.objectViewer`) on the container
-  ///    registery buckets.
+  ///    registry buckets.
   ///
-  /// The container registery buckets are usually:
+  /// The container registry buckets are usually:
   ///  * artifacts.PROJECT-ID.appspot.com
   ///  * STORAGE-REGION.artifacts.PROJECT-ID.appspot.com
   final String? taskWorkerServiceAccount;
