@@ -106,7 +106,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
       registerSecretBackend(GcpSecretBackend(authClient));
 
-      // Confiugure a CloudCompute pool for later use in TaskBackend
+      // Configure a CloudCompute pool for later use in TaskBackend
       //
       // This should not be wrapped with [httpRetryClient] because entire
       // requests are retried by our GCE logic.
