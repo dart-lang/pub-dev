@@ -18,6 +18,7 @@ void main() {
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_URL'] ?? '';
   final actionsIdTokenRequestToken =
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_TOKEN'] ?? '';
+  final githubRepository = Platform.environment['GITHUB_REPOSITORY'] ?? '';
 
   // This test only works when running on Github Actions with `id-token: write` permissions.
   //
@@ -70,8 +71,7 @@ void main() {
       expect(token.payload.isTimely(threshold: Duration(minutes: 1)), isTrue);
       final payload = GitHubJwtPayload(token.payload);
       expect(token.payload.aud, ['https://example.com']);
-      // repository check assumes that clones keep the `pub-dev` name:
-      expect(payload.repository, endsWith('/pub-dev'));
+      expect(payload.repository, githubRepository);
       expect(payload.eventName, anyOf(['pull_request', 'push', 'schedule']));
       expect(payload.refType, anyOf(['branch']));
       // example `ref`: `refs/pull/38/merge`
