@@ -1036,7 +1036,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: Expected reduction in Job-related API calls.
 
 ## `20210325t074600-all`
- * Tempoarily disabled youtube integration.
+ * Temporarily disabled youtube integration.
 
 ## `20210324t155000-all`
 
