@@ -388,7 +388,7 @@ void main() {
           final activities = await auditBackend.listRecordsForPackage('oxygen');
           expect(activities.records, isNotEmpty);
 
-          // extra records to trigger the 2-month seaprator
+          // extra records to trigger the 2-month separator
           final mockPresent = clock.now();
           activities.records.insert(
               0,
