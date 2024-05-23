@@ -91,7 +91,7 @@ Future<void> schedule(
         if (isTooOld) {
           // This indicates that something is wrong the with the instance,
           // ideally it should have detected its own deadline being violated
-          // and terminated on its own. Ofcourse, this can fail for arbitrary
+          // and terminated on its own. Of course, this can fail for arbitrary
           // reasons in a distributed system.
           _log.warning('terminating $instance for being too old!');
         } else if (isTerminated) {
