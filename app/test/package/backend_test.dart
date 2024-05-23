@@ -287,7 +287,7 @@ void main() {
         });
       });
 
-      testWithProfile('successfull', fn: () async {
+      testWithProfile('successful', fn: () async {
         // adding extra uploader for the scope of this test
         final pkg = (await packageBackend.lookupPackage('oxygen'))!;
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');

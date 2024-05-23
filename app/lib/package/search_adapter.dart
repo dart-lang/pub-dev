@@ -74,7 +74,7 @@ class SearchAdapter {
       if (envConfig.isRunningLocally) {
         // The fake server will start up the different instances with a slight
         // delay, and cached values like the top packages will trigger a few
-        // search failures (which will be retried and successfull shortly).
+        // search failures (which will be retried and successful shortly).
         _logger.info('Unable to search packages.', e);
       } else {
         _logger.severe('Unable to search packages.', e, st);
