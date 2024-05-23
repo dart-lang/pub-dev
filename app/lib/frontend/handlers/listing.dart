@@ -80,7 +80,10 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
     rateLimitKey: request.sourceIp,
   );
   final int totalCount = searchResult.totalCount;
-  if (searchResult.errorMessage != null) {
+  final errorMessage = searchResult.errorMessage;
+  final statusCode =
+      searchResult.statusCode ?? (errorMessage == null ? 200 : 500);
+  if (errorMessage != null && statusCode >= 500) {
     _logger.severe('[pub-search-not-working] ${searchResult.errorMessage}');
   }
 
@@ -93,9 +96,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       messageFromBackend: searchResult.errorMessage,
       openSections: openSections,
     ),
-    status: searchResult.errorMessage == null
-        ? 200
-        : (searchResult.statusCode ?? 500),
+    status: statusCode,
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;
