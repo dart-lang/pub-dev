@@ -310,7 +310,7 @@ class _Bucket implements Bucket {
   Future<void> updateMetadata(
       String objectName, ObjectMetadata metadata) async {
     _logger.severe(
-        'UpdateMeadata: $objectName not yet implemented, call ignored.');
+        'UpdateMetadata: $objectName not yet implemented, call ignored.');
   }
 }
 

@@ -37,7 +37,7 @@ const robotsVisibilityMaxAge = Duration(days: 365 * 2);
 /// their attractiveness to spammers.
 const robotsVisibilityMinAge = Duration(days: 3);
 
-/// Pub package metdata.
+/// Pub package metadata.
 ///
 /// The main property used is `uploaders` for determining who is allowed
 /// to upload packages.
