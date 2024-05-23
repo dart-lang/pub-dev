@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:pub_dev/task/backend.dart';
 
 String _printHelp() {
-  return 'Notifies the auxilliary services about a new package or version.\n'
+  return 'Notifies the auxiliary services about a new package or version.\n'
       'Syntax:\n'
       '  <tool-command> task [package]\n';
 }
