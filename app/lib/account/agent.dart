@@ -116,7 +116,7 @@ abstract class AuthenticatedAgent {
   ///  * For automated publishing we use [KnownAgents] identifiers.
   String get agentId;
 
-  /// The formatted identfier of the agent, which may be publicly visible
+  /// The formatted identifier of the agent, which may be publicly visible
   /// in logs and audit records.
   ///
   /// Examples:
