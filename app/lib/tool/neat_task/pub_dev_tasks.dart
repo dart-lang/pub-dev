@@ -39,9 +39,9 @@ void _setupGenericPeriodicTasks() {
     name: 'send-outgoing-emails',
     isRuntimeVersioned: false,
     task: () async {
-      final aquireAbort = Completer();
-      final aquireTimer = Timer(Duration(minutes: 2), () {
-        aquireAbort.complete();
+      final acquireAbort = Completer();
+      final acquireTimer = Timer(Duration(minutes: 2), () {
+        acquireAbort.complete();
       });
 
       try {
@@ -55,10 +55,10 @@ void _setupGenericPeriodicTasks() {
               stopAfter: Duration(minutes: 10),
             );
           },
-          abort: aquireAbort,
+          abort: acquireAbort,
         );
       } finally {
-        aquireTimer.cancel();
+        acquireTimer.cancel();
       }
     },
   );
