@@ -861,7 +861,7 @@ abstract class AuditLogRecordKind {
   static const packageVersionOptionsUpdated = 'package-version-options-updated';
 
   /// Event that a new package was created. This event is created alongside the
-  /// [packagePublished] event, but is only kept until the default expirty period
+  /// [packagePublished] event, but is only kept until the default expiry period
   /// (to enforce rate limits).
   static const packageCreated = 'package-created';
 
