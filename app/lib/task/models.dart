@@ -17,7 +17,7 @@ part 'models.g.dart';
 /// We periodically re-analyze all packages to ensure eventual consistency.
 const taskRetriggerInterval = Duration(days: 31);
 
-/// Time before an anlysis/dartdoc task for a given package/version is will
+/// Time before an analysis/dartdoc task for a given package/version is will
 /// piggyback on the sandbox used for analysis of another version of the same
 /// package.
 const minTaskRetriggerInterval = Duration(days: 21);
