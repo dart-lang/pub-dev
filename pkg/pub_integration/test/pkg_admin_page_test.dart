@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'dart:io' show Platform;
+
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
@@ -44,6 +46,9 @@ void main() {
         final user =
             await fakeTestScenario.createTestUser(email: 'admin@pub.dev');
 
+        final githubRepository =
+            Platform.environment['GITHUB_REPOSITORY'] ?? 'dart-lang/pub-dev';
+
         // github publishing
         await user.withBrowserPage((page) async {
           await page.gotoOrigin('/packages/test_pkg/admin');
@@ -54,14 +59,14 @@ void main() {
             '#-pkg-admin-automated-github-tagpattern',
           ]);
           await page.waitFocusAndType(
-              '#-pkg-admin-automated-github-repository', 'dart-lang/pub-dev');
+              '#-pkg-admin-automated-github-repository', githubRepository);
           await page.waitAndClick('#-pkg-admin-automated-button',
               waitForOneResponse: true);
           await page.waitAndClickOnDialogOk();
           await page.reload();
           final value = await page.propertyValue(
               '#-pkg-admin-automated-github-repository', 'value');
-          expect(value, 'dart-lang/pub-dev');
+          expect(value, githubRepository);
         });
       });
     },
