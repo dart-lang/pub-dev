@@ -16,7 +16,7 @@ if [ $# -ne 0 ]; then
   echo 'And print list of missing logs to:'
   echo "  $ROOT/missing-task-logs.txt"
   echo ''
-  echo 'Use PUB_HOSTED_URL to specify a differnet server'
+  echo 'Use PUB_HOSTED_URL to specify a different server'
   exit 1;
 fi
 
