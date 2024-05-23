@@ -53,7 +53,7 @@ List<int> encodeBitString(List<int> bytes) {
   ];
 }
 
-/// Encodes mulitple parts as a sequence.
+/// Encodes multiple parts as a sequence.
 @visibleForTesting
 List<int> encodeSequence(Iterable<List<int>> parts) {
   final totalLength = parts.map((e) => e.length).fold<int>(0, (a, b) => a + b);
