@@ -110,7 +110,7 @@ class SecurityAdvisoryBackend {
         ..syncTime = syncTime;
 
       if (newAdvisory.affectedPackages!.length > 50) {
-        // This is very unlikly to happen, since a security advisory typically
+        // This is very unlikely to happen, since a security advisory typically
         // affects one or a few packages. We log this to keep an eye out. If
         // it turns out that this becomes a problem we need to consider other
         // solutions with eventual consistency.
@@ -155,7 +155,7 @@ class SecurityAdvisoryBackend {
       final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
 
       if (advisory.affectedPackages!.length > 50) {
-        // This is very unlikly to happen, since a security advisory typically
+        // This is very unlikely to happen, since a security advisory typically
         // affects one or a few packages. We log this to keep an eye out. If
         // it turns out that this becomes a problem we need to consider other
         // solutions with eventual consistency.
