@@ -16,7 +16,7 @@ final _attributeRegExp = RegExp(r'^[a-z](?:[a-z0-9\-\_]*[a-z0-9]+)?$');
 final _elementRegExp = _attributeRegExp;
 
 // As we want to store rawJson inside a HTML Element, it is better
-// to escape all non-trusteded characters inside it. Non-trusted
+// to escape all non-trusted characters inside it. Non-trusted
 // characters must include `</!>` characters.
 final _ldJsonEscapedCharactersRegExp = RegExp(r'[^0-9a-zA-Z ,@\.\-]');
 
