@@ -145,7 +145,7 @@ class PackageState extends db.ExpandoModel<String> {
         ...versions!.values
             .where((v) => v.attempts > 0 && v.attempts < taskRetryLimit)
             .map((v) => v.scheduled.add(taskRetryDelay(v.attempts))),
-        // Pick the minimum of the candiates, default scheduling in year 3k
+        // Pick the minimum of the candidates, default scheduling in year 3k
         // if there is no date before that.
       ].fold(DateTime(3000), (a, b) => a!.isBefore(b) ? a : b);
 
