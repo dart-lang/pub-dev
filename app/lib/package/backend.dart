@@ -1201,7 +1201,7 @@ class PackageBackend {
       return newVersion;
     });
     _logger.info('Upload successful. [package-uploaded]');
-    _logger.info('Upload transaction compelted in ${sw.elapsed}.');
+    _logger.info('Upload transaction completed in ${sw.elapsed}.');
     sw.reset();
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
