@@ -378,7 +378,7 @@ class PackageBackend {
     return updated;
   }
 
-  /// Updates the stable, prerelase and preview versions of all package.
+  /// Updates the stable, prerelease and preview versions of all package.
   ///
   /// Return the number of updated packages.
   Future<int> updateAllPackageVersions(
