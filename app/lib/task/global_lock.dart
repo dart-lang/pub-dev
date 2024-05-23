@@ -196,7 +196,7 @@ class GlobalLockClaim {
   /// This offers some safety from clock drift. In most cases the claim should
   /// be refreshed long before we approach 75% of the expiration being passed.
   ///
-  /// When a claim is refreshed 75% before expiration it allows allows us to use
+  /// When a claim is refreshed 75% before expiration it allows us to use
   /// [expires] as _deadline_ for other operations.
   bool get valid =>
       _released == null &&
