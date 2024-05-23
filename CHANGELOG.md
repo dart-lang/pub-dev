@@ -1605,5 +1605,5 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20190306t115839-all`
  
  * Run `app/bin/tools/backfill_packageversions.dart` to backfill `PubSpec`
-   entities in datastore (these entitites are not in use yet).
+   entities in datastore (these entities are not in use yet).
  * Bumped runtimeVersion to `2019.03.05`.
