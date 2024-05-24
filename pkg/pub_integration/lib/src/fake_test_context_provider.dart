@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -55,7 +56,8 @@ class TestContextProvider {
     final session = await _testBrowser.createSession();
     return TestUser(
       email: '',
-      api: PubApiClient(pubHostedUrl),
+      browserApi: PubApiClient(pubHostedUrl),
+      serverApi: PubApiClient(pubHostedUrl),
       withBrowserPage: <T>(Future<T> Function(Page) fn) async {
         return await session.withPage<T>(fn: fn);
       },
@@ -68,15 +70,33 @@ class TestContextProvider {
     required String email,
     List<String>? scopes,
   }) async {
-    late PubApiClient api;
+    late PubApiClient browserApi;
     final session = await _testBrowser.createSession();
     await session.withPage(fn: (page) async {
       await page.fakeAuthSignIn(email: email, scopes: scopes);
-      api = await _apiClientHttpHeadersFromSignedInSession(page);
+      browserApi = await _apiClientHttpHeadersFromSignedInSession(page);
     });
+
+    Future<PubApiClient> createClientWithAudience({String? audience}) async {
+      final rs = await http.get(Uri.parse(pubHostedUrl).replace(
+        path: '/fake-gcp-token',
+        queryParameters: {
+          'email': email,
+          if (audience != null) 'audience': audience,
+        },
+      ));
+      final map = json.decode(rs.body) as Map<String, dynamic>;
+      final token = map['token'] as String;
+      return PubApiClient(pubHostedUrl,
+          client: createHttpClientWithHeaders({
+            'authorization': 'Bearer $token',
+          }));
+    }
+
     return TestUser(
       email: email,
-      api: api,
+      browserApi: browserApi,
+      serverApi: await createClientWithAudience(),
       createCredentials: () => fakeCredentialsMap(email: email),
       readLatestEmail: () async {
         final map = await _fakePubServerProcess.fakeEmailReader

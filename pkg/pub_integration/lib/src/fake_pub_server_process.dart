@@ -212,7 +212,10 @@ class FakeEmailReaderFromOutputDirectory {
   }) async {
     final emails = await readAllEmails();
     return emails.lastWhere((map) {
-      final recipients = (map['recipients'] as List).cast<String>();
+      final recipients = {
+        ...(map['recipients'] as List? ?? <String>[]).cast<String>(),
+        ...(map['ccRecipients'] as List? ?? <String>[]).cast<String>(),
+      };
       return recipients.contains(recipient);
     });
   }

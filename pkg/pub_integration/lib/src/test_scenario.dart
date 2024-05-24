@@ -93,9 +93,13 @@ final class TestUser {
   /// The email of the given test user.
   final String email;
 
-  /// An API client for access the API authenticated with a session associated
-  /// with this user.
-  final PubApiClient api;
+  /// A browser-based API client for access the API authenticated with a
+  /// session associated with this user.
+  final PubApiClient browserApi;
+
+  /// A command-line based API client for accessing the API authenticated
+  /// via an auth token (for pub site audience).
+  final PubApiClient serverApi;
 
   /// Executes callback `fn` with the browser page where this test user is
   /// signed-in to their account.
@@ -112,7 +116,8 @@ final class TestUser {
 
   TestUser({
     required this.email,
-    required this.api,
+    required this.browserApi,
+    required this.serverApi,
     required this.withBrowserPage,
     required this.readLatestEmail,
     required this.createCredentials,

@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/fake/server/fake_analyzer_service.dart';
 import 'package:pub_dev/fake/server/fake_default_service.dart';
@@ -14,6 +15,7 @@ import 'package:pub_dev/fake/server/fake_storage_server.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
@@ -123,6 +125,17 @@ class FakeServerCommand extends Command {
       }
       if (rq.requestedUri.path == '/fake-update-search') {
         return await _updateUpstream(searchPort);
+      }
+      if (rq.requestedUri.path == '/fake-gcp-token') {
+        final email = rq.requestedUri.queryParameters['email'];
+        final audience = rq.requestedUri.queryParameters['audience'];
+        return jsonResponse({
+          // ignore: invalid_use_of_visible_for_testing_member
+          'token': createFakeServiceAccountToken(
+            email: email!,
+            audience: audience,
+          ),
+        });
       }
       return shelf.Response.notFound('Not Found.');
     }
