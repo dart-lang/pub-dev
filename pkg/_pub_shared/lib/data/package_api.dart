@@ -67,7 +67,7 @@ class AutomatedPublishingConfig {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GithubPublishingConfig {
-  late bool isEnabled;
+  bool isEnabled;
 
   /// The `owner/repository` path of the project on github.com.
   String? repository;
@@ -85,16 +85,16 @@ class GithubPublishingConfig {
   String? tagPattern;
 
   /// Whether to require the action from a specific environment.
-  late bool requireEnvironment;
+  bool requireEnvironment;
 
   /// The GitHub environment where the publishing is required from.
   String? environment;
 
   /// Whether the (default) `push` event is enabled.
-  late bool isPushEventEnabled;
+  bool isPushEventEnabled;
 
   /// Whether the `workflow_dispatch` event is enabled.
-  late bool isWorkflowDispatchEventEnabled;
+  bool isWorkflowDispatchEventEnabled;
 
   GithubPublishingConfig({
     this.isEnabled = false,
@@ -114,7 +114,7 @@ class GithubPublishingConfig {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GcpPublishingConfig {
-  late bool isEnabled;
+  bool isEnabled;
   String? serviceAccountEmail;
 
   GcpPublishingConfig({
