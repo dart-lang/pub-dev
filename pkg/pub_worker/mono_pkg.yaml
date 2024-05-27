@@ -1,6 +1,6 @@
 # See https://pub.dev/packages/mono_repo for details on this file
 sdk:
-  - 3.4.0
+  - 3.5.0-164.0.dev
 
 stages:
   - smoke_test:

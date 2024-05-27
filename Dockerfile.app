@@ -1,5 +1,5 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM dart:3.4.0
+FROM dart:3.5.0-164.0.dev
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
@@ -17,17 +17,16 @@ COPY static /project/static
 COPY doc /project/doc
 COPY third_party /project/third_party
 COPY tool /project/tool
+COPY pubspec.yaml /project/pubspec.yaml
+
+WORKDIR /project/
+RUN dart /project/tool/pub_get_offline.dart
 
 WORKDIR /project/pkg/web_app
-RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
 RUN ./build.sh
 
 WORKDIR /project/pkg/web_css
-RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_css
 RUN ./build.sh
-
-WORKDIR /project/app
-RUN dart /project/tool/pub_get_offline.dart /project/app
 
 RUN /project/tool/setup-webp.sh /usr/local/bin
 

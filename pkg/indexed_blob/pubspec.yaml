@@ -1,7 +1,10 @@
 name: indexed_blob
 publish_to: none
+
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0-0'
+resolution: workspace
+
 dependencies:
   async: ^2.8.0
   jsontool: ^1.1.0

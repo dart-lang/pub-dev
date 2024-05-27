@@ -1,12 +1,11 @@
 name: pub_dev
 description: The pub.dartlang.org website.
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0-0'
+resolution: workspace
 dependencies:
   _popularity:
-    path: ../pkg/_popularity
   _pub_shared:
-    path: ../pkg/_pub_shared
   appengine: ^0.13.6
   args: '^2.0.0'
   basics: ^0.10.0
@@ -17,7 +16,6 @@ dependencies:
   crypto: '^3.0.0'
   fake_async: ^1.2.0
   fake_gcloud:
-    path: ../pkg/fake_gcloud
   gcloud: '^0.8.11'
   googleapis: ^11.4.0
   googleapis_auth: ^1.1.0
@@ -25,7 +23,6 @@ dependencies:
   http: ^1.0.0
   http_parser: ^4.0.0
   indexed_blob:
-    path: ../pkg/indexed_blob
   intl: '^0.18.0'
   json_annotation: '^4.3.0'
   lints: ^3.0.0
@@ -39,7 +36,6 @@ dependencies:
   pem: ^2.0.1
   pool: '^1.5.0'
   pub_package_reader:
-    path: ../pkg/pub_package_reader
   pub_semver: '^2.0.0'
   pubspec_parse: ^1.2.1
   retry: ^3.1.0
@@ -57,7 +53,6 @@ dependencies:
   ulid: '2.0.0'
   tar: '1.0.3'
   api_builder:
-    path: ../pkg/api_builder
 
 dev_dependencies:
   build_runner: '^2.0.0'
@@ -68,3 +63,19 @@ dev_dependencies:
   source_gen: '^1.0.0'
   test: ^1.16.5
   xml: ^6.0.0
+
+# To support workspaces we use a patched version of build_runner and
+# build_runner core.
+# TODO(sigurm): Remove these when the fix lands.
+dependency_overrides:
+  build_runner:
+    git:
+      url: https://github.com/sigurdm/build
+      path: build_runner
+      ref: workspace_support
+
+  build_runner_core:
+    git:
+      url: https://github.com/sigurdm/build
+      path: build_runner_core
+      ref: workspace_support

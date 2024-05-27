@@ -1,8 +1,10 @@
 name: _pub_shared
 description: Shared data between the pub server and web_app client.
 publish_to: none
+
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0-0'
+resolution: workspace
 
 dependencies:
   clock: ^1.1.0
@@ -13,7 +15,6 @@ dependencies:
   pub_semver: ^2.0.0
   sanitize_html: ^2.1.0
   api_builder:
-    path: ../api_builder
 
 dev_dependencies:
   build_runner: '^2.0.0'

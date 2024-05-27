@@ -3,7 +3,8 @@ description: Builder for generating API routers.
 publish_to: none
 
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0-0'
+resolution: workspace
 
 dependencies:
   build: ^2.0.0

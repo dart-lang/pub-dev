@@ -2,7 +2,8 @@ name: web_css
 publish_to: none
 
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0-0'
+resolution: workspace
 
 dependencies:
   sass: ^1.32.8

@@ -3,7 +3,8 @@ description: Worker for pana and dartdoc analysis for pub.dev
 publish_to: none
 
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0-0'
+resolution: workspace
 
 dependencies:
   appengine: ^0.13.6
@@ -13,15 +14,12 @@ dependencies:
   lints: ^3.0.0 # required for pana
   meta: ^1.7.0
   api_builder:
-    path: ../api_builder
   _pub_shared:
-    path: ../_pub_shared
   http: ^1.0.0
   http_parser: ^4.0.0
   retry: ^3.1.0
   logging: ^1.0.2
   indexed_blob:
-    path: ../indexed_blob
   clock: ^1.1.0
   html: ^0.15.0
   pubspec_parse: ^1.2.1
