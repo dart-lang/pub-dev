@@ -212,7 +212,7 @@ void main() {
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
-      expect((partsSize / 1024).round(), closeTo(210, 1));
+      expect((partsSize / 1024).round(), closeTo(212, 1));
     });
   });
 

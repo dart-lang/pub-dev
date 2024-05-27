@@ -356,7 +356,7 @@ d.Node _automatedPublishing(Package package) {
 d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
   final expandedTagPattern = (github.tagPattern ?? '{{version}}')
       .replaceAll('{{version}}', '[0-9]+.[0-9]+.[0-9]+*');
-  final requireEnvironment = github.requireEnvironment ?? false;
+  final requireEnvironment = github.requireEnvironment;
   final hasWithParameter = requireEnvironment;
   final code = [
     'name: Publish to pub.dev',

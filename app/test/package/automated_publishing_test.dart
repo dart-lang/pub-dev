@@ -58,6 +58,9 @@ void main() {
           'isEnabled': true,
           'repository': 'dart-lang/pub-dev',
           'tagPattern': '{{version}}',
+          'requireEnvironment': false,
+          'isPushEventEnabled': true,
+          'isWorkflowDispatchEventEnabled': false,
         },
       });
       final p = await packageBackend.lookupPackage('oxygen');
