@@ -18,6 +18,7 @@ targets:
       - 'lib/search/search_service.dart'
       - 'lib/service/openid/openid_models.dart'
       - 'lib/service/security_advisories/models.dart'
+      - 'lib/service/download_counts/download_counts.dart'
       - 'lib/service/topics/models.dart'
       - 'lib/shared/*.dart'
       - 'lib/tool/test_profile/models.dart'
