@@ -102,7 +102,12 @@ class GithubPublishingConfig {
     this.tagPattern,
     this.requireEnvironment = false,
     this.environment,
+    // MUST default to true, because this was the default behavior before
+    // isWorkflowDispatchEventEnabled was introduced!
     this.isPushEventEnabled = true,
+    // MUST default to false, because the default behavior prior to the
+    // introduction of isWorkflowDispatchEventEnabled was to only allow
+    // publishing from push events.
     this.isWorkflowDispatchEventEnabled = false,
   });
 
