@@ -37,7 +37,7 @@ final _reservedPackageNames = <String>[
   'fluttery',
   'fluttery_audio',
   'fluttery_seekbar',
-  'dart_class',
+  'data_class',
 ].map(reducePackageName).toList();
 
 const redirectPackageUrls = <String, String>{
