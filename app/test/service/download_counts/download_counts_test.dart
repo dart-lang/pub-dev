@@ -258,7 +258,7 @@ void main() {
     expect(fifthRange.counts, [0, 2]);
   });
 
-  test('Add counts on missing range', () async {
+  test('Add counts on missing range in the middle', () async {
     final initialLastDate = DateTime.parse('1986-02-16');
     final countData = setupInitialCounts(initialLastDate);
 
@@ -294,5 +294,86 @@ void main() {
     final fifthRange = countData.majorCounts[0];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts, [10]);
+  });
+
+  test('Add counts on missing range the end', () async {
+    final initialLastDate = DateTime.parse('1986-02-16');
+
+    final countData = CountData();
+    final versionsCounts = {
+      '1.0.1': 2,
+      '2.0.0-alpha': 2,
+      '2.0.0': 2,
+      '2.1.0': 2,
+    };
+    countData.addDownloadCounts(versionsCounts, initialLastDate);
+    expect(countData.lastDate, initialLastDate);
+    expect(countData.majorCounts.length, 2);
+
+    final firstRange = countData.majorCounts[1];
+    expect(firstRange.versionRange, '>=1.0.0-0 <2.0.0');
+    expect(firstRange.counts, [2]);
+
+    final secondRange = countData.majorCounts[0];
+    expect(secondRange.versionRange, '>=2.0.0-0 <3.0.0');
+    expect(secondRange.counts, [6]);
+
+    // New range should be inserted in correct order.
+    final versionCounts = {
+      '0.1.0': 10,
+    };
+
+    final newDate = initialLastDate.addCalendarDays(1);
+    countData.addDownloadCounts(versionCounts, newDate);
+
+    expect(countData.lastDate, newDate);
+    expect(countData.majorCounts.length, 3);
+
+    final newFirstRange = countData.majorCounts[2];
+    expect(newFirstRange.versionRange, '>=0.0.0-0 <1.0.0');
+    expect(newFirstRange.counts, [10]);
+
+    final newSecondRange = countData.majorCounts[1];
+    expect(newSecondRange.versionRange, '>=1.0.0-0 <2.0.0');
+    expect(newSecondRange.counts, [0, 2]);
+
+    final thirdRange = countData.majorCounts[0];
+    expect(thirdRange.versionRange, '>=2.0.0-0 <3.0.0');
+    expect(thirdRange.counts, [0, 6]);
+  });
+
+  test('More than maxAge dates', () async {
+    final initialLastDate = DateTime.parse('1986-02-16');
+    final countData = CountData();
+    final versionsCounts = {
+      '1.0.0': 2,
+    };
+
+    for (int i = 0; i < CountData.maxAge; i++) {
+      countData.addDownloadCounts(
+          versionsCounts, initialLastDate.addCalendarDays(i));
+      expect(countData.lastDate, initialLastDate.addCalendarDays(i));
+      expect(countData.majorCounts.length, 1);
+
+      final firstRange = countData.majorCounts[0];
+      expect(firstRange.versionRange, '>=1.0.0-0 <2.0.0');
+      expect(firstRange.counts.length, i + 1);
+      expect(firstRange.counts[i], 2);
+    }
+
+    final newVersionsCounts = {
+      '1.0.0': 10,
+    };
+    countData.addDownloadCounts(
+        newVersionsCounts, initialLastDate.addCalendarDays(CountData.maxAge));
+    expect(
+        countData.lastDate, initialLastDate.addCalendarDays(CountData.maxAge));
+    expect(countData.majorCounts.length, 1);
+    final firstRange = countData.majorCounts[0];
+    expect(firstRange.versionRange, '>=1.0.0-0 <2.0.0');
+    expect(firstRange.counts.length, CountData.maxAge);
+    expect(firstRange.counts[0], 10);
+    expect(firstRange.counts[1], 2);
+    expect(firstRange.counts[CountData.maxAge - 1], 2);
   });
 }
