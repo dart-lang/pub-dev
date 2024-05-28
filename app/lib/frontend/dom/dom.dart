@@ -1033,7 +1033,7 @@ class _StringElement extends _StringNode {
     sink.write('<');
     sink.write(_tag);
     if (_attributes != null) {
-      for (final e in _attributes!.entries) {
+      for (final e in _attributes.entries) {
         sink.write(' ');
         sink.write(e.key);
         sink.write('="');
