@@ -153,7 +153,6 @@ void main() {
     expect(fifthRange.counts, [10, 8]);
 
     // Update existing values
-
     final versionsCounts3 = {
       '4.1.0': 7,
       '4.0.0': 7,
@@ -190,7 +189,6 @@ void main() {
     final initialLastDate = DateTime.parse('1986-02-16');
     final countData = setupInitialCounts(initialLastDate);
 
-    // Extend existing counts and expel the lowest range.
     final versionsCounts = {
       '4.1.0': 10,
       '4.0.0': 10,
@@ -262,7 +260,6 @@ void main() {
     final initialLastDate = DateTime.parse('1986-02-16');
     final countData = setupInitialCounts(initialLastDate);
 
-    // New range should be inserted in correct order, and lowest ranges are expelled.
     final versionCounts = {
       '5.1.0': 10,
       '4.0.0': 10,
@@ -275,6 +272,8 @@ void main() {
     expect(countData.lastDate, newDate);
     expect(countData.majorCounts.length, 5);
 
+    // New range should be inserted in correct order, and lowest ranges are
+    // expelled.
     final firstRange = countData.majorCounts[4];
     expect(firstRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(firstRange.counts, [0, 2]);
@@ -296,7 +295,7 @@ void main() {
     expect(fifthRange.counts, [10]);
   });
 
-  test('Add counts on missing range the end', () async {
+  test('Add counts on missing range in the end', () async {
     final initialLastDate = DateTime.parse('1986-02-16');
 
     final countData = CountData();
@@ -318,7 +317,6 @@ void main() {
     expect(secondRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(secondRange.counts, [6]);
 
-    // New range should be inserted in correct order.
     final versionCounts = {
       '0.1.0': 10,
     };
@@ -329,6 +327,7 @@ void main() {
     expect(countData.lastDate, newDate);
     expect(countData.majorCounts.length, 3);
 
+    // New range should be inserted in correct order.
     final newFirstRange = countData.majorCounts[2];
     expect(newFirstRange.versionRange, '>=0.0.0-0 <1.0.0');
     expect(newFirstRange.counts, [10]);
