@@ -1025,7 +1025,7 @@ class _StringElement extends _StringNode {
     assert(_children == null ||
         _children is _StringNode ||
         (_children is Iterable<Node> &&
-            (_children as Iterable<Node>).every((c) => c is _StringNode)));
+            _children.every((c) => c is _StringNode)));
   }
 
   @override
