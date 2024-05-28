@@ -20,7 +20,7 @@ Future<void> backfillNewFields() async {
 
     await withRetryTransaction(dbService, (tx) async {
       final p = await tx.lookupValue<Package>(package.key);
-      tx.insert(p); 
+      tx.insert(p);
     });
   }
 }
