@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart' as crypto;
@@ -39,20 +40,11 @@ void registerStaticFileCacheForTest(StaticFileCache cache) {
 
 /// Returns the path of the `app/` directory.
 String resolveAppDir() {
-  if (Directory.current.path.endsWith('/app') &&
-      Directory('${Directory.current.path}/../static').existsSync()) {
-    return Directory.current.path;
-  }
-  if (Platform.script.path.contains('bin/server.dart')) {
-    return Platform.script.resolve('../').toFilePath();
-  }
-  if (Platform.script.path.contains('bin/fake_server.dart')) {
-    return Platform.script.resolve('../').toFilePath();
-  }
-  if (Platform.script.path.contains('app/test')) {
-    return Directory.current.path;
-  }
-  throw Exception('Unknown script: ${Platform.script}');
+  final packageConfig = Isolate.packageConfigSync!;
+  final rootDir = json
+      .decode(File.fromUri(packageConfig).readAsStringSync())['packages']
+      .firstWhere((p) => p['name'] == 'pub_dev')['rootUri'] as String;
+  return packageConfig.resolve(rootDir).toFilePath();
 }
 
 /// Returns the path of /static on the local filesystem.

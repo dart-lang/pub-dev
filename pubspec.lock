@@ -21,7 +21,7 @@ packages:
     dependency: transitive
     description: dart
     source: sdk
-    version: "0.1.5"
+    version: "0.1.7"
   analyzer:
     dependency: transitive
     description:
@@ -500,10 +500,10 @@ packages:
     dependency: transitive
     description:
       name: macros
-      sha256: a8403c89b36483b4cbf9f1fcd24562f483cb34a5c9bf101cf2b0d8a083cf1239
+      sha256: "1a02505931d4413a9f590b62463fddaa9167791a9f5c4f220c2a64276fac0b47"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0-main.5"
+    version: "0.1.0-main.7"
   mailer:
     dependency: transitive
     description:

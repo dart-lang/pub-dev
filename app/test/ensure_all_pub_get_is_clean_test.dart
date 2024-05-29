@@ -21,22 +21,20 @@ void main() {
     expect(directories, contains('pkg/web_app'));
   });
 
-  for (final dir in directories) {
-    test(
-      'ensure pub get in $dir',
-      () async {
-        final workingDirectory = p.join(Directory.current.path, '..', dir);
-        await runConstrained(
-          ['dart', 'pub', 'get', '--enforce-lockfile'],
-          workingDirectory: workingDirectory,
-          throwOnError: true,
-          retryOptions: RetryOptions(maxAttempts: 2),
-          retryIf: (_) => true,
-        );
-      },
-      timeout: Timeout(Duration(minutes: 2)),
-    );
-  }
+  test(
+    'ensure pub get',
+    () async {
+      final workingDirectory = p.join(Directory.current.path, '..');
+      await runConstrained(
+        ['dart', 'pub', 'get', '--enforce-lockfile'],
+        workingDirectory: workingDirectory,
+        throwOnError: true,
+        retryOptions: RetryOptions(maxAttempts: 2),
+        retryIf: (_) => true,
+      );
+    },
+    timeout: Timeout(Duration(minutes: 2)),
+  );
 }
 
 Iterable<String> _listPkgDirs() sync* {
