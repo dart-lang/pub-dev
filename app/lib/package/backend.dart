@@ -9,7 +9,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -25,6 +25,7 @@ import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -207,6 +208,19 @@ class PackageBackend {
     );
   }
 
+  /// Streams package names where the [userId] is an uploader.
+  Stream<String> streamPackagesWhereUserIsUploader(String userId) async* {
+    var page = await listPackagesForUser(userId);
+    while (page.packages.isNotEmpty) {
+      yield* Stream.fromIterable(page.packages);
+      if (page.nextPackage == null) {
+        break;
+      } else {
+        page = await listPackagesForUser(userId, next: page.nextPackage);
+      }
+    }
+  }
+
   /// Returns the latest releases info of a package.
   Future<LatestReleases> latestReleases(Package package) async {
     // TODO: implement runtimeVersion-specific release calculation
@@ -322,12 +336,16 @@ class PackageBackend {
   Future<bool> updatePackageVersions(
     String package, {
     Version? dartSdkVersion,
+    Version? flutterSdkVersion,
   }) async {
     _logger.info("Checking Package's versions fields for package `$package`.");
     final pkgKey = db.emptyKey.append(Package, id: package);
-    dartSdkVersion ??=
-        (await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion))
-            .semanticVersion;
+    dartSdkVersion ??= (await getCachedDartSdkVersion(
+            lastKnownStable: toolStableDartSdkVersion))
+        .semanticVersion;
+    flutterSdkVersion ??= (await getCachedFlutterSdkVersion(
+            lastKnownStable: toolStableFlutterSdkVersion))
+        .semanticVersion;
 
     // ordered version list by publish date
     final versions =
@@ -339,8 +357,11 @@ class PackageBackend {
         throw NotFoundException.resource('package "$package"');
       }
 
-      final changed = p.updateLatestVersionReferences(versions,
-          dartSdkVersion: dartSdkVersion!);
+      final changed = p.updateLatestVersionReferences(
+        versions,
+        dartSdkVersion: dartSdkVersion!,
+        flutterSdkVersion: flutterSdkVersion!,
+      );
 
       if (!changed) {
         _logger.info('No version field updates for package `$package`.');
@@ -430,7 +451,7 @@ class PackageBackend {
           'isDiscontinued: ${p.isDiscontinued} '
           'isUnlisted: ${p.isUnlisted}');
       tx.insert(p);
-      tx.insert(AuditLogRecord.packageOptionsUpdated(
+      tx.insert(await AuditLogRecord.packageOptionsUpdated(
         agent: authenticatedUser,
         package: p.name!,
         publisherId: p.publisherId,
@@ -491,14 +512,12 @@ class PackageBackend {
       final githubConfig = body.github;
       final gcpConfig = body.gcp;
       if (githubConfig != null) {
-        final isEnabled = githubConfig.isEnabled ?? false;
+        final isEnabled = githubConfig.isEnabled;
         // normalize input values
         final repository = githubConfig.repository?.trim() ?? '';
         githubConfig.repository = repository.isEmpty ? null : repository;
         final tagPattern = githubConfig.tagPattern?.trim() ?? '';
         githubConfig.tagPattern = tagPattern.isEmpty ? null : tagPattern;
-        final requireEnvironment = githubConfig.requireEnvironment ?? false;
-        githubConfig.requireEnvironment = requireEnvironment ? true : null;
         final environment = githubConfig.environment?.trim() ?? '';
         githubConfig.environment = environment.isEmpty ? null : environment;
 
@@ -525,7 +544,7 @@ class PackageBackend {
             'The `tagPattern` field has invalid characters.');
 
         InvalidInputException.check(
-            !requireEnvironment || environment.isNotEmpty,
+            !githubConfig.requireEnvironment || environment.isNotEmpty,
             'The `environment` field must not be empty when enabled.');
 
         if (environment.isNotEmpty) {
@@ -535,7 +554,7 @@ class PackageBackend {
         }
       }
       if (gcpConfig != null) {
-        final isEnabled = gcpConfig.isEnabled ?? false;
+        final isEnabled = gcpConfig.isEnabled;
         // normalize input values
         final serviceAccountEmail = gcpConfig.serviceAccountEmail?.trim() ?? '';
         gcpConfig.serviceAccountEmail = serviceAccountEmail;
@@ -580,7 +599,7 @@ class PackageBackend {
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(AuditLogRecord.packagePublicationAutomationUpdated(
+      tx.insert(await AuditLogRecord.packagePublicationAutomationUpdated(
         package: p.name!,
         publisherId: p.publisherId,
         user: user,
@@ -609,11 +628,14 @@ class PackageBackend {
     // the latest version or the restored version is newer than the latest.
     if (p.mayAffectLatestVersions(pv.semanticVersion)) {
       final versions = await tx.query<PackageVersion>(p.key).run().toList();
-      final currentDartSdk =
-          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+      final currentDartSdk = await getCachedDartSdkVersion(
+          lastKnownStable: toolStableDartSdkVersion);
+      final currentFlutterSdk = await getCachedFlutterSdkVersion(
+          lastKnownStable: toolStableFlutterSdkVersion);
       p.updateLatestVersionReferences(
         versions,
         dartSdkVersion: currentDartSdk.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
         replaced: pv,
       );
     }
@@ -623,7 +645,7 @@ class PackageBackend {
 
     tx.insert(p);
     tx.insert(pv);
-    tx.insert(AuditLogRecord.packageVersionOptionsUpdated(
+    tx.insert(await AuditLogRecord.packageVersionOptionsUpdated(
       agent: agent,
       package: p.name!,
       version: pv.version!,
@@ -715,7 +737,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(AuditLogRecord.packageTransferred(
+      tx.insert(await AuditLogRecord.packageTransferred(
         user: user,
         package: package.name!,
         fromPublisherId: currentPublisherId,
@@ -755,7 +777,9 @@ class PackageBackend {
     if (pkg == null || pkg.isNotVisible) {
       throw NotFoundException.resource('package "$package"');
     }
-    final packageVersions = await packageBackend.versionsOfPackage(package);
+    final packageVersions = (await packageBackend.versionsOfPackage(package))
+        .where((v) => !v.isModerated)
+        .toList();
     if (packageVersions.isEmpty) {
       throw NotFoundException.resource('package "$package"');
     }
@@ -928,10 +952,17 @@ class PackageBackend {
       }
 
       // check existences of referenced packages
-      final dependencies = <String>{
-        ...pubspec.dependencies.keys,
-      };
-      for (final name in dependencies) {
+      for (final MapEntry(key: name, :value) in pubspec.dependencies.entries) {
+        if (value is! pubspec_parse.HostedDependency) {
+          // We disallow git/path dependencies elsewhere, but for the purpose
+          // of checking of the dependency exists we can skip them.
+          continue;
+        }
+        if (value.hosted?.url != null) {
+          // we disallow hosted dependencies with a URL elsewhere, but for the
+          // purpose of checking if the dependency exists, we skip them.
+          continue;
+        }
         if (isSoftRemoved(name)) {
           continue;
         }
@@ -1018,8 +1049,10 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
-    final currentDartSdk =
-        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+    final currentDartSdk = await getCachedDartSdkVersion(
+        lastKnownStable: toolStableDartSdkVersion);
+    final currentFlutterSdk = await getCachedFlutterSdkVersion(
+        lastKnownStable: toolStableFlutterSdkVersion);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
 
@@ -1111,8 +1144,11 @@ class PackageBackend {
       newVersion.publisherId = package!.publisherId;
 
       // Keep the latest version in the package object up-to-date.
-      package!.updateVersion(newVersion,
-          dartSdkVersion: currentDartSdk.semanticVersion);
+      package!.updateVersion(
+        newVersion,
+        dartSdkVersion: currentDartSdk.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
+      );
       package!.updated = clock.now().toUtc();
       package!.versionCount++;
 
@@ -1268,7 +1304,7 @@ class PackageBackend {
       throw AssertionError(
           'Configured tag pattern does not include `{{version}}`');
     }
-    final requireEnvironment = githubConfig.requireEnvironment ?? false;
+    final requireEnvironment = githubConfig.requireEnvironment;
     final environment = githubConfig.environment;
     if (requireEnvironment && (environment == null || environment.isEmpty)) {
       throw AssertionError('Missing or empty environment.');
@@ -1473,7 +1509,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(AuditLogRecord.uploaderInviteAccepted(
+      tx.insert(await AuditLogRecord.uploaderInviteAccepted(
         user: uploader,
         package: packageName,
       ));
@@ -1548,7 +1584,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(AuditLogRecord.uploaderRemoved(
+      tx.insert(await AuditLogRecord.uploaderRemoved(
         agent: authenticatedUser,
         package: packageName,
         uploaderUser: uploader,
@@ -1562,8 +1598,11 @@ class PackageBackend {
   }
 
   Future<UploadRestrictionStatus> getUploadRestrictionStatus() async {
-    final value =
-        await secretBackend.getCachedValue(SecretKey.uploadRestriction) ?? '';
+    final value = await secretBackend.lookup(
+          SecretKey.uploadRestriction,
+          maxAge: Duration(minutes: 5),
+        ) ??
+        '';
     switch (value) {
       case 'no-uploads':
         return UploadRestrictionStatus.noUploads;

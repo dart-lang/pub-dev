@@ -109,6 +109,30 @@ void main() {
     expect(emails, {'admin@pub.dev'});
   });
 
+  testWithProfile('user-info', fn: () async {
+    final api = createPubApiClient(authToken: siteAdminToken);
+    final result = await api.adminInvokeAction(
+      'user-info',
+      AdminInvokeActionArguments(arguments: {'user': 'admin@pub.dev'}),
+    );
+
+    final oxygen = await packageBackend.lookupPackage('oxygen');
+
+    expect(result.output, {
+      'users': [
+        {
+          'userId': oxygen!.uploaders!.first,
+          'email': 'admin@pub.dev',
+          'packages': ['flutter_titanium', 'oxygen'],
+          'publishers': ['example.com'],
+          'moderated': false,
+          'created': isA<String>(),
+          'deleted': false
+        }
+      ]
+    });
+  });
+
   testWithProfile('merge existing moderated package into existing',
       fn: () async {
     final originalVersionList = await packageBackend.listVersions('oxygen');
@@ -154,5 +178,35 @@ void main() {
     final rs2 = await createPubApiClient(authToken: adminClientToken)
         .uploadPackageBytes(bytes);
     expect(rs2.success.message, contains('Successfully uploaded'));
+  });
+
+  testWithProfile('package-version-retraction', fn: () async {
+    final latest = await packageBackend.getLatestVersion('oxygen');
+
+    final api = createPubApiClient(authToken: siteAdminToken);
+    final result = await api.adminInvokeAction(
+      'package-version-retraction',
+      AdminInvokeActionArguments(arguments: {
+        'package': 'oxygen',
+        'version': latest!,
+        'set-retracted': 'true',
+      }),
+    );
+
+    expect(result.output, {
+      'before': {
+        'package': 'oxygen',
+        'version': latest,
+        'isRetracted': false,
+      },
+      'after': {
+        'package': 'oxygen',
+        'version': latest,
+        'isRetracted': true,
+      },
+    });
+
+    final newLatest = await packageBackend.getLatestVersion('oxygen');
+    expect(newLatest != latest, isTrue);
   });
 }

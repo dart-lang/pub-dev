@@ -8,15 +8,19 @@ import 'delete_publisher.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
+import 'moderate_publisher.dart';
 import 'moderate_user.dart';
+import 'moderation_case_info.dart';
+import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
-import 'secret.dart';
+import 'send_email.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
 import 'uploader_count_report.dart';
+import 'user_info.dart';
 
 export '../../shared/exceptions.dart';
 
@@ -47,7 +51,7 @@ final class AdminAction {
   /// [ResponseException].
   /// Any other exception will be considered an internal error.
   final Future<Map<String, Object?>> Function(
-    Map<String, String> arguments,
+    Map<String, String?> arguments,
   ) invoke;
 
   AdminAction({
@@ -74,14 +78,18 @@ final class AdminAction {
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
+    moderatePublisher,
     moderateUser,
+    moderationCaseInfo,
+    packageVersionRetraction,
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
+    sendEmail,
     taskBumpPriority,
     toolExecute,
-    setSecret,
     toolList,
     uploaderCountReport,
+    userInfo,
   ];
 }

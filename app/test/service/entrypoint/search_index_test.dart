@@ -33,7 +33,7 @@ void main() {
       // working search only with SDK results (no packages in the isolate)
       final rs =
           await searchIndex.search(ServiceSearchQuery.parse(query: 'json'));
-      expect(rs.message, isNull);
+      expect(rs.errorMessage, isNull);
       expect(rs.sdkLibraryHits, isNotEmpty);
       expect(rs.packageHits, isEmpty);
     }, timeout: Timeout(Duration(minutes: 5)));

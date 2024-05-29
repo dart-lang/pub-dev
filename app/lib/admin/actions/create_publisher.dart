@@ -77,7 +77,7 @@ This should generally only be done with PM approval as it skips actual domain ve
             ..created = now
             ..updated = now
             ..role = PublisherMemberRole.admin,
-          AuditLogRecord.publisherCreated(
+          await AuditLogRecord.publisherCreated(
             user: user,
             publisherId: publisherId,
           ),

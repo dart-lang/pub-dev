@@ -42,7 +42,7 @@ d.Node versionRowNode(
         classes: ['sdk'],
         child: sdk != null
             ? d.text(
-                '${sdk.major}.${sdk.minor}${sdk.channel != null ? '(${sdk.channel})' : ''}')
+                '${sdk.major}.${sdk.minor}${sdk.channel != null ? ' (${sdk.channel})' : ''}')
             : null,
       ),
       d.td(

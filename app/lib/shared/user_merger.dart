@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
@@ -11,6 +12,8 @@ import '../audit/models.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
 import 'datastore.dart';
+
+final _logger = Logger('user_merger');
 
 /// Utility class to merge user data.
 /// Specifically for the case where a two [User] entities exists with the same [User.oauthUserId].
@@ -38,7 +41,7 @@ class UserMerger {
 
   /// Returns the OAuth userIds that have more than one User.
   Future<List<String>> scanOauthUserIdsWithProblems() async {
-    print('Scanning Users...');
+    _logger.info('Scanning Users...');
     final query = _db.query<User>();
     final counts = <String, int>{};
     await for (final user in query.run()) {
@@ -46,21 +49,21 @@ class UserMerger {
       counts[user.oauthUserId!] = (counts[user.oauthUserId!] ?? 0) + 1;
     }
     final result = counts.keys.where((k) => counts[k]! > 1).toList();
-    print('$result OAuthUserID with more than one User.');
+    _logger.info('$result OAuthUserID with more than one User.');
     return result;
   }
 
   /// Runs user merging on the [oauthUserId] for each non-primary [User].
   Future<void> fixOAuthUserID(String oauthUserId) async {
-    print('Fixing OAuthUserID=$oauthUserId');
+    _logger.info('Fixing OAuthUserID=$oauthUserId');
 
     final query = _db.query<User>()..filter('oauthUserId =', oauthUserId);
     final users = await query.run().toList();
-    print('Users: ${users.map((u) => u.userId).join(', ')}');
+    _logger.info('Users: ${users.map((u) => u.userId).join(', ')}');
 
     final mapping = await _db.lookupValue<OAuthUserID>(
         _db.emptyKey.append(OAuthUserID, id: oauthUserId));
-    print('Primary User: ${mapping.userId}');
+    _logger.info('Primary User: ${mapping.userId}');
     if (!users.any((u) => u.userId == mapping.userId)) {
       throw StateError('Primary User is missing!');
     }
@@ -86,7 +89,7 @@ class UserMerger {
 
   /// Migrates data for User merge.
   Future<void> mergeUser(String fromUserId, String toUserId) async {
-    print('Merging User: $fromUserId -> $toUserId');
+    _logger.info('Merging User: $fromUserId -> $toUserId');
     final fromUserKey = _db.emptyKey.append(User, id: fromUserId);
     final toUserKey = _db.emptyKey.append(User, id: toUserId);
     final fromUser = await _db.lookupOrNull<User>(fromUserKey);
@@ -160,15 +163,16 @@ class UserMerger {
 
     // Consent's fromUserId attribute
     await _processConcurrently(
-      _db.query<Consent>()..filter('fromUserId =', fromUserId),
+      _db.query<Consent>()..filter('fromAgent =', fromUserId),
       (Consent m) async {
         if (m.parentKey?.id != null) {
           throw StateError('Old Consent entity: ${m.consentId}.');
         }
         await withRetryTransaction(_db, (tx) async {
           final consent = await tx.lookupValue<Consent>(m.key);
-          if (consent.fromUserId == fromUserId) {
+          if (consent.fromAgent == fromUserId) {
             consent.fromUserId = toUserId;
+            consent.fromAgent = toUserId;
             tx.insert(consent);
           }
         });

@@ -6,15 +6,18 @@ import 'dart:async';
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
 import '../../package/search_adapter.dart';
+import '../../search/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/utils.dart' show DurationTracker;
 
 import '../templates/listing.dart';
 
+final _logger = Logger('listing_page');
 final _searchOverallLatencyTracker = DurationTracker();
 
 Map searchDebugStats() {
@@ -64,15 +67,25 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// Handles:
 /// - /packages - package listing
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
+  final sw = Stopwatch()..start();
   final openSections =
       request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-  final sw = Stopwatch()..start();
+  final canonicalForm = canonicalizeSearchForm(searchForm);
+  if (canonicalForm != null) {
+    return redirectResponse(canonicalForm.toSearchLink());
+  }
   final searchResult = await searchAdapter.search(
     searchForm,
     rateLimitKey: request.sourceIp,
   );
   final int totalCount = searchResult.totalCount;
+  final errorMessage = searchResult.errorMessage;
+  final statusCode =
+      searchResult.statusCode ?? (errorMessage == null ? 200 : 500);
+  if (errorMessage != null && statusCode >= 500) {
+    _logger.severe('[pub-search-not-working] ${searchResult.errorMessage}');
+  }
 
   final links = PageLinks(searchForm, totalCount);
   final result = htmlResponse(
@@ -80,9 +93,10 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       searchResult,
       links,
       searchForm: searchForm,
-      messageFromBackend: searchResult.message,
+      messageFromBackend: searchResult.errorMessage,
       openSections: openSections,
     ),
+    status: statusCode,
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;

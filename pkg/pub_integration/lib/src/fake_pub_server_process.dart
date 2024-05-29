@@ -42,7 +42,6 @@ class FakePubServerProcess {
     final storagePort = port + 1;
     final searchPort = port + 2;
     final analyzerPort = port + 3;
-    final dartdocPort = port + 4;
     final vmPort = port + 5;
     final coverageConfig = await _CoverageConfig.detect(vmPort);
 
@@ -65,7 +64,6 @@ class FakePubServerProcess {
         '--storage-port=$storagePort',
         '--search-port=$searchPort',
         '--analyzer-port=$analyzerPort',
-        '--dartdoc-port=$dartdocPort',
       ],
       workingDirectory: appDir,
       environment: {

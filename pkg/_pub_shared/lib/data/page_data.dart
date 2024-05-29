@@ -55,6 +55,7 @@ class PkgData {
   /// isn't owned by a publisher.
   final String? publisherId;
   final bool isDiscontinued;
+  final bool isLatest;
 
   PkgData({
     required this.package,
@@ -62,6 +63,7 @@ class PkgData {
     required this.publisherId,
     required this.isDiscontinued,
     required this.likes,
+    required this.isLatest,
   });
 
   factory PkgData.fromJson(Map<String, dynamic> json) =>

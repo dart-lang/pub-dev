@@ -48,6 +48,7 @@ class IntegrityChecker {
   final _packages = <String>{};
   final _packageLikes = <String, int>{};
   final _moderatedPackages = <String>{};
+  final _packagesWithIsModeratedFlag = <String>{};
   final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
   // package name -> versions
@@ -419,6 +420,9 @@ class IntegrityChecker {
       isModerated: p.isModerated,
       moderatedAt: p.moderatedAt,
     );
+    if (p.isModerated) {
+      _packagesWithIsModeratedFlag.add(p.name!);
+    }
 
     // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
     final pviQuery = _db.query<PackageVersionInfo>()
@@ -546,15 +550,17 @@ class IntegrityChecker {
     if (pv.isRetracted && pv.retracted == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
     }
-    if (!envConfig.isRunningLocally) {
-      final tarballItems = await retry(
-        () async {
-          return await _checkTarballInBuckets(pv, archiveDownloadUri).toList();
-        },
-        maxAttempts: 2,
-      );
-      yield* Stream.fromIterable(tarballItems);
-    }
+    final shouldBeInPublicBucket =
+        !_packagesWithIsModeratedFlag.contains(pv.package) && !pv.isModerated;
+    final tarballItems = await retry(
+      () async {
+        return await _checkTarballInBuckets(pv, archiveDownloadUri,
+                shouldBeInPublicBucket: shouldBeInPublicBucket)
+            .toList();
+      },
+      maxAttempts: 2,
+    );
+    yield* Stream.fromIterable(tarballItems);
 
     yield* _checkModeratedFlags(
       kind: 'PackageVersion',
@@ -562,19 +568,6 @@ class IntegrityChecker {
       isModerated: pv.isModerated,
       moderatedAt: pv.moderatedAt,
     );
-
-    // TODO: remove null check after the backfill should have filled the property.
-    final sha256Hash = pv.sha256;
-    if (sha256Hash == null || sha256Hash.length != 32) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
-    } else if (_random.nextInt(1000) == 0) {
-      // Do not check every archive all the time, but select a few of the archives randomly.
-      final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
-      final hash = sha256.convert(bytes).bytes;
-      if (!hash.byteToByteEquals(sha256Hash)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
-      }
-    }
 
     // Sanity checks for the `created` property
     if (pv.created == null) {
@@ -602,28 +595,54 @@ class IntegrityChecker {
   }
 
   Stream<String> _checkTarballInBuckets(
-      PackageVersion pv, Uri archiveDownloadUri) async* {
-    final info =
-        await packageBackend.packageTarballInfo(pv.package, pv.version!);
-    if (info == null) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file.';
-    }
+    PackageVersion pv,
+    Uri archiveDownloadUri, {
+    required bool shouldBeInPublicBucket,
+  }) async* {
     final canonicalInfo = await storageService
         .bucket(activeConfiguration.canonicalPackagesBucketName!)
         // ignore: invalid_use_of_visible_for_testing_member
         .tryInfo(tarballObjectName(pv.package, pv.version!));
+    if (canonicalInfo == null) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
+      return;
+    }
 
-    if (canonicalInfo != null) {
-      if (!canonicalInfo.hasSameSignatureAs(info)) {
-        yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in old bucket.';
+    final info =
+        await packageBackend.packageTarballInfo(pv.package, pv.version!);
+    if (info == null) {
+      if (shouldBeInPublicBucket) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file.';
       }
+      return;
+    }
 
-      final publicInfo = await storageService
-          .bucket(activeConfiguration.publicPackagesBucketName!)
-          // ignore: invalid_use_of_visible_for_testing_member
-          .tryInfo(tarballObjectName(pv.package, pv.version!));
-      if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
-        yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+    if (!shouldBeInPublicBucket) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has matching public archive file but it must not.';
+      return;
+    }
+
+    if (!canonicalInfo.hasSameSignatureAs(info)) {
+      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
+    }
+
+    final publicInfo = await storageService
+        .bucket(activeConfiguration.publicPackagesBucketName!)
+        // ignore: invalid_use_of_visible_for_testing_member
+        .tryInfo(tarballObjectName(pv.package, pv.version!));
+    if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
+      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+    }
+
+    final sha256Hash = pv.sha256;
+    if (sha256Hash == null || sha256Hash.length != 32) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
+    } else if (envConfig.isRunningLocally || _random.nextInt(1000) == 0) {
+      // On prod do not check every archive all the time, but select a few of the archives randomly.
+      final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
+      final hash = sha256.convert(bytes).bytes;
+      if (!hash.byteToByteEquals(sha256Hash)) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
       }
     }
 

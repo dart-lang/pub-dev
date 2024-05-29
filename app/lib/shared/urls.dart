@@ -188,7 +188,18 @@ String pkgDocUrl(
   return baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 }
 
-String publisherUrl(String publisherId) => '/publishers/$publisherId';
+String publisherUrl(
+  String publisherId, {
+  bool includeHost = false,
+}) {
+  final path = '/publishers/$publisherId';
+  if (includeHost) {
+    return _siteRootUri.resolve(path).toString();
+  } else {
+    return path;
+  }
+}
+
 String publisherPackagesUrl(String publisherId) =>
     '/publishers/$publisherId/packages';
 String publisherUnlistedPackagesUrl(String publisherId) =>
@@ -215,6 +226,16 @@ String dartSdkMainUrl(String version) {
   final channel = isDev ? 'dev' : 'stable';
   final url = p.join(httpsApiDartDev, channel, version);
   return '$url/';
+}
+
+String reportPage({
+  required String subject,
+  required String? url,
+}) {
+  return Uri(path: '/report', queryParameters: {
+    'subject': subject,
+    if (url != null) 'url': url,
+  }).toString();
 }
 
 /// Parses GitHub and GitLab urls, and returns the root of the repository.

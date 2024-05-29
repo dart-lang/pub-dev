@@ -70,13 +70,16 @@ void main() {
 
   test('cache-control is set only in frontend/handlers/headers.dart', () async {
     final exceptions = [
-      'lib/frontend/handlers/headers.dart',
+      'lib/frontend/handlers/cache_control.dart',
     ];
     final files = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.dart'));
     for (final file in files) {
+      if (exceptions.contains(file.path)) {
+        continue;
+      }
       final content = await file.readAsString();
       final lc = content.toLowerCase();
       expect(
@@ -84,7 +87,7 @@ void main() {
             (lc.contains('cache-control') &&
                 !lc.contains('`cache-control`') && // allow in documentation
                 !lc.contains('`cache-control: private`')),
-        exceptions.contains(file.path),
+        isFalse,
         reason: '${file.path} seems to contain cache-control header',
       );
     }

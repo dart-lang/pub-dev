@@ -10,15 +10,14 @@ void main() {
     final archive = await fetchFlutterArchive();
     expect(archive!.latestStable, isNotNull);
     expect(archive.latestBeta, isNotNull);
-    // we usually have a new stable release in every 3-5 weeks
+    // we usually have new releases every 3-5 weeks
+    expect(
+      DateTime.now().difference(archive.latestStable!.releaseDate!).inDays,
+      lessThan(45),
+    );
     expect(
       DateTime.now().difference(archive.latestBeta!.releaseDate!).inDays,
       lessThan(45),
-    );
-    // we usually have a new beta release in every 2-3 weeks
-    expect(
-      DateTime.now().difference(archive.latestBeta!.releaseDate!).inDays,
-      lessThan(30),
     );
   });
 }

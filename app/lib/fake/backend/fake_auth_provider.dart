@@ -169,7 +169,7 @@ class FakeAuthProvider extends BaseAuthProvider {
     }
     final token = _createGcpToken(
       email: email,
-      audience: activeConfiguration.pubSiteAudience!,
+      audience: activeConfiguration.pubServerAudience!,
       signature: null,
       extraPayload: {
         'nonce': nonce,
@@ -353,7 +353,7 @@ Future<String> _acquireFakeSessionId({
         path: '/sign-in',
         queryParameters: {
           'fake-email': email,
-          'go': '/',
+          'go': '/help',
           if (scopes != null) 'scope': scopes.join(' '),
         },
       ),

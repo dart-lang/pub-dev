@@ -7,20 +7,20 @@ import 'dart:convert';
 import 'package:_pub_shared/data/admin_api.dart' as api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
+import '../admin/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, purgePackageCache;
@@ -31,6 +31,7 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import '../shared/versions.dart';
 import '../task/backend.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
@@ -426,8 +427,10 @@ class AdminBackend {
     _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName $version');
 
-    final currentDartSdk =
-        await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+    final currentDartSdk = await getCachedDartSdkVersion(
+        lastKnownStable: toolStableDartSdkVersion);
+    final currentFlutterSdk = await getCachedFlutterSdkVersion(
+        lastKnownStable: toolStableFlutterSdkVersion);
     await withRetryTransaction(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
@@ -454,8 +457,10 @@ class AdminBackend {
 
       if (package.mayAffectLatestVersions(Version.parse(version))) {
         package.updateLatestVersionReferences(
-            versions.where((v) => v.version != version).toList(),
-            dartSdkVersion: currentDartSdk.semanticVersion);
+          versions.where((v) => v.version != version).toList(),
+          dartSdkVersion: currentDartSdk.semanticVersion,
+          flutterSdkVersion: currentFlutterSdk.semanticVersion,
+        );
       }
 
       package.deletedVersions ??= <String>[];
@@ -644,7 +649,7 @@ class AdminBackend {
         final r = p.uploaders!.remove(uploaderUser.userId);
         if (r) {
           removed = true;
-          tx.insert(AuditLogRecord.uploaderRemoved(
+          tx.insert(await AuditLogRecord.uploaderRemoved(
             agent: authenticatedUser,
             package: packageName,
             uploaderUser: uploaderUser,
@@ -654,7 +659,7 @@ class AdminBackend {
       if (removed) {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
-          tx.insert(AuditLogRecord.packageOptionsUpdated(
+          tx.insert(await AuditLogRecord.packageOptionsUpdated(
             agent: authenticatedUser,
             package: packageName,
             publisherId: p.publisherId,
@@ -707,9 +712,41 @@ class AdminBackend {
     );
 
     final result = await action.invoke({
-      for (final k in action.options.keys) k: args[k] ?? '',
+      for (final k in action.options.keys) k: args[k],
     });
 
     return api.AdminInvokeActionResponse(output: result);
+  }
+
+  Future<ModerationCase?> lookupModerationCase(String caseId) async {
+    return await dbService.lookupOrNull<ModerationCase>(
+        dbService.emptyKey.append(ModerationCase, id: caseId));
+  }
+
+  /// Returns a valid [ModerationCase] if it exists and [status] is matching.
+  /// Returns `null` if [caseId] is `none`.
+  ///
+  /// Throws exceptions otherwise.
+  Future<ModerationCase?> loadAndVerifyModerationCaseForAdminAction(
+    String? caseId, {
+    required String? status,
+  }) async {
+    InvalidInputException.check(
+      caseId != null && caseId.isNotEmpty,
+      'case must be given',
+    );
+    if (caseId == 'none') {
+      return null;
+    }
+
+    final refCase = await adminBackend.lookupModerationCase(caseId!);
+    if (refCase == null) {
+      throw NotFoundException.resource(caseId);
+    }
+    if (status != null && refCase.status != status) {
+      throw InvalidInputException(
+          'ModerationCase.status ("${refCase.status}") != "$status".');
+    }
+    return refCase;
   }
 }

@@ -62,16 +62,21 @@ Map<String, dynamic> _$AutomatedPublishingConfigToJson(
 GithubPublishingConfig _$GithubPublishingConfigFromJson(
         Map<String, dynamic> json) =>
     GithubPublishingConfig(
-      isEnabled: json['isEnabled'] as bool?,
+      isEnabled: json['isEnabled'] as bool? ?? false,
       repository: json['repository'] as String?,
       tagPattern: json['tagPattern'] as String?,
-      requireEnvironment: json['requireEnvironment'] as bool?,
+      requireEnvironment: json['requireEnvironment'] as bool? ?? false,
       environment: json['environment'] as String?,
+      isPushEventEnabled: json['isPushEventEnabled'] as bool? ?? true,
+      isWorkflowDispatchEventEnabled:
+          json['isWorkflowDispatchEventEnabled'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$GithubPublishingConfigToJson(
     GithubPublishingConfig instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'isEnabled': instance.isEnabled,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -79,22 +84,26 @@ Map<String, dynamic> _$GithubPublishingConfigToJson(
     }
   }
 
-  writeNotNull('isEnabled', instance.isEnabled);
   writeNotNull('repository', instance.repository);
   writeNotNull('tagPattern', instance.tagPattern);
-  writeNotNull('requireEnvironment', instance.requireEnvironment);
+  val['requireEnvironment'] = instance.requireEnvironment;
   writeNotNull('environment', instance.environment);
+  val['isPushEventEnabled'] = instance.isPushEventEnabled;
+  val['isWorkflowDispatchEventEnabled'] =
+      instance.isWorkflowDispatchEventEnabled;
   return val;
 }
 
 GcpPublishingConfig _$GcpPublishingConfigFromJson(Map<String, dynamic> json) =>
     GcpPublishingConfig(
-      isEnabled: json['isEnabled'] as bool?,
+      isEnabled: json['isEnabled'] as bool? ?? false,
       serviceAccountEmail: json['serviceAccountEmail'] as String?,
     );
 
 Map<String, dynamic> _$GcpPublishingConfigToJson(GcpPublishingConfig instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'isEnabled': instance.isEnabled,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -102,7 +111,6 @@ Map<String, dynamic> _$GcpPublishingConfigToJson(GcpPublishingConfig instance) {
     }
   }
 
-  writeNotNull('isEnabled', instance.isEnabled);
   writeNotNull('serviceAccountEmail', instance.serviceAccountEmail);
   return val;
 }
@@ -211,9 +219,9 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) {
 }
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
-      grantedPoints: json['grantedPoints'] as int?,
-      maxPoints: json['maxPoints'] as int?,
-      likeCount: json['likeCount'] as int?,
+      grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
+      maxPoints: (json['maxPoints'] as num?)?.toInt(),
+      likeCount: (json['likeCount'] as num?)?.toInt(),
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       lastUpdated: json['lastUpdated'] == null

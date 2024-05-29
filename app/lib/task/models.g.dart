@@ -10,7 +10,7 @@ PackageVersionStateInfo _$PackageVersionStateInfoFromJson(
         Map<String, dynamic> json) =>
     PackageVersionStateInfo(
       scheduled: DateTime.parse(json['scheduled'] as String),
-      attempts: json['attempts'] as int,
+      attempts: (json['attempts'] as num).toInt(),
       secretToken: json['secretToken'] as String?,
       zone: json['zone'] as String?,
       instance: json['instance'] as String?,

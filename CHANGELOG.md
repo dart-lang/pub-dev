@@ -3,6 +3,49 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Allowed `workflow_dispatch` events from GitHub Actions to publish. 
+ * Bumped runtimeVersion to `2024.05.28`.
+ * Upgraded stable Dart analysis SDK to `3.4.1`
+ * Upgraded stable Flutter analysis SDK to `3.22.1`.
+
+## `20240523t085100-all`
+ * Bumped runtimeVersion to `2024.05.22`.
+ * Upgraded runtime Dart SDK to `3.4.0`.
+ * Upgraded dependencies.
+ * Upgraded dartdoc to `8.0.9`.
+ * Note: started to populate `Consent.fromAgent` field.
+
+## `20240514t110800-all`
+ * Fixes copy icon issue.
+
+## `20240514t085700-all`
+ * Bumped runtimeVersion to `2024.05.14`.
+ * Upgraded stable Dart analysis SDK to `3.4.0`
+ * Upgraded stable Flutter analysis SDK to `3.22.0`.
+ * Note: re-enabled email notification on package published events.
+
+## `20240502t112300-all`
+ * Bumped runtimeVersion to `2024.05.01`.
+ * Upgraded stable Dart analysis SDK to `3.3.4`
+ * Upgraded stable Flutter analysis SDK to `3.19.6`.
+
+## `20240429t132000-all`
+ * Note: disabled email notification on package published events.
+
+## `20240429t092800-all`
+ * Note: re-enabled email notification on package published events.
+
+## `20240418t083500-all`
+ * Bumped runtimeVersion to `2024.04.16`.
+ * Upgraded pana to `0.22.3`.
+ * Upgraded dartdoc to `8.0.8`.
+ * Note: Path values in `/documentation/<p>/<v>/<path>` are no longer restricted.
+
+## `20240410t034000-all`
+ * Bumped runtimeVersion to `2024.04.08`.
+ * Upgraded stable Dart analysis SDK to `3.3.3`
+ * Upgraded stable Flutter analysis SDK to `3.19.5`.
+
+## `20240325t103500-all`
  * Bumped runtimeVersion to `2024.03.21`.
  * Upgraded stable Dart analysis SDK to `3.3.1`
  * Upgraded stable Flutter analysis SDK to `3.19.3`.

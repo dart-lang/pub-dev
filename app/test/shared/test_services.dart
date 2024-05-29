@@ -19,9 +19,11 @@ import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/search/top_packages.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/shared/logging.dart';
@@ -109,6 +111,8 @@ class FakeAppengineEnv {
           await nameTracker.reloadFromDatastore();
           await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
+          await topPackages.start();
+          await youtubeBackend.start();
           await asyncQueue.ongoingProcessing;
           fakeEmailSender.sentMessages.clear();
 
@@ -165,6 +169,7 @@ void testWithProfile(
 }
 
 /// Execute [fn] with [FakeTime.run] inside [testWithProfile].
+@isTest
 void testWithFakeTime(
   String name,
   FutureOr<void> Function(FakeTime fakeTime) fn, {
@@ -256,7 +261,7 @@ void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
   testWithProfile('Regular user token from the website.', fn: () async {
     final token = createFakeAuthTokenForEmail(
       'unauthorized@pub.dev',
-      audience: activeConfiguration.pubSiteAudience,
+      audience: activeConfiguration.pubServerAudience,
     );
     final rs = fn(createPubApiClient(authToken: token));
     await expectApiException(rs, status: 401, code: 'MissingAuthentication');

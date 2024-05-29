@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:gcloud/datastore.dart' as ds;
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 import 'package:retry/retry.dart';
 
 import 'exceptions.dart';
@@ -35,7 +33,6 @@ ds.Key rawDatastoreKey(List segments) {
 /// [Transaction.rollback].
 class TransactionWrapper {
   final Transaction _tx;
-  final _auditLogRecords = <AuditLogRecord>[];
   bool _mutated = false;
 
   TransactionWrapper._(this._tx);
@@ -69,9 +66,6 @@ class TransactionWrapper {
   /// See [Transaction.queueMutations].
   void queueMutations({List<Model>? inserts, List<Key>? deletes}) {
     _mutated = true;
-    if (inserts != null) {
-      _auditLogRecords.addAll(inserts.whereType<AuditLogRecord>());
-    }
     _tx.queueMutations(inserts: inserts, deletes: deletes);
   }
 }
@@ -130,11 +124,6 @@ Future<T> _withTransaction<T>(
       try {
         final wrapper = TransactionWrapper._(tx);
         final retval = await fn(wrapper);
-        if (wrapper._auditLogRecords.isNotEmpty) {
-          for (final r in wrapper._auditLogRecords) {
-            await verifyAuditLogRecordRateLimits(r);
-          }
-        }
         if (wrapper._mutated) {
           commitAttempted = true;
           await tx.commit();
@@ -198,9 +187,8 @@ Future<T> withRetryTransaction<T>(
 //                we retry. The following is a list of exceptions we know
 //                we want to retry:
 //  - TransactionAbortedError, implies a transaction conflict.
-// Never retry a [ResponseException] or [RateLimitException]
-bool _retryIf(Exception e) =>
-    e is! ResponseException && e is! RateLimitException;
+// Never retry a [ResponseException].
+bool _retryIf(Exception e) => e is! ResponseException;
 
 void _onRetry(String op, Exception e) {
   final message =

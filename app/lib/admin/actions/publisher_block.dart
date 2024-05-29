@@ -18,7 +18,8 @@ Get information about publisher and list all members.
     'publisher': 'Publisher to be blocked',
   },
   invoke: (options) async {
-    final publisherId = options['publisher']!;
+    final publisherId = options['publisher'] ??
+        (throw InvalidInputException('Missing --publisher argument.'));
     InvalidInputException.check(
       publisherId.isNotEmpty,
       'publisher must be given',

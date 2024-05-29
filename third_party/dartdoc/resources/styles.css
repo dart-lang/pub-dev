@@ -504,6 +504,21 @@ dl dt.callable .name {
   padding-inline-start: unset;
 }
 
+.parameter-list.single-line {
+  display: inline;
+  margin-left: 0;
+}
+
+.parameter-list.single-line > li {
+  display: inline;
+}
+
+.parameter-list.single-line > li > .parameter {
+  display: inline;
+  margin-left: 0;
+  text-indent: 0;
+}
+
 .signature {
   color: var(--main-text-color);
 }
@@ -726,8 +741,9 @@ td {
 }
 
 .multi-line-signature .parameter {
-  margin-left: 24px;
+  margin-left: 60px;
   display: block;
+  text-indent: -36px;
 }
 
 .breadcrumbs {

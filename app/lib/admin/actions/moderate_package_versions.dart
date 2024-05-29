@@ -2,15 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_pub_shared/utils/dart_sdk_version.dart';
+import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 
 import '../../package/backend.dart';
 import '../../package/models.dart';
+import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
 import '../../task/backend.dart';
 import '../../tool/maintenance/update_public_bucket.dart';
+
+import '../backend.dart';
+import '../models.dart';
 
 import 'actions.dart';
 
@@ -22,12 +26,16 @@ final moderatePackageVersion = AdminAction(
 Set the moderated flag on a package version (updating the flag and the timestamp).
 ''',
   options: {
+    'case': 'The ModerationCase.caseId that this action is part of.',
     'package': 'The package name to be moderated',
     'version': 'The version to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
+    'message': 'Optional message to store.'
   },
   invoke: (options) async {
+    final caseId = options['case'];
+
     final package = options['package'];
     InvalidInputException.check(
       package != null && package.isNotEmpty,
@@ -50,6 +58,14 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         break;
     }
 
+    final message = options['message'];
+
+    final refCase =
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
+      caseId,
+      status: ModerationStatus.pending,
+    );
+
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
       throw NotFoundException.resource(package);
@@ -61,8 +77,10 @@ Set the moderated flag on a package version (updating the flag and the timestamp
 
     PackageVersion? pv2;
     if (valueToSet != null) {
-      final currentDartSdk =
-          await getDartSdkVersion(lastKnownStable: toolStableDartSdkVersion);
+      final currentDartSdk = await getCachedDartSdkVersion(
+          lastKnownStable: toolStableDartSdkVersion);
+      final currentFlutterSdk = await getCachedFlutterSdkVersion(
+          lastKnownStable: toolStableFlutterSdkVersion);
       pv2 = await withRetryTransaction(dbService, (tx) async {
         final v = await tx.lookupValue<PackageVersion>(pv.key);
         v.updateIsModerated(isModerated: valueToSet!);
@@ -76,11 +94,22 @@ Set the moderated flag on a package version (updating the flag and the timestamp
           pkg.updateLatestVersionReferences(
             versions,
             dartSdkVersion: currentDartSdk.semanticVersion,
+            flutterSdkVersion: currentFlutterSdk.semanticVersion,
             replaced: v,
           );
         }
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);
+
+        if (refCase != null) {
+          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          mc.addActionLogEntry(
+            ModerationSubject.package(package, version).fqn,
+            valueToSet ? ModerationAction.apply : ModerationAction.revert,
+            message,
+          );
+          tx.insert(mc);
+        }
 
         return v;
       });
@@ -94,6 +123,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
 
       await taskBackend.trackPackage(package);
       await purgePackageCache(package);
+      await purgeScorecardData(package, version, isLatest: true);
     }
 
     return {

@@ -36,10 +36,6 @@ void registerActiveConfiguration(Configuration configuration) {
 /// Special value to indicate that the client is running in fake mode.
 const _fakeClientAudience = 'fake-client-audience';
 
-/// Special value to indicate that the site is running in fake mode, and the
-/// client side authentication should use the fake authentication tokens.
-const _fakeSiteAudience = 'fake-site-audience';
-
 /// Special value to indicate that the site is running in fake mode.
 const _fakeServerAudience = 'fake-server-audience';
 
@@ -106,9 +102,6 @@ class Configuration {
   /// safe, as services may be deployed independently.
   final String defaultServiceBaseUrl;
 
-  /// The name of the Cloud Storage bucket to use for dartdoc generated output.
-  final String? dartdocStorageBucketName;
-
   /// The name of the Cloud Storage bucket to use for popularity data dumps.
   final String? popularityDumpBucketName;
 
@@ -160,9 +153,6 @@ class Configuration {
 
   /// The OAuth audience (`client_id`) that the `pub` client uses.
   final String? pubClientAudience;
-
-  /// The OAuth audience (`client_id`) that the pub site's JS frontend uses.
-  final String? pubSiteAudience;
 
   /// The OAuth audience that the pub site server backend uses.
   final String? pubServerAudience;
@@ -264,7 +254,6 @@ class Configuration {
     required this.projectId,
     required this.imageBucketName,
     required this.reportsBucketName,
-    required this.dartdocStorageBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
     required this.exportedApiBucketName,
@@ -280,7 +269,6 @@ class Configuration {
     required this.fallbackSearchServicePrefix,
     required this.storageBaseUrl,
     required this.pubClientAudience,
-    required this.pubSiteAudience,
     required this.pubServerAudience,
     required this.externalServiceAudience,
     required this.gmailRelayServiceAccount,
@@ -330,7 +318,6 @@ class Configuration {
       projectId: 'dartlang-pub-fake',
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
-      dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
@@ -346,7 +333,6 @@ class Configuration {
       fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: _fakeClientAudience,
-      pubSiteAudience: _fakeSiteAudience,
       pubServerAudience: _fakeServerAudience,
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
@@ -373,6 +359,7 @@ class Configuration {
     String? storageBaseUrl,
     Uri? primaryApiUri,
     Uri? primarySiteUri,
+    String? searchServicePrefix,
   }) {
     return Configuration(
       canonicalPackagesBucketName: 'fake-canonical-packages',
@@ -381,7 +368,6 @@ class Configuration {
       projectId: 'dartlang-pub-test',
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
-      dartdocStorageBucketName: 'fake-bucket-dartdoc',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
@@ -393,11 +379,10 @@ class Configuration {
       taskWorkerNetwork: '-',
       cosImage: 'projects/cos-cloud/global/images/family/cos-stable',
       taskWorkerServiceAccount: '-',
-      searchServicePrefix: 'http://localhost:0',
+      searchServicePrefix: searchServicePrefix ?? 'http://localhost:0',
       fallbackSearchServicePrefix: null,
       storageBaseUrl: storageBaseUrl ?? 'http://localhost:0',
       pubClientAudience: _fakeClientAudience,
-      pubSiteAudience: _fakeSiteAudience,
       pubServerAudience: _fakeServerAudience,
       externalServiceAudience: _fakeExternalAudience,
       defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',
@@ -426,7 +411,6 @@ class Configuration {
   /// All the bucket names inside this configuration.
   late final allBucketNames = List<String>.unmodifiable(<String>[
     canonicalPackagesBucketName!,
-    dartdocStorageBucketName!,
     imageBucketName!,
     reportsBucketName!,
     incomingPackagesBucketName!,
@@ -438,11 +422,9 @@ class Configuration {
   ]);
 
   late final isProduction = projectId == 'dartlang-pub';
-  late final isNotProduction = !isProduction;
   late final isStaging = projectId == 'dartlang-pub-dev';
 
-  /// NOTE: email notification on package published is temporarily disabled.
-  late final isPublishedEmailNotificationEnabled = isNotProduction;
+  late final isPublishedEmailNotificationEnabled = true;
 }
 
 /// Data structure to describe an admin user.

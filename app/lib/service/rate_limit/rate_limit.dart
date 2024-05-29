@@ -4,13 +4,17 @@
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/service/rate_limit/models.dart';
 
 import '../../account/agent.dart';
 import '../../audit/models.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/redis_cache.dart';
+
+final _logger = Logger('rate_limit');
 
 /// Verifies if the current package upload has a rate limit and throws
 /// if the limit has been exceeded.
@@ -83,13 +87,7 @@ Future<void> _verifyRateLimit({
     return;
   }
 
-  final cacheEntryKey = [
-    rateLimit.operation,
-    rateLimit.scope.name,
-    if (package != null) 'package-$package',
-    if (agentId != null) 'agentId-$agentId',
-  ].join('/');
-
+  final sw = Stopwatch()..start();
   List<AuditLogRecord>? auditEntriesFromLastDay;
 
   Future<void> check({
@@ -101,6 +99,14 @@ Future<void> _verifyRateLimit({
     if (maxCount == null || maxCount <= 0) {
       return;
     }
+
+    final cacheEntryKey = [
+      rateLimit.operation,
+      rateLimit.scope.name,
+      if (package != null) 'package-$package',
+      if (agentId != null) 'agentId-$agentId',
+      window.inSeconds,
+    ].join('/');
 
     final entry = cache.rateLimitUntil(cacheEntryKey);
     final current = await entry.get();
@@ -159,6 +165,8 @@ Future<void> _verifyRateLimit({
     maxCount: rateLimit.daily,
     windowAsText: 'last day',
   );
+  sw.stop();
+  _logger.info('[rate-limit-verified] Rate limit verified in ${sw.elapsed}');
 }
 
 bool _containsPackage(
@@ -179,4 +187,25 @@ bool _containsUserId(
     return false;
   }
   return users.contains(userId);
+}
+
+Future<void> verifyRequestCounts({
+  required String sourceIp,
+  required String operation,
+  required int limit,
+  required Duration window,
+  required String windowAsText,
+}) async {
+  final counterCacheEntry = cache.rateLimitRequestCounter(sourceIp, operation);
+  final cachedCounter = await counterCacheEntry.get();
+  if (cachedCounter == null) {
+    await counterCacheEntry.set(RateLimitRequestCounter.init(1));
+  } else {
+    final nextCounter = cachedCounter.incrementOrThrow(
+      limit: limit,
+      window: window,
+      windowAsText: windowAsText,
+    );
+    await counterCacheEntry.set(nextCounter);
+  }
 }

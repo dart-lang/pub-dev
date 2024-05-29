@@ -48,6 +48,16 @@ class PublisherBackend {
 
   PublisherBackend(this._db);
 
+  /// Returns true for publishers that we may display.
+  Future<bool> isPublisherVisible(String publisherId) async {
+    final visible = await cache.publisherVisible(publisherId).get(() async {
+      final pKey = _db.emptyKey.append(Publisher, id: publisherId);
+      final p = await _db.lookupOrNull<Publisher>(pKey);
+      return p?.isVisible ?? false;
+    });
+    return visible!;
+  }
+
   /// Loads a publisher. Returns `null` if it does not exists, or is blocked (not visible).
   Future<Publisher?> getPublisher(String publisherId) async {
     checkPublisherIdParam(publisherId);
@@ -126,6 +136,7 @@ class PublisherBackend {
   /// Whether the User [userId] has admin permissions on the publisher.
   Future<bool> isMemberAdmin(Publisher publisher, String? userId) async {
     if (publisher.isBlocked) return false;
+    if (publisher.isModerated) return false;
     if (userId == null) return false;
     final member = await getPublisherMember(publisher, userId);
     if (member == null) return false;
@@ -222,7 +233,7 @@ class PublisherBackend {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        AuditLogRecord.publisherCreated(
+        await AuditLogRecord.publisherCreated(
           user: user,
           publisherId: publisherId,
         ),
@@ -330,7 +341,7 @@ class PublisherBackend {
       p.updated = clock.now().toUtc();
 
       tx.insert(p);
-      tx.insert(AuditLogRecord.publisherUpdated(
+      tx.insert(await AuditLogRecord.publisherUpdated(
         user: user,
         publisherId: publisherId,
       ));
@@ -363,7 +374,7 @@ class PublisherBackend {
       p.contactEmail = contactEmail;
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(AuditLogRecord.publisherContactInviteAccepted(
+      tx.insert(await AuditLogRecord.publisherContactInviteAccepted(
         user: user,
         publisherId: publisherId,
         contactEmail: contactEmail,
@@ -518,7 +529,7 @@ class PublisherBackend {
     final pm = await _db.lookupOrNull<PublisherMember>(key);
     if (pm != null) {
       final memberUser = await accountBackend.lookupUserById(userId);
-      final auditLogRecord = AuditLogRecord.publisherMemberRemoved(
+      final auditLogRecord = await AuditLogRecord.publisherMemberRemoved(
         publisherId: publisherId,
         activeUser: user,
         memberToRemove: memberUser!,
@@ -557,7 +568,7 @@ class PublisherBackend {
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
-        AuditLogRecord.publisherMemberInviteAccepted(
+        await AuditLogRecord.publisherMemberInviteAccepted(
           user: user!,
           publisherId: publisherId,
         ),
@@ -595,6 +606,9 @@ Future<Publisher> requirePublisherAdmin(
   if (p == null) {
     throw NotFoundException('Publisher $publisherId does not exists.');
   }
+  if (p.isModerated) {
+    throw ModeratedException.publisher(publisherId);
+  }
 
   final member = await publisherBackend._db
       .lookupOrNull<PublisherMember>(p.key.append(PublisherMember, id: userId));
@@ -612,6 +626,7 @@ Future purgePublisherCache({String? publisherId}) async {
   await Future.wait([
     if (publisherId != null)
       cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
+    if (publisherId != null) cache.publisherVisible(publisherId).purge(),
     cache.uiPublisherListPage().purge(),
   ]);
 }

@@ -62,3 +62,13 @@ topics:
   description: Packages that contain Flutter widgets.
   aliases:
   - widgets
+- topic: logging
+  description: Packages for writing log messages.
+  aliases:
+  - logger
+  - logs
+  - log
+- topic: testing
+  description: Packages that facilitate testing
+  aliases:
+  - test

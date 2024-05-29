@@ -57,7 +57,7 @@ else
 
   # Setup number of instances to one
   # NOTICE: this modifies the current folder, which is a bit of a hack
-  sed -i 's/_num_instances:[^\n]*/_num_instances: 1/' app.yaml search.yaml dartdoc.yaml analyzer.yaml
+  sed -i 's/_num_instances:[^\n]*/_num_instances: 1/' app.yaml search.yaml analyzer.yaml
 fi
 
 # Disable interactive gcloud prompts
@@ -82,10 +82,6 @@ echo "### Start deploying search.yaml (version: $APP_VERSION)"
 time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'search.yaml' &
 SEARCH_PID=$!
 
-echo "### Start deploying dartdoc.yaml (version: $APP_VERSION)"
-time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'dartdoc.yaml' &
-DARTDOC_PID=$!
-
 echo "### Start deploying analyzer.yaml (version: $APP_VERSION)"
 time -p gcloud --project "$PROJECT_ID" app deploy --no-promote -v "$APP_VERSION" --image-url "$APP_IMAGE" 'analyzer.yaml' &
 ANALYZER_PID=$!
@@ -96,8 +92,6 @@ echo "### app.yaml deployed"
 
 wait $SEARCH_PID
 echo "### search.yaml deployed"
-wait $DARTDOC_PID
-echo "### dartdoc.yaml deployed"
 wait $ANALYZER_PID
 echo "### analyzer.yaml deployed"
 

@@ -69,7 +69,7 @@ Map<String, dynamic> _$PackageLikeResponseToJson(
 PackageLikesCount _$PackageLikesCountFromJson(Map<String, dynamic> json) =>
     PackageLikesCount(
       package: json['package'] as String?,
-      likes: json['likes'] as int?,
+      likes: (json['likes'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageLikesCountToJson(PackageLikesCount instance) =>
@@ -132,10 +132,18 @@ Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
     };
 
 ReportForm _$ReportFormFromJson(Map<String, dynamic> json) => ReportForm(
-      description: json['description'] as String,
+      email: json['email'] as String?,
+      subject: json['subject'] as String?,
+      url: json['url'] as String?,
+      caseId: json['caseId'] as String?,
+      message: json['message'] as String,
     );
 
 Map<String, dynamic> _$ReportFormToJson(ReportForm instance) =>
     <String, dynamic>{
-      'description': instance.description,
+      'email': instance.email,
+      'subject': instance.subject,
+      'url': instance.url,
+      'caseId': instance.caseId,
+      'message': instance.message,
     };

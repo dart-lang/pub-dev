@@ -201,7 +201,7 @@ void main() {
     test('script.dart.js and parts size check', () {
       final file = cache.getFile('/static/js/script.dart.js');
       expect(file, isNotNull);
-      expect((file!.bytes.length / 1024).round(), closeTo(322, 1));
+      expect((file!.bytes.length / 1024).round(), closeTo(324, 1));
 
       final parts = cache.paths
           .where((path) =>
@@ -212,7 +212,7 @@ void main() {
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
-      expect((partsSize / 1024).round(), closeTo(210, 1));
+      expect((partsSize / 1024).round(), closeTo(212, 1));
     });
   });
 
@@ -223,7 +223,7 @@ void main() {
       expect(rs.statusCode, 200);
       expect(await rs.readAsString(), contains('<svg'));
       final cache = rs.headers['cache-control'];
-      expect(cache, contains('max-age=0')); // no caching
+      expect(cache, contains('no-store')); // no caching
     });
 
     testWithProfile('good path hash', fn: () async {

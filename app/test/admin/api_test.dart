@@ -15,6 +15,7 @@ import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -316,7 +317,12 @@ void main() {
         // sanity check that scorecard is being loaded
         final sc2 =
             await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
-        expect(sc2.packageVersion, '1.0.0');
+        expect(sc2.packageVersion, isNotEmpty);
+        await processTasksWithFakePanaAndDartdoc();
+
+        final sc3 =
+            await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
+        expect(sc3.packageVersion, '1.0.0');
       });
     });
 

@@ -17,16 +17,16 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../publisher/backend.dart';
+import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
 import '../../shared/cookie_utils.dart';
-import '../../shared/count_topics.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
-import 'headers.dart';
+import 'cache_control.dart';
 
 final _log = Logger('pub.handlers.misc');
 
@@ -68,9 +68,16 @@ Future<shelf.Response> securityPageHandler(shelf.Request request) async {
 /// Handles requests for /readiness_check
 Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   if (nameTracker.isReady) {
-    return htmlResponse('OK');
+    return htmlResponse(
+      'OK',
+      headers: CacheControl.explicitlyPrivate.headers,
+    );
   } else {
-    return htmlResponse('Service Unavailable', status: 503);
+    return htmlResponse(
+      'Service Unavailable',
+      status: 503,
+      headers: CacheControl.explicitlyPrivate.headers,
+    );
   }
 }
 
@@ -182,13 +189,14 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
         acceptsGzipEncoding ? staticFile.gzippedBytes : staticFile.bytes;
     final headers = <String, String>{
       if (acceptsGzipEncoding) HttpHeaders.contentEncodingHeader: 'gzip',
+      'Vary': 'Accept-Encoding',
       HttpHeaders.contentTypeHeader: staticFile.contentType,
       HttpHeaders.contentLengthHeader: bytes.length.toString(),
       HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
       HttpHeaders.etagHeader: staticFile.etag,
       if (parsed.urlHash == staticFile.etag ||
           parsed.pathHash == staticFileCache.etag)
-        ...CacheHeaders.staticAsset(),
+        ...CacheControl.staticFiles.headers,
     };
     return shelf.Response.ok(bytes, headers: headers);
   }
@@ -232,6 +240,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
       value: flags.encodedAsCookie(),
       maxAge: experimentalCookieDuration,
     ),
+    ...CacheControl.explicitlyPrivate.headers,
   });
 }
 

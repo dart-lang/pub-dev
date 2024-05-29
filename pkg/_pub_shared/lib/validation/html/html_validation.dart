@@ -84,7 +84,10 @@ void validateHtml(Node root) {
       throw AssertionError('Unable to parse URL: "$href".');
     }
     if (uri.query.contains('//')) {
-      throw AssertionError('Double-slash URL detected: "$href".');
+      // exempt report page deep links
+      if (!uri.query.contains('content_id=')) {
+        throw AssertionError('Double-slash URL detected: "$href".');
+      }
     }
     if (uri.path == '/packages' && uri.queryParameters.containsKey('q')) {
       final rel = elem.attributes['rel'] ?? '';
@@ -92,6 +95,23 @@ void validateHtml(Node root) {
         throw AssertionError(
             'Package search URL must use nofollow: "${elem.outerHtml}".');
       }
+    }
+  }
+
+  // Link to report page must have url attribute.
+  for (final elem in links) {
+    final href = elem.attributes['href'];
+    if (href == null || !href.contains('/report?')) continue;
+    final uri = Uri.parse(href);
+
+    final subject = uri.queryParameters['subject'];
+    if (subject == null || subject.isEmpty) {
+      throw AssertionError('Report page URL must have `subject` attribute.');
+    }
+
+    final url = uri.queryParameters['url'];
+    if (url == null || url.isEmpty) {
+      throw AssertionError('Report page URL must have `url` attribute.');
     }
   }
 

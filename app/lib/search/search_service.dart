@@ -9,7 +9,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 part 'search_service.g.dart';
 
@@ -148,8 +148,6 @@ class ApiDocPage {
   Map<String, dynamic> toJson() => _$ApiDocPageToJson(this);
 }
 
-String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
-
 class ServiceSearchQuery {
   final String? query;
   final ParsedQueryText parsedQuery;
@@ -176,7 +174,7 @@ class ServiceSearchQuery {
     this.limit,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
-        publisherId = _stringToNull(publisherId);
+        publisherId = publisherId?.trimToNull();
 
   factory ServiceSearchQuery.parse({
     String? query,
@@ -188,7 +186,7 @@ class ServiceSearchQuery {
     int offset = 0,
     int? limit = 10,
   }) {
-    final q = _stringToNull(query?.trim());
+    final q = query?.trimToNull();
     return ServiceSearchQuery._(
       query: q,
       tagsPredicate: tagsPredicate,
@@ -322,25 +320,33 @@ class PackageSearchResult {
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
-  final String? message;
+  final String? errorMessage;
+
+  final int? statusCode;
 
   PackageSearchResult({
     required this.timestamp,
     required this.totalCount,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
-    this.message,
+    this.errorMessage,
+    this.statusCode,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageHit>[];
 
-  PackageSearchResult.empty({this.message})
+  PackageSearchResult.empty({this.errorMessage, this.statusCode})
       : timestamp = clock.now().toUtc(),
         totalCount = 0,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
-  factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
-      _$PackageSearchResultFromJson(json);
+  factory PackageSearchResult.fromJson(Map<String, dynamic> json) {
+    return _$PackageSearchResultFromJson({
+      // TODO: remove fallback in the next release
+      'errorMessage': json['message'],
+      ...json,
+    });
+  }
 
   Duration get age => clock.now().difference(timestamp!);
 
@@ -462,52 +468,6 @@ extension SearchFormExt on SearchForm {
       offset: offset,
       limit: pageSize,
       order: order,
-    );
-  }
-}
-
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
-class SearchRequestCounter {
-  final DateTime started;
-  final int value;
-
-  SearchRequestCounter({
-    required this.started,
-    required this.value,
-  });
-  SearchRequestCounter.init([this.value = 0]) : started = clock.now().toUtc();
-
-  factory SearchRequestCounter.fromJson(Map<String, dynamic> json) =>
-      _$SearchRequestCounterFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SearchRequestCounterToJson(this);
-
-  SearchRequestCounter incrementOrThrow({
-    required int limit,
-    required Duration window,
-    required String windowAsText,
-  }) {
-    final now = clock.now().toUtc();
-    final age = now.difference(started);
-    var newStarted = started;
-    var newValue = value + 1;
-    // reset the counter after the window has expired
-    if (age > window) {
-      newStarted = now;
-      newValue = 1;
-    }
-    // verify the counter is under the limit
-    if (newValue > limit) {
-      throw RateLimitException(
-        operation: 'search',
-        maxCount: limit,
-        windowAsText: windowAsText,
-        window: window,
-      );
-    }
-    return SearchRequestCounter(
-      started: newStarted,
-      value: newValue,
     );
   }
 }

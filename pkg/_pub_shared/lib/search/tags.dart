@@ -84,6 +84,9 @@ abstract class PackageVersionTags {
   /// Package version is NOT compatible with Dart 3.
   static const String isDart3Incompatible = 'is:dart3-incompatible';
 
+  /// Package version may be used in WASM compilation.
+  static const String isWasmReady = 'is:wasm-ready';
+
   /// Version tags that provide a positive, forward-looking property
   /// of a prerelease or preview version.
   ///

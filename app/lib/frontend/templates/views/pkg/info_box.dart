@@ -8,6 +8,7 @@ import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 import '../../../../package/models.dart';
 import '../../../../package/overrides.dart' show redirectPackageUrls;
 import '../../../../package/screenshots/backend.dart';
+import '../../../../service/topics/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../shared/images.dart';
@@ -51,7 +52,7 @@ d.Node packageInfoBoxNode({
     );
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
-  final topics = _topicstNode(version.pubspec?.topics);
+  final topics = _topicstNode(version.pubspec?.canonicalizedTopics);
 
   final screenshots = data.scoreCard.panaReport?.screenshots;
   String? thumbnailUrl;
@@ -189,10 +190,14 @@ d.Node? _topicstNode(List<String>? topics) {
     if (nodes.isNotEmpty) {
       nodes.add(d.text(' '));
     }
+    final ct = canonicalTopics.asMap[topic];
+    final description = ct?.description;
     final node = d.a(
-        href: urls.searchUrl(q: 'topic:$topic'),
-        text: '#$topic',
-        rel: 'nofollow');
+      href: urls.searchUrl(q: 'topic:$topic'),
+      text: '#$topic',
+      title: description,
+      rel: 'nofollow',
+    );
     nodes.add(node);
   }
   return d.fragment(nodes);

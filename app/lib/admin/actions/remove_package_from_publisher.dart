@@ -53,7 +53,7 @@ If the publisher has no members, the package will end up without uploaders.
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);
         tx.insert(
-          AuditLogRecord.packageRemovedFromPublisher(
+          await AuditLogRecord.packageRemovedFromPublisher(
             package: packageName,
             fromPublisherId: currentPublisherId,
           ),

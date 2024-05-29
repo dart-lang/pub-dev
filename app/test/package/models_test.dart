@@ -341,7 +341,9 @@ class _PublishSequence {
           'sdk': '>=$minSdk <3.0.0',
         },
       });
-    _p.updateVersion(pv, dartSdkVersion: _currentSdk);
+    _p.updateVersion(pv,
+        dartSdkVersion: _currentSdk,
+        flutterSdkVersion: Version.parse('3.20.0'));
   }
 
   void verify(

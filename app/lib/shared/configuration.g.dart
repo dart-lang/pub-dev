@@ -23,7 +23,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'searchServicePrefix',
             'fallbackSearchServicePrefix',
             'defaultServiceBaseUrl',
-            'dartdocStorageBucketName',
             'popularityDumpBucketName',
             'searchSnapshotBucketName',
             'maxTaskInstances',
@@ -36,7 +35,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'taskWorkerServiceAccount',
             'storageBaseUrl',
             'pubClientAudience',
-            'pubSiteAudience',
             'pubServerAudience',
             'externalServiceAudience',
             'gmailRelayServiceAccount',
@@ -62,8 +60,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('imageBucketName', (v) => v as String?),
           reportsBucketName:
               $checkedConvert('reportsBucketName', (v) => v as String?),
-          dartdocStorageBucketName:
-              $checkedConvert('dartdocStorageBucketName', (v) => v as String?),
           popularityDumpBucketName:
               $checkedConvert('popularityDumpBucketName', (v) => v as String?),
           searchSnapshotBucketName:
@@ -71,8 +67,9 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
           exportedApiBucketName:
               $checkedConvert('exportedApiBucketName', (v) => v as String?),
           maxTaskInstances:
-              $checkedConvert('maxTaskInstances', (v) => v as int),
-          maxTaskRunHours: $checkedConvert('maxTaskRunHours', (v) => v as int),
+              $checkedConvert('maxTaskInstances', (v) => (v as num).toInt()),
+          maxTaskRunHours:
+              $checkedConvert('maxTaskRunHours', (v) => (v as num).toInt()),
           taskResultBucketName:
               $checkedConvert('taskResultBucketName', (v) => v as String?),
           taskWorkerImage:
@@ -92,8 +89,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('storageBaseUrl', (v) => v as String?),
           pubClientAudience:
               $checkedConvert('pubClientAudience', (v) => v as String?),
-          pubSiteAudience:
-              $checkedConvert('pubSiteAudience', (v) => v as String?),
           pubServerAudience:
               $checkedConvert('pubServerAudience', (v) => v as String?),
           externalServiceAudience:
@@ -146,7 +141,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'searchServicePrefix': instance.searchServicePrefix,
       'fallbackSearchServicePrefix': instance.fallbackSearchServicePrefix,
       'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
-      'dartdocStorageBucketName': instance.dartdocStorageBucketName,
       'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'maxTaskInstances': instance.maxTaskInstances,
@@ -159,7 +153,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'taskWorkerServiceAccount': instance.taskWorkerServiceAccount,
       'storageBaseUrl': instance.storageBaseUrl,
       'pubClientAudience': instance.pubClientAudience,
-      'pubSiteAudience': instance.pubSiteAudience,
       'pubServerAudience': instance.pubServerAudience,
       'externalServiceAudience': instance.externalServiceAudience,
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
@@ -260,9 +253,9 @@ RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
           operation: $checkedConvert('operation', (v) => v as String),
           scope: $checkedConvert(
               'scope', (v) => $enumDecode(_$RateLimitScopeEnumMap, v)),
-          burst: $checkedConvert('burst', (v) => v as int?),
-          hourly: $checkedConvert('hourly', (v) => v as int?),
-          daily: $checkedConvert('daily', (v) => v as int?),
+          burst: $checkedConvert('burst', (v) => (v as num?)?.toInt()),
+          hourly: $checkedConvert('hourly', (v) => (v as num?)?.toInt()),
+          daily: $checkedConvert('daily', (v) => (v as num?)?.toInt()),
         );
         return val;
       },

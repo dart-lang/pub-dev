@@ -19,11 +19,11 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated'] as String),
       readme: json['readme'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      likeCount: json['likeCount'] as int?,
+      likeCount: (json['likeCount'] as num?)?.toInt(),
       likeScore: (json['likeScore'] as num?)?.toDouble(),
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
-      grantedPoints: json['grantedPoints'] as int?,
-      maxPoints: json['maxPoints'] as int?,
+      grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
+      maxPoints: (json['maxPoints'] as num?)?.toInt(),
       dependencies: (json['dependencies'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
@@ -78,14 +78,15 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
       timestamp: json['timestamp'] == null
           ? null
           : DateTime.parse(json['timestamp'] as String),
-      totalCount: json['totalCount'] as int,
+      totalCount: (json['totalCount'] as num).toInt(),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),
       packageHits: (json['packageHits'] as List<dynamic>?)
           ?.map((e) => PackageHit.fromJson(e as Map<String, dynamic>))
           .toList(),
-      message: json['message'] as String?,
+      errorMessage: json['errorMessage'] as String?,
+      statusCode: (json['statusCode'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
@@ -102,7 +103,8 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
   val['sdkLibraryHits'] =
       instance.sdkLibraryHits.map((e) => e.toJson()).toList();
   val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();
-  writeNotNull('message', instance.message);
+  writeNotNull('errorMessage', instance.errorMessage);
+  writeNotNull('statusCode', instance.statusCode);
   return val;
 }
 
@@ -182,17 +184,3 @@ Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
   writeNotNull('url', instance.url);
   return val;
 }
-
-SearchRequestCounter _$SearchRequestCounterFromJson(
-        Map<String, dynamic> json) =>
-    SearchRequestCounter(
-      started: DateTime.parse(json['started'] as String),
-      value: json['value'] as int,
-    );
-
-Map<String, dynamic> _$SearchRequestCounterToJson(
-        SearchRequestCounter instance) =>
-    <String, dynamic>{
-      'started': instance.started.toIso8601String(),
-      'value': instance.value,
-    };

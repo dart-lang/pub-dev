@@ -577,6 +577,9 @@ void main() {
             'isEnabled': false,
             'repository': 'a/b',
             'tagPattern': '{{version}}',
+            'requireEnvironment': false,
+            'isPushEventEnabled': true,
+            'isWorkflowDispatchEventEnabled': false,
           });
         }
       });
@@ -912,7 +915,8 @@ void main() {
       });
 
       testWithProfile('upload restriction - no uploads', fn: () async {
-        await secretBackend.update(SecretKey.uploadRestriction, 'no-uploads');
+        (secretBackend as FakeSecretBackend)
+            .update(SecretKey.uploadRestriction, 'no-uploads');
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '2.3.0'));
         final rs = createPubApiClient(authToken: adminClientToken)
@@ -926,7 +930,8 @@ void main() {
       });
 
       testWithProfile('upload restriction - no new packages', fn: () async {
-        await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
+        (secretBackend as FakeSecretBackend)
+            .update(SecretKey.uploadRestriction, 'only-updates');
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('some_new_package', '1.2.3'));
         final rs = createPubApiClient(authToken: adminClientToken)
@@ -940,7 +945,8 @@ void main() {
       });
 
       testWithProfile('upload restriction - update is accepted', fn: () async {
-        await secretBackend.update(SecretKey.uploadRestriction, 'only-updates');
+        (secretBackend as FakeSecretBackend)
+            .update(SecretKey.uploadRestriction, 'only-updates');
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.4.5'));
         final message = await createPubApiClient(authToken: adminClientToken)
@@ -1115,6 +1121,32 @@ void main() {
           message:
               'Unsupported value for "version". Could not parse "not-a-version".',
         );
+      });
+
+      testWithProfile('has dependency does not exist', fn: () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent:
+                generatePubspecYaml('xyz', '1.0.0') + '  abc: ^1.0.0\n');
+        final rs = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Dependency `abc` does not exist.',
+        );
+      });
+
+      testWithProfile('has SDK-dependency', fn: () async {
+        final tarball = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('xyz', '1.2.3') +
+                '  my_sdk_dep:\n'
+                    '    sdk: dart\n');
+        final message = await createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball);
+        expect(message.success.message, contains('Successfully uploaded'));
+        expect(message.success.message, contains('xyz'));
+        expect(message.success.message, contains('1.2.3'));
       });
 
       testWithProfile('has git dependency', fn: () async {

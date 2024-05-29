@@ -580,6 +580,9 @@ class ModeratedException extends NotFoundException {
 
   ModeratedException.packageVersion(String package, String version)
       : super('PackageVersion "$package" "$version" has been moderated.');
+
+  ModeratedException.publisher(String publisherId)
+      : super('Publisher "$publisherId" has been moderated.');
 }
 
 /// Thrown when API endpoint is not implemented.

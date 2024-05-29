@@ -88,6 +88,13 @@ Future<shelf.Response> publisherPackagesPageHandler(
     // domain name), but now we just have a formatted error page.
     return formattedNotFoundHandler(request);
   }
+  if (publisher.isModerated) {
+    final message = 'The publisher `$publisherId` has been moderated.';
+    return htmlResponse(
+      renderErrorPage(default404NotFound, message),
+      status: 404,
+    );
+  }
 
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   // redirect to the search page when any search or pagination is present
@@ -128,7 +135,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
         publisher, requestContext.authenticatedUserId),
-    messageFromBackend: searchResult.message,
+    messageFromBackend: searchResult.errorMessage,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);

@@ -730,7 +730,7 @@ Iterable<ArchiveIssue> checkScreenshots(
 
     // validate screenshot text
     final textLength = s.description.trim().length;
-    if (textLength <= 10) {
+    if (textLength < 10) {
       yield ArchiveIssue(
           'Screenshot description for `${s.path}` is too short. Should be at least 10 characters.');
     }

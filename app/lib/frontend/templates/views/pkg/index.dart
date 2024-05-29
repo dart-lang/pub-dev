@@ -166,6 +166,13 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title: 'Show only Flutter plugins.',
               ),
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'wasm-ready',
+                label: 'WASM ready',
+                searchForm: searchForm,
+                title: 'Show only WASM ready packages.',
+              ),
             ],
           ),
         ],

@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/admin/models.dart';
 
 import '../audit/models.dart';
 import '../frontend/request_context.dart';
@@ -259,24 +260,6 @@ class AccountBackend {
   Future<User> lookupUserByEmail(String email) async {
     final users = await lookupUsersByEmail(email);
     return users.single;
-  }
-
-  /// Verifies that the access token belongs to the [owner].
-  ///
-  /// Throws [AuthenticationException] if token cannot be authenticated or the
-  /// OAuth userId differs from [owner].
-  Future<void> verifyAccessTokenOwnership(
-      String accessToken, User owner) async {
-    final auth = await authProvider.tryAuthenticateAsUser(accessToken);
-    if (auth == null) {
-      throw AuthenticationException.accessTokenInvalid();
-    }
-    if (owner.oauthUserId != auth.oauthUserId) {
-      throw AuthenticationException.accessTokenMissmatch();
-    }
-    if (auth.audience != activeConfiguration.pubSiteAudience) {
-      throw AuthenticationException.accessTokenMissmatch();
-    }
   }
 
   /// Stores the bearer [token] in a new scope.
@@ -556,7 +539,7 @@ class AccountBackend {
       return null;
     }
     return AuthenticatedUser(user,
-        audience: activeConfiguration.pubSiteAudience!);
+        audience: activeConfiguration.pubServerAudience!);
   }
 
   /// Returns the user session associated with the [sessionId] or null if it
@@ -652,7 +635,12 @@ class AccountBackend {
   /// Updates the moderated status of a user.
   ///
   /// Expires all existing user sessions.
-  Future<void> updateModeratedFlag(String userId, bool isModerated) async {
+  Future<void> updateModeratedFlag(
+    String userId,
+    bool isModerated, {
+    required Key? refCaseKey,
+    required String? message,
+  }) async {
     await withRetryTransaction(_db, (tx) async {
       final user =
           await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
@@ -660,6 +648,16 @@ class AccountBackend {
 
       user.updateIsModerated(isModerated: isModerated);
       tx.insert(user);
+
+      if (refCaseKey != null) {
+        final mc = await tx.lookupValue<ModerationCase>(refCaseKey);
+        mc.addActionLogEntry(
+          ModerationSubject.user(user.email!).fqn,
+          isModerated ? ModerationAction.apply : ModerationAction.revert,
+          message,
+        );
+        tx.insert(mc);
+      }
     });
     await _expireAllSessions(userId);
     await purgeAccountCache(userId: userId);

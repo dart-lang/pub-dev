@@ -123,6 +123,24 @@ class TagsPredicate {
     return p;
   }
 
+  /// Update the predicates by using their canonical version (if there is any available).
+  /// Does not change the predicates status (unless the canonical one is also present,
+  /// in this case the behavior is undefined).
+  ///
+  /// Returns `null` if no update was needed.
+  TagsPredicate? canonicalizeKeys(String? Function(String key) fn) {
+    final newValues = <String, bool>{};
+    for (final e in _values.entries) {
+      newValues[fn(e.key) ?? e.key] = e.value;
+    }
+    if (_values.length != newValues.length ||
+        newValues.entries.any((e) => _values[e.key] != e.value)) {
+      return TagsPredicate._(newValues);
+    } else {
+      return null;
+    }
+  }
+
   /// Appends [other] predicate to the current set of tags, and returns a new
   /// [TagsPredicate] instance.
   ///
@@ -334,7 +352,7 @@ class SearchForm {
     );
   }
 
-  SearchForm _change({String? query}) {
+  SearchForm change({String? query}) {
     return SearchForm._(
       query: query ?? this.query,
       order: order,
@@ -344,7 +362,7 @@ class SearchForm {
   }
 
   SearchForm toggleRequiredTag(String tag) {
-    return _change(
+    return change(
       query: parsedQuery
           .change(tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag))
           .toString(),
@@ -355,7 +373,7 @@ class SearchForm {
     if (parsedQuery.tagsPredicate.hasTag(tag)) {
       return this;
     } else {
-      return _change(
+      return change(
         query: parsedQuery
             .change(
                 tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag))
@@ -380,7 +398,8 @@ class SearchForm {
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isNullSafe) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isDart3Compatible) ||
-      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin);
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin) ||
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isWasmReady);
 
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).

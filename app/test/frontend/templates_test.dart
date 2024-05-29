@@ -11,9 +11,11 @@ import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/request_context.dart';
@@ -26,6 +28,7 @@ import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
+import 'package:pub_dev/frontend/templates/report.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -138,6 +141,8 @@ void main() {
       'package show page',
       processJobsWithFakeRunners: true,
       fn: () async {
+        registerRequestContext(
+            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await withFakeAuthRequestContext(
           adminAtPubDevEmail,
           () => loadPackagePageDataByName('oxygen', '1.2.0', AssetKind.readme),
@@ -168,6 +173,8 @@ void main() {
       'package example page',
       processJobsWithFakeRunners: true,
       fn: () async {
+        registerRequestContext(
+            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await loadPackagePageDataByName(
             'oxygen', '1.2.0', AssetKind.example);
         final html = renderPkgExamplePage(data);
@@ -205,6 +212,8 @@ void main() {
       'package show page - with version',
       processJobsWithFakeRunners: true,
       fn: () async {
+        registerRequestContext(
+            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await loadPackagePageDataByName(
             'oxygen', '1.2.0', AssetKind.readme);
         final html = renderPkgShowPage(data);
@@ -475,6 +484,8 @@ void main() {
       'package versions page',
       processJobsWithFakeRunners: true,
       fn: () async {
+        registerRequestContext(
+            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
         final rs = await issueGet('/packages/oxygen/versions');
         final html = await rs.readAsString();
@@ -512,6 +523,8 @@ void main() {
       'publisher packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
+        registerRequestContext(
+            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final searchForm = SearchForm();
         final publisher = (await publisherBackend.getPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
@@ -788,8 +801,37 @@ void main() {
     });
 
     testWithProfile('topics page', fn: () async {
-      final html = renderTopicsPage({'ui': 5, 'network': 7, 'http': 4});
+      final html = renderTopicsPage({
+        'ui': 5,
+        'network': 7,
+        'http': 4,
+        'widget': 1,
+      });
       expectGoldenFile(html, 'topics_page.html');
+    });
+
+    testWithProfile('report page', fn: () async {
+      registerRequestContext(
+          RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
+      final html = renderReportPage(
+        sessionData: null,
+        subject: ModerationSubject.package('oxygen'),
+        url: 'https://pub.dev/packages/oxygen/example',
+        caseId: null,
+      );
+      expectGoldenFile(html, 'report_page.html');
+    });
+
+    testWithProfile('report page - appeal', fn: () async {
+      registerRequestContext(
+          RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
+      final html = renderReportPage(
+        sessionData: null,
+        subject: ModerationSubject.package('oxygen'),
+        url: null,
+        caseId: 'fake-case-id',
+      );
+      expectGoldenFile(html, 'report_page_appeal.html');
     });
 
     scopedTest('pagination: single page', () {

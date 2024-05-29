@@ -52,20 +52,21 @@ class SearchAdapter {
           .where((v) => v != null)
           .cast<PackageView>()
           .toList(),
-      message: result.message,
+      errorMessage: result.errorMessage,
+      statusCode: result.statusCode,
     );
   }
 
   Future<PackageSearchResult?> _searchOrFallback(
     SearchForm searchForm,
-    String? rateLimitKey,
+    String? sourceIp,
     bool fallbackToNames,
   ) async {
     PackageSearchResult? result;
     try {
       result = await searchClient.search(
         searchForm.toServiceQuery(),
-        rateLimitKey: rateLimitKey,
+        sourceIp: sourceIp,
       );
     } on RateLimitException {
       rethrow;
@@ -91,7 +92,7 @@ class SearchAdapter {
     // Some search queries must not be served with the fallback search.
     if (form.parsedQuery.tagsPredicate.isNotEmpty) {
       return PackageSearchResult.empty(
-          message: 'Search is temporarily unavailable.');
+          errorMessage: 'Search is temporarily unavailable.');
     }
 
     final names = await nameTracker
@@ -117,7 +118,7 @@ class SearchAdapter {
         timestamp: clock.now().toUtc(),
         packageHits: packageHits,
         totalCount: totalCount,
-        message:
+        errorMessage:
             'Search is temporarily impaired, filtering and ranking may be incorrect.');
   }
 
@@ -150,18 +151,22 @@ class SearchResultPage {
 
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
-  final String? message;
+  final String? errorMessage;
+
+  /// The non-200 status code that will be used to render the [errorMessage].
+  final int? statusCode;
 
   SearchResultPage(
     this.form,
     this.totalCount, {
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageView>? packageHits,
-    this.message,
+    this.errorMessage,
+    this.statusCode,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageView>[];
 
-  SearchResultPage.empty(this.form, {this.message})
+  SearchResultPage.empty(this.form, {this.errorMessage, this.statusCode})
       : totalCount = 0,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = [];

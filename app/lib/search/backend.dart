@@ -19,6 +19,7 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/publisher/backend.dart';
 
 import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
@@ -26,6 +27,7 @@ import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:retry/retry.dart';
 
+import '../../service/topics/models.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
@@ -258,6 +260,14 @@ class SearchBackend {
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
+    if (p.publisherId != null) {
+      final publisherVisible =
+          await publisherBackend.isPublisherVisible(p.publisherId!);
+      if (!publisherVisible) {
+        throw RemovedPackageException();
+      }
+    }
+
     // Get the scorecard with the latest version available with finished analysis.
     final scoreCard =
         await scoreCardBackend.getLatestFinishedScoreCardData(packageName);
@@ -329,7 +339,7 @@ class SearchBackend {
 
     final descriptionAndTopics = <String>[
       pv.pubspec!.description ?? '',
-      ...?pv.pubspec!.topics,
+      ...pv.pubspec!.canonicalizedTopics,
     ].join(' ');
 
     // select the latest entity updated timestamp (when available)
@@ -382,6 +392,11 @@ class SearchBackend {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
       if (p.isNotVisible) continue;
+      if (p.publisherId != null) {
+        final publisherVisible =
+            await publisherBackend.isPublisherVisible(p.publisherId!);
+        if (!publisherVisible) continue;
+      }
       final releases = await packageBackend.latestReleases(p);
       yield PackageDocument(
         package: p.name!,
@@ -492,7 +507,7 @@ class SearchBackend {
         // it in a processed form much longer.
         skipCache: true,
         // Do not apply rate limit here.
-        rateLimitKey: null,
+        sourceIp: null,
       );
 
       return gzip.encode(jsonUtf8Encoder.convert({
@@ -505,6 +520,30 @@ class SearchBackend {
   Future<void> close() async {
     _snapshotStorage.close();
     _http.close();
+  }
+}
+
+/// Returns a new search form that may override predicates to their canonical forms.
+/// Returns `null` if no change was made.
+SearchForm? canonicalizeSearchForm(SearchForm form) {
+  final query = form.parsedQuery;
+  final tags = query.tagsPredicate;
+  TagsPredicate? newTags;
+  if (tags.hasTagPrefix('topic:')) {
+    newTags = tags.canonicalizeKeys((key) {
+      if (key.startsWith('topic:')) {
+        final topic = key.substring(6);
+        final canonicalTopic = canonicalTopics.aliasToCanonicalMap[topic];
+        return canonicalTopic == null ? null : 'topic:$canonicalTopic';
+      } else {
+        return null;
+      }
+    });
+  }
+  if (newTags != null) {
+    return form.change(query: query.change(tagsPredicate: newTags).toString());
+  } else {
+    return null;
   }
 }
 

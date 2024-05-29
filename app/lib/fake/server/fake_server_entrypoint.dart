@@ -8,7 +8,6 @@ import 'package:args/command_runner.dart';
 import 'package:http/http.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/fake/server/fake_analyzer_service.dart';
-import 'package:pub_dev/fake/server/fake_dartdoc_service.dart';
 import 'package:pub_dev/fake/server/fake_default_service.dart';
 import 'package:pub_dev/fake/server/fake_search_service.dart';
 import 'package:pub_dev/fake/server/fake_storage_server.dart';
@@ -43,9 +42,6 @@ class FakeServerCommand extends Command {
       ..addOption('analyzer-port',
           defaultsTo: '8083',
           help: 'The HTTP port for the fake analyzer service.')
-      ..addOption('dartdoc-port',
-          defaultsTo: '8084',
-          help: 'The HTTP port for the fake dartdoc service.')
       ..addOption('data-file',
           help: 'The file to read and also to store the local state.')
       ..addFlag('watch',
@@ -60,7 +56,6 @@ class FakeServerCommand extends Command {
     final storagePort = int.parse(argResults!['storage-port'] as String);
     final searchPort = int.parse(argResults!['search-port'] as String);
     final analyzerPort = int.parse(argResults!['analyzer-port'] as String);
-    final dartdocPort = int.parse(argResults!['dartdoc-port'] as String);
     final readOnly = argResults!['read-only'] == true;
     final dataFile = argResults!['data-file'] as String?;
     final watch = argResults!['watch'] == true;
@@ -91,7 +86,6 @@ class FakeServerCommand extends Command {
       storage,
       cloudCompute,
     );
-    final dartdocService = FakeDartdocService(datastore, storage, cloudCompute);
 
     final configuration = Configuration.fakePubServer(
       frontendPort: port,
@@ -121,15 +115,11 @@ class FakeServerCommand extends Command {
       if (rq.requestedUri.path == '/fake-update-all') {
         return await _chainHandlers([
           () => _updateUpstream(analyzerPort),
-          () => _updateUpstream(dartdocPort),
           () => _updateUpstream(searchPort),
         ]);
       }
       if (rq.requestedUri.path == '/fake-update-analyzer') {
         return await _updateUpstream(analyzerPort);
-      }
-      if (rq.requestedUri.path == '/fake-update-dartdoc') {
-        return await _updateUpstream(dartdocPort);
       }
       if (rq.requestedUri.path == '/fake-update-search') {
         return await _updateUpstream(searchPort);
@@ -151,10 +141,6 @@ class FakeServerCommand extends Command {
         ),
         analyzerService.run(
           port: analyzerPort,
-          configuration: configuration,
-        ),
-        dartdocService.run(
-          port: dartdocPort,
           configuration: configuration,
         ),
       ],

@@ -160,14 +160,15 @@ class _PkgAdminWidget {
             pageData.pkgData!.package,
             AutomatedPublishingConfig(
               github: GithubPublishingConfig(
-                isEnabled: githubEnabledCheckbox!.checked,
+                isEnabled: githubEnabledCheckbox!.checked ?? false,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
-                requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
+                requireEnvironment:
+                    githubRequireEnvironmentCheckbox!.checked ?? false,
                 environment: githubEnvironmentInput!.value,
               ),
               gcp: GcpPublishingConfig(
-                isEnabled: gcpEnabledCheckbox!.checked,
+                isEnabled: gcpEnabledCheckbox!.checked ?? false,
                 serviceAccountEmail: gcpServiceAccountEmailInput!.value,
               ),
             ),

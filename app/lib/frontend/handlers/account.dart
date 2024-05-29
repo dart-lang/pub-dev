@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -55,10 +56,13 @@ Future<shelf.Response> startSignInHandler(shelf.Request request) async {
   );
   return redirectResponse(
     oauth2Url.toString(),
-    headers: session_cookie.createClientSessionCookie(
-      sessionId: session.sessionId,
-      maxAge: session.maxAge,
-    ),
+    headers: {
+      ...session_cookie.createClientSessionCookie(
+        sessionId: session.sessionId,
+        maxAge: session.maxAge,
+      ),
+      ...CacheControl.explicitlyPrivate.headers,
+    },
   );
 }
 
@@ -109,10 +113,13 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   );
   return redirectResponse(
     go,
-    headers: session_cookie.createClientSessionCookie(
-      sessionId: newSession.sessionId,
-      maxAge: newSession.maxAge,
-    ),
+    headers: {
+      ...session_cookie.createClientSessionCookie(
+        sessionId: newSession.sessionId,
+        maxAge: newSession.maxAge,
+      ),
+      ...CacheControl.explicitlyPrivate.headers,
+    },
   );
 }
 
@@ -174,6 +181,7 @@ Future<shelf.Response> consentPageHandler(
     // Consent pages have the consent ID in the URL. Browsers should not pass on
     // this ID to the pages that are linked from the consent page.
     noReferrer: true,
+    headers: CacheControl.explicitlyPrivate.headers,
   );
 }
 

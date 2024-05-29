@@ -19,8 +19,8 @@ import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
+import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
-import '../../shared/count_topics.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
@@ -29,7 +29,7 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show jsonUtf8Encoder;
 import '../../task/backend.dart';
 import '../../task/models.dart';
-import 'headers.dart';
+import 'cache_control.dart';
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -88,7 +88,6 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.packageNames(),
   });
 }
 
@@ -108,7 +107,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.packageNameCompletion(),
+    ...CacheControl.completionData.headers,
   });
 }
 
@@ -278,7 +277,7 @@ Future<shelf.Response> apiTopicNameCompletionDataHandler(
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
-    ...CacheHeaders.topicNameCompletion(),
+    ...CacheControl.completionData.headers
   });
 }
 
@@ -287,13 +286,13 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   final sr = await searchClient.search(
     searchForm.toServiceQuery(),
-    rateLimitKey: request.sourceIp,
+    sourceIp: request.sourceIp,
   );
   final packages = sr.packageHits.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
   final result = <String, dynamic>{
     'packages': packages,
-    if (sr.message != null) 'message': sr.message,
+    if (sr.errorMessage != null) 'message': sr.errorMessage,
   };
   if (hasNextPage) {
     final newParams =

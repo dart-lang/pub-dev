@@ -10,7 +10,6 @@ projectId: dartlang-pub
 searchServicePrefix: https://{{GAE_VERSION}}-dot-search-dot-dartlang-pub.appspot.com
 fallbackSearchServicePrefix: https://search-dot-dartlang-pub.appspot.com
 defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
-dartdocStorageBucketName: dartlang-pub--dartdoc-storage
 popularityDumpBucketName: dartlang-pub--popularity
 searchSnapshotBucketName: dartlang-pub--search-snapshot
 exportedApiBucketName: null
@@ -26,7 +25,6 @@ imageBucketName: dartlang-pub--pub-images
 reportsBucketName: dartlang-pub-reports
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
-pubSiteAudience: 818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com
 pubServerAudience: 818368855108-ulq5tn5t51ga21hg8jkcavbooaljiasp.apps.googleusercontent.com
 externalServiceAudience: https://pub.dev
 gmailRelayServiceAccount: pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com

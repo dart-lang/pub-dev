@@ -236,3 +236,19 @@ class AuthenticatedUser implements AuthenticatedAgent {
   String? get email => user.email;
   String? get oauthUserId => user.oauthUserId;
 }
+
+/// Representation of an [AuthenticatedAgent] acting on behalf of support.
+class SupportAgent extends AuthenticatedAgent {
+  static final _agent = SupportAgent._();
+  SupportAgent._();
+  factory SupportAgent() => _agent;
+
+  @override
+  String get agentId => KnownAgents.pubSupport;
+
+  @override
+  String get displayId => KnownAgents.pubSupport;
+
+  @override
+  String? get email => null;
+}

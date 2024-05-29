@@ -23,6 +23,7 @@ String renderPkgVersionsPage(
   PackagePageData data,
   List<VersionInfo> versions, {
   required Version dartSdkVersion,
+  required Version flutterSdkVersion,
   required PackageStateInfo taskStatus,
 }) {
   final previewVersionRows = <d.Node>[];
@@ -49,7 +50,8 @@ String renderPkgVersionsPage(
       retractedVersionRows.add(rowNode);
     } else if (semanticVersion.isPreRelease) {
       prereleaseVersionRows.add(rowNode);
-    } else if (pubspec.isPreviewForCurrentSdk(dartSdkVersion)) {
+    } else if (pubspec.isPreviewForCurrentSdk(
+        dartSdkVersion: dartSdkVersion, flutterSdkVersion: flutterSdkVersion)) {
       previewVersionRows.add(rowNode);
     } else {
       stableVersionRows.add(rowNode);
