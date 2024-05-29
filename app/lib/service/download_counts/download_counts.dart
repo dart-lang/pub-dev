@@ -83,14 +83,8 @@ class CountData {
       }
     } else {
       versionCounts.forEach((versionCount) {
-        if (versionCount.counts.length < countsIndex + 1) {
-          // Fill in with 0 on older days with no data.
-          versionCount.counts.addAll(
-              List.filled(countsIndex - versionCount.counts.length + 1, 0));
-        } else {
-          // Reset the counts for this date.
-          versionCount.counts[countsIndex] = 0;
-        }
+        // Reset the counts for this date.
+        versionCount.counts[countsIndex] = 0;
       });
     }
   }
@@ -104,8 +98,7 @@ class CountData {
     dayCounts.forEach((v, count) {
       void _addNewRangeForVersion(int i, Version version) {
         versionCounts.insert(i, (
-          counts: List.filled(countsIndex + 1, 0, growable: true)
-            ..[countsIndex] = count,
+          counts: List.filled(maxAge, 0)..[countsIndex] = count,
           versionRange: createVersionRange(version).toString()
         ));
         if (versionCounts.length > maxRanges) {
