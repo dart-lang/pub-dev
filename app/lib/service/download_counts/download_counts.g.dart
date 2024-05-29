@@ -7,9 +7,9 @@ part of 'download_counts.dart';
 // **************************************************************************
 
 CountData _$CountDataFromJson(Map<String, dynamic> json) => CountData()
-  ..lastDate = json['lastDate'] == null
+  ..newestDate = json['newestDate'] == null
       ? null
-      : DateTime.parse(json['lastDate'] as String);
+      : DateTime.parse(json['newestDate'] as String);
 
 Map<String, dynamic> _$CountDataToJson(CountData instance) {
   final val = <String, dynamic>{};
@@ -20,6 +20,6 @@ Map<String, dynamic> _$CountDataToJson(CountData instance) {
     }
   }
 
-  writeNotNull('lastDate', instance.lastDate?.toIso8601String());
+  writeNotNull('newestDate', instance.newestDate?.toIso8601String());
   return val;
 }

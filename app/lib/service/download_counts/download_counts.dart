@@ -15,24 +15,24 @@ class CountData {
   // We store at most 5 ranges in the xxxxxCounts list;
   static const maxRanges = 5;
 
-  // Last date with processed data.
+  // Newest date with processed data.
   // The date only contains year, month and date.
   // Hours, minutes and seconds are disregarded.
-  DateTime? lastDate;
+  DateTime? newestDate;
 
   /// A list of tuples containing a string describing a major `versionRange`,
   /// e.g. '>=1.0.0-0 <2.0.0', and a list of integers with a count for each day.
   /// The 'counts' list contains at most [maxAge] entries. The first entry in
-  /// represents the number of downloads on `lastDate` followed by the downloads
-  ///  on `lastDate` - 1 and so on. E.g.
+  /// represents the number of downloads on `newestDate` followed by the downloads
+  ///  on `newestDate` - 1 and so on. E.g.
   ///
   ///  counts = [ 42, 21, 55 ]
   ///              ▲   ▲   ▲
-  ///              │   │   └──────────── Download count on lastDate - 2 days
+  ///              │   │   └──────────── Download count on newestDate - 2 days
   ///              │   │
-  ///              │   └──────────────── Download count on lastDate - 1 day
+  ///              │   └──────────────── Download count on newestDate - 1 day
   ///              │
-  ///              └──────────────────── Download count on lastDate
+  ///              └──────────────────── Download count on newestDate
   ///
   ///
   /// [majorCounts] has at most [maxRanges] elements and is sorted by version
@@ -48,10 +48,10 @@ class CountData {
   /// {version: #downloads} for a date given by [dateTime].
   void addDownloadCounts(Map<String, int> dayCounts, DateTime dateTime) {
     final date = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    lastDate ??= date.addCalendarDays(-1);
+    newestDate ??= date.addCalendarDays(-1);
 
-    final nextLastDate = date.isAfter(lastDate!) ? date : lastDate!;
-    final countsIndex = nextLastDate.difference(date).inDays;
+    final nextNewestDate = date.isAfter(newestDate!) ? date : newestDate!;
+    final countsIndex = nextNewestDate.difference(date).inDays;
 
     if (countsIndex >= maxAge) {
       // We don't store counts that are more than two years old.
@@ -59,22 +59,21 @@ class CountData {
     }
 
     // TODO(zarah): call this with other ranges
-    _prepareDates(date, lastDate!, countsIndex, majorCounts);
+    _prepareDates(date, countsIndex, majorCounts);
 
     _processCounts(
         dayCounts, countsIndex, majorCounts, _createNewMajorVersionRange);
 
-    lastDate = nextLastDate;
+    newestDate = nextNewestDate;
   }
 
   void _prepareDates(
     DateTime date,
-    DateTime workingLastDate,
     int countsIndex,
     List<({List<int> counts, String versionRange})> versionCounts,
   ) {
-    if (date.isAfter(workingLastDate)) {
-      final zerosList = List.filled(date.difference(workingLastDate).inDays, 0);
+    if (date.isAfter(newestDate!)) {
+      final zerosList = List.filled(date.difference(newestDate!).inDays, 0);
       for (int i = 0; i < versionCounts.length; i++) {
         // Fill in with 0 on days with no data.
         final newCounts =
@@ -82,16 +81,16 @@ class CountData {
         versionCounts[i] =
             (counts: newCounts, versionRange: versionCounts[i].versionRange);
       }
-    } else if (date.isAtOrBefore(workingLastDate)) {
+    } else {
       versionCounts.forEach((versionCount) {
         if (versionCount.counts.length < countsIndex + 1) {
           // Fill in with 0 on older days with no data.
           versionCount.counts.addAll(
               List.filled(countsIndex - versionCount.counts.length + 1, 0));
+        } else {
+          // Reset the counts for this date.
+          versionCount.counts[countsIndex] = 0;
         }
-
-        // Reset the counts for this date.
-        versionCount.counts[countsIndex] = 0;
       });
     }
   }
@@ -102,12 +101,10 @@ class CountData {
     List<({List<int> counts, String versionRange})> versionCounts,
     VersionRange Function(Version version) createVersionRange,
   ) {
-    final countsLength = countsIndex + 1;
-
     dayCounts.forEach((v, count) {
       void _addNewRangeForVersion(int i, Version version) {
         versionCounts.insert(i, (
-          counts: List.filled(countsLength, 0, growable: true)
+          counts: List.filled(countsIndex + 1, 0, growable: true)
             ..[countsIndex] = count,
           versionRange: createVersionRange(version).toString()
         ));
