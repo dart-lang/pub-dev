@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:basics/basics.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 part 'download_counts.g.dart';
@@ -96,34 +97,25 @@ class CountData {
     VersionRange Function(Version version) createVersionRange,
   ) {
     dayCounts.forEach((v, count) {
-      void _addNewRangeForVersion(int i, Version version) {
-        versionCounts.insert(i, (
+      final version = Version.parse(v);
+      final containingRange = versionCounts.firstWhereOrNull((vc) {
+        final currentVersionRange = VersionConstraint.parse(vc.versionRange);
+        return currentVersionRange.allows(version);
+      });
+
+      if (containingRange != null) {
+        containingRange.counts[countsIndex] += count;
+      } else {
+        final newVersionRange = (
           counts: List.filled(maxAge, 0)..[countsIndex] = count,
           versionRange: createVersionRange(version).toString()
-        ));
-        if (versionCounts.length > maxRanges) {
-          versionCounts.removeLast();
-        }
-      }
+        );
+        versionCounts.add(newVersionRange);
+        versionCounts.sortBy(
+            (vc) => (VersionConstraint.parse(vc.versionRange) as VersionRange));
 
-      final version = Version.parse(v);
-      for (int j = 0; j <= versionCounts.length; j++) {
-        if (j == versionCounts.length) {
-          // The `versionCounts` list is empty or we scanned through it without
-          // finding a spot for the range covering this version.
-          _addNewRangeForVersion(j, version);
-          break;
-        } else {
-          final currentVersionRange =
-              VersionConstraint.parse(versionCounts[j].versionRange)
-                  as VersionRange;
-          if (currentVersionRange.max! <= version.max) {
-            _addNewRangeForVersion(j, version);
-            break;
-          } else if (currentVersionRange.allows(version)) {
-            versionCounts[j].counts[countsIndex] += count;
-            break;
-          }
+        if (versionCounts.length > maxRanges) {
+          versionCounts.removeAt(0);
         }
       }
     });

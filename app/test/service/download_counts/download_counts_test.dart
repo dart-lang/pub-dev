@@ -22,11 +22,11 @@ void main() {
     expect(countData.newestDate, date);
     expect(countData.majorCounts.length, 5);
 
-    final firstRange = countData.majorCounts[4];
+    final firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=1.0.0-0 <2.0.0');
     expect(firstRange.counts.take(1).toList(), [2]);
 
-    final secondRange = countData.majorCounts[3];
+    final secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(secondRange.counts.take(1).toList(), [6]);
 
@@ -34,11 +34,11 @@ void main() {
     expect(thirdRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(thirdRange.counts.take(1).toList(), [2]);
 
-    final fourthRange = countData.majorCounts[1];
+    final fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(fourthRange.counts.take(1).toList(), [2]);
 
-    final fifthRange = countData.majorCounts[0];
+    final fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fifthRange.counts.take(1).toList(), [2]);
 
@@ -62,11 +62,11 @@ void main() {
     expect(countData.newestDate, newDate);
     expect(countData.majorCounts.length, 5);
 
-    final firstRange = countData.majorCounts[4];
+    final firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(firstRange.counts.take(2).toList(), [0, 6]);
 
-    final secondRange = countData.majorCounts[3];
+    final secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(secondRange.counts.take(2).toList(), [0, 2]);
 
@@ -74,11 +74,11 @@ void main() {
     expect(thirdRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(thirdRange.counts.take(2).toList(), [20, 2]);
 
-    final fourthRange = countData.majorCounts[1];
+    final fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fourthRange.counts.take(2).toList(), [10, 2]);
 
-    final fifthRange = countData.majorCounts[0];
+    final fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts.take(1).toList(), [10]);
   });
@@ -100,11 +100,11 @@ void main() {
     expect(countData.newestDate, newDate);
     expect(countData.majorCounts.length, 5);
 
-    var firstRange = countData.majorCounts[4];
+    var firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(firstRange.counts.take(3).toList(), [0, 0, 6]);
 
-    var secondRange = countData.majorCounts[3];
+    var secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(secondRange.counts.take(3).toList(), [0, 0, 2]);
 
@@ -112,11 +112,11 @@ void main() {
     expect(thirdRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(thirdRange.counts.take(3).toList(), [20, 0, 2]);
 
-    var fourthRange = countData.majorCounts[1];
+    var fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fourthRange.counts.take(3).toList(), [10, 0, 2]);
 
-    var fifthRange = countData.majorCounts[0];
+    var fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts.take(1).toList(), [10]);
 
@@ -132,11 +132,11 @@ void main() {
     countData.addDownloadCounts(versionsCounts2, newDate2);
     expect(countData.newestDate, newDate);
 
-    firstRange = countData.majorCounts[4];
+    firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(firstRange.counts.take(3).toList(), [0, 0, 6]);
 
-    secondRange = countData.majorCounts[3];
+    secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(secondRange.counts.take(3).toList(), [0, 0, 2]);
 
@@ -144,11 +144,11 @@ void main() {
     expect(thirdRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(thirdRange.counts.take(3).toList(), [20, 16, 2]);
 
-    fourthRange = countData.majorCounts[1];
+    fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fourthRange.counts.take(3).toList(), [10, 8, 2]);
 
-    fifthRange = countData.majorCounts[0];
+    fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts.take(2).toList(), [10, 8]);
 
@@ -164,11 +164,11 @@ void main() {
     countData.addDownloadCounts(versionsCounts3, newDate3);
     expect(countData.newestDate, newDate);
 
-    firstRange = countData.majorCounts[4];
+    firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(firstRange.counts.take(3).toList(), [0, 0, 6]);
 
-    secondRange = countData.majorCounts[3];
+    secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(secondRange.counts.take(3).toList(), [0, 0, 2]);
 
@@ -176,11 +176,11 @@ void main() {
     expect(thirdRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(thirdRange.counts.take(3).toList(), [20, 14, 2]);
 
-    fourthRange = countData.majorCounts[1];
+    fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fourthRange.counts.take(3).toList(), [10, 7, 2]);
 
-    fifthRange = countData.majorCounts[0];
+    fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts.take(2).toList(), [10, 7]);
   });
@@ -201,11 +201,11 @@ void main() {
     expect(countData.newestDate, initialLastDate);
     expect(countData.majorCounts.length, 5);
 
-    final firstRange = countData.majorCounts[4];
+    final firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(firstRange.counts.take(3).toList(), [6, 0, 0]);
 
-    final secondRange = countData.majorCounts[3];
+    final secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(secondRange.counts.take(3).toList(), [2, 0, 0]);
 
@@ -213,11 +213,11 @@ void main() {
     expect(thirdRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(thirdRange.counts.take(3).toList(), [2, 0, 20]);
 
-    final fourthRange = countData.majorCounts[1];
+    final fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fourthRange.counts.take(3).toList(), [2, 0, 10]);
 
-    final fifthRange = countData.majorCounts[0];
+    final fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts.take(3).toList(), [0, 0, 10]);
   });
@@ -235,11 +235,11 @@ void main() {
 
     expect(countData.majorCounts.length, 5);
 
-    final firstRange = countData.majorCounts[4];
+    final firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=1.0.0-0 <2.0.0');
     expect(firstRange.counts.take(2).toList(), [0, 2]);
 
-    final secondRange = countData.majorCounts[3];
+    final secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(secondRange.counts.take(2).toList(), [0, 6]);
 
@@ -247,11 +247,11 @@ void main() {
     expect(thirdRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(thirdRange.counts.take(2).toList(), [0, 2]);
 
-    final fourthRange = countData.majorCounts[1];
+    final fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(fourthRange.counts.take(2).toList(), [0, 2]);
 
-    final fifthRange = countData.majorCounts[0];
+    final fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fifthRange.counts.take(2).toList(), [0, 2]);
   });
@@ -274,11 +274,11 @@ void main() {
 
     // New range should be inserted in correct order, and lowest ranges are
     // expelled.
-    final firstRange = countData.majorCounts[4];
+    final firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=3.0.0-0 <4.0.0');
     expect(firstRange.counts.take(2).toList(), [0, 2]);
 
-    final secondRange = countData.majorCounts[3];
+    final secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=4.0.0-0 <5.0.0');
     expect(secondRange.counts.take(2).toList(), [20, 2]);
 
@@ -286,11 +286,11 @@ void main() {
     expect(thirdRange.versionRange, '>=5.0.0-0 <6.0.0');
     expect(thirdRange.counts.take(1).toList(), [10]);
 
-    final fourthRange = countData.majorCounts[1];
+    final fourthRange = countData.majorCounts[3];
     expect(fourthRange.versionRange, '>=6.0.0-0 <7.0.0');
     expect(fourthRange.counts.take(2).toList(), [0, 2]);
 
-    final fifthRange = countData.majorCounts[0];
+    final fifthRange = countData.majorCounts[4];
     expect(fifthRange.versionRange, '>=7.0.0-0 <8.0.0');
     expect(fifthRange.counts.take(1).toList(), [10]);
   });
@@ -309,11 +309,11 @@ void main() {
     expect(countData.newestDate, initialLastDate);
     expect(countData.majorCounts.length, 2);
 
-    final firstRange = countData.majorCounts[1];
+    final firstRange = countData.majorCounts[0];
     expect(firstRange.versionRange, '>=1.0.0-0 <2.0.0');
     expect(firstRange.counts.take(1).toList(), [2]);
 
-    final secondRange = countData.majorCounts[0];
+    final secondRange = countData.majorCounts[1];
     expect(secondRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(secondRange.counts.take(1).toList(), [6]);
 
@@ -328,7 +328,7 @@ void main() {
     expect(countData.majorCounts.length, 3);
 
     // New range should be inserted in correct order.
-    final newFirstRange = countData.majorCounts[2];
+    final newFirstRange = countData.majorCounts[0];
     expect(newFirstRange.versionRange, '>=0.0.0-0 <1.0.0');
     expect(newFirstRange.counts.take(1).toList(), [10]);
 
@@ -336,7 +336,7 @@ void main() {
     expect(newSecondRange.versionRange, '>=1.0.0-0 <2.0.0');
     expect(newSecondRange.counts.take(2).toList(), [0, 2]);
 
-    final thirdRange = countData.majorCounts[0];
+    final thirdRange = countData.majorCounts[2];
     expect(thirdRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(thirdRange.counts.take(2).toList(), [0, 6]);
   });
