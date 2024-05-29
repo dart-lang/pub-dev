@@ -79,3 +79,5 @@ dependency_overrides:
       url: https://github.com/sigurdm/build
       path: build_runner_core
       ref: workspace_support
+  # sass requires 3.1.0, but appengine has a constraint on ^2.0.0
+  protobuf: 3.1.0
