@@ -518,6 +518,76 @@ void main() {
       });
 
       testWithProfile(
+          'GitHub Actions cannot upload because workflow_dispatch is not enabled',
+          fn: () async {
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+          eventName: 'workflow_dispatch',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message: 'publishing is not allowed from \"workflow_dispath\" events',
+        );
+      });
+
+      testWithProfile(
+          'GitHub Actions cannot upload because event is not allowed',
+          fn: () async {
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+          eventName: 'unknown_event',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs =
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+          message: 'publishing is only allowed from',
+        );
+      });
+
+      testWithProfile(
           'GitHub Actions cannot upload because id lock prevents it',
           fn: () async {
         Future<void> setupPublishingAndLock() async {
@@ -585,7 +655,7 @@ void main() {
       });
 
       testWithProfile(
-          'successful upload with GitHub Actions (without environment)',
+          'successful upload with GitHub Actions (push, without environment)',
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
@@ -605,6 +675,38 @@ void main() {
         final token = createFakeGithubActionToken(
           repository: 'a/b',
           ref: 'refs/tags/2.2.0',
+        );
+        final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final rs = await createPubApiClient(authToken: token)
+            .uploadPackageBytes(bytes);
+        expect(rs.success.message, contains('Successfully uploaded'));
+      });
+
+      testWithProfile(
+          'successful upload with GitHub Actions (workflow_dispatch, without environment)',
+          fn: () async {
+        await withFakeAuthHttpPubApiClient(
+          email: adminAtPubDevEmail,
+          fn: (client) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                github: GithubPublishingConfig(
+                  isEnabled: true,
+                  repository: 'a/b',
+                  tagPattern: '{{version}}',
+                  isPushEventEnabled: false,
+                  isWorkflowDispatchEventEnabled: true,
+                ),
+              ),
+            );
+          },
+        );
+        final token = createFakeGithubActionToken(
+          repository: 'a/b',
+          ref: 'refs/tags/2.2.0',
+          eventName: 'workflow_dispatch',
         );
         final pubspecContent = generatePubspecYaml('oxygen', '2.2.0');
         final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
