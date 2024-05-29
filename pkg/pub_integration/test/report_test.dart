@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/data/admin_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
@@ -30,7 +31,7 @@ void main() {
           Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
           body: json.encode({
             'testProfile': {
-              'defaultUser': 'admin@pub.dev',
+              'defaultUser': 'user@pub.dev',
               'packages': [
                 {
                   'name': 'oxygen',
@@ -40,10 +41,18 @@ void main() {
             },
           }));
 
-      final user = await fakeTestScenario.createAnonymousTestUser();
+      final anonReporter = await fakeTestScenario.createAnonymousTestUser();
+      final reporter =
+          await fakeTestScenario.createTestUser(email: 'reporter@pub.dev');
+      final pkgAdminUser =
+          await fakeTestScenario.createTestUser(email: 'user@pub.dev');
+      final adminUser =
+          await fakeTestScenario.createTestUser(email: 'admin@pub.dev');
+      final supportUser =
+          await fakeTestScenario.createTestUser(email: 'support@pub.dev');
 
       // visit report page and file a report
-      await user.withBrowserPage(
+      await anonReporter.withBrowserPage(
         (page) async {
           // enable experimental flag
           await page.gotoOrigin('/experimental?report=1');
@@ -51,7 +60,7 @@ void main() {
 
           await page.gotoOrigin('/report?subject=package:oxygen');
           await page.waitAndClick('.report-page-direct-report');
-          await page.waitFocusAndType('#report-email', 'user@pub.dev');
+          await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');
           await page.waitAndClick('#report-submit', waitForOneResponse: true);
@@ -60,6 +69,123 @@ void main() {
           await page.waitAndClickOnDialogOk();
         },
       );
+
+      // verify emails
+      final reportEmail1 = await reporter.readLatestEmail();
+      final reportEmail2 = await supportUser.readLatestEmail();
+      expect(reportEmail1, contains('package:oxygen'));
+      expect(reportEmail2, contains('package:oxygen'));
+
+      // verify moderation case
+      final caseId = reportEmail2.split('\n')[1];
+      final caseData = await adminUser.serverApi.adminInvokeAction(
+        'moderation-case-info',
+        AdminInvokeActionArguments(
+          arguments: {
+            'case': caseId,
+          },
+        ),
+      );
+      expect(caseData.output, {
+        'caseId': caseId,
+        'reporterEmail': 'reporter@pub.dev',
+        'kind': 'notification',
+        'opened': isNotEmpty,
+        'source': 'external-notification',
+        'status': 'pending',
+        'subject': 'package:oxygen',
+        'url': null,
+        'actionLog': {'entries': []}
+      });
+
+      // moderate package
+      final moderateRs = await adminUser.serverApi.adminInvokeAction(
+        'moderate-package',
+        AdminInvokeActionArguments(
+          arguments: {
+            'case': caseId,
+            'package': 'oxygen',
+            'state': 'true',
+          },
+        ),
+      );
+      expect(
+        moderateRs.output,
+        {
+          'package': 'oxygen',
+          'before': {'isModerated': false, 'moderatedAt': null},
+          'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        },
+      );
+
+      // package page is not accessible
+      await anonReporter.withBrowserPage((page) async {
+        await page.gotoOrigin('/packages/oxygen');
+        final content = await page.content;
+        expect(content, contains('has been moderated'));
+      });
+
+      final appealPageUrl =
+          Uri.parse('https://pub.dev/report').replace(queryParameters: {
+        'appeal': caseId,
+        'subject': 'package:oxygen',
+      }).toString();
+
+      // TODO: close case
+
+      // sending email to reporter
+      await adminUser.serverApi.adminInvokeAction(
+        'send-email',
+        AdminInvokeActionArguments(
+          arguments: {
+            'from': 'support@pub.dev',
+            'to': 'reporter@pub.dev',
+            'subject': 'Resolution on your report - $caseId',
+            'body': 'Dear reporter,\n\n'
+                'We have closed the case with the following resolution: ...\n\n'
+                'If you want to appeal this decision, you may use the following URL:\n'
+                '$appealPageUrl\n\n'
+                'Best regards,\n pub.dev admins'
+          },
+        ),
+      );
+      final reporterConclusionMail = await reporter.readLatestEmail();
+      expect(reporterConclusionMail, contains(appealPageUrl));
+
+      // sending email to moderated admins
+      await adminUser.serverApi.adminInvokeAction(
+        'send-email',
+        AdminInvokeActionArguments(
+          arguments: {
+            'from': 'support@pub.dev',
+            'to': 'package:oxygen',
+            'subject': 'You have been moderated',
+            'body': 'Appeal on $appealPageUrl',
+          },
+        ),
+      );
+      final packageAmindConclusionMail = await pkgAdminUser.readLatestEmail();
+      expect(packageAmindConclusionMail, contains(appealPageUrl));
+
+      // admin appeals
+      await pkgAdminUser.withBrowserPage((page) async {
+        // enable experimental flag
+        await page.gotoOrigin('/experimental?report=1');
+        await Future.delayed(Duration(seconds: 1));
+
+        await page
+            .gotoOrigin(appealPageUrl.replaceAll('https://pub.dev/', '/'));
+        // TODO: these should be working after the case gets closed
+        // await page.waitFocusAndType(
+        //     '#report-message', 'Huston, I have a different idea.');
+        // await page.waitAndClick('#report-submit', waitForOneResponse: true);
+        // expect(await page.content,
+        //     contains('The appeal was submitted successfully.'));
+        // await page.waitAndClickOnDialogOk();
+      });
+
+      // TODO: extract new case id from email
+      // TODO: admin appeal is rejected (email + closing case)
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }
