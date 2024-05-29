@@ -724,10 +724,10 @@ packages:
     dependency: transitive
     description:
       name: sass
-      sha256: "71d73247866dcd3ea4f9974de332177b3f5897df63476fb590e7276a5950b9c3"
+      sha256: fefbc99625d384d0fe0e87ddaf5bdc6af9f6e9afcec4dcfd5e8a69c579139d9d
       url: "https://pub.dev"
     source: hosted
-    version: "1.77.2"
+    version: "1.77.1"
   shelf:
     dependency: transitive
     description:
