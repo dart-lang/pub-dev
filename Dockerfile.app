@@ -1,5 +1,5 @@
 # Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
-FROM dart:3.5.0-164.0.dev
+FROM dart:3.5.0-196.0.dev
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \

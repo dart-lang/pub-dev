@@ -26,7 +26,7 @@ RUN mkdir -p /home/worker/config/flutter-stable
 RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.4.1
 
 # Setup Dart SDK for running pana into /home/worker/dart/runtime/
-RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/runtime 3.5.0-164.0.dev
+RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/runtime 3.5.0-196.0.dev
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
 RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.22.1
