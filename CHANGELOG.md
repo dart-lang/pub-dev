@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Upgraded runtime Dart SDK to `3.5.0-196.0.dev`.
+ * Bumped runtimeVersion to `2024.05.29`.
+ 
 
 ## `20240529t113700-all`
  * Bumped runtimeVersion to `2024.05.28`.
