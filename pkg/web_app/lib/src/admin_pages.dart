@@ -168,7 +168,8 @@ class _PkgAdminWidget {
                 isEnabled: githubEnabledCheckbox!.checked ?? false,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
-                isPushEventEnabled: githubIsPushEventsCheckbox!.checked ?? true,
+                isPushEventEnabled:
+                    githubIsPushEventsCheckbox!.checked ?? false,
                 isWorkflowDispatchEventEnabled:
                     githubIsWorkflowDispatchEventsCheckbox!.checked ?? false,
                 requireEnvironment:
