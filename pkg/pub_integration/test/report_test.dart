@@ -164,8 +164,8 @@ void main() {
           },
         ),
       );
-      final packageAmindConclusionMail = await pkgAdminUser.readLatestEmail();
-      expect(packageAmindConclusionMail, contains(appealPageUrl));
+      final packageAdminConclusionMail = await pkgAdminUser.readLatestEmail();
+      expect(packageAdminConclusionMail, contains(appealPageUrl));
 
       // admin appeals
       await pkgAdminUser.withBrowserPage((page) async {
