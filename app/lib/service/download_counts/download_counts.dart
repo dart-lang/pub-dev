@@ -29,10 +29,13 @@ class CountData {
   /// represents the number of downloads on `newestDate` followed by the
   /// downloads on `newestDate` - 1 and so on. E.g.
   ///
-  ///  counts = [ 42, 21, 55 ] ▲   ▲   ▲ │   │   └──────────── Download count on
-  ///              newestDate - 2 days │   │ │   └──────────────── Download
-  ///              count on newestDate - 1 day │ └──────────────────── Download
-  ///              count on newestDate
+  ///  counts = [ 42, 21, 55 ]
+  ///              ▲   ▲   ▲
+  ///              │   │   └──────────── Download count on newestDate - 2 days
+  ///              │   │
+  ///              │   └──────────────── Download count on newestDate - 1 day
+  ///              │
+  ///              └──────────────────── Download count on newestDate
   ///
   ///
   /// [majorRangeCounts] has at most [maxRanges] elements and is sorted by
