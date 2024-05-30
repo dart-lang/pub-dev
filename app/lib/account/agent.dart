@@ -106,7 +106,7 @@ void checkAgentParam(String value) {
 ///  * A user using the `pub` client.
 ///  * A user using the `pub.dev` UI.
 ///  * A GCP service account may authenticate using an OIDC `id_token`,
-///  * A Github Action may authenticate using an OIDC `id_token`.
+///  * A GitHub Action may authenticate using an OIDC `id_token`.
 abstract class AuthenticatedAgent {
   /// The unique identifier of the agent.
   /// Must pass the [looksLikeUserIdOrServiceAgent] check.
@@ -129,7 +129,7 @@ abstract class AuthenticatedAgent {
   String? get email;
 }
 
-/// Holds the authenticated Github Action information.
+/// Holds the authenticated GitHub Action information.
 ///
 /// The [agentId] has the following format: `service:github-actions:<repositoryOwnerId>/<repositoryId>`
 class AuthenticatedGithubAction implements AuthenticatedAgent {
