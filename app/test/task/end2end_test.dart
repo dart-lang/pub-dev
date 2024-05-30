@@ -59,7 +59,7 @@ void main() {
 
     // Travese all package pages and generated documentation,
     // create golden files and check for dead links and assets
-    await _traveseLinksUnderPath(
+    await _traverseLinksUnderPath(
       seed: [
         '/packages/oxygen',
         '/documentation/oxygen/latest/',
@@ -107,7 +107,7 @@ Future<dom.Document> _fetchHtmlDocument(String requestPath) async {
   ).parse();
 }
 
-Future<void> _traveseLinksUnderPath({
+Future<void> _traverseLinksUnderPath({
   required Iterable<String> seed,
   required Set<String> roots,
 }) async {

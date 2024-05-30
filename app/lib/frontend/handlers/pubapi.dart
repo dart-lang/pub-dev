@@ -305,7 +305,7 @@ class PubApi {
       accountPublisherOptionsHandler(request, publisherId);
 
   @EndPoint.get('/api/account/likes')
-  Future<LikedPackagesRepsonse> listPackageLikes(Request request) =>
+  Future<LikedPackagesResponse> listPackageLikes(Request request) =>
       listPackageLikesHandler(request);
 
   @EndPoint.get('/api/account/likes/<package>')

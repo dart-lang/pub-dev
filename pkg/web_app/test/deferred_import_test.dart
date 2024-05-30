@@ -43,16 +43,16 @@ void main() {
       for (final line in lines) {
         if (line.contains('import') || line.contains('export')) {
           final containsDeferred = line.contains(' deferred as ');
-          var hasDefintion = false;
+          var hasDefinition = false;
           for (final key in deferredLibraryParts.keys.where(line.contains)) {
-            hasDefintion = true;
+            hasDefinition = true;
             final containsFile = deferredLibraryParts[key]!.contains(file.path);
             expect(containsFile, !containsDeferred,
                 reason:
                     'Import line pattern not recognized: $line in ${file.path}.');
           }
           if (containsDeferred) {
-            expect(hasDefintion, isTrue,
+            expect(hasDefinition, isTrue,
                 reason: 'Unknown library from `$line` in ${file.path}');
           }
         }

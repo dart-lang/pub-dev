@@ -341,7 +341,7 @@ void main() {
     });
 
     group('Invite a new member', () {
-      Future<List<Map>> queryConstents({String? email}) async {
+      Future<List<Map>> queryConsents({String? email}) async {
         final query = dbService.query<Consent>();
         return await query
             .run()
@@ -415,7 +415,7 @@ void main() {
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'other@pub.dev'));
         expect(rs.emailSent, isTrue);
-        expect(await queryConstents(email: 'other@pub.dev'), [
+        expect(await queryConsents(email: 'other@pub.dev'), [
           {
             'id': isNotNull,
             'fromAgent': adminUser.userId,
@@ -445,7 +445,7 @@ void main() {
         expect(list.members, hasLength(1));
         expect(list.members.where((m) => m.email == 'newuser@example.com'),
             isEmpty);
-        expect(await queryConstents(email: 'newuser@example.com'), [
+        expect(await queryConsents(email: 'newuser@example.com'), [
           {
             'id': isNotNull,
             'fromAgent': user.userId,
@@ -465,7 +465,7 @@ void main() {
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: 'user@pub.dev'));
         expect(rs.emailSent, isTrue);
-        expect(await queryConstents(email: 'user@pub.dev'), [
+        expect(await queryConsents(email: 'user@pub.dev'), [
           {
             'id': isNotNull,
             'fromAgent': user.userId,

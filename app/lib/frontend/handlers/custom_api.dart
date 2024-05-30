@@ -103,7 +103,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
         'Client must send "Accept-Encoding: gzip" header');
   }
 
-  final bytes = await searchBackend.getPackageNameCompletitionDataJsonGz();
+  final bytes = await searchBackend.getPackageNameCompletionDataJsonGz();
   return shelf.Response(200, body: bytes, headers: {
     ...jsonResponseHeaders,
     'Content-Encoding': 'gzip',
