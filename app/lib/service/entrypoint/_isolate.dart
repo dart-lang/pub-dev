@@ -89,11 +89,11 @@ class IsolateRunner {
       throw IsolateRequestException('No isolate to process request.');
     }
 
-    final replyRecievePort = ReceivePort();
+    final replyReceivePort = ReceivePort();
     try {
-      final firstFuture = replyRecievePort.first;
+      final firstFuture = replyReceivePort.first;
       final targetSendPort = last._readyMessage!.requestSendPort!;
-      final requestMessage = RequestMessage(payload, replyRecievePort.sendPort);
+      final requestMessage = RequestMessage(payload, replyReceivePort.sendPort);
       targetSendPort.send(requestMessage.encodeAsJson());
       final first = await firstFuture.timeout(timeout) as Map<String, dynamic>;
       final reply = Message.fromObject(first) as ReplyMessage;
@@ -102,7 +102,7 @@ class IsolateRunner {
       }
       return reply.result;
     } finally {
-      replyRecievePort.close();
+      replyReceivePort.close();
     }
   }
 

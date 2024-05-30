@@ -54,14 +54,14 @@ class ClientSessionStatus {
 
 /// Response from listing of likes.
 @JsonSerializable()
-class LikedPackagesRepsonse {
+class LikedPackagesResponse {
   List<PackageLikeResponse>? likedPackages;
-  LikedPackagesRepsonse({required this.likedPackages});
+  LikedPackagesResponse({required this.likedPackages});
 
-  factory LikedPackagesRepsonse.fromJson(Map<String, dynamic> json) =>
-      _$LikedPackagesRepsonseFromJson(json);
+  factory LikedPackagesResponse.fromJson(Map<String, dynamic> json) =>
+      _$LikedPackagesResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$LikedPackagesRepsonseToJson(this);
+  Map<String, dynamic> toJson() => _$LikedPackagesResponseToJson(this);
 }
 
 /// Response from quering or putting a package like.

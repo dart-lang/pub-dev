@@ -35,16 +35,16 @@ Map<String, dynamic> _$ClientSessionStatusToJson(
       'authenticatedAt': instance.authenticatedAt?.toIso8601String(),
     };
 
-LikedPackagesRepsonse _$LikedPackagesRepsonseFromJson(
+LikedPackagesResponse _$LikedPackagesResponseFromJson(
         Map<String, dynamic> json) =>
-    LikedPackagesRepsonse(
+    LikedPackagesResponse(
       likedPackages: (json['likedPackages'] as List<dynamic>?)
           ?.map((e) => PackageLikeResponse.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$LikedPackagesRepsonseToJson(
-        LikedPackagesRepsonse instance) =>
+Map<String, dynamic> _$LikedPackagesResponseToJson(
+        LikedPackagesResponse instance) =>
     <String, dynamic>{
       'likedPackages': instance.likedPackages,
     };

@@ -496,7 +496,7 @@ class SearchBackend {
   }
 
   /// Creates the gzipped byte content for the /api/package-name-completion-data endpoint.
-  Future<List<int>> getPackageNameCompletitionDataJsonGz() async {
+  Future<List<int>> getPackageNameCompletionDataJsonGz() async {
     final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
       final rs = await searchClient.search(
         ServiceSearchQuery.parse(

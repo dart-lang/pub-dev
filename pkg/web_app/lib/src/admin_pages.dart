@@ -89,7 +89,7 @@ class _PkgAdminWidget {
     _setPublisherButton?.onClick.listen((_) => _setPublisher());
     _discontinuedCheckbox = document
         .getElementById('-admin-is-discontinued-checkbox') as InputElement?;
-    _discontinuedCheckbox?.onChange.listen((_) => _toogleDiscontinued());
+    _discontinuedCheckbox?.onChange.listen((_) => _toggleDiscontinued());
     _replacedByInput =
         document.getElementById('-package-replaced-by') as InputElement?;
     _replacedByButton = document.getElementById('-package-replaced-by-button');
@@ -227,7 +227,7 @@ class _PkgAdminWidget {
     );
   }
 
-  Future<void> _toogleDiscontinued() async {
+  Future<void> _toggleDiscontinued() async {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
     final newValue = await api_client.rpc<bool>(
       confirmQuestion: text(

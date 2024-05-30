@@ -1230,7 +1230,7 @@ class PackageBackend {
       await Future.wait([
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           emailBackend.trySendOutgoingEmail(outgoingEmail),
-        taskBackend.trackPackage(newVersion.package, updateDependants: true),
+        taskBackend.trackPackage(newVersion.package, updateDependents: true),
         if (apiExporter != null)
           apiExporter!
               .updatePackageVersion(newVersion.package, newVersion.version!),
