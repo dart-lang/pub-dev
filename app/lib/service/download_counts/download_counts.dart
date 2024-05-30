@@ -8,6 +8,8 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 part 'download_counts.g.dart';
 
+typedef VersionRangeCount = ({String versionRange, List<int> counts});
+
 @JsonSerializable(includeIfNull: false)
 class CountData {
   // We store at most two years of data, one data point per day.
@@ -24,8 +26,8 @@ class CountData {
   /// A list of tuples containing a string describing a major `versionRange`,
   /// e.g. '>=1.0.0-0 <2.0.0', and a list of integers with a count for each day.
   /// The 'counts' list contains at most [maxAge] entries. The first entry in
-  /// represents the number of downloads on `newestDate` followed by the downloads
-  ///  on `newestDate` - 1 and so on. E.g.
+  /// represents the number of downloads on `newestDate` followed by the
+  /// downloads on `newestDate` - 1 and so on. E.g.
   ///
   ///  counts = [ 42, 21, 55 ]
   ///              ▲   ▲   ▲
@@ -36,11 +38,11 @@ class CountData {
   ///              └──────────────────── Download count on newestDate
   ///
   ///
-  /// [majorCounts] has at most [maxRanges] elements and is sorted by version
-  ///  ranges.
-  final majorCounts = <({String versionRange, List<int> counts})>[];
-  final minorCounts = <({String versionRange, List<int> counts})>[];
-  final patchCounts = <({String versionRange, List<int> counts})>[];
+  /// [majorRangeCounts] has at most [maxRanges] elements and is sorted by
+  ///  version ranges.
+  final majorRangeCounts = <VersionRangeCount>[];
+  final minorRangeCounts = <VersionRangeCount>[];
+  final patchRangeCounts = <VersionRangeCount>[];
   final totalCounts = <int>[];
 
   CountData();
@@ -60,10 +62,10 @@ class CountData {
     }
 
     // TODO(zarah): call this with other ranges
-    _prepareDates(date, countsIndex, majorCounts);
+    _prepareDates(date, countsIndex, majorRangeCounts);
 
     _processCounts(
-        dayCounts, countsIndex, majorCounts, _createNewMajorVersionRange);
+        dayCounts, countsIndex, majorRangeCounts, _createNewMajorVersionRange);
 
     newestDate = nextNewestDate;
   }
@@ -71,21 +73,24 @@ class CountData {
   void _prepareDates(
     DateTime date,
     int countsIndex,
-    List<({List<int> counts, String versionRange})> versionCounts,
+    List<VersionRangeCount> versionRangeCounts,
   ) {
     if (date.isAfter(newestDate!)) {
       final zerosList = List.filled(date.difference(newestDate!).inDays, 0);
-      for (int i = 0; i < versionCounts.length; i++) {
+      for (int i = 0; i < versionRangeCounts.length; i++) {
         // Fill in with 0 on days with no data.
-        final newCounts =
-            [...zerosList, ...versionCounts[i].counts].take(maxAge).toList();
-        versionCounts[i] =
-            (counts: newCounts, versionRange: versionCounts[i].versionRange);
+        final newCounts = [...zerosList, ...versionRangeCounts[i].counts]
+            .take(maxAge)
+            .toList();
+        versionRangeCounts[i] = (
+          counts: newCounts,
+          versionRange: versionRangeCounts[i].versionRange
+        );
       }
     } else {
-      versionCounts.forEach((versionCount) {
+      versionRangeCounts.forEach((versionRangeCount) {
         // Reset the counts for this date.
-        versionCount.counts[countsIndex] = 0;
+        versionRangeCount.counts[countsIndex] = 0;
       });
     }
   }
@@ -93,12 +98,12 @@ class CountData {
   void _processCounts(
     Map<String, int> dayCounts,
     int countsIndex,
-    List<({List<int> counts, String versionRange})> versionCounts,
+    List<VersionRangeCount> versionRangeCounts,
     VersionRange Function(Version version) createVersionRange,
   ) {
     dayCounts.forEach((v, count) {
       final version = Version.parse(v);
-      final containingRange = versionCounts.firstWhereOrNull((vc) {
+      final containingRange = versionRangeCounts.firstWhereOrNull((vc) {
         final currentVersionRange = VersionConstraint.parse(vc.versionRange);
         return currentVersionRange.allows(version);
       });
@@ -110,12 +115,12 @@ class CountData {
           counts: List.filled(maxAge, 0)..[countsIndex] = count,
           versionRange: createVersionRange(version).toString()
         );
-        versionCounts.add(newVersionRange);
-        versionCounts.sortBy(
-            (vc) => (VersionConstraint.parse(vc.versionRange) as VersionRange));
+        versionRangeCounts.add(newVersionRange);
+        versionRangeCounts.sortBy((vrc) =>
+            (VersionConstraint.parse(vrc.versionRange) as VersionRange));
 
-        if (versionCounts.length > maxRanges) {
-          versionCounts.removeAt(0);
+        if (versionRangeCounts.length > maxRanges) {
+          versionRangeCounts.removeAt(0);
         }
       }
     });
