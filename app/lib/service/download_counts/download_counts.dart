@@ -63,9 +63,12 @@ class CountData {
 
     // TODO(zarah): call this with other ranges
     _prepareDates(date, countsIndex, majorRangeCounts);
+    _prepareDates(date, countsIndex, minorRangeCounts);
 
     _processCounts(
         dayCounts, countsIndex, majorRangeCounts, _createNewMajorVersionRange);
+    _processCounts(
+        dayCounts, countsIndex, minorRangeCounts, _createNewMinorVersionRange);
 
     newestDate = nextNewestDate;
   }
@@ -130,6 +133,13 @@ class CountData {
     return VersionRange(
         min: Version(version.major, 0, 0, pre: '0'),
         max: Version(version.major + 1, 0, 0),
+        includeMin: true);
+  }
+
+  VersionRange _createNewMinorVersionRange(Version version) {
+    return VersionRange(
+        min: Version(version.major, version.minor, 0, pre: '0'),
+        max: Version(version.major, version.minor + 1, 0),
         includeMin: true);
   }
 
