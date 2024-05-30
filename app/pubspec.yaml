@@ -28,7 +28,7 @@ dependencies:
     path: ../pkg/indexed_blob
   intl: '^0.18.0'
   json_annotation: '^4.3.0'
-  lints: ^3.0.0
+  lints: ^4.0.0
   logging: '>=0.9.3 <2.0.0'
   markdown: ^7.2.2
   meta: ^1.1.2
@@ -51,7 +51,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.22.3'
+  pana: '0.22.5'
   # 3rd-party packages with pinned versions
   mailer: '6.0.1'
   ulid: '2.0.0'
