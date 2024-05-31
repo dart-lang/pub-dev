@@ -27,18 +27,6 @@ Loads and displays the moderation case information.
       throw NotFoundException.resource(caseId);
     }
 
-    return {
-      'caseId': mc.caseId,
-      'reporterEmail': mc.reporterEmail,
-      'kind': mc.kind,
-      'opened': mc.opened.toIso8601String(),
-      if (mc.resolved != null) 'resolved': mc.resolved!.toIso8601String(),
-      'source': mc.source,
-      'status': mc.status,
-      'subject': mc.subject,
-      'url': mc.url,
-      if (mc.appealedCaseId != null) 'appealedCaseId': mc.appealedCaseId,
-      'actionLog': mc.getActionLog().toJson(),
-    };
+    return mc.toDebugInfo();
   },
 );
