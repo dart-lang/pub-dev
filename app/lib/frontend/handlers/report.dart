@@ -176,6 +176,17 @@ Future<String> processReportPageHandler(
 
   final isAppeal = form.caseId != null;
 
+  bool isSubjectOwner = false;
+  if (user != null) {
+    if (subject.isPackage) {
+      final pkg = await packageBackend.lookupPackage(subject.package!);
+      isSubjectOwner = await packageBackend.isPackageAdmin(pkg!, user.userId);
+    } else if (subject.isPublisher) {
+      final p = await publisherBackend.getPublisher(subject.publisherId!);
+      isSubjectOwner = await publisherBackend.isMemberAdmin(p!, user.userId);
+    }
+  }
+
   // If the email sending fails, we may have pending [ModerationCase] entities
   // in the datastore. These would be reviewed and processed manually.
   await withRetryTransaction(dbService, (tx) async {
@@ -186,6 +197,7 @@ Future<String> processReportPageHandler(
       kind: isAppeal ? ModerationKind.appeal : ModerationKind.notification,
       status: ModerationStatus.pending,
       subject: subject.fqn,
+      isSubjectOwner: isSubjectOwner,
       url: form.url,
       appealedCaseId: form.caseId,
     );

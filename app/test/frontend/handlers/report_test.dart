@@ -316,6 +316,7 @@ void main() {
         status: status ?? ModerationStatus.moderationApplied,
         subject: 'package:oxygen',
         url: 'https://pub.dev/packages/oxygen/example',
+        isSubjectOwner: false,
         appealedCaseId: null,
       );
       if (logSubject != null) {
@@ -415,6 +416,43 @@ void main() {
           expect(mc.subject, 'package-version:oxygen/1.2.0');
           expect(mc.reporterEmail, 'user2@pub.dev');
           expect(mc.appealedCaseId, 'case/1');
+          expect(mc.isSubjectOwner, false);
+        },
+      );
+    });
+
+    testWithProfile('authenticated appeal success', fn: () async {
+      await _prepareApplied(
+        logSubject: 'package-version:oxygen/1.2.0',
+      );
+
+      await withFakeAuthHttpPubApiClient(
+        email: 'admin@pub.dev',
+        experimental: {'report'},
+        fn: (client) async {
+          final msg = await client.postReport(ReportForm(
+            subject: 'package-version:oxygen/1.2.0',
+            caseId: 'case/1',
+            message: 'Huston, we have a problem.',
+          ));
+
+          expect(msg.message, 'The appeal was submitted successfully.');
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.from.email, 'noreply@pub.dev');
+          expect(email.recipients.single.email, 'support@pub.dev');
+          expect(email.ccRecipients.single.email, 'admin@pub.dev');
+
+          final mc = await dbService
+              .query<ModerationCase>()
+              .run()
+              .where((e) => e.caseId != 'case/1')
+              .single;
+          expect(mc.kind, 'appeal');
+          expect(mc.subject, 'package-version:oxygen/1.2.0');
+          expect(mc.reporterEmail, 'admin@pub.dev');
+          expect(mc.appealedCaseId, 'case/1');
+          expect(mc.isSubjectOwner, true);
         },
       );
     });

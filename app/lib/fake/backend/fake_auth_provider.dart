@@ -424,6 +424,7 @@ Future<R> withFakeAuthHttpPubApiClient<R>({
   List<String>? scopes,
   required Future<R> Function(PubApiClient client) fn,
   String? pubHostedUrl,
+  Set<String>? experimental,
 }) async {
   final sessionId = await _acquireFakeSessionId(
     email: email,
@@ -440,6 +441,7 @@ Future<R> withFakeAuthHttpPubApiClient<R>({
     csrfToken: csrfToken,
     pubHostedUrl: pubHostedUrl,
     fn: fn,
+    experimental: experimental,
   );
 }
 
