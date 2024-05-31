@@ -390,7 +390,7 @@ class AuthenticationException extends ResponseException {
       AuthenticationException._('Invalid JWT token: $message.');
 
   /// Signaling that `accessToken` resolved to a different OAuth `userId`.
-  factory AuthenticationException.accessTokenMissmatch() =>
+  factory AuthenticationException.accessTokenMismatch() =>
       AuthenticationException._(
           '`accessToken` does not match current active user.');
 

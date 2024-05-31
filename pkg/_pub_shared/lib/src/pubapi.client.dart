@@ -243,8 +243,8 @@ class PubApiClient {
     ));
   }
 
-  Future<_i4.LikedPackagesRepsonse> listPackageLikes() async {
-    return _i4.LikedPackagesRepsonse.fromJson(await _client.requestJson(
+  Future<_i4.LikedPackagesResponse> listPackageLikes() async {
+    return _i4.LikedPackagesResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/account/likes',
     ));

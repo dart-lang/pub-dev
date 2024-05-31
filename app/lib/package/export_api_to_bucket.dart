@@ -30,14 +30,14 @@ const _defaultBucketUpdateConcurrency = 8;
 
 /// The default cache timeout for content.
 const _pkgApiMaxCacheAge = Duration(minutes: 10);
-const _pkgNameCompletitionDataMaxAge = Duration(hours: 8);
+const _pkgNameCompletionDataMaxAge = Duration(hours: 8);
 
 List<String> _apiPkgObjectNames(String package) => [
       '$runtimeVersion/api/packages/$package',
       'current/api/packages/$package',
     ];
 
-List<String> _apiPkgNameCompletitionDataNames() => [
+List<String> _apiPkgNameCompletionDataNames() => [
       '$runtimeVersion/api/package-name-completion-data',
       'current/api/package-name-completion-data',
     ];
@@ -89,11 +89,11 @@ class ApiExporter {
 
   /// Gets and uploads the package name completion data.
   Future<void> uploadPkgNameCompletionData() async {
-    final bytes = await searchBackend.getPackageNameCompletitionDataJsonGz();
+    final bytes = await searchBackend.getPackageNameCompletionDataJsonGz();
     final bytesAndHash = _BytesAndHash(bytes);
-    for (final objectName in _apiPkgNameCompletitionDataNames()) {
+    for (final objectName in _apiPkgNameCompletionDataNames()) {
       await _upsert(objectName, bytesAndHash,
-          maxAge: _pkgNameCompletitionDataMaxAge);
+          maxAge: _pkgNameCompletionDataMaxAge);
     }
   }
 

@@ -194,6 +194,26 @@ void main() {
       }
     });
 
+    testWithProfile('GitHub Actions: no events enabled', fn: () async {
+      final client =
+          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
+      final rs = client.setAutomatedPublishing(
+          'oxygen',
+          AutomatedPublishingConfig(
+            github: GithubPublishingConfig(
+              isEnabled: false,
+              repository: 'abcd/efgh',
+              isPushEventEnabled: false,
+            ),
+          ));
+      await expectApiException(
+        rs,
+        status: 400,
+        code: 'InvalidInput',
+        message: 'one of the events',
+      );
+    });
+
     testWithProfile('Google Cloud: bad service account email', fn: () async {
       final client =
           await createFakeAuthPubApiClient(email: adminAtPubDevEmail);

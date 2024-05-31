@@ -89,7 +89,7 @@ class _PkgAdminWidget {
     _setPublisherButton?.onClick.listen((_) => _setPublisher());
     _discontinuedCheckbox = document
         .getElementById('-admin-is-discontinued-checkbox') as InputElement?;
-    _discontinuedCheckbox?.onChange.listen((_) => _toogleDiscontinued());
+    _discontinuedCheckbox?.onChange.listen((_) => _toggleDiscontinued());
     _replacedByInput =
         document.getElementById('-package-replaced-by') as InputElement?;
     _replacedByButton = document.getElementById('-package-replaced-by-button');
@@ -134,6 +134,11 @@ class _PkgAdminWidget {
     final githubTagPatternInput =
         document.getElementById('-pkg-admin-automated-github-tagpattern')
             as InputElement?;
+    final githubIsPushEventsCheckbox =
+        document.getElementById('-pkg-admin-automated-github-push-events')
+            as InputElement?;
+    final githubIsWorkflowDispatchEventsCheckbox = document.getElementById(
+        '-pkg-admin-automated-github-workflowdispatch-events') as InputElement?;
     final githubRequireEnvironmentCheckbox =
         document.getElementById('-pkg-admin-automated-github-requireenv')
             as InputElement?;
@@ -163,6 +168,10 @@ class _PkgAdminWidget {
                 isEnabled: githubEnabledCheckbox!.checked ?? false,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
+                isPushEventEnabled:
+                    githubIsPushEventsCheckbox!.checked ?? false,
+                isWorkflowDispatchEventEnabled:
+                    githubIsWorkflowDispatchEventsCheckbox!.checked ?? false,
                 requireEnvironment:
                     githubRequireEnvironmentCheckbox!.checked ?? false,
                 environment: githubEnvironmentInput!.value,
@@ -227,7 +236,7 @@ class _PkgAdminWidget {
     );
   }
 
-  Future<void> _toogleDiscontinued() async {
+  Future<void> _toggleDiscontinued() async {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
     final newValue = await api_client.rpc<bool>(
       confirmQuestion: text(

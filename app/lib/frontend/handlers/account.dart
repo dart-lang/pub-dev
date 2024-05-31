@@ -199,7 +199,7 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
 }
 
 /// Handles GET /api/account/likes
-Future<LikedPackagesRepsonse> listPackageLikesHandler(
+Future<LikedPackagesResponse> listPackageLikesHandler(
     shelf.Request request) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
@@ -207,7 +207,7 @@ Future<LikedPackagesRepsonse> listPackageLikesHandler(
   final List<PackageLikeResponse> packageLikes = List.from(packages.map(
       (like) => PackageLikeResponse(
           liked: true, package: like.package, created: like.created)));
-  return LikedPackagesRepsonse(likedPackages: packageLikes);
+  return LikedPackagesResponse(likedPackages: packageLikes);
 }
 
 /// Handles GET /api/account/likes/<package>

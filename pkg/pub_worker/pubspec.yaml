@@ -10,8 +10,8 @@ dependencies:
   appengine: ^0.13.6
   json_annotation: ^4.3.0
   jsontool: ^1.1.0
-  pana: ^0.22.3
-  lints: ^3.0.0 # required for pana
+  pana: ^0.22.5
+  lints: ^4.0.0 # required for pana
   meta: ^1.7.0
   api_builder:
   _pub_shared:

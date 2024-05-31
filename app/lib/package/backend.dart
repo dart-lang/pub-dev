@@ -513,6 +513,12 @@ class PackageBackend {
       final gcpConfig = body.gcp;
       if (githubConfig != null) {
         final isEnabled = githubConfig.isEnabled;
+
+        InvalidInputException.check(
+            githubConfig.isPushEventEnabled ||
+                githubConfig.isWorkflowDispatchEventEnabled,
+            'At least one of the events (`push` or `workflow_dispatch`) must be enabled.');
+
         // normalize input values
         final repository = githubConfig.repository?.trim() ?? '';
         githubConfig.repository = repository.isEmpty ? null : repository;
@@ -1230,7 +1236,7 @@ class PackageBackend {
       await Future.wait([
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           emailBackend.trySendOutgoingEmail(outgoingEmail),
-        taskBackend.trackPackage(newVersion.package, updateDependants: true),
+        taskBackend.trackPackage(newVersion.package, updateDependents: true),
         if (apiExporter != null)
           apiExporter!
               .updatePackageVersion(newVersion.package, newVersion.version!),
@@ -1316,11 +1322,19 @@ class PackageBackend {
           'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository');
     }
 
-    // TODO: consider allowing other events from
-    //       https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
-    if (agent.payload.eventName != 'push') {
+    final eventName = agent.payload.eventName;
+    if (eventName == 'push' && !githubConfig.isPushEventEnabled) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is only allowed from "push" events, this token originates from a "${agent.payload.eventName}" event');
+          'publishing is not allowed from "push" events');
+    }
+    if (eventName == 'workflow_dispatch' &&
+        !githubConfig.isWorkflowDispatchEventEnabled) {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is not allowed from "workflow_dispath" events');
+    }
+    if (eventName != 'push' && eventName != 'workflow_dispatch') {
+      throw AuthorizationException.githubActionIssue(
+          'publishing is only allowed from "push" or "workflow_dispatch" events, this token originates from a "${agent.payload.eventName}" event');
     }
 
     if (agent.payload.refType != 'tag') {

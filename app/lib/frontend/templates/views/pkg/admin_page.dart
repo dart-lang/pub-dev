@@ -283,6 +283,38 @@ d.Node _automatedPublishing(Package package) {
                 'and for `mypackage-1.2.3` use `mypackage-{{version}}`.'),
           ],
         ),
+        // events
+        d.div(
+          classes: [
+            '-pub-form-checkbox-row',
+          ],
+          child: material.checkbox(
+            id: '-pkg-admin-automated-github-push-events',
+            label: 'Enable publishing from `push` events',
+            checked: github?.isPushEventEnabled ?? true,
+            labelNodeContent: (_) => d.fragment([
+              d.text('Enable publishing from '),
+              d.code(text: 'push'),
+              d.text(' events'),
+            ]),
+          ),
+        ),
+        d.div(
+          classes: [
+            '-pub-form-checkbox-row',
+          ],
+          child: material.checkbox(
+            id: '-pkg-admin-automated-github-workflowdispatch-events',
+            label: 'Enable publishing from `workflow_dispatch` events',
+            checked: github?.isWorkflowDispatchEventEnabled ?? false,
+            labelNodeContent: (_) => d.fragment([
+              d.text('Enable publishing from '),
+              d.code(text: 'workflow_dispatch'),
+              d.text(' events'),
+            ]),
+          ),
+        ),
+        // enviroment
         d.div(
           classes: [
             '-pub-form-checkbox-row',
