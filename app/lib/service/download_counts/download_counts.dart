@@ -61,14 +61,18 @@ class CountData {
       return;
     }
 
-    // TODO(zarah): call this with other ranges
+    // TODO(zarah): handle totalCounts
+
     _prepareDates(date, countsIndex, majorRangeCounts);
     _prepareDates(date, countsIndex, minorRangeCounts);
+    _prepareDates(date, countsIndex, patchRangeCounts);
 
     _processCounts(
         dayCounts, countsIndex, majorRangeCounts, _createNewMajorVersionRange);
     _processCounts(
         dayCounts, countsIndex, minorRangeCounts, _createNewMinorVersionRange);
+    _processCounts(
+        dayCounts, countsIndex, patchRangeCounts, _createNewPatchVersionRange);
 
     newestDate = nextNewestDate;
   }
@@ -140,6 +144,13 @@ class CountData {
     return VersionRange(
         min: Version(version.major, version.minor, 0, pre: '0'),
         max: Version(version.major, version.minor + 1, 0),
+        includeMin: true);
+  }
+
+  VersionRange _createNewPatchVersionRange(Version version) {
+    return VersionRange(
+        min: Version(version.major, version.minor, version.patch, pre: '0'),
+        max: Version(version.major, version.minor, version.patch + 1),
         includeMin: true);
   }
 
