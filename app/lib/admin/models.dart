@@ -59,6 +59,10 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty()
   String? appealedCaseId;
 
+  /// Whether the reporter of the case is known owner of the [subject].
+  @db.BoolProperty()
+  bool isSubjectOwner = false;
+
   /// One of:
   /// - `pending`, if this is an appeal and we haven't decided anything yet.
   /// - `no-action`, if this is a notification (kind = notification) and
@@ -89,6 +93,7 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.kind,
     required this.status,
     required this.subject,
+    required this.isSubjectOwner,
     required this.url,
     required this.appealedCaseId,
   }) {
