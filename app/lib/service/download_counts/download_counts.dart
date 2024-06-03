@@ -43,7 +43,7 @@ class CountData {
   final majorRangeCounts = <VersionRangeCount>[];
   final minorRangeCounts = <VersionRangeCount>[];
   final patchRangeCounts = <VersionRangeCount>[];
-  final totalCounts = <int>[];
+  final totalCounts = List.filled(maxAge, 0, growable: true);
 
   CountData();
 
@@ -61,8 +61,6 @@ class CountData {
       return;
     }
 
-    // TODO(zarah): handle totalCounts
-
     _prepareDates(date, countsIndex, majorRangeCounts);
     _prepareDates(date, countsIndex, minorRangeCounts);
     _prepareDates(date, countsIndex, patchRangeCounts);
@@ -73,6 +71,18 @@ class CountData {
         dayCounts, countsIndex, minorRangeCounts, _createNewMinorVersionRange);
     _processCounts(
         dayCounts, countsIndex, patchRangeCounts, _createNewPatchVersionRange);
+
+    // Handle totalCounts
+    if (date.isAfter(newestDate!)) {
+      final zerosList = List.filled(date.difference(newestDate!).inDays, 0);
+      // Fill in with 0 on days with no data.
+      totalCounts..insertAll(0, zerosList);
+      if (totalCounts.length > maxAge) {
+        totalCounts.removeRange(maxAge, totalCounts.length);
+      }
+    }
+    totalCounts[countsIndex] =
+        dayCounts.values.fold(0, (prev, cur) => prev + cur);
 
     newestDate = nextNewestDate;
   }

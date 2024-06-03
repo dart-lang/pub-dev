@@ -52,6 +52,8 @@ void main() {
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(2), [14, 0]);
 
+    expect(countData.totalCounts.take(2), [14, 0]);
+
     return countData;
   }
 
@@ -101,6 +103,8 @@ void main() {
     final minorRange = countData.majorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.0.0-0 <2.0.0');
     expect(minorRange.counts.take(3), [40, 14, 0]);
+
+    expect(countData.totalCounts.take(3), [40, 14, 0]);
   });
 
   test('Add counts for two days later', () async {
@@ -150,6 +154,8 @@ void main() {
     expect(minorRange.versionRange, '>=1.0.0-0 <2.0.0');
     expect(minorRange.counts.take(4), [40, 0, 14, 0]);
 
+    expect(countData.totalCounts.take(4), [40, 0, 14, 0]);
+
     // Update missing date.
     final versionsCounts2 = {
       '1.1.4-0': 8,
@@ -192,6 +198,8 @@ void main() {
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [40, 32, 14, 0]);
 
+    expect(countData.totalCounts.take(4), [40, 32, 14, 0]);
+
     // Update existing values
     final versionsCounts3 = {
       '1.1.4-0': 7,
@@ -233,6 +241,8 @@ void main() {
     minorRange = countData.minorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [40, 28, 14, 0]);
+
+    expect(countData.totalCounts.take(4), [40, 28, 14, 0]);
   });
 
   test('Add counts on older date', () async {
@@ -280,6 +290,8 @@ void main() {
     final minorRange = countData.minorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [14, 0, 40, 0]);
+
+    expect(countData.totalCounts.take(4), [14, 0, 40, 0]);
   });
 
   test('Add counts not affecting ranges', () async {
@@ -334,6 +346,8 @@ void main() {
     final secondMinorRange = countData.minorRangeCounts[1];
     expect(secondMinorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(secondMinorRange.counts.take(3), [0, 14, 0]);
+
+    expect(countData.totalCounts.take(3), [54, 14, 0]);
   });
 
   test('Add counts on missing patch range in the middle', () async {
@@ -383,6 +397,8 @@ void main() {
     final minorRange = countData.minorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [40, 14, 0, 0]);
+
+    expect(countData.totalCounts.take(4), [40, 14, 0, 0]);
   });
 
   test('Add counts on missing patch range in the end', () async {
@@ -415,6 +431,7 @@ void main() {
     var minorRange = countData.minorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [6, 0, 0, 0]);
+    expect(countData.totalCounts.take(4), [6, 0, 0, 0]);
 
     final versionCounts = {
       '1.1.0': 10,
@@ -448,6 +465,8 @@ void main() {
     minorRange = countData.minorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [10, 6, 0, 0]);
+
+    expect(countData.totalCounts.take(4), [10, 6, 0, 0]);
   });
 
   test('More than maxAge dates', () async {
@@ -467,6 +486,9 @@ void main() {
       expect(firstRange.versionRange, '>=1.1.0-0 <1.1.1');
       expect(firstRange.counts.length, 731);
       expect(firstRange.counts[i], 2);
+
+      expect(countData.totalCounts.length, 731);
+      expect(countData.totalCounts[i], 2);
     }
 
     final newVersionsCounts = {
@@ -493,5 +515,7 @@ void main() {
     final minorRange = countData.minorRangeCounts.first;
     expect(minorRange.versionRange, '>=1.1.0-0 <1.2.0');
     expect(minorRange.counts.take(4), [10, 2, 2, 2]);
+
+    expect(countData.totalCounts.take(4), [10, 2, 2, 2]);
   });
 }
