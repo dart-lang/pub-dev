@@ -183,7 +183,7 @@ Iterable<d.Node> _appeal(
       d.code(text: caseId),
       d.text(' on '),
       d.code(text: subject.localName),
-      d.text(', please explain why the resolution should be reconsidered:'),
+      d.text(', please explain why the resolution should be reconsidered.'),
     ]),
     if (!(sessionData?.isAuthenticated ?? false))
       d.fragment([
@@ -194,7 +194,6 @@ Iterable<d.Node> _appeal(
           label: 'Email',
         ),
       ]),
-    d.p(text: 'Message:'),
     material.textArea(
       id: 'report-message',
       name: 'message',
