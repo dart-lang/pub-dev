@@ -139,6 +139,7 @@ class ModerationCase extends db.ExpandoModel<String> {
       'source': source,
       'status': status,
       'subject': subject,
+      'isSubjectOwner': isSubjectOwner,
       'url': url,
       'appealedCaseId': appealedCaseId,
       'actionLog': getActionLog().toJson(),

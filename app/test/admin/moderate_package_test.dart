@@ -164,6 +164,7 @@ void main() {
           'source': 'external-notification',
           'status': 'pending',
           'subject': 'package:oxygen',
+          'isSubjectOwner': false,
           'url': null,
           'appealedCaseId': null,
           'actionLog': {
