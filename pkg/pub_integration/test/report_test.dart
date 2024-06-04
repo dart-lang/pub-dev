@@ -91,10 +91,13 @@ void main() {
         'reporterEmail': 'reporter@pub.dev',
         'kind': 'notification',
         'opened': isNotEmpty,
+        'resolved': null,
         'source': 'external-notification',
         'status': 'pending',
         'subject': 'package:oxygen',
+        'isSubjectOwner': false,
         'url': null,
+        'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
 
@@ -131,7 +134,14 @@ void main() {
         'subject': 'package:oxygen',
       }).toString();
 
-      // TODO: close case
+      await adminUser.serverApi.adminInvokeAction(
+        'resolve-moderation-case',
+        AdminInvokeActionArguments(
+          arguments: {
+            'case': caseId,
+          },
+        ),
+      );
 
       // sending email to reporter
       await adminUser.serverApi.adminInvokeAction(
@@ -175,17 +185,42 @@ void main() {
 
         await page
             .gotoOrigin(appealPageUrl.replaceAll('https://pub.dev/', '/'));
-        // TODO: these should be working after the case gets closed
-        // await page.waitFocusAndType(
-        //     '#report-message', 'Huston, I have a different idea.');
-        // await page.waitAndClick('#report-submit', waitForOneResponse: true);
-        // expect(await page.content,
-        //     contains('The appeal was submitted successfully.'));
-        // await page.waitAndClickOnDialogOk();
+
+        await page.waitFocusAndType(
+            '#report-message', 'Huston, I have a different idea.');
+        await page.waitAndClick('#report-submit', waitForOneResponse: true);
+        expect(await page.content,
+            contains('The appeal was submitted successfully.'));
+        await page.waitAndClickOnDialogOk();
       });
 
-      // TODO: extract new case id from email
-      // TODO: admin appeal is rejected (email + closing case)
+      final appealEmail = await supportUser.readLatestEmail();
+
+      // extract new case id from email
+      final appealCaseId = appealEmail.split('\n')[1];
+
+      // admin closes case without further action
+      await adminUser.serverApi.adminInvokeAction(
+        'resolve-moderation-case',
+        AdminInvokeActionArguments(
+          arguments: {
+            'case': appealCaseId,
+          },
+        ),
+      );
+
+      // sending email to reporter
+      await adminUser.serverApi.adminInvokeAction(
+        'send-email',
+        AdminInvokeActionArguments(
+          arguments: {
+            'from': 'support@pub.dev',
+            'to': pkgAdminUser.email,
+            'subject': 'Your appeal has been rejected.',
+            'body': '...',
+          },
+        ),
+      );
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }

@@ -160,10 +160,13 @@ void main() {
           'reporterEmail': 'user@pub.dev',
           'kind': 'notification',
           'opened': isNotEmpty,
+          'resolved': null,
           'source': 'external-notification',
           'status': 'pending',
           'subject': 'package:oxygen',
+          'isSubjectOwner': false,
           'url': null,
+          'appealedCaseId': null,
           'actionLog': {
             'entries': [
               {

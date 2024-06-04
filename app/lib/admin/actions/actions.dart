@@ -15,6 +15,7 @@ import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
+import 'resolve_moderation_case.dart';
 import 'send_email.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
@@ -85,6 +86,7 @@ final class AdminAction {
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
+    resolveModerationCase,
     sendEmail,
     taskBumpPriority,
     toolExecute,

@@ -128,6 +128,23 @@ class ModerationCase extends db.ExpandoModel<String> {
     ));
     setActionLog(log);
   }
+
+  Map<String, dynamic> toDebugInfo() {
+    return {
+      'caseId': caseId,
+      'reporterEmail': reporterEmail,
+      'kind': kind,
+      'opened': opened.toIso8601String(),
+      'resolved': resolved?.toIso8601String(),
+      'source': source,
+      'status': status,
+      'subject': subject,
+      'isSubjectOwner': isSubjectOwner,
+      'url': url,
+      'appealedCaseId': appealedCaseId,
+      'actionLog': getActionLog().toJson(),
+    };
+  }
 }
 
 abstract class ModerationDetectedBy {
@@ -143,6 +160,10 @@ abstract class ModerationStatus {
   static const pending = 'pending';
   static const noAction = 'no-action';
   static const moderationApplied = 'moderation-applied';
+  static const noActionUpheld = 'no-action-upheld';
+  static const noActionReverted = 'no-action-reverted';
+  static const moderationUpheld = 'moderation-upheld';
+  static const moderationReverted = 'moderation-reverted';
 }
 
 /// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
@@ -299,6 +320,22 @@ class ModerationActionLog {
       _$ModerationActionLogFromJson(json);
 
   Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
+
+  /// Returns true if the final state of the actions has at least one moderation.
+  bool hasModeratedAction() {
+    final subjects = <String>{};
+    for (final entry in entries) {
+      switch (entry.moderationAction) {
+        case ModerationAction.apply:
+          subjects.add(entry.subject);
+          break;
+        case ModerationAction.revert:
+          subjects.remove(entry.subject);
+          break;
+      }
+    }
+    return subjects.isNotEmpty;
+  }
 }
 
 enum ModerationAction {
