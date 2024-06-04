@@ -402,7 +402,7 @@ void main() {
     // Report the task as finished
     await api.taskUploadFinished(payload.package, v.version);
 
-    // Leave time for the instance to be deleteds (takes 1 min in fake cloud)
+    // Leave time for the instance to be deleted (takes 1 min in fake cloud)
     await fakeTime.elapse(minutes: 5);
 
     // We don't expect anything to be scheduled for the next 7 days.
@@ -489,7 +489,7 @@ void main() {
       // Report the task as finished
       await api.taskUploadFinished(payload.package, v.version);
     }
-    // Leave time for the instance to be deleteds (takes 1 min in fake cloud)
+    // Leave time for the instance to be deleted (takes 1 min in fake cloud)
     await fakeTime.elapse(minutes: 5);
 
     // We don't expect anything to be scheduled for the next 3 days.
@@ -628,7 +628,7 @@ void main() {
       await api.taskUploadFinished(payload.package, v.version);
     }
 
-    // Leave time for the instance to be deleteds (takes 1 min in fake cloud)
+    // Leave time for the instance to be deleted (takes 1 min in fake cloud)
     await fakeTime.elapse(minutes: 15);
 
     // We don't expect anything to be scheduled now

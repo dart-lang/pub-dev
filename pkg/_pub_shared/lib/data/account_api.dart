@@ -64,7 +64,7 @@ class LikedPackagesResponse {
   Map<String, dynamic> toJson() => _$LikedPackagesResponseToJson(this);
 }
 
-/// Response from quering or putting a package like.
+/// Response from querying or putting a package like.
 ///
 /// [created] might be null when [liked] is `false`.
 @JsonSerializable()

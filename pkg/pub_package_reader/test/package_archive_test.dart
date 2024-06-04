@@ -836,7 +836,7 @@ dev_dependencies:
         - widget
         - network
         - server
-        - reliablity
+        - reliability
         - client
       ''';
       expect(

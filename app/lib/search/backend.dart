@@ -470,7 +470,7 @@ class SearchBackend {
     try {
       final map = await _snapshotStorage.getContentAsJsonMap();
       if (map == null) {
-        _logger.info('No snaptshot to fetch.');
+        _logger.info('No snapshot to fetch.');
         return null;
       }
       final snapshot = SearchSnapshot.fromJson(map);

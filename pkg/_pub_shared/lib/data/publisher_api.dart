@@ -80,7 +80,7 @@ class PublisherMembers {
 /// Response payload for fetching a specific member of a given publisher.
 @JsonSerializable()
 class PublisherMember {
-  /// Unqiue user identifier, specific to `pub.dev`.
+  /// Unique user identifier, specific to `pub.dev`.
   final String userId;
 
   /// The role or access-level of for this user in the given publisher.

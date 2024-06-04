@@ -51,7 +51,7 @@ related files.
 
 ## Cleanup of old/stale data
 
-We've started to track the `runtimeVersion` that is the earliers (oldest) data
+We've started to track the `runtimeVersion` that is the earliest (oldest) data
 we'd like to preserve: `gcBeforeRuntimeVersion`.
 
 Service processes should check this version, and delete stale data that is

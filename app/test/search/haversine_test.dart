@@ -153,7 +153,7 @@ var gcd = new GreatCircleDistance.fromDegrees(latitude1: lat1, longitude1: lon1,
 
 print('Distance from location 1 to 2 using the Haversine formula is: ${gcd.haversineDistance()}');
 print('Distance from location 1 to 2 using the Spherical Law of Cosines is: ${gcd.sphericalLawOfCosinesDistance()}');
-print('Distance from location 1 to 2 using the Vicenty`s formula is: ${gcd.vincentyDistance()}');
+print('Distance from location 1 to 2 using the Vincenty`s formula is: ${gcd.vincentyDistance()}');
 ```
 
 Check Wikipedia for detailed description on [Great-circle distance](https://en.wikipedia.org/wiki/Great-circle_distance)
@@ -307,7 +307,7 @@ while (true) {
 
     isBlackMoved = true;
   } else {
-    stderr.writeln('No avaiable Black move');
+    stderr.writeln('No available Black move');
   }
 
   // The round of white player, which is bot.
@@ -317,7 +317,7 @@ while (true) {
     b[mw] = Disc.White;
     isWhiteMoved = true;
   } else {
-    stderr.writeln('No avaliable White move');
+    stderr.writeln('No available White move');
   }
 
   if (!isBlackMoved && !isWhiteMoved) {
@@ -340,7 +340,7 @@ if (w == Win.Black) {
 }
 ```
 
-We shipped a console Reversi program for demo purpose. Currently, there is only one level of bot. See the source of our console program for more details. More bots and applicaions are on the way.
+We shipped a console Reversi program for demo purpose. Currently, there is only one level of bot. See the source of our console program for more details. More bots and applications are on the way.
 
 You may implement your own Reversi bot. You only need to fulfill this interface:
 

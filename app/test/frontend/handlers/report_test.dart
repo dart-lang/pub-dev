@@ -240,7 +240,7 @@ void main() {
               )),
               status: 400,
               code: 'InvalidInput',
-              message: '\"message\" must be longer than 20 charaters',
+              message: '\"message\" must be longer than 20 characters',
             );
             expect(fakeEmailSender.sentMessages, isEmpty);
           },

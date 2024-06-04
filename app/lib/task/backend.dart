@@ -83,7 +83,7 @@ class TaskBackend {
   /// `null` when not started yet, or we have been fully stopped.
   Completer<void>? _aborted;
 
-  /// If background processes created by [start] have stoppped.
+  /// If background processes created by [start] have stopped.
   ///
   /// This won't be resolved if [start] has not been called!
   /// `null` when not started yet.
@@ -358,7 +358,7 @@ class TaskBackend {
       latestVersion = package.latestVersion;
 
       // Update the timestamp for when the last version was published.
-      // This is used if we need to update dependants.
+      // This is used if we need to update dependents.
       lastVersionCreated = packageVersions.map((pv) => pv.created!).max;
 
       // If package is not visible, we should remove it!
@@ -403,7 +403,7 @@ class TaskBackend {
             ..finished = initialTimestamp
             ..derivePendingAt(),
         );
-        return true; // no more work for this package, state is sync'ed
+        return true; // no more work for this package, state is synced
       }
 
       // List versions that not tracked, but should be
@@ -532,7 +532,7 @@ class TaskBackend {
     //      this is the matching logic we leverage here.
     //
     // We only update [PackageState] to have [lastDependencyChanged], this
-    // ensures that there is no risk of indefinite propergation.
+    // ensures that there is no risk of indefinite propagation.
     final q = _db.query<PackageState>()
       ..filter('dependencies =', package)
       ..filter('lastDependencyChanged <', publishedAt);

@@ -37,7 +37,7 @@ const robotsVisibilityMaxAge = Duration(days: 365 * 2);
 /// their attractiveness to spammers.
 const robotsVisibilityMinAge = Duration(days: 3);
 
-/// Pub package metdata.
+/// Pub package metadata.
 ///
 /// The main property used is `uploaders` for determining who is allowed
 /// to upload packages.
@@ -1042,7 +1042,7 @@ class PackageView {
 
 /// Sorts [versions] according to the semantic versioning specification.
 ///
-/// If [pubSorting] is `true` then pub's priorization ordering is used, which
+/// If [pubSorting] is `true` then pub's prioritization ordering is used, which
 /// will rank pre-release versions lower than stable versions (e.g. it will
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").

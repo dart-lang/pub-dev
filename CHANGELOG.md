@@ -109,7 +109,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.16.9`.
  * Upgraded preview Dart analysis SDK to `3.3.0-279.3.beta`.
  * Upgraded preview Flutter analysis SDK to `3.19.0-0.4.pre`.
- * Note: started to populare audit log records with extended `agentId` for service accounts.
+ * Note: started to populate audit log records with extended `agentId` for service accounts.
 
 ## `20240201t145300-all`
  * Note: temporarily disabled email notification on package published events.
@@ -196,7 +196,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded pana to `0.21.40`.
 
 ## `20231019t115400-all`
- * Moved search index building and seach GC jobs into `analyzer` instance.
+ * Moved search index building and search GC jobs into `analyzer` instance.
  * Increased memory on `analyzer` instances to 16G, running two of them.
 
 ## `20231018t131100-all`
@@ -251,7 +251,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded runtime Dart SDK to `3.1.0`.
  * Upgraded dependencies.
  * Note: `DartdocRun`, `Job` and `ScoreCard` entities will be deleted in Datastore.
- * Note: `dartdoc` backend no longer deletes entries from `Configuraiton.dartdocStorageBucketName`.
+ * Note: `dartdoc` backend no longer deletes entries from `Configuration.dartdocStorageBucketName`.
          TODO: delete the bucket after this release becomes obsolete.
 
 ## `20230822t112400-all`
@@ -324,7 +324,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## `20230606t110900-all`
  * Bumped runtimeVersion to `2023.05.31`.
- * Note: Dart 3 compatiblity check uses the same SDK as the analysis.
+ * Note: Dart 3 compatibility check uses the same SDK as the analysis.
 
 ## `20230531t083600-all`
  * Bumped runtimeVersion to `2023.05.30`.
@@ -1038,7 +1038,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * NOTE: Expected reduction in Job-related API calls.
 
 ## `20210325t074600-all`
- * Tempoarily disabled youtube integration.
+ * Temporarily disabled youtube integration.
 
 ## `20210324t155000-all`
 
@@ -1097,7 +1097,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
          `delete-expired-consents`, `delete-expired-sessions`,
          `delete-old-jobs`, `delete-old-scorecards`.
  * Removed all usage of `app/static/js/gtag.js` it can be removed after a few
-   runtimeVerions when we are no-longer serving old generated dartdoc files.
+   runtimeVersions when we are no-longer serving old generated dartdoc files.
 
 ## `20210203t120700-all`
 
@@ -1607,5 +1607,5 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20190306t115839-all`
  
  * Run `app/bin/tools/backfill_packageversions.dart` to backfill `PubSpec`
-   entities in datastore (these entitites are not in use yet).
+   entities in datastore (these entities are not in use yet).
  * Bumped runtimeVersion to `2019.03.05`.

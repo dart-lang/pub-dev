@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  testWithProfile('Sync and resync advisories from dircetory', fn: () async {
+  testWithProfile('Sync and resync advisories from directory', fn: () async {
     final dataDir1 = Directory(path.join(Directory.current.path, 'test',
         'service', 'security_advisory', 'testdata', 'adv1'));
     final (osvs, failedFiles) = await loadAdvisoriesFromDir(dataDir1);

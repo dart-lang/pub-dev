@@ -17,7 +17,7 @@ part 'models.g.dart';
 /// We periodically re-analyze all packages to ensure eventual consistency.
 const taskRetriggerInterval = Duration(days: 31);
 
-/// Time before an anlysis/dartdoc task for a given package/version is will
+/// Time before an analysis/dartdoc task for a given package/version is will
 /// piggyback on the sandbox used for analysis of another version of the same
 /// package.
 const minTaskRetriggerInterval = Duration(days: 21);
@@ -145,7 +145,7 @@ class PackageState extends db.ExpandoModel<String> {
         ...versions!.values
             .where((v) => v.attempts > 0 && v.attempts < taskRetryLimit)
             .map((v) => v.scheduled.add(taskRetryDelay(v.attempts))),
-        // Pick the minimum of the candiates, default scheduling in year 3k
+        // Pick the minimum of the candidates, default scheduling in year 3k
         // if there is no date before that.
       ].fold(DateTime(3000), (a, b) => a!.isBefore(b) ? a : b);
 
@@ -155,7 +155,7 @@ class PackageState extends db.ExpandoModel<String> {
   /// are going to be pending soon too. Hence, we return a version if:
   ///   * `now - scheduled > 21 days`,
   ///   * `lastDependencyChanged > scheduled`, or,
-  ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attemps^2`
+  ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
   List<String> pendingVersions({DateTime? at}) {
     final at_ = at ?? clock.now();
     Duration timeSince(DateTime past) => at_.difference(past);

@@ -67,7 +67,7 @@ const googleCloudComputeScope = ComputeApi.cloudPlatformScope;
 ///
 /// Similarly, all instances created by this abstraction will be labelled with
 /// `owner` as `'pub-dev'` and `pool` as [poolLabel]. This allows for multiple
-/// pools of machines that don't interfere with eachother. By using a
+/// pools of machines that don't interfere with each other. By using a
 /// [poolLabel] such as `'<runtimeVersion>_worker'` we can ensure that the
 /// [CloudCompute] object for pana-tasks doesn't interfere with the other
 /// _runtime versions_ in production.

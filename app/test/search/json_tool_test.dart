@@ -53,7 +53,7 @@ void main() {
         PackageDocument(
           package: 'json_to_model',
           description:
-              'Gernerate model class from Json file. partly inspired by json_model.',
+              'Generate model class from Json file. partly inspired by json_model.',
           readme:
               'Command line tool for generating Dart models (json_serializable) from Json file.',
         ),

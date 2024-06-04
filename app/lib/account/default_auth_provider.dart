@@ -462,7 +462,7 @@ abstract class BaseAuthProvider extends AuthProvider {
 /// do is to attempt authentication as both kinds of tokens. However, in
 /// practice Google oauth2 `access_token`s starts with `'ya29.'` and do not
 /// match the regular expression for JWTs. Thus, we can avoid significant
-/// overhead by trying the most likley approach first.
+/// overhead by trying the most likely approach first.
 bool _isLikelyAccessToken(String token) {
   // access_tokens starts with 'ya29.'
   if (token.startsWith('ya29.')) {

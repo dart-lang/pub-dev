@@ -130,7 +130,7 @@ class AdminBackend {
     }
 
     final users = await query.run().toList();
-    // We may return a page with users less then a limit, but we always
+    // We may return a page with users less than a limit, but we always
     // set the continuation token to the correct value.
     final newContinuationToken = users.length < limit
         ? null
@@ -492,7 +492,7 @@ class AdminBackend {
 
   /// Handles GET '/api/admin/packages/<package>/assigned-tags'
   ///
-  /// Note, this API end-point is intentioanlly locked down even if it doesn't
+  /// Note, this API end-point is intentionally locked down even if it doesn't
   /// return anything secret. This is because the /admin/ section is only
   /// intended to be exposed to administrators. Users can read the assigned-tags
   /// through API that returns list of package tags.

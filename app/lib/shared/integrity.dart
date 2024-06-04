@@ -775,7 +775,7 @@ class IntegrityChecker {
     required String entityType,
     String? entityId,
 
-    /// Set true for entries where we retain the record indefintely,
+    /// Set true for entries where we retain the record indefinitely,
     /// even if the [User] has been deleted or invalidated.
     bool isRetainedRecord = false,
   }) async* {
@@ -799,7 +799,7 @@ class IntegrityChecker {
     required String entityType,
     String? entityId,
 
-    /// Set true for entries where we retain the record indefintely,
+    /// Set true for entries where we retain the record indefinitely,
     /// even if the [User] has been deleted or invalidated.
     bool isRetainedRecord = false,
   }) async* {

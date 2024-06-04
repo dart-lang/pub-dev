@@ -123,7 +123,7 @@ class SdkMemIndex {
 
     final hits = <_Hit>[];
     for (final library in _tokensPerLibrary.keys) {
-      // We may recude the rank of certain libraries, except when their name is
+      // We may reduce the rank of certain libraries, except when their name is
       // also part of the query. E.g. `dart:html` with `query=cursor` may be
       // scored lower than `query=html cursor`.
       final isQualifiedQuery = query.contains(library.split(':').last);

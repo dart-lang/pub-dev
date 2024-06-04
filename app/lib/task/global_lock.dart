@@ -55,7 +55,7 @@ class GlobalLock {
           // This logic ensures that we try to refresh when 50% of expiration
           // has passed, at this point we refresh every 10% of expiration. This
           // ensures that if refreshing fails, then we have a few attempts to
-          // refresh, before it's truely expired.
+          // refresh, before it's truly expired.
 
           // Wait for done or delay
           await done.future.timeout(delay, onTimeout: () => null);
@@ -128,7 +128,7 @@ class GlobalLock {
     } on TransactionAbortedError {
       // Note: withRetryTransaction will have retried this, so this means we
       // a high write congestion -- or, many connection exceptions.
-      _log.shout('Write congestion tryingt to claim $_lockId');
+      _log.shout('Write congestion trying to claim $_lockId');
       return null;
     }
   }
@@ -196,7 +196,7 @@ class GlobalLockClaim {
   /// This offers some safety from clock drift. In most cases the claim should
   /// be refreshed long before we approach 75% of the expiration being passed.
   ///
-  /// When a claim is refreshed 75% before expiration it allows allows us to use
+  /// When a claim is refreshed 75% before expiration it allows us to use
   /// [expires] as _deadline_ for other operations.
   bool get valid =>
       _released == null &&
@@ -237,7 +237,7 @@ class GlobalLockClaim {
     } on TransactionAbortedError {
       // Note: withRetryTransaction will have retried this, so this means we
       // a high write congestion -- or, many connection exceptions.
-      _log.shout('Write congestion tryingt to refresh $_entry.lockId');
+      _log.shout('Write congestion trying to refresh $_entry.lockId');
       return false;
     }
   }

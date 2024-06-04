@@ -20,7 +20,7 @@ void main() {
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_TOKEN'] ?? '';
   final githubRepository = Platform.environment['GITHUB_REPOSITORY'] ?? '';
 
-  // This test only works when running on Github Actions with `id-token: write` permissions.
+  // This test only works when running on GitHub Actions with `id-token: write` permissions.
   //
   // This test creates a id-token, not for talking to an external service, but
   // for testing that we are able to verify and validate the token.

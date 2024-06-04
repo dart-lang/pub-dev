@@ -73,6 +73,6 @@ Future<DeleteCounts> removeOrphanedLikes({
       return false;
     },
   );
-  _logger.info('Removed ${counts.deleted} orhaned likes.');
+  _logger.info('Removed ${counts.deleted} orphaned likes.');
   return counts;
 }

@@ -29,7 +29,7 @@ List<int> encodeLength(int length) {
   }
 }
 
-/// Encodes the [bytes] as integer, using the big-endian enconding.
+/// Encodes the [bytes] as integer, using the big-endian encoding.
 @visibleForTesting
 List<int> encodeIntegerFromBytes(List<int> bytes) {
   final padBytes = bytes.isNotEmpty && (bytes.first & 0x80 > 0);
@@ -53,7 +53,7 @@ List<int> encodeBitString(List<int> bytes) {
   ];
 }
 
-/// Encodes mulitple parts as a sequence.
+/// Encodes multiple parts as a sequence.
 @visibleForTesting
 List<int> encodeSequence(Iterable<List<int>> parts) {
   final totalLength = parts.map((e) => e.length).fold<int>(0, (a, b) => a + b);

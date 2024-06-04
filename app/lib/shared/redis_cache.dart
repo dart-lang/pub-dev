@@ -428,7 +428,7 @@ Future<void> setupCache() async {
     await _registerRedisCache();
   } else {
     _log.warning('using in-memory cache instead of redis');
-    await _registerInmemoryCache();
+    await _registerInMemoryCache();
   }
 }
 
@@ -450,7 +450,7 @@ Future _registerRedisCache() async {
   ss.registerScopeExitCallback(() async => cacheProvider.close());
 }
 
-Future _registerInmemoryCache() async {
+Future _registerInMemoryCache() async {
   _registerCache(CachePatterns._(Cache(Cache.inMemoryCacheProvider(4096))));
 }
 

@@ -56,7 +56,7 @@ class Publisher extends db.ExpandoModel<String> {
 
   /// [isBlocked] is set when a [Publisher] is blocked by an administrative action.
   /// When this happens:
-  /// - The publisher page should not be visible, nor listed anywhere.
+  /// - The publisher page should neither be visible nor listed anywhere.
   /// - Administrator roles of the publisher must not be able to change any setting,
   ///   membership information, or invite new members.
   /// - Administrator roles of the publisher must not be able to publisher a new version

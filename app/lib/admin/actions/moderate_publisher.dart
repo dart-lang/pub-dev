@@ -16,7 +16,7 @@ final moderatePublisher = AdminAction(
       'Set the moderated flag on a publisher (making it invisible and unable to change).',
   description: '''
 Set the moderated flag on a publisher (updating the flag and the timestamp). The
-moderated package page page says it is moderated, packages owned by publisher
+moderated package page says it is moderated, packages owned by publisher
 can't be updated, administrators must not be able to update publisher options.
 ''',
   options: {

@@ -84,7 +84,7 @@ Future<void> main(List<String> args, var message) async {
 }
 
 /// Implementation of [SearchIndex] that uses [RequestMessage]s to send requests
-/// accross isolate boundaries. The instance should be registered inside the
+/// across isolate boundaries. The instance should be registered inside the
 /// `frontend` isolate, and it calls the `index` isolate as a delegate.
 class IsolateSearchIndex implements SearchIndex {
   final IsolateRunner _runner;

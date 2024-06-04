@@ -155,7 +155,7 @@ Future<Summary> fakePanaSummary({
 /// Returns the hash of the [key]. When [max] is present, only
 /// ints between 0 and max (exclusive) will be returned.
 ///
-/// Throws [StateError] if it is called more than once with teh same [key].
+/// Throws [StateError] if it is called more than once with the same [key].
 typedef Hasher = int Function(String key, {int? max});
 
 /// Creates a [Hasher] using the provided [seed].

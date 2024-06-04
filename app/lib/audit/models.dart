@@ -434,7 +434,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId]);
   }
 
-  /// Returns [AuditLogRecord] for the pubilsher contact invited operation.
+  /// Returns [AuditLogRecord] for the publisher contact invited operation.
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInvited({
@@ -860,8 +860,8 @@ abstract class AuditLogRecordKind {
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';
 
-  /// Event that a new package was created. This event is created alonside the
-  /// [packagePublished] event, but is only kept until the default expirty period
+  /// Event that a new package was created. This event is created alongside the
+  /// [packagePublished] event, but is only kept until the default expiry period
   /// (to enforce rate limits).
   static const packageCreated = 'package-created';
 
