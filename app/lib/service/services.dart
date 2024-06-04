@@ -16,6 +16,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/package/export_api_to_bucket.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
@@ -284,6 +285,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));
     registerSecurityAdvisoryBackend(SecurityAdvisoryBackend(dbService));
+    registerDownloadCountsBackend(DownloadCountsBackend(dbService));
 
     await setupCache();
 
