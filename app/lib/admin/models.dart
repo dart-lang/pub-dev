@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/urls.dart' as urls;
@@ -101,6 +102,13 @@ class ModerationCase extends db.ExpandoModel<String> {
     opened = clock.now().toUtc();
   }
 
+  static String generateCaseId({
+    DateTime? now,
+  }) {
+    now ??= clock.now();
+    return '${now.toIso8601String().split('T').first}/${createUuid()}';
+  }
+
   ModerationActionLog getActionLog() {
     if (actionLogField == null) {
       return ModerationActionLog(entries: []);
@@ -147,13 +155,26 @@ class ModerationCase extends db.ExpandoModel<String> {
   }
 }
 
-abstract class ModerationDetectedBy {
+abstract class ModerationSource {
   static const externalNotification = 'external-notification';
+  static const internalNotification = 'internal-notification';
+
+  static const _values = [
+    externalNotification,
+    internalNotification,
+  ];
+  static bool isValidSource(String value) => _values.contains(value);
 }
 
 abstract class ModerationKind {
   static const notification = 'notification';
   static const appeal = 'appeal';
+
+  static const _values = [
+    notification,
+    appeal,
+  ];
+  static bool isValidKind(String value) => _values.contains(value);
 }
 
 abstract class ModerationStatus {
@@ -164,6 +185,17 @@ abstract class ModerationStatus {
   static const noActionReverted = 'no-action-reverted';
   static const moderationUpheld = 'moderation-upheld';
   static const moderationReverted = 'moderation-reverted';
+
+  static const _values = [
+    pending,
+    noAction,
+    moderationApplied,
+    noActionUpheld,
+    noActionReverted,
+    moderationUpheld,
+    moderationReverted,
+  ];
+  static bool isValidStatus(String value) => _values.contains(value);
 }
 
 /// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).

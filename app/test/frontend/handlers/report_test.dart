@@ -311,7 +311,7 @@ void main() {
       final mc = ModerationCase.init(
         caseId: 'case/1',
         reporterEmail: 'somebody@pub.dev',
-        source: ModerationDetectedBy.externalNotification,
+        source: ModerationSource.externalNotification,
         kind: ModerationKind.notification,
         status: status ?? ModerationStatus.moderationApplied,
         subject: 'package:oxygen',
