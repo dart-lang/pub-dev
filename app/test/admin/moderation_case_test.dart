@@ -25,10 +25,13 @@ void main() {
         'reporterEmail': 'support@pub.dev',
         'kind': 'notification',
         'opened': isNotEmpty,
+        'resolved': null,
         'source': 'internal-notification',
         'status': 'pending',
         'subject': 'package:oxygen',
+        'isSubjectOwner': false,
         'url': null,
+        'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
     });
@@ -50,10 +53,13 @@ void main() {
         'reporterEmail': 'user@pub.dev',
         'kind': 'notification',
         'opened': isNotEmpty,
+        'resolved': null,
         'source': 'external-notification',
         'status': 'no-action',
         'subject': 'package:oxygen',
+        'isSubjectOwner': false,
         'url': null,
+        'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
     });
@@ -144,10 +150,13 @@ void main() {
         'reporterEmail': 'user@pub.dev',
         'kind': 'notification',
         'opened': isNotEmpty,
+        'resolved': null,
         'source': 'external-notification',
         'status': 'no-action',
         'subject': 'package:oxygen',
+        'isSubjectOwner': false,
         'url': null,
+        'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
     });
