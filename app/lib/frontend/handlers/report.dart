@@ -21,7 +21,6 @@ import '../../shared/datastore.dart';
 import '../../shared/email.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
-import '../../shared/utils.dart';
 import '../request_context.dart';
 import '../templates/report.dart';
 
@@ -40,7 +39,7 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   InvalidInputException.checkNotNull(subjectParam, 'subject');
   final subject = ModerationSubject.tryParse(subjectParam!);
   InvalidInputException.check(subject != null, 'Invalid "subject" parameter.');
-  await _verifySubject(subject!);
+  await verifyModerationSubjectExists(subject!);
 
   final url = request.requestedUri.queryParameters['url'];
   _verifyUrl(url);
@@ -59,7 +58,8 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   );
 }
 
-Future<void> _verifySubject(ModerationSubject? subject) async {
+/// Verifies the existence of the subject entity.
+Future<void> verifyModerationSubjectExists(ModerationSubject? subject) async {
   final package = subject?.package;
   final version = subject?.version;
   if (package != null) {
@@ -144,7 +144,7 @@ Future<String> processReportPageHandler(
   }
 
   final now = clock.now().toUtc();
-  final caseId = '${now.toIso8601String().split('T').first}/${createUuid()}';
+  final caseId = ModerationCase.generateCaseId(now: now);
 
   final isAuthenticated = requestContext.sessionData?.isAuthenticated ?? false;
   final user = isAuthenticated ? await requireAuthenticatedWebUser() : null;
@@ -162,7 +162,7 @@ Future<String> processReportPageHandler(
   InvalidInputException.checkNotNull(form.subject, 'subject');
   final subject = ModerationSubject.tryParse(form.subject!);
   InvalidInputException.check(subject != null, 'Invalid subject.');
-  await _verifySubject(subject!);
+  await verifyModerationSubjectExists(subject!);
 
   _verifyUrl(form.url);
   await _verifyCaseId(form.caseId, subject);
@@ -193,7 +193,7 @@ Future<String> processReportPageHandler(
     final mc = ModerationCase.init(
       caseId: caseId,
       reporterEmail: userEmail!,
-      source: ModerationDetectedBy.externalNotification,
+      source: ModerationSource.externalNotification,
       kind: isAppeal ? ModerationKind.appeal : ModerationKind.notification,
       status: ModerationStatus.pending,
       subject: subject.fqn,
