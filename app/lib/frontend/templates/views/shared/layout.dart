@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/models.dart';
-
+import '../../../../admin/models.dart';
 import '../../../../shared/configuration.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
+import '../../../request_context.dart';
 import '../../../static_files.dart' show staticUrls;
 
 d.Node pageLayoutNode({
@@ -159,6 +159,8 @@ d.Node pageLayoutNode({
           'body',
           classes: [
             ...?bodyClasses,
+            if (requestContext.experimentalFlags.isDarkModeEnabled)
+              '-experimental-dark-mode',
             'light-theme',
             if (activeConfiguration.isStaging) 'staging-banner',
           ],

@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import '../../shared/cookie_utils.dart';
 
 const _publicFlags = <String>{
+  'dark',
   'report',
 };
 
@@ -79,6 +80,8 @@ class ExperimentalFlags {
   }
 
   bool get isReportPageEnabled => isEnabled('report');
+
+  bool get isDarkModeEnabled => isEnabled('dark');
 
   String encodedAsCookie() => _enabled.join(':');
 
