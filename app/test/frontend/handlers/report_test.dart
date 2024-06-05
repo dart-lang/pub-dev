@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
@@ -321,6 +322,9 @@ void main() {
       );
       if (logSubject != null) {
         mc.addActionLogEntry(logSubject, ModerationAction.apply, null);
+      }
+      if (mc.status != ModerationStatus.pending) {
+        mc.resolved = clock.now();
       }
       await dbService.commit(inserts: [mc]);
     }
