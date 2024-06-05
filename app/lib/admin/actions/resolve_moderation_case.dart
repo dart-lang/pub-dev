@@ -16,12 +16,22 @@ Closes the moderation case and updates the status based on the actions logged on
 ''',
   options: {
     'case': 'The caseId to be closed.',
+    'status':
+        'The resolved status of the case. (optional, will be automatically inferred if absent)'
   },
   invoke: (options) async {
     final caseId = options['case'];
     InvalidInputException.check(
       caseId != null && caseId.isNotEmpty,
       'case must be given',
+    );
+
+    var status = options['status'];
+    InvalidInputException.check(
+      status == null ||
+          (status != ModerationStatus.pending &&
+              ModerationStatus.isValidStatus(status)),
+      'invalid status',
     );
 
     final mc = await withRetryTransaction(dbService, (tx) async {
@@ -38,28 +48,32 @@ Closes the moderation case and updates the status based on the actions logged on
 
       final hasModeratedAction = mc.getActionLog().hasModeratedAction();
 
-      if (mc.kind == ModerationKind.notification) {
-        mc.status = hasModeratedAction
-            ? ModerationStatus.moderationApplied
-            : ModerationStatus.noAction;
-      } else if (mc.kind == ModerationKind.appeal) {
-        final appealedCase = await tx.lookupValue<ModerationCase>(
-            dbService.emptyKey.append(ModerationCase, id: mc.appealedCaseId!));
-        final appealHadModeratedAction =
-            appealedCase.getActionLog().hasModeratedAction();
-        if (appealHadModeratedAction) {
-          mc.status = hasModeratedAction
-              ? ModerationStatus.moderationReverted
-              : ModerationStatus.moderationUpheld;
+      if (status == null) {
+        if (mc.kind == ModerationKind.notification) {
+          status = hasModeratedAction
+              ? ModerationStatus.moderationApplied
+              : ModerationStatus.noAction;
+        } else if (mc.kind == ModerationKind.appeal) {
+          final appealedCase = await tx.lookupValue<ModerationCase>(dbService
+              .emptyKey
+              .append(ModerationCase, id: mc.appealedCaseId!));
+          final appealHadModeratedAction =
+              appealedCase.getActionLog().hasModeratedAction();
+          if (appealHadModeratedAction) {
+            status = hasModeratedAction
+                ? ModerationStatus.moderationReverted
+                : ModerationStatus.moderationUpheld;
+          } else {
+            status = hasModeratedAction
+                ? ModerationStatus.noActionReverted
+                : ModerationStatus.noActionUpheld;
+          }
         } else {
-          mc.status = hasModeratedAction
-              ? ModerationStatus.noActionReverted
-              : ModerationStatus.noActionUpheld;
+          throw UnimplementedError('Kind "${mc.kind}" is not implemented.');
         }
-      } else {
-        throw UnimplementedError('Kind "${mc.kind}" is not implemented.');
       }
 
+      mc.status = status!;
       tx.insert(mc);
       return mc;
     });

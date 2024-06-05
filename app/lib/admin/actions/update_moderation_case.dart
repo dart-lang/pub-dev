@@ -67,6 +67,12 @@ Returns the fields of the updated moderation case.
       mc.source = source ?? mc.source;
       mc.status = status ?? mc.status;
 
+      InvalidInputException.check(
+        (mc.resolved != null && mc.status != ModerationStatus.pending) ||
+            (mc.resolved == null && mc.status == ModerationStatus.pending),
+        'resolved timestamp in conflict with status',
+      );
+
       tx.insert(mc);
     });
     final mc = await adminBackend.lookupModerationCase(caseId);

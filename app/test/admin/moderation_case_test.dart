@@ -45,7 +45,6 @@ void main() {
           'subject': 'package:oxygen',
           'kind': 'notification',
           'source': 'external-notification',
-          'status': 'no-action',
         }),
       );
       expect(rs.output, {
@@ -55,7 +54,7 @@ void main() {
         'opened': isNotEmpty,
         'resolved': null,
         'source': 'external-notification',
-        'status': 'no-action',
+        'status': 'pending',
         'subject': 'package:oxygen',
         'isSubjectOwner': false,
         'url': null,
@@ -101,7 +100,6 @@ void main() {
       final values = {
         'kind': 'kind',
         'source': 'source',
-        'status': 'status',
         'reporter-email': 'non-email',
       };
 
@@ -135,6 +133,14 @@ void main() {
     testWithProfile('success', fn: () async {
       final caseId = await _create();
       final api = createPubApiClient(authToken: siteAdminToken);
+      // close case first to change status
+      await api.adminInvokeAction(
+        'resolve-moderation-case',
+        AdminInvokeActionArguments(arguments: {
+          'case': caseId,
+        }),
+      );
+
       final rs = await api.adminInvokeAction(
         'update-moderation-case',
         AdminInvokeActionArguments(arguments: {
@@ -150,7 +156,7 @@ void main() {
         'reporterEmail': 'user@pub.dev',
         'kind': 'notification',
         'opened': isNotEmpty,
-        'resolved': null,
+        'resolved': isNotEmpty,
         'source': 'external-notification',
         'status': 'no-action',
         'subject': 'package:oxygen',
