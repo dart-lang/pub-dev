@@ -43,7 +43,14 @@ class CountData {
   final majorRangeCounts = <VersionRangeCount>[];
   final minorRangeCounts = <VersionRangeCount>[];
   final patchRangeCounts = <VersionRangeCount>[];
-  final totalCounts = List.filled(maxAge, 0, growable: true);
+
+  /// A list of integers representing the total number of daily downloads of any
+  /// version of the package. The list contains at most [maxAge] entries. The
+  /// first entry in represents the total number of downloads on `newestDate`
+  /// followed by the downloads on `newestDate` - 1 and so on.
+  ///
+  /// Days with no data are represented with `-1`.
+  final totalCounts = List.filled(maxAge, -1, growable: true);
 
   CountData();
 
@@ -74,9 +81,9 @@ class CountData {
 
     // Handle totalCounts
     if (date.isAfter(newestDate!)) {
-      final zerosList = List.filled(date.difference(newestDate!).inDays, 0);
-      // Fill in with 0 on days with no data.
-      totalCounts..insertAll(0, zerosList);
+      final minusOneList = List.filled(date.difference(newestDate!).inDays, -1);
+      // Fill in with -1 on days with no data.
+      totalCounts..insertAll(0, minusOneList);
       if (totalCounts.length > maxAge) {
         totalCounts.removeRange(maxAge, totalCounts.length);
       }
