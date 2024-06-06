@@ -8,46 +8,75 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 part 'download_counts.g.dart';
 
+/// A tuple containing a string describing a `versionRange`, for instance
+/// '>=1.0.0-0 <2.0.0', and a list of integers with a count for each day.
+/// The `counts` list contains at most [maxAge] entries. The first entry
+/// represents the number of downloads on `newestDate` followed by the
+/// downloads on `newestDate` - 1 and so on. E.g.
+///
+///  counts = [ 42, 21, 55 ]
+///              ▲   ▲   ▲
+///              │   │   └──────────── Download count on newestDate - 2 days
+///              │   │
+///              │   └──────────────── Download count on newestDate - 1 day
+///              │
+///              └──────────────────── Download count on newestDate
+///
+///
+/// Each entry in the `counts` list is non-negativ. A `0` entry can for a given
+/// day mean that the version range has no downloads or that there is no data.
 typedef VersionRangeCount = ({String versionRange, List<int> counts});
+
+/// The maximum number of days for which we store downloads counts for a package.
+const maxAge = 731;
 
 @JsonSerializable(includeIfNull: false)
 class CountData {
-  // We store at most two years of data, one data point per day.
-  static const maxAge = 731;
-
-  // We store at most 5 ranges in the xxxxxCounts list;
+  /// The maximum number of ranges we store in the xxxxxCounts list;
   static const maxRanges = 5;
 
-  // Newest date with processed data.
-  // The date only contains year, month and date.
-  // Hours, minutes and seconds are disregarded.
+  /// Newest date with processed data.
+  /// The date only contains year, month and date.
+  /// Hours, minutes and seconds are disregarded.
   DateTime? newestDate;
 
-  /// A list of tuples containing a string describing a major `versionRange`,
-  /// e.g. '>=1.0.0-0 <2.0.0', and a list of integers with a count for each day.
-  /// The 'counts' list contains at most [maxAge] entries. The first entry in
-  /// represents the number of downloads on `newestDate` followed by the
-  /// downloads on `newestDate` - 1 and so on. E.g.
+  /// A list of [VersionRangeCount] with major version ranges.
   ///
-  ///  counts = [ 42, 21, 55 ]
-  ///              ▲   ▲   ▲
-  ///              │   │   └──────────── Download count on newestDate - 2 days
-  ///              │   │
-  ///              │   └──────────────── Download count on newestDate - 1 day
-  ///              │
-  ///              └──────────────────── Download count on newestDate
-  ///
+  /// Example:
+  /// * { '>=1.0.0-0 <2.0.0', [...] }
+  /// * { '>=2.0.0-0 <3.0.0', [...] }
+  /// * { '>=3.0.0-0 <4.0.0', [...] }
   ///
   /// [majorRangeCounts] has at most [maxRanges] elements and is sorted by
   ///  version ranges.
   final majorRangeCounts = <VersionRangeCount>[];
+
+  /// A list of [VersionRangeCount] with minor version ranges.
+  ///
+  /// Example:
+  /// * { '>=1.1.0-0 <1.2.0', [...] }
+  /// * { '>=1.2.0-0 <1.3.0', [...] }
+  /// * { '>=1.3.0-0 <1.4.0', [...] }
+  ///
+  /// [minorRangeCounts] has at most [maxRanges] elements and is sorted by
+  ///  version ranges.
   final minorRangeCounts = <VersionRangeCount>[];
+
+  /// A list of [VersionRangeCount] with patch version ranges.
+  ///
+  /// Example:
+  /// * { '>=1.1.1-0 <1.1.2', [...] }
+  /// * { '>=1.1.2-0 <1.1.3', [...] }
+  /// * { '>=1.1.3-0 <1.1.4', [...] }
+  ///
+  /// [patchRangeCounts] has at most [maxRanges] elements and is sorted by
+  ///  version ranges.
   final patchRangeCounts = <VersionRangeCount>[];
 
   /// A list of integers representing the total number of daily downloads of any
   /// version of the package. The list contains at most [maxAge] entries. The
-  /// first entry represents the total number of downloads on `newestDate`
-  /// followed by the downloads on `newestDate` - 1 and so on.
+  /// first entry represents the total number of downloads on [newestDate]
+  /// followed by the downloads on [newestDate] - 1 and so on.
   ///
   /// Days with no data are represented with `-1`.
   final totalCounts = List.filled(maxAge, -1, growable: true);
