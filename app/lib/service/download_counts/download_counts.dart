@@ -46,7 +46,7 @@ class CountData {
 
   /// A list of integers representing the total number of daily downloads of any
   /// version of the package. The list contains at most [maxAge] entries. The
-  /// first entry in represents the total number of downloads on `newestDate`
+  /// first entry represents the total number of downloads on `newestDate`
   /// followed by the downloads on `newestDate` - 1 and so on.
   ///
   /// Days with no data are represented with `-1`.
