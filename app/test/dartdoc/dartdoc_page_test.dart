@@ -62,6 +62,7 @@ void main() {
     scopedTest(
       'run dartdoc',
       () async {
+        registerStaticFileCacheForTest(StaticFileCache.forTests());
         final pr = await toolEnv.dartdoc(pkgDir, docDir, usesFlutter: false);
         expect(pr.exitCode, 0);
 

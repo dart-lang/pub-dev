@@ -118,6 +118,7 @@ class StaticFileCache {
       // deployment process. Normally page rendering checks their existence,
       // and fails when they are missing. By listing these here, the build
       // is no longer a strict requirement, and tests can be run without it.
+      '/static/css/dartdoc.css',
       '/static/css/style.css',
       '/static/js/script.dart.js',
     };
