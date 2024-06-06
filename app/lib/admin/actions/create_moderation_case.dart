@@ -23,7 +23,6 @@ Returns the fields on the newly created moderation case.
     'kind': 'The kind of the moderation case. (default value: `notification`)',
     'source':
         'The source of the moderation case. (default value: `internal-notification`)',
-    'status': 'The status of the moderation case. (default value: `pending`)',
     'subject': 'The subject of the moderation case.',
     'url': 'The url of the moderation case (optional).'
   },
@@ -42,10 +41,6 @@ Returns the fields on the newly created moderation case.
     InvalidInputException.check(
         ModerationSource.isValidSource(source), 'invalid source');
 
-    final status = options['status'] ?? ModerationStatus.pending;
-    InvalidInputException.check(
-        ModerationStatus.isValidStatus(status), 'invalid status');
-
     final subject = options['subject'];
     InvalidInputException.check(
       subject != null && subject.isNotEmpty,
@@ -63,7 +58,7 @@ Returns the fields on the newly created moderation case.
         reporterEmail: reporterEmail,
         source: source,
         kind: kind,
-        status: status,
+        status: ModerationStatus.pending,
         subject: subject,
         isSubjectOwner: false,
         url: url,

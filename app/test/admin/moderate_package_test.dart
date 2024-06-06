@@ -354,7 +354,11 @@ void main() {
 
     testWithProfile('status already closed', fn: () async {
       final mc = await _report('oxygen');
-      await dbService.commit(inserts: [mc..status = ModerationStatus.noAction]);
+      await dbService.commit(inserts: [
+        mc
+          ..resolved = clock.now()
+          ..status = ModerationStatus.noAction
+      ]);
 
       await expectApiException(
         _moderate('oxygen', state: true, caseId: mc.caseId),
