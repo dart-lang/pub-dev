@@ -134,7 +134,7 @@ void main() {
             _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
 
             // cleanup <head> differences
-            for (final link in ['/styles.css', '/favicon.png']) {
+            for (final link in ['/styles.css', '/github.css', '/favicon.png']) {
               fileXmlRoot.descendantElements
                   .firstWhere((e) =>
                       e.localName == 'link' &&
@@ -149,7 +149,7 @@ void main() {
             renderedHead.childElements
                 .firstWhereOrNull((e) => e.getAttribute('content') == 'noindex')
                 ?.remove();
-            expect(renderedHead.children, hasLength(7));
+            expect(renderedHead.children, hasLength(6));
             for (final c in [...renderedHead.childElements]) {
               c.remove();
             }

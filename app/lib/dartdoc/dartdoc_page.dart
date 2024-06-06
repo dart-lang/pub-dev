@@ -110,21 +110,6 @@ extension DartDocPageRender on DartDocPage {
         if (!options.isLatestStable)
           d.meta(rel: 'alternate', href: options.latestStableDocumentationUrl),
         d.link(rel: 'preconnect', href: 'https://fonts.gstatic.com'),
-        // HACK: This is not part of dartdoc
-        d.link(
-            rel: 'stylesheet',
-            type: 'text/css',
-            href: staticUrls.githubMarkdownCss),
-        // TODO: Consider using same github.css we use on pub.dev
-        d.link(
-            rel: 'stylesheet',
-            type: 'text/css',
-            href: staticUrls.dartdocGithubCss),
-        if (activeConfiguration.isStaging)
-          d.link(
-              rel: 'stylesheet',
-              type: 'text/css',
-              href: staticUrls.getAssetUrl('/static/css/staging-ribbon.css')),
         d.link(
           rel: 'stylesheet',
           href:
@@ -136,7 +121,7 @@ extension DartDocPageRender on DartDocPage {
               'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
         ),
 
-        d.link(rel: 'stylesheet', href: staticUrls.dartdocStylesCss),
+        d.link(rel: 'stylesheet', href: staticUrls.dartdocCss),
         d.link(rel: 'icon', href: staticUrls.smallDartFavicon),
       ]);
 
