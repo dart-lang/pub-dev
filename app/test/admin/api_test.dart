@@ -526,7 +526,7 @@ void main() {
           final inviteAuditRecord = records1.records
               .firstWhere((e) => e.kind == AuditLogRecordKind.uploaderInvited);
           expect(inviteAuditRecord.summary,
-              '`admin@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.');
+              '`support@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.');
 
           final consentRow = await dbService.query<Consent>().run().single;
           expect(consentRow.args, ['oxygen']);
