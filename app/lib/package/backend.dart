@@ -1494,20 +1494,21 @@ class PackageBackend {
   }
 
   Future<void> confirmUploader(
-    String fromUserId,
     String packageName,
     User uploader, {
+    required String consentRequestFromAgent,
     required bool consentRequestCreatedBySiteAdmin,
   }) async {
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      if (!consentRequestCreatedBySiteAdmin) {
+      if (!consentRequestCreatedBySiteAdmin &&
+          consentRequestFromAgent != KnownAgents.pubSupport) {
         await _validatePackageUploader(
           packageName,
           package,
-          fromUserId,
+          consentRequestFromAgent,
         );
       }
       if (package.containsUploader(uploader.userId)) {

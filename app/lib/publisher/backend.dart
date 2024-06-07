@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/publisher_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/account/agent.dart';
 
 import '../account/auth_provider.dart';
 import '../account/backend.dart';
@@ -356,12 +357,13 @@ class PublisherBackend {
   Future updateContactWithVerifiedEmail(
     String publisherId,
     String contactEmail, {
-    required String consentRequestFromUserId,
+    required String consentRequestFromAgent,
     required bool consentRequestCreatedBySiteAdmin,
   }) async {
     checkPublisherIdParam(publisherId);
-    if (!consentRequestCreatedBySiteAdmin) {
-      await requirePublisherAdmin(publisherId, consentRequestFromUserId);
+    if (!consentRequestCreatedBySiteAdmin &&
+        consentRequestFromAgent != KnownAgents.pubSupport) {
+      await requirePublisherAdmin(publisherId, consentRequestFromAgent);
     }
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
@@ -545,12 +547,13 @@ class PublisherBackend {
   Future<void> inviteConsentGranted(
     String publisherId,
     String userId, {
-    required String consentRequestFromUserId,
+    required String consentRequestFromAgent,
     required bool consentRequestCreatedBySiteAdmin,
   }) async {
     checkPublisherIdParam(publisherId);
-    if (!consentRequestCreatedBySiteAdmin) {
-      await requirePublisherAdmin(publisherId, consentRequestFromUserId);
+    if (!consentRequestCreatedBySiteAdmin &&
+        consentRequestFromAgent != KnownAgents.pubSupport) {
+      await requirePublisherAdmin(publisherId, consentRequestFromAgent);
     }
     final user = await accountBackend.lookupUserById(userId);
     await withRetryTransaction(_db, (tx) async {
