@@ -60,8 +60,13 @@ class ConsentBackend {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind]!;
-    final invitingUserEmail =
-        (await accountBackend.getEmailOfUserId(c.fromUserId!))!;
+    final fromAgent = c.fromAgent!;
+    late String invitingUserEmail;
+    if (looksLikeUserId(fromAgent)) {
+      invitingUserEmail = (await accountBackend.getEmailOfUserId(fromAgent))!;
+    } else {
+      invitingUserEmail = fromAgent;
+    }
     return api.Consent(
       titleText: action.renderInviteTitleText(invitingUserEmail, c.args!),
       descriptionHtml: action.renderInviteHtml(
@@ -331,7 +336,6 @@ class _PackageUploaderAction extends ConsentAction {
     final packageName = consent.args![0];
     final createdBySiteAdmin = consent.createdBySiteAdmin ?? false;
     final fromUserId = consent.fromUserId!;
-    final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
@@ -340,7 +344,6 @@ class _PackageUploaderAction extends ConsentAction {
 
     await packageBackend.confirmUploader(
       fromUserId,
-      fromUserEmail,
       packageName,
       currentUser.user,
       consentRequestCreatedBySiteAdmin: createdBySiteAdmin,
