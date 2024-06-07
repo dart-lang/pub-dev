@@ -335,7 +335,6 @@ class _PackageUploaderAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
     final createdBySiteAdmin = consent.createdBySiteAdmin ?? false;
-    final fromUserId = consent.fromUserId!;
     final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
@@ -343,9 +342,9 @@ class _PackageUploaderAction extends ConsentAction {
     }
 
     await packageBackend.confirmUploader(
-      fromUserId,
       packageName,
       currentUser.user,
+      consentRequestFromAgent: consent.fromAgent!,
       consentRequestCreatedBySiteAdmin: createdBySiteAdmin,
     );
   }
@@ -411,7 +410,7 @@ class _PublisherContactAction extends ConsentAction {
     await publisherBackend.updateContactWithVerifiedEmail(
       publisherId,
       contactEmail,
-      consentRequestFromUserId: consent.fromUserId!,
+      consentRequestFromAgent: consent.fromAgent!,
       consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
     );
   }
@@ -491,7 +490,7 @@ class _PublisherMemberAction extends ConsentAction {
     await publisherBackend.inviteConsentGranted(
       publisherId,
       currentUser.userId,
-      consentRequestFromUserId: consent.fromUserId!,
+      consentRequestFromAgent: consent.fromAgent!,
       consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
     );
   }
