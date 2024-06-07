@@ -14,6 +14,7 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/account/agent.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
@@ -610,11 +611,10 @@ class AdminBackend {
 
     final user = await accountBackend.userForServiceAccount(authenticatedUser);
     await consentBackend.invitePackageUploader(
-      agent: authenticatedUser,
+      agent: SupportAgent(),
       activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
-      createdBySiteAdmin: true,
     );
     return await handleGetPackageUploaders(packageName);
   }

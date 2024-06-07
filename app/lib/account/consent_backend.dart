@@ -111,7 +111,6 @@ class ConsentBackend {
     required String kind,
     required List<String> args,
     required AuditLogRecord auditLogRecord,
-    required bool createdBySiteAdmin,
   }) async {
     return retry(() async {
       // First check for existing consents with identical dedupId.
@@ -143,7 +142,7 @@ class ConsentBackend {
         email: email,
         kind: kind,
         args: args,
-        createdBySiteAdmin: createdBySiteAdmin,
+        createdBySiteAdmin: activeAgent is SupportAgent,
       );
       await _db.commit(inserts: [
         consent,
@@ -159,7 +158,6 @@ class ConsentBackend {
     required User activeUser,
     required String packageName,
     required String uploaderEmail,
-    bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
       activeAgent: agent,
@@ -172,7 +170,6 @@ class ConsentBackend {
         package: packageName,
         uploaderEmail: uploaderEmail,
       ),
-      createdBySiteAdmin: createdBySiteAdmin,
     );
   }
 
@@ -191,7 +188,6 @@ class ConsentBackend {
       args: [publisherId, contactEmail],
       auditLogRecord: await AuditLogRecord.publisherContactInvited(
           user: user, publisherId: publisherId, contactEmail: contactEmail),
-      createdBySiteAdmin: false,
     );
   }
 
@@ -201,7 +197,6 @@ class ConsentBackend {
     required User activeUser,
     required String publisherId,
     required String invitedUserEmail,
-    bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
       activeAgent: authenticatedAgent,
@@ -214,7 +209,6 @@ class ConsentBackend {
         publisherId: publisherId,
         memberEmail: invitedUserEmail,
       ),
-      createdBySiteAdmin: createdBySiteAdmin,
     );
   }
 

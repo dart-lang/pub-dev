@@ -97,7 +97,7 @@ void main() {
         final r = page.records.firstWhere(
             (e) => e.kind == AuditLogRecordKind.publisherMemberInvited);
         expect(r.summary,
-            '`admin@pub.dev` invited `newmember@pub.dev` to be a member for publisher `example.com`.');
+            '`support@pub.dev` invited `newmember@pub.dev` to be a member for publisher `example.com`.');
 
         late String consentId;
         await withFakeAuthRequestContext(
