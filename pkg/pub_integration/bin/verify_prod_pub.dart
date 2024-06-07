@@ -116,7 +116,15 @@ Future<TestUser> _initializeUser(
   final session = await browser.createSession();
   return TestUser(
     email: email,
-    api: PubApiClient(
+    browserApi: PubApiClient(
+      pubHostedUrl,
+      client: http_retry.RetryClient(
+        createHttpClientWithHeaders(
+          {'Authorization': 'Bearer $apiAccessToken'},
+        ),
+      ),
+    ),
+    serverApi: PubApiClient(
       pubHostedUrl,
       client: http_retry.RetryClient(
         createHttpClientWithHeaders(
@@ -129,7 +137,7 @@ Future<TestUser> _initializeUser(
         if (cookies != null && cookies.isNotEmpty) {
           await page.setCookies(cookies);
         }
-        await fn(page);
+        return await fn(page);
       });
     },
     readLatestEmail: () async => _readLastEmail(email, gmailAccessToken),
