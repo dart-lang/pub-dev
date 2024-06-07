@@ -1495,7 +1495,6 @@ class PackageBackend {
 
   Future<void> confirmUploader(
     String fromUserId,
-    String fromUserEmail,
     String packageName,
     User uploader, {
     required bool consentRequestCreatedBySiteAdmin,
