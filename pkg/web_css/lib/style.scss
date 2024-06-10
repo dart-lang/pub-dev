@@ -3,7 +3,6 @@
 @use '../../../third_party/highlight/github.css';
 @use '../../../third_party/css/github-markdown.css';
 @use '../../../third_party/css/dartdoc-github-alert.css';
-@use '../../../static/css/staging-ribbon.css';
 
 // Local styles and rules.
 @import 'src/_variables';
@@ -19,6 +18,7 @@
 @import 'src/_report';
 @import 'src/_scores';
 @import 'src/_search';
+@import 'src/_staging_ribbon.scss';
 @import 'src/_tags';
 @import 'src/_themes';
 @import 'src/_topics';
