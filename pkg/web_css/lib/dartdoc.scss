@@ -1,0 +1,16 @@
+/* Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+// Include third-party CSS into a single output file
+// to reduce the number of HTTP requests.
+
+// Note: this is not part of dartdoc
+@use '../../../third_party/css/github-markdown.css';
+
+// TODO: Consider using same github.css we use on pub.dev
+@use '../../../third_party/dartdoc/resources/github.css';
+@use '../../../third_party/dartdoc/resources/styles.css';
+@use '../../../static/css/staging-ribbon.css';
+
+@import 'src/_themes';

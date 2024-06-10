@@ -12,6 +12,8 @@ build/
 *.sum
 
 # Ignore files built when the server is started
+/static/css/dartdoc.css
+/static/css/dartdoc.css.map
 /static/css/style.css
 /static/css/style.css.map
 /static/js/script.dart.js
