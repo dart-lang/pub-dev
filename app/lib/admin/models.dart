@@ -158,10 +158,16 @@ class ModerationCase extends db.ExpandoModel<String> {
 abstract class ModerationSource {
   static const externalNotification = 'external-notification';
   static const internalNotification = 'internal-notification';
+  static const trustedFlagger = 'trusted-flagger';
+  static const authorities = 'authorities';
+  static const legalReferral = 'legal-referral';
 
   static const _values = [
     externalNotification,
     internalNotification,
+    trustedFlagger,
+    authorities,
+    legalReferral,
   ];
   static bool isValidSource(String value) => _values.contains(value);
 }
