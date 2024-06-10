@@ -64,20 +64,6 @@ dev_dependencies:
   test: ^1.16.5
   xml: ^6.0.0
 
-# To support workspaces we use a patched version of build_runner and
-# build_runner core.
-# TODO(sigurm): Remove these when the fix lands.
 dependency_overrides:
-  build_runner:
-    git:
-      url: https://github.com/sigurdm/build
-      path: build_runner
-      ref: workspace_support
-
-  build_runner_core:
-    git:
-      url: https://github.com/sigurdm/build
-      path: build_runner_core
-      ref: workspace_support
   # sass requires 3.1.0, but appengine has a constraint on ^2.0.0
   protobuf: 3.1.0
