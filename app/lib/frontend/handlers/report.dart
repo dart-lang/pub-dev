@@ -193,7 +193,7 @@ Future<String> processReportPageHandler(
     final mc = ModerationCase.init(
       caseId: caseId,
       reporterEmail: userEmail!,
-      source: ModerationSource.externalNotification,
+      source: ModerationSource.notification,
       kind: isAppeal ? ModerationKind.appeal : ModerationKind.notification,
       status: ModerationStatus.pending,
       subject: subject.fqn,

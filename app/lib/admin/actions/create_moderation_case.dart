@@ -37,7 +37,7 @@ Returns the fields on the newly created moderation case.
     InvalidInputException.check(
         ModerationKind.isValidKind(kind), 'invalid kind');
 
-    final source = options['source'] ?? ModerationSource.internalNotification;
+    final source = options['source'] ?? ModerationSource.notification;
     InvalidInputException.check(
         ModerationSource.isValidSource(source), 'invalid source');
 

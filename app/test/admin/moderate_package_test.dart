@@ -161,7 +161,7 @@ void main() {
           'kind': 'notification',
           'opened': isNotEmpty,
           'resolved': null,
-          'source': 'external-notification',
+          'source': 'notification',
           'status': 'pending',
           'subject': 'package:oxygen',
           'isSubjectOwner': false,
