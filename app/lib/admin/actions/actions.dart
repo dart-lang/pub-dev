@@ -7,6 +7,7 @@ import 'create_moderation_case.dart';
 import 'create_publisher.dart';
 import 'delete_moderation_case.dart';
 import 'delete_publisher.dart';
+import 'list_moderation_cases.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
@@ -81,6 +82,7 @@ final class AdminAction {
     createPublisher,
     deleteModerationCase,
     deletePublisher,
+    listModerationCases,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
