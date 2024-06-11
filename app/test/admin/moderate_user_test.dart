@@ -43,6 +43,7 @@ void main() {
     Future<AdminInvokeActionResponse> _moderate(
       String email, {
       bool? state,
+      String? reason,
       String caseId = 'none',
     }) async {
       final api = createPubApiClient(authToken: siteAdminToken);
@@ -51,6 +52,7 @@ void main() {
         AdminInvokeActionArguments(arguments: {
           'case': caseId,
           'user': email,
+          if (reason != null) 'reason': reason,
           if (state != null) 'state': state.toString(),
         }),
       );
@@ -62,37 +64,90 @@ void main() {
       final r1 = await _moderate('user@pub.dev');
       expect(r1.output, {
         'userId': isNotEmpty,
-        'before': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'moderatedReason': null,
+        },
       });
 
-      final r2 =
-          await _moderate('user@pub.dev', caseId: mc.caseId, state: true);
+      final r2 = await _moderate(
+        'user@pub.dev',
+        caseId: mc.caseId,
+        state: true,
+        reason: 'policy-violation',
+      );
       expect(r2.output, {
         'userId': isNotEmpty,
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'moderatedReason': null,
+        },
+        'after': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'moderatedReason': 'policy-violation',
+        },
       });
       final u2 = await accountBackend.lookupUserByEmail('user@pub.dev');
       expect(u2.isModerated, isTrue);
       expect(u2.isVisible, false);
+      expect(u2.moderatedReason, 'policy-violation');
 
       final r3 =
           await _moderate('user@pub.dev', caseId: mc.caseId, state: false);
       expect(r3.output, {
         'userId': isNotEmpty,
-        'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
-        'after': {'isModerated': false, 'moderatedAt': isNull},
+        'before': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'moderatedReason': 'policy-violation',
+        },
+        'after': {
+          'isModerated': false,
+          'moderatedAt': isNull,
+          'moderatedReason': null,
+        },
       });
       final u3 = await accountBackend.lookupUserByEmail('user@pub.dev');
       expect(u3.isModerated, isFalse);
       expect(u3.isVisible, true);
+      expect(u3.moderatedReason, null);
 
       final mc2 = await adminBackend.lookupModerationCase(mc.caseId);
       expect(mc2!.getActionLog().entries, hasLength(2));
     });
 
+    testWithProfile('missing reason', fn: () async {
+      await expectApiException(
+        _moderate('user@pub.dev', state: true),
+        status: 400,
+        code: 'InvalidInput',
+        message: '"reason" cannot be `null`',
+      );
+    });
+
+    testWithProfile('unused reason', fn: () async {
+      await expectApiException(
+        _moderate('user@pub.dev', state: false, reason: 'x'),
+        status: 400,
+        code: 'InvalidInput',
+        message: '"reason" must be `null`',
+      );
+    });
+
+    testWithProfile('invalid reason', fn: () async {
+      await expectApiException(
+        _moderate('user@pub.dev', state: true, reason: 'xyz'),
+        status: 400,
+        code: 'InvalidInput',
+        message: '"reason" must be any of',
+      );
+    });
+
     testWithProfile('sign-in disabled', fn: () async {
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       await expectLater(
           acquireSessionCookies('user@pub.dev'), throwsA(isA<Exception>()));
       await _moderate('user@pub.dev', state: false);
@@ -108,7 +163,7 @@ void main() {
           host: activeConfiguration.primaryApiUri!.host,
         ),
       );
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       await expectHtmlResponse(
         await issueGet(
           '/my-packages',
@@ -120,7 +175,7 @@ void main() {
     });
 
     testWithProfile('not able to publish', fn: () async {
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       final pubspecContent = generatePubspecYaml('foo', '1.0.0');
       final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
 
@@ -150,7 +205,7 @@ void main() {
       );
 
       final client = await createFakeAuthPubApiClient(email: 'user@pub.dev');
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       await expectApiException(
         client.setPackageOptions('oxygen', PkgOptions(isUnlisted: true)),
         status: 401,
@@ -173,7 +228,7 @@ void main() {
       final rs1 = await client.createPublisher('verified.com');
       expect(rs1.websiteUrl, 'https://verified.com/');
 
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       await expectApiException(
         client.updatePublisher('verified.com',
             UpdatePublisherRequest(websiteUrl: 'https://other.com/')),
@@ -196,7 +251,7 @@ void main() {
       await createPubApiClient(authToken: userClientToken)
           .uploadPackageBytes(bytes);
 
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       final p1 = await packageBackend.lookupPackage('foo');
       expect(p1!.isDiscontinued, true);
 
@@ -218,7 +273,7 @@ void main() {
           .setPackagePublisher(
               'foo', PackagePublisherInfo(publisherId: 'verified.com'));
 
-      await _moderate('user@pub.dev', state: true);
+      await _moderate('user@pub.dev', state: true, reason: 'policy-violation');
       final p1 = await packageBackend.lookupPackage('foo');
       expect(p1!.publisherId, isNotEmpty);
       expect(p1.isDiscontinued, true);

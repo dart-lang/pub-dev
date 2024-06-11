@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:ulid/ulid.dart';
 
@@ -62,6 +63,10 @@ class User extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? moderatedAt;
 
+  /// One of the [UserModeratedReason] values.
+  @db.StringProperty()
+  String? moderatedReason;
+
   User();
   User.init() {
     isBlocked = false;
@@ -74,9 +79,22 @@ class User extends db.ExpandoModel<String> {
 
   void updateIsModerated({
     required bool isModerated,
+    required String? moderatedReason,
   }) {
+    if (isModerated) {
+      InvalidInputException.checkNotNull(moderatedReason, 'reason');
+      InvalidInputException.checkAnyOf(
+        moderatedReason,
+        'reason',
+        UserModeratedReason._values,
+      );
+    } else {
+      InvalidInputException.checkNull(moderatedReason, 'reason');
+    }
+
     this.isModerated = isModerated;
     moderatedAt = isModerated ? clock.now().toUtc() : null;
+    this.moderatedReason = moderatedReason;
   }
 }
 
@@ -414,3 +432,17 @@ String consentDedupId({
         .whereType<String>()
         .map(Uri.encodeComponent)
         .join('/');
+
+abstract class UserModeratedReason {
+  static const illegalContent = 'illegal-content';
+  static const policyViolation = 'policy-violation';
+  static const unfoundedNotifications = 'unfounded-notifications';
+  static const unfoundedAppeals = 'unfounded-appeals';
+
+  static const _values = {
+    illegalContent,
+    policyViolation,
+    unfoundedNotifications,
+    unfoundedAppeals,
+  };
+}

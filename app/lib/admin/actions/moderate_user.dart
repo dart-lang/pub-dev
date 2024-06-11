@@ -30,6 +30,7 @@ The active web sessions of the user will be expired.
   options: {
     'case': 'The ModerationCase.caseId that this action is part of.',
     'user': 'The user-id or the email of the user to be moderated',
+    'reason': 'The reason for user moderation.',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
     'message': 'Optional message to store.'
@@ -43,6 +44,7 @@ The active web sessions of the user will be expired.
       'user must be given',
     );
 
+    final moderatedReason = options['reason'];
     final message = options['message'];
 
     final refCase =
@@ -79,6 +81,7 @@ The active web sessions of the user will be expired.
         user!.userId,
         valueToSet,
         refCaseKey: refCase?.key,
+        moderatedReason: moderatedReason,
         message: message,
       );
       user2 = await accountBackend.lookupUserById(user.userId);
@@ -143,11 +146,13 @@ The active web sessions of the user will be expired.
       'before': {
         'isModerated': user.isModerated,
         'moderatedAt': user.moderatedAt?.toIso8601String(),
+        'moderatedReason': user.moderatedReason,
       },
       if (user2 != null)
         'after': {
           'isModerated': user2.isModerated,
           'moderatedAt': user2.moderatedAt?.toIso8601String(),
+          'moderatedReason': user2.moderatedReason,
         },
     };
   },
