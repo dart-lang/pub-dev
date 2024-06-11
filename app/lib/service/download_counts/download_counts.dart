@@ -49,7 +49,7 @@ class CountData {
   ///
   /// [majorRangeCounts] has at most [maxRanges] elements and is sorted by
   ///  version ranges.
-  final majorRangeCounts = <VersionRangeCount>[];
+  final List<VersionRangeCount> majorRangeCounts;
 
   /// A list of [VersionRangeCount] with minor version ranges.
   ///
@@ -60,7 +60,7 @@ class CountData {
   ///
   /// [minorRangeCounts] has at most [maxRanges] elements and is sorted by
   ///  version ranges.
-  final minorRangeCounts = <VersionRangeCount>[];
+  final List<VersionRangeCount> minorRangeCounts;
 
   /// A list of [VersionRangeCount] with patch version ranges.
   ///
@@ -71,7 +71,7 @@ class CountData {
   ///
   /// [patchRangeCounts] has at most [maxRanges] elements and is sorted by
   ///  version ranges.
-  final patchRangeCounts = <VersionRangeCount>[];
+  final List<VersionRangeCount> patchRangeCounts;
 
   /// A list of integers representing the total number of daily downloads of any
   /// version of the package. The list contains at most [maxAge] entries. The
@@ -79,9 +79,20 @@ class CountData {
   /// followed by the downloads on [newestDate] - 1 and so on.
   ///
   /// Days with no data are represented with `-1`.
-  final totalCounts = List.filled(maxAge, -1, growable: true);
+  final List<int> totalCounts;
 
-  CountData();
+  CountData({
+    required this.majorRangeCounts,
+    required this.minorRangeCounts,
+    required this.patchRangeCounts,
+    required this.totalCounts,
+  });
+
+  factory CountData.init() => CountData(
+      majorRangeCounts: <VersionRangeCount>[],
+      minorRangeCounts: <VersionRangeCount>[],
+      patchRangeCounts: <VersionRangeCount>[],
+      totalCounts: List.filled(maxAge, -1, growable: true));
 
   /// Process and store download counts given in [dayCounts] on the form
   /// {version: #downloads} for a date given by [dateTime].
