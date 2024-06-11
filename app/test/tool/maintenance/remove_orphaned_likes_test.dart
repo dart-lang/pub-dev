@@ -55,7 +55,7 @@ void main() {
       },
       // The test deleted a User entity is referenced from multiple places.
       // The first integrity issue returned is about the mapping from the
-      // mathing OauthUserId entity, and we are only matching it via a pattern.
+      // matching OauthUserId entity, and we are only matching it via a pattern.
       integrityProblem: RegExp(
           '^User ".*" is mapped from OAuthUserID "user-pub-dev", but does not have it set.'),
     );

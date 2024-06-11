@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
@@ -240,7 +241,7 @@ void main() {
               )),
               status: 400,
               code: 'InvalidInput',
-              message: '\"message\" must be longer than 20 charaters',
+              message: '\"message\" must be longer than 20 characters',
             );
             expect(fakeEmailSender.sentMessages, isEmpty);
           },
@@ -311,15 +312,19 @@ void main() {
       final mc = ModerationCase.init(
         caseId: 'case/1',
         reporterEmail: 'somebody@pub.dev',
-        source: ModerationDetectedBy.externalNotification,
+        source: ModerationSource.externalNotification,
         kind: ModerationKind.notification,
         status: status ?? ModerationStatus.moderationApplied,
         subject: 'package:oxygen',
         url: 'https://pub.dev/packages/oxygen/example',
+        isSubjectOwner: false,
         appealedCaseId: null,
       );
       if (logSubject != null) {
         mc.addActionLogEntry(logSubject, ModerationAction.apply, null);
+      }
+      if (mc.status != ModerationStatus.pending) {
+        mc.resolved = clock.now();
       }
       await dbService.commit(inserts: [mc]);
     }
@@ -415,6 +420,43 @@ void main() {
           expect(mc.subject, 'package-version:oxygen/1.2.0');
           expect(mc.reporterEmail, 'user2@pub.dev');
           expect(mc.appealedCaseId, 'case/1');
+          expect(mc.isSubjectOwner, false);
+        },
+      );
+    });
+
+    testWithProfile('authenticated appeal success', fn: () async {
+      await _prepareApplied(
+        logSubject: 'package-version:oxygen/1.2.0',
+      );
+
+      await withFakeAuthHttpPubApiClient(
+        email: 'admin@pub.dev',
+        experimental: {'report'},
+        fn: (client) async {
+          final msg = await client.postReport(ReportForm(
+            subject: 'package-version:oxygen/1.2.0',
+            caseId: 'case/1',
+            message: 'Huston, we have a problem.',
+          ));
+
+          expect(msg.message, 'The appeal was submitted successfully.');
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.from.email, 'noreply@pub.dev');
+          expect(email.recipients.single.email, 'support@pub.dev');
+          expect(email.ccRecipients.single.email, 'admin@pub.dev');
+
+          final mc = await dbService
+              .query<ModerationCase>()
+              .run()
+              .where((e) => e.caseId != 'case/1')
+              .single;
+          expect(mc.kind, 'appeal');
+          expect(mc.subject, 'package-version:oxygen/1.2.0');
+          expect(mc.reporterEmail, 'admin@pub.dev');
+          expect(mc.appealedCaseId, 'case/1');
+          expect(mc.isSubjectOwner, true);
         },
       );
     });

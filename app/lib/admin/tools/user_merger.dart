@@ -38,7 +38,7 @@ Future<String> executeUserMergerTool(List<String> args) async {
     InvalidInputException.checkNull(fromUserId, 'fromUserId');
     InvalidInputException.checkNull(toUserId, 'toUserId');
     await userMerger.fixOAuthUserID(oauthUserId);
-    return 'Fixed `oauthUderId`.';
+    return 'Fixed `oauthUserId`.';
   } else if (fromUserId != null && toUserId != null) {
     await userMerger.mergeUser(fromUserId, toUserId);
     return 'Merged `$fromUserId` into `$toUserId`.';

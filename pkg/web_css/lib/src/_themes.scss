@@ -1,0 +1,30 @@
+/* Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr {
+  background-color: #fff;
+  border-top: 1px solid #c6cbd1;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body .highlight pre,
+.light-theme .markdown-body pre {
+  background-color: #f6f8fa;
+}
+.dark-theme .markdown-body pre {
+  /* TODO(https://github.com/dart-lang/pub-dev/issues/7101): Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
+  background-color: inherit;
+}
+
+.dark-theme .hljs .hljs-deletion,
+.dark-theme .hljs .hljs-addition {
+  /* TODO(https://github.com/dart-lang/pub-dev/issues/7101): Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
+  color: black;
+}

@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/urls.dart' as urls;
@@ -59,6 +60,10 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty()
   String? appealedCaseId;
 
+  /// Whether the reporter of the case is known owner of the [subject].
+  @db.BoolProperty()
+  bool isSubjectOwner = false;
+
   /// One of:
   /// - `pending`, if this is an appeal and we haven't decided anything yet.
   /// - `no-action`, if this is a notification (kind = notification) and
@@ -89,11 +94,19 @@ class ModerationCase extends db.ExpandoModel<String> {
     required this.kind,
     required this.status,
     required this.subject,
+    required this.isSubjectOwner,
     required this.url,
     required this.appealedCaseId,
   }) {
     id = caseId;
     opened = clock.now().toUtc();
+  }
+
+  static String generateCaseId({
+    DateTime? now,
+  }) {
+    now ??= clock.now();
+    return '${now.toIso8601String().split('T').first}/${createUuid()}';
   }
 
   ModerationActionLog getActionLog() {
@@ -123,21 +136,66 @@ class ModerationCase extends db.ExpandoModel<String> {
     ));
     setActionLog(log);
   }
+
+  Map<String, dynamic> toDebugInfo() {
+    return {
+      'caseId': caseId,
+      'reporterEmail': reporterEmail,
+      'kind': kind,
+      'opened': opened.toIso8601String(),
+      'resolved': resolved?.toIso8601String(),
+      'source': source,
+      'status': status,
+      'subject': subject,
+      'isSubjectOwner': isSubjectOwner,
+      'url': url,
+      'appealedCaseId': appealedCaseId,
+      'actionLog': getActionLog().toJson(),
+    };
+  }
 }
 
-abstract class ModerationDetectedBy {
+abstract class ModerationSource {
   static const externalNotification = 'external-notification';
+  static const internalNotification = 'internal-notification';
+
+  static const _values = [
+    externalNotification,
+    internalNotification,
+  ];
+  static bool isValidSource(String value) => _values.contains(value);
 }
 
 abstract class ModerationKind {
   static const notification = 'notification';
   static const appeal = 'appeal';
+
+  static const _values = [
+    notification,
+    appeal,
+  ];
+  static bool isValidKind(String value) => _values.contains(value);
 }
 
 abstract class ModerationStatus {
   static const pending = 'pending';
   static const noAction = 'no-action';
   static const moderationApplied = 'moderation-applied';
+  static const noActionUpheld = 'no-action-upheld';
+  static const noActionReverted = 'no-action-reverted';
+  static const moderationUpheld = 'moderation-upheld';
+  static const moderationReverted = 'moderation-reverted';
+
+  static const _values = [
+    pending,
+    noAction,
+    moderationApplied,
+    noActionUpheld,
+    noActionReverted,
+    moderationUpheld,
+    moderationReverted,
+  ];
+  static bool isValidStatus(String value) => _values.contains(value);
 }
 
 /// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
@@ -294,6 +352,22 @@ class ModerationActionLog {
       _$ModerationActionLogFromJson(json);
 
   Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
+
+  /// Returns true if the final state of the actions has at least one moderation.
+  bool hasModeratedAction() {
+    final subjects = <String>{};
+    for (final entry in entries) {
+      switch (entry.moderationAction) {
+        case ModerationAction.apply:
+          subjects.add(entry.subject);
+          break;
+        case ModerationAction.revert:
+          subjects.remove(entry.subject);
+          break;
+      }
+    }
+    return subjects.isNotEmpty;
+  }
 }
 
 enum ModerationAction {

@@ -231,7 +231,7 @@ class TokenIndex {
     }
 
     // In multi-word queries we will penalize the score with the document size
-    // for each word separately. As these scores will be mulitplied, we need to
+    // for each word separately. As these scores will be multiplied, we need to
     // compensate the formula in order to prevent multiple exponential penalties.
     final double wordSizeExponent = 1.0 / wordCount;
 

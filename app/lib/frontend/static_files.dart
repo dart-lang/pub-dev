@@ -110,6 +110,7 @@ class StaticFileCache {
       // deployment process. Normally page rendering checks their existence,
       // and fails when they are missing. By listing these here, the build
       // is no longer a strict requirement, and tests can be run without it.
+      '/static/css/dartdoc.css',
       '/static/css/style.css',
       '/static/js/script.dart.js',
     };
@@ -232,11 +233,7 @@ class StaticUrls {
   late final pubDevLogoSvg = getAssetUrl('/static/img/pub-dev-logo.svg');
   late final defaultProfilePng = getAssetUrl(
       '/static/img/material-icon-twotone-account-circle-white-24dp.png');
-  late final githubMarkdownCss = getAssetUrl('/static/css/github-markdown.css');
-  late final dartdocGithubCss =
-      getAssetUrl('/static/dartdoc/resources/github.css');
-  late final dartdocStylesCss =
-      getAssetUrl('/static/dartdoc/resources/styles.css');
+  late final dartdocCss = getAssetUrl('/static/css/dartdoc.css');
   late final dartdocScriptJs =
       getAssetUrl('/static/dartdoc/resources/docs.dart.js');
   late final dartdochighlightJs =
@@ -323,11 +320,19 @@ Future updateLocalBuiltFilesIfNeeded() async {
 
   final webCssDir = Directory(resolveWebCssDirPath());
   final webCssLastModified = await _detectLastModified(webCssDir);
-  final styleCss = File(path.join(staticDir.path, 'css', 'style.css'));
-  final styleCssExists = await styleCss.exists();
-  final styleCssLastModified =
-      styleCssExists ? await styleCss.lastModified() : null;
-  if (!styleCssExists || (styleCssLastModified!.isBefore(webCssLastModified))) {
+
+  Future<bool> cssNeedsUpdate(String filename) async {
+    final styleCss = File(path.join(staticDir.path, 'css', filename));
+    final styleCssExists = await styleCss.exists();
+    final styleCssLastModified =
+        styleCssExists ? await styleCss.lastModified() : null;
+    return !styleCssExists ||
+        (styleCssLastModified!.isBefore(webCssLastModified));
+  }
+
+  final needsCssBuild = (await cssNeedsUpdate('style.css')) ||
+      (await cssNeedsUpdate('dartdoc.css'));
+  if (needsCssBuild) {
     _logger.info('Building pkg/web_css');
     await updateWebCssBuild();
   }

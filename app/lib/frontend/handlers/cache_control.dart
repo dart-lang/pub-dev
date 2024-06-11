@@ -34,7 +34,7 @@ final class CacheControl {
       response.change(headers: headers);
 
   /// Create `Cache-Control` and `Expires` headers for this [CacheControl]
-  /// configration.
+  /// configuration.
   Map<String, String> get headers => {
         'Cache-Control': [
           if (noStore) 'no-store',

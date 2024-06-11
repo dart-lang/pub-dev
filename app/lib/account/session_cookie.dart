@@ -68,7 +68,7 @@ ClientSessionCookieStatus parseClientSessionCookies(
 /// Create a set of HTTP headers that clears a session cookie.
 ///
 /// If clearing the session cookie, remember that the most important part is to
-/// invalidate the serverside session. The user might be logging out because
+/// invalidate the server side session. The user might be logging out because
 /// the local session store was compromised.
 Map<String, Object> clearSessionCookies() {
   return {

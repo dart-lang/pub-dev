@@ -18,3 +18,8 @@ dart run sass \
   --style=compressed \
   "${WEB_CSS_DIR}/lib/style.scss" \
   "${OUTPUT_DIR}/style.css"
+
+dart run sass \
+  --style=compressed \
+  "${WEB_CSS_DIR}/lib/dartdoc.scss" \
+  "${OUTPUT_DIR}/dartdoc.css"

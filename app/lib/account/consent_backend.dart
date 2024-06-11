@@ -60,8 +60,13 @@ class ConsentBackend {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind]!;
-    final invitingUserEmail =
-        (await accountBackend.getEmailOfUserId(c.fromUserId!))!;
+    final fromAgent = c.fromAgent!;
+    late String invitingUserEmail;
+    if (looksLikeUserId(fromAgent)) {
+      invitingUserEmail = (await accountBackend.getEmailOfUserId(fromAgent))!;
+    } else {
+      invitingUserEmail = fromAgent;
+    }
     return api.Consent(
       titleText: action.renderInviteTitleText(invitingUserEmail, c.args!),
       descriptionHtml: action.renderInviteHtml(
@@ -106,7 +111,6 @@ class ConsentBackend {
     required String kind,
     required List<String> args,
     required AuditLogRecord auditLogRecord,
-    required bool createdBySiteAdmin,
   }) async {
     return retry(() async {
       // First check for existing consents with identical dedupId.
@@ -138,7 +142,7 @@ class ConsentBackend {
         email: email,
         kind: kind,
         args: args,
-        createdBySiteAdmin: createdBySiteAdmin,
+        createdBySiteAdmin: activeAgent is SupportAgent,
       );
       await _db.commit(inserts: [
         consent,
@@ -154,7 +158,6 @@ class ConsentBackend {
     required User activeUser,
     required String packageName,
     required String uploaderEmail,
-    bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
       activeAgent: agent,
@@ -167,7 +170,6 @@ class ConsentBackend {
         package: packageName,
         uploaderEmail: uploaderEmail,
       ),
-      createdBySiteAdmin: createdBySiteAdmin,
     );
   }
 
@@ -186,7 +188,6 @@ class ConsentBackend {
       args: [publisherId, contactEmail],
       auditLogRecord: await AuditLogRecord.publisherContactInvited(
           user: user, publisherId: publisherId, contactEmail: contactEmail),
-      createdBySiteAdmin: false,
     );
   }
 
@@ -196,7 +197,6 @@ class ConsentBackend {
     required User activeUser,
     required String publisherId,
     required String invitedUserEmail,
-    bool createdBySiteAdmin = false,
   }) async {
     return await _invite(
       activeAgent: authenticatedAgent,
@@ -209,7 +209,6 @@ class ConsentBackend {
         publisherId: publisherId,
         memberEmail: invitedUserEmail,
       ),
-      createdBySiteAdmin: createdBySiteAdmin,
     );
   }
 
@@ -330,8 +329,6 @@ class _PackageUploaderAction extends ConsentAction {
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
     final createdBySiteAdmin = consent.createdBySiteAdmin ?? false;
-    final fromUserId = consent.fromUserId!;
-    final fromUserEmail = (await accountBackend.getEmailOfUserId(fromUserId))!;
     final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
@@ -339,10 +336,9 @@ class _PackageUploaderAction extends ConsentAction {
     }
 
     await packageBackend.confirmUploader(
-      fromUserId,
-      fromUserEmail,
       packageName,
       currentUser.user,
+      consentRequestFromAgent: consent.fromAgent!,
       consentRequestCreatedBySiteAdmin: createdBySiteAdmin,
     );
   }
@@ -352,7 +348,7 @@ class _PackageUploaderAction extends ConsentAction {
     final packageName = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.uploaderInviteRejected(
-        fromUserId: consent.fromUserId,
+        fromAgent: consent.fromAgent,
         package: packageName,
         uploaderEmail: user?.email ?? consent.email!,
         userId: user?.userId,
@@ -365,7 +361,7 @@ class _PackageUploaderAction extends ConsentAction {
     final packageName = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.uploaderInviteExpired(
-        fromUserId: consent.fromUserId,
+        fromAgent: consent.fromAgent,
         package: packageName,
         uploaderEmail: consent.email!,
       ));
@@ -408,7 +404,7 @@ class _PublisherContactAction extends ConsentAction {
     await publisherBackend.updateContactWithVerifiedEmail(
       publisherId,
       contactEmail,
-      consentRequestFromUserId: consent.fromUserId!,
+      consentRequestFromAgent: consent.fromAgent!,
       consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
     );
   }
@@ -418,7 +414,7 @@ class _PublisherContactAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherContactInviteRejected(
-        fromUserId: consent.fromUserId,
+        fromAgent: consent.fromAgent,
         publisherId: publisherId,
         contactEmail: consent.email!,
         userEmail: user?.email,
@@ -432,7 +428,7 @@ class _PublisherContactAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherContactInviteExpired(
-        fromUserId: consent.fromUserId,
+        fromAgent: consent.fromAgent,
         publisherId: publisherId,
         contactEmail: consent.email!,
       ));
@@ -488,7 +484,7 @@ class _PublisherMemberAction extends ConsentAction {
     await publisherBackend.inviteConsentGranted(
       publisherId,
       currentUser.userId,
-      consentRequestFromUserId: consent.fromUserId!,
+      consentRequestFromAgent: consent.fromAgent!,
       consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
     );
   }
@@ -498,7 +494,7 @@ class _PublisherMemberAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherMemberInviteRejected(
-        fromUserId: consent.fromUserId,
+        fromAgent: consent.fromAgent,
         publisherId: publisherId,
         memberEmail: user?.email ?? consent.email!,
         userId: user?.userId,
@@ -511,7 +507,7 @@ class _PublisherMemberAction extends ConsentAction {
     final publisherId = consent.args![0];
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(await AuditLogRecord.publisherMemberInviteExpired(
-        fromUserId: consent.fromUserId,
+        fromAgent: consent.fromAgent,
         publisherId: publisherId,
         memberEmail: consent.email!,
       ));

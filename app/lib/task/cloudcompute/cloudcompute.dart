@@ -68,7 +68,7 @@ abstract class CloudCompute {
   /// The instance will be running in the given [zone] under the given
   /// [instanceName].
   /// Notice that [instanceName] must be unique and will have implementation
-  /// specific limitations, using [generateInstanceName] is adviced.
+  /// specific limitations, using [generateInstanceName] is advised.
   ///
   /// The _human readable_ [description] will be attached to the instance in
   /// Cloud Console and intended to assist humans inspecting the system.

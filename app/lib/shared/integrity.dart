@@ -13,21 +13,22 @@ import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/publisher/backend.dart';
-import 'package:pub_dev/shared/env_config.dart';
 import 'package:retry/retry.dart';
 
 import '../account/agent.dart';
 import '../account/models.dart';
+import '../admin/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
+import '../publisher/backend.dart';
 import '../publisher/models.dart';
+import '../shared/env_config.dart';
 
 import 'configuration.dart';
 import 'datastore.dart';
-import 'email.dart' show looksLikeEmail;
+import 'email.dart' show isValidEmail, looksLikeEmail;
 import 'storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
@@ -91,6 +92,7 @@ class IntegrityChecker {
       yield* _checkLikes();
       yield* _checkModeratedPackages();
       yield* _checkAuditLogs();
+      yield* _checkModerationCases();
       yield* _reportPubspecVersionIssues();
       // TODO: report unmapped properties
     } finally {
@@ -775,7 +777,7 @@ class IntegrityChecker {
     required String entityType,
     String? entityId,
 
-    /// Set true for entries where we retain the record indefintely,
+    /// Set true for entries where we retain the record indefinitely,
     /// even if the [User] has been deleted or invalidated.
     bool isRetainedRecord = false,
   }) async* {
@@ -799,7 +801,7 @@ class IntegrityChecker {
     required String entityType,
     String? entityId,
 
-    /// Set true for entries where we retain the record indefintely,
+    /// Set true for entries where we retain the record indefinitely,
     /// even if the [User] has been deleted or invalidated.
     bool isRetainedRecord = false,
   }) async* {
@@ -850,6 +852,50 @@ class IntegrityChecker {
 
   Future<bool> _packageMissing(String packageName) async =>
       !(await _packageExists(packageName));
+
+  Stream<String> _checkModerationCases() async* {
+    _logger.info('Scanning ModerationCases...');
+    yield* _queryWithPool<ModerationCase>(_checkModerationCase);
+  }
+
+  Stream<String> _checkModerationCase(ModerationCase mc) async* {
+    if (!isValidEmail(mc.reporterEmail)) {
+      yield 'ModerationCase "${mc.caseId}" has invalid `reporterEmail`.';
+    }
+    if (mc.resolved != null && mc.status == ModerationStatus.pending) {
+      yield 'ModerationCase "${mc.caseId}" is resolved but `status` is "pending".';
+    }
+    if (mc.status != ModerationStatus.pending && mc.resolved == null) {
+      yield 'ModerationCase "${mc.caseId}" has non-pending `status` but `resolved` is null.';
+    }
+    final subject = ModerationSubject.tryParse(mc.subject);
+    if (subject == null) {
+      yield 'ModerationCase "${mc.caseId}" has invalid `subject`.';
+    }
+    if (mc.url != null && Uri.tryParse(mc.url!) == null) {
+      yield 'ModerationCase "${mc.caseId}" has invalid `url`.';
+    }
+    for (final entry in mc.getActionLog().entries) {
+      if (entry.timestamp.isBefore(mc.opened)) {
+        yield 'ModerationCase "${mc.caseId}" has action logged before it was opened.';
+      }
+      if (mc.resolved != null && entry.timestamp.isAfter(mc.resolved!)) {
+        yield 'ModerationCase "${mc.caseId}" has action logged after it was resolved.';
+      }
+      if (ModerationSubject.tryParse(entry.subject) == null) {
+        yield 'ModerationCase "${mc.caseId}" has action logged with invalid `subject`.';
+      }
+    }
+    // TODO: verify fields once the other PR lands
+
+    if (mc.appealedCaseId != null) {
+      final appealed = await dbService.lookupOrNull<ModerationCase>(
+          dbService.emptyKey.append(ModerationCase, id: mc.appealedCaseId!));
+      if (appealed == null) {
+        yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';
+      }
+    }
+  }
 
   Stream<String> _reportPubspecVersionIssues() async* {
     for (final String package in _badVersionInPubspec.keys) {

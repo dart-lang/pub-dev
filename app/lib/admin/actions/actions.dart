@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../shared/exceptions.dart';
+import 'create_moderation_case.dart';
 import 'create_publisher.dart';
+import 'delete_moderation_case.dart';
 import 'delete_publisher.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
@@ -15,10 +17,12 @@ import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
+import 'resolve_moderation_case.dart';
 import 'send_email.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
+import 'update_moderation_case.dart';
 import 'uploader_count_report.dart';
 import 'user_info.dart';
 
@@ -73,7 +77,9 @@ final class AdminAction {
   }
 
   static List<AdminAction> actions = [
+    createModerationCase,
     createPublisher,
+    deleteModerationCase,
     deletePublisher,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
@@ -85,10 +91,12 @@ final class AdminAction {
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
+    resolveModerationCase,
     sendEmail,
     taskBumpPriority,
     toolExecute,
     toolList,
+    updateModerationCase,
     uploaderCountReport,
     userInfo,
   ];

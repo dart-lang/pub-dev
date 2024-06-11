@@ -85,7 +85,7 @@ Address? _toAddress(EmailAddress? input) =>
 /// This sends emails through the [gmail SMTP relay][1].
 /// Using the [SASL XOAUTH2][2] for authentication.
 ///
-/// Hence, this assumes that the [gmail SMTP relay][1] has been abled by the
+/// Hence, this assumes that the [gmail SMTP relay][1] has been enabled by the
 /// _GSuite administrator_, and that it's been configured to:
 ///
 ///  * Be authenticated by any GSuite user,

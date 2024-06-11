@@ -55,7 +55,7 @@ class GitHubJwtPayload {
   /// the commit hash
   final String? sha;
 
-  /// RunId of the Github Action that this token comes from.
+  /// RunId of the GitHub Action that this token comes from.
   final String? runId;
 
   /// The URL used as the `iss` property of JWT payloads.
@@ -97,7 +97,7 @@ class GitHubJwtPayload {
     final missing = requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
-          'JWT from Github is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
+          'JWT from GitHub is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
     }
     return GitHubJwtPayload._(payload);
   }

@@ -69,7 +69,7 @@ dev_dependencies:
       );
     });
 
-    test('malformatted version', () async {
+    test('malformed version', () async {
       final summary = await summarizePackageArchive(
         await makeTar({
           'pubspec.yaml': '''

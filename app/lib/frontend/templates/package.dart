@@ -228,7 +228,7 @@ String renderPkgScorePage(PackagePageData data) {
   );
 }
 
-final _pagetTitleTabIdentifiers = <urls.PkgPageTab, String>{
+final _pageTitleTabIdentifiers = <urls.PkgPageTab, String>{
   urls.PkgPageTab.changelog: 'changelog',
   urls.PkgPageTab.example: 'example',
   urls.PkgPageTab.install: 'install',
@@ -259,7 +259,7 @@ String _renderPkgPage({
   final packageAndVersion = data.isLatestStable
       ? data.package.name!
       : '${data.package.name} ${data.version.version}';
-  final pageTitleTabIdentifier = _pagetTitleTabIdentifiers[pkgPageTab];
+  final pageTitleTabIdentifier = _pageTitleTabIdentifiers[pkgPageTab];
   final pageTitle = <String>[
     packageAndVersion,
     if (pageTitleTabIdentifier != null) pageTitleTabIdentifier,

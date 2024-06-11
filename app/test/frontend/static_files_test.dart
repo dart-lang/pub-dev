@@ -130,6 +130,7 @@ void main() {
         ..remove('/static/js/survey-helper.js')
         // debug-helper files are served, but not referenced
         ..removeAll([
+          '/static/css/dartdoc.css.map',
           '/static/css/style.css.map',
           '/static/js/script.dart.js.deps',
           '/static/js/script.dart.js.info.json',
@@ -160,6 +161,11 @@ void main() {
           '/static/css/dartdoc-github-alert.css',
           '/static/css/github-markdown.css',
           '/static/highlight/github.css',
+        ])
+        // dartdoc files included through dartdoc.scss
+        ..removeAll([
+          '/static/dartdoc/resources/github.css',
+          '/static/dartdoc/resources/styles.css',
         ])
         // dartdoc files not used, or included through javascript
         ..removeAll([

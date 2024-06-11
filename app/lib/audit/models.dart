@@ -434,7 +434,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       ..publishers = [publisherId]);
   }
 
-  /// Returns [AuditLogRecord] for the pubilsher contact invited operation.
+  /// Returns [AuditLogRecord] for the publisher contact invited operation.
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInvited({
@@ -464,10 +464,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInviteExpired({
-    required String? fromUserId,
+    required String? fromAgent,
     required String publisherId,
     required String contactEmail,
   }) {
+    final fromUserId =
+        fromAgent != null && looksLikeUserId(fromAgent) ? fromAgent : null;
     return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherContactInviteExpired
       ..agent = KnownAgents.pubSupport
@@ -488,7 +490,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInviteRejected({
-    required String? fromUserId,
+    required String? fromAgent,
     required String publisherId,
     required String contactEmail,
 
@@ -496,6 +498,8 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     required String? userId,
     required String? userEmail,
   }) {
+    final fromUserId =
+        fromAgent != null && looksLikeUserId(fromAgent) ? fromAgent : null;
     final summary = (userEmail == null || userEmail == contactEmail)
         ? '`$contactEmail` rejected contact invite for publisher `$publisherId`.'
         : '`$userEmail` rejected contact invite of `$contactEmail` for publisher `$publisherId`.';
@@ -592,10 +596,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherMemberInviteExpired({
-    required String? fromUserId,
+    required String? fromAgent,
     required String publisherId,
     required String memberEmail,
   }) {
+    final fromUserId =
+        fromAgent != null && looksLikeUserId(fromAgent) ? fromAgent : null;
     return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteExpired
       ..agent = KnownAgents.pubSupport
@@ -616,13 +622,15 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherMemberInviteRejected({
-    required String? fromUserId,
+    required String? fromAgent,
     required String publisherId,
     required String memberEmail,
 
     /// Optional, in the future we may allow invite rejection without sign-in.
     required String? userId,
   }) {
+    final fromUserId =
+        fromAgent != null && looksLikeUserId(fromAgent) ? fromAgent : null;
     return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.publisherMemberInviteRejected
       ..agent = userId ?? KnownAgents.pubSupport
@@ -771,10 +779,12 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> uploaderInviteExpired({
-    required String? fromUserId,
+    required String? fromAgent,
     required String package,
     required String uploaderEmail,
   }) {
+    final fromUserId =
+        fromAgent != null && looksLikeUserId(fromAgent) ? fromAgent : null;
     return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteExpired
       ..agent = KnownAgents.pubSupport
@@ -795,13 +805,15 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> uploaderInviteRejected({
-    required String? fromUserId,
+    required String? fromAgent,
     required String package,
     required String uploaderEmail,
 
     /// Optional, in the future we may allow invite rejection without sign-in.
     required String? userId,
   }) {
+    final fromUserId =
+        fromAgent != null && looksLikeUserId(fromAgent) ? fromAgent : null;
     return _checkRateLimit(AuditLogRecord._init()
       ..kind = AuditLogRecordKind.uploaderInviteRejected
       ..agent = userId ?? KnownAgents.pubSupport
@@ -813,7 +825,10 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         'uploaderEmail': uploaderEmail,
         if (userId != null) 'userId': userId,
       }
-      ..users = [if (fromUserId != null) fromUserId, if (userId != null) userId]
+      ..users = [
+        if (fromUserId != null) fromUserId,
+        if (userId != null) userId,
+      ]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = []);
@@ -860,8 +875,8 @@ abstract class AuditLogRecordKind {
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';
 
-  /// Event that a new package was created. This event is created alonside the
-  /// [packagePublished] event, but is only kept until the default expirty period
+  /// Event that a new package was created. This event is created alongside the
+  /// [packagePublished] event, but is only kept until the default expiry period
   /// (to enforce rate limits).
   static const packageCreated = 'package-created';
 

@@ -405,7 +405,7 @@ class SearchForm {
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).
   bool get hasActiveNonQuery => parsedQuery.tagsPredicate.isNotEmpty;
 
-  /// Wether the form has anything other than default values.
+  /// Whether the form has anything other than default values.
   bool get isNotEmpty =>
       hasQuery || order != null || (currentPage != null && currentPage != 1);
 

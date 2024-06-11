@@ -35,7 +35,7 @@ Other useful methods will be added soon...
     });
   });
 
-  group('extact phrases', () {
+  group('exact phrases', () {
     test('no phrase', () {
       expect(extractExactPhrases(''), isEmpty);
       expect(extractExactPhrases('abc cde'), isEmpty);

@@ -162,7 +162,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
       idToken.payload.aud.single !=
           activeConfiguration.externalServiceAudience) {
     throw AssertionError(
-        'authProvider.tryAuthenticateAsServiceToken should not return a parsed token with audience missmatch.');
+        'authProvider.tryAuthenticateAsServiceToken should not return a parsed token with audience mismatch.');
   }
 
   if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {

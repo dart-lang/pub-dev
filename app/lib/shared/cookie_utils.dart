@@ -47,7 +47,7 @@ String buildSetCookieValue({
     if (sameSiteStrict) 'SameSite=Strict' else 'SameSite=Lax',
     if (!envConfig.isRunningLocally)
       'Secure', // Only allow this cookie to be sent when making HTTPS requests.
-    'HttpOnly', // Do not allow Javascript access to this cookie.
+    'HttpOnly', // Do not allow JavaScript access to this cookie.
   ].join('; ');
 }
 

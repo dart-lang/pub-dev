@@ -595,7 +595,7 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
   }
 }
 
-/// Check wether the pubspecContent can be converted to JSON
+/// Check whether the pubspecContent can be converted to JSON
 Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
   try {
     final map = loadYaml(pubspecContent) as Map?;

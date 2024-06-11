@@ -94,7 +94,7 @@ class PublicPagesScript {
 
     final topicsCompletionData = await _pubClient.apiTopicNameCompletionData();
     if (!topicsCompletionData.contains('ffi')) {
-      throw Exception('Expected "ffi" in the topcis completion data.');
+      throw Exception('Expected "ffi" in the topics completion data.');
     }
   }
 

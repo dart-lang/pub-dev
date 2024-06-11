@@ -25,7 +25,7 @@ typedef UpdateFn<T> = Future<T?> Function();
 ///   a failure, and won't be logged. However, `isAvailable` will return
 ///   true only if the value is non-null.
 ///
-///   The `updateFn` function should do have it's own retry logic.
+///   The `updateFn` function should do have its own retry logic.
 ///
 /// - The default `timeout` value is half of the `interval`.
 ///

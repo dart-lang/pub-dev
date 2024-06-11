@@ -378,7 +378,7 @@ class PackageBackend {
     return updated;
   }
 
-  /// Updates the stable, prerelase and preview versions of all package.
+  /// Updates the stable, prerelease and preview versions of all package.
   ///
   /// Return the number of updated packages.
   Future<int> updateAllPackageVersions(
@@ -1207,7 +1207,7 @@ class PackageBackend {
       return newVersion;
     });
     _logger.info('Upload successful. [package-uploaded]');
-    _logger.info('Upload transaction compelted in ${sw.elapsed}.');
+    _logger.info('Upload transaction completed in ${sw.elapsed}.');
     sw.reset();
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
@@ -1494,21 +1494,21 @@ class PackageBackend {
   }
 
   Future<void> confirmUploader(
-    String fromUserId,
-    String fromUserEmail,
     String packageName,
     User uploader, {
+    required String consentRequestFromAgent,
     required bool consentRequestCreatedBySiteAdmin,
   }) async {
     await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
-      if (!consentRequestCreatedBySiteAdmin) {
+      if (!consentRequestCreatedBySiteAdmin &&
+          consentRequestFromAgent != KnownAgents.pubSupport) {
         await _validatePackageUploader(
           packageName,
           package,
-          fromUserId,
+          consentRequestFromAgent,
         );
       }
       if (package.containsUploader(uploader.userId)) {
@@ -1772,7 +1772,7 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
     );
     await stream.pipe(targetFile.openWrite());
   } catch (e, st) {
-    _logger.warning('An error occured while streaming tarball to FS.', e, st);
+    _logger.warning('An error occurred while streaming tarball to FS.', e, st);
     rethrow;
   }
   _logger.info('Finished streaming tarball to FS (elapsed: ${sw.elapsed}).');
