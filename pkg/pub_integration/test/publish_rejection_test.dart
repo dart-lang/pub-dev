@@ -65,7 +65,10 @@ void main() {
 
         // customize content to clear publishing warnings
         final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
-        final pubspecContent = await pubspecFile.readAsString();
+        final pubspecContent = (await pubspecFile.readAsString())
+            // Avoid specific sdk constraint.
+            .replaceFirst(RegExp('sdk: .*'), 'sdk: ^3.0.0');
+
         await pubspecFile.writeAsString(
             'homepage: https://github.com/abc/xyz\n$pubspecContent');
         await File(p.join(pkgDir, 'LICENSE'))
@@ -75,8 +78,8 @@ void main() {
         await localDartTool.publish(
           pkgDir,
           expectedErrorContains:
-              '`description` contains a generic text fragment coming from package templates (`A sample command-line application`).\n'
-              'Please follow the guides to describe your package:\n'
+              '`description` contains a generic text fragment coming from package templates (`A sample command-line application`). '
+              'Please follow the guides to describe your package: '
               'https://dart.dev/tools/pub/pubspec#description',
         );
       } finally {
