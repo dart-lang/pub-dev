@@ -243,9 +243,10 @@ final _sdkVersionsToReplace = [
 
 final _goldenReplacements = <Pattern, String>{
   'Pana <code>$panaVersion</code>,': 'Pana <code>%%pana-version%%</code>,',
-  for (final sdkVersion in _sdkVersionsToReplace)
-    'api.dart.dev/stable/$sdkVersion/':
-        'api.dart.dev/stable/%%stable-dart-version%%/',
+  for (final channel in ['dev', 'stable'])
+    for (final sdkVersion in _sdkVersionsToReplace)
+      'api.dart.dev/$channel/$sdkVersion/':
+          'api.dart.dev/stable/%%stable-dart-version%%/',
   for (final sdkVersion in _sdkVersionsToReplace)
     'Dart <code>$sdkVersion</code>':
         'Dart <code>%%stable-dart-version%%</code>',
