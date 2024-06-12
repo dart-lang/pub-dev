@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 void main() {
   CountData setupInitialCounts(DateTime date) {
-    final countData = CountData();
+    final countData = CountData.empty();
     final versionsCounts = {
       '1.0.1': 2,
       '2.0.0-alpha': 2,
@@ -298,7 +298,7 @@ void main() {
   test('Add counts on missing range in the end', () async {
     final initialLastDate = DateTime.parse('1986-02-16');
 
-    final countData = CountData();
+    final countData = CountData.empty();
     final versionsCounts = {
       '1.0.1': 2,
       '2.0.0-alpha': 2,
@@ -343,7 +343,7 @@ void main() {
 
   test('More than maxAge dates', () async {
     final initialLastDate = DateTime.parse('1986-02-16');
-    final countData = CountData();
+    final countData = CountData.empty();
     final versionsCounts = {
       '1.0.0': 2,
     };
