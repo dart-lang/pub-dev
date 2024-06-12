@@ -165,6 +165,16 @@ void main() {
         'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
+
+      final list = await api.adminInvokeAction(
+        'list-moderation-cases',
+        AdminInvokeActionArguments(arguments: {}),
+      );
+      expect(list.output, {
+        'cases': [
+          rs.output,
+        ],
+      });
     });
 
     testWithProfile('no case parameter', fn: () async {
