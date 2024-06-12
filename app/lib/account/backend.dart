@@ -639,6 +639,7 @@ class AccountBackend {
     String userId,
     bool isModerated, {
     required Key? refCaseKey,
+    required String? moderatedReason,
     required String? message,
   }) async {
     await withRetryTransaction(_db, (tx) async {
@@ -646,7 +647,10 @@ class AccountBackend {
           await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
       if (user == null) throw NotFoundException.resource('User:$userId');
 
-      user.updateIsModerated(isModerated: isModerated);
+      user.updateIsModerated(
+        isModerated: isModerated,
+        moderatedReason: moderatedReason,
+      );
       tx.insert(user);
 
       if (refCaseKey != null) {
