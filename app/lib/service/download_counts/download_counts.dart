@@ -88,7 +88,7 @@ class CountData {
     required this.totalCounts,
   });
 
-  factory CountData.init() => CountData(
+  factory CountData.empty() => CountData(
       majorRangeCounts: <VersionRangeCount>[],
       minorRangeCounts: <VersionRangeCount>[],
       patchRangeCounts: <VersionRangeCount>[],
