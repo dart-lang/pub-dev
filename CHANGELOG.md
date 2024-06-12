@@ -2,9 +2,10 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2024.06.10`.
+ * Bumped runtimeVersion to `2024.06.12`.
  * Upgraded stable Dart analysis SDK to `3.4.3`
  * Upgraded stable Flutter analysis SDK to `3.22.2`.
+ * Upgraded pana to `0.22.6`.
  * Note: `Consent.fromUserId` and `Consent.createdBySiteAdmin` may be removed once this release gets stable. 
 
 ## `20240606t114600-all`
