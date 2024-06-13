@@ -204,6 +204,7 @@ class ArchiveBuilder {
       TarHeader(
         name: path,
         size: bytes.length,
+        mode: 420, // 644₈
       ),
       Stream<List<int>>.fromIterable([bytes]),
     ));
@@ -214,6 +215,7 @@ class ArchiveBuilder {
       TarHeader(
         name: path,
         size: bytes.length,
+        mode: 420, // 644₈
       ),
       Stream<List<int>>.fromIterable([bytes]),
     ));
