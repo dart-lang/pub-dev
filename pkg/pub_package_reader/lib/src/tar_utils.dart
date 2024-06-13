@@ -142,10 +142,6 @@ class TarArchive {
     int totalLengthBytes = 0;
     while (await reader.moveNext()) {
       final entry = reader.current;
-      if (entry.type == TypeFlag.dir && entry.name == '.') {
-        throw Exception('Top-level directory "." is not allowed.');
-      }
-
       if (entry.type == TypeFlag.dir) {
         final maskBits = entry.header.mode & _executableMask;
         if (maskBits != _executableMask) {
