@@ -70,6 +70,7 @@ Future<void> postProcessDartdoc({
           TarHeader(
             name: tarEntryPath,
             size: data.length,
+            mode: 420, // 644₈
           ),
           data,
         );

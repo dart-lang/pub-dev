@@ -260,7 +260,10 @@ class Package {
     return await fromGzippedArchive(await collectBytes(
       Stream<TarEntry>.fromIterable(files.map(
         (f) => TarEntry.data(
-          TarHeader(name: f.name),
+          TarHeader(
+            name: f.name,
+            mode: 420, // 644₈
+          ),
           f.bytes,
         ),
       )).transform(tarWriter).transform(gzip.encoder),
