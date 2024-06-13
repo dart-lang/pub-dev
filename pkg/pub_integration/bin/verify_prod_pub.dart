@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:http/http.dart' as http;
 import 'package:http/retry.dart' as http_retry;
 import 'package:pub_integration/pub_integration.dart';
 import 'package:pub_integration/src/test_browser.dart';
@@ -34,13 +33,9 @@ extension on ArgParser {
       mandatory: true,
     );
     addOption(
-      '${prefix}client-access-token-callback',
-      help: 'The command to execute to get pub client access token for $name',
-      mandatory: true,
-    );
-    addOption(
-      '${prefix}client-refresh-token-callback',
-      help: 'The command to execute to get pub client refresh token for $name',
+      '${prefix}client-credentials-json-callback',
+      help:
+          'The command to execute to get pub client credentials.json content for $name',
       mandatory: true,
     );
     addOption(
@@ -50,8 +45,8 @@ extension on ArgParser {
       mandatory: true,
     );
     addOption(
-      '${prefix}gmail-access-token-callback',
-      help: 'The command to execute to get Gmail access token for $name',
+      '${prefix}last-email-callback',
+      help: 'The command to execute to read last email for $name',
       mandatory: true,
     );
   }
@@ -60,6 +55,7 @@ extension on ArgParser {
 Future<void> main(List<String> arguments) async {
   final argv = _argParser.parse(arguments);
   final pubHostedUrl = argv['pub-hosted-url'] as String;
+  final expectLiveSite = !pubHostedUrl.startsWith('http://localhost:');
 
   final browser = TestBrowser(origin: pubHostedUrl);
   try {
@@ -70,7 +66,7 @@ Future<void> main(List<String> arguments) async {
           browser, pubHostedUrl, _argsWithPrefix(argv, 'user-a-')),
       invitedUser: await _initializeUser(
           browser, pubHostedUrl, _argsWithPrefix(argv, 'user-b-')),
-      expectLiveSite: true,
+      expectLiveSite: expectLiveSite,
     );
   } finally {
     await browser.close();
@@ -96,11 +92,8 @@ Future<TestUser> _initializeUser(
 ) async {
   final email = map['email']!;
   final apiAccessToken = await _callback(map['api-access-token-callback']!);
-  final clientAccessToken =
-      await _callback(map['client-access-token-callback']!);
-  final clientRefreshToken =
-      await _callback(map['client-refresh-token-callback']!);
-  final gmailAccessToken = await _callback(map['gmail-access-token-callback']!);
+  final credentialsJsonContent =
+      await _callback(map['client-credentials-json-callback']!);
   final cookiesString = await _callback(map['browser-cookies-callback']!);
   List<CookieParam>? cookies;
   if (cookiesString.trim().isNotEmpty) {
@@ -140,21 +133,14 @@ Future<TestUser> _initializeUser(
         return await fn(page);
       });
     },
-    readLatestEmail: () async => _readLastEmail(email, gmailAccessToken),
-    createCredentials: () => {
-      'accessToken': clientAccessToken,
-      'refreshToken': clientRefreshToken,
-      'tokenEndpoint': 'https://accounts.google.com/o/oauth2/token',
-      'scopes': [
-        'openid',
-        'https://www.googleapis.com/auth/userinfo.email',
-      ],
-      'expiration': 0,
-    },
+    readLatestEmail: () async => await _callback(map['last-email-callback']!),
+    createCredentials: () =>
+        json.decode(credentialsJsonContent) as Map<String, dynamic>,
   );
 }
 
 Future<String> _callback(String command) async {
+  print('... $command');
   final parts = command.split(' ');
   final pr = await Process.run(
     parts.first,
@@ -164,55 +150,4 @@ Future<String> _callback(String command) async {
     throw Exception('Unexpected exit code: ${pr.exitCode}\n${pr.stderr}');
   }
   return pr.stdout.toString().trim();
-}
-
-Future<String> _readLastEmail(String email, String token) async {
-  final client = http_retry.RetryClient(http.Client());
-  try {
-    final gmail = _GmailClient(client, email, token);
-    final messageIds = await gmail.listMessages();
-    return await gmail.getMessage(messageIds.first);
-  } finally {
-    client.close();
-  }
-}
-
-class _GmailClient {
-  final http.Client _client;
-  final String _email;
-  final String _token;
-
-  _GmailClient(this._client, this._email, this._token);
-
-  Future<List<String>> listMessages() async {
-    final u = Uri.parse(
-        'https://gmail.googleapis.com/gmail/v1/users/$_email/messages');
-    final res = await _client.get(u, headers: {
-      'Authorization': 'Bearer $_token',
-    });
-    if (res.statusCode != 200) {
-      throw Exception('Failed to list messages from gmail');
-    }
-    final ids = <String>[];
-    for (final m in json.decode(res.body)['messages'] as Iterable) {
-      ids.add(m['id'] as String);
-    }
-    return ids;
-  }
-
-  Future<String> getMessage(String id) async {
-    final u = Uri.parse(
-        'https://gmail.googleapis.com/gmail/v1/users/$_email/messages/$id');
-    final res = await _client.get(u, headers: {
-      'Authorization': 'Bearer $_token',
-    });
-    if (res.statusCode != 200) {
-      throw Exception('Failed to fetch message from gmail');
-    }
-
-    final data = json.decode(res.body) as Map;
-    final content = base64Decode(data['payload']['body']['data'] as String);
-
-    return utf8.decode(content);
-  }
 }

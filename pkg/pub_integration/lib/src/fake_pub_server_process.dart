@@ -161,8 +161,10 @@ class FakePubServerProcess {
     }
   }
 
-  late final fakeEmailReader = FakeEmailReaderFromOutputDirectory(
-      p.join(_tmpDir, 'fake-email-sender-output-dir'));
+  late final fakeEmailOutputPath =
+      p.join(_tmpDir, 'fake-email-sender-output-dir');
+  late final fakeEmailReader =
+      FakeEmailReaderFromOutputDirectory(fakeEmailOutputPath);
 }
 
 class FakeEmailReaderFromOutputDirectory {
