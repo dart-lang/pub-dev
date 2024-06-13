@@ -12,7 +12,7 @@ class DownloadCounts extends db.ExpandoModel<String> {
   String get package => id!;
 
   @CountDataProperty(required: true)
-  CountData? countData;
+  CountData countData = CountData.empty();
 }
 
 class CountDataProperty extends db.Property {

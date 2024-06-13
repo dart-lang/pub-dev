@@ -6,6 +6,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 
 /// Sets the download counts backend service.
 void registerDownloadCountsBackend(DownloadCountsBackend backend) =>
@@ -20,33 +21,36 @@ class DownloadCountsBackend {
 
   DownloadCountsBackend(this._db);
 
-  Future<DownloadCounts?> lookupDownloadCounts(String pkg) async {
-    final key = _db.emptyKey.append(DownloadCounts, id: pkg);
-    return _db.lookupOrNull<DownloadCounts>(key);
+  Future<CountData?> lookupDownloadCountData(String pkg) async {
+    return (await cache.downloadCounts(pkg).get(() async {
+      final key = _db.emptyKey.append(DownloadCounts, id: pkg);
+      final downloadCounts = await _db.lookupOrNull<DownloadCounts>(key);
+      return downloadCounts?.countData;
+    }));
   }
 
-  Future<DownloadCounts> ingestDownloadCounts(String pkg, CountData cd) async {
-    return await withRetryTransaction(_db, (tx) async {
-      final downloadCounts = DownloadCounts()
+  Future<DownloadCounts> updateDownloadCounts(
+    String pkg,
+    Map<String, int> dayCounts,
+    DateTime dateTime,
+  ) async {
+    final downloadCounts = await withRetryTransaction(_db, (tx) async {
+      final key = _db.emptyKey.append(DownloadCounts, id: pkg);
+      final oldDownloadCounts = await tx.lookupOrNull<DownloadCounts>(key);
+      final countData = oldDownloadCounts?.countData ?? CountData.empty();
+
+      countData.addDownloadCounts(dayCounts, dateTime);
+
+      final newDownloadCounts = DownloadCounts()
         ..id = pkg
-        ..countData = cd;
+        ..countData = countData;
 
       tx.queueMutations(
-        inserts: [downloadCounts],
+        inserts: [newDownloadCounts],
       );
-
-      return downloadCounts;
+      return newDownloadCounts;
     });
+    await cache.downloadCounts(pkg).purge();
+    return downloadCounts;
   }
-}
-
-Future<void> updateDownloadCounts(
-  String pkg,
-  Map<String, int> dayCounts,
-  DateTime dateTime,
-) async {
-  final downloadCounts = await downloadCountsBackend.lookupDownloadCounts(pkg);
-  final countData = downloadCounts?.countData ?? CountData.empty();
-  countData.addDownloadCounts(dayCounts, dateTime);
-  await downloadCountsBackend.ingestDownloadCounts(pkg, countData);
 }
