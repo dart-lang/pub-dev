@@ -13,6 +13,7 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 
 import '../../../service/async_queue/async_queue.dart';
 import '../../../service/rate_limit/models.dart';
@@ -234,6 +235,16 @@ class CachePatterns {
             .map(
                 (d) => SecurityAdvisoryData.fromJson(d as Map<String, dynamic>))
             .toList(),
+      ))[package];
+
+  Entry<CountData> downloadCounts(String package) => _cache
+      .withPrefix('download-counts/')
+      .withTTL(Duration(hours: 25))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (CountData cd) => cd.toJson(),
+        decode: (d) => CountData.fromJson(d as Map<String, dynamic>),
       ))[package];
 
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
