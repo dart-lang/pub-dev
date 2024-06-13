@@ -9,6 +9,12 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
 
+/// The assumed default file mode on Linux and macOS
+const _defaultMode = 420; // 644₈
+
+/// Mask for executable bits in file modes.
+const _executableMask = 0x49; // 001 001 001
+
 /// Abstract interface that once separated process-based tar and package:tar.
 class TarArchive {
   final String _path;
@@ -136,6 +142,25 @@ class TarArchive {
     int totalLengthBytes = 0;
     while (await reader.moveNext()) {
       final entry = reader.current;
+      if (entry.type == TypeFlag.dir && entry.name == '.') {
+        throw Exception('Top-level directory "." is not allowed.');
+      }
+
+      if (entry.type == TypeFlag.dir) {
+        final maskBits = entry.header.mode & _executableMask;
+        if (maskBits != _executableMask) {
+          throw Exception(
+              'Directory "${entry.name}" has no executable mode bit.');
+        }
+      }
+
+      if (entry.type == TypeFlag.dir || entry.header.hasContent) {
+        final maskBits = entry.header.mode & _defaultMode;
+        if (maskBits != _defaultMode) {
+          throw Exception(
+              'Entry "${entry.name}" has no default mode bits (644).');
+        }
+      }
 
       fileCount++;
       if (maxFileCount != null && fileCount > maxFileCount) {
