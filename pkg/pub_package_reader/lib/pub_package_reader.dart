@@ -110,10 +110,13 @@ Future<PackageSummary> summarizePackageArchive(
       maxFileCount: maxFileCount,
       maxTotalLengthBytes: maxArchiveSize,
     );
-  } catch (e, st) {
+  } on TarException catch (e, st) {
     _logger.info('Failed to scan tar archive.', e, st);
     return PackageSummary.fail(
         ArchiveIssue('Failed to scan tar archive. ($e)'));
+  } catch (e, st) {
+    _logger.info('Failed to scan tar archive.', e, st);
+    return PackageSummary.fail(ArchiveIssue('Failed to scan tar archive.'));
   }
 
   // symlinks check
