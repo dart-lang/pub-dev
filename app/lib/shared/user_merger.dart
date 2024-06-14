@@ -171,7 +171,6 @@ class UserMerger {
         await withRetryTransaction(_db, (tx) async {
           final consent = await tx.lookupValue<Consent>(m.key);
           if (consent.fromAgent == fromUserId) {
-            consent.fromUserId = toUserId;
             consent.fromAgent = toUserId;
             tx.insert(consent);
           }
