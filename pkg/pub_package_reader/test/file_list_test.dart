@@ -86,7 +86,7 @@ void main() {
 
       final summary = await summarizePackageArchive(archiveFile.path);
       expect(summary.issues.single.message,
-          'Failed to scan tar archive. (Exception: Duplicate tar entry: `README.md`.)');
+          'Failed to scan tar archive. (Duplicate tar entry: `README.md`.)');
     });
   });
 }

@@ -53,8 +53,7 @@ void main() {
       await archiveFile.writeAsBytes(gzip.encode(<int>[1, 2, 3, 4, 5, 6, 7]));
       final summary = await summarizePackageArchive(archiveFile.path);
       expect(summary.issues, isNotEmpty);
-      expect(summary.issues.single.message,
-          'Failed to scan tar archive. (FormatException: Invalid header: Unexpected end of file)');
+      expect(summary.issues.single.message, 'Failed to scan tar archive.');
     });
 
     test('file is too large', () async {

@@ -55,7 +55,7 @@ void main() {
 
       await expandWithBytes(path, <int>[1]);
       expect((await summarizePackageArchive(path)).issues.single.message,
-          'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
+          'Failed to scan tar archive.');
     });
 
     test('maxContentLength', () async {
@@ -73,7 +73,7 @@ void main() {
               .issues
               .single
               .message,
-          'Failed to scan tar archive. (FormatException: Illegal content after the end of the tar archive.)');
+          'Failed to scan tar archive.');
     });
   });
 }

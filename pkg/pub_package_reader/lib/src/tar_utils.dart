@@ -145,7 +145,7 @@ class TarArchive {
       if (entry.type == TypeFlag.dir) {
         final maskBits = entry.header.mode & _executableMask;
         if (maskBits != _executableMask) {
-          throw Exception(
+          throw TarException(
               'Directory "${entry.name}" has no executable mode bit.');
         }
       }
@@ -153,24 +153,25 @@ class TarArchive {
       if (entry.type == TypeFlag.dir || entry.header.hasContent) {
         final maskBits = entry.header.mode & _defaultMode;
         if (maskBits != _defaultMode) {
-          throw Exception(
+          throw TarException(
               'Entry "${entry.name}" has no default mode bits (644).');
         }
       }
 
       fileCount++;
       if (maxFileCount != null && fileCount > maxFileCount) {
-        throw Exception('Maximum file count reached: $maxFileCount.');
+        throw TarException('Maximum file count reached: $maxFileCount.');
       }
 
       totalLengthBytes += entry.size;
       if (maxTotalLengthBytes != null &&
           totalLengthBytes > maxTotalLengthBytes) {
-        throw Exception('Maximum total length reached: $maxTotalLengthBytes.');
+        throw TarException(
+            'Maximum total length reached: $maxTotalLengthBytes.');
       }
 
       if (!names.add(entry.name)) {
-        throw Exception('Duplicate tar entry: `${entry.name}`.');
+        throw TarException('Duplicate tar entry: `${entry.name}`.');
       }
       if (entry.header.linkName != null) {
         symlinks[entry.name] = entry.header.linkName!;
@@ -190,3 +191,12 @@ Map<String, String> _normalizeNames(List<String> names) {
 }
 
 String _normalize(String path) => p.normalize(path).trim();
+
+class TarException implements Exception {
+  final String message;
+
+  TarException(this.message);
+
+  @override
+  String toString() => message;
+}
