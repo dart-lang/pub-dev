@@ -52,7 +52,7 @@ void main() {
       final summary =
           await summarizePackageArchive(archiveFile.path, maxFileCount: 1024);
       expect(summary.issues.single.message,
-          'Failed to scan tar archive. (Exception: Maximum file count reached: 1024.)');
+          'Failed to scan tar archive. (Maximum file count reached: 1024.)');
     });
   });
 }
