@@ -93,7 +93,7 @@ class PublishingScript {
       await dart.getDependencies(_dummyExampleDir.path);
       await dart.run(_dummyExampleDir.path, 'bin/main.dart');
 
-      if (pubHostedUrl.startsWith('http://localhost:')) {
+      if (!expectLiveSite) {
         // invite uploader
         // TODO: use page.invitePackageAdmin instead
         await adminUser.withBrowserPage((page) async {

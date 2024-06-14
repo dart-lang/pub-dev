@@ -77,26 +77,13 @@ class TestContextProvider {
       browserApi = await _apiClientHttpHeadersFromSignedInSession(page);
     });
 
-    Future<PubApiClient> createClientWithAudience({String? audience}) async {
-      final rs = await http.get(Uri.parse(pubHostedUrl).replace(
-        path: '/fake-gcp-token',
-        queryParameters: {
-          'email': email,
-          if (audience != null) 'audience': audience,
-        },
-      ));
-      final map = json.decode(rs.body) as Map<String, dynamic>;
-      final token = map['token'] as String;
-      return PubApiClient(pubHostedUrl,
-          client: createHttpClientWithHeaders({
-            'authorization': 'Bearer $token',
-          }));
-    }
-
     return TestUser(
       email: email,
       browserApi: browserApi,
-      serverApi: await createClientWithAudience(),
+      serverApi: await _createClientWithAudience(
+        pubHostedUrl: pubHostedUrl,
+        email: email,
+      ),
       createCredentials: () => fakeCredentialsMap(email: email),
       readLatestEmail: () async {
         final map = await _fakePubServerProcess.fakeEmailReader
@@ -110,6 +97,38 @@ class TestContextProvider {
       },
     );
   }
+}
+
+Future<PubApiClient> _createClientWithAudience({
+  required String pubHostedUrl,
+  required String email,
+  String? audience,
+}) async {
+  final token = await createFakeGcpToken(
+    pubHostedUrl: pubHostedUrl,
+    email: email,
+    audience: audience,
+  );
+  return PubApiClient(pubHostedUrl,
+      client: createHttpClientWithHeaders({
+        'authorization': 'Bearer $token',
+      }));
+}
+
+Future<String> createFakeGcpToken({
+  required String pubHostedUrl,
+  required String email,
+  String? audience,
+}) async {
+  final rs = await http.get(Uri.parse(pubHostedUrl).replace(
+    path: '/fake-gcp-token',
+    queryParameters: {
+      'email': email,
+      if (audience != null) 'audience': audience,
+    },
+  ));
+  final map = json.decode(rs.body) as Map<String, dynamic>;
+  return map['token'] as String;
 }
 
 /// Extracts the HTTP headers required for pub.dev API client (session cookies and CSRF token).
