@@ -138,11 +138,9 @@ class ConsentBackend {
       // Create a new entry.
       final consent = Consent.init(
         fromAgent: activeAgent.agentId,
-        fromUserId: activeUser.userId,
         email: email,
         kind: kind,
         args: args,
-        createdBySiteAdmin: activeAgent is SupportAgent,
       );
       await _db.commit(inserts: [
         consent,
@@ -328,7 +326,6 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
-    final createdBySiteAdmin = consent.createdBySiteAdmin ?? false;
     final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
@@ -339,7 +336,6 @@ class _PackageUploaderAction extends ConsentAction {
       packageName,
       currentUser.user,
       consentRequestFromAgent: consent.fromAgent!,
-      consentRequestCreatedBySiteAdmin: createdBySiteAdmin,
     );
   }
 
@@ -405,7 +401,6 @@ class _PublisherContactAction extends ConsentAction {
       publisherId,
       contactEmail,
       consentRequestFromAgent: consent.fromAgent!,
-      consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
     );
   }
 
@@ -485,7 +480,6 @@ class _PublisherMemberAction extends ConsentAction {
       publisherId,
       currentUser.userId,
       consentRequestFromAgent: consent.fromAgent!,
-      consentRequestCreatedBySiteAdmin: consent.createdBySiteAdmin ?? false,
     );
   }
 

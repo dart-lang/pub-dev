@@ -530,7 +530,6 @@ void main() {
 
           final consentRow = await dbService.query<Consent>().run().single;
           expect(consentRow.args, ['oxygen']);
-          expect(consentRow.createdBySiteAdmin, isTrue);
 
           await (await createFakeAuthPubApiClient(email: 'someuser@pub.dev'))
               .resolveConsent(

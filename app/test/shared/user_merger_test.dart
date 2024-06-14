@@ -98,21 +98,18 @@ void main() {
       kind: 'k1',
       args: ['1'],
       fromAgent: user.userId,
-      fromUserId: user.userId,
     );
     final target2 = Consent.init(
       email: user.email,
       kind: 'k2',
       args: ['2'],
       fromAgent: admin.userId,
-      fromUserId: admin.userId,
     );
     final controlConsent = Consent.init(
       email: control.email,
       kind: 'k3',
       args: ['3'],
       fromAgent: control.userId,
-      fromUserId: control.userId,
     );
     await dbService.commit(inserts: [target1, target2, controlConsent]);
 
@@ -123,9 +120,9 @@ void main() {
     final updated2 = list.firstWhere((c) => c.id == target2.id);
     final updated3 = list.firstWhere((c) => c.id == controlConsent.id);
 
-    expect(updated1.fromUserId, user.userId);
-    expect(updated2.fromUserId, user.userId);
-    expect(updated3.fromUserId, control.userId);
+    expect(updated1.fromAgent, user.userId);
+    expect(updated2.fromAgent, user.userId);
+    expect(updated3.fromAgent, control.userId);
   });
 
   testWithProfile('publisher membership',

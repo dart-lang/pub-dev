@@ -349,7 +349,6 @@ void main() {
             .map((c) => {
                   'id': c.consentId,
                   'fromAgent': c.fromAgent,
-                  'fromUserId': c.fromUserId,
                   'email': c.email,
                   'kind': c.kind,
                   'args': c.args,
@@ -402,7 +401,6 @@ void main() {
         );
         final consent = Consent.init(
           fromAgent: adminUser.userId,
-          fromUserId: adminUser.userId,
           email: 'other@pub.dev',
           kind: 'PublisherMember',
           args: ['example.com'],
@@ -419,7 +417,6 @@ void main() {
           {
             'id': isNotNull,
             'fromAgent': adminUser.userId,
-            'fromUserId': adminUser.userId,
             'email': 'other@pub.dev',
             'kind': 'PublisherMember',
             'args': ['example.com'],
@@ -449,7 +446,6 @@ void main() {
           {
             'id': isNotNull,
             'fromAgent': user.userId,
-            'fromUserId': user.userId,
             'email': 'newuser@example.com',
             'kind': 'PublisherMember',
             'args': ['example.com'],
@@ -469,7 +465,6 @@ void main() {
           {
             'id': isNotNull,
             'fromAgent': user.userId,
-            'fromUserId': user.userId,
             'email': 'user@pub.dev',
             'kind': 'PublisherMember',
             'args': ['example.com'],

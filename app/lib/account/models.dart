@@ -360,15 +360,7 @@ class Consent extends db.Model {
   @db.StringListProperty()
   List<String>? args;
 
-  @db.StringProperty()
-  String? fromUserId;
-
   /// May be an `User.userId` or `support@pub.dev`.
-  /// TODO: Migrate to use [fromAgent] instead of [fromUserId].
-  ///       As [Consent] expires after a week, we don't need to wait for long
-  ///       to migrate this in multiple releases. Once the current release is
-  ///       stable for more then a week, we are safe to migrate the code to use
-  ///       the new field and remove the old one.
   @db.StringProperty()
   String? fromAgent;
 
@@ -384,18 +376,13 @@ class Consent extends db.Model {
   @db.IntProperty()
   int notificationCount = 0;
 
-  @db.BoolProperty()
-  bool? createdBySiteAdmin = false;
-
   Consent();
 
   Consent.init({
-    required this.fromUserId,
     required this.fromAgent,
     required this.email,
     required this.kind,
     required this.args,
-    this.createdBySiteAdmin = false,
     Duration timeout = const Duration(days: 7),
   }) {
     id = Ulid().toString();

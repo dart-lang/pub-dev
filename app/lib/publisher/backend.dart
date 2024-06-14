@@ -358,11 +358,9 @@ class PublisherBackend {
     String publisherId,
     String contactEmail, {
     required String consentRequestFromAgent,
-    required bool consentRequestCreatedBySiteAdmin,
   }) async {
     checkPublisherIdParam(publisherId);
-    if (!consentRequestCreatedBySiteAdmin &&
-        consentRequestFromAgent != KnownAgents.pubSupport) {
+    if (consentRequestFromAgent != KnownAgents.pubSupport) {
       await requirePublisherAdmin(publisherId, consentRequestFromAgent);
     }
     final authenticatedUser = await requireAuthenticatedWebUser();
@@ -548,11 +546,9 @@ class PublisherBackend {
     String publisherId,
     String userId, {
     required String consentRequestFromAgent,
-    required bool consentRequestCreatedBySiteAdmin,
   }) async {
     checkPublisherIdParam(publisherId);
-    if (!consentRequestCreatedBySiteAdmin &&
-        consentRequestFromAgent != KnownAgents.pubSupport) {
+    if (consentRequestFromAgent != KnownAgents.pubSupport) {
       await requirePublisherAdmin(publisherId, consentRequestFromAgent);
     }
     final user = await accountBackend.lookupUserById(userId);
