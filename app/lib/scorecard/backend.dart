@@ -12,6 +12,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/models.dart';
 
 import '../package/backend.dart';
 import '../package/models.dart' show Package, PackageVersion, PackageView;
@@ -149,6 +150,15 @@ class ScoreCardBackend {
     final versionInfo = stateInfo.versions[packageVersion];
     final hasDartdocFile = versionInfo?.docs ?? false;
 
+    var taskStatus = versionInfo?.status;
+    // There is a small risk that the task backend's state is not yet updated
+    // for the latest stable version (stale cache). We can be sure that in such
+    // cases it will be scheduled eventually for analysis and `pending` status
+    // is the right fallback value here.
+    if (taskStatus == null && package.latestVersion == version.version) {
+      taskStatus = PackageVersionStatus.pending;
+    }
+
     final data = ScoreCardData(
       packageName: packageName,
       packageVersion: packageVersion,
@@ -159,7 +169,7 @@ class ScoreCardBackend {
             hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
       ),
       panaReport: PanaReport.fromSummary(summary, packageStatus: status),
-      taskStatus: versionInfo?.status,
+      taskStatus: taskStatus,
     );
     await cacheEntry.set(data);
     return data;
