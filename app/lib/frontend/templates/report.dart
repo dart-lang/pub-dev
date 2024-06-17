@@ -185,6 +185,11 @@ Iterable<d.Node> _appeal(
       d.code(text: subject.localName),
       d.text(', please explain why the resolution should be reconsidered.'),
     ]),
+    d.p(
+      text: 'If you have additional relevant documentation '
+          '(source repositories, screenshots, logs, bug tracker entries, etc) '
+          'consider uploading these and sharing a link.',
+    ),
     if (!(sessionData?.isAuthenticated ?? false))
       d.fragment([
         d.p(text: 'Contact information:'),
