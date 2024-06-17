@@ -151,7 +151,7 @@ class ScoreCardBackend {
     final hasDartdocFile = versionInfo?.docs ?? false;
 
     var taskStatus = versionInfo?.status;
-    // There is a small chance that the task backend's state is not yet updated
+    // There is a small risk that the task backend's state is not yet updated
     // for the latest stable version (stale cache). We can be sure that in such
     // cases it will be scheduled eventually for analysis and `pending` status
     // is the right fallback value here.
