@@ -322,7 +322,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   > .tab-button,
   > .tab-link > a {
     display: block;
-    color: var(--main-text-color);
+    color: var(--pub-default-text-color);
     padding: 12px 0px;
     margin: 0px 18px 0px 12px; // left 12px to compensate .detail-tabs-header's -12px; Sum must be 30px.
     border-bottom: 2px solid;

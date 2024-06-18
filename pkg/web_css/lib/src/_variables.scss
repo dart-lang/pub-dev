@@ -1,15 +1,20 @@
+// suggested naming convention: `--pub-[component]-[role]-[property]`, where
+// - `[component]` may be: `default`, `button`, `link`, `card`, ...
+// - `[role]` may be the `background`, `text`, `border`, ...
+// - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
+
 :root {
-  --main-bg-color: #ffffff;
-  --main-text-color: #4a4a4a;
-  --main-link-text-color: #0175c2;
-  --main-code-bg-color: #f5f5f7;
+  --pub-default-background-color: #ffffff;
+  --pub-default-text-color: #4a4a4a;
+  --pub-link-text-color: #0175c2;
+  --pub-code-background-color: #f5f5f7;
 }
 
 .dark-theme {
-  --main-bg-color: #212121;
-  --main-text-color: #e0e0e0;
-  --main-link-text-color: #40c4ff;
-  --main-code-bg-color: #474747;
+  --pub-default-background-color: #212121;
+  --pub-default-text-color: #e0e0e0;
+  --pub-link-text-color: #40c4ff;
+  --pub-code-background-color: #474747;
 }
 
 $font-family-google-sans-display: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
@@ -23,7 +28,7 @@ $site-header-popup-bg: #1f3044;
 $site-header-popup-fg: #f8f9fa;
 $site-header-popup-line: mix($site-header-popup-bg, $site-header-popup-fg, 80%);
 
-$detail-tab-bg: var(--main-code-bg-color);
+$detail-tab-bg: var(--pub-code-background-color);
 $detail-tab-active-fg: #1967d2;
 $detail-tab-admin-color: #990000;
 
