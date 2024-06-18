@@ -4,7 +4,7 @@
 
 /* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
 .light-theme .markdown-body table tr {
-  background-color: #fff;
+  background-color: var(--main-bg-color);
   border-top: 1px solid #c6cbd1;
 }
 

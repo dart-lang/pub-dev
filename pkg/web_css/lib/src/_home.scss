@@ -100,7 +100,7 @@
   }
 
   .mini-list-item {
-    background: #ffffff;
+    background: var(--main-bg-color);
     border-radius: 4px;
     box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.3);
     padding: 28px 30px 30px; // title's top gap is about 2px (30-2 => 28)

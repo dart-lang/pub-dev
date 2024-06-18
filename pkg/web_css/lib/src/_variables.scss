@@ -1,16 +1,29 @@
+:root {
+  --main-bg-color: #ffffff;
+  --main-text-color: #4a4a4a;
+  --main-link-text-color: #0175c2;
+  --main-code-bg-color: #f5f5f7;
+}
+
+.dark-theme {
+  --main-bg-color: #212121;
+  --main-text-color: #e0e0e0;
+  --main-link-text-color: #40c4ff;
+  --main-code-bg-color: #474747;
+}
+
 $font-family-google-sans-display: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
 $font-family-google-sans: "Google Sans", "Roboto", sans-serif;
 $font-family-google-sans-text: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
 $font-family-google-sans-mono: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
 
-$site-font-color: #4A4A4A;
 $site-header-banner-bg: #1C2834;
 $site-header-banner-fg: #f8f9fa;
 $site-header-popup-bg: #1f3044;
 $site-header-popup-fg: #f8f9fa;
 $site-header-popup-line: mix($site-header-popup-bg, $site-header-popup-fg, 80%);
 
-$detail-tab-bg: #f5f5f7;
+$detail-tab-bg: var(--main-code-bg-color);
 $detail-tab-active-fg: #1967d2;
 $detail-tab-admin-color: #990000;
 
