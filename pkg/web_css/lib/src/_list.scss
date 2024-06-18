@@ -60,7 +60,7 @@
     .sort-control-option {
       display: block;
       width: 100%;
-      background: #ffffff;
+      background: var(--pub-default-background-color);
       font-size: 14px;
       padding: 12px 12px;
       text-align: left;
@@ -429,7 +429,7 @@
     }
 
     a {
-      color: $site-font-color;
+      color: var(--pub-default-text-color);
     }
 
     label {

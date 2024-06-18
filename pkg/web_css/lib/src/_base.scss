@@ -10,8 +10,8 @@
 }
 
 body {
-  background-color: #fff;
-  color: $site-font-color;
+  background-color: var(--pub-default-background-color);
+  color: var(--pub-default-text-color);
   font-size: 14px;
   line-height: 1.6;
   margin: 0;
@@ -97,7 +97,7 @@ button {
 
 a {
   text-decoration: none;
-  color: $color-link;
+  color: var(--pub-link-text-color);
   cursor: pointer;
   opacity: 1;
 
@@ -106,8 +106,8 @@ a {
   }
 
   &.link-button {
-    background: $color-link;
-    color: white;
+    background: var(--pub-link-text-color);
+    color: var(--pub-default-background-color);
     display: inline-block;
     padding: 4px 12px;
   }
@@ -126,15 +126,6 @@ main {
   margin-left: auto;
   margin-right: auto;
   padding: 0 20px;
-}
-
-/* TODO: remove this block after migrating to the new UI */
-code {
-  background: #f8f8f8;
-  border: 1px solid #eee;
-  font-family: $font-family-google-sans-mono;
-  font-size: 85%;
-  padding: 2px;
 }
 
 .standalone-side-image-block {
@@ -165,7 +156,7 @@ strong {
 
 .markdown-body code,
 code {
-  background: #f5f5f7;
+  background: var(--pub-code-background-color);
   border: none;
   border-radius: 4px;
   font-family: $font-family-google-sans-mono;
@@ -174,7 +165,7 @@ code {
 
 .markdown-body pre,
 pre {
-  background: #f5f5f7;
+  background: var(--pub-code-background-color);
   line-height: 1.2;
   padding: 30px;
   overflow-x: auto;
@@ -331,7 +322,7 @@ pre {
 
 .-pub-like-button {
   --mdc-theme-primary: #f8f8f8;
-  --mdc-theme-on-primary: #4A4A4A;
+  --mdc-theme-on-primary: var(--pub-default-text-color);
 }
 
 .-pub-like-button-img {
@@ -405,7 +396,7 @@ pre {
 }
 
 a.-x-ago {
-  color: $site-font-color;
+  color: var(--pub-default-text-color);
   text-decoration: underline dotted #ccc;
 }
 

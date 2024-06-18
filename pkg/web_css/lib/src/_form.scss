@@ -88,7 +88,7 @@
 .-pub-remove-uploader-button,
 .-pub-remove-user-button {
   border-radius: 3px;
-  color: $site-font-color;
+  color: var(--pub-default-text-color);
   display: inline-block;
   padding: 2px 8px;
 
