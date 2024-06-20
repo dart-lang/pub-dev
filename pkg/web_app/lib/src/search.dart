@@ -10,10 +10,30 @@ import 'gtm_js.dart';
 import 'page_updater.dart';
 
 void setupSearch() {
+  _setFormSubmitKeyboardHandler();
   _setEventForKeyboardShortcut();
   _setEventsForSearchForm();
   _setEventForFiltersToggle();
   _setEventForSortControl();
+}
+
+void _setFormSubmitKeyboardHandler() {
+  final inputElem = document.querySelector('form.search-bar input[name="q"]');
+  if (inputElem != null && inputElem is InputElement) {
+    final form = inputElem.form;
+    if (form == null) {
+      return;
+    }
+    inputElem.onKeyDown.listen((e) {
+      // only handle `enter` key
+      if (e.keyCode != 13) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      form.submit();
+    });
+  }
 }
 
 void _setEventForKeyboardShortcut() {
@@ -60,7 +80,7 @@ void adjustQueryTextAfterPageShow() {
 
 void _setEventsForSearchForm() {
   // When a search form checkbox has a linked search label,
-  //checking the checkbox will trigger a click on the link.
+  // checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
     final checkbox = e.querySelector('input');
     final link = e.querySelector('a');
@@ -168,13 +188,13 @@ void _setEventForSortControl() {
   document.querySelectorAll('.sort-control-option').forEach((e) {
     final isFirst = e.previousElementSibling == null;
     final value = isFirst ? null : e.dataset['value'];
-    e.onClick.listen((_) => _updateSortField(value));
+    e.onClick.listen((_) => _submitFormWithSortUpdated(value));
   });
 }
 
 /// Updates the form's `sort` field and submits the form.
 /// When [value] is `null`, the `sort` field will be removed.
-void _updateSortField(String? value) {
+void _submitFormWithSortUpdated(String? value) {
   final queryText = document.querySelector('input[name="q"]') as InputElement;
   var sortInput = document.querySelector('input[name="sort"]') as InputElement?;
   if (sortInput == null) {
