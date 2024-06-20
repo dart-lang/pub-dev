@@ -432,17 +432,16 @@ class TaskBackend {
       }
 
       // Make changes!
-      state.versions!
-        // Remove versions that have been deselected
-        ..removeWhere((v, _) => deselectedVersions.contains(v))
-        // Add versions we should be tracking
-        ..addAll({
-          for (final v in untrackedVersions)
-            v: PackageVersionStateInfo(
+      // Note: iterating over the tracked versions list keeps the order.
+      state.versions = Map.fromEntries(versions.map((v) {
+        final oldVersion = state.versions![v];
+        final newVersion = oldVersion ??
+            PackageVersionStateInfo(
               scheduled: initialTimestamp,
               attempts: 0,
-            ),
-        });
+            );
+        return MapEntry(v, newVersion);
+      }));
       state.derivePendingAt();
 
       _log.info('Update state tracking for $packageName');
