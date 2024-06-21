@@ -161,7 +161,9 @@ d.Node pageLayoutNode({
             ...?bodyClasses,
             if (requestContext.experimentalFlags.isDarkModeEnabled)
               '-experimental-dark-mode',
-            'light-theme',
+            requestContext.experimentalFlags.isDarkModeDefault
+                ? 'dark-theme'
+                : 'light-theme',
             if (activeConfiguration.isStaging) 'staging-banner',
           ],
           children: [

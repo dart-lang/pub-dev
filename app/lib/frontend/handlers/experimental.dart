@@ -12,6 +12,7 @@ const _publicFlags = <String>{
 };
 
 const _allFlags = <String>{
+  'dark-as-default',
   ..._publicFlags,
 };
 
@@ -48,6 +49,10 @@ class ExperimentalFlags {
     return ExperimentalFlags(_allFlags);
   }
 
+  ExperimentalFlags addAll(Iterable<String> flags) {
+    return ExperimentalFlags({..._enabled, ...flags});
+  }
+
   bool get isEmpty => _enabled.isEmpty;
 
   bool isEnabled(String flag) {
@@ -82,6 +87,7 @@ class ExperimentalFlags {
   bool get isReportPageEnabled => isEnabled('report');
 
   bool get isDarkModeEnabled => isEnabled('dark');
+  bool get isDarkModeDefault => isEnabled('dark-as-default');
 
   String encodedAsCookie() => _enabled.join(':');
 

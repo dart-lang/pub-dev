@@ -71,8 +71,12 @@ Future<RequestContext> buildRequestContext({
   required shelf.Request request,
 }) async {
   final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-  final experimentalFlags =
+  var experimentalFlags =
       ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
+  if (activeConfiguration.isFakeOrTest &&
+      request.requestedUri.queryParameters['force-experimental-dark'] == '1') {
+    experimentalFlags = experimentalFlags.addAll(['dark', 'dark-as-default']);
+  }
 
   // Never read or look for the session cookie on hosts other than the
   // primary site. Who knows how it got there or what it means.

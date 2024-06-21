@@ -423,6 +423,8 @@ class Configuration {
 
   late final isProduction = projectId == 'dartlang-pub';
   late final isStaging = projectId == 'dartlang-pub-dev';
+  late final isFakeOrTest =
+      projectId == 'dartlang-pub-fake' || projectId == 'dartlang-pub-test';
 
   late final isPublishedEmailNotificationEnabled = true;
 }
