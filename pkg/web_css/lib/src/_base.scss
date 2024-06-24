@@ -72,7 +72,7 @@ summary {
   transition: background-color 0.3s;
 
   &:hover {
-    background: lighten($color-link, 55%);
+    background: var(--pub-summary_hover-background-color);
   }
 
   &:focus {

@@ -4,18 +4,18 @@
 
 .package-badge {
   display: inline-block;
-  background: white;
-  border: 1px solid $color-input-primary;
+  background: var(--pub-default-background-color);
+  border: 1px solid var(--pub-badge-default-color);
   border-radius: 20px;
-  color: $color-input-primary;
+  color: var(--pub-badge-default-color);
 
   font-size: 12px;
   padding: 1px 6px;
   margin: 0 8px 0 0;
 
   &.package-badge-red {
-    border-color: $color-input-danger;
-    color: $color-input-danger;
+    border-color: var(--pub-badge-red-color);
+    color: var(--pub-badge-red-color);
   }
 
   .package-badge-icon {
