@@ -29,4 +29,4 @@ desktop:                                              light/dark accessibility
 /packages/retry/score                                 82/ 82
 /documentation/retry/latest/retry/retry-library.html  80/ 80
 
-total: 85.4
+average: 85.4
