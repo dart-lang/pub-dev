@@ -31,6 +31,9 @@ class Payload {
   final String pubHostedUrl;
 
   /// Lists of (`version`, `token`) for versions to process.
+  ///
+  /// Given in order of priority, with the assumption that the first entry
+  /// is the one it's most important to process.
   final List<VersionTokenPair> versions;
 
   // json_serializable boiler-plate
