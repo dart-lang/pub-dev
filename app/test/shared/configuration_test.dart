@@ -18,6 +18,7 @@ void main() {
     expect(config.canonicalPackagesBucketName, expectedValue);
     expect(config.imageBucketName, expectedValue);
     expect(config.reportsBucketName, expectedValue);
+    expect(config.downloadCountsBucketName, expectedValue);
     expect(config.popularityDumpBucketName, expectedValue);
     expect(config.admins![0].email, 'foo@foo.foo');
     expect(config.admins![0].oauthUserId, '42');
