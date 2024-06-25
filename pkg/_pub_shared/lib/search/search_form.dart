@@ -15,6 +15,7 @@ final RegExp _refDependencyRegExp =
 final RegExp _allDependencyRegExp =
     RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
 final _sortRegExp = RegExp('sort:([a-z]+)');
+final _updatedRegExp = RegExp('updated:([0-9]+[dwmy]?)');
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
@@ -67,6 +68,33 @@ SearchOrder? parseSearchOrder(String? value) {
     if (v.name == value) return v;
   }
   return null;
+}
+
+int? parseUpdatedInDays(String value) {
+  if (value.isEmpty) return null;
+  var amount = value;
+  var multiplier = 1;
+  final end = value.substring(value.length - 1).toLowerCase();
+  switch (end) {
+    case 'd':
+      amount = value.substring(0, value.length - 1);
+      multiplier = 1;
+      break;
+    case 'w':
+      amount = value.substring(0, value.length - 1);
+      multiplier = 7;
+      break;
+    case 'm':
+      amount = value.substring(0, value.length - 1);
+      multiplier = 30;
+      break;
+    case 'y':
+      amount = value.substring(0, value.length - 1);
+      multiplier = 365;
+      break;
+  }
+  final parsedAmount = int.tryParse(amount);
+  return parsedAmount == null ? null : parsedAmount * multiplier;
 }
 
 /// Filter conditions on tags.
@@ -205,6 +233,8 @@ class ParsedQueryText {
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
+  final int? updatedInDays;
+
   final SearchOrder? order;
 
   ParsedQueryText._(
@@ -213,6 +243,7 @@ class ParsedQueryText {
     this.refDependencies,
     this.allDependencies,
     this.tagsPredicate,
+    this.updatedInDays,
     this.order,
   );
 
@@ -244,6 +275,10 @@ class ParsedQueryText {
     final orderValues = extractRegExp(_sortRegExp);
     final order =
         orderValues.isEmpty ? null : parseSearchOrder(orderValues.last);
+    final updatedInDaysValue = extractRegExp(_updatedRegExp);
+    final updatedInDays = updatedInDaysValue.isEmpty
+        ? null
+        : parseUpdatedInDays(updatedInDaysValue.last);
 
     final tagValues = extractRegExp(
       _tagRegExp,
@@ -262,6 +297,7 @@ class ParsedQueryText {
       dependencies,
       allDependencies,
       tagsPredicate,
+      updatedInDays,
       order,
     );
   }
@@ -275,6 +311,7 @@ class ParsedQueryText {
       refDependencies,
       allDependencies,
       tagsPredicate ?? this.tagsPredicate,
+      updatedInDays,
       order,
     );
   }

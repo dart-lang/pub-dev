@@ -156,7 +156,6 @@ class ServiceSearchQuery {
   final String? publisherId;
 
   final int? minPoints;
-  final int? updatedInDays;
 
   /// The value of the `sort` URL query parameter.
   final SearchOrder? order;
@@ -168,7 +167,6 @@ class ServiceSearchQuery {
     TagsPredicate? tagsPredicate,
     String? publisherId,
     required this.minPoints,
-    this.updatedInDays,
     this.order,
     this.offset,
     this.limit,
@@ -182,7 +180,6 @@ class ServiceSearchQuery {
     String? publisherId,
     SearchOrder? order,
     int? minPoints,
-    int? updatedInDays,
     int offset = 0,
     int? limit = 10,
   }) {
@@ -192,7 +189,6 @@ class ServiceSearchQuery {
       tagsPredicate: tagsPredicate,
       publisherId: publisherId,
       minPoints: minPoints,
-      updatedInDays: updatedInDays,
       order: order,
       offset: offset,
       limit: limit,
@@ -209,8 +205,6 @@ class ServiceSearchQuery {
 
     final minPoints =
         int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
-    final updatedInDays =
-        int.tryParse(uri.queryParameters['updatedInDays'] ?? '');
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
 
@@ -220,7 +214,6 @@ class ServiceSearchQuery {
       publisherId: publisherId,
       order: order,
       minPoints: minPoints,
-      updatedInDays: updatedInDays,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
     );
@@ -240,7 +233,6 @@ class ServiceSearchQuery {
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
       minPoints: minPoints,
-      updatedInDays: updatedInDays,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
     );
@@ -254,8 +246,6 @@ class ServiceSearchQuery {
       'offset': offset?.toString(),
       if (minPoints != null && minPoints! > 0)
         'minPoints': minPoints.toString(),
-      if (updatedInDays != null && updatedInDays! > 0)
-        'updatedInDays': updatedInDays.toString(),
       'limit': limit?.toString(),
       'order': order?.name,
     };

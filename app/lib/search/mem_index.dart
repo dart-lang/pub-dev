@@ -128,9 +128,9 @@ class InMemoryPackageIndex {
     }
 
     // filter on updatedInDays
-    if (query.updatedInDays != null && query.updatedInDays! > 0) {
-      final threshold =
-          Duration(days: query.updatedInDays!, hours: 11, minutes: 59);
+    final updatedInDays = query.parsedQuery.updatedInDays;
+    if (updatedInDays != null && updatedInDays > 0) {
+      final threshold = Duration(days: updatedInDays);
       final now = clock.now();
       packages.removeWhere((package) {
         final doc = _packages[package]!;
