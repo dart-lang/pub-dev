@@ -1166,6 +1166,7 @@ List<Version> _versionsToTrack(
         .sorted(Comparable.compare)
         .reversed
         .take(5)
+    // This maintains the order above, as Sets are iterated in insertion order.
   }.nonNulls.where(visibleVersions.contains).toList();
 }
 

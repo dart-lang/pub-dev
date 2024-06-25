@@ -103,7 +103,10 @@ class PackageState extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? runtimeVersion;
 
-  /// Scheduling state for all versions of this package.
+  /// Scheduling state for versions of this package that are selected for analysis.
+  ///
+  /// NOTE: we are using the order of the keys as the priority of their analysis.
+  ///       TODO(https://github.com/dart-lang/pub-dev/issues/7830)
   @PackageVersionStateMapProperty(required: true)
   Map<String, PackageVersionStateInfo>? versions;
 
