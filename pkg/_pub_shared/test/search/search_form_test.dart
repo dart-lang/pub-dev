@@ -76,24 +76,24 @@ void main() {
 
   group('updated window parsing', () {
     test('invalid values', () {
-      expect(parseUpdatedInDays(''), null);
-      expect(parseUpdatedInDays('d'), null);
-      expect(parseUpdatedInDays('1dd'), null);
-      expect(parseUpdatedInDays('1.1m'), null);
+      expect(parseTime(''), null);
+      expect(parseTime('d'), null);
+      expect(parseTime('1dd'), null);
+      expect(parseTime('1.1m'), null);
     });
 
     test('valid values', () {
-      expect(parseUpdatedInDays('1212'), 1212);
-      expect(parseUpdatedInDays('1212d'), 1212);
-      expect(parseUpdatedInDays('10w'), 70);
-      expect(parseUpdatedInDays('6m'), 180);
-      expect(parseUpdatedInDays('1y'), 365);
+      expect(parseTime('1212d'), Duration(days: 1212));
+      expect(parseTime('10w'), Duration(days: 70));
+      expect(parseTime('6m'), Duration(days: 186));
+      expect(parseTime('1y'), Duration(days: 365));
+      expect(parseTime('2mo12h'), Duration(days: 62, hours: 12));
     });
 
     test('full query', () {
       final q = SearchForm(query: 'abc updated:2w');
       expect(q.parsedQuery.text, 'abc');
-      expect(q.parsedQuery.updatedInDays, 14);
+      expect(q.parsedQuery.updatedDuration, Duration(days: 14));
     });
   });
 

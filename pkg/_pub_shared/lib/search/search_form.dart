@@ -15,7 +15,7 @@ final RegExp _refDependencyRegExp =
 final RegExp _allDependencyRegExp =
     RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
 final _sortRegExp = RegExp('sort:([a-z]+)');
-final _updatedRegExp = RegExp('updated:([0-9]+[dwmy]?)');
+final _updatedRegExp = RegExp('updated:([0-9][0-9a-z]*)');
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
@@ -70,31 +70,34 @@ SearchOrder? parseSearchOrder(String? value) {
   return null;
 }
 
-int? parseUpdatedInDays(String value) {
-  if (value.isEmpty) return null;
-  var amount = value;
-  var multiplier = 1;
-  final end = value.substring(value.length - 1).toLowerCase();
-  switch (end) {
-    case 'd':
-      amount = value.substring(0, value.length - 1);
-      multiplier = 1;
-      break;
-    case 'w':
-      amount = value.substring(0, value.length - 1);
-      multiplier = 7;
-      break;
-    case 'm':
-      amount = value.substring(0, value.length - 1);
-      multiplier = 30;
-      break;
-    case 'y':
-      amount = value.substring(0, value.length - 1);
-      multiplier = 365;
-      break;
+final _timeExp = RegExp(
+  [
+    '^',
+    '((?<years>\\d+)(y|year|years|yr))?',
+    '((?<months>\\d+)(months|month|mo|m))?',
+    '((?<weeks>\\d+)(weeks|week|wk|w))?',
+    '((?<days>\\d+)(days|day|d))?',
+    '((?<hours>\\d+)(hours|hour|hr|h))?',
+    '\$',
+  ].join(''),
+  caseSensitive: true,
+);
+
+Duration? parseTime(String duration) {
+  // Parse the string
+  final match = _timeExp.firstMatch(duration);
+  if (match == null) {
+    return null;
   }
-  final parsedAmount = int.tryParse(amount);
-  return parsedAmount == null ? null : parsedAmount * multiplier;
+  // Return parsed values
+  final d = Duration(
+    days: (365 * (int.tryParse(match.namedGroup('years') ?? '0') ?? 0) +
+        31 * (int.tryParse(match.namedGroup('months') ?? '0') ?? 0) +
+        7 * (int.tryParse(match.namedGroup('weeks') ?? '0') ?? 0) +
+        (int.tryParse(match.namedGroup('days') ?? '0') ?? 0)),
+    hours: int.tryParse(match.namedGroup('hours') ?? '0') ?? 0,
+  );
+  return d > Duration.zero ? d : null;
 }
 
 /// Filter conditions on tags.
@@ -233,7 +236,7 @@ class ParsedQueryText {
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
-  final int? updatedInDays;
+  final Duration? updatedDuration;
 
   final SearchOrder? order;
 
@@ -243,7 +246,7 @@ class ParsedQueryText {
     this.refDependencies,
     this.allDependencies,
     this.tagsPredicate,
-    this.updatedInDays,
+    this.updatedDuration,
     this.order,
   );
 
@@ -275,10 +278,9 @@ class ParsedQueryText {
     final orderValues = extractRegExp(_sortRegExp);
     final order =
         orderValues.isEmpty ? null : parseSearchOrder(orderValues.last);
-    final updatedInDaysValue = extractRegExp(_updatedRegExp);
-    final updatedInDays = updatedInDaysValue.isEmpty
-        ? null
-        : parseUpdatedInDays(updatedInDaysValue.last);
+    final updatedValue = extractRegExp(_updatedRegExp);
+    final updatedDuration =
+        updatedValue.isEmpty ? null : parseTime(updatedValue.last);
 
     final tagValues = extractRegExp(
       _tagRegExp,
@@ -297,7 +299,7 @@ class ParsedQueryText {
       dependencies,
       allDependencies,
       tagsPredicate,
-      updatedInDays,
+      updatedDuration,
       order,
     );
   }
@@ -311,7 +313,7 @@ class ParsedQueryText {
       refDependencies,
       allDependencies,
       tagsPredicate ?? this.tagsPredicate,
-      updatedInDays,
+      updatedDuration,
       order,
     );
   }
