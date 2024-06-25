@@ -22,7 +22,7 @@ RUN mkdir -p /home/worker/config/dart-stable
 RUN mkdir -p /home/worker/config/flutter-stable
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.4.3
+RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.4.4
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
 RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.22.2
