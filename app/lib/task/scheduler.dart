@@ -296,6 +296,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     s.versions!.addAll({
       for (final v in pendingVersions)
         v: PackageVersionStateInfo(
+          version: v,
           scheduled: now,
           attempts: s.versions![v]!.attempts + 1,
           zone: zone,

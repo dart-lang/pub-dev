@@ -394,6 +394,7 @@ class TaskBackend {
             ..versions = {
               for (final version in versions)
                 version: PackageVersionStateInfo(
+                  version: version,
                   scheduled: initialTimestamp,
                   attempts: 0,
                 ),
@@ -439,6 +440,7 @@ class TaskBackend {
         ..addAll({
           for (final v in untrackedVersions)
             v: PackageVersionStateInfo(
+              version: v,
               scheduled: initialTimestamp,
               attempts: 0,
             ),
@@ -697,6 +699,7 @@ class TaskBackend {
 
       // Remove instanceName, zone, secretToken, and set attempts = 0
       state.versions![version] = PackageVersionStateInfo(
+        version: version,
         scheduled: versionState.scheduled,
         docs: hasDocIndexHtml,
         pana: summary != null,

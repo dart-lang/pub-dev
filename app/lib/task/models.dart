@@ -204,6 +204,8 @@ class PackageState extends db.ExpandoModel<String> {
 /// State of a given `version` within a [PackageState].
 @JsonSerializable()
 class PackageVersionStateInfo {
+  final String? version;
+
   PackageVersionStatus get status {
     if (attempts == 0 && scheduled == initialTimestamp) {
       // attempts == 0 && scheduled == init         ==> pending
@@ -292,6 +294,7 @@ class PackageVersionStateInfo {
   }
 
   PackageVersionStateInfo({
+    required this.version,
     required this.scheduled,
     required this.attempts,
     this.secretToken,

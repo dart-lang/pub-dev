@@ -9,6 +9,7 @@ part of 'models.dart';
 PackageVersionStateInfo _$PackageVersionStateInfoFromJson(
         Map<String, dynamic> json) =>
     PackageVersionStateInfo(
+      version: json['version'] as String?,
       scheduled: DateTime.parse(json['scheduled'] as String),
       attempts: (json['attempts'] as num).toInt(),
       secretToken: json['secretToken'] as String?,
@@ -22,6 +23,7 @@ PackageVersionStateInfo _$PackageVersionStateInfoFromJson(
 Map<String, dynamic> _$PackageVersionStateInfoToJson(
         PackageVersionStateInfo instance) =>
     <String, dynamic>{
+      'version': instance.version,
       'docs': instance.docs,
       'pana': instance.pana,
       'finished': instance.finished,
