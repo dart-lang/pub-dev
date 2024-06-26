@@ -14,6 +14,7 @@ import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 final _log = Logger('pub.task.schedule');
 
@@ -286,15 +287,47 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     }
 
     final now = clock.now();
-    final pendingVersions = s.pendingVersions(at: now);
+    final pendingVersions =
+        s.pendingVersions(at: now).map(Version.parse).toList();
     if (pendingVersions.isEmpty) {
       // do not schedule anything
       return null;
     }
 
+    // Prioritize stable versions first, prereleases after them (in decreasing order), e.g.
+    // - 2.5.0
+    // - 2.4.0
+    // - 2.0.0
+    // - 1.2.0
+    // - 3.0.0-dev2
+    // - 3.0.0-dev1
+    // - 2.7.0-beta
+    // - 1.0.0-dev
+    pendingVersions
+        .sort((a, b) => compareSemanticVersionsDesc(a, b, true, true));
+    // Promote the first prerelease version to the second position, e.g.
+    // - 2.5.0
+    // - 3.0.0-dev2
+    // - 2.4.0
+    // - 2.0.0
+    // - 1.2.0
+    // - 3.0.0-dev1
+    // - 2.7.0-beta
+    // - 1.0.0-dev
+    //
+    // (applicable only when the second position is a stable version)
+    if (pendingVersions.length > 2 && !pendingVersions[1].isPreRelease) {
+      final firstPrereleaseIndex =
+          pendingVersions.indexWhere((v) => v.isPreRelease);
+      if (firstPrereleaseIndex > 1) {
+        final v = pendingVersions.removeAt(firstPrereleaseIndex);
+        pendingVersions.insert(1, v);
+      }
+    }
+
     // Update PackageState
     s.versions!.addAll({
-      for (final v in pendingVersions)
+      for (final v in pendingVersions.map((v) => v.toString()))
         v: PackageVersionStateInfo(
           scheduled: now,
           attempts: s.versions![v]!.attempts + 1,
@@ -307,50 +340,14 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     s.derivePendingAt();
     tx.insert(s);
 
-    final payloadVersions = pendingVersions
-        .map((v) => VersionTokenPair(
-              version: v,
-              token: s.versions![v]!.secretToken!,
-            ))
-        .toList();
-
-    // Prioritize stable versions first, prereleases after them (in decreasing order), e.g.
-    // - 2.5.0
-    // - 2.4.0
-    // - 2.0.0
-    // - 1.2.0
-    // - 3.0.0-dev2
-    // - 3.0.0-dev1
-    // - 2.7.0-beta
-    // - 1.0.0-dev
-    payloadVersions.sort((a, b) => compareSemanticVersionsDesc(
-        a.semanticVersion, b.semanticVersion, true, true));
-    // Promote the first prerelease version to the second position, e.g.
-    // - 2.5.0
-    // - 3.0.0-dev2
-    // - 2.4.0
-    // - 2.0.0
-    // - 1.2.0
-    // - 3.0.0-dev1
-    // - 2.7.0-beta
-    // - 1.0.0-dev
-    //
-    // (applicable only when the second position is a stable version)
-    if (payloadVersions.length > 2 &&
-        !payloadVersions[1].semanticVersion.isPreRelease) {
-      final firstPrereleaseIndex =
-          payloadVersions.indexWhere((v) => v.semanticVersion.isPreRelease);
-      if (firstPrereleaseIndex > 1) {
-        final v = payloadVersions.removeAt(firstPrereleaseIndex);
-        payloadVersions.insert(1, v);
-      }
-    }
-
     // Create payload
     return Payload(
       package: s.package,
       pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
-      versions: payloadVersions,
+      versions: pendingVersions.map((v) => VersionTokenPair(
+            version: v.toString(),
+            token: s.versions![v.toString()]!.secretToken!,
+          )),
     );
   });
 }
