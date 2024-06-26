@@ -20,7 +20,7 @@ body {
 }
 
 body, input, button, select {
-  font-family: $font-family-google-sans-text;
+  font-family: var(--pub-default-text-font_family);
   -webkit-font-smoothing: antialiased;
   // we don't use font ligatures, and Google Sans fonts would otherwise change text in surprising ways
   font-variant-ligatures: none;
@@ -42,7 +42,7 @@ body,
   font-size: 16px;
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: $font-family-google-sans;
+    font-family: var(--pub-default-text-font_family);
     font-weight: 400;
   }
 
@@ -56,14 +56,6 @@ body,
 
 img {
   max-width: 100%;
-}
-
-// Material Design theme customizations
-:root {
-  --mdc-theme-primary: #0175C2;
-  --mdc-theme-secondary: #0066D9;
-  // Represents $font-family-google-sans-text, but breaks generated CSS.
-  --mdc-typography-font-family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
 }
 
 summary {
@@ -159,7 +151,7 @@ code {
   background: var(--pub-code-background-color);
   border: none;
   border-radius: 4px;
-  font-family: $font-family-google-sans-mono;
+  font-family: var(--pub-code-text-font_family);
   padding: 2px 4px;
 }
 
@@ -255,7 +247,7 @@ pre {
     }
 
     th {
-      font-family: $font-family-google-sans;
+      font-family: var(--pub-default-text-font_family);
       font-size: 16px;
       font-weight: 400; /* overrides github-markdown.css */
       border-bottom: 1px solid #c8c8ca;
