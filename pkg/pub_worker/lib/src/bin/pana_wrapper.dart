@@ -255,11 +255,13 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
         sdkKind: 'dart',
         configKind: bundle.configKind,
         version: bundle.dart,
+        channel: bundle.channel,
       );
       final flutterSdkPath = await _installSdk(
         sdkKind: 'flutter',
         configKind: bundle.configKind,
         version: bundle.flutter,
+        channel: bundle.channel,
       );
 
       return (
@@ -280,6 +282,7 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
 
 Future<String?> _installSdk({
   required String sdkKind,
+  required String channel,
   required String configKind,
   required String version,
 }) async {
@@ -300,6 +303,7 @@ Future<String?> _installSdk({
             'tool/setup-$sdkKind.sh',
             sdkPath,
             version,
+            channel,
           ],
           workingDirectory: '/home/worker/pub-dev',
           environment: {
@@ -322,11 +326,13 @@ Future<String?> _installSdk({
 }
 
 class _SdkBundle {
+  final String channel;
   final String configKind;
   final String dart;
   final String flutter;
 
   _SdkBundle({
+    required this.channel,
     required this.configKind,
     required this.dart,
     required this.flutter,
@@ -352,17 +358,20 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
     if (latestStableDartSdkVersion != null &&
         latestStableFlutterSdkVersion != null)
       _SdkBundle(
+        channel: 'stable',
         configKind: 'latest-stable',
         dart: latestStableDartSdkVersion,
         flutter: latestStableFlutterSdkVersion,
       ),
     if (latestBetaDartSdkVersion != null && latestBetaFlutterSdkVersion != null)
       _SdkBundle(
+        channel: 'beta',
         configKind: 'latest-beta',
         dart: latestBetaDartSdkVersion,
         flutter: latestBetaFlutterSdkVersion,
       ),
     _SdkBundle(
+      channel: 'master',
       configKind: 'master',
       dart: 'master',
       flutter: 'master',
