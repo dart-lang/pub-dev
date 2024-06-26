@@ -314,11 +314,37 @@ Future<Payload?> updatePackageStateWithPendingVersions(
             ))
         .toList();
 
-    payloadVersions.sort((a, b) {
-      // prioritize stables first, then newer versions
-      return compareSemanticVersionsDesc(
-          a.semanticVersion, b.semanticVersion, true, true);
-    });
+    // Prioritize stable versions first, prereleases after them (in decreasing order), e.g.
+    // - 2.5.0
+    // - 2.4.0
+    // - 2.0.0
+    // - 1.2.0
+    // - 3.0.0-dev2
+    // - 3.0.0-dev1
+    // - 2.7.0-beta
+    // - 1.0.0-dev
+    payloadVersions.sort((a, b) => compareSemanticVersionsDesc(
+        a.semanticVersion, b.semanticVersion, true, true));
+    // Promote the first prerelease version to the second position, e.g.
+    // - 2.5.0
+    // - 3.0.0-dev2
+    // - 2.4.0
+    // - 2.0.0
+    // - 1.2.0
+    // - 3.0.0-dev1
+    // - 2.7.0-beta
+    // - 1.0.0-dev
+    //
+    // (applicable only when the second position is a stable version)
+    if (payloadVersions.length > 2 &&
+        !payloadVersions[1].semanticVersion.isPreRelease) {
+      final firstPrereleaseIndex =
+          payloadVersions.indexWhere((v) => v.semanticVersion.isPreRelease);
+      if (firstPrereleaseIndex > 1) {
+        final v = payloadVersions.removeAt(firstPrereleaseIndex);
+        payloadVersions.insert(1, v);
+      }
+    }
 
     // Create payload
     return Payload(
