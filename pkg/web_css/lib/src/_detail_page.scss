@@ -299,7 +299,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   margin: 0 0 24px -12px;
   padding: 0;
 
-  background: $detail-tab-bg;
+  background: var(--pub-detail_tab-background-color);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -322,7 +322,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   > .tab-button,
   > .tab-link > a {
     display: block;
-    color: var(--pub-default-text-color);
+    color: var(--pub-detail_tab-text-color);
     padding: 12px 0px;
     margin: 0px 18px 0px 12px; // left 12px to compensate .detail-tabs-header's -12px; Sum must be 30px.
     border-bottom: 2px solid;
@@ -330,27 +330,27 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     cursor: pointer;
 
     &:hover {
-      border-bottom-color: #dddddd;
+      border-bottom-color: var(--pub-detail_tab-underline-color);
     }
   }
 
   > .tab-button {
     &.-active {
       font-weight: 500;
-      color: $detail-tab-active-fg;
-      border-bottom-color: $detail-tab-active-fg;
+      color: var(--pub-detail_tab-active-color);
+      border-bottom-color: var(--pub-detail_tab-active-color);
     }
   }
 
   /* Render admin tabs with red. */
   > .tab-button.-private,
   > .tab-link.-private > a {
-    color: $detail-tab-admin-color;
+    color: var(--pub-detail_tab-admin-color);
     position: relative;
     padding-right: 9px;
 
     &:hover {
-      border-bottom-color: $detail-tab-admin-color;
+      border-bottom-color: var(--pub-detail_tab-admin-color);
     }
 
     /* The lock icon, positioned after the label. */
@@ -376,7 +376,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
   > .tab-button.-private,
   > .tab-button.-private {
-    border-bottom-color: $detail-tab-admin-color;
+    border-bottom-color: var(--pub-detail_tab-admin-color);
   }
 }
 
