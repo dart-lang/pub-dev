@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 part 'task_payload.g.dart';
 
@@ -70,4 +71,6 @@ class VersionTokenPair {
   factory VersionTokenPair.fromJson(Map<String, dynamic> json) =>
       _$VersionTokenPairFromJson(json);
   Map<String, dynamic> toJson() => _$VersionTokenPairToJson(this);
+
+  late final semanticVersion = Version.parse(version);
 }

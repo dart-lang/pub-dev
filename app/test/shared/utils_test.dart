@@ -65,5 +65,17 @@ void main() {
       ].map((e) => Version.parse(e));
       expect(versions.latestVersion.toString(), '1.2.0');
     });
+
+    test('priority order', () {
+      int compare(String a, String b) {
+        return compareSemanticVersionsDesc(
+            Version.parse(a), Version.parse(b), true, true);
+      }
+
+      expect(compare('2.0.0', '1.9.0'), -1);
+      expect(compare('2.0.0', '1.9.0-dev'), -1);
+      expect(compare('2.0.0-dev', '1.9.0-dev'), -1);
+      expect(compare('2.0.0-dev', '1.9.0'), 1);
+    });
   });
 }

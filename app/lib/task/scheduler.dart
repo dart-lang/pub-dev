@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -307,14 +308,38 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     s.derivePendingAt();
     tx.insert(s);
 
+    final payloadVersions = pendingVersions
+        .map((v) => VersionTokenPair(
+              version: v,
+              token: s.versions![v]!.secretToken!,
+            ))
+        .toList();
+
+    // sort pending versions based on version priority
+    if (payloadVersions.length > 1) {
+      // loading the package entity to prioritize latest versions
+      final pkg = await tx.lookupOrNull<Package>(
+          db.emptyKey.append(Package, id: state.package));
+
+      payloadVersions.sort((a, b) {
+        if (a.version == pkg?.latestVersion) return -1;
+        if (b.version == pkg?.latestVersion) return 1;
+        if (a.version == pkg?.latestPreviewVersion) return -1;
+        if (b.version == pkg?.latestPreviewVersion) return 1;
+        if (a.version == pkg?.latestPrereleaseVersion) return -1;
+        if (b.version == pkg?.latestPrereleaseVersion) return 1;
+
+        // prioritize stables first, then newer versions
+        return compareSemanticVersionsDesc(
+            a.semanticVersion, b.semanticVersion, true, true);
+      });
+    }
+
     // Create payload
     return Payload(
       package: s.package,
       pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
-      versions: pendingVersions.map((v) => VersionTokenPair(
-            version: v,
-            token: s.versions![v]!.secretToken!,
-          )),
+      versions: payloadVersions,
     );
   });
 }
