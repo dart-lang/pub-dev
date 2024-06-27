@@ -15,6 +15,7 @@ final RegExp _refDependencyRegExp =
 final RegExp _allDependencyRegExp =
     RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
 final _sortRegExp = RegExp('sort:([a-z]+)');
+final _updatedRegExp = RegExp('updated:([0-9][0-9a-z]*)');
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
@@ -67,6 +68,36 @@ SearchOrder? parseSearchOrder(String? value) {
     if (v.name == value) return v;
   }
   return null;
+}
+
+final _timeExp = RegExp(
+  [
+    '^',
+    '((?<years>\\d+)(y|year|years|yr))?',
+    '((?<months>\\d+)(months|month|mo|m))?',
+    '((?<weeks>\\d+)(weeks|week|wk|w))?',
+    '((?<days>\\d+)(days|day|d))?',
+    '((?<hours>\\d+)(hours|hour|hr|h))?',
+    '\$',
+  ].join(''),
+  caseSensitive: true,
+);
+
+Duration? parseTime(String duration) {
+  // Parse the string
+  final match = _timeExp.firstMatch(duration);
+  if (match == null) {
+    return null;
+  }
+  // Return parsed values
+  final d = Duration(
+    days: (365 * (int.tryParse(match.namedGroup('years') ?? '0') ?? 0) +
+        31 * (int.tryParse(match.namedGroup('months') ?? '0') ?? 0) +
+        7 * (int.tryParse(match.namedGroup('weeks') ?? '0') ?? 0) +
+        (int.tryParse(match.namedGroup('days') ?? '0') ?? 0)),
+    hours: int.tryParse(match.namedGroup('hours') ?? '0') ?? 0,
+  );
+  return d > Duration.zero ? d : null;
 }
 
 /// Filter conditions on tags.
@@ -205,6 +236,8 @@ class ParsedQueryText {
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
+  final Duration? updatedDuration;
+
   final SearchOrder? order;
 
   ParsedQueryText._(
@@ -213,6 +246,7 @@ class ParsedQueryText {
     this.refDependencies,
     this.allDependencies,
     this.tagsPredicate,
+    this.updatedDuration,
     this.order,
   );
 
@@ -244,6 +278,9 @@ class ParsedQueryText {
     final orderValues = extractRegExp(_sortRegExp);
     final order =
         orderValues.isEmpty ? null : parseSearchOrder(orderValues.last);
+    final updatedValue = extractRegExp(_updatedRegExp);
+    final updatedDuration =
+        updatedValue.isEmpty ? null : parseTime(updatedValue.last);
 
     final tagValues = extractRegExp(
       _tagRegExp,
@@ -262,6 +299,7 @@ class ParsedQueryText {
       dependencies,
       allDependencies,
       tagsPredicate,
+      updatedDuration,
       order,
     );
   }
@@ -275,6 +313,7 @@ class ParsedQueryText {
       refDependencies,
       allDependencies,
       tagsPredicate ?? this.tagsPredicate,
+      updatedDuration,
       order,
     );
   }

@@ -74,6 +74,29 @@ void main() {
     });
   });
 
+  group('updated window parsing', () {
+    test('invalid values', () {
+      expect(parseTime(''), null);
+      expect(parseTime('d'), null);
+      expect(parseTime('1dd'), null);
+      expect(parseTime('1.1m'), null);
+    });
+
+    test('valid values', () {
+      expect(parseTime('1212d'), Duration(days: 1212));
+      expect(parseTime('10w'), Duration(days: 70));
+      expect(parseTime('6m'), Duration(days: 186));
+      expect(parseTime('1y'), Duration(days: 365));
+      expect(parseTime('2mo12h'), Duration(days: 62, hours: 12));
+    });
+
+    test('full query', () {
+      final q = SearchForm(query: 'abc updated:2w');
+      expect(q.parsedQuery.text, 'abc');
+      expect(q.parsedQuery.updatedDuration, Duration(days: 14));
+    });
+  });
+
   group('SearchOrder enum', () {
     test('serialization', () {
       for (var value in SearchOrder.values) {

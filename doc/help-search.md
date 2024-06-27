@@ -26,6 +26,11 @@
 
   - `runtime:<runtime>`: Searches for packages that support the given runtime. `runtime` can be one of `web`, `native-jit` and `native-aot`.
 
+  - `updated:<duration>`: Searches for packages updated in the given past days,
+    with the following recognized formats: `3d` (3 days), `2w` (two weeks), `6m` (6 months), `2y` 2 years.
+
+  - `has:executable`: Search for packages with Dart files in their `bin/` directory.
+
 ## Filters
 
 The search UI also supports filters.

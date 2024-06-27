@@ -127,15 +127,14 @@ class InMemoryPackageIndex {
       });
     }
 
-    // filter on updatedInDays
-    if (query.updatedInDays != null && query.updatedInDays! > 0) {
-      final threshold =
-          Duration(days: query.updatedInDays!, hours: 11, minutes: 59);
+    // filter on updatedDuration
+    final updatedDuration = query.parsedQuery.updatedDuration;
+    if (updatedDuration != null && updatedDuration > Duration.zero) {
       final now = clock.now();
       packages.removeWhere((package) {
         final doc = _packages[package]!;
         final diff = now.difference(doc.updated);
-        return diff > threshold;
+        return diff > updatedDuration;
       });
     }
 

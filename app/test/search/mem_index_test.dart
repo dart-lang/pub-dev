@@ -450,7 +450,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('no results with updatedInDays', () async {
-      final result = index.search(ServiceSearchQuery.parse(updatedInDays: 1));
+      final result =
+          index.search(ServiceSearchQuery.parse(query: 'updated:1d'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 0,
@@ -462,7 +463,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     test('filter with updatedInDays', () async {
       final days = clock.now().difference(lastPackageUpdated).inDays;
       final result1 =
-          index.search(ServiceSearchQuery.parse(updatedInDays: days - 1));
+          index.search(ServiceSearchQuery.parse(query: 'updated:${days - 1}d'));
       expect(json.decode(json.encode(result1)), {
         'timestamp': isNotNull,
         'totalCount': 0,
@@ -471,7 +472,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
 
       final result2 =
-          index.search(ServiceSearchQuery.parse(updatedInDays: days + 1));
+          index.search(ServiceSearchQuery.parse(query: 'updated:${days + 1}d'));
       expect(json.decode(json.encode(result2)), {
         'timestamp': isNotNull,
         'totalCount': 1,
