@@ -18,6 +18,7 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'incomingPackagesBucketName',
             'imageBucketName',
             'reportsBucketName',
+            'downloadCountsBucketName',
             'exportedApiBucketName',
             'projectId',
             'searchServicePrefix',
@@ -60,6 +61,8 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('imageBucketName', (v) => v as String?),
           reportsBucketName:
               $checkedConvert('reportsBucketName', (v) => v as String?),
+          downloadCountsBucketName:
+              $checkedConvert('downloadCountsBucketName', (v) => v as String?),
           popularityDumpBucketName:
               $checkedConvert('popularityDumpBucketName', (v) => v as String?),
           searchSnapshotBucketName:
@@ -136,6 +139,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'incomingPackagesBucketName': instance.incomingPackagesBucketName,
       'imageBucketName': instance.imageBucketName,
       'reportsBucketName': instance.reportsBucketName,
+      'downloadCountsBucketName': instance.downloadCountsBucketName,
       'exportedApiBucketName': instance.exportedApiBucketName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,

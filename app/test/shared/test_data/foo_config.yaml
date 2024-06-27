@@ -4,6 +4,7 @@ popularityDumpBucketName: foo
 searchSnapshotBucketName: foo
 canonicalPackagesBucketName: foo
 reportsBucketName: foo
+downloadCountsBucketName: foo
 exportedApiBucketName: foo
 maxTaskInstances: 0
 maxTaskRunHours: 2

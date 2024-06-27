@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -172,6 +173,11 @@ void _setupGenericPeriodicTasks() {
       project: activeConfiguration.taskWorkerProject!,
     ),
   );
+
+  _daily(
+      name: 'sync-download-counts',
+      isRuntimeVersioned: false,
+      task: syncDownloadCounts);
 
   _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics);
 

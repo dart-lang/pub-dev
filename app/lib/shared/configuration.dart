@@ -81,6 +81,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for generated reports.
   final String? reportsBucketName;
 
+  /// The name of the Cloud Storage bucket to use for download counts.
+  final String? downloadCountsBucketName;
+
   /// The name of the Cloud Storage bucket to use for exporting JSON API responses.
   final String? exportedApiBucketName;
 
@@ -254,6 +257,7 @@ class Configuration {
     required this.projectId,
     required this.imageBucketName,
     required this.reportsBucketName,
+    required this.downloadCountsBucketName,
     required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
     required this.exportedApiBucketName,
@@ -318,6 +322,7 @@ class Configuration {
       projectId: 'dartlang-pub-fake',
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
+      downloadCountsBucketName: 'fake-bucket-download-counts',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
@@ -368,6 +373,7 @@ class Configuration {
       projectId: 'dartlang-pub-test',
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
+      downloadCountsBucketName: 'fake-bucket-download-counts',
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
@@ -413,6 +419,7 @@ class Configuration {
     canonicalPackagesBucketName!,
     imageBucketName!,
     reportsBucketName!,
+    downloadCountsBucketName!,
     incomingPackagesBucketName!,
     popularityDumpBucketName!,
     publicPackagesBucketName!,

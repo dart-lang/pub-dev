@@ -20,6 +20,7 @@ cosImage: projects/cos-cloud/global/images/family/cos-105-lts
 taskWorkerServiceAccount: task-worker-dev@dartlang-pub-tasks.iam.gserviceaccount.com
 imageBucketName: dartlang-pub-dev--pub-images
 reportsBucketName: dartlang-pub-dev-reports
+downloadCountsBucketName: dartlang-pub-download-counts
 storageBaseUrl: https://storage.googleapis.com
 pubClientAudience: 818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com
 pubServerAudience: 621485135717-082tj8o9vu32lbmquftsolqngk2o13lp.apps.googleusercontent.com
