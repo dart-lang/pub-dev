@@ -16,6 +16,18 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 
 final Logger _logger = Logger('pub.download_counts');
+
+/// Extract map from version to download counts for a given day.
+///
+/// Expects input on the form:
+/// ```json
+/// {
+///   "per_version": [
+///     {"version": "<version>", "count": "<count>"},
+///     ...
+///   ]
+/// }
+/// ```
 Map<String, int> _extractDayCounts(Map<String, dynamic> json) {
   final countsList = json['per_version'];
   if (countsList is! List) {
@@ -55,13 +67,19 @@ Future<bool> processDownloadCounts(
     return false;
   }
   if (bytes.isEmpty) {
-    _logger.info('$downloadCountsFileName is empty.');
+    _logger.severe('$downloadCountsFileName is empty.');
     return false;
   }
 
   bool failedLines = false;
   final processedPackages = <String>{};
-  final lines = utf8.decode(bytes).split('\n');
+  var lines = <String>[];
+  try {
+    lines = utf8.decode(bytes).split('\n');
+  } on FormatException catch (e) {
+    _logger.severe('Failed to utf8 decode bytes of $downloadCountsFileName/n'
+        '$e');
+  }
   final pool = Pool(10);
   await Future.wait(lines.map((line) async {
     return await pool.withResource(() async {
@@ -80,7 +98,7 @@ Future<bool> processDownloadCounts(
             package, dayCounts, date);
         processedPackages.add(package);
       } on FormatException catch (e) {
-        _logger.info(
+        _logger.severe(
             'Failed to proccess line $line of file $downloadCountsFileName \n'
             '$e');
         failedLines = true;
@@ -92,8 +110,8 @@ Future<bool> processDownloadCounts(
     return false;
   } else {
     final allPackageNames = await packageBackend.allPackageNames().toSet();
-    final missingPackages = allPackageNames
-      ..removeWhere((p) => processedPackages.contains(p));
+    final missingPackages =
+        allPackageNames.difference(processedPackages.toSet());
 
     await Future.wait(missingPackages.map((package) async {
       return await pool.withResource(() async {
@@ -105,6 +123,17 @@ Future<bool> processDownloadCounts(
 }
 
 const numberOfSyncDays = 5;
+
+/// Synchronizes the download counts backend with download counts data from the
+/// last [numberOfSyncDays] days.
+///
+/// Reads each of the daily download counts files from the Cloud storage bucket
+/// and processes the data. If processing of a file fails it will still continue
+/// with the other files.
+///
+/// Throws an exception if one or more of the syncs fail except if the only
+/// failed file is that of yesterday. We expect this function to be called at
+/// least once per day, hence tolerating that yesterday's data is not yet ready.
 Future<void> syncDownloadCounts() async {
   final today = clock.now();
   final yesterday = today.addCalendarDays(-1);

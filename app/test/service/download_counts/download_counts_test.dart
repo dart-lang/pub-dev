@@ -121,14 +121,17 @@ void main() {
               'service',
               'download_counts',
               'fake_download_counts_data_faulty_line.jsonl'));
-      final logger = Logger('');
+      bool succeeded;
       final messages = <String>[];
-      logger.onRecord.listen((event) {
+      final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final succeeded =
-          await processDownloadCounts(downloadCountsJsonFileNameJan6, nextDate);
-
+      try {
+        succeeded = await processDownloadCounts(
+            downloadCountsJsonFileNameJan6, nextDate);
+      } finally {
+        await subscription.cancel();
+      }
       expect(succeeded, false);
       expect(
           messages,
@@ -149,13 +152,18 @@ void main() {
 
     testWithProfile('file not present', fn: () async {
       final nextDate = DateTime.parse('2024-01-06');
+      bool succeeded;
       final messages = <String>[];
-      final logger = Logger('');
-      logger.onRecord.listen((event) {
+      final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final succeeded =
-          await processDownloadCounts('this_file_does_not_exist', nextDate);
+      try {
+        succeeded =
+            await processDownloadCounts('this_file_does_not_exist', nextDate);
+      } finally {
+        await subscription.cancel();
+      }
+
       expect(succeeded, false);
       expect(messages, contains('Failed to read "this_file_does_not_exist".'));
     });
@@ -168,13 +176,17 @@ void main() {
           downloadCountsJsonFileNameJan6,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data_empty.jsonl'));
+      bool succeeded;
       final messages = <String>[];
-      final logger = Logger('');
-      logger.onRecord.listen((event) {
+      final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
-      final succeeded =
-          await processDownloadCounts(downloadCountsJsonFileNameJan6, nextDate);
+      try {
+        succeeded = await processDownloadCounts(
+            downloadCountsJsonFileNameJan6, nextDate);
+      } finally {
+        await subscription.cancel();
+      }
 
       expect(succeeded, false);
       expect(
@@ -232,12 +244,17 @@ void main() {
               'download_counts', 'fake_download_counts_data.jsonl'),
         );
       }
+
       final messages = <String>[];
-      final logger = Logger('');
-      logger.onRecord.listen((event) {
+      final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
-      await syncDownloadCounts();
+      try {
+        await syncDownloadCounts();
+      } finally {
+        await subscription.cancel();
+      }
+
       final countData =
           await downloadCountsBackend.lookupDownloadCountData('neon');
       expect(countData, isNotNull);
