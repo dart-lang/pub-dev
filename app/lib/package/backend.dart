@@ -1486,7 +1486,6 @@ class PackageBackend {
 
     final status = await consentBackend.invitePackageUploader(
       agent: authenticatedUser,
-      activeUser: user,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
     );

@@ -84,7 +84,7 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
 /// the given [permission].
 ///
 /// Throws [AuthorizationException] if it doesn't have the permission.
-Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
+Future<SupportAgent> requireAuthenticatedAdmin(
     AdminPermission permission) async {
   final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedGcpServiceAccount) {
@@ -96,7 +96,7 @@ Future<AuthenticatedGcpServiceAccount> requireAuthenticatedAdmin(
           'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();
     }
-    return agent;
+    return SupportAgent();
   } else {
     throw AuthenticationException.tokenInvalid('not a GCP service account');
   }
