@@ -76,7 +76,8 @@ void main() {
           final result = await server.waitForResult(package, version);
 
           final docIndex = result.index.lookup('doc/index.html');
-          expect(docIndex, isNotNull);
+          expect(docIndex, isNotNull,
+              reason: '$package must have documentation');
 
           final panaSummaryBytes = result.lookup('summary.json');
           expect(panaSummaryBytes, isNotNull);
