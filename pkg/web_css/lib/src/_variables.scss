@@ -41,8 +41,20 @@
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
 
   // Material Design theme customizations
+  --mdc-theme-surface: var(--pub-default-background-color);
   --mdc-theme-on-primary: var(--pub-default-text-color);
   --mdc-theme-on-secondary: var(--pub-default-text-color);
+  --mdc-theme-on-surface: var(--pub-default-text-color);
+  --mdc-checkbox-unchecked-color: #777777;
+
+  // Pub-specific Material Design overrides
+  --mdc_pub-data_table-border-color: var(--mdc-checkbox-unchecked-color);
+  --mdc_pub-select-background-color: rgba(255, 255, 255, 0.1);
+  --mdc_pub-select-label-color: var(--pub-link-text-color);
+  --mdc_pub-select-text-color: var(--pub-default-text-color);
+  --mdc_pub-text_field-background-color: rgba(255, 255, 255, 0.1);
+  --mdc_pub-text_field-border-color: var(--mdc-checkbox-unchecked-color);
+  --mdc_pub-text_field-text-color: var(--pub-default-text-color);
 }
 
 $site-header-banner-bg: #1C2834;

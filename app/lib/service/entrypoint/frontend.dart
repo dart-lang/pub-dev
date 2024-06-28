@@ -63,7 +63,7 @@ Future<void> watchForResourceChanges() async {
   void setupWatcher(
       String name, String path, FutureOr<void> Function() updateFn) {
     final w = Watcher(path, pollingDelay: Duration(seconds: 3));
-    final subs = w.events.debounce(Duration(milliseconds: 200)).listen(
+    final subs = w.events.debounce(Duration(milliseconds: 2500)).listen(
       (_) async {
         _logger.info('Updating $name...');
         await updateFn();
