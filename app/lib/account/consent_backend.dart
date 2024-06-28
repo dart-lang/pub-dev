@@ -106,7 +106,6 @@ class ConsentBackend {
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> _invite({
     required AuthenticatedAgent activeAgent,
-    required User activeUser,
     required String email,
     required String kind,
     required List<String> args,
@@ -129,7 +128,7 @@ class ConsentBackend {
           await _delete(old, (a) => a.onExpire(old));
         } else if (old.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(activeUser.email!, old);
+          return await _sendNotification(activeAgent.displayId, old);
         } else {
           return api.InviteStatus(
               emailSent: false, nextNotification: old.nextNotification);
@@ -146,20 +145,18 @@ class ConsentBackend {
         consent,
         auditLogRecord,
       ]);
-      return await _sendNotification(activeUser.email!, consent);
+      return await _sendNotification(activeAgent.displayId, consent);
     });
   }
 
   /// Invites a new uploader to the package.
   Future<api.InviteStatus> invitePackageUploader({
     required AuthenticatedAgent agent,
-    required User activeUser,
     required String packageName,
     required String uploaderEmail,
   }) async {
     return await _invite(
       activeAgent: agent,
-      activeUser: activeUser,
       email: uploaderEmail,
       kind: ConsentKind.packageUploader,
       args: [packageName],
@@ -180,7 +177,6 @@ class ConsentBackend {
     final user = authenticatedUser.user;
     return await _invite(
       activeAgent: authenticatedUser,
-      activeUser: user,
       email: contactEmail,
       kind: ConsentKind.publisherContact,
       args: [publisherId, contactEmail],
@@ -192,13 +188,11 @@ class ConsentBackend {
   /// Invites a new member for the publisher.
   Future<api.InviteStatus> invitePublisherMember({
     required AuthenticatedAgent authenticatedAgent,
-    required User activeUser,
     required String publisherId,
     required String invitedUserEmail,
   }) async {
     return await _invite(
       activeAgent: authenticatedAgent,
-      activeUser: activeUser,
       email: invitedUserEmail,
       kind: ConsentKind.publisherMember,
       args: [publisherId],

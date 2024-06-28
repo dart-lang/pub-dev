@@ -14,7 +14,6 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/account/agent.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
@@ -598,7 +597,7 @@ class AdminBackend {
   Future<api.PackageUploaders> handleAddPackageUploader(
       String packageName, String email) async {
     checkPackageVersionParams(packageName);
-    final authenticatedUser =
+    final authenticatedAgent =
         await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
@@ -609,10 +608,8 @@ class AdminBackend {
     InvalidInputException.check(
         isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
 
-    final user = await accountBackend.userForServiceAccount(authenticatedUser);
     await consentBackend.invitePackageUploader(
-      agent: SupportAgent(),
-      activeUser: user,
+      agent: authenticatedAgent,
       packageName: packageName,
       uploaderEmail: uploaderEmail,
     );
@@ -625,7 +622,7 @@ class AdminBackend {
   Future<api.PackageUploaders> handleRemovePackageUploader(
       String packageName, String email) async {
     checkPackageVersionParams(packageName);
-    final authenticatedUser =
+    final authenticatedAgent =
         await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
@@ -650,7 +647,7 @@ class AdminBackend {
         if (r) {
           removed = true;
           tx.insert(await AuditLogRecord.uploaderRemoved(
-            agent: authenticatedUser,
+            agent: authenticatedAgent,
             package: packageName,
             uploaderUser: uploaderUser,
           ));
@@ -660,7 +657,7 @@ class AdminBackend {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
           tx.insert(await AuditLogRecord.packageOptionsUpdated(
-            agent: authenticatedUser,
+            agent: authenticatedAgent,
             package: packageName,
             publisherId: p.publisherId,
             options: ['discontinued'],

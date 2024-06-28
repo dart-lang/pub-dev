@@ -394,7 +394,6 @@ class PublisherBackend {
     await verifyPublisherMemberInvite(publisherId, invite);
     return await consentBackend.invitePublisherMember(
       authenticatedAgent: authenticatedAgent,
-      activeUser: authenticatedAgent.user,
       publisherId: publisherId,
       invitedUserEmail: invite.email,
     );

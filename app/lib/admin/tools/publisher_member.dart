@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:_pub_shared/data/publisher_api.dart';
-import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -36,8 +35,7 @@ Future<String> executePublisherInviteMember(List<String> args) async {
   await publisherBackend.verifyPublisherMemberInvite(
       publisherId, InviteMemberRequest(email: invitedEmail));
   await consentBackend.invitePublisherMember(
-    authenticatedAgent: SupportAgent(),
-    activeUser: await accountBackend.userForServiceAccount(authenticatedAgent),
+    authenticatedAgent: authenticatedAgent,
     publisherId: publisherId,
     invitedUserEmail: invitedEmail,
   );
