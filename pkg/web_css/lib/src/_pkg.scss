@@ -109,7 +109,7 @@
     font-size: 14px;
 
     .version {
-      font-family: $font-family-google-sans;
+      font-family: var(--pub-default-text-font_family);
       font-size: 24px;
     }
   }
@@ -154,7 +154,7 @@
   }
 
   .score-key-figure-value {
-    font-family: $font-family-google-sans-display;
+    font-family: var(--pub-default-headline-font_family);
     font-size: 32px;
     line-height: 1;
 
@@ -164,13 +164,13 @@
   }
 
   .score-key-figure-supplemental {
-    font-family: $font-family-google-sans;
+    font-family: var(--pub-default-text-font_family);
     font-size: 24px;
   }
 
   .score-key-figure-label {
     color: #555555;
-    font-family: $font-family-google-sans-text;
+    font-family: var(--pub-default-text-font_family);
     font-size: 14px;
     text-align: center;
     text-transform: uppercase;
@@ -209,7 +209,7 @@
   }
 
   .pkg-report-header-title {
-    font-family: $font-family-google-sans;
+    font-family: var(--pub-default-text-font_family);
     font-size: 24px;
   }
 
@@ -217,7 +217,7 @@
     display: flex;
     align-items: center;
 
-    font-family: $font-family-google-sans;
+    font-family: var(--pub-default-text-font_family);
     font-size: 22px;
 
     &.-is-red {
@@ -314,7 +314,7 @@
     transition: opacity $copy-feedback-transition-opacity-delay;
 
     >.code {
-      font-family: $font-family-google-sans-mono;
+      font-family: var(--pub-code-text-font_family);
       display: block;
     }
 

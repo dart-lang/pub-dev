@@ -238,7 +238,7 @@
 
   .packages-recent {
     color: #6d7278;
-    font-family: $font-family-google-sans;
+    font-family: var(--pub-default-text-font_family);
     font-size: 12px;
     margin: 0px 8px 0px 16px;
     white-space: nowrap;
@@ -391,7 +391,7 @@
   .search-form-section-header {
     display: flex;
     cursor: pointer;
-    font-family: $font-family-google-sans;
+    font-family: var(--pub-default-text-font_family);
     font-size: 14px;
     font-weight: bold;
 
