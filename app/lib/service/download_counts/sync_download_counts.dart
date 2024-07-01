@@ -62,8 +62,9 @@ Future<bool> processDownloadCounts(
   Uint8List bytes;
   try {
     bytes = await downloadCountsBucket.readAsBytes(downloadCountsFileName);
-  } on Exception {
-    _logger.info('Failed to read "$downloadCountsFileName".');
+  } on Exception catch (e) {
+    _logger.info('Failed to read "$downloadCountsFileName"./n'
+        '$e');
     return false;
   }
   if (bytes.isEmpty) {
