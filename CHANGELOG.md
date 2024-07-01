@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20240701t094200-all`
  * Note: `setup-flutter.sh` uses http archives for stable/beta channel.
 
 ## `20240627t084200-all`
