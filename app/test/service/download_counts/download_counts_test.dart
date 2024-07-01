@@ -165,7 +165,8 @@ void main() {
       }
 
       expect(succeeded, false);
-      expect(messages, contains('Failed to read "this_file_does_not_exist".'));
+      expect(messages.first,
+          contains('Failed to read "this_file_does_not_exist".'));
     });
 
     testWithProfile('empty file', fn: () async {
@@ -268,7 +269,7 @@ void main() {
         [1, 1, 1, 1, 0, 0],
       );
       expect(
-          messages,
+          messages.first,
           contains('Failed to read '
               '"daily_download_counts/'
               '${formatDateForFileName(yesterday)}'
