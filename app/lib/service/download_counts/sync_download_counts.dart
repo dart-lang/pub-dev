@@ -123,11 +123,6 @@ Future<bool> processDownloadCounts(
 }
 
 const numberOfSyncDays = 5;
-String formatDateForFileName(DateTime date) {
-  final month = date.month > 9 ? date.month : '0${date.month}';
-  final day = date.day > 9 ? date.day : '0${date.day}';
-  return '${date.year}-$month-${day}T00:00:00Z';
-}
 
 /// Synchronizes the download counts backend with download counts data from the
 /// last [numberOfSyncDays] days.
@@ -175,4 +170,10 @@ Future<void> syncDownloadCounts() async {
           '$failedFiles');
     }
   }
+}
+
+String formatDateForFileName(DateTime date) {
+  final month = date.month > 9 ? date.month : '0${date.month}';
+  final day = date.day > 9 ? date.day : '0${date.day}';
+  return '${date.year}-$month-${day}T00:00:00Z';
 }
