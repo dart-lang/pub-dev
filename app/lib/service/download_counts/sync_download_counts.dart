@@ -143,7 +143,7 @@ Future<void> syncDownloadCounts() async {
     final syncDate = today.addCalendarDays(-i);
     final fileName = [
       'daily_download_counts',
-      '${syncDate.year}-${syncDate.month}-${syncDate.day}T00:00:00Z',
+      formatDateForFileName(syncDate),
       'data-000000000000.jsonl',
     ].join('/');
     final success = await processDownloadCounts(fileName, syncDate);
@@ -153,7 +153,7 @@ Future<void> syncDownloadCounts() async {
   }
   final yesterdayFileName = [
     'daily_download_counts',
-    '${yesterday.year}-${yesterday.month}-${yesterday.day}T00:00:00Z',
+    formatDateForFileName(yesterday),
     'data-000000000000.jsonl',
   ].join('/');
 
@@ -170,4 +170,10 @@ Future<void> syncDownloadCounts() async {
           '$failedFiles');
     }
   }
+}
+
+String formatDateForFileName(DateTime date) {
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
+  return '${date.year}-$month-${day}T00:00:00Z';
 }
