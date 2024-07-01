@@ -173,7 +173,7 @@ Future<void> syncDownloadCounts() async {
 }
 
 String formatDateForFileName(DateTime date) {
-  final month = date.month > 9 ? date.month : '0${date.month}';
-  final day = date.day > 9 ? date.day : '0${date.day}';
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
   return '${date.year}-$month-${day}T00:00:00Z';
 }

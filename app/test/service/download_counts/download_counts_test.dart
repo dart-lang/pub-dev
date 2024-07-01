@@ -273,7 +273,6 @@ void main() {
               '"daily_download_counts/'
               '${formatDateForFileName(yesterday)}'
               '/data-000000000000.jsonl".'));
-      print(messages);
       expect(
           messages,
           contains(
