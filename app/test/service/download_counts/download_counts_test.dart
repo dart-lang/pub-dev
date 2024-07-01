@@ -196,7 +196,7 @@ void main() {
     testWithProfile('Sync download counts - success', fn: () async {
       final today = clock.now();
 
-      for (int i = numberOfSyncDays; i > 0; i--) {
+      for (int i = defaultNumberOfSyncDays; i > 0; i--) {
         final date = today.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
@@ -225,11 +225,46 @@ void main() {
       );
     });
 
+    testWithProfile('Sync download counts with non defaults - success',
+        fn: () async {
+      final customSyncDays = 3;
+      final customDate = DateTime.parse('2014-05-29');
+
+      for (int i = customSyncDays; i > 0; i--) {
+        final date = customDate.addCalendarDays(-i);
+        final fileName = [
+          'daily_download_counts',
+          formatDateForFileName(date),
+          'data-000000000000.jsonl',
+        ].join('/');
+        await generateFakeDownloadCounts(
+          fileName,
+          path.join(Directory.current.path, 'test', 'service',
+              'download_counts', 'fake_download_counts_data.jsonl'),
+        );
+      }
+
+      await syncDownloadCounts(
+          date: customDate, numberOfSyncDays: customSyncDays);
+      final countData =
+          await downloadCountsBackend.lookupDownloadCountData('neon');
+      expect(countData, isNotNull);
+      expect(countData!.newestDate!.day, customDate.addCalendarDays(-1).day);
+      expect(
+        countData.totalCounts.take(customSyncDays + 1).toList(),
+        List.filled(customSyncDays + 1, 1)..[customSyncDays] = -1,
+      );
+      expect(
+        countData.majorRangeCounts.first.counts.take(customSyncDays + 1),
+        List.filled(customSyncDays + 1, 1)..[customSyncDays] = 0,
+      );
+    });
+
     testWithProfile('Sync download counts - last day fails', fn: () async {
       final today = clock.now();
       final yesterday = today.addCalendarDays(-1);
 
-      for (int i = numberOfSyncDays; i > 1; i--) {
+      for (int i = defaultNumberOfSyncDays; i > 1; i--) {
         final date = today.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
@@ -281,9 +316,9 @@ void main() {
 
     testWithProfile('Sync download counts - fail', fn: () async {
       final today = clock.now();
-      final skippedDate = today.addCalendarDays(-numberOfSyncDays);
+      final skippedDate = today.addCalendarDays(-defaultNumberOfSyncDays);
 
-      for (int i = numberOfSyncDays - 1; i > 0; i--) {
+      for (int i = defaultNumberOfSyncDays - 1; i > 0; i--) {
         final date = today.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
