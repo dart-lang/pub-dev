@@ -202,7 +202,7 @@ void main() {
         final date = today.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
-          '${date.year}-${date.month}-${date.day}T00:00:00Z',
+          formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
         await generateFakeDownloadCounts(
@@ -235,7 +235,7 @@ void main() {
         final date = today.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
-          '${date.year}-${date.month}-${date.day}T00:00:00Z',
+          formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
         await generateFakeDownloadCounts(
@@ -271,15 +271,15 @@ void main() {
           messages,
           contains('Failed to read '
               '"daily_download_counts/'
-              '${yesterday.year}-${yesterday.month}-${yesterday.day}'
-              'T00:00:00Z/data-000000000000.jsonl".'));
+              '${formatDateForFileName(yesterday)}'
+              '/data-000000000000.jsonl".'));
+      print(messages);
       expect(
           messages,
           contains(
               'Download counts sync was partial. The following files failed:\n'
-              '[daily_download_counts/'
-              '${yesterday.year}-${yesterday.month}-${yesterday.day}'
-              'T00:00:00Z/data-000000000000.jsonl]'));
+              '[daily_download_counts/${formatDateForFileName(yesterday)}'
+              '/data-000000000000.jsonl]'));
     });
 
     testWithProfile('Sync download counts - fail', fn: () async {
@@ -290,7 +290,7 @@ void main() {
         final date = today.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
-          '${date.year}-${date.month}-${date.day}T00:00:00Z',
+          formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
         await generateFakeDownloadCounts(
@@ -310,8 +310,8 @@ void main() {
           exception,
           'Exception: Download counts sync was partial. The following files failed:'
           '[daily_download_counts/'
-          '${skippedDate.year}-${skippedDate.month}-${skippedDate.day}'
-          'T00:00:00Z/data-000000000000.jsonl]');
+          '${formatDateForFileName(skippedDate)}'
+          '/data-000000000000.jsonl]');
 
       final countData =
           await downloadCountsBackend.lookupDownloadCountData('neon');

@@ -123,6 +123,11 @@ Future<bool> processDownloadCounts(
 }
 
 const numberOfSyncDays = 5;
+String formatDateForFileName(DateTime date) {
+  final month = date.month > 9 ? date.month : '0${date.month}';
+  final day = date.day > 9 ? date.day : '0${date.day}';
+  return '${date.year}-$month-${day}T00:00:00Z';
+}
 
 /// Synchronizes the download counts backend with download counts data from the
 /// last [numberOfSyncDays] days.
@@ -143,7 +148,7 @@ Future<void> syncDownloadCounts() async {
     final syncDate = today.addCalendarDays(-i);
     final fileName = [
       'daily_download_counts',
-      '${syncDate.year}-${syncDate.month}-${syncDate.day}T00:00:00Z',
+      formatDateForFileName(syncDate),
       'data-000000000000.jsonl',
     ].join('/');
     final success = await processDownloadCounts(fileName, syncDate);
@@ -153,7 +158,7 @@ Future<void> syncDownloadCounts() async {
   }
   final yesterdayFileName = [
     'daily_download_counts',
-    '${yesterday.year}-${yesterday.month}-${yesterday.day}T00:00:00Z',
+    formatDateForFileName(yesterday),
     'data-000000000000.jsonl',
   ].join('/');
 
