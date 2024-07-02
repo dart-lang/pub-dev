@@ -129,10 +129,19 @@ Future<bool> processDownloadCounts(
 
           nonExistingVersions.forEach((v) => dayCounts.remove(v));
         } on NotFoundException catch (e) {
-          _logger.warning(
-              'Package $package appeared in download counts data for file ');
-        }
+          final pkg = await packageBackend.lookupPackage(package);
 
+          // The package is neither invisible or thombstoned, hence there is
+          // probably an error in the generated data.
+          if (pkg == null &&
+              (await packageBackend.lookupModeratedPackage(package)) == null) {
+            _logger.severe(
+                'Package $package appeared in download counts data for file '
+                '$e');
+          } // else {
+          // The package is either invisible, thombstoned or has no versions.
+          // }
+        }
         await downloadCountsBackend.updateDownloadCounts(
           package,
           dayCounts,
@@ -159,7 +168,7 @@ Future<bool> processDownloadCounts(
         allPackageNames.difference(processedPackages.toSet());
 
     await Future.wait(missingPackages.map((package) async {
-      return await pool.withResource(() async {q
+      return await pool.withResource(() async {
         // Calling 'updateDownloadCounts' for 'package' with an empty dataset
         // causes '0' to be added for all versions, hereby indicating 0 downloads.
         await downloadCountsBackend.updateDownloadCounts(package, {}, date);
@@ -188,6 +197,7 @@ Future<void> syncDownloadCounts() async {
 
   for (int i = numberOfSyncDays; i > 0; i--) {
     final syncDate = today.addCalendarDays(-i);
+    // TODO(zarah): Handle the case where there is more than one file per day.
     final fileName = [
       'daily_download_counts',
       formatDateForFileName(syncDate),
