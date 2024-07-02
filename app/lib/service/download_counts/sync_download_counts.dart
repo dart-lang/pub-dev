@@ -131,7 +131,7 @@ Future<bool> processDownloadCounts(
         } on NotFoundException catch (e) {
           final pkg = await packageBackend.lookupPackage(package);
 
-          // The package is neither invisible or thombstoned, hence there is
+          // The package is neither invisible or tombstoned, hence there is
           // probably an error in the generated data.
           if (pkg == null &&
               (await packageBackend.lookupModeratedPackage(package)) == null) {
@@ -139,7 +139,7 @@ Future<bool> processDownloadCounts(
                 'Package $package appeared in download counts data for file '
                 '$e');
           } // else {
-          // The package is either invisible, thombstoned or has no versions.
+          // The package is either invisible, tombstoned or has no versions.
           // }
         }
         await downloadCountsBackend.updateDownloadCounts(
