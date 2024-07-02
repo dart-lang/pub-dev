@@ -272,7 +272,7 @@ pre {
   padding: 10px 0px;
 
   a {
-    color: $color-searchbar-dark-link;
+    color: var(--pub-link-text-color);
   }
 }
 
@@ -341,7 +341,7 @@ pre {
 
   .spinner {
     border: 8px solid #f3f3f3;
-    border-top: 8px solid $color-input-primary;
+    border-top-color: var(--pub-link-text-color);
     border-radius: 50%;
     width: 60px;
     height: 60px;

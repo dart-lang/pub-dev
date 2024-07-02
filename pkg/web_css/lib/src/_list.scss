@@ -331,21 +331,21 @@
   > li {
     display: inline-block;
     text-transform: uppercase;
-    color: #0175C2;
-    background: #f3f3f3;
+    color: var(--pub-pagination-active-color);
+    background: var(--pub-pagination-background-color);
     font-size: 14px;
     border-radius: 3px;
     margin-top: 40px;
 
     &.-disabled {
       pointer-events: none;
-      color: #aaa;
+      color: var(--pub-pagination-inactive-color);
     }
 
     &.-active {
       pointer-events: none;
-      color: #fff;
-      background: #0175C2;
+      color: var(--pub-pagination-background-color);
+      background: var(--pub-pagination-active-color);
     }
 
     > a {

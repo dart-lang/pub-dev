@@ -52,7 +52,7 @@
 .search-bar > .icon {
   width: 45px;
   height: 45px;
-  background-color: $color-searchbar-dark-link;
+  background-color: var(--pub-link-text-color);
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABGdBTUEAALGPC/xhBQAAARdJREFUOBHNkz1uwkAQhTGkhCuELlQUiAtwilzHtU8BVLkHF4iokbJJkS41EiTS5nvL2FrQGMsdIz3N7ntvZn+8HgyyiDEuwBv4BifLmi8yW/sQ4xMowRl4Ib4Eo/YuKGYixT9QgSUYW9ZcvKJsbYSo42hFmVeeUbzp8vnHRNAdKCqvSc1JTy78NXeVEXWxiuWVcDORnlz4b6TLFFFfRzF2DUaiT5IrxqPnG0L+mDDzDBn3YuNDxjVDNdrZ7LVh/UGtv7sy2+3z1X7xz91GIhFLoOh6R+vWJtao62VrgW1aKsZP8rSrYf6vHSnYgw1IxyEHoAjgfrN7K6kYBKAI4DGbfbCzZ72j3lEUxRdFKxB6F3sF2okg7R/6f6gee6OuegAAAABJRU5ErkJggg==");
   background-repeat: no-repeat;
   background-position: 50% 50%;
