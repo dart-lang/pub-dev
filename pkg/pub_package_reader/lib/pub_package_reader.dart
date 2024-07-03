@@ -272,6 +272,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
   issues.addAll(checkFunding(pubspecContent));
   issues.addAll(checkTopics(pubspecContent));
+  issues.addAll(checkHooks(tar.fileNames));
 
   return PackageSummary(
     issues: issues,
@@ -829,6 +830,23 @@ Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
           'alphanumerical characters or dash (but no double dash), starting '
           'with a-z and ending with a-z or 0-9.');
       continue;
+    }
+  }
+}
+
+Iterable<ArchiveIssue> checkHooks(Set<String> fileNames) sync* {
+  const allowedHookFiles = {
+    'hook/build.dart',
+    'hook/link.dart',
+  };
+  final hookFiles = fileNames.where((n) {
+    final parts = p.split(n);
+    return parts.length > 1 && parts.first == 'hook';
+  }).toList();
+  for (final hookFile in hookFiles) {
+    if (!allowedHookFiles.contains(hookFile)) {
+      yield ArchiveIssue(
+          'Hook files are experimental and `$hookFile` is not allowed yet.');
     }
   }
 }

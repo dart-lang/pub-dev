@@ -993,4 +993,25 @@ dev_dependencies:
       );
     });
   });
+
+  group('hooks', () {
+    test('allowed', () {
+      expect(
+        checkHooks({
+          'hook/build.dart',
+          'lib/x.dart',
+        }),
+        isEmpty,
+      );
+    });
+
+    test('prevented', () {
+      expect(
+        checkHooks({
+          'hook/x.dart',
+        }).first.message,
+        contains('`hook/x.dart` is not allowed'),
+      );
+    });
+  });
 }
