@@ -75,7 +75,7 @@ Future<bool> processDownloadCounts(
 
   bool hasFailedLines = false;
   bool hasPartiallyFailedLines = false;
-  // Before '2024-07-02' the query generating the download count data had a bug
+  // Before '2024-05-03' the query generating the download count data had a bug
   // in the reg exp causing incorrect versions to be stored.
   final regExpQueryFixDate = DateTime.parse('2024-05-03');
   final processedPackages = <String>{};
