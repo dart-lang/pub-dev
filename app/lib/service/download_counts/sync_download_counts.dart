@@ -77,7 +77,7 @@ Future<bool> processDownloadCounts(
   bool hasPartiallyFailedLines = false;
   // Before '2024-07-02' the query generating the download count data had a bug
   // in the reg exp causing incorrect versions to be stored.
-  final regExpQueryFixDate = DateTime.parse('2024-07-02');
+  final regExpQueryFixDate = DateTime.parse('2024-05-03');
   final processedPackages = <String>{};
   var lines = <String>[];
   try {
@@ -103,6 +103,9 @@ Future<bool> processDownloadCounts(
         package = data['package'] as String;
         List<String> versions;
         try {
+          // Validate that the package and version exist.
+          // First do it via the cached data, fall back to query for invisible
+          // and moderated packages.
           versions = (await packageBackend.listVersionsCached(package))
               .versions
               .map((e) => e.version)
