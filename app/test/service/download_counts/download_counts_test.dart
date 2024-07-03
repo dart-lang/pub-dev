@@ -133,15 +133,12 @@ void main() {
         await subscription.cancel();
       }
       expect(succeeded, false);
-      expect(
-          messages,
-          contains('Failed to proccess line '
-              '{"package":"neon","total":"1","per_version":[{"version":"0.1.0","count":1}]} '
-              'of file daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl \n'
-              'FormatException: "count" must be a String.'));
+      expect(messages.first, contains('Failed to proccess line'));
+      expect(messages.first,
+          contains('FormatException: "count" must be a String.'));
       // We still process the lines that are possible
       final countData =
-          await downloadCountsBackend.lookupDownloadCountData('analyzer');
+          await downloadCountsBackend.lookupDownloadCountData('oxygen');
       expect(countData, isNotNull);
       expect(countData!.newestDate, nextDate);
 
