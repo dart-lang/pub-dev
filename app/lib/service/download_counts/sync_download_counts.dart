@@ -133,7 +133,6 @@ Future<bool> processDownloadCounts(
           nonExistingVersions.forEach((v) => dayCounts.remove(v));
         } on NotFoundException catch (e) {
           final pkg = await packageBackend.lookupPackage(package);
-
           // The package is neither invisible or tombstoned, hence there is
           // probably an error in the generated data.
           if (pkg == null &&
