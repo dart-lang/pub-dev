@@ -14,3 +14,15 @@ tags:
     presets:
       sanity:
         skip: false # Don't skip these tests.
+  build:
+    skip: 'Build tests are run separately, always in a single thread.'
+    presets:
+      build-only:
+        skip: false # Don't skip these tests.
+
+presets:
+  build-only:
+    skip: 'Only build tests are run' # Skip all tests, as they are run separately
+  tags:
+    build:
+      skip: false # Run only build tags

@@ -343,7 +343,7 @@ jobs:
       - job_004
       - job_005
   job_008:
-    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 0`"
+    name: "build_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P build-only -j 1`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
@@ -351,6 +351,48 @@ jobs:
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_00"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
+        with:
+          sdk: "3.4.0"
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+      - id: app_pub_get
+        name: app; dart pub get
+        run: dart pub get
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: app
+      - name: "app; sudo apt-get update -yq && sudo apt-get install webp"
+        run: "sudo apt-get update -yq && sudo apt-get install webp"
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+      - name: "app; dart test -P build-only -j 1"
+        run: dart test -P build-only -j 1
+        if: "always() && steps.app_pub_get.conclusion == 'success'"
+        working-directory: app
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+  job_009:
+    name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 0`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_01"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -384,7 +426,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_009:
+      - job_008
+  job_010:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 1`"
     runs-on: ubuntu-latest
     steps:
@@ -392,7 +435,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_01"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_02"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -426,7 +469,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_010:
+      - job_008
+  job_011:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 2`"
     runs-on: ubuntu-latest
     steps:
@@ -434,7 +478,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_02"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_03"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -468,7 +512,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_011:
+      - job_008
+  job_012:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 3`"
     runs-on: ubuntu-latest
     steps:
@@ -476,7 +521,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_03"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_04"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -510,7 +555,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_012:
+      - job_008
+  job_013:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 4`"
     runs-on: ubuntu-latest
     steps:
@@ -518,7 +564,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_04"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_05"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -552,7 +598,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_013:
+      - job_008
+  job_014:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 5`"
     runs-on: ubuntu-latest
     steps:
@@ -560,7 +607,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_05"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_06"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -594,7 +641,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_014:
+      - job_008
+  job_015:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 6`"
     runs-on: ubuntu-latest
     steps:
@@ -602,7 +650,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_06"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_07"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -636,7 +684,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_015:
+      - job_008
+  job_016:
     name: "unit_test; PKG: app; `sudo apt-get update -yq && sudo apt-get install webp`, `dart test -P presubmit --total-shards 8 --shard-index 7`"
     runs-on: ubuntu-latest
     steps:
@@ -644,7 +693,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_07"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app;commands:command_0-test_08"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -678,7 +727,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_016:
+      - job_008
+  job_017:
     name: "unit_test; PKG: pkg/_popularity; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -686,7 +736,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_popularity;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_popularity;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_popularity
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -716,7 +766,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_017:
+      - job_008
+  job_018:
     name: "unit_test; PKG: pkg/_pub_shared; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -724,7 +775,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_pub_shared;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_pub_shared;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/_pub_shared
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -754,7 +805,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_018:
+      - job_008
+  job_019:
     name: "unit_test; PKG: pkg/fake_gcloud; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -762,7 +814,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/fake_gcloud;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/fake_gcloud;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/fake_gcloud
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -792,7 +844,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_019:
+      - job_008
+  job_020:
     name: "unit_test; PKG: pkg/indexed_blob; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -800,7 +853,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/indexed_blob
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -830,7 +883,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_020:
+      - job_008
+  job_021:
     name: "unit_test; PKG: pkg/pub_package_reader; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -838,7 +892,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_package_reader;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_package_reader;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_package_reader
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -868,7 +922,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_021:
+      - job_008
+  job_022:
     name: "unit_test; PKG: pkg/web_app; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -876,7 +931,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_app
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -906,7 +961,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_022:
+      - job_008
+  job_023:
     name: "unit_test; PKG: pkg/web_css; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -914,7 +970,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css;commands:test_08"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css;commands:test_09"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/web_css
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -944,7 +1000,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_023:
+      - job_008
+  job_024:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -952,7 +1009,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_09"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_10"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -982,7 +1039,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_024:
+      - job_008
+  job_025:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -990,7 +1048,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_10"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_11"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -1020,7 +1078,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_025:
+      - job_008
+  job_026:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1028,7 +1087,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_11"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_12"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -1058,7 +1117,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_026:
+      - job_008
+  job_027:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1066,7 +1126,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_12"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration;commands:test_13"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_integration
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -1096,7 +1156,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_027:
+      - job_008
+  job_028:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1104,7 +1165,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_13"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_14"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -1134,7 +1195,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_028:
+      - job_008
+  job_029:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1142,7 +1204,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_14"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_15"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -1172,7 +1234,8 @@ jobs:
       - job_005
       - job_006
       - job_007
-  job_029:
+      - job_008
+  job_030:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1180,7 +1243,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_15"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker;commands:test_16"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkg/pub_worker
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
@@ -1210,3 +1273,4 @@ jobs:
       - job_005
       - job_006
       - job_007
+      - job_008

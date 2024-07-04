@@ -7,6 +7,10 @@ stages:
     - group:
         - format
         - analyze: --fatal-infos  .
+  - build_test:
+    - group:
+        - command: sudo apt-get update -yq && sudo apt-get install webp
+        - test: -P build-only -j 1
   - unit_test:
     - group:
       - command: sudo apt-get update -yq && sudo apt-get install webp
