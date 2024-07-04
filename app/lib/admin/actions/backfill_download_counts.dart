@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
+
+import '../../service/download_counts/sync_download_counts.dart';
 
 final backfillDownloadCounts = AdminAction(
   name: 'backfill-download-counts',
