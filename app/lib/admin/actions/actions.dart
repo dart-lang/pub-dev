@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/actions/backfill_download_counts.dart';
+
 import '../../shared/exceptions.dart';
 import 'create_moderation_case.dart';
 import 'create_publisher.dart';
@@ -78,6 +80,7 @@ final class AdminAction {
   }
 
   static List<AdminAction> actions = [
+    backfillDownloadCounts,
     createModerationCase,
     createPublisher,
     deleteModerationCase,
