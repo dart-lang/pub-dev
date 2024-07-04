@@ -180,10 +180,17 @@ Future<bool> processDownloadCounts(
   }
 }
 
-const numberOfSyncDays = 5;
+const defaultNumberOfSyncDays = 5;
 
 /// Synchronizes the download counts backend with download counts data from the
-/// last [numberOfSyncDays] days.
+/// last [numberOfSyncDays] days before [date].
+///
+/// For instance, if the [date] represents '2024-05-29' and [numberOfSyncDays]
+/// is '3', data will be synced for '2024-05-26', '2024-05-27', and
+/// '2024-05-28'.
+///
+/// If [date] or [numberOfSyncDays] are not provided the defaults are today's
+/// date and [defaultNumberOfSyncDays] respectively.
 ///
 /// Reads each of the daily download counts files from the Cloud storage bucket
 /// and processes the data. If processing of a file fails it will still continue
@@ -192,13 +199,14 @@ const numberOfSyncDays = 5;
 /// Throws an exception if one or more of the syncs fail except if the only
 /// failed file is that of yesterday. We expect this function to be called at
 /// least once per day, hence tolerating that yesterday's data is not yet ready.
-Future<void> syncDownloadCounts() async {
-  final today = clock.now();
-  final yesterday = today.addCalendarDays(-1);
+Future<void> syncDownloadCounts(
+    {DateTime? date, int numberOfSyncDays = defaultNumberOfSyncDays}) async {
+  final startingDate = date ?? clock.now();
+  final yesterday = startingDate.addCalendarDays(-1);
   final failedFiles = <String>[];
 
   for (int i = numberOfSyncDays; i > 0; i--) {
-    final syncDate = today.addCalendarDays(-i);
+    final syncDate = startingDate.addCalendarDays(-i);
     // TODO(zarah): Handle the case where there is more than one file per day.
     final fileName = [
       'daily_download_counts',
