@@ -119,13 +119,13 @@ Future<bool> processDownloadCounts(
                 // If the data is generated before the fix of the query, we
                 // ignore versions that do not exist.
                 _logger.warning(
-                    'Version $version appeared in download counts data but '
-                    'does not exist');
+                    'Version $version for package $package appeared in download '
+                    'counts data but does not exist');
               } else {
                 hasPartiallyFailedLines = true;
                 _logger.severe(
-                    'Version $version appeared in download counts data but '
-                    'does not exist');
+                    'Version $version for package $package appeared in download '
+                    'counts data but does not exist');
               }
             }
           });
@@ -139,7 +139,8 @@ Future<bool> processDownloadCounts(
               (await packageBackend.lookupModeratedPackage(package)) == null) {
             _logger.severe(
                 'Package $package appeared in download counts data for file '
-                '$e');
+                '$downloadCountsFileName'
+                'Error: $e');
           } // else {
           // The package is either invisible, tombstoned or has no versions.
           // }
