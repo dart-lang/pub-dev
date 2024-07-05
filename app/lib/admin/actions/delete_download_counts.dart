@@ -11,8 +11,8 @@ final deleteDownloadCounts = AdminAction(
   options: {},
   summary: 'Deletes all "DownloadCount" entities.',
   description: '''
-This action will delete all "DownloadCount" entities. 
-The entities can be restored using the "backfill-download-counts" admin action. 
+This action will delete all "DownloadCount" entities.
+The entities can be restored using the "backfill-download-counts" admin action.
 ''',
   invoke: (options) async {
     final result = await dbService
