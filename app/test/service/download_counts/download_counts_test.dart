@@ -230,7 +230,7 @@ void main() {
       final customSyncDays = 3;
       final customDate = DateTime.parse('2014-05-29');
 
-      for (int i = customSyncDays; i > 0; i--) {
+      for (int i = 0; i < customSyncDays; i++) {
         final date = customDate.addCalendarDays(-i);
         final fileName = [
           'daily_download_counts',
@@ -249,7 +249,7 @@ void main() {
       final countData =
           await downloadCountsBackend.lookupDownloadCountData('neon');
       expect(countData, isNotNull);
-      expect(countData!.newestDate!.day, customDate.addCalendarDays(-1).day);
+      expect(countData!.newestDate!.day, customDate.day);
       expect(
         countData.totalCounts.take(customSyncDays + 1).toList(),
         List.filled(customSyncDays + 1, 1)..[customSyncDays] = -1,
