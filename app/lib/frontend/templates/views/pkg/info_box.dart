@@ -166,7 +166,6 @@ d.Node? _licenseNode({
   required String licenseUrl,
   required bool isPending,
 }) {
-  final paths = licenses.map((e) => e.path).toSet().toList();
   final labels = isPending
       ? '(pending)'
       : licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
@@ -177,7 +176,7 @@ d.Node? _licenseNode({
     ),
     d.text(labels),
     d.text(' ('),
-    d.a(href: licenseUrl, text: paths.join(', ')),
+    d.a(href: licenseUrl, text: 'license'),
     d.text(')'),
   ]);
 }
