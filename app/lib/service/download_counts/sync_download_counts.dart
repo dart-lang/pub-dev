@@ -119,13 +119,13 @@ Future<bool> processDownloadCounts(
                 // If the data is generated before the fix of the query, we
                 // ignore versions that do not exist.
                 _logger.warning(
-                    'Version $version for package $package appeared in download '
-                    'counts data but does not exist');
+                    '$package-$version appeared in download counts data but does'
+                    ' not exist');
               } else {
                 hasPartiallyFailedLines = true;
                 _logger.severe(
-                    'Version $version for package $package appeared in download '
-                    'counts data but does not exist');
+                    '$package-$version appeared in download counts data but does'
+                    ' not exist');
               }
             }
           });
