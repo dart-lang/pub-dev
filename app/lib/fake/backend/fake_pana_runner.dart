@@ -80,15 +80,15 @@ Future<Summary> fakePanaSummary({
       'contributingUrl', repository?.tryResolveUrl('CONTRIBUTING.md'));
 
   final result = AnalysisResult(
-    homepageUrl: homepageUrl,
-    repositoryUrl: repositoryUrl,
-    issueTrackerUrl: issueTrackerUrl,
-    documentationUrl: documentationUrl,
-    repository: repository,
-    // TODO: add funding URLs
-    fundingUrls: null,
-    contributingUrl: contributingUrl,
-  );
+      homepageUrl: homepageUrl,
+      repositoryUrl: repositoryUrl,
+      issueTrackerUrl: issueTrackerUrl,
+      documentationUrl: documentationUrl,
+      repository: repository,
+      // TODO: add funding URLs
+      fundingUrls: null,
+      contributingUrl: contributingUrl,
+      licenses: [License(path: '', spdxIdentifier: licenseSpdx)]);
   return Summary(
     createdAt: clock.now().toUtc(),
     packageName: package,
@@ -143,10 +143,7 @@ Future<Summary> fakePanaSummary({
       ],
     ),
     result: result,
-    licenseFile: LicenseFile('LICENSE', licenseSpdx),
-    licenses: [
-      License(path: 'LICENSE', spdxIdentifier: licenseSpdx),
-    ],
+    licenses: [],
     errorMessage: null,
     pubspec: null, // will be ignored
   );

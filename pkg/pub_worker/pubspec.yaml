@@ -9,7 +9,7 @@ dependencies:
   appengine: ^0.13.6
   json_annotation: ^4.3.0
   jsontool: ^1.1.0
-  pana: ^0.22.7
+  pana: ^0.22.8
   lints: ^4.0.0 # required for pana
   meta: ^1.7.0
   api_builder:
@@ -25,7 +25,6 @@ dependencies:
   clock: ^1.1.0
   html: ^0.15.0
   pubspec_parse: ^1.2.1
-  tar: ^1.0.0
   shelf: ^1.2.0
   shelf_router: ^1.1.2
   async: ^2.10.0
@@ -34,6 +33,7 @@ dependencies:
   sanitize_html: ^2.1.0
   stream_transform: ^2.0.0
   stack_trace: ^1.11.1
+  tar: ^2.0.0
 
 dev_dependencies:
   test: ^1.19.3

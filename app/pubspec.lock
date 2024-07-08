@@ -565,10 +565,10 @@ packages:
     dependency: "direct main"
     description:
       name: pana
-      sha256: e0a987e0a15824848da1a7a9ad1a3acb9e96e95f7ff7d2bfa400e8da377ab181
+      sha256: "0b9a31cc6112ba64d291ce0daaf14ed4a92c910c021c5f0a31bf6aceb357663a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.22.7"
+    version: "0.22.8"
   path:
     dependency: "direct main"
     description:
@@ -796,10 +796,10 @@ packages:
     dependency: "direct main"
     description:
       name: tar
-      sha256: "1680219f82dfa81c8d0e76e849b7b34ea969c721f55a8ebd294a9a95e740dd42"
+      sha256: "8e67ab1baa07d3ef2c5d52cfb84e7ed4742799141e9e2ac3d0801a1a7ccb7575"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "2.0.0"
   term_glyph:
     dependency: transitive
     description:
