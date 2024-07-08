@@ -98,7 +98,6 @@ Future<void> main(List<String> args) async {
       configHomePath: _configHomePath('flutter', detected.configKind),
     ),
     pubCacheDir: pubCache,
-    panaCacheDir: Platform.environment['PANA_CACHE'],
     dartdocVersion: _dartdocVersion,
   );
 
@@ -116,6 +115,7 @@ Future<void> main(List<String> args) async {
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
       dartdocTimeout: _dartdocTimeout,
       dartdocOutputDir: rawDartdocOutputFolder.path,
+      panaCacheDir: Platform.environment['PANA_CACHE'],
       resourcesOutputDir: resourcesOutputDir.path,
       totalTimeout: _totalTimeout,
     ),

@@ -138,7 +138,8 @@ class PanaReport {
         if (packageStatus.isDiscontinued) PackageTags.isDiscontinued,
       }.toList(),
       allDependencies: summary?.allDependencies,
-      licenses: summary?.licenses,
+      // ignore: deprecated_member_use
+      licenses: summary?.result?.licenses ?? summary?.licenses,
       report: summary?.report,
       result: summary?.result,
       urlProblems: summary?.urlProblems,
