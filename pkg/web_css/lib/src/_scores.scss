@@ -41,7 +41,7 @@
     white-space: nowrap;
 
     &.-has-value {
-      color: $color-input-primary;
+      color: var(--pub-link-text-color);
     }
 
     .detail-info-box & {

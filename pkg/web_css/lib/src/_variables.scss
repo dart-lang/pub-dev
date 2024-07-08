@@ -18,6 +18,9 @@
   --pub-detail_tab-underline-color: #dddddd;
   --pub-detail_tab-active-color: #1967d2;
   --pub-detail_tab-admin-color: #990000;
+  --pub-pagination-background-color: var(--pub-code-background-color);
+  --pub-pagination-active-color: var(--pub-link-text-color);
+  --pub-pagination-inactive-color: #aaaaaa;
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
 
   // Material Design theme customizations
@@ -38,6 +41,9 @@
   --pub-detail_tab-underline-color: #888888;
   --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-detail_tab-background-color) 20%);
   --pub-detail_tab-admin-color: #e03030;
+  --pub-pagination-background-color: var(--pub-code-background-color);
+  --pub-pagination-active-color: var(--pub-link-text-color);
+  --pub-pagination-inactive-color: #aaaaaa;
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
 
   // Material Design theme customizations
@@ -76,9 +82,7 @@ $color-searchbar-dark-bg: #132030;
 $color-searchbar-dark-fg: #8d9399;
 $color-searchbar-dark-input-bg: #35404d;
 $color-searchbar-dark-input-fg: #ffffff;
-$color-searchbar-dark-link: #0175c2;
 
-$color-input-primary: #0175C2;
 $color-input-danger: #ff4242;
 
 // NOTE: keep in sync with hoverable.dart 900ms delay
