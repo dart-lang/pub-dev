@@ -997,7 +997,7 @@ dev_dependencies:
   group('hooks', () {
     test('allowed', () {
       expect(
-        checkHooks({
+        checkHooks(Version.parse('3.6.0'), {
           'hook/build.dart',
           'lib/x.dart',
         }),
@@ -1007,10 +1007,18 @@ dev_dependencies:
 
     test('prevented', () {
       expect(
-        checkHooks({
+        checkHooks(Version.parse('3.6.0'), {
           'hook/x.dart',
         }).first.message,
         contains('`hook/x.dart` is not allowed'),
+      );
+
+      expect(
+        checkHooks(Version.parse('3.5.0'), {
+          'hook/build.dart',
+        }).first.message,
+        contains(
+            '`hook/build.dart` is allowed only with a minimum SDK constraint of'),
       );
     });
   });

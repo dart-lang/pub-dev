@@ -272,7 +272,10 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
   issues.addAll(checkFunding(pubspecContent));
   issues.addAll(checkTopics(pubspecContent));
-  issues.addAll(checkHooks(tar.fileNames));
+  issues.addAll(checkHooks(
+    _minVersion(pubspec.environment?['sdk']),
+    tar.fileNames,
+  ));
 
   return PackageSummary(
     issues: issues,
@@ -834,19 +837,43 @@ Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
   }
 }
 
-Iterable<ArchiveIssue> checkHooks(Set<String> fileNames) sync* {
-  const allowedHookFiles = {
-    'hook/build.dart',
-    'hook/link.dart',
-  };
+// Map from allowed hook-files to minimum SDK lower bound constraint
+final _allowedHookFiles = <String, Version>{
+  'hook/build.dart': Version.parse('3.6.0-0'),
+  'hook/link.dart': Version.parse('3.6.0-0'),
+};
+
+Version? _minVersion(VersionConstraint? constraint) {
+  if (constraint == null) {
+    return null;
+  }
+  if (constraint is Version) {
+    return constraint;
+  }
+  if (constraint is VersionRange) {
+    return constraint.min;
+  }
+  return null;
+}
+
+Iterable<ArchiveIssue> checkHooks(
+  Version? minimumSdkConstraint,
+  Set<String> fileNames,
+) sync* {
   final hookFiles = fileNames.where((n) {
     final parts = p.split(n);
     return parts.length > 1 && parts.first == 'hook';
   }).toList();
   for (final hookFile in hookFiles) {
-    if (!allowedHookFiles.contains(hookFile)) {
+    if (!_allowedHookFiles.containsKey(hookFile)) {
       yield ArchiveIssue(
           'Hook files are experimental and `$hookFile` is not allowed yet.');
+    }
+    final hookLowerConstraint = _allowedHookFiles[hookFile]!;
+    if (minimumSdkConstraint == null ||
+        minimumSdkConstraint.compareTo(hookLowerConstraint) < 0) {
+      yield ArchiveIssue(
+          '`$hookFile` is allowed only with a minimum SDK constraint of `$hookLowerConstraint`.');
     }
   }
 }
