@@ -132,6 +132,13 @@
       background: var(--mdc_pub-text_field-background-color);
       border-color: var(--mdc_pub-text_field-border-color);
     }
+
+    &:hover {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__trailing {
+        border-color: var(--pub-default-text-color) !important;
+      }
+    }
   }
 
   .mdc-select:not(.mdc-select--disabled) {
@@ -164,5 +171,12 @@
   }
   .mdc-data-table__cell {
     color: var(--pub-default-text-color);
+  }
+
+  .mdc-dialog__surface {
+    .mdc-dialog__title,
+    .mdc-dialog__content {
+      color: var(--pub-default-text-color);
+    }
   }
 }

@@ -52,6 +52,11 @@
   --mdc-theme-on-secondary: var(--pub-default-text-color);
   --mdc-theme-on-surface: var(--pub-default-text-color);
   --mdc-checkbox-unchecked-color: #777777;
+  --mdc-checkbox-disabled-color: #666666;
+  --mdc-filled-button-container-color: rgba(255, 255, 255, 0.1);
+  --mdc-filled-button-label-text-color: var(--pub-default-text-color);
+  --mdc-protected-button-disabled-container-color: rgba(255, 255, 255, 0.1);
+  --mdc-protected-button-disabled-label-text-color: var(--pub-default-text-color);
 
   // Pub-specific Material Design overrides
   --mdc_pub-data_table-border-color: var(--mdc-checkbox-unchecked-color);

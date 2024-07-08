@@ -189,7 +189,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     }
 
     &:focus-within {
-      border-color: #000;
+      border-color: var(--pub-default-text-color);
     }
   }
 }
