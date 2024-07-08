@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout.factor(2)
-@Tags(['presubmit-only'])
+@Tags(['build', 'presubmit-only'])
 
 import 'package:build_verify/build_verify.dart';
 import 'package:test/test.dart';
