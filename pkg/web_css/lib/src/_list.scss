@@ -21,7 +21,7 @@
     .sort-control-selected {
       display: inline-block;
       background: transparent;
-      color: #1967d2;
+      color: var(--pub-detail_tab-active-color);
       font-size: 14px;
       font-weight: 400;
       padding: 0;
@@ -60,17 +60,20 @@
     .sort-control-option {
       display: block;
       width: 100%;
-      background: var(--pub-default-background-color);
+      background: var(--pub-sort_control-background-color);
+      color: var(--pub-sort_control-text-color);
       font-size: 14px;
       padding: 12px 12px;
       text-align: left;
 
       &:hover {
-        background: #fafafa;
+        background: var(--pub-sort_control_hover-background-color);
+        color: var(--pub-sort_control_hover-text-color);
       }
 
       &.selected {
-        background: #e7f8ff;
+        background: var(--pub-sort_control_selected-background-color);
+        color: var(--pub-sort_control_selected-text-color);
       }
     }
   }
@@ -187,7 +190,7 @@
     padding: 15px 30px;
 
     &:hover {
-      background: #fafafa;
+      background: var(--pub-pkg_list_item_hover-background-color);
     }
   }
 
@@ -303,7 +306,7 @@
     margin-right: 8px;
 
     &:hover {
-      background: #fafafa;
+      background: var(--pub-pkg_list_item_hover-background-color);
     }
 
     .publishers-item-title {
@@ -425,7 +428,7 @@
     cursor: pointer;
 
     &:hover {
-      background-color: #f7f7f7;
+      background-color: var(--pub-code-background-color);
     }
 
     a {
