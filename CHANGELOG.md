@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dartdoc to `8.0.10`.
  * Note: `setup-flutter.sh` uses http archives for stable/beta channel.
  * Note: started to use `Summary.result.licenses`.
+ * Note: starting to check `hook/` files for new package uploads.
 
 ## `20240627t084200-all`
  * Bumped runtimeVersion to `2024.06.25`.
