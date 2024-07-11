@@ -21,6 +21,13 @@
   --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
+  --pub-pkg_list_item_hover-background-color: #fafafa;
+  --pub-sort_control-background-color: #ffffff;
+  --pub-sort_control-text-color: var(--pub-default-text-color);
+  --pub-sort_control_hover-background-color: #f5f5f7;
+  --pub-sort_control_hover-text-color: var(--pub-default-text-color);
+  --pub-sort_control_selected-background-color: #e7f8ff;
+  --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
 
   // Material Design theme customizations
@@ -44,6 +51,13 @@
   --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
+  --pub-pkg_list_item_hover-background-color: #333333;
+  --pub-sort_control-background-color: #333333;
+  --pub-sort_control-text-color: var(--pub-default-text-color);
+  --pub-sort_control_hover-background-color: var(--pub-code-background-color);
+  --pub-sort_control_hover-text-color: var(--pub-default-text-color);
+  --pub-sort_control_selected-background-color: #206080;
+  --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
 
   // Material Design theme customizations
