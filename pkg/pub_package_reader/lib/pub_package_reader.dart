@@ -860,10 +860,7 @@ Iterable<ArchiveIssue> checkHooks(
   Version? minimumSdkConstraint,
   Set<String> fileNames,
 ) sync* {
-  final hookFiles = fileNames.where((n) {
-    final parts = p.split(n);
-    return parts.length > 1 && parts.first == 'hook';
-  }).toList();
+  final hookFiles = fileNames.where((f) => f.startsWith('hook/'));
   for (final hookFile in hookFiles) {
     if (!_allowedHookFiles.containsKey(hookFile)) {
       yield ArchiveIssue(
