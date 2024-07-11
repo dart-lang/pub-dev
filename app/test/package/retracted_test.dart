@@ -14,6 +14,7 @@ import 'package:test/test.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
+import 'backend_test_utils.dart';
 
 void main() {
   group('Retractions', () {
@@ -300,5 +301,54 @@ void main() {
       expect(pkg6.latestPrereleasePublished, origLatestPrereleasePublished);
       expect(pkg6.lastVersionPublished, origLastVersionPublished);
     });
+  });
+
+  group('different combinations', () {
+    final _testProfile = TestProfile(
+      packages: [
+        TestPackage(
+          name: 'pkg',
+          versions: [
+            TestVersion(version: '1.2.0'),
+            TestVersion(version: '1.3.0-dev'),
+            TestVersion(version: '2.0.0-dev'),
+          ],
+        ),
+        TestPackage(name: 'oxygen'),
+      ],
+      defaultUser: adminAtPubDevEmail,
+    );
+
+    testWithProfile(
+      'remove latest versions and then publish an old version number',
+      testProfile: _testProfile,
+      fn: () async {
+        final client =
+            await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
+        await client.setVersionOptions(
+            'pkg', '1.2.0', VersionOptions(isRetracted: true));
+        final pkg1 = (await packageBackend.lookupPackage('pkg'))!;
+        expect(pkg1.latestVersion, '2.0.0-dev');
+
+        await client.setVersionOptions(
+            'pkg', '2.0.0-dev', VersionOptions(isRetracted: true));
+        final pkg2 = (await packageBackend.lookupPackage('pkg'))!;
+        expect(pkg2.latestVersion, '1.3.0-dev');
+
+        await client.setVersionOptions(
+            'pkg', '1.3.0-dev', VersionOptions(isRetracted: true));
+
+        final pkg3 = (await packageBackend.lookupPackage('pkg'))!;
+        expect(pkg3.latestVersion, '1.2.0');
+
+        final pubspecContent = generatePubspecYaml('pkg', '0.1.0');
+        await createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+                await packageArchiveBytes(pubspecContent: pubspecContent));
+
+        final pkg4 = (await packageBackend.lookupPackage('pkg'))!;
+        expect(pkg4.latestVersion, '0.1.0');
+      },
+    );
   });
 }

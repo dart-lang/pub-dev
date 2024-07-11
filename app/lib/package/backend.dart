@@ -1065,6 +1065,12 @@ class PackageBackend {
         lastKnownStable: toolStableFlutterSdkVersion);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
+    final existingLatestVersion = isNew
+        ? null
+        : await lookupPackageVersion(
+            existingPackage.name!, existingPackage.latestVersion!);
+    final existingLatestIsRetracted =
+        existingLatestVersion?.isRetracted ?? false;
 
     // check authorizations before the transaction
     await _requireUploadAuthorization(
@@ -1158,6 +1164,7 @@ class PackageBackend {
         newVersion,
         dartSdkVersion: currentDartSdk.semanticVersion,
         flutterSdkVersion: currentFlutterSdk.semanticVersion,
+        existingLatestIsRetracted: existingLatestIsRetracted,
       );
       package!.updated = clock.now().toUtc();
       package!.versionCount++;
