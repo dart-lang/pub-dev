@@ -37,7 +37,7 @@ Iterable<d.Node> _publisher(String publisherId) {
       href: urls.publisherUrl(publisherId),
       children: [
         d.img(
-          classes: ['-pub-publisher-shield'],
+          classes: ['-pub-publisher-shield', 'filter-invert-on-dark'],
           title: 'Published by a pub.dev verified publisher',
           image: verifiedPublisherIconImage(),
         ),

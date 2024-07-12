@@ -114,7 +114,7 @@ d.Node _publisher(String? publisherId) {
             href: urls.publisherUrl(publisherId),
             children: [
               d.img(
-                classes: ['-pub-publisher-shield'],
+                classes: ['-pub-publisher-shield', 'filter-invert-on-dark'],
                 title: 'Published by a pub.dev verified publisher',
                 image: verifiedPublisherIconImage(),
               ),
@@ -171,7 +171,7 @@ d.Node? _licenseNode({
       : licenses.map((e) => e.spdxIdentifier).toSet().join(', ');
   return d.fragment([
     d.img(
-      classes: ['inline-icon-img'],
+      classes: ['inline-icon-img', 'filter-invert-on-dark'],
       image: licenseIconImage(),
     ),
     d.text(labels),
