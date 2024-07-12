@@ -12,21 +12,10 @@
 
 /* Tags that are simple labels. */
 .package-tag {
-  background: #eef9fe;
+  background: var(--pub-tag_simplebadge-background-color);
   text-transform: uppercase;
-  color: #2465df;
+  color: var(--pub-tag_simplebadge-text-color);
   padding: 4px 8px;
-
-  &.missing {
-    background: #f0f0f0;
-    color: #555;
-  }
-
-  &.unidentified,
-  &.unlisted {
-    background: #fff0f0;
-    color: #555;
-  }
 
   &.legacy,
   &.retracted {
@@ -37,19 +26,19 @@
 
 /* Tag that are combinations of two components e.g. Dart/Flutter extended badges. */
 .-pub-tag-badge {
-  background: #e7f8ff;
+  background: var(--pub-tag_sdkbadge-background-color);
 
   > .tag-badge-main,
   > .tag-badge-sub {
     display: inline-block;
     text-transform: uppercase;
     padding: 4px 8px;
-    color: #1967d2;
+    color: var(--pub-tag_sdkbadge-text-color);
   }
 
   > .tag-badge-main {
-    color: #1967d2;
-    border-right: 1px solid rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity
+    color: var(--pub-tag_sdkbadge-text-color);
+    border-right: 1px solid var(--pub-tag_sdkbadge-separator-color);
     font-weight: 500;
   }
 }
