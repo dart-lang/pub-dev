@@ -29,6 +29,11 @@
   --pub-sort_control_selected-background-color: #e7f8ff;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
+  --pub-tag_simplebadge-background-color: #f0f0f0;
+  --pub-tag_simplebadge-text-color: #444444;
+  --pub-tag_sdkbadge-background-color: #e7f8ff;
+  --pub-tag_sdkbadge-separator-color: rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity;
+  --pub-tag_sdkbadge-text-color: #1967d2;
 
   // Material Design theme customizations
   --mdc-theme-primary: #0175c2;
@@ -59,6 +64,11 @@
   --pub-sort_control_selected-background-color: #206080;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
+  --pub-tag_simplebadge-background-color: var(--pub-code-background-color);
+  --pub-tag_simplebadge-text-color: var(--pub-default-text-color);
+  --pub-tag_sdkbadge-background-color: #206080;
+  --pub-tag_sdkbadge-separator-color: var(--pub-default-text-color);
+  --pub-tag_sdkbadge-text-color: var(--pub-default-text-color);
 
   // Material Design theme customizations
   --mdc-theme-surface: var(--pub-default-background-color);
