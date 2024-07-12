@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/actions/backfill_download_counts.dart';
+import 'package:pub_dev/admin/actions/delete_download_counts.dart';
 
 import '../../shared/exceptions.dart';
 import 'create_moderation_case.dart';
@@ -85,6 +86,7 @@ final class AdminAction {
     createPublisher,
     deleteModerationCase,
     deletePublisher,
+    deleteDownloadCounts,
     listModerationCases,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
