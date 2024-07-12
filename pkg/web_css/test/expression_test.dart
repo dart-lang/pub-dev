@@ -28,7 +28,7 @@ void main() {
       expect(visitor.elements, isNotEmpty);
       expect(visitor.ids, isNotEmpty);
       expect(visitor.classes, isNotEmpty);
-      expect(visitor.classes, contains('unlisted'));
+      expect(visitor.classes, contains('-pub-tag-badge'));
       expect(visitor.selectors, isNotEmpty);
 
       final expressions = visitor.expressions;
