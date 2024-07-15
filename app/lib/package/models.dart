@@ -340,6 +340,7 @@ class Package extends db.ExpandoModel<String> {
     PackageVersion pv, {
     required Version dartSdkVersion,
     required Version flutterSdkVersion,
+    bool existingLatestIsRetracted = false,
   }) {
     final newVersion = pv.semanticVersion;
     final isOnStableSdk = !pv.pubspec!.isPreviewForCurrentSdk(
@@ -347,20 +348,23 @@ class Package extends db.ExpandoModel<String> {
       flutterSdkVersion: flutterSdkVersion,
     );
 
-    if (latestVersionKey == null ||
+    if (existingLatestIsRetracted ||
+        latestVersionKey == null ||
         (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&
             (latestSemanticVersion.isPreRelease || isOnStableSdk))) {
       latestVersionKey = pv.key;
       latestPublished = pv.created;
     }
 
-    if (latestPreviewVersionKey == null ||
+    if (existingLatestIsRetracted ||
+        latestPreviewVersionKey == null ||
         isNewer(latestPreviewSemanticVersion!, newVersion, pubSorted: true)) {
       latestPreviewVersionKey = pv.key;
       latestPreviewPublished = pv.created;
     }
 
-    if (latestPrereleaseVersionKey == null ||
+    if (existingLatestIsRetracted ||
+        latestPrereleaseVersionKey == null ||
         isNewer(latestPrereleaseSemanticVersion!, newVersion,
             pubSorted: false)) {
       latestPrereleaseVersionKey = pv.key;
