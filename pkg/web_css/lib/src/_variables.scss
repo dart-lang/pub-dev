@@ -101,6 +101,7 @@
   // Until we have duplicate images, this below transformation seem to
   // provide an acceptable workaround: it inverts the image colors, making
   // the dark parts light.
+  // TODO(https://github.com/dart-lang/pub-dev/issues/7868)
   .filter-invert-on-dark {
     filter: invert(1);
   }
