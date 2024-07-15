@@ -90,6 +90,21 @@
   --mdc_pub-text_field-background-color: rgba(255, 255, 255, 0.1);
   --mdc_pub-text_field-border-color: var(--mdc-checkbox-unchecked-color);
   --mdc_pub-text_field-text-color: var(--pub-default-text-color);
+
+  // Most of our SVG images are black on transparent background and they
+  // are almost invisible in dark mode. Ideally we would have different
+  // images for dark mode, or override their `fill` or `stroke` properties
+  // via CSS.
+  // However, overriding the properties via CSS values or variables was
+  // not working (TBD the reason as in other cases it has worked).
+  //
+  // Until we have duplicate images, this below transformation seem to
+  // provide an acceptable workaround: it inverts the image colors, making
+  // the dark parts light.
+  // TODO(https://github.com/dart-lang/pub-dev/issues/7868)
+  .filter-invert-on-dark {
+    filter: invert(1);
+  }
 }
 
 $site-header-banner-bg: #1C2834;

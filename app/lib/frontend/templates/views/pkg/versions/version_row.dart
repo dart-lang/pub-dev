@@ -60,7 +60,7 @@ d.Node versionRowNode(
           rel: 'nofollow',
           title: 'Download $package ${version.version} archive',
           child: d.img(
-            classes: ['version-table-icon'],
+            classes: ['version-table-icon', 'filter-invert-on-dark'],
             image: d.Image(
               src: staticUrls.downloadIcon,
               alt: 'Download $package ${version.version} archive',
@@ -91,7 +91,7 @@ d.Node _documentationCell(
       rel: 'nofollow',
       title: 'Go to the documentation of $package ${version.version}',
       child: d.img(
-        classes: ['version-table-icon'],
+        classes: ['version-table-icon', 'filter-invert-on-dark'],
         image: d.Image(
           src: staticUrls.documentationIcon,
           alt: 'Go to the documentation of $package ${version.version}',
@@ -106,7 +106,7 @@ d.Node _documentationCell(
       rel: 'nofollow',
       title: 'Check the analysis logs for $package ${version.version}',
       child: d.img(
-        classes: ['version-table-icon'],
+        classes: ['version-table-icon', 'filter-invert-on-dark'],
         image: d.Image(
           src: staticUrls.documentationFailedIcon,
           alt: 'Check the analysis logs for $package ${version.version}',

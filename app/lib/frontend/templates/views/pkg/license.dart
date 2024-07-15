@@ -13,7 +13,7 @@ d.Node? packageListMetadataLicense(List<String>? spdxIdentifiers) {
   return d.fragment(
     [
       d.img(
-        classes: ['inline-icon-img'],
+        classes: ['inline-icon-img', 'filter-invert-on-dark'],
         image: licenseIconImage(),
       ),
       d.text(label),

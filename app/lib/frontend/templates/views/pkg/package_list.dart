@@ -122,7 +122,7 @@ d.Node _packageItem(
         'packages-metadata-block'
       ], children: [
         d.img(
-          classes: ['package-vp-icon'],
+          classes: ['package-vp-icon', 'filter-invert-on-dark'],
           image: verifiedPublisherIconImage(),
           title: 'Published by a pub.dev verified publisher',
         ),
