@@ -39,6 +39,7 @@ final _reservedPackageNames = <String>[
   'fluttery_seekbar',
   'data_class',
   'hook',
+  'kotlin', // for yousefi@
 ].map(reducePackageName).toList();
 
 const redirectPackageUrls = <String, String>{
