@@ -117,7 +117,7 @@ Future<Summary> fakePanaSummary({
           title: 'Fake conventions',
           grantedPoints: layoutPoints,
           maxPoints: 30,
-          summary: renderSimpleSectionSummary(
+          summary: _renderSimpleSectionSummary(
             title: 'Package layout',
             description:
                 'Package layout score randomly set to $layoutPoints...',
@@ -131,7 +131,7 @@ Future<Summary> fakePanaSummary({
           title: 'Fake documentation',
           grantedPoints: examplePoints,
           maxPoints: 40,
-          summary: renderSimpleSectionSummary(
+          summary: _renderSimpleSectionSummary(
             title: 'Example',
             description: 'Example score randomly set to $examplePoints...',
             grantedPoints: examplePoints,
@@ -168,4 +168,18 @@ Hasher createHasher(String seed) {
     final hash = (bytes[0] << 16) + (bytes[1] << 8) + bytes[2];
     return max == null ? hash : (hash % max);
   };
+}
+
+String _renderSimpleSectionSummary({
+  required String title,
+  required String description,
+  required int grantedPoints,
+  required int maxPoints,
+}) {
+  final mark =
+      grantedPoints == 0 ? 'x' : (grantedPoints == maxPoints ? '*' : '~');
+  return [
+    '### [$mark] $grantedPoints/$maxPoints points: $title',
+    ' * $description',
+  ].join('\n\n');
 }
