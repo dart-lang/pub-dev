@@ -14,3 +14,12 @@
 
 @import 'src/_staging_ribbon.scss';
 @import 'src/_themes';
+
+// This is meant for a temporary override for highlight.js. We need to
+// figure out a better way to customize the syntax highlights for dark
+// mode, both in dartdoc and on pub.dev pages.
+// TODO(https://github.com/dart-lang/pub-dev/issues/7868)
+.dark-theme .markdown-body pre {
+  /* TODO(https://github.com/dart-lang/pub-dev/issues/7101): Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
+  background-color: inherit;
+}
