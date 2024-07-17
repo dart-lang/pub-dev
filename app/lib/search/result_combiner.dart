@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
-
 import 'package:_pub_shared/search/tags.dart';
+import 'package:collection/collection.dart';
 
 import 'mem_index.dart';
 import 'sdk_mem_index.dart';
@@ -37,13 +36,16 @@ class SearchResultCombiner {
         ...?flutterSdkMemIndex?.search(query.query!, limit: 2),
     ];
     if (sdkLibraryHits.isNotEmpty) {
-      // Do not display low SDK scores if all the first page package hits are more relevant.
-      final primaryHitsMinimumScore = primaryResult.packageHits
-          .map((a) => a.score ?? 0.0)
-          .fold<double>(0.0, math.min);
-      if (primaryHitsMinimumScore > 0) {
-        sdkLibraryHits
-            .removeWhere((hit) => hit.score < primaryHitsMinimumScore);
+      // Do not display low SDK scores if the average package hits are more relevant on the page.
+      //
+      // Note: we used to pick the lowest item's score for this threshold, but it was not ideal,
+      //       because promoted hit of the exact package name match may have very low score.
+      final primaryHitsScores =
+          primaryResult.packageHits.map((a) => a.score ?? 0.0).toList();
+      final primaryHitsAvgScore =
+          primaryHitsScores.isEmpty ? 0.0 : primaryHitsScores.average;
+      if (primaryHitsAvgScore > 0) {
+        sdkLibraryHits.removeWhere((hit) => hit.score < primaryHitsAvgScore);
       }
       sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
     }
