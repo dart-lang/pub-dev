@@ -170,7 +170,10 @@ d.Node _userBlock(SessionData userSession) {
             ),
             d.button(
               classes: ['nav-button'],
-              id: '-account-logout',
+              // DO NOT CHANGE: id=-account-logout
+              // Integration tests and auth_helper in post-deployment tests relies on this element
+              // being identifiable as #-account-logout when the user is signed-in.
+              id: '-account-logout', // DO NOT CHANGE!
               text: 'Sign out',
             ),
           ],
