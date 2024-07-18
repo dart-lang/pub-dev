@@ -155,9 +155,11 @@ code {
   padding: 2px 4px;
 }
 
+.hljs,
 .markdown-body pre,
 pre {
   background: var(--pub-code-background-color);
+  color: var(--pub-code-text-color);
   line-height: 1.2;
   padding: 30px;
   overflow-x: auto;

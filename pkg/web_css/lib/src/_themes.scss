@@ -18,10 +18,6 @@
 .light-theme .markdown-body pre {
   background-color: #f6f8fa;
 }
-.dark-theme .markdown-body pre {
-  /* TODO(https://github.com/dart-lang/pub-dev/issues/7101): Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
-  background-color: inherit;
-}
 
 .dark-theme .hljs .hljs-deletion,
 .dark-theme .hljs .hljs-addition {
