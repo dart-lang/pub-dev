@@ -19,6 +19,14 @@
   --pub-detail_tab-underline-color: #dddddd;
   --pub-detail_tab-active-color: #1967d2;
   --pub-detail_tab-admin-color: #990000;
+  --pub-home_title-text-color: #254a76;
+  --pub-home_card-background-color: #ffffff;
+  --pub-home_card-box_shadow-color: rgba(0, 0, 0, 0.3);
+  --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, white);
+  --pub-home_card_title-text-color: #1967d2;
+  --pub-home_card_hover-background-color: #fafafa;
+  --pub-home_card_hover-box_shadow-color: rgba(0, 0, 0, 0.4);
+  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
   --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
@@ -55,6 +63,14 @@
   --pub-detail_tab-underline-color: #888888;
   --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-detail_tab-background-color) 20%);
   --pub-detail_tab-admin-color: #e03030;
+  --pub-home_title-text-color: #31b0fc;
+  --pub-home_card-background-color: #303030;
+  --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
+  --pub-home_card_fadeout-background-value: linear-gradient(transparent 10%, var(--pub-home_card-background-color));
+  --pub-home_card_title-text-color: var(--pub-home_title-text-color);
+  --pub-home_card_hover-background-color: #383838;
+  --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
+  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 10%, var(--pub-home_card_hover-background-color));
   --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
@@ -114,6 +130,15 @@
   // TODO(https://github.com/dart-lang/pub-dev/issues/7868)
   .hljs-keyword, .hljs-selector-tag, .hljs-subst {
     color: var(--pub-code-text-color);
+  }
+
+  // The landing page was designed with a light (white) background, and
+  // this image is a grid of lines over that. We don't have an a dark
+  // landing page design yet, and the `filter invert(1)` change does not
+  // work for background images. Turning off the light grid for now.
+  // TODO(https://github.com/dart-lang/pub-dev/issues/7868)
+  .landing-main {
+    background-image: none;
   }
 }
 

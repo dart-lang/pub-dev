@@ -64,13 +64,13 @@
   padding: 20px;
 
   .home-block-title {
-    color: #254a76;
+    color: var(--pub-home_title-text-color);
     margin-bottom: 0;
   }
 
   a {
     // To improve contrast, links have the same color as .home-block-title
-    color: #254a76;
+    color: var(--pub-home_title-text-color);
   }
 
   .home-block-context-info {
@@ -80,7 +80,7 @@
 
   &.home-block-ff,
   &.home-block-pow {
-    background: #f5f5f7;
+    background: var(--pub-code-background-color);
   }
 
   .home-block-image {
@@ -100,21 +100,21 @@
   }
 
   .mini-list-item {
-    background: var(--pub-default-background-color);
+    background: var(--pub-home_card-background-color);
     border-radius: 4px;
-    box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 2px 7px 0px var(--pub-home_card-box_shadow-color);
     padding: 28px 30px 30px; // title's top gap is about 2px (30-2 => 28)
     margin-bottom: 10px;
     min-height: 100px;
 
     &:hover {
-      background: #fafafa;
-      box-shadow: 0px 4px 9px 0px rgba(0, 0, 0, 0.4);
+      background: var(--pub-home_card_hover-background-color);
+      box-shadow: 0px 4px 9px 0px var(--pub-home_card_hover-box_shadow-color);
 
       @media (min-width: $device-desktop-min-width) {
         .mini-list-item-body {
           &:before {
-            background: linear-gradient(transparent 90%, #fafafa);
+            background: var(--pub-home_card_hover_fadeout-background-value);
           }
         }
       }
@@ -122,7 +122,7 @@
 
     .mini-list-item-title {
       > h3 {
-        color: #1967d2;
+        color: var(--pub-home_card_title-text-color);
         font-size: 20px;
         // Needs to be slightly more than 1.2, otherwise the bottom
         // part of the letters (e.g. of `g`) will get trimmed.
@@ -206,7 +206,7 @@
          top: 0;
          bottom: 0;
          right: 0;
-         background: linear-gradient(transparent 90%, white);
+         background: var(--pub-home_card_fadeout-background-value);
        }
     }
   }
