@@ -40,6 +40,7 @@ final _reservedPackageNames = <String>[
   'data_class',
   'hook',
   'kotlin', // for yousefi@
+  'ok_http', // https://github.com/dart-lang/http/tree/master/pkgs/ok_http
 ].map(reducePackageName).toList();
 
 const redirectPackageUrls = <String, String>{
