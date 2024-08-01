@@ -865,12 +865,13 @@ Iterable<ArchiveIssue> checkHooks(
     if (!_allowedHookFiles.containsKey(hookFile)) {
       yield ArchiveIssue(
           'Hook files are experimental and `$hookFile` is not allowed yet.');
-    }
-    final hookLowerConstraint = _allowedHookFiles[hookFile]!;
-    if (minimumSdkConstraint == null ||
-        minimumSdkConstraint.compareTo(hookLowerConstraint) < 0) {
-      yield ArchiveIssue(
-          '`$hookFile` is allowed only with a minimum SDK constraint of `$hookLowerConstraint`.');
+    } else {
+      final hookLowerConstraint = _allowedHookFiles[hookFile]!;
+      if (minimumSdkConstraint == null ||
+          minimumSdkConstraint.compareTo(hookLowerConstraint) < 0) {
+        yield ArchiveIssue(
+            '`$hookFile` is allowed only with a minimum SDK constraint of `$hookLowerConstraint`.');
+      }
     }
   }
 }
