@@ -865,6 +865,7 @@ Iterable<ArchiveIssue> checkHooks(
     if (!_allowedHookFiles.containsKey(hookFile)) {
       yield ArchiveIssue(
           'Hook files are experimental and `$hookFile` is not allowed yet.');
+      continue;
     }
     final hookLowerConstraint = _allowedHookFiles[hookFile]!;
     if (minimumSdkConstraint == null ||
