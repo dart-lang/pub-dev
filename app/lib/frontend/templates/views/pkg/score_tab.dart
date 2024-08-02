@@ -159,7 +159,7 @@ d.Node _section(ReportSection section) {
               classes: ['pkg-report-content-summary', 'markdown-body'],
               child: d.markdown(
                 _updatedSummary(section.summary),
-                disableHashIds: true,
+                strictPruning: true,
               ),
             ),
           ),

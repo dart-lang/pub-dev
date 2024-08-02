@@ -121,12 +121,24 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
 /// Creates a DOM node with markdown content using the default [DomContext].
 Node markdown(
   String text, {
-  bool disableHashIds = false,
+  /// When set, the markdown output is pruned more heavily than usual.
+  /// Should be used for markdown content that is not entirely in our control.
+  bool strictPruning = false,
 }) {
-  return dom.unsafeRawHtml(markdownToHtml(
-    text,
-    disableHashIds: disableHashIds,
-  ));
+  return dom.unsafeRawHtml(
+    markdownToHtml(
+      text,
+      disableHashIds: strictPruning,
+      urlResolverFn: strictPruning
+          ? null
+          : (
+              url, {
+              String? relativeFrom,
+              bool? isEmbeddedObject,
+            }) =>
+              url,
+    ),
+  );
 }
 
 /// Creates DOM elements with <pre> and <code> for HLJS and pub.dev's copy-to-clipboard.
