@@ -51,13 +51,23 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> fetchPackage(
+  Future<List<int>> redirectToFetchPackage(
     String package,
     String version,
   ) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/versions/$version/archive.tar.gz',
+    );
+  }
+
+  Future<List<int>> fetchPackage(
+    String package,
+    String version,
+  ) async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/archives/$package-$version.tar.gz',
     );
   }
 
