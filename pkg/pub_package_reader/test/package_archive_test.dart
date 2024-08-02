@@ -1009,14 +1009,14 @@ dev_dependencies:
       expect(
         checkHooks(Version.parse('3.6.0'), {
           'hook/x.dart',
-        }).first.message,
+        }).single.message,
         contains('`hook/x.dart` is not allowed'),
       );
 
       expect(
         checkHooks(Version.parse('3.5.0'), {
           'hook/build.dart',
-        }).first.message,
+        }).single.message,
         contains(
             '`hook/build.dart` is allowed only with a minimum SDK constraint of'),
       );
