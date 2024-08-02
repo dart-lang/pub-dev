@@ -18,7 +18,7 @@ import '../shared/utils.dart';
 const String goldenDir = 'test/task/testdata/goldens';
 
 // TODO: generalize golden testing, use env var for regenerating all goldens.
-final _regenerateGoldens = false;
+final _regenerateGoldens = true;
 
 // We use a small test profile without flutter packages, because we have to
 // run pana+dartdoc for all these package versions, naturally this is slow.
