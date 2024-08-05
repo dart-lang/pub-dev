@@ -67,6 +67,7 @@ FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['release_date'] as String),
       archive: json['archive'] as String?,
       sha256: json['sha256'] as String?,
+      dartSdkVersion: json['dart_sdk_version'] as String?,
     );
 
 Map<String, dynamic> _$FlutterReleaseToJson(FlutterRelease instance) {
@@ -84,5 +85,6 @@ Map<String, dynamic> _$FlutterReleaseToJson(FlutterRelease instance) {
   writeNotNull('release_date', instance.releaseDate?.toIso8601String());
   writeNotNull('archive', instance.archive);
   writeNotNull('sha256', instance.sha256);
+  writeNotNull('dart_sdk_version', instance.dartSdkVersion);
   return val;
 }
