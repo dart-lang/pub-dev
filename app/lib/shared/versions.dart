@@ -74,4 +74,4 @@ final semanticToolStableFlutterSdkVersion =
 final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub-worker/lib/src/bin/pana_wrapper.dart
-final String dartdocVersion = '8.0.10';
+final String dartdocVersion = '8.0.13';
