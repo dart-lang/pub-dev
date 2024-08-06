@@ -129,8 +129,8 @@ class PackageBackend {
     return db.query<Package>().run().map((p) => p.name!);
   }
 
-  /// Retrieves the names of all packages that need to be included in sitemap.txt.
-  Stream<String> sitemapPackageNames() {
+  /// Retrieves the packages that need to be included in sitemap.txt.
+  Stream<Package> sitemapPackageNames() {
     final query = db.query<Package>()
       ..filter(
           'updated >', clock.now().toUtc().subtract(robotsVisibilityMaxAge));
@@ -138,8 +138,7 @@ class PackageBackend {
         .run()
         .where((p) => p.isVisible)
         .where((p) => p.isIncludedInRobots)
-        .where((p) => !isSoftRemoved(p.name!))
-        .map((p) => p.name!);
+        .where((p) => !isSoftRemoved(p.name!));
   }
 
   /// Retrieves package versions ordered by their published date descending.
