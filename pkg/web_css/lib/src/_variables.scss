@@ -50,6 +50,12 @@
   --mdc-typography-font-family: var(--pub-default-text-font_family);
 }
 
+.light-theme {
+  .displayed-in-dark-theme {
+    display: none !important;
+  }
+}
+
 .dark-theme {
   --pub-default-background-color: #212121;
   --pub-default-text-color: #e0e0e0;
@@ -139,6 +145,10 @@
   // TODO(https://github.com/dart-lang/pub-dev/issues/7868)
   .landing-main {
     background-image: none;
+  }
+
+  .displayed-in-light-theme {
+    display: none !important;
   }
 }
 
