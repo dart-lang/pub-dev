@@ -34,7 +34,11 @@ d.Node detailHeaderNode({
               rel: 'noopener',
               children: [
                 d.img(
-                  classes: ['ff-banner', 'ff-banner-desktop'],
+                  classes: [
+                    'ff-banner',
+                    'ff-banner-desktop',
+                    'displayed-in-light-theme',
+                  ],
                   title: 'Package is a Flutter Favorite',
                   image: d.Image.decorative(
                     src: staticUrls
@@ -44,11 +48,43 @@ d.Node detailHeaderNode({
                   ),
                 ),
                 d.img(
-                  classes: ['ff-banner', 'ff-banner-mobile'],
+                  classes: [
+                    'ff-banner',
+                    'ff-banner-desktop',
+                    'displayed-in-dark-theme',
+                  ],
+                  title: 'Package is a Flutter Favorite',
+                  image: d.Image.decorative(
+                    src: staticUrls.getAssetUrl(
+                        '/static/img/ff-banner-desktop-dark-2x.png'),
+                    width: 150,
+                    height: 218,
+                  ),
+                ),
+                d.img(
+                  classes: [
+                    'ff-banner',
+                    'ff-banner-mobile',
+                    'displayed-in-light-theme',
+                  ],
                   title: 'Package is a Flutter Favorite',
                   image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
+                    width: 94,
+                    height: 116,
+                  ),
+                ),
+                d.img(
+                  classes: [
+                    'ff-banner',
+                    'ff-banner-mobile',
+                    'displayed-in-dark-theme',
+                  ],
+                  title: 'Package is a Flutter Favorite',
+                  image: d.Image.decorative(
+                    src: staticUrls.getAssetUrl(
+                        '/static/img/ff-banner-mobile-dark-2x.png'),
                     width: 94,
                     height: 116,
                   ),
