@@ -26,19 +26,20 @@ void main() {
   window.onPageShow.listen((_) {
     adjustQueryTextAfterPageShow();
   });
+  _setupDarkTheme();
+}
 
+void _setupDarkTheme() {
   // For now we are reusing dartdoc's theme switcher and local storage-based
   // setting to replace the body-level theme classname.
-  window.onLoad.listen((_) {
-    final classes = document.body?.classes;
-    if (classes != null && classes.contains('-experimental-dark-mode')) {
-      final colorTheme = window.localStorage['colorTheme'];
-      if (colorTheme == 'true') {
-        classes.remove('light-theme');
-        classes.add('dark-theme');
-      }
+  final classes = document.body?.classes;
+  if (classes != null && classes.contains('-experimental-dark-mode')) {
+    final colorTheme = window.localStorage['colorTheme'];
+    if (colorTheme == 'true') {
+      classes.remove('light-theme');
+      classes.add('dark-theme');
     }
-  });
+  }
 }
 
 void _setupAllEvents() {
