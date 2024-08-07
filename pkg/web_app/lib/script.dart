@@ -30,12 +30,23 @@ void main() {
 }
 
 void _setupDarkTheme() {
-  // For now we are reusing dartdoc's theme switcher and local storage-based
-  // setting to replace the body-level theme classname.
+  // Only trigger dark mode when the experiment is enabled on the server.
   final classes = document.body?.classes;
   if (classes != null && classes.contains('-experimental-dark-mode')) {
-    final colorTheme = window.localStorage['colorTheme'];
-    if (colorTheme == 'true') {
+    // Detects OS or browser-level theme preference by using media queries.
+    bool mediaPrefersDarkScheme = false;
+    try {
+      mediaPrefersDarkScheme =
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (_) {
+      // ignore errors e.g. when media query matching is not supported
+    }
+
+    // Detects whether the dartdoc control was set to use dark theme
+    final dartdocDarkThemeIsSet = window.localStorage['colorTheme'] == 'true';
+
+    // Switch the top-level style marker to use dark theme instead of the light theme default.
+    if (mediaPrefersDarkScheme || dartdocDarkThemeIsSet) {
       classes.remove('light-theme');
       classes.add('dark-theme');
     }
