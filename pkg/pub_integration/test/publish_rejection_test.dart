@@ -37,7 +37,7 @@ void main() {
       final tempDir = await Directory.systemTemp.createTemp();
       try {
         final dependentPackages = {
-          'lints': '3.0.0',
+          'lints': '4.0.0',
           'test': '1.99.0',
         };
         for (final d in dependentPackages.keys) {
@@ -75,8 +75,8 @@ void main() {
         await localDartTool.publish(
           pkgDir,
           expectedErrorContains:
-              '`description` contains a generic text fragment coming from package templates (`A sample command-line application`).\n'
-              'Please follow the guides to describe your package:\n'
+              '`description` contains a generic text fragment coming from package templates (`A sample command-line application`). '
+              'Please follow the guides to describe your package: '
               'https://dart.dev/tools/pub/pubspec#description',
         );
       } finally {
