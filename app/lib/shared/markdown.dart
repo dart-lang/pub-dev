@@ -220,6 +220,8 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
 
         if (r.children != null && r.children!.isNotEmpty) {
           element.children!.insertAll(index, r.children!);
+        } else if (r.tag == 'img' && r.attributes.containsKey('alt')) {
+          element.children!.insert(index, m.Text('[${r.attributes['alt']}]'));
         }
         element.children!.remove(r);
         _elementsToRemove.remove(r);
@@ -237,25 +239,41 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     }
   }
 
+  /// Returns a new URL based on [url] and [urlResolverFn].
+  ///
+  /// When the returned value is `null`, the containing DOM node will be pruned
+  /// from the output, otherwise this method may return the same or an updated URL.
   String? _rewriteUrl(String? url, {bool raw = false}) {
+    // pass-through for simple cases
     if (url == null || url.startsWith('#')) {
       return url;
     }
-    if (Uri.tryParse(url) == null) {
+    // reject unparseable URLs
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      return null;
+    }
+    if (urlResolverFn == null) {
+      // When we have no URL resolver, we may allow absolute URLs (with scheme) or
+      // in-page URLs (only fragments without any path reference).
+      if (uri.hasScheme || (uri.path.isEmpty && uri.hasFragment)) {
+        return url;
+      }
+      // Otherwise we should not display the URL and remove the DOM node.
       return null;
     }
     try {
-      if (urlResolverFn != null) {
-        return urlResolverFn!(
-          url,
-          relativeFrom: relativeFrom,
-          isEmbeddedObject: raw,
-        );
-      }
+      // Trying to resolve the URL using the given resolver function.
+      return urlResolverFn!(
+        url,
+        relativeFrom: relativeFrom,
+        isEmbeddedObject: raw,
+      );
     } catch (e, st) {
       _logger.warning('Link rewrite failed: $url', e, st);
     }
-    return url;
+    // Safe URL fallback: removing the node containing the URL that we were not able to resolve.
+    return null;
   }
 }
 

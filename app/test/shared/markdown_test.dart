@@ -47,15 +47,13 @@ void main() {
     });
 
     test('sibling link within site', () {
-      expect(markdownToHtml('[text](README.md)'),
-          '<p><a href="README.md">text</a></p>\n');
+      expect(markdownToHtml('[text](README.md)'), '<p>text</p>\n');
       expect(markdownToHtml('[text](README.md)', urlResolverFn: urlResolverFn),
           '<p><a href="https://github.com/example/project/blob/master/README.md" rel="ugc">text</a></p>\n');
     });
 
     test('sibling image within site', () {
-      expect(markdownToHtml('![text](image.png)'),
-          '<p><img src="image.png" alt="text"></p>\n');
+      expect(markdownToHtml('![text](image.png)'), '<p>[text]</p>\n');
       expect(markdownToHtml('![text](image.png)', urlResolverFn: urlResolverFn),
           '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text"></p>\n');
     });
@@ -64,7 +62,7 @@ void main() {
       expect(
           markdownToHtml('![text](image.png)',
               relativeFrom: 'example/README.md'),
-          '<p><img src="image.png" alt="text"></p>\n');
+          '<p>[text]</p>\n');
       expect(
           markdownToHtml('![text](image.png)',
               urlResolverFn: urlResolverFn, relativeFrom: 'example/README.md'),
@@ -72,8 +70,7 @@ void main() {
     });
 
     test('sibling link plus relative link', () {
-      expect(markdownToHtml('[text](README.md#section)'),
-          '<p><a href="README.md#section">text</a></p>\n');
+      expect(markdownToHtml('[text](README.md#section)'), '<p>text</p>\n');
       expect(
           markdownToHtml('[text](README.md#section)',
               urlResolverFn: urlResolverFn),
@@ -81,8 +78,7 @@ void main() {
     });
 
     test('child link within site', () {
-      expect(markdownToHtml('[text](example/README.md)'),
-          '<p><a href="example/README.md">text</a></p>\n');
+      expect(markdownToHtml('[text](example/README.md)'), '<p>text</p>\n');
       expect(
           markdownToHtml('[text](example/README.md)',
               urlResolverFn: urlResolverFn),
@@ -90,8 +86,7 @@ void main() {
     });
 
     test('child image within site', () {
-      expect(markdownToHtml('![text](example/image.png)'),
-          '<p><img src="example/image.png" alt="text"></p>\n');
+      expect(markdownToHtml('![text](example/image.png)'), '<p>[text]</p>\n');
       expect(
           markdownToHtml('![text](example/image.png)',
               urlResolverFn: urlResolverFn),
@@ -99,8 +94,7 @@ void main() {
     });
 
     test('root link within site', () {
-      expect(markdownToHtml('[text](/README.md)'),
-          '<p><a href="/README.md">text</a></p>\n');
+      expect(markdownToHtml('[text](/README.md)'), '<p>text</p>\n');
       expect(
           markdownToHtml('[text](/example/README.md)',
               urlResolverFn: urlResolverFn),
@@ -108,8 +102,7 @@ void main() {
     });
 
     test('root image within site', () {
-      expect(markdownToHtml('![text](/image.png)'),
-          '<p><img src="/image.png" alt="text"></p>\n');
+      expect(markdownToHtml('![text](/image.png)'), '<p>[text]</p>\n');
       expect(
           markdownToHtml('![text](/example/image.png)',
               urlResolverFn: urlResolverFn),
@@ -131,14 +124,14 @@ void main() {
       expect(
           markdownToHtml('[text](README.md)',
               urlResolverFn: fallbackUrlResolverFn('ftp://example.com/blah')),
-          '<p><a href="README.md">text</a></p>\n');
+          '<p>text</p>\n');
     });
 
     test('not valid host', () {
       expect(
           markdownToHtml('[text](README.md)',
               urlResolverFn: fallbackUrlResolverFn('http://com/blah')),
-          '<p><a href="README.md">text</a></p>\n');
+          '<p>text</p>\n');
     });
   });
 
@@ -170,7 +163,7 @@ void main() {
 
     test('bad image link with attribute', () {
       expect(markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
-          '<p></p>\n');
+          '<p>[demo]</p>\n');
     });
   });
 
