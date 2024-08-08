@@ -30,7 +30,7 @@ This is intended for debugging, or solving one-off issues.
     // Make sure package exists.
     final pkg = await packageBackend.lookupPackage(package);
     if (pkg == null) {
-      throw NotFoundException.resource(package);
+      throw InvalidInputException('No package $package');
     }
     await taskBackend.adminBumpPriority(package);
 
