@@ -61,14 +61,14 @@
   border-width: 0px;
 
   .mdc-data-table__row {
-    border-top-color: #f5f5f7;
+    border-top-color: var(--pub-code-background-color);
 
     &:hover {
       background: inherit;
     }
 
     &:nth-child(even) {
-      background: #f5f5f7;
+      background: var(--pub-code-background-color);
     }
   }
 
@@ -78,7 +78,7 @@
   }
 
   .mdc-data-table__cell {
-    color: rgba(0, 0, 0, 0.85);
+    color: var(--pub-default-text-color);
   }
 
   .email-header { width: 60%; }
