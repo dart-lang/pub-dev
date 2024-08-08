@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/task/backend.dart';
 
 final taskBumpPriority = AdminAction(
@@ -23,9 +24,14 @@ This is intended for debugging, or solving one-off issues.
     'package': 'Name of package whose priority should be bumped',
   },
   invoke: (options) async {
-    final package = options['package']!;
+    final package = options['package'] ??
+        (throw InvalidInputException('Needs a package name'));
     InvalidInputException.checkPackageName(package);
-
+    // Make sure package exists.
+    final pkg = await packageBackend.lookupPackage(package);
+    if (pkg == null) {
+      throw InvalidInputException('No package $package');
+    }
     await taskBackend.adminBumpPriority(package);
 
     return {'message': 'Priority may have been bumped, good luck!'};
