@@ -72,11 +72,11 @@
   --pub-home_title-text-color: #31b0fc;
   --pub-home_card-background-color: #303030;
   --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
-  --pub-home_card_fadeout-background-value: linear-gradient(transparent 10%, var(--pub-home_card-background-color));
+  --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card-background-color));
   --pub-home_card_title-text-color: var(--pub-home_title-text-color);
   --pub-home_card_hover-background-color: #383838;
   --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
-  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 10%, var(--pub-home_card_hover-background-color));
+  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
   --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
