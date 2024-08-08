@@ -24,8 +24,9 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2024.08.06',
+  '2024.08.08',
   // Fallback runtime versions.
+  '2024.08.06',
   '2024.08.05',
   '2024.07.18',
 ];
