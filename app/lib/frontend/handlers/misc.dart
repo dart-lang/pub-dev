@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart';
 import 'package:http_parser/http_parser.dart';
@@ -137,19 +138,26 @@ Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
     final pages = [
       '/',
       '/help',
-      '/web',
-      '/flutter',
       '/publishers',
     ];
     items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
+    final now = clock.now();
+    // Lists the packages that were updated in the past two years.
     final stream = packageBackend.sitemapPackageNames();
-    await for (var package in stream) {
+    await for (final p in stream) {
+      // The package page is added unconditionally.
+      final package = p.name!;
       final pkgPath = urls.pkgPageUrl(package);
       items.add(uri.replace(path: pkgPath).toString());
 
-      final docPath = urls.pkgDocUrl(package, isLatest: true);
-      items.add(uri.replace(path: docPath).toString());
+      // The API documentation page is added for packages that were updated in the past year.
+      // TODO(https://github.com/dart-lang/pub-dev/issues/2776): implement proper sharding of the links
+      final age = now.difference(p.updated!);
+      if (age.inDays <= 365) {
+        final docPath = urls.pkgDocUrl(package, isLatest: true);
+        items.add(uri.replace(path: docPath).toString());
+      }
     }
 
     items.sort();
