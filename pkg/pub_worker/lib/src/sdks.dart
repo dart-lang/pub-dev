@@ -11,10 +11,11 @@ import 'package:pub_semver/pub_semver.dart' show Version;
 
 @sealed
 class InstalledSdk {
+  final String kind;
   final String path;
   final Version version;
-  final String kind;
-  InstalledSdk(this.kind, this.path, this.version);
+  final Version? embeddedDartSdkVersion;
+  InstalledSdk(this.kind, this.path, this.version, this.embeddedDartSdkVersion);
 
   @override
   String toString() => 'InstalledSdk($kind, $version, $path)';
@@ -70,6 +71,17 @@ class InstalledSdk {
     required String path,
   }) async {
     final v = await File(p.join(path, 'version')).readAsString();
-    return InstalledSdk(kind, path, Version.parse(v.trim()));
+    Version? embeddedDartSdkVersion;
+    if (kind == 'flutter') {
+      final embeddedFile =
+          File(p.join(path, 'bin', 'cache', 'dart-sdk', 'version'));
+      if (await embeddedFile.exists()) {
+        final embeddedValue = await embeddedFile.readAsString();
+        embeddedDartSdkVersion =
+            Version.parse(embeddedValue.split(' ').first.trim());
+      }
+    }
+    return InstalledSdk(
+        kind, path, Version.parse(v.trim()), embeddedDartSdkVersion);
   }
 }

@@ -14,3 +14,4 @@ targets:
       - 'lib/data/publisher_api.dart'
       - 'lib/data/task_api.dart'
       - 'lib/data/task_payload.dart'
+      - 'lib/utils/flutter_archive.dart'

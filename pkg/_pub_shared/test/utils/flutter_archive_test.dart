@@ -19,5 +19,7 @@ void main() {
       DateTime.now().difference(archive.latestBeta!.releaseDate!).inDays,
       lessThan(45),
     );
+    expect(archive.latestStable?.semanticDartSdkVersion, isNotNull);
+    expect(archive.latestBeta?.semanticDartSdkVersion, isNotNull);
   });
 }

@@ -210,26 +210,42 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
   bool matchesSdks({
     required Version? dart,
     required Version? flutter,
+    required Version? flutterDartSdk,
     bool allowsMissingVersion = false,
   }) {
     if (!allowsMissingVersion && (dart == null || flutter == null)) {
       return false;
     }
 
-    return sdkMatchesConstraint(
-          sdkVersion: dart,
-          constraint: pubspec.dartSdkConstraint,
-        ) &&
-        sdkMatchesConstraint(
-          sdkVersion: flutter,
-          constraint: pubspec.flutterSdkConstraint,
-        );
+    // Dart SDK
+    if (!sdkMatchesConstraint(
+        sdkVersion: dart, constraint: pubspec.dartSdkConstraint)) {
+      return false;
+    }
+
+    // Flutter SDK
+    if (!sdkMatchesConstraint(
+        sdkVersion: flutter, constraint: pubspec.flutterSdkConstraint)) {
+      return false;
+    }
+
+    // Dart SDK inside the Flutter SDK
+    if (flutterDartSdk != null &&
+        !sdkMatchesConstraint(
+            sdkVersion: flutterDartSdk,
+            constraint: pubspec.dartSdkConstraint)) {
+      return false;
+    }
+
+    // Otherwise accepting the analysis SDK bundle.
+    return true;
   }
 
   // try to use the latest SDKs in the docker image
   final matchesInstalledSdks = matchesSdks(
     dart: installedDartSdk?.version,
     flutter: installedFlutterSdk?.version,
+    flutterDartSdk: installedFlutterSdk?.embeddedDartSdkVersion,
     allowsMissingVersion: true,
   );
   if (matchesInstalledSdks) {
@@ -249,6 +265,7 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
         matchesSdks(
           dart: bundle.semanticDartVersion,
           flutter: bundle.semanticFlutterVersion,
+          flutterDartSdk: bundle.semanticFlutterDartSdkVersion,
         );
     if (matchesBundle) {
       final dartSdkPath = await _installSdk(
@@ -330,12 +347,14 @@ class _SdkBundle {
   final String configKind;
   final String dart;
   final String flutter;
+  final Version? semanticFlutterDartSdkVersion;
 
   _SdkBundle({
     required this.channel,
     required this.configKind,
     required this.dart,
     required this.flutter,
+    required this.semanticFlutterDartSdkVersion,
   });
 
   late final semanticDartVersion = Version.parse(dart);
@@ -362,6 +381,8 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
         configKind: 'latest-stable',
         dart: latestStableDartSdkVersion,
         flutter: latestStableFlutterSdkVersion,
+        semanticFlutterDartSdkVersion:
+            flutterArchive?.latestStable?.semanticDartSdkVersion,
       ),
     if (latestBetaDartSdkVersion != null && latestBetaFlutterSdkVersion != null)
       _SdkBundle(
@@ -369,12 +390,15 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
         configKind: 'latest-beta',
         dart: latestBetaDartSdkVersion,
         flutter: latestBetaFlutterSdkVersion,
+        semanticFlutterDartSdkVersion:
+            flutterArchive?.latestBeta?.semanticDartSdkVersion,
       ),
     _SdkBundle(
       channel: 'master',
       configKind: 'master',
       dart: 'master',
       flutter: 'master',
+      semanticFlutterDartSdkVersion: null,
     ),
   ];
 }
