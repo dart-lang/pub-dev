@@ -59,7 +59,7 @@ Router _$PubApiRouter(PubApi service) {
       String version,
     ) async {
       try {
-        final _$result = await service.fetchPackage(
+        final _$result = await service.redirectToFetchPackage(
           request,
           package,
           version,
@@ -81,7 +81,7 @@ Router _$PubApiRouter(PubApi service) {
       String version,
     ) async {
       try {
-        final _$result = await service.fetchPackage(
+        final _$result = await service.redirectToFetchPackage(
           request,
           package,
           version,

@@ -53,13 +53,39 @@ class PubApi {
   ) async =>
       await packageBackend.lookupVersion(package, version);
 
-  /// Downloading package.
+  /// Older endpoint for downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
   ///
-  /// NOTE: `/packages/<package>/versions/<version>.tar.gz` is hardcoded into the
-  /// clients, so while this is deprecated we need to support it indefinitely.
+  /// NOTE: `/packages/<package>/versions/<version>.tar.gz` is hardcoded into
+  /// clients from before dart 2.8, so while this is deprecated we need to
+  /// support it indefinitely.
+  ///
+  /// We used `/api/packages/<package>/versions/<version>/archive.tar.gz` for a
+  /// while, and continue to support it.
+  ///
+  /// These endpoints will redirect to
+  /// `/api/archives/<package>-<version>.tar.gz`
   @EndPoint.get('/api/packages/<package>/versions/<version>/archive.tar.gz')
   @EndPoint.get('/packages/<package>/versions/<version>.tar.gz')
+  Future<Response> redirectToFetchPackage(
+    Request request,
+    String package,
+    String version,
+  ) async {
+    checkPackageVersionParams(package, version);
+    return Response.seeOther(
+      request.url.replace(path: 'api/archives/$package/versions/$version'),
+      headers: CacheControl.clientApi.headers,
+    );
+  }
+
+  /// Downloading package.
+  ///
+  /// This is the endpoint we link to from the version listing.
+  ///
+  /// While this is here a redirect to a bucket, and will be done this way on
+  /// staging, on pub.dev we actually serve this endpoint directly from a bucket
+  /// via GCLB (load balancer), and will never trigger this handler.
   @EndPoint.get('/api/archives/<package|[^-/]+>-<version>.tar.gz')
   Future<Response> fetchPackage(
     Request request,
