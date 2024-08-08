@@ -411,7 +411,7 @@ class _CreatePublisherWidget {
       },
       successMessage: text('Publisher created. The page will reload.'),
       onSuccess: (_) {
-        window.location.pathname = '/publishers/$publisherId';
+        window.location.pathname = '/publishers/$publisherId/admin';
       },
     );
   }
