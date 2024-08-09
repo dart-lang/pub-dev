@@ -130,14 +130,6 @@
     filter: invert(1);
   }
 
-  // This is meant for a temporary override for highlight.js. We need to
-  // figure out a better way to customize the syntax highlights for dark
-  // mode, both in dartdoc and on pub.dev pages.
-  // TODO(https://github.com/dart-lang/pub-dev/issues/7868)
-  .hljs-keyword, .hljs-selector-tag, .hljs-subst {
-    color: var(--pub-code-text-color);
-  }
-
   // The landing page was designed with a light (white) background, and
   // this image is a grid of lines over that. We don't have an a dark
   // landing page design yet, and the `filter invert(1)` change does not
