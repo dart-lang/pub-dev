@@ -129,16 +129,16 @@
 
   .carousel-nav {
     background-color: rgba(0,0,0,0.7);
-
-    &:hover {
-     background-color: #4285f4;
-    }
     position: fixed;
     top: 50%;
     transform: translateY(-50%);
     display: none;
     z-index: 2;
-  }
+
+    &:hover {
+      background-color: #4285f4;
+     }
+   }
 
   .carousel-next {
     right: 10px;

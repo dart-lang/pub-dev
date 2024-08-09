@@ -274,12 +274,13 @@
 }
 
 .landing-pow-list {
-  @media (min-width: $device-desktop-min-width) {
-    display: flex;
-  }
   flex-wrap: wrap;
   padding: 4px;
   margin: -3px -3px 10px -3px;
+
+  @media (min-width: $device-desktop-min-width) {
+    display: flex;
+  }
 
   .pow-video {
     margin: 0 16px 16px 0;
@@ -295,12 +296,12 @@
   }
 
   .pow-video-thumbnail {
+    height: auto;
+    width: 100%;
     @media (min-width: $device-desktop-min-width) {
       max-width: 260px;
       max-height: 195px;
     }
-    height: auto;
-    width: 100%;
   }
 
   .pow-video-overlay {
