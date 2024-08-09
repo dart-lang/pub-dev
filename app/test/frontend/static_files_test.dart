@@ -161,6 +161,7 @@ void main() {
           '/static/css/dartdoc-github-alert.css',
           '/static/css/github-markdown.css',
           '/static/highlight/github.css',
+          '/static/highlight/github-dark.css',
         ])
         // dartdoc files included through dartdoc.scss
         ..removeAll([
