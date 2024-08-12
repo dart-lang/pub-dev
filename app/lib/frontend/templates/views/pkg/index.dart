@@ -139,13 +139,6 @@ d.Node _searchFormContainer({
                     'Show unlisted, discontinued and legacy Dart 1.x packages.',
               ),
               _tagBasedCheckbox(
-                tagPrefix: 'is',
-                tagValue: 'null-safe',
-                label: 'Supports null safety',
-                searchForm: searchForm,
-                title: 'Show only null-safe packages.',
-              ),
-              _tagBasedCheckbox(
                 tagPrefix: 'has',
                 tagValue: 'screenshot',
                 label: 'Has screenshot',

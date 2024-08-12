@@ -187,7 +187,7 @@ void main() {
             expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
           }
 
-          await toggleMore('is', 'null-safe');
+          await toggleMore('is', 'dart3-compatible');
           await toggleMore('is', 'flutter-favorite');
         },
       );
