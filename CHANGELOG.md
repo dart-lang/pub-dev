@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2024.08.09`.
  * Upgraded runtime Dart SDK to `3.5.0`.
  * Upgraded dependencies including `mailer` and `googleapis`.
+ * Additional memory to search instances.
 
 ## `20240808t114400-all`
  * Bumped runtimeVersion to `2024.08.08`.
