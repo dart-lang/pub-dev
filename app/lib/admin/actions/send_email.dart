@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:collection/collection.dart';
-
 import '../../account/agent.dart';
 import '../../account/backend.dart';
 import '../../package/backend.dart';
@@ -67,17 +65,17 @@ without changing anything in it.
           if (pkg!.publisherId != null) {
             final list =
                 await publisherBackend.getAdminMemberEmails(ms.publisherId!);
-            emails.addAll(list.whereNotNull());
+            emails.addAll(list.nonNulls);
           } else {
             final list = await accountBackend
                 .lookupUsersById(pkg.uploaders ?? const <String>[]);
-            emails.addAll(list.map((e) => e?.email).whereNotNull());
+            emails.addAll(list.map((e) => e?.email).nonNulls);
           }
           break;
         case ModerationSubjectKind.publisher:
           final list =
               await publisherBackend.getAdminMemberEmails(ms.publisherId!);
-          emails.addAll(list.whereNotNull());
+          emails.addAll(list.nonNulls);
           break;
         case ModerationSubjectKind.user:
           emails.add(ms.email!);
