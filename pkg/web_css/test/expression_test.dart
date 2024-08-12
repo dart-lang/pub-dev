@@ -59,6 +59,7 @@ void main() {
         '../../third_party/css/dartdoc-github-alert.css',
         '../../third_party/css/github-markdown.css',
         '../../third_party/highlight/github.css',
+        '../../third_party/highlight/github-dark.css',
       ];
       for (final path in thirdPartyCss) {
         expressions.removeAll((await _visitCssFile(path)).expressions);
