@@ -36,7 +36,7 @@
 The search UI also supports filters.
 On a wide screen, 
 the filter options will appear to the left of the search results.
-On a non-wide screen, to open the filter options,
+On a narrow screen, to open the filter options,
 click the filter icon to the right of the search bar.
 
   - To filter by Dart or Flutter support, 
