@@ -96,6 +96,8 @@ class FlutterRelease {
   final DateTime? releaseDate;
   final String? archive;
   final String? sha256;
+  @JsonKey(name: 'dart_sdk_version')
+  final String? dartSdkVersion;
 
   FlutterRelease({
     this.hash,
@@ -104,6 +106,7 @@ class FlutterRelease {
     this.releaseDate,
     this.archive,
     this.sha256,
+    this.dartSdkVersion,
   });
 
   factory FlutterRelease.fromJson(Map<String, dynamic> json) =>
@@ -115,4 +118,22 @@ class FlutterRelease {
       version!.startsWith('v') ? version!.substring(1) : version!;
 
   late final semanticVersion = Version.parse(cleanVersion);
+
+  /// The Dart SDK version string may be `3.4.3` for stable versions or
+  /// `3.5.0 (build 3.5.0-180.3.beta)` for prerelease versions.
+  /// For simplicity we only parse the first part of the version string.
+  late final _extractedDartSdkVersion = dartSdkVersion?.split(' ').first;
+
+  /// The parsed Dart SDK version or `null` if we were not able to
+  /// parse the value.
+  late final semanticDartSdkVersion = () {
+    if (_extractedDartSdkVersion == null) {
+      return null;
+    }
+    try {
+      return Version.parse(_extractedDartSdkVersion!);
+    } catch (_) {
+      return null;
+    }
+  }();
 }
