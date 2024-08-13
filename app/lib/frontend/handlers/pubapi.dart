@@ -74,7 +74,7 @@ class PubApi {
   ) async {
     checkPackageVersionParams(package, version);
     return Response.seeOther(
-      request.url.replace(path: 'api/archives/$package/versions/$version'),
+      request.url.replace(path: '/api/archives/$package-$version.tar.gz'),
       headers: CacheControl.clientApi.headers,
     );
   }
