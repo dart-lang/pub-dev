@@ -30,6 +30,7 @@ final _reservedPackageNames = <String>[
   'developer',
   'pub',
   'swift_ui',
+  'swiftgen',
   'versions',
   'webview_flutter',
   'firebaseui',
