@@ -26,6 +26,7 @@ void main() {
   window.onPageShow.listen((_) {
     adjustQueryTextAfterPageShow();
   });
+  _setupDarkThemeButton();
 }
 
 void _setupAllEvents() {
@@ -38,4 +39,17 @@ void _setupAllEvents() {
   setupLikes();
   setupLikesList();
   setupScreenshotCarousel();
+}
+
+void _setupDarkThemeButton() {
+  final button = document.querySelector('button.-pub-theme-toggle');
+  if (button != null) {
+    button.onClick.listen((_) {
+      final classes = document.body!.classes;
+      final isCurrentlyDark = classes.contains('dark-theme');
+      window.localStorage['colorTheme'] = isCurrentlyDark ? 'false' : 'true';
+      classes.toggle('dark-theme');
+      classes.toggle('light-theme');
+    });
+  }
 }
