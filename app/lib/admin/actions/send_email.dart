@@ -59,7 +59,8 @@ The list of resolved emails will be deduplicated.
     );
 
     final emails = <String>{};
-    for (final value in to!.split(',')) {
+    for (final val in to!.split(',')) {
+      final value = val.trim();
       if (isValidEmail(value)) {
         emails.add(value);
         continue;
