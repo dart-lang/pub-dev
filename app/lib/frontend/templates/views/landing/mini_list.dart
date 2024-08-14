@@ -51,7 +51,7 @@ d.Node _footer(String sectionTag, PackageView p) {
           classes: ['mini-list-item-publisher'],
           children: [
             d.img(
-              classes: ['publisher-badge'],
+              classes: ['publisher-badge', 'filter-invert-on-dark'],
               image: verifiedPublisherIconImage(),
               title: 'Published by a pub.dev verified publisher',
             ),
