@@ -44,8 +44,13 @@ Document _update(
   required bool pushState,
   required String? url,
 }) {
+  // The dark theme preference is encoded in the `<body>` element's `class`
+  // attributes. We could re-run the initialization, but storing the current
+  // values and replacing the provided ones is simpler.
+  final oldClasses = document.body!.className;
   final doc = DomParser().parseFromString(html, 'text/html');
   document.querySelector('body')!.replaceWith(doc.querySelector('body')!);
+  document.body!.className = oldClasses;
   _popStateFn!();
   if (pushState) {
     final title = doc.querySelector('title')?.text;
