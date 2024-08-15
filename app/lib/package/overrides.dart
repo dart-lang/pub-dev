@@ -42,6 +42,7 @@ final _reservedPackageNames = <String>[
   'hook',
   'kotlin', // for yousefi@
   'ok_http', // https://github.com/dart-lang/http/tree/master/pkgs/ok_http
+  'credilio_sbm', // for owner of package:crediliosbm
 ].map(reducePackageName).toList();
 
 const redirectPackageUrls = <String, String>{
