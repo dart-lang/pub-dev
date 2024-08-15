@@ -8,7 +8,9 @@ service: search
 
 resources:
   cpu: 2
-  memory_gb: 16
+  # This is the max memory we can request for 2 cpus.
+  # https://cloud.google.com/appengine/docs/flexible/reference/app-yaml?tab=python
+  memory_gb: 12.6
   disk_size_gb: 25
 
 #manual_scaling:
