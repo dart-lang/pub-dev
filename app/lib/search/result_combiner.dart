@@ -36,16 +36,14 @@ class SearchResultCombiner {
         ...?flutterSdkMemIndex?.search(query.query!, limit: 2),
     ];
     if (sdkLibraryHits.isNotEmpty) {
-      // Do not display low SDK scores if the average package hits are more relevant on the page.
+      // Do not display low SDK scores if the package hits are more relevant on the page.
       //
       // Note: we used to pick the lowest item's score for this threshold, but it was not ideal,
       //       because promoted hit of the exact package name match may have very low score.
-      final primaryHitsScores =
-          primaryResult.packageHits.map((a) => a.score ?? 0.0).toList();
-      final primaryHitsAvgScore =
-          primaryHitsScores.isEmpty ? 0.0 : primaryHitsScores.average;
-      if (primaryHitsAvgScore > 0) {
-        sdkLibraryHits.removeWhere((hit) => hit.score < primaryHitsAvgScore);
+      final primaryHitsTopScore =
+          primaryResult.packageHits.map((a) => a.score ?? 0.0).maxOrNull ?? 0.0;
+      if (primaryHitsTopScore > 0) {
+        sdkLibraryHits.removeWhere((hit) => hit.score < primaryHitsTopScore);
       }
       sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
     }
