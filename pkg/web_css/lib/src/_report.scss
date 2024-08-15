@@ -23,7 +23,7 @@
     cursor: pointer;
 
     &:hover {
-      background: #f0f0f0;
+      background: var(--pub-report-hover-background-color);
     }
   }
 
