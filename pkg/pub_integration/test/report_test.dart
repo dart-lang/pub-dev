@@ -11,6 +11,8 @@ import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
+final _caseIdExpr = RegExp(r'[0-9]{8}-[0-9a-f]{10}');
+
 void main() {
   group('report', () {
     late final TestContextProvider fakeTestScenario;
@@ -77,7 +79,7 @@ void main() {
       expect(reportEmail2, contains('package:oxygen'));
 
       // verify moderation case
-      final caseId = reportEmail2.split('\n')[1];
+      final caseId = _caseIdExpr.firstMatch(reportEmail2)!.group(0)!;
       final caseData = await adminUser.serverApi.adminInvokeAction(
         'moderation-case-info',
         AdminInvokeActionArguments(
@@ -197,7 +199,7 @@ void main() {
       final appealEmail = await supportUser.readLatestEmail();
 
       // extract new case id from email
-      final appealCaseId = appealEmail.split('\n')[1];
+      final appealCaseId = _caseIdExpr.firstMatch(appealEmail)!.group(0)!;
 
       // admin closes case without further action
       await adminUser.serverApi.adminInvokeAction(
