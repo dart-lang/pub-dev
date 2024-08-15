@@ -102,11 +102,14 @@ class ModerationCase extends db.ExpandoModel<String> {
     opened = clock.now().toUtc();
   }
 
+  /// Generates a short case id like `<yyyy><mm><dd>-0123456789`.
   static String generateCaseId({
     DateTime? now,
   }) {
     now ??= clock.now();
-    return '${now.toIso8601String().split('T').first}/${createUuid()}';
+    return '${now.toIso8601String().split('T').first.replaceAll('-', '')}'
+        '-'
+        '${createUuid().split('-').join('').substring(0, 10)}';
   }
 
   ModerationActionLog getActionLog() {
