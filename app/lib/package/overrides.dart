@@ -50,6 +50,8 @@ const redirectPackageUrls = <String, String>{
       'https://api.flutter.dev/flutter/flutter_driver/flutter_driver-library.html',
   'flutter_driver_extension':
       'https://api.flutter.dev/flutter/flutter_driver_extension/flutter_driver_extension-library.html',
+  'flutter_gpu':
+      'https://main-api.flutter.dev/flutter/flutter_gpu/flutter_gpu-library.html',
   'flutter_localizations':
       'https://api.flutter.dev/flutter/flutter_localizations/flutter_localizations-library.html',
   'flutter_test':

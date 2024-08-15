@@ -36,7 +36,7 @@ class SearchResultCombiner {
         ...?flutterSdkMemIndex?.search(query.query!, limit: 2),
     ];
     if (sdkLibraryHits.isNotEmpty) {
-      // Do not display low SDK scores if the average package hits are more relevant on the page.
+      // Do not display low SDK scores if the top package hit is more relevant on the page.
       //
       // Note: we used to pick the lowest item's score for this threshold, but it was not ideal,
       //       because promoted hit of the exact package name match may have very low score.
