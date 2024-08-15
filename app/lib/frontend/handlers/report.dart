@@ -205,16 +205,19 @@ Future<String> processReportPageHandler(
   });
 
   final kind = isAppeal ? 'appeal' : 'report';
+  final kindLabel = isAppeal ? 'moderation appeal' : 'content report';
   final bodyText = <String>[
     'New $kind received on ${now.toIso8601String()}: $caseId',
     if (form.url != null) 'URL: ${form.url}',
     if (isAppeal) 'Appealed case ID: ${form.caseId}',
     'Subject: ${subject.fqn}',
     'Message:\n${form.message}',
+    'This $kind will be processed by the moderation team. Please be patient.',
   ].join('\n\n');
 
   await emailSender.sendMessage(createReportPageAdminEmail(
-    id: caseId,
+    caseId: caseId,
+    kindLabel: kindLabel,
     userEmail: userEmail!,
     bodyText: bodyText,
   ));

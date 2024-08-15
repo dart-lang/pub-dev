@@ -97,8 +97,8 @@ Iterable<d.Node> _report(
         title:
             'I have found a bug in the package / I need help using the package.',
         children: [
-          d.markdown(
-              'Please consult the package page: `pub.dev/packages/${subject.package}`'),
+          d.markdown('Please consult the package page: '
+              '[`pub.dev/packages/${subject.package}`](https://pub.dev/packages/${subject.package})'),
           d.p(
               text:
                   'Many packages have issue trackers, support discussion boards or chat rooms. '
@@ -116,8 +116,8 @@ Iterable<d.Node> _report(
       _block(
         title: 'I want to contact the publisher.',
         children: [
-          d.markdown(
-              'Please consult the publisher page: `pub.dev/publishers/<publisher>`'),
+          d.markdown('Please consult the publisher page: '
+              '[`pub.dev/publishers/${subject.publisherId}`](https://pub.dev/publishers/${subject.publisherId})'),
           d.p(
               text: 'All publishers have a contact email. '
                   'Publishers do not have to provide support and may not respond to your inquiries.'),
