@@ -100,9 +100,15 @@ class EmailMessage {
   ///
   /// [localMessageId] is not required while in the message construction phase,
   /// but a must have when sending out the actual email. `EmailSender`
-  /// implementation must call [verifyLocalMessageId] before accepting the email
+  /// implementation must call [verifyLocalMessageIds] before accepting the email
   /// for delivery.
   final String? localMessageId;
+
+  /// The local part of a previous email sent by pub.dev, and to which the current
+  /// email is a reply-to. This will become the local part of the `In-Reply-To` and
+  /// the `References` SMTP headers.
+  final String? inReplyToLocalMessageId;
+
   final EmailAddress from;
   final List<EmailAddress> recipients;
   final List<EmailAddress> ccRecipients;
@@ -114,19 +120,31 @@ class EmailMessage {
     this.recipients,
     this.subject,
     String bodyText, {
+    this.inReplyToLocalMessageId,
     this.localMessageId,
     this.ccRecipients = const <EmailAddress>[],
   }) : bodyText = reflowBodyText(bodyText);
 
-  /// Throws [ArgumentError] if the [localMessageId] field doesn't look like
-  /// UUID or ULID.
+  /// Throws [ArgumentError] if the [localMessageId] or the
+  /// [inReplyToLocalMessageId] field doesn't look like UUID or ULID.
   ///
   /// TODO: double-check that we follow https://www.jwz.org/doc/mid.html
-  void verifyLocalMessageId() {
-    final uuid = localMessageId;
-    if (uuid == null || uuid.length < 25 || uuid.length > 36) {
-      throw ArgumentError('Invalid uuid: `$uuid`');
+  void verifyLocalMessageIds() {
+    void verifyUuid(String? uuid) {
+      if (uuid == null) {
+        return;
+      }
+      // TODO: use proper regexp
+      if (uuid.length < 25 || uuid.length > 36) {
+        throw ArgumentError('Invalid uuid: `$uuid`');
+      }
     }
+
+    if (localMessageId == null) {
+      throw ArgumentError('`localMessageId` must be initialized.');
+    }
+    verifyUuid(localMessageId);
+    verifyUuid(inReplyToLocalMessageId);
   }
 
   Map<String, Object?> toJson() {
