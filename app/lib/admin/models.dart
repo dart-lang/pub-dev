@@ -81,6 +81,30 @@ class ModerationCase extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)
   String? status;
 
+  /// The basic justification of the moderation actions, one of:
+  /// - `null` if [status] is still `pending`.
+  /// - `none`, if there was no moderation action taken.
+  /// - `illegal`, if triggered by LCPS.
+  /// - `policy`, if moderated on the basis of policy violation.
+  @db.StringProperty()
+  String? grounds;
+
+  /// The high-level category of the violation reason:
+  /// `null` if [status] is still `pending`.
+  /// - `none`, if there was no violation and no moderation action has been taken.
+  /// - Ìf moderation action was taken, must be one of
+  ///   [ModerationViolation.violationValues].
+  @db.StringProperty()
+  String? violation;
+
+  /// `null`, if no moderation action was taken or [status] is still `pending`.
+  ///
+  /// The text from SOR statement sent to the user, specifically:
+  /// - What law was violated (if illegal content).
+  /// - What policy section was violated (if policy violation).
+  @db.StringProperty()
+  String? reason;
+
   /// The JSON-encoded array of [ModerationActionLog] entries.
   @db.StringProperty(propertyName: 'actionLog', indexed: false)
   String? actionLogField;
@@ -148,10 +172,13 @@ class ModerationCase extends db.ExpandoModel<String> {
       'opened': opened.toIso8601String(),
       'resolved': resolved?.toIso8601String(),
       'source': source,
-      'status': status,
       'subject': subject,
       'isSubjectOwner': isSubjectOwner,
       'url': url,
+      'status': status,
+      'grounds': grounds,
+      'violation': violation,
+      'reason': reason,
       'appealedCaseId': appealedCaseId,
       'actionLog': getActionLog().toJson(),
     };
@@ -205,6 +232,37 @@ abstract class ModerationStatus {
     moderationReverted,
   ];
   static bool isValidStatus(String value) => _values.contains(value);
+  static bool wasModerationApplied(String value) =>
+      value == ModerationStatus.moderationApplied ||
+      value == ModerationStatus.moderationUpheld ||
+      value == ModerationStatus.noActionReverted;
+}
+
+abstract class ModerationGrounds {
+  static const none = 'none';
+  static const illegal = 'illegal';
+  static const policy = 'policy';
+}
+
+abstract class ModerationViolation {
+  static const none = 'none';
+
+  static const violationValues = [
+    'animal_welfare',
+    'data_protection_and_privacy_violations',
+    'illegal_or_harmful_speech',
+    'intellectual_property_infringements',
+    'negative_effects_on_civic_discourse_or_elections',
+    'non_consensual_behaviour',
+    'pornography_or_sexualized_content',
+    'protection_of_minors',
+    'risk_for_public_security',
+    'scams_and_fraud',
+    'self_harm',
+    'scope_of_platform_service',
+    'unsafe_and_illegal_products',
+    'violence',
+  ];
 }
 
 /// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
