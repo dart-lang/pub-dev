@@ -17,6 +17,11 @@ final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 final _strictEmailRegExp = RegExp(
     r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''');
 
+/// Matches the local part of the email's message-id field, with relaxed rules:
+/// - checks that only valid characters are present
+/// - checks for minimum and maximum length
+final _messageIdLocalPartRegExp = RegExp(r'^[0-9a-zA-Z\-]{19,36}$');
+
 final _invitesFrom = EmailAddress(
   _invitesAtPubDev,
   name: 'Dart package site invites',
@@ -126,25 +131,21 @@ class EmailMessage {
   }) : bodyText = reflowBodyText(bodyText);
 
   /// Throws [ArgumentError] if the [localMessageId] or the
-  /// [inReplyToLocalMessageId] field doesn't look like UUID or ULID.
+  /// [inReplyToLocalMessageId] field doesn't look like an approved ID.
   ///
   /// TODO: double-check that we follow https://www.jwz.org/doc/mid.html
   void verifyLocalMessageIds() {
-    void verifyUuid(String? uuid) {
-      if (uuid == null) {
-        return;
-      }
-      // TODO: use proper regexp
-      if (uuid.length < 25 || uuid.length > 36) {
-        throw ArgumentError('Invalid uuid: `$uuid`');
+    void verifyId(String? id) {
+      if (id != null && !_messageIdLocalPartRegExp.hasMatch(id)) {
+        throw ArgumentError('Invalid message-id local part: `$id`');
       }
     }
 
     if (localMessageId == null) {
       throw ArgumentError('`localMessageId` must be initialized.');
     }
-    verifyUuid(localMessageId);
-    verifyUuid(inReplyToLocalMessageId);
+    verifyId(localMessageId);
+    verifyId(inReplyToLocalMessageId);
   }
 
   Map<String, Object?> toJson() {
