@@ -246,14 +246,17 @@ ${_footer('transfer')}
 
 /// Creates the report page [EmailMessage] that we be sent to pub dev admins.
 EmailMessage createReportPageAdminEmail({
-  required String id,
+  required String caseId,
+
+  /// `content report` or `moderation appeal`
+  required String kindLabel,
   required String userEmail,
   required String bodyText,
 }) {
   return EmailMessage(
     _notificationsFrom,
     [EmailAddress('support@pub.dev')],
-    'pub.dev case-id: $id',
+    'pub.dev $kindLabel: $caseId',
     bodyText,
     localMessageId: createUuid(),
     ccRecipients: [EmailAddress(userEmail)],
