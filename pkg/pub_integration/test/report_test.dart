@@ -157,7 +157,8 @@ void main() {
                 'We have closed the case with the following resolution: ...\n\n'
                 'If you want to appeal this decision, you may use the following URL:\n'
                 '$appealPageUrl\n\n'
-                'Best regards,\n pub.dev admins'
+                'Best regards,\n pub.dev admins',
+            'in-reply-to': caseId,
           },
         ),
       );
@@ -220,6 +221,7 @@ void main() {
             'to': pkgAdminUser.email,
             'subject': 'Your appeal has been rejected.',
             'body': '...',
+            'in-reply-to': appealCaseId,
           },
         ),
       );

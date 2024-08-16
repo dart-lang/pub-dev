@@ -31,11 +31,13 @@ The `to` argument is comma separated list of:
 The list of resolved emails will be deduplicated.
 ''',
   options: {
-    'to':
-        'A comma separated list of email addresses or subjects (where the admins will get the emails).',
+    'to': 'A comma separated list of email addresses or subjects '
+        '(the recipients of the messages).',
     'from': 'The email address to impersonate (`support@pub.dev` by default).',
     'subject': 'The subject of the email message.',
     'body': 'The text content of the email body.',
+    'in-reply-to': 'The local message id of the email that this is a reply to '
+        '(e.g. moderation case id).',
   },
   invoke: (options) async {
     final emailSubject = options['subject'];
@@ -95,12 +97,16 @@ The list of resolved emails will be deduplicated.
       }
     }
 
+    final inReplyTo = options['in-reply-to'];
+
     final emailList = emails.toList()..sort();
     final entity = emailBackend.prepareEntity(EmailMessage(
-        EmailAddress(from),
-        emailList.map((v) => EmailAddress(v)).toList(),
-        emailSubject!,
-        emailBody!));
+      EmailAddress(from),
+      emailList.map((v) => EmailAddress(v)).toList(),
+      emailSubject!,
+      emailBody!,
+      inReplyToLocalMessageId: inReplyTo,
+    ));
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(entity);
     });
