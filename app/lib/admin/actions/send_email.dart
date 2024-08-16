@@ -18,8 +18,17 @@ final sendEmail = AdminAction(
   summary: 'Send email(s) to the specified recipients.',
   description: '''
 Looks up the specified subject's admin emails and/or uses the provided list of
-emails to send out messages. Uses the provided `email-subject` and `email-body`
+emails to send out messages. Uses the provided `subject` and `body`
 without changing anything in it.
+
+The `to` argument is comma separated list of:
+ * emails (e.g. `foo@example.com`),
+ * packages (e.g. `package:retry` to email uploaders or publisher members with control of the package),
+ * package versions (e.g. `package-version:retry/1.0.0`),
+ * publishers (e.g. `publisher:example.com` to email members of the publisher),
+ * users (e.g. `user:foo@example.com`).
+
+The list of resolved emails will be deduplicated.
 ''',
   options: {
     'to':
@@ -50,7 +59,8 @@ without changing anything in it.
     );
 
     final emails = <String>{};
-    for (final value in to!.split(',')) {
+    for (final val in to!.split(',')) {
+      final value = val.trim();
       if (isValidEmail(value)) {
         emails.add(value);
         continue;
