@@ -67,9 +67,17 @@ class _LoggingEmailSender implements EmailSender {
 final loggingEmailSender = _LoggingEmailSender();
 
 Message _toMessage(EmailMessage input) {
-  input.verifyLocalMessageId();
+  input.verifyLocalMessageIds();
+  final inReplyToMessageId = input.inReplyToLocalMessageId == null
+      ? null
+      : '<${input.inReplyToLocalMessageId}@pub.dev>';
+  final headers = {
+    'Message-ID': '<${input.localMessageId}@pub.dev>',
+    if (inReplyToMessageId != null) 'In-Reply-To': inReplyToMessageId,
+    if (inReplyToMessageId != null) 'References': inReplyToMessageId,
+  };
   return Message()
-    ..headers = {'Message-ID': '<${input.localMessageId}@pub.dev>'}
+    ..headers = headers
     ..from = _toAddress(input.from)
     ..recipients = input.recipients.map(_toAddress).toList()
     ..ccRecipients = input.ccRecipients.map(_toAddress).toList()

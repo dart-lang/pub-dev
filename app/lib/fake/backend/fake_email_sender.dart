@@ -28,7 +28,7 @@ class FakeEmailSender implements EmailSender {
 
   @override
   Future<void> sendMessage(EmailMessage message) async {
-    message.verifyLocalMessageId();
+    message.verifyLocalMessageIds();
     if (failNextMessageCount > 0) {
       failNextMessageCount--;
       throw SmtpClientCommunicationException('fake network problem');
