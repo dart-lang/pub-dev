@@ -212,7 +212,7 @@ Future<String> processReportPageHandler(
     if (isAppeal) 'Appealed case ID: ${form.caseId}',
     'Subject: ${subject.fqn}',
     'Message:\n${form.message}',
-    'This $kind will be processed by the moderation team. Please be patient.',
+    'This $kind will be processed by the moderation team.',
   ].join('\n\n');
 
   await emailSender.sendMessage(createReportPageAdminEmail(
