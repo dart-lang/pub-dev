@@ -105,7 +105,7 @@ void _setEventForPreCodeCopyToClipboard() {
     container.append(pre);
 
     final button = DivElement()
-      ..classes.add('-pub-pre-copy-button')
+      ..classes.addAll(['-pub-pre-copy-button', 'filter-invert-on-dark'])
       ..setAttribute('title', 'copy to clipboard');
     container.append(button);
 
