@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:pub_dev/shared/utils.dart';
-
 import 'urls.dart';
 
 const _invitesAtPubDev = 'invites@pub.dev';
@@ -277,7 +275,7 @@ EmailMessage createReportPageAdminEmail({
     [EmailAddress('support@pub.dev')],
     'pub.dev $kindLabel: $caseId',
     bodyText,
-    localMessageId: createUuid(),
+    localMessageId: caseId,
     ccRecipients: [EmailAddress(userEmail)],
   );
 }
