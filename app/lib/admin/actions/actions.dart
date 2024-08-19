@@ -2,31 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/actions/backfill_download_counts.dart';
-import 'package:pub_dev/admin/actions/delete_download_counts.dart';
-
 import '../../shared/exceptions.dart';
-import 'create_moderation_case.dart';
+import 'backfill_download_counts.dart';
 import 'create_publisher.dart';
-import 'delete_moderation_case.dart';
+import 'delete_download_counts.dart';
 import 'delete_publisher.dart';
-import 'list_moderation_cases.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
 import 'moderate_publisher.dart';
 import 'moderate_user.dart';
+import 'moderation_case_create.dart';
+import 'moderation_case_delete.dart';
 import 'moderation_case_info.dart';
+import 'moderation_case_resolve.dart';
+import 'moderation_case_update.dart';
+import 'moderation_cases_list.dart';
 import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
-import 'resolve_moderation_case.dart';
 import 'send_email.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
-import 'update_moderation_case.dart';
 import 'uploader_count_report.dart';
 import 'user_info.dart';
 
@@ -82,28 +81,28 @@ final class AdminAction {
 
   static List<AdminAction> actions = [
     backfillDownloadCounts,
-    createModerationCase,
     createPublisher,
-    deleteModerationCase,
     deletePublisher,
     deleteDownloadCounts,
-    listModerationCases,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
     moderatePublisher,
     moderateUser,
+    moderationCasesList,
+    moderationCaseCreate,
+    moderationCaseDelete,
     moderationCaseInfo,
+    moderationCaseResolve,
+    moderationCaseUpdate,
     packageVersionRetraction,
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
-    resolveModerationCase,
     sendEmail,
     taskBumpPriority,
     toolExecute,
     toolList,
-    updateModerationCase,
     uploaderCountReport,
     userInfo,
   ];

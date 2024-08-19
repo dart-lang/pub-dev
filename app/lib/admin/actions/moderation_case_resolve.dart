@@ -9,8 +9,8 @@ import 'package:pub_dev/shared/utils.dart';
 
 import 'actions.dart';
 
-final resolveModerationCase = AdminAction(
-  name: 'resolve-moderation-case',
+final moderationCaseResolve = AdminAction(
+  name: 'moderation-case-resolve',
   summary: 'Closes the moderation case and resolves a final status.',
   description: '''
 Closes the moderation case and updates the status based on the actions logged on the case.

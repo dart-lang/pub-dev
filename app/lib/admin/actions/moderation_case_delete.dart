@@ -7,8 +7,8 @@ import 'package:pub_dev/shared/datastore.dart';
 
 import 'actions.dart';
 
-final deleteModerationCase = AdminAction(
-  name: 'delete-moderation-case',
+final moderationCaseDelete = AdminAction(
+  name: 'moderation-case-delete',
   summary: 'Deletes a moderation case.',
   description: '''
 Deletes a moderation case.
