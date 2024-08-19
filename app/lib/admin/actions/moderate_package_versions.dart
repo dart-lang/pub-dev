@@ -31,7 +31,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
     'version': 'The version to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'message': 'Optional message to store.'
+    'note': 'Optional note to store (internal).'
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -58,7 +58,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         break;
     }
 
-    final message = options['message'];
+    final note = options['note'];
 
     final refCase =
         await adminBackend.loadAndVerifyModerationCaseForAdminAction(
@@ -106,7 +106,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
           mc.addActionLogEntry(
             ModerationSubject.package(package, version).fqn,
             valueToSet ? ModerationAction.apply : ModerationAction.revert,
-            message,
+            note,
           );
           tx.insert(mc);
         }

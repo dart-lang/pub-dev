@@ -24,7 +24,7 @@ can't be updated, administrators must not be able to update publisher options.
     'publisher': 'The publisherId to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'message': 'Optional message to store.'
+    'note': 'Optional note to store (internal).'
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -50,7 +50,7 @@ can't be updated, administrators must not be able to update publisher options.
         break;
     }
 
-    final message = options['message'];
+    final note = options['note'];
 
     final refCase =
         await adminBackend.loadAndVerifyModerationCaseForAdminAction(
@@ -70,7 +70,7 @@ can't be updated, administrators must not be able to update publisher options.
           mc.addActionLogEntry(
             ModerationSubject.publisher(publisherId).fqn,
             valueToSet ? ModerationAction.apply : ModerationAction.revert,
-            message,
+            note,
           );
           tx.insert(mc);
         }

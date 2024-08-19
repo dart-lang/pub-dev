@@ -128,14 +128,14 @@ class ModerationCase extends db.ExpandoModel<String> {
   void addActionLogEntry(
     String subject,
     ModerationAction moderationAction,
-    String? message,
+    String? note,
   ) {
     final log = getActionLog();
     log.entries.add(ModerationActionLogEntry(
       timestamp: clock.now().toUtc(),
       subject: subject,
       moderationAction: moderationAction,
-      message: message,
+      note: note,
     ));
     setActionLog(log);
   }
@@ -389,13 +389,13 @@ class ModerationActionLogEntry {
   final DateTime timestamp;
   final String subject;
   final ModerationAction moderationAction;
-  final String? message;
+  final String? note;
 
   ModerationActionLogEntry({
     required this.timestamp,
     required this.subject,
     required this.moderationAction,
-    required this.message,
+    required this.note,
   });
 
   factory ModerationActionLogEntry.fromJson(Map<String, Object?> json) =>
