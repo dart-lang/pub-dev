@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/frontend/request_context.dart';
+
 import '../../../../account/models.dart' show SessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
@@ -109,10 +111,24 @@ d.Node siteHeaderNode({
           _foldableMobileLinks('Dart', _dartLinks),
           if (userSession != null && userSession.isAuthenticated)
             _userBlock(userSession),
+          _themeSwitcher(),
         ],
       ),
     ],
   );
+}
+
+d.Node _themeSwitcher() {
+  // <span id="dark-theme-button" class="material-symbols-outlined">dark_mode</span>
+  // <span id="light-theme-button" class="material-symbols-outlined">light_mode</span>
+  if (requestContext.experimentalFlags.isDarkModeEnabled) {
+    return d.fragment([
+      d.button(
+          classes: ['-pub-theme-toggle'], ariaLabel: 'light/dark theme toggle'),
+    ]);
+  } else {
+    return d.fragment([]);
+  }
 }
 
 d.Node _userBlock(SessionData userSession) {
