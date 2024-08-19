@@ -162,10 +162,13 @@ void main() {
           'opened': isNotEmpty,
           'resolved': null,
           'source': 'external-notification',
-          'status': 'pending',
           'subject': 'package:oxygen',
           'isSubjectOwner': false,
           'url': null,
+          'status': 'pending',
+          'grounds': null,
+          'violation': null,
+          'reason': null,
           'appealedCaseId': null,
           'actionLog': {
             'entries': [

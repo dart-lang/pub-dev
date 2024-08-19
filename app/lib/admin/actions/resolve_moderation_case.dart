@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import 'actions.dart';
 
@@ -16,8 +17,14 @@ Closes the moderation case and updates the status based on the actions logged on
 ''',
   options: {
     'case': 'The caseId to be closed.',
-    'status':
-        'The resolved status of the case. (optional, will be automatically inferred if absent)'
+    'status': 'The resolved status of the case. '
+        '(optional, will be automatically inferred if absent)',
+    'grounds': 'The grounds for the moderation actions '
+        '(if moderation action was taken).',
+    'violation': 'The high-level category of the violation reason '
+        '(if moderation action was taken).',
+    'reason': 'The text from SOR statement sent to the user '
+        '(if moderation action was taken).',
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -33,6 +40,11 @@ Closes the moderation case and updates the status based on the actions logged on
               ModerationStatus.isValidStatus(status)),
       'invalid status',
     );
+
+    final grounds = options['grounds']?.trimToNull() ?? ModerationGrounds.none;
+    final violation =
+        options['violation']?.trimToNull() ?? ModerationViolation.none;
+    final reason = options['reason']?.trimToNull();
 
     final mc = await withRetryTransaction(dbService, (tx) async {
       final mc = await tx.lookupOrNull<ModerationCase>(
@@ -73,7 +85,34 @@ Closes the moderation case and updates the status based on the actions logged on
         }
       }
 
+      if (ModerationStatus.wasModerationApplied(status!)) {
+        InvalidInputException.checkNotNull(grounds, 'grounds');
+        InvalidInputException.checkAnyOf(
+          grounds,
+          'grounds',
+          [ModerationGrounds.illegal, ModerationGrounds.policy],
+        );
+
+        InvalidInputException.checkNotNull(violation, 'violation');
+        InvalidInputException.checkAnyOf(
+          violation,
+          'violation',
+          ModerationViolation.violationValues,
+        );
+
+        InvalidInputException.checkNotNull(reason, 'reason');
+        InvalidInputException.checkStringLength(reason, 'reason', minimum: 10);
+      } else {
+        InvalidInputException.check(
+            grounds == ModerationGrounds.none, '"grounds" must be `none`');
+        InvalidInputException.check(violation == ModerationViolation.none,
+            '"violation" must be `none`');
+        InvalidInputException.checkNull(reason, 'reason');
+      }
+
       mc.status = status!;
+      mc.violation = violation;
+      mc.reason = reason;
       tx.insert(mc);
       return mc;
     });

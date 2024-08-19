@@ -47,12 +47,25 @@ void main() {
       return (await adminBackend.lookupModerationCase(mc.caseId))!;
     }
 
-    Future<String> _close(String caseId) async {
+    Future<String> _close(
+      String caseId, {
+      String? grounds,
+      String? violation,
+      String? reason,
+    }) async {
+      // infer grounds and violation for test purposes
+      if (reason != null) {
+        grounds ??= ModerationGrounds.policy;
+        violation ??= 'scope_of_platform_service';
+      }
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
         'resolve-moderation-case',
         AdminInvokeActionArguments(arguments: {
           'case': caseId,
+          if (grounds != null) 'grounds': grounds,
+          if (violation != null) 'violation': violation,
+          if (reason != null) 'reason': reason,
         }),
       );
       final mc = await adminBackend.lookupModerationCase(caseId);
@@ -66,7 +79,13 @@ void main() {
 
     testWithProfile('notification: apply moderation', fn: () async {
       final mc = await _prepare(apply: true);
-      expect(await _close(mc.caseId), 'moderation-applied');
+      expect(
+        await _close(
+          mc.caseId,
+          reason: 'The package violated our policy.',
+        ),
+        'moderation-applied',
+      );
     });
 
     testWithProfile('appeal no action: revert', fn: () async {
@@ -74,7 +93,12 @@ void main() {
       await _close(mc1.caseId);
 
       final mc = await _prepare(apply: true, appealCaseId: mc1.caseId);
-      expect(await _close(mc.caseId), 'no-action-reverted');
+      expect(
+          await _close(
+            mc.caseId,
+            reason: 'The package violated our policy.',
+          ),
+          'no-action-reverted');
     });
 
     testWithProfile('appeal no action: upheld', fn: () async {
@@ -87,7 +111,10 @@ void main() {
 
     testWithProfile('appeal moderation: revert', fn: () async {
       final mc1 = await _prepare(apply: true);
-      await _close(mc1.caseId);
+      await _close(
+        mc1.caseId,
+        reason: 'The package violated our policy.',
+      );
 
       final mc = await _prepare(apply: true, appealCaseId: mc1.caseId);
       expect(await _close(mc.caseId), 'moderation-reverted');
@@ -95,10 +122,19 @@ void main() {
 
     testWithProfile('appeal moderation: upheld', fn: () async {
       final mc1 = await _prepare(apply: true);
-      await _close(mc1.caseId);
+      await _close(
+        mc1.caseId,
+        reason: 'The package violated our policy.',
+      );
 
       final mc = await _prepare(apply: null, appealCaseId: mc1.caseId);
-      expect(await _close(mc.caseId), 'moderation-upheld');
+      expect(
+        await _close(
+          mc.caseId,
+          reason: 'The package violated our policy.',
+        ),
+        'moderation-upheld',
+      );
     });
   });
 }

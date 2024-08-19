@@ -95,9 +95,12 @@ void main() {
         'opened': isNotEmpty,
         'resolved': null,
         'source': 'external-notification',
-        'status': 'pending',
         'subject': 'package:oxygen',
         'isSubjectOwner': false,
+        'status': 'pending',
+        'grounds': null,
+        'violation': null,
+        'reason': null,
         'url': null,
         'appealedCaseId': null,
         'actionLog': {'entries': []}
@@ -141,6 +144,9 @@ void main() {
         AdminInvokeActionArguments(
           arguments: {
             'case': caseId,
+            'grounds': 'policy',
+            'violation': 'scope_of_platform_service',
+            'reason': 'Package violated our policy.',
           },
         ),
       );
@@ -207,6 +213,9 @@ void main() {
         AdminInvokeActionArguments(
           arguments: {
             'case': appealCaseId,
+            'grounds': 'policy',
+            'violation': 'scope_of_platform_service',
+            'reason': 'Package violated our policy.',
           },
         ),
       );

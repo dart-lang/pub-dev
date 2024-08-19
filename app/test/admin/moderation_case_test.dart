@@ -27,10 +27,13 @@ void main() {
         'opened': isNotEmpty,
         'resolved': null,
         'source': 'internal-notification',
-        'status': 'pending',
         'subject': 'package:oxygen',
         'isSubjectOwner': false,
         'url': null,
+        'status': 'pending',
+        'grounds': null,
+        'violation': null,
+        'reason': null,
         'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
@@ -54,10 +57,13 @@ void main() {
         'opened': isNotEmpty,
         'resolved': null,
         'source': 'external-notification',
-        'status': 'pending',
         'subject': 'package:oxygen',
         'isSubjectOwner': false,
         'url': null,
+        'status': 'pending',
+        'grounds': null,
+        'violation': null,
+        'reason': null,
         'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
@@ -158,10 +164,13 @@ void main() {
         'opened': isNotEmpty,
         'resolved': isNotEmpty,
         'source': 'external-notification',
-        'status': 'no-action',
         'subject': 'package:oxygen',
         'isSubjectOwner': false,
         'url': null,
+        'status': 'no-action',
+        'grounds': null,
+        'violation': 'none',
+        'reason': null,
         'appealedCaseId': null,
         'actionLog': {'entries': []}
       });
