@@ -27,7 +27,7 @@ ModerationActionLogEntry _$ModerationActionLogEntryFromJson(
       subject: json['subject'] as String,
       moderationAction:
           $enumDecode(_$ModerationActionEnumMap, json['moderationAction']),
-      message: json['message'] as String?,
+      note: json['note'] as String?,
     );
 
 Map<String, dynamic> _$ModerationActionLogEntryToJson(
@@ -44,7 +44,7 @@ Map<String, dynamic> _$ModerationActionLogEntryToJson(
     }
   }
 
-  writeNotNull('message', instance.message);
+  writeNotNull('note', instance.note);
   return val;
 }
 

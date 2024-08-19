@@ -640,7 +640,7 @@ class AccountBackend {
     bool isModerated, {
     required Key? refCaseKey,
     required String? moderatedReason,
-    required String? message,
+    required String? note,
   }) async {
     await withRetryTransaction(_db, (tx) async {
       final user =
@@ -658,7 +658,7 @@ class AccountBackend {
         mc.addActionLogEntry(
           ModerationSubject.user(user.email!).fqn,
           isModerated ? ModerationAction.apply : ModerationAction.revert,
-          message,
+          note,
         );
         tx.insert(mc);
       }

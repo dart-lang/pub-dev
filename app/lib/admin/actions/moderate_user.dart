@@ -33,7 +33,7 @@ The active web sessions of the user will be expired.
     'reason': 'The reason for user moderation.',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'message': 'Optional message to store.'
+    'note': 'Optional note to store (internal).'
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -45,7 +45,7 @@ The active web sessions of the user will be expired.
     );
 
     final moderatedReason = options['reason'];
-    final message = options['message'];
+    final note = options['note'];
 
     final refCase =
         await adminBackend.loadAndVerifyModerationCaseForAdminAction(
@@ -82,7 +82,7 @@ The active web sessions of the user will be expired.
         valueToSet,
         refCaseKey: refCase?.key,
         moderatedReason: moderatedReason,
-        message: message,
+        note: note,
       );
       user2 = await accountBackend.lookupUserById(user.userId);
 
