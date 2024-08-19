@@ -36,8 +36,10 @@ The list of resolved emails will be deduplicated.
     'from': 'The email address to impersonate (`support@pub.dev` by default).',
     'subject': 'The subject of the email message.',
     'body': 'The text content of the email body.',
-    'in-reply-to': 'The local message id of the email that this is a reply to '
-        '(e.g. moderation case id).',
+    'in-reply-to':
+        '(optional) The local message id of the email that this is a reply to '
+            '(e.g. moderation case id). The email sender will the `In-Reply-To` and `References` '
+            'headers with the `<local-id>@pub.dev` value, referencing an earlier `Message-Id`.',
   },
   invoke: (options) async {
     final emailSubject = options['subject'];
