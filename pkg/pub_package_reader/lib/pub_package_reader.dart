@@ -860,7 +860,8 @@ Iterable<ArchiveIssue> checkHooks(
   Version? minimumSdkConstraint,
   Set<String> fileNames,
 ) sync* {
-  final hookFiles = fileNames.where((f) => f.startsWith('hook/'));
+  final hookFiles =
+      fileNames.where((f) => f.startsWith('hook/') && f.endsWith('.dart'));
   for (final hookFile in hookFiles) {
     if (!_allowedHookFiles.containsKey(hookFile)) {
       yield ArchiveIssue(
