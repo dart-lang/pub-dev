@@ -234,7 +234,6 @@ abstract class ModerationStatus {
   static bool isValidStatus(String value) => _values.contains(value);
   static bool wasModerationApplied(String value) =>
       value == ModerationStatus.moderationApplied ||
-      value == ModerationStatus.moderationUpheld ||
       value == ModerationStatus.noActionReverted;
 }
 

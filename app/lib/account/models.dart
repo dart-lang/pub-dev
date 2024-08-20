@@ -421,12 +421,14 @@ String consentDedupId({
         .join('/');
 
 abstract class UserModeratedReason {
+  static const bot = 'bot';
   static const illegalContent = 'illegal-content';
   static const policyViolation = 'policy-violation';
   static const unfoundedNotifications = 'unfounded-notifications';
   static const unfoundedAppeals = 'unfounded-appeals';
 
   static const _values = {
+    bot,
     illegalContent,
     policyViolation,
     unfoundedNotifications,

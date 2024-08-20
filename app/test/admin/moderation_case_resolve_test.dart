@@ -129,10 +129,7 @@ void main() {
 
       final mc = await _prepare(apply: null, appealCaseId: mc1.caseId);
       expect(
-        await _close(
-          mc.caseId,
-          reason: 'The package violated our policy.',
-        ),
+        await _close(mc.caseId),
         'moderation-upheld',
       );
     });
