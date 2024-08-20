@@ -48,7 +48,7 @@ void main() {
     final p0 = await publisherBackend.getPublisher('other.com');
     expect(p0, isNull);
     final rs1 = await client.adminInvokeAction(
-      'create-publisher',
+      'publisher-create',
       AdminInvokeActionArguments(arguments: {
         'publisher': 'other.com',
         'member-email': 'user@pub.dev',
@@ -77,7 +77,7 @@ void main() {
     });
     final p1 = await publisherBackend.getPublisher('other.com');
     expect(p1, isNotNull);
-    final rs2 = await client.adminInvokeAction('delete-publisher',
+    final rs2 = await client.adminInvokeAction('publisher-delete',
         AdminInvokeActionArguments(arguments: {'publisher': 'other.com'}));
     expect(rs2.output, {
       'message': 'Publisher and all members deleted.',
@@ -91,7 +91,7 @@ void main() {
   testWithProfile('remove package from publisher', fn: () async {
     final api = createPubApiClient(authToken: siteAdminToken);
     final result = await api.adminInvokeAction(
-      'remove-package-from-publisher',
+      'publisher-package-remove',
       AdminInvokeActionArguments(arguments: {'package': 'neon'}),
     );
     final neon = await packageBackend.lookupPackage('neon');

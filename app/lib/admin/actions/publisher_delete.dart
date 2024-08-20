@@ -7,8 +7,8 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
-final deletePublisher = AdminAction(
-    name: 'delete-publisher',
+final publisherDelete = AdminAction(
+    name: 'publisher-delete',
     options: {
       'publisher': 'name of publisher to delete',
     },

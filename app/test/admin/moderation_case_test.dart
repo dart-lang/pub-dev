@@ -176,7 +176,7 @@ void main() {
       });
 
       final list = await api.adminInvokeAction(
-        'moderation-cases-list',
+        'moderation-case-list',
         AdminInvokeActionArguments(arguments: {}),
       );
       expect(list.output, {

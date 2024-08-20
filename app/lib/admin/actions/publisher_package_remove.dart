@@ -11,8 +11,8 @@ import '../../package/models.dart';
 import '../../publisher/backend.dart';
 import '../../shared/datastore.dart';
 
-final removePackageFromPublisher = AdminAction(
-    name: 'remove-package-from-publisher',
+final publisherPackageRemove = AdminAction(
+    name: 'publisher-package-remove',
     options: {
       'package': 'name of the package to remove from its current publisher'
     },
