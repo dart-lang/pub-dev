@@ -35,17 +35,21 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
 
-  final subjectParam = request.requestedUri.queryParameters['subject'];
+  final caseId = request.requestedUri.queryParameters['appeal'];
+  final mc = await _loadAndVerifyCase(caseId);
+
+  final subjectParam =
+      request.requestedUri.queryParameters['subject'] ?? mc?.subject;
   InvalidInputException.checkNotNull(subjectParam, 'subject');
   final subject = ModerationSubject.tryParse(subjectParam!);
   InvalidInputException.check(subject != null, 'Invalid "subject" parameter.');
   await verifyModerationSubjectExists(subject!);
+  if (mc != null) {
+    await _verifyCaseSubject(mc, subject);
+  }
 
   final url = request.requestedUri.queryParameters['url'];
   _verifyUrl(url);
-
-  final caseId = request.requestedUri.queryParameters['appeal'];
-  await _verifyCaseId(caseId, subject);
 
   return htmlResponse(
     renderReportPage(
@@ -107,7 +111,7 @@ void _verifyUrl(String? urlParam) {
   }
 }
 
-Future<void> _verifyCaseId(String? caseId, ModerationSubject subject) async {
+Future<ModerationCase?> _loadAndVerifyCase(String? caseId) async {
   if (caseId == null) {
     return null;
   }
@@ -118,7 +122,11 @@ Future<void> _verifyCaseId(String? caseId, ModerationSubject subject) async {
   }
   InvalidInputException.check(mc.status != ModerationStatus.pending,
       'The reported case is not closed yet.');
+  return mc;
+}
 
+Future<void> _verifyCaseSubject(
+    ModerationCase mc, ModerationSubject subject) async {
   final hasSubject = mc.subject == subject.fqn ||
       mc.getActionLog().entries.any((e) => e.subject == subject.fqn);
   InvalidInputException.check(hasSubject,
@@ -165,7 +173,10 @@ Future<String> processReportPageHandler(
   await verifyModerationSubjectExists(subject!);
 
   _verifyUrl(form.url);
-  await _verifyCaseId(form.caseId, subject);
+  final mc = await _loadAndVerifyCase(form.caseId);
+  if (mc != null) {
+    await _verifyCaseSubject(mc, subject);
+  }
 
   InvalidInputException.checkStringLength(
     form.message,
