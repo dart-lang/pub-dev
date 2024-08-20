@@ -153,7 +153,7 @@ void main() {
 
       // sending email to reporter
       await adminUser.serverApi.adminInvokeAction(
-        'send-email',
+        'email-send',
         AdminInvokeActionArguments(
           arguments: {
             'from': 'support@pub.dev',
@@ -173,7 +173,7 @@ void main() {
 
       // sending email to moderated admins
       await adminUser.serverApi.adminInvokeAction(
-        'send-email',
+        'email-send',
         AdminInvokeActionArguments(
           arguments: {
             'from': 'support@pub.dev',
@@ -223,7 +223,7 @@ void main() {
 
       // sending email to reporter
       await adminUser.serverApi.adminInvokeAction(
-        'send-email',
+        'email-send',
         AdminInvokeActionArguments(
           arguments: {
             'from': 'support@pub.dev',

@@ -4,9 +4,8 @@
 
 import '../../shared/exceptions.dart';
 import 'backfill_download_counts.dart';
-import 'create_publisher.dart';
 import 'delete_download_counts.dart';
-import 'delete_publisher.dart';
+import 'email_send.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
@@ -15,14 +14,15 @@ import 'moderate_user.dart';
 import 'moderation_case_create.dart';
 import 'moderation_case_delete.dart';
 import 'moderation_case_info.dart';
+import 'moderation_case_list.dart';
 import 'moderation_case_resolve.dart';
 import 'moderation_case_update.dart';
-import 'moderation_cases_list.dart';
 import 'package_version_retraction.dart';
 import 'publisher_block.dart';
+import 'publisher_create.dart';
+import 'publisher_delete.dart';
 import 'publisher_members_list.dart';
-import 'remove_package_from_publisher.dart';
-import 'send_email.dart';
+import 'publisher_package_remove.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
@@ -81,25 +81,25 @@ final class AdminAction {
 
   static List<AdminAction> actions = [
     backfillDownloadCounts,
-    createPublisher,
-    deletePublisher,
     deleteDownloadCounts,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
     moderatePublisher,
     moderateUser,
-    moderationCasesList,
     moderationCaseCreate,
     moderationCaseDelete,
     moderationCaseInfo,
+    moderationCaseList,
     moderationCaseResolve,
     moderationCaseUpdate,
     packageVersionRetraction,
     publisherBlock,
+    publisherCreate,
+    publisherDelete,
     publisherMembersList,
-    removePackageFromPublisher,
-    sendEmail,
+    publisherPackageRemove,
+    emailSend,
     taskBumpPriority,
     toolExecute,
     toolList,

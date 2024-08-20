@@ -10,8 +10,8 @@ import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
-final createPublisher = AdminAction(
-    name: 'create-publisher',
+final publisherCreate = AdminAction(
+    name: 'publisher-create',
     options: {
       'publisher': 'name of publisher to create',
       'member-email': 'email of user to add',

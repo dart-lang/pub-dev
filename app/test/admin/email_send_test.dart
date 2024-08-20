@@ -14,7 +14,7 @@ void main() {
     testWithProfile('sending email to direct recipients', fn: () async {
       final client = createPubApiClient(authToken: siteAdminToken);
       final rs1 = await client.adminInvokeAction(
-        'send-email',
+        'email-send',
         AdminInvokeActionArguments(arguments: {
           'to': 'a@pub.dev,b@pub.dev',
           'subject': 'Test email',
@@ -39,7 +39,7 @@ void main() {
     testWithProfile('sending email to subject admins', fn: () async {
       final client = createPubApiClient(authToken: siteAdminToken);
       final rs1 = await client.adminInvokeAction(
-        'send-email',
+        'email-send',
         AdminInvokeActionArguments(arguments: {
           'to': 'package:oxygen',
           'subject': 'Test email',

@@ -7,8 +7,8 @@ import 'package:pub_dev/shared/datastore.dart';
 
 import 'actions.dart';
 
-final moderationCasesList = AdminAction(
-  name: 'moderation-cases-list',
+final moderationCaseList = AdminAction(
+  name: 'moderation-case-list',
   summary: 'List the currently active (or resolved) ModerationCase entities.',
   description: '''
 List the ModerationCase entities with filter options. 

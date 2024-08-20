@@ -13,8 +13,8 @@ import '../../shared/email.dart';
 import '../models.dart';
 import 'actions.dart';
 
-final sendEmail = AdminAction(
-  name: 'send-email',
+final emailSend = AdminAction(
+  name: 'email-send',
   summary: 'Send email(s) to the specified recipients.',
   description: '''
 Looks up the specified subject's admin emails and/or uses the provided list of
