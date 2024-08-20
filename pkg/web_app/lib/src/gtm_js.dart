@@ -3,18 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library gtm_js;
+library;
 
-import 'dart:html' as dart_html;
+import 'dart:js_interop';
 
-import 'package:js/js.dart';
-import 'package:js/js_util.dart';
+import 'package:web/web.dart' as dart_html;
 
 @JS('dataLayer.push')
-external void _push(data);
+external void _push(JSAny? data);
 
 void _pushMap(Map<String, dynamic> data) {
-  _push(jsify(data));
+  _push(data.jsify());
 }
 
 /// Records a GTM [action] with within a [category].
