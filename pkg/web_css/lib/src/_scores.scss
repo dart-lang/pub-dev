@@ -36,12 +36,12 @@
   }
 
   .packages-score-value {
-    color: #6d7278;
+    color: var(--pub-score_label-text-color);
     text-align: center;
     white-space: nowrap;
 
     &.-has-value {
-      color: var(--pub-link-text-color);
+      color: var(--pub-score_value-text-color);
     }
 
     .detail-info-box & {
@@ -67,7 +67,7 @@
   }
 
   .packages-score-label {
-    color: #6d7278;
+    color: var(--pub-score_label-text-color);
     font-size: 10px;
     letter-spacing: 0.1px;
     text-transform: uppercase;

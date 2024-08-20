@@ -149,7 +149,7 @@
   }
 
   .score-key-figure-title {
-    color: #1967d2;
+    color: var(--pub-score_value-text-color);
     text-align: center;
   }
 
@@ -169,7 +169,7 @@
   }
 
   .score-key-figure-label {
-    color: #555555;
+    color: var(--pub-score_label-text-color);
     font-family: var(--pub-default-text-font_family);
     font-size: 14px;
     text-align: center;
