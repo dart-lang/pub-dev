@@ -13,8 +13,8 @@ import '../../shared/email.dart';
 import '../models.dart';
 import 'actions.dart';
 
-final sendEmail = AdminAction(
-  name: 'send-email',
+final emailSend = AdminAction(
+  name: 'email-send',
   summary: 'Send email(s) to the specified recipients.',
   description: '''
 Looks up the specified subject's admin emails and/or uses the provided list of
@@ -45,13 +45,13 @@ The list of resolved emails will be deduplicated.
     final emailSubject = options['subject'];
     InvalidInputException.check(
       emailSubject != null && emailSubject.isNotEmpty,
-      'subject must be given',
+      '"subject" must be given',
     );
 
     final emailBody = options['body'];
     InvalidInputException.check(
       emailBody != null && emailBody.isNotEmpty,
-      'body must be given',
+      '"body" must be given',
     );
 
     final from = options['from'] ?? KnownAgents.pubSupport;
@@ -59,55 +59,25 @@ The list of resolved emails will be deduplicated.
     final to = options['to'];
     InvalidInputException.check(
       to != null && to.isNotEmpty,
-      'to must be given',
+      '"to" must be given',
     );
-
-    final emails = <String>{};
-    for (final val in to!.split(',')) {
-      final value = val.trim();
-      if (isValidEmail(value)) {
-        emails.add(value);
-        continue;
-      }
-      final ms = ModerationSubject.tryParse(value);
-      InvalidInputException.check(ms != null, 'Invalid subject: $value');
-
-      switch (ms!.kind) {
-        case ModerationSubjectKind.package:
-        case ModerationSubjectKind.packageVersion:
-          final pkg = await packageBackend.lookupPackage(ms.package!);
-          if (pkg!.publisherId != null) {
-            final list =
-                await publisherBackend.getAdminMemberEmails(ms.publisherId!);
-            emails.addAll(list.nonNulls);
-          } else {
-            final list = await accountBackend
-                .lookupUsersById(pkg.uploaders ?? const <String>[]);
-            emails.addAll(list.map((e) => e?.email).nonNulls);
-          }
-          break;
-        case ModerationSubjectKind.publisher:
-          final list =
-              await publisherBackend.getAdminMemberEmails(ms.publisherId!);
-          emails.addAll(list.nonNulls);
-          break;
-        case ModerationSubjectKind.user:
-          emails.add(ms.email!);
-          break;
-        default:
-          throw InvalidInputException('Unknown subject kind: ${ms.kind}');
-      }
-    }
 
     final inReplyTo = options['in-reply-to'];
 
-    final emailList = emails.toList()..sort();
+    final cc = options['cc'];
+    var ccEmails = <String>[];
+    if (cc != null) {
+      ccEmails = await _emailsFromSubjects(cc);
+    }
+
+    final emailList = await _emailsFromSubjects(to!);
     final entity = emailBackend.prepareEntity(EmailMessage(
       EmailAddress(from),
       emailList.map((v) => EmailAddress(v)).toList(),
       emailSubject!,
       emailBody!,
       inReplyToLocalMessageId: inReplyTo,
+      ccRecipients: ccEmails.map((v) => EmailAddress(v)).toList(),
     ));
     await withRetryTransaction(dbService, (tx) async {
       tx.insert(entity);
@@ -121,3 +91,43 @@ The list of resolved emails will be deduplicated.
     };
   },
 );
+
+Future<List<String>> _emailsFromSubjects(String subjects) async {
+  final emails = <String>{};
+  for (final val in subjects.split(',')) {
+    final value = val.trim();
+    if (isValidEmail(value)) {
+      emails.add(value);
+      continue;
+    }
+    final ms = ModerationSubject.tryParse(value);
+    InvalidInputException.check(ms != null, 'Invalid subject: $value');
+
+    switch (ms!.kind) {
+      case ModerationSubjectKind.package:
+      case ModerationSubjectKind.packageVersion:
+        final pkg = await packageBackend.lookupPackage(ms.package!);
+        if (pkg!.publisherId != null) {
+          final list =
+              await publisherBackend.getAdminMemberEmails(ms.publisherId!);
+          emails.addAll(list.nonNulls);
+        } else {
+          final list = await accountBackend
+              .lookupUsersById(pkg.uploaders ?? const <String>[]);
+          emails.addAll(list.map((e) => e?.email).nonNulls);
+        }
+        break;
+      case ModerationSubjectKind.publisher:
+        final list =
+            await publisherBackend.getAdminMemberEmails(ms.publisherId!);
+        emails.addAll(list.nonNulls);
+        break;
+      case ModerationSubjectKind.user:
+        emails.add(ms.email!);
+        break;
+      default:
+        throw InvalidInputException('Unknown subject kind: ${ms.kind}');
+    }
+  }
+  return emails.toList()..sort();
+}

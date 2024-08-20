@@ -7,6 +7,7 @@ import 'backfill_download_counts.dart';
 import 'create_publisher.dart';
 import 'delete_download_counts.dart';
 import 'delete_publisher.dart';
+import 'email_send.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
@@ -22,7 +23,6 @@ import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_members_list.dart';
 import 'remove_package_from_publisher.dart';
-import 'send_email.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
@@ -99,7 +99,7 @@ final class AdminAction {
     publisherBlock,
     publisherMembersList,
     removePackageFromPublisher,
-    sendEmail,
+    emailSend,
     taskBumpPriority,
     toolExecute,
     toolList,
