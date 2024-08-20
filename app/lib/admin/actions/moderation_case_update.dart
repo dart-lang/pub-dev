@@ -9,8 +9,8 @@ import 'package:pub_dev/shared/email.dart';
 
 import 'actions.dart';
 
-final updateModerationCase = AdminAction(
-  name: 'update-moderation-case',
+final moderationCaseUpdate = AdminAction(
+  name: 'moderation-case-update',
   summary: 'Updates the moderation case fields.',
   description: '''
 Updates the moderation case fields with the provided values.

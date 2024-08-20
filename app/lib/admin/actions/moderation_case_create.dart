@@ -10,8 +10,8 @@ import 'package:pub_dev/shared/email.dart';
 
 import 'actions.dart';
 
-final createModerationCase = AdminAction(
-  name: 'create-moderation-case',
+final moderationCaseCreate = AdminAction(
+  name: 'moderation-case-create',
   summary: 'Creates a new moderation case with the specified fields.',
   description: '''
 Creates a new moderation case with the provided field values.

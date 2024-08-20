@@ -15,7 +15,7 @@ void main() {
     testWithProfile('success with defaults', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = await api.adminInvokeAction(
-        'create-moderation-case',
+        'moderation-case-create',
         AdminInvokeActionArguments(arguments: {
           'subject': 'package:oxygen',
         }),
@@ -42,7 +42,7 @@ void main() {
     testWithProfile('success with non-defaults', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = await api.adminInvokeAction(
-        'create-moderation-case',
+        'moderation-case-create',
         AdminInvokeActionArguments(arguments: {
           'reporter-email': 'user@pub.dev',
           'subject': 'package:oxygen',
@@ -80,7 +80,7 @@ void main() {
       for (final v in values) {
         final api = createPubApiClient(authToken: siteAdminToken);
         final rs = api.adminInvokeAction(
-          'create-moderation-case',
+          'moderation-case-create',
           AdminInvokeActionArguments(arguments: {
             if (v != null) 'subject': v,
           }),
@@ -93,7 +93,7 @@ void main() {
     testWithProfile('subject does not exists', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = api.adminInvokeAction(
-        'create-moderation-case',
+        'moderation-case-create',
         AdminInvokeActionArguments(arguments: {
           'subject': 'package:ox',
         }),
@@ -112,7 +112,7 @@ void main() {
       for (final v in values.entries) {
         final api = createPubApiClient(authToken: siteAdminToken);
         final rs = api.adminInvokeAction(
-          'create-moderation-case',
+          'moderation-case-create',
           AdminInvokeActionArguments(arguments: {
             'subject': 'package:oxygen',
             v.key: v.value,
@@ -128,7 +128,7 @@ void main() {
     Future<String> _create() async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = await api.adminInvokeAction(
-        'create-moderation-case',
+        'moderation-case-create',
         AdminInvokeActionArguments(arguments: {
           'subject': 'package:oxygen',
         }),
@@ -141,14 +141,14 @@ void main() {
       final api = createPubApiClient(authToken: siteAdminToken);
       // close case first to change status
       await api.adminInvokeAction(
-        'resolve-moderation-case',
+        'moderation-case-resolve',
         AdminInvokeActionArguments(arguments: {
           'case': caseId,
         }),
       );
 
       final rs = await api.adminInvokeAction(
-        'update-moderation-case',
+        'moderation-case-update',
         AdminInvokeActionArguments(arguments: {
           'case': caseId,
           'reporter-email': 'user@pub.dev',
@@ -176,7 +176,7 @@ void main() {
       });
 
       final list = await api.adminInvokeAction(
-        'list-moderation-cases',
+        'moderation-cases-list',
         AdminInvokeActionArguments(arguments: {}),
       );
       expect(list.output, {
@@ -189,7 +189,7 @@ void main() {
     testWithProfile('no case parameter', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = api.adminInvokeAction(
-        'update-moderation-case',
+        'moderation-case-update',
         AdminInvokeActionArguments(arguments: {}),
       );
       await expectApiException(rs,
@@ -199,7 +199,7 @@ void main() {
     testWithProfile('case does not exists', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = api.adminInvokeAction(
-        'update-moderation-case',
+        'moderation-case-update',
         AdminInvokeActionArguments(arguments: {'case': 'x'}),
       );
       await expectApiException(rs,
@@ -218,7 +218,7 @@ void main() {
       for (final v in values.entries) {
         final api = createPubApiClient(authToken: siteAdminToken);
         final rs = api.adminInvokeAction(
-          'update-moderation-case',
+          'moderation-case-update',
           AdminInvokeActionArguments(arguments: {
             'case': caseId,
             v.key: v.value,
@@ -234,7 +234,7 @@ void main() {
     Future<String> _create() async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = await api.adminInvokeAction(
-        'create-moderation-case',
+        'moderation-case-create',
         AdminInvokeActionArguments(arguments: {
           'subject': 'package:oxygen',
         }),
@@ -246,7 +246,7 @@ void main() {
       final caseId = await _create();
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = await api.adminInvokeAction(
-        'delete-moderation-case',
+        'moderation-case-delete',
         AdminInvokeActionArguments(arguments: {
           'case': caseId,
         }),
@@ -259,7 +259,7 @@ void main() {
     testWithProfile('does not exists', fn: () async {
       final api = createPubApiClient(authToken: siteAdminToken);
       final rs = api.adminInvokeAction(
-        'delete-moderation-case',
+        'moderation-case-delete',
         AdminInvokeActionArguments(arguments: {
           'case': 'x',
         }),

@@ -140,7 +140,7 @@ void main() {
       }).toString();
 
       await adminUser.serverApi.adminInvokeAction(
-        'resolve-moderation-case',
+        'moderation-case-resolve',
         AdminInvokeActionArguments(
           arguments: {
             'case': caseId,
@@ -210,7 +210,7 @@ void main() {
 
       // admin closes case without further action
       await adminUser.serverApi.adminInvokeAction(
-        'resolve-moderation-case',
+        'moderation-case-resolve',
         AdminInvokeActionArguments(
           arguments: {
             'case': appealCaseId,

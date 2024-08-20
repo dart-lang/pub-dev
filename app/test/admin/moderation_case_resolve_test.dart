@@ -60,7 +60,7 @@ void main() {
       }
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
-        'resolve-moderation-case',
+        'moderation-case-resolve',
         AdminInvokeActionArguments(arguments: {
           'case': caseId,
           if (grounds != null) 'grounds': grounds,
