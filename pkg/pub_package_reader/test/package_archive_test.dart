@@ -1003,6 +1003,13 @@ dev_dependencies:
         }),
         isEmpty,
       );
+
+      expect(
+        checkHooks(Version.parse('3.6.0'), {
+          'hook/README.md',
+        }),
+        isEmpty,
+      );
     });
 
     test('prevented', () {
