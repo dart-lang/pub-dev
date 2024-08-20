@@ -146,7 +146,7 @@ void main() {
 
       await expectLater(
           createPubApiClient(authToken: siteAdminToken).adminInvokeAction(
-            'delete-publisher',
+            'publisher-delete',
             AdminInvokeActionArguments(
               arguments: {'publisher': 'example.com'},
             ),
