@@ -17,7 +17,7 @@ d.Node listingInfoNode({
       d.div(
         classes: ['listing-info-count'],
         children: [
-          d.span(classes: ['info-identifier'], text: 'Results'),
+          d.span(classes: ['info-identifier'], text: 'Results '),
           d.span(classes: ['count'], text: '$totalCount'),
           d.text(' $packageOrPackages'),
           if (ownedBy != null && ownedBy.isNotEmpty) ...[
