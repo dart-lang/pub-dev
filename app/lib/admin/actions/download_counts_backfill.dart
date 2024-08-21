@@ -6,7 +6,7 @@ import 'package:pub_dev/admin/actions/actions.dart';
 
 import '../../service/download_counts/sync_download_counts.dart';
 
-final backfillDownloadCounts = AdminAction(
+final downloadCountsBackfill = AdminAction(
   name: 'backfill-download-counts',
   options: {
     'date': 'the first date to sync data from',

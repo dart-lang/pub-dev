@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../shared/exceptions.dart';
-import 'backfill_download_counts.dart';
-import 'delete_download_counts.dart';
+import 'download_counts_backfill.dart';
+import 'download_counts_delete.dart';
 import 'email_send.dart';
 import 'merge_moderated_package_into_existing.dart';
 import 'moderate_package.dart';
@@ -80,8 +80,9 @@ final class AdminAction {
   }
 
   static List<AdminAction> actions = [
-    backfillDownloadCounts,
-    deleteDownloadCounts,
+    downloadCountsBackfill,
+    downloadCountsDelete,
+    emailSend,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,
@@ -99,7 +100,6 @@ final class AdminAction {
     publisherDelete,
     publisherMembersList,
     publisherPackageRemove,
-    emailSend,
     taskBumpPriority,
     toolExecute,
     toolList,
