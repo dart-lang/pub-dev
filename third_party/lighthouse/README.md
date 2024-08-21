@@ -11,9 +11,9 @@ dart run_suite.dart
 
 mobile:                                               light/dark accessibility
 
-/                                                     94/ 90
+/                                                     94/ 94
 /help                                                 85/ 89
-/packages                                             84/ 80
+/packages                                             84/ 84
 /packages/retry                                       82/ 82
 /packages/retry/versions                              86/ 82
 /packages/retry/score                                 79/ 79
@@ -21,12 +21,12 @@ mobile:                                               light/dark accessibility
 
 desktop:                                              light/dark accessibility
 
-/                                                     98/ 94
+/                                                     98/ 98
 /help                                                 88/ 92
-/packages                                             87/ 84
+/packages                                             87/ 87
 /packages/retry                                       84/ 84
 /packages/retry/versions                              88/ 84
 /packages/retry/score                                 82/ 82
 /documentation/retry/latest/retry/retry-library.html  80/ 80
 
-average: 85.4
+average: 85.9
