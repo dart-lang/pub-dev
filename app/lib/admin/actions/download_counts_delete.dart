@@ -6,8 +6,8 @@ import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
-final deleteDownloadCounts = AdminAction(
-  name: 'delete-download-counts',
+final downloadCountsDelete = AdminAction(
+  name: 'download-counts-delete',
   options: {},
   summary: 'Deletes all "DownloadCount" entities.',
   description: '''
