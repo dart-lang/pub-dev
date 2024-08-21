@@ -214,9 +214,6 @@ void main() {
         AdminInvokeActionArguments(
           arguments: {
             'case': appealCaseId,
-            'grounds': 'policy',
-            'violation': 'scope_of_platform_service',
-            'reason': 'Package violated our policy.',
           },
         ),
       );
