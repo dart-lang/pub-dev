@@ -22,11 +22,10 @@ void main() {
         }),
       );
       expect(rs1.output, {
-        'uuid': isNotEmpty,
         'emails': ['a@pub.dev', 'b@pub.dev'],
-        'sent': 2,
+        'sent': true,
       });
-      expect(fakeEmailSender.sentMessages, hasLength(2));
+      expect(fakeEmailSender.sentMessages, hasLength(1));
       final sent = fakeEmailSender.sentMessages
           .expand((e) => e.recipients)
           .map((e) => e.email)
@@ -47,9 +46,8 @@ void main() {
         }),
       );
       expect(rs1.output, {
-        'uuid': isNotEmpty,
         'emails': ['admin@pub.dev'],
-        'sent': 1,
+        'sent': true,
       });
       expect(fakeEmailSender.sentMessages, hasLength(1));
       final email = fakeEmailSender.sentMessages.single;
