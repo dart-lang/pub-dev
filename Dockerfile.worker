@@ -7,6 +7,7 @@ RUN apt-get update && \
 
 ENV PUB_ENVIRONMENT="bot.pub_dev.pub_worker"
 ENV CI="true"
+ENV NO_COLOR="true"
 
 # Configure a 'worker' user, to avoid running processes as root when this is not
 # necessary (this is just docker hardening).
