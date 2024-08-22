@@ -276,120 +276,104 @@ class Package extends db.ExpandoModel<String> {
   }
 
   /// Updates the latest* version fields using all the available versions
-  /// and the current Dart SDK.
+  /// and the current Dart and Flutter SDK version.
   ///
   /// If the update was triggered because of a single version changing, the
   /// [replaced] parameter can be used to replace the corresponding entry
-  /// from the [allVersions] parameter, which may have been loaded before the
+  /// from the [versions] parameter, which may have been loaded before the
   /// transaction started.
-  bool updateLatestVersionReferences(
-    Iterable<PackageVersion> allVersions, {
+  ///
+  /// Returns whether the internal state has changed.
+  bool updateVersions(
+    List<PackageVersion> versions, {
     required Version dartSdkVersion,
     required Version flutterSdkVersion,
     PackageVersion? replaced,
   }) {
-    final versions = allVersions
+    final oldStableVersion = latestVersionKey;
+    final oldPrereleaseVersion = latestPrereleaseVersionKey;
+    final oldPreviewVersion = latestPreviewVersionKey;
+    final oldLastVersionPublished = lastVersionPublished;
+    final oldVersionCount = versionCount;
+
+    versions = versions
         .map((v) => v.version == replaced?.version ? replaced! : v)
-        .where((v) => !v.isModerated)
         .toList();
-    if (versions.isEmpty) {
+
+    final isAllRetracted = versions.every((v) => v.isRetracted);
+    final isAllModerated = versions.every((v) => v.isModerated);
+    if (isAllModerated) {
       throw NotAcceptableException('No visible versions left.');
     }
 
-    final oldStableVersion = latestSemanticVersion;
-    final oldPrereleaseVersion = latestPrereleaseSemanticVersion;
-    final oldPreviewVersion = latestPreviewSemanticVersion;
-
     // reset field values
     latestVersionKey = null;
-    latestPrereleaseVersionKey = null;
+    latestPublished = null;
     latestPreviewVersionKey = null;
+    latestPreviewPublished = null;
+    latestPrereleaseVersionKey = null;
+    latestPrereleasePublished = null;
+    lastVersionPublished = null;
+    versionCount = 0;
 
-    for (final v in versions.where((v) => !v.isRetracted)) {
-      updateVersion(
-        v,
+    for (final pv in versions) {
+      // Skip all moderated versions.
+      if (pv.isModerated) {
+        continue;
+      }
+
+      versionCount++;
+
+      // `lastVersionPublished` is updated regardless of its retracted status.
+      if (lastVersionPublished == null ||
+          lastVersionPublished!.isBefore(pv.created!)) {
+        lastVersionPublished = pv.created;
+      }
+
+      // Skip retracted versions if there is a non-retracted version,
+      // otherwise process all of the retracted ones.
+      if (pv.isRetracted && !isAllRetracted) {
+        continue;
+      }
+
+      final newVersion = pv.semanticVersion;
+      final isOnPreviewSdk = pv.pubspec!.isPreviewForCurrentSdk(
         dartSdkVersion: dartSdkVersion,
         flutterSdkVersion: flutterSdkVersion,
       );
-    }
+      final isOnStableSdk = !isOnPreviewSdk;
 
-    if (latestVersionKey == null) {
-      // All versions are retracted, we use the latest regardless of retracted status.
-      for (final v in versions) {
-        updateVersion(
-          v,
-          dartSdkVersion: dartSdkVersion,
-          flutterSdkVersion: flutterSdkVersion,
-        );
+      if (latestVersionKey == null ||
+          (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&
+              (latestSemanticVersion.isPreRelease || isOnStableSdk))) {
+        latestVersionKey = pv.key;
+        latestPublished = pv.created;
+      }
+
+      if (latestPreviewVersionKey == null ||
+          isNewer(latestPreviewSemanticVersion!, newVersion, pubSorted: true)) {
+        latestPreviewVersionKey = pv.key;
+        latestPreviewPublished = pv.created;
+      }
+
+      if (latestPrereleaseVersionKey == null ||
+          isNewer(latestPrereleaseSemanticVersion!, newVersion,
+              pubSorted: false)) {
+        latestPrereleaseVersionKey = pv.key;
+        latestPrereleasePublished = pv.created;
       }
     }
 
-    final unchanged = oldStableVersion == latestSemanticVersion &&
-        oldPrereleaseVersion == latestPrereleaseSemanticVersion &&
-        oldPreviewVersion == latestPreviewSemanticVersion;
+    final unchanged = oldStableVersion == latestVersionKey &&
+        oldPrereleaseVersion == latestPrereleaseVersionKey &&
+        oldPreviewVersion == latestPreviewVersionKey &&
+        oldLastVersionPublished == lastVersionPublished &&
+        oldVersionCount == versionCount;
     if (unchanged) {
       return false;
     }
     updated = clock.now().toUtc();
     return true;
-  }
-
-  /// Updates latest stable, prerelease and preview versions and published
-  /// timestamp with the new version.
-  void updateVersion(
-    PackageVersion pv, {
-    required Version dartSdkVersion,
-    required Version flutterSdkVersion,
-    bool existingLatestIsRetracted = false,
-  }) {
-    final newVersion = pv.semanticVersion;
-    final isOnStableSdk = !pv.pubspec!.isPreviewForCurrentSdk(
-      dartSdkVersion: dartSdkVersion,
-      flutterSdkVersion: flutterSdkVersion,
-    );
-
-    if (existingLatestIsRetracted ||
-        latestVersionKey == null ||
-        (isNewer(latestSemanticVersion, newVersion, pubSorted: true) &&
-            (latestSemanticVersion.isPreRelease || isOnStableSdk))) {
-      latestVersionKey = pv.key;
-      latestPublished = pv.created;
-    }
-
-    if (existingLatestIsRetracted ||
-        latestPreviewVersionKey == null ||
-        isNewer(latestPreviewSemanticVersion!, newVersion, pubSorted: true)) {
-      latestPreviewVersionKey = pv.key;
-      latestPreviewPublished = pv.created;
-    }
-
-    if (existingLatestIsRetracted ||
-        latestPrereleaseVersionKey == null ||
-        isNewer(latestPrereleaseSemanticVersion!, newVersion,
-            pubSorted: false)) {
-      latestPrereleaseVersionKey = pv.key;
-      latestPrereleasePublished = pv.created;
-    }
-
-    if (lastVersionPublished == null ||
-        lastVersionPublished!.isBefore(pv.created!)) {
-      lastVersionPublished = pv.created;
-    }
-  }
-
-  /// Checks if a change in a version's status may affect
-  /// the latest versions: is it one of them or is it newer
-  /// than one of the latests.
-  bool mayAffectLatestVersions(Version version) {
-    return latestVersion == version.toString() ||
-        latestPrereleaseVersion == version.toString() ||
-        latestPreviewVersion == version.toString() ||
-        isNewer(latestSemanticVersion, version) ||
-        (latestPrereleaseSemanticVersion != null &&
-            isNewer(latestPrereleaseSemanticVersion!, version,
-                pubSorted: false)) ||
-        (latestPreviewSemanticVersion != null &&
-            isNewer(latestPreviewSemanticVersion!, version, pubSorted: false));
   }
 
   bool isNewPackage() => created!.difference(clock.now()).abs().inDays <= 30;

@@ -206,6 +206,9 @@ void main() {
       final origLastVersionPublished = pkg.lastVersionPublished;
       final origLatestPublished = pkg.latestPublished;
       final origLatestPrereleasePublished = pkg.latestPrereleasePublished;
+      final pv200devPublished =
+          (await packageBackend.lookupPackageVersion('oxygen', '2.0.0-dev'))!
+              .created;
 
       final client =
           await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
@@ -249,6 +252,7 @@ void main() {
       expect(pkg3.latestPrereleaseVersion, '2.0.0-dev');
       expect(
           pkg3.latestPrereleasePublished, isNot(origLatestPrereleasePublished));
+      expect(pkg3.latestPrereleasePublished, pv200devPublished);
       expect(pkg3.lastVersionPublished, origLastVersionPublished);
 
       // Retract all dev

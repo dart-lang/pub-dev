@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2024.09.04`.
  * Upgraded stable Dart analysis SDK to `3.5.2`
  * Upgraded dartdoc to `8.1.0`.
+ * Note: `Package.latest*` fields are recalculated with a full list of `PackageVersion` entities.
 
 ## `20240829t084400-all`
  * Bumped runtimeVersion to `2024.08.27`.
