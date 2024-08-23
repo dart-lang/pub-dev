@@ -139,8 +139,10 @@ Future<bool> processDownloadCounts(
               (await packageBackend.lookupModeratedPackage(package)) == null) {
             _logger.severe(
                 'Package $package appeared in download counts data for file '
-                '$downloadCountsFileName'
+                '$downloadCountsFileName but does not exist.\n'
                 'Error: $e');
+            hasPartiallyFailedLines = true;
+            return;
           } // else {
           // The package is either invisible, tombstoned or has no versions.
           // }

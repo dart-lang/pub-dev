@@ -147,6 +147,42 @@ void main() {
       expect(neonCountData, isNull);
     });
 
+    testWithProfile('with non-existing package', fn: () async {
+      final nextDate = DateTime.parse('2024-01-06');
+      final downloadCountsJsonFileNameJan6 =
+          'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
+      await generateFakeDownloadCounts(
+          downloadCountsJsonFileNameJan6,
+          path.join(
+              Directory.current.path,
+              'test',
+              'service',
+              'download_counts',
+              'fake_download_counts_data_non_existing_package.jsonl'));
+      bool succeeded;
+      final messages = <String>[];
+      final subscription = Logger.root.onRecord.listen((event) {
+        messages.add(event.message);
+      });
+      try {
+        succeeded = await processDownloadCounts(
+            downloadCountsJsonFileNameJan6, nextDate);
+      } finally {
+        await subscription.cancel();
+      }
+      expect(succeeded, false);
+      expect(messages.first, contains('Could not find `package "hest"`.'));
+      // We still process the lines that are possible
+      final countData =
+          await downloadCountsBackend.lookupDownloadCountData('neon');
+      expect(countData, isNotNull);
+      expect(countData!.newestDate, nextDate);
+
+      final hestCountData =
+          await downloadCountsBackend.lookupDownloadCountData('hest');
+      expect(hestCountData, isNull);
+    });
+
     testWithProfile('file not present', fn: () async {
       final nextDate = DateTime.parse('2024-01-06');
       bool succeeded;
