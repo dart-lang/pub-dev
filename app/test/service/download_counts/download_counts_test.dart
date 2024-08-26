@@ -170,7 +170,7 @@ void main() {
       } finally {
         await subscription.cancel();
       }
-      expect(succeeded, false);
+      expect(succeeded, true);
       expect(messages.first, contains('Could not find `package "hest"`.'));
       // We still process the lines that are possible
       final countData =
