@@ -37,12 +37,8 @@ d.Node searchBannerNode({
           'title': 'Search',
           if (requestContext.experimentalFlags.isSearchCompletionEnabled)
             'data-widget': 'completion',
-          'data-completion-base64': _initialCompletionData,
           'data-completion-src': '/api/search-input-completion-data',
-          'data-completion-class': 'search-completer',
-          'data-completion-option-class': 'search-completer-option',
-          'data-completion-selected-option-class':
-              'search-completer-option-selected',
+          'data-completion-class': 'search-completion',
         },
       ),
       d.span(classes: ['icon']),
@@ -81,14 +77,6 @@ d.Node searchBannerNode({
   );
 }
 
-/// Initial completion data is stored in an attribute.
-///
-/// This is just to the bare minimum to get started. We'll load a larger
-/// completion set from a URL when completions begin.
-final _initialCompletionData = base64.encode(utf8.encode(completionDataJson(
-  minimal: true,
-)));
-
 /// Create completion data for search input.
 ///
 /// Format is dictacted by `pkg/web_app/lib/src/completion.dart`.
@@ -101,12 +89,10 @@ final _initialCompletionData = base64.encode(utf8.encode(completionDataJson(
 /// Ctrl+Space.
 ///
 /// This can generate completion data of different sizes given [topics] and
-/// [licenses]. If [minimal] is specified, then only the most important
-/// completion keys are included.
+/// [licenses].
 String completionDataJson({
   List<String> topics = const [],
   List<String> licenses = const [],
-  bool minimal = false,
 }) =>
     json.encode({
       'completions': [
@@ -117,25 +103,25 @@ String completionDataJson({
           'options': [
             'has:',
             'is:',
-            if (!minimal) 'license:',
+            'license:',
             'platform:',
             'sdk:',
             'show:',
             'topic:',
-            if (!minimal) 'runtime:',
-            if (!minimal) 'dependency:',
-            if (!minimal) 'dependency*:',
-            if (!minimal) 'publisher:',
+            'runtime:',
+            'dependency:',
+            'dependency*:',
+            'publisher:',
           ],
         },
         // TODO: Consider completion support for dependency:, dependency*: and publisher:
         {
           'match': ['is:', '-is:'],
           'options': [
-            if (!minimal) 'dart3-compatible',
+            'dart3-compatible',
             'flutter-favorite',
             'legacy',
-            if (!minimal) 'null-safe',
+            'null-safe',
             'plugin',
             'unlisted',
             'wasm-ready',
@@ -148,14 +134,13 @@ String completionDataJson({
             'screenshot',
           ],
         },
-        if (!minimal)
-          {
-            'match': ['license:', '-license:'],
-            'options': [
-              'osi-approved',
-              ...licenses,
-            ],
-          },
+        {
+          'match': ['license:', '-license:'],
+          'options': [
+            'osi-approved',
+            ...licenses,
+          ],
+        },
         {
           'match': ['show:', '-show:'],
           'options': [
@@ -180,15 +165,14 @@ String completionDataJson({
             'windows',
           ],
         },
-        if (!minimal)
-          {
-            'match': ['runtime:', '-runtime:'],
-            'options': [
-              'native-aot',
-              'native-jit',
-              'web',
-            ],
-          },
+        {
+          'match': ['runtime:', '-runtime:'],
+          'options': [
+            'native-aot',
+            'native-jit',
+            'web',
+          ],
+        },
         {
           'match': ['topic:', '-topic:'],
           'options': [

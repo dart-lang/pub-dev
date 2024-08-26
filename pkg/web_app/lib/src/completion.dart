@@ -52,7 +52,7 @@ final class _State {
   /// Completion was automatically triggered
   final bool triggered;
 
-  /// Text
+  /// Value from the `<input>` element.
   final String text;
 
   /// Offset of caret
@@ -103,22 +103,18 @@ final class _State {
 
 final class CompletionWidget {
   static final _whitespace = RegExp(r'\s');
+  static final optionClass = 'completion-option';
+  static final selectedOptionClass = 'completion-option-selected';
 
-  final Uri? src;
   final HTMLInputElement input;
   final HTMLDivElement dropdown;
-  final String optionClass;
-  final String selectedOptionClass;
-  _CompletionData data;
+  final _CompletionData data;
   var state = _State();
 
   CompletionWidget._({
     required this.input,
     required this.dropdown,
-    required this.src,
     required this.data,
-    required this.optionClass,
-    required this.selectedOptionClass,
   }) {
     // Setup event handlers
     dropdown.onMouseDown.listen(handleMouseDown);
@@ -134,18 +130,6 @@ final class CompletionWidget {
     // Track state to ensure initial state is sound, as the user may have
     // started typing already.
     trackState();
-
-    if (src != null) {
-      scheduleMicrotask(() async {
-        try {
-          data = await _completionDataFromUri(src!);
-        } on Exception catch (e) {
-          throw Exception(
-            'Unable to load autocompletion-src="$src", error: $e',
-          );
-        }
-      });
-    }
   }
 
   void trackState([Event? _]) {
@@ -229,15 +213,14 @@ final class CompletionWidget {
     _renderedSuggestions = state.suggestions;
 
     final inputBoundingRect = input.getBoundingClientRect();
-    final padding = 4; // padding and border size
     final caretOffset =
         getTextWidth(state.text.substring(0, state.caret), input);
 
     // Update dropdown position
     dropdown.style
       ..display = 'block'
-      ..left = '${inputBoundingRect.left + padding + caretOffset}px'
-      ..top = '${inputBoundingRect.bottom - padding}px';
+      ..left = '${inputBoundingRect.left + caretOffset}px'
+      ..top = '${inputBoundingRect.bottom}px';
 
     // Apply selectedOptionClass to selected option
     if (state.suggestions.isNotEmpty) {
@@ -381,6 +364,24 @@ final class CompletionWidget {
     trackState();
   }
 
+  /// Create a [CompletionWidget] on [element].
+  ///
+  /// Here [element] must:
+  ///  * be an `<input>` element, with
+  ///    * `type="text"`, or,
+  ///    * `type="search".
+  ///  * have properties:
+  ///    * `data-completion-src`, URL from which completion data should be
+  ///       loaded.
+  ///    * `data-completion-class` (optional), class that should be applied to
+  ///       the dropdown that provides completion options.
+  ///       Useful if styling multiple completer widgets.
+  ///
+  /// The dropdown that provides completions will be appended to
+  /// `document.body` and given the following classes:
+  ///   * `completion-dropdown` for the completion dropdown.
+  ///   * `completion-option` for each option in the dropdown, and,
+  ///   * `completion-option-select` is applied to selected options.
   static void create(Element element) {
     if (!element.isA<HTMLInputElement>()) {
       throw UnsupportedError('Must be <input> element');
@@ -390,30 +391,15 @@ final class CompletionWidget {
     if (input.type != 'text' && input.type != 'search') {
       throw UnsupportedError('Must have type="text" or type="search"');
     }
-    final dataBase64 = input.getAttribute('data-completion-base64') ?? '';
-    _CompletionData? initialData;
-    if (dataBase64.isNotEmpty) {
-      try {
-        initialData = _completionDataFromJson(
-          json.decode(utf8.decode(base64.decode(dataBase64))),
-        );
-      } on FormatException catch (e) {
-        throw Exception('Unable to load autocompletion-base64, error: $e');
-      }
-    }
     final src = input.getAttribute('data-completion-src') ?? '';
     if (src.isEmpty) {
       throw UnsupportedError('Must have completion-src="<url>"');
     }
     final srcUri = Uri.tryParse(src);
-    if (srcUri == null && initialData == null) {
+    if (srcUri == null) {
       throw UnsupportedError('completion-src="$src" must be a valid URI');
     }
-    final dropdownClass = input.getAttribute('data-completion-class') ?? '';
-    final optionClass =
-        input.getAttribute('data-completion-option-class') ?? '';
-    final selectedOptionClass =
-        input.getAttribute('data-completion-selected-option-class') ?? '';
+    final completionClass = input.getAttribute('data-completion-class') ?? '';
 
     // Setup attributes
     input.autocomplete = 'off';
@@ -427,31 +413,28 @@ final class CompletionWidget {
         await input.onFocus.first;
       }
 
-      if (initialData == null) {
-        try {
-          initialData = await _completionDataFromUri(srcUri!);
-        } on Exception catch (e) {
-          throw Exception(
-            'Unable to load autocompletion-src="$src", error: $e',
-          );
-        }
+      final _CompletionData data;
+      try {
+        data = await _completionDataFromUri(srcUri);
+      } on Exception catch (e) {
+        throw Exception(
+          'Unable to load autocompletion-src="$src", error: $e',
+        );
       }
 
       // Create and style the dropdown element
-      final dropdown = HTMLDivElement();
-      dropdown.style.display = 'none';
-      dropdown.style.position = 'absolute';
-      if (dropdownClass.isNotEmpty) {
-        dropdown.classList.add(dropdownClass);
+      final dropdown = HTMLDivElement()
+        ..style.display = 'none'
+        ..style.position = 'absolute'
+        ..classList.add('completion-dropdown');
+      if (completionClass.isNotEmpty) {
+        dropdown.classList.add(completionClass);
       }
 
       CompletionWidget._(
         input: input,
         dropdown: dropdown,
-        data: initialData!,
-        src: srcUri,
-        optionClass: optionClass,
-        selectedOptionClass: selectedOptionClass,
+        data: data,
       );
       // Add dropdown after the <input>
       document.body!.after(dropdown);
