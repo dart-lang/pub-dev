@@ -82,6 +82,7 @@ String renderLayoutPage(
     }
     return null;
   }();
+  final moderationUrl = canonicalUrl ?? moderationSubject?.canonicalUrl;
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,
@@ -111,6 +112,7 @@ String renderLayoutPage(
     mainContent: contentNode,
     includeHighlightJs: type == PageType.package,
     schemaOrgSearchActionJson: isRoot ? _schemaOrgSearchAction : null,
+    moderationUrl: moderationUrl,
     moderationSubject: moderationSubject,
   ).toString();
 }
