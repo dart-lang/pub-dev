@@ -63,6 +63,10 @@ Future<void> _process({
 
     final sm = parse(File(mapPath).readAsStringSync()) as SingleMapping;
 
+    // Maps line numbers ot their TargetLineEntry objects.
+    final smLineIndex =
+        Map.fromEntries(sm.lines.mapIndexed((i, e) => MapEntry(e.line, e)));
+
     // Initialize line counts with 0 for all the known lines.
     for (final e in sm.lines.expand((l) => l.entries)) {
       if (e.sourceUrlId == null) continue;
@@ -78,7 +82,7 @@ Future<void> _process({
     // Returns `null` if the position is invalid or if there is no mapping.
     TargetEntry? _sourceLines(int line, int column) {
       try {
-        final entries = sm.lines[line - 1].entries;
+        final entries = smLineIndex[line - 1]!.entries;
         // TargetEntry.column is 0-indexed
         return entries.lastWhereOrNull((e) => e.column < column);
       } catch (_) {
