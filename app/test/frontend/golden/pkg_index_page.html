@@ -103,8 +103,8 @@
     <div id="banner-container"></div>
     <div class="_banner-bg">
       <div class="container">
-        <form class="search-bar banner-item" action="/packages">
-          <input class="input" name="q" placeholder="Search packages" autocomplete="on" value="sdk:dart" title="Search"/>
+        <form class="search-bar banner-item" action="/packages" autocomplete="off">
+          <input class="input" type="search" name="q" placeholder="Search packages" autocomplete="off" value="sdk:dart" title="Search" data-completion-src="/api/search-input-completion-data" data-completion-class="search-completion"/>
           <span class="icon"></span>
           <div class="search-filters-btn-wrapper -active">
             <img class="search-filters-btn search-filters-btn-inactive" src="/static/hash-%%etag%%/img/search-filters-inactive.svg" alt="toggle the display of search filters (inactive)" width="42" height="42"/>

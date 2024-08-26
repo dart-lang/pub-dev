@@ -104,8 +104,8 @@
       <div class="container home-banner">
         <h2 class="_visuallyhidden">pub.dev package manager</h2>
         <img class="logo" src="/static/hash-%%etag%%/img/pub-dev-logo.svg" alt="" width="328" height="70" role="presentation"/>
-        <form class="search-bar banner-item" action="/packages">
-          <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus" title="Search"/>
+        <form class="search-bar banner-item" action="/packages" autocomplete="off">
+          <input class="input" type="search" name="q" placeholder="Search packages" autocomplete="off" autofocus="autofocus" title="Search" data-completion-src="/api/search-input-completion-data" data-completion-class="search-completion"/>
           <span class="icon"></span>
         </form>
         <p class="text">
