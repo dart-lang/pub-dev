@@ -330,6 +330,13 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> searchInputCompletionData() async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/search-input-completion-data',
+    );
+  }
+
   Future<_i3.PkgOptions> setPackageOptions(
     String package,
     _i3.PkgOptions payload,

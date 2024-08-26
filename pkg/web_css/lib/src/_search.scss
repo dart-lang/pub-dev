@@ -20,7 +20,7 @@
   }
 }
 
-.search-bar > .input {
+.search-bar>.input {
   font-size: 16px;
   padding: 15px 24px 14px 48px;
   border: none;
@@ -49,7 +49,7 @@
   }
 }
 
-.search-bar > .icon {
+.search-bar>.icon {
   width: 45px;
   height: 45px;
   background-color: var(--pub-link-text-color);
@@ -103,4 +103,30 @@
       display: block;
     }
   }
+}
+
+
+.search-completer {
+  overflow-y: auto;
+  overflow-x: hidden;
+  appearance: none;
+  width: 25ex;
+  border: 1px solid #000;
+  max-height: 20em;
+  background-color: #fff;
+  font-size: 16px;
+}
+
+.search-completer-option {
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0px 3px;
+}
+
+.search-completer-option:hover {
+  background-color: #ccc;
+}
+
+.search-completer-option-selected {
+  background-color: #ccc;
 }

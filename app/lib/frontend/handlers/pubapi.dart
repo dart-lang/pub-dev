@@ -384,6 +384,11 @@ class PubApi {
     return apiTopicNameCompletionDataHandler(request);
   }
 
+  @EndPoint.get('/api/search-input-completion-data')
+  Future<Response> searchInputCompletionData(Request request) async {
+    return apiSearchInputCompletionDataHandler(request);
+  }
+
   @EndPoint.put('/api/packages/<package>/options')
   Future<PkgOptions> setPackageOptions(
           Request request, String package, PkgOptions body) =>
