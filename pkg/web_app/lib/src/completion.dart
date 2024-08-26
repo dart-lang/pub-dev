@@ -158,15 +158,14 @@ final class CompletionWidget {
       delta = state.text.substring(caret, state.caret);
     }
     final crossedWordBoundary = delta.contains(_whitespace);
-    final suggestions = suggest(
+    final (:trigger, :suggestions) = suggest(
       data,
       text,
       caret,
-      !crossedWordBoundary && state.forced,
     );
     state = _State(
       forced: !crossedWordBoundary && state.forced && suggestions.isNotEmpty,
-      triggered: shouldTrigger(data, text, caret),
+      triggered: trigger,
       suggestions: suggestions,
       text: text,
       caret: caret,
@@ -287,12 +286,6 @@ final class CompletionWidget {
       state = state.update(
         closed: false,
         forced: true,
-        suggestions: suggest(
-          data,
-          state.text,
-          state.caret,
-          true,
-        ),
       );
       event.preventDefault();
       update();
@@ -314,12 +307,6 @@ final class CompletionWidget {
       state = state.update(
         closed: true,
         forced: false,
-        suggestions: suggest(
-          data,
-          state.text,
-          state.caret,
-          false,
-        ),
       );
       event.preventDefault();
       update();
@@ -552,33 +539,12 @@ final class CompletionWidget {
     return ctx.measureText(text).width.floor();
   }
 
-  /// Given [data] should [caret] position inside [text] trigger completion.
-  static bool shouldTrigger(_CompletionData data, String text, int caret) {
-    // If caret is not at the end, and the next character isn't space then we
-    // do not automatically trigger completion.
-    if (caret < text.length && text[caret] != ' ') {
-      return false;
-    }
-
-    // First find space before the caret, search reverse from caret - 1,
-    // because "is:| " will otherwise find a space at caret position (3).
-    // But obviously we can't do -1 if caret is at position zero.
-    final spaceBeforeCaret = text.lastIndexOf(' ', caret - (caret > 0 ? 1 : 0));
-    final wordBeforeCaret = text.substring(spaceBeforeCaret + 1, caret);
-
-    return data.any(
-      (c) => !c.forcedOnly && c.match.any(wordBeforeCaret.startsWith),
-    );
-  }
-
-  static _Suggestions suggest(
+  /// Given [data] and [caret] position inside [text] what suggestions do we
+  /// want to offer and should completion be automatically triggered?
+  static ({bool trigger, _Suggestions suggestions}) suggest(
     _CompletionData data,
     String text,
     int caret,
-    // TODO: suggest shouldn't take forced as a parameter, this is messy.
-    //       Instead we should return a tuple (triggered, suggestions)
-    //       And merge shouldTrigger with suggest.
-    bool forced,
   ) {
     // Get position before caret
     final beforeCaret = caret > 0 ? caret - 1 : 0;
@@ -589,66 +555,87 @@ final class CompletionWidget {
     final start = text.lastIndexOf(' ', beforeCaret) + 1;
     final end = spaceAfterCaret != -1 ? spaceAfterCaret : text.length;
 
+    // If caret is not at the end, and the next character isn't space then we
+    // do not automatically trigger completion.
+    bool trigger;
+    if (caret < text.length && text[caret] != ' ') {
+      trigger = false;
+    } else {
+      // If the part before the caret is matched, then we can auto trigger
+      final wordBeforeCaret = text.substring(start, caret);
+      trigger = data.any(
+        (c) => !c.forcedOnly && c.match.any(wordBeforeCaret.startsWith),
+      );
+    }
+
     // Get the word that we are completing
     final word = text.substring(start, end);
 
-    // Find the longest match
-    final c = maxBy(
-        data.map((c) => (
-              completion: c,
-              match: maxBy(c.match.where(word.startsWith), (m) => m.length),
-            )), (c) {
-      final m = c.match;
-      if (m != null) return m.length;
-      return -1;
-    });
-    if (c == null) return [];
-    final match = c.match;
-    if (match == null) return [];
-    final completion = c.completion;
-    final options = c.completion.options;
+    // Find the longest match for each completion entry
+    final completionWithBestMatch = data.map((c) => (
+          completion: c,
+          match: maxBy(c.match.where(word.startsWith), (m) => m.length),
+        ));
+    // Find the best completion entry
+    final (:completion, :match) = maxBy(completionWithBestMatch, (c) {
+          final m = c.match;
+          return m != null ? m.length : -1;
+        }) ??
+        (completion: null, match: null);
+    if (completion == null || match == null) {
+      return (
+        trigger: false,
+        suggestions: [],
+      );
+    }
 
     // prefix to be used for completion of options
     final prefix = word.substring(match.length);
 
-    if (options.contains(prefix)) {
+    if (completion.options.contains(prefix)) {
       // If prefix is an option, and there is no other options we don't have
       // anything to suggest.
-      if (options.length == 1) {
-        return [];
+      if (completion.options.length == 1) {
+        return (
+          trigger: false,
+          suggestions: [],
+        );
       }
-      // Unless we're forcing suggestions, we don't want to suggest something
-      // if there isn't a prefix that is also longer!
-      if (!forced &&
-          !options.any((opt) => opt.startsWith(prefix) && opt != prefix)) {
-        return [];
-      }
+      // We don't to auto trigger completion unless there is an option that is
+      // also a prefix and longer than what prefix currently matches.
+      trigger &= completion.options.any(
+        (opt) => opt.startsWith(prefix) && opt != prefix,
+      );
     }
 
     // Terminate suggestion with a ' ' suffix, if this is a terminal completion
     final suffix = completion.terminal ? ' ' : '';
 
-    return options
-        .map((option) {
-          final overlap = lcs(prefix, option);
-          var html = option;
-          if (overlap.isNotEmpty) {
-            html = html.replaceAll(overlap, '<strong>$overlap</strong>');
-          }
-          return (
-            value: match + option + suffix,
-            start: start,
-            end: end,
-            html: html,
-            score: (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
-                math.pow(overlap.length, 2) +
-                (option.startsWith(overlap) ? overlap.length : 0) +
-                overlap.length / option.length,
-          );
-        })
-        .sortedBy<num>((s) => s.score)
-        .reversed
-        .toList();
+    return (
+      trigger: trigger,
+      suggestions: completion.options
+          .map((option) {
+            final overlap = lcs(prefix, option);
+            var html = option;
+            if (overlap.isNotEmpty) {
+              html = html.replaceAll(overlap, '<strong>$overlap</strong>');
+            }
+            return (
+              value: match + option + suffix,
+              start: start,
+              end: end,
+              html: html,
+              score:
+                  (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
+                      math.pow(overlap.length, 2) +
+                      (option.startsWith(overlap) ? overlap.length : 0) +
+                      overlap.length / option.length,
+            );
+          })
+          .sortedBy<num>((s) => s.score)
+          .reversed
+          .toList(),
+    );
   }
 }
 
