@@ -11,7 +11,7 @@ import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
-final _caseIdExpr = RegExp(r'[0-9]{8}-[0-9a-f]{10}');
+final _caseIdExpr = RegExp(r'[0-9]{8}I[0-9a-f]{10}');
 
 void main() {
   group('report', () {
