@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 void main() {
-  test('all variables are used', () async {
+  test('all sass variables are used', () async {
     final variables = (await File('lib/src/_variables.scss').readAsLines())
         .where((l) => l.startsWith(r'$') && l.contains(':'))
         .map((l) => l.substring(1).split(':').first.trim())
@@ -30,5 +30,50 @@ void main() {
     }
 
     expect(variables, isEmpty);
+  });
+
+  group('CSS variables', () {
+    late Set<String> variables;
+
+    setUp(() async {
+      variables = (await File('lib/src/_variables.scss').readAsLines())
+          .map((l) => l.trim())
+          .where((l) => l.startsWith('--') && l.contains(':'))
+          .map((l) => l.split(':').first.trim())
+          .where((v) => v.isNotEmpty)
+          .toSet();
+
+      // remove Material design variables
+      variables.removeWhere((v) => v.startsWith('--mdc-'));
+    });
+
+    test('variables are present', () {
+      expect(variables, isNotEmpty);
+    });
+
+    test('a variable does not share another as prefix', () {
+      for (final v in variables) {
+        final shared =
+            variables.where((x) => x != v && x.startsWith(v)).toList();
+        expect(shared, isEmpty, reason: v);
+      }
+    });
+
+    test('all CSS variables are used', () async {
+      final files = await Directory('lib')
+          .list(recursive: true)
+          .where((f) => f is File && f.path.endsWith('.scss'))
+          .cast<File>()
+          .toList();
+
+      final unused = <String>{...variables};
+      for (final file in files) {
+        if (unused.isEmpty) break;
+        final content = await file.readAsString();
+        unused.removeWhere((v) => content.contains('var($v)'));
+      }
+
+      expect(unused, isEmpty);
+    });
   });
 }
