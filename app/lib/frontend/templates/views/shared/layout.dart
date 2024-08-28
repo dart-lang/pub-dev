@@ -294,7 +294,6 @@ d.Node _siteFooterNode({
           url: moderationUrl,
         ),
         'Report package',
-        sep: false,
       );
     }
     if (moderationSubject.publisherId != null) {
@@ -304,7 +303,6 @@ d.Node _siteFooterNode({
           url: moderationUrl,
         ),
         'Report publisher',
-        sep: false,
       );
     }
     throw ArgumentError('Unknown subject: ${moderationSubject.fqn}');
@@ -314,9 +312,8 @@ d.Node _siteFooterNode({
     'footer',
     classes: ['site-footer'],
     children: [
+      link('${urls.dartSiteRoot}/', 'Dart language', sep: false),
       if (moderationNode != null) moderationNode,
-      link('${urls.dartSiteRoot}/', 'Dart language',
-          sep: moderationNode != null),
       link('/policy', 'Policy'),
       link('https://www.google.com/intl/en/policies/terms/', 'Terms'),
       link('https://developers.google.com/terms/', 'API Terms'),
