@@ -235,12 +235,19 @@ abstract class ModerationStatus {
   static bool wasModerationApplied(String value) =>
       value == ModerationStatus.moderationApplied ||
       value == ModerationStatus.noActionReverted;
+
+  static final resolveValues = _values.where((v) => v != pending).toList();
 }
 
 abstract class ModerationGrounds {
   static const none = 'none';
   static const illegal = 'illegal';
   static const policy = 'policy';
+
+  static final resolveValues = [
+    illegal,
+    policy,
+  ];
 }
 
 abstract class ModerationViolation {
