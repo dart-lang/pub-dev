@@ -16,6 +16,10 @@ final moderatePackage = AdminAction(
   summary: 'Set the moderated flag on a package (making it not visible).',
   description: '''
 Set the moderated flag on a package (updating the flag and the timestamp).
+
+Note: the action may take a longer time to complete as the public archive bucket
+      will be updated: on moderation the files will be deleted, on restore the
+      archive files will be copied over from the (private) canonical archive bucket.
 ''',
   options: {
     'case': 'The ModerationCase.caseId that this action is part of.',
