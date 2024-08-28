@@ -164,6 +164,18 @@ class ModerationCase extends db.ExpandoModel<String> {
     setActionLog(log);
   }
 
+  Map<String, dynamic> toCompactInfo() {
+    return {
+      'caseId': caseId,
+      'reporterEmail': reporterEmail,
+      'kind': kind,
+      'opened': opened.toIso8601String(),
+      'resolved': resolved?.toIso8601String(),
+      'subject': subject,
+      if (appealedCaseId != null) 'appealedCaseId': appealedCaseId,
+    };
+  }
+
   Map<String, dynamic> toDebugInfo() {
     return {
       'caseId': caseId,
@@ -222,8 +234,7 @@ abstract class ModerationStatus {
   static const moderationUpheld = 'moderation-upheld';
   static const moderationReverted = 'moderation-reverted';
 
-  static const _values = [
-    pending,
+  static const resolveValues = [
     noAction,
     moderationApplied,
     noActionUpheld,
@@ -231,6 +242,11 @@ abstract class ModerationStatus {
     moderationUpheld,
     moderationReverted,
   ];
+  static const _values = [
+    pending,
+    ...resolveValues,
+  ];
+
   static bool isValidStatus(String value) => _values.contains(value);
   static bool wasModerationApplied(String value) =>
       value == ModerationStatus.moderationApplied ||
