@@ -584,8 +584,7 @@ class PubApi {
       listAdvisoriesForPackage(request, package);
 
   @EndPoint.post('/api/report')
-  Future<Message> postReport(Request request, ReportForm body) async {
-    final message = await processReportPageHandler(request, body);
-    return Message(message: message);
+  Future<FormResponse> postReport(Request request, ReportForm body) async {
+    return await processReportPageHandler(request, body);
   }
 }

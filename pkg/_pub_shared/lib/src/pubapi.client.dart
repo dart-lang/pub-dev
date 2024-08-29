@@ -599,8 +599,8 @@ class PubApiClient {
     ));
   }
 
-  Future<_i3.Message> postReport(_i4.ReportForm payload) async {
-    return _i3.Message.fromJson(await _client.requestJson(
+  Future<_i3.FormResponse> postReport(_i4.ReportForm payload) async {
+    return _i3.FormResponse.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/report',
       body: payload.toJson(),

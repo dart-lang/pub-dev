@@ -155,6 +155,25 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
       'message': instance.message,
     };
 
+FormResponse _$FormResponseFromJson(Map<String, dynamic> json) => FormResponse(
+      message: json['message'] as String?,
+      redirectTo: json['redirectTo'] as String?,
+    );
+
+Map<String, dynamic> _$FormResponseToJson(FormResponse instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('message', instance.message);
+  writeNotNull('redirectTo', instance.redirectTo);
+  return val;
+}
+
 PackageData _$PackageDataFromJson(Map<String, dynamic> json) => PackageData(
       name: json['name'] as String,
       isDiscontinued: json['isDiscontinued'] as bool?,

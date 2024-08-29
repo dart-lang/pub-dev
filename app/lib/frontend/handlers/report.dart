@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -32,6 +33,23 @@ const _reportRateLimitWindowAsText = 'last 10 minutes';
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   if (!requestContext.experimentalFlags.isReportPageEnabled) {
+    return notFoundHandler(request);
+  }
+
+  final feedback = request.requestedUri.queryParameters['feedback'];
+  if (feedback != null) {
+    switch (feedback) {
+      case 'report-submitted':
+        return htmlResponse(renderReportFeedback(
+          title: 'Report submitted',
+          message: 'The report has been submitted successfully.',
+        ));
+      case 'appeal-submitted':
+        return htmlResponse(renderReportFeedback(
+          title: 'Appeal submitted',
+          message: 'The appeal has been submitted successfully.',
+        ));
+    }
     return notFoundHandler(request);
   }
 
@@ -134,7 +152,7 @@ Future<void> _verifyCaseSubject(
 }
 
 /// Handles POST /api/report
-Future<String> processReportPageHandler(
+Future<FormResponse> processReportPageHandler(
     shelf.Request request, ReportForm form) async {
   if (!requestContext.experimentalFlags.isReportPageEnabled) {
     throw NotFoundException('Experimental flag is not enabled.');
@@ -234,5 +252,15 @@ Future<String> processReportPageHandler(
     bodyText: bodyText,
   ));
 
-  return 'The $kind was submitted successfully.';
+  final redirectTo = request.requestedUri.replace(
+    path: '/report',
+    queryParameters: {
+      'feedback': '$kind-submitted',
+    },
+  ).toString();
+
+  return FormResponse(
+    message: null, // no modal feedback
+    redirectTo: redirectTo,
+  );
 }

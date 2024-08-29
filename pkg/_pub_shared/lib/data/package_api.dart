@@ -190,6 +190,23 @@ class Message {
   Map<String, dynamic> toJson() => _$MessageToJson(this);
 }
 
+/// A message wrapper for pub client API compatibility.
+@JsonSerializable(includeIfNull: false)
+class FormResponse {
+  final String? message;
+  final String? redirectTo;
+
+  FormResponse({
+    required this.message,
+    required this.redirectTo,
+  });
+
+  factory FormResponse.fromJson(Map<String, dynamic> json) =>
+      _$FormResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FormResponseToJson(this);
+}
+
 /// Used in `pub` client for finding which versions exist.
 /// (`listVersions` method in pubapi)
 @JsonSerializable(includeIfNull: false)

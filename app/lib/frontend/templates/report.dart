@@ -16,6 +16,22 @@ const _subjectKindLabels = {
   ModerationSubjectKind.publisher: 'publisher',
 };
 
+/// Renders the feedback page with a simple paragraph of [message].
+String renderReportFeedback({
+  required String title,
+  required String message,
+}) {
+  return renderLayoutPage(
+    PageType.standalone,
+    d.fragment([
+      d.h1(text: title),
+      d.p(text: message),
+    ]),
+    title: title,
+    noIndex: true,
+  );
+}
+
 /// Renders the create publisher page.
 String renderReportPage({
   SessionData? sessionData,

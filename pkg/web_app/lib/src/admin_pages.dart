@@ -52,11 +52,23 @@ void _initGenericForm() {
           fn: () =>
               api_client.sendJson(verb: 'POST', path: endpoint, body: body),
           successMessage: null,
-          onSuccess: (result) async {
-            final message =
-                result == null ? null : result['message']?.toString();
-            await modalMessage('Success', text(message ?? 'OK.'));
-            window.location.reload();
+          onSuccess: (r) async {
+            final result = r ?? <String, dynamic>{};
+            final redirectTo = result['redirectTo']?.toString();
+
+            // We shall display a minimal feedback when both the redirect and the message is omitted.
+            final message = result['message']?.toString() ??
+                (redirectTo == null ? 'Success. The page will reload.' : null);
+
+            if (message != null) {
+              await modalMessage('Success', text(message));
+            }
+
+            if (redirectTo != null) {
+              window.location.href = redirectTo;
+            } else {
+              window.location.reload();
+            }
           },
         );
       });
