@@ -216,13 +216,14 @@ Future<String> processReportPageHandler(
   });
 
   final kind = isAppeal ? 'appeal' : 'report';
-  final kindLabel = isAppeal ? 'moderation appeal' : 'content report';
+  final kindLabel = isAppeal ? 'moderation appeal' : 'content policy violation';
   final bodyText = <String>[
-    'New $kind received on ${now.toIso8601String()}: $caseId',
+    'New $kind received on ${now.toIso8601String().split('T').first}: $caseId',
     if (form.url != null) 'URL: ${form.url}',
     if (isAppeal) 'Appealed case ID: ${form.caseId}',
+    if (!isAppeal) 'Violated policy: https://pub.dev/policy',
     'Subject: ${subject.fqn}',
-    'Message:\n${form.message}',
+    'Message:\n---\${form.message}\n---',
     'This $kind will be processed by the moderation team.',
   ].join('\n\n');
 
