@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -31,6 +32,23 @@ const _reportRateLimitWindowAsText = 'last 10 minutes';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
+  final feedback = request.requestedUri.queryParameters['feedback'];
+  if (feedback != null) {
+    switch (feedback) {
+      case 'report-submitted':
+        return htmlResponse(renderReportFeedback(
+          title: 'Report submitted',
+          message: 'The report has been submitted successfully.',
+        ));
+      case 'appeal-submitted':
+        return htmlResponse(renderReportFeedback(
+          title: 'Appeal submitted',
+          message: 'The appeal has been submitted successfully.',
+        ));
+    }
+    return notFoundHandler(request);
+  }
+
   final caseId = request.requestedUri.queryParameters['appeal'];
   final mc = await _loadAndVerifyCase(caseId);
 
@@ -47,12 +65,21 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   final url = request.requestedUri.queryParameters['url'];
   _verifyUrl(url);
 
+  final kind = caseId == null ? 'report' : 'appeal';
+  final onSuccessGotoUrl = request.requestedUri.replace(
+    path: '/report',
+    queryParameters: {
+      'feedback': '$kind-submitted',
+    },
+  ).toString();
+
   return htmlResponse(
     renderReportPage(
       sessionData: requestContext.sessionData,
       subject: subject,
       url: url,
       caseId: caseId,
+      onSuccessGotoUrl: onSuccessGotoUrl,
     ),
     headers: CacheControl.explicitlyPrivate.headers,
   );
@@ -130,7 +157,7 @@ Future<void> _verifyCaseSubject(
 }
 
 /// Handles POST /api/report
-Future<String> processReportPageHandler(
+Future<Message> processReportPageHandler(
     shelf.Request request, ReportForm form) async {
   final sourceIp = request.sourceIp;
   if (sourceIp != null) {
@@ -226,5 +253,5 @@ Future<String> processReportPageHandler(
     bodyText: bodyText,
   ));
 
-  return 'The $kind was submitted successfully.';
+  return Message(message: 'The $kind was submitted successfully.');
 }
