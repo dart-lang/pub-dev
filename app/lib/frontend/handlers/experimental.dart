@@ -84,7 +84,7 @@ class ExperimentalFlags {
     return params;
   }
 
-  bool get isReportPageEnabled => isEnabled('report');
+  bool get isReportPageEnabled => true;
 
   bool get isDarkModeEnabled => isEnabled('dark');
   bool get isDarkModeDefault => isEnabled('dark-as-default');

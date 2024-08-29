@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.24.1`.
  * Upgraded pana to `0.22.12`.
  * Upgraded dartdoc to `8.0.14`.
+ * Note: the `report` experiment is enabled by default.
 
 ## `20240821t093600-all`
  * Bumped runtimeVersion to `2024.08.20`.
