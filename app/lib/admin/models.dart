@@ -257,6 +257,11 @@ abstract class ModerationGrounds {
   static const none = 'none';
   static const illegal = 'illegal';
   static const policy = 'policy';
+
+  static final resolveValues = [
+    illegal,
+    policy,
+  ];
 }
 
 abstract class ModerationViolation {
