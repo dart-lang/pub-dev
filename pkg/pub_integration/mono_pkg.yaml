@@ -13,7 +13,8 @@ stages:
       # Instead of --total-shards and --shard index, we are using file-based sharding,
       # as it provided better distribution of the tests.
       # https://github.com/dart-lang/test/issues/2141
-      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~4p'`
-      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~4p'`
-      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~4p'`
-      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~4p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '0~5p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '1~5p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '2~5p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '3~5p'`
+      - test: -j1 --run-skipped `find test -name "*_test\\.dart" | sort | sed -n '4~5p'`
