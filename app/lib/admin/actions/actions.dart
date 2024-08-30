@@ -17,10 +17,13 @@ import 'moderation_case_info.dart';
 import 'moderation_case_list.dart';
 import 'moderation_case_resolve.dart';
 import 'moderation_case_update.dart';
+import 'package_info.dart';
+import 'package_version_info.dart';
 import 'package_version_retraction.dart';
 import 'publisher_block.dart';
 import 'publisher_create.dart';
 import 'publisher_delete.dart';
+import 'publisher_info.dart';
 import 'publisher_members_list.dart';
 import 'publisher_package_remove.dart';
 import 'task_bump_priority.dart';
@@ -94,10 +97,13 @@ final class AdminAction {
     moderationCaseList,
     moderationCaseResolve,
     moderationCaseUpdate,
+    packageInfo,
+    packageVersionInfo,
     packageVersionRetraction,
     publisherBlock,
     publisherCreate,
     publisherDelete,
+    publisherInfo,
     publisherMembersList,
     publisherPackageRemove,
     taskBumpPriority,
