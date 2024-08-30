@@ -291,3 +291,11 @@ extension PubPageExt on Page {
     );
   }
 }
+
+extension PubElementHandleExt on ElementHandle {
+  Future<void> clickAndWaitOneResponse() async {
+    final future = frameManager.networkManager.onResponse.first;
+    await click();
+    await future;
+  }
+}

@@ -75,8 +75,11 @@ void main() {
           ]);
 
           // click Android
-          await page.click('#search-form-checkbox-platform-android');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitAndClick(
+            '#search-form-checkbox-platform-android',
+            waitForOneResponse: true,
+          );
+          await _waitOneSecond();
           final i2 = await listingPageInfo(page);
           expect(i2.totalCount, lessThan(80));
           expect(i2.totalCount, greaterThan(70));
@@ -93,12 +96,12 @@ void main() {
           final flutterCB3 = await page.$('#search-form-checkbox-sdk-flutter');
           expect(await flutterCB3.boundingBox, isNull);
           await page.click('.search-form-section[data-section-tag="sdks"]');
-          await Future.delayed(Duration(seconds: 1));
+          await _waitOneSecond();
           expect(await flutterCB3.boundingBox, isNotNull);
 
           // click Flutter
-          await flutterCB3.click();
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await flutterCB3.clickAndWaitOneResponse();
+          await _waitOneSecond();
           final i3 = await listingPageInfo(page);
           expect(i3.totalCount, lessThan(70));
           expect(i3.totalCount, greaterThan(60));
@@ -115,8 +118,8 @@ void main() {
           // unclick Flutter
           final flutterCB4 = await page.$('#search-form-checkbox-sdk-flutter');
           final flutterLink = await flutterCB4.$x('../following-sibling::*');
-          await flutterLink.single.click();
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await flutterLink.single.clickAndWaitOneResponse();
+          await _waitOneSecond();
           final i4 = await listingPageInfo(page);
           expect(i4.totalCount, i2.totalCount);
           expect(i4.packageNames, i2.packageNames);
@@ -151,8 +154,8 @@ void main() {
 
           // clear Flutter with a row-level click
           final flutterRow = await flutterCB5.$x('../../..');
-          await flutterRow.single.click();
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await flutterRow.single.clickAndWaitOneResponse();
+          await _waitOneSecond();
           final i6 = await listingPageInfo(page);
           expect(i6.totalCount, i2.totalCount);
           expect(i6.openSections, i5.openSections);
@@ -164,8 +167,9 @@ void main() {
             '#search-form-checkbox-is-flutter-favorite',
             '#search-form-checkbox-show-unlisted'
           ]);
-          await page.click('#search-form-checkbox-show-unlisted');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitAndClick('#search-form-checkbox-show-unlisted',
+              waitForOneResponse: true);
+          await _waitOneSecond();
           final i7 = await listingPageInfo(page);
           expect(i7.totalCount, i6.totalCount);
           expect(i7.openSections, ['sdks', 'advanced']);
@@ -173,17 +177,22 @@ void main() {
               '$origin/packages?q=platform%3Aandroid+show%3Aunlisted+pkg');
 
           // remove discontinued
-          await page.click('#search-form-checkbox-show-unlisted');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitAndClick('#search-form-checkbox-show-unlisted',
+              waitForOneResponse: true);
+          await _waitOneSecond();
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
 
           Future<void> toggleMore(String tagPrefix, String tagPostfix) async {
-            await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
-            await page.waitForNavigation(wait: Until.networkIdle);
+            await page.waitAndClick(
+                '#search-form-checkbox-$tagPrefix-$tagPostfix',
+                waitForOneResponse: true);
+            await _waitOneSecond();
             expect(page.url,
                 '$origin/packages?q=platform%3Aandroid+$tagPrefix%3A$tagPostfix+pkg');
-            await page.click('#search-form-checkbox-$tagPrefix-$tagPostfix');
-            await page.waitForNavigation(wait: Until.networkIdle);
+            await page.waitAndClick(
+                '#search-form-checkbox-$tagPrefix-$tagPostfix',
+                waitForOneResponse: true);
+            await _waitOneSecond();
             expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
           }
 
@@ -206,9 +215,9 @@ void main() {
             await page.waitForSelector(targetSelector, visible: true);
             await Future.delayed(Duration(milliseconds: 50));
             await page.waitForSelector(targetSelector, visible: true);
-            await page.click(targetSelector);
+            await page.waitAndClick(targetSelector, waitForOneResponse: true);
           }
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await _waitOneSecond();
           expect(
               page.url,
               allOf(
@@ -221,8 +230,9 @@ void main() {
           expect(await page.propertyValue('input[name="q"]', 'value'),
               'platform:android platform:web platform:ios pkg');
 
-          await page.click('#search-form-checkbox-platform-windows');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitAndClick('#search-form-checkbox-platform-windows',
+              waitForOneResponse: true);
+          await _waitOneSecond();
           expect(
               page.url,
               allOf(
@@ -244,8 +254,9 @@ void main() {
 
           // OSI approved
           await page.click('.search-form-section[data-section-tag="license"]');
-          await page.waitAndClick('#search-form-checkbox-license-osi-approved');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitAndClick('#search-form-checkbox-license-osi-approved',
+              waitForOneResponse: true);
+          await _waitOneSecond();
 
           expect(await page.propertyValue('input[name="q"]', 'value'),
               'license:osi-approved');
@@ -267,8 +278,9 @@ void main() {
           expect(page.url, '$origin/packages?q=pkg');
           expect(await page.propertyValue('input[name="q"]', 'value'), 'pkg');
 
-          await page.click('#search-form-checkbox-platform-android');
-          await page.waitForNavigation(wait: Until.networkIdle);
+          await page.waitAndClick('#search-form-checkbox-platform-android',
+              waitForOneResponse: true);
+          await _waitOneSecond();
           expect(page.url, '$origin/packages?q=platform%3Aandroid+pkg');
           expect(await page.propertyValue('input[name="q"]', 'value'),
               'platform:android pkg');
@@ -318,3 +330,5 @@ void main() {
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }
+
+Future _waitOneSecond() => Future.delayed(Duration(seconds: 1));
