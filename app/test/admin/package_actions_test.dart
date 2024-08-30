@@ -9,7 +9,6 @@ import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  // TODO: move package-related tests from api_actions_test.dart
   group('package admin actions', () {
     testWithProfile('info request', fn: () async {
       final client = createPubApiClient(authToken: siteAdminToken);

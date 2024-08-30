@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/admin_api.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
-  // TODO: move package-version-related tests from api_actions_test.dart
   group('package version admin actions', () {
     testWithProfile('info request', fn: () async {
       final client = createPubApiClient(authToken: siteAdminToken);
@@ -28,6 +28,36 @@ void main() {
           'isModerated': false,
         }
       });
+    });
+
+    testWithProfile('package-version-retraction', fn: () async {
+      final latest = await packageBackend.getLatestVersion('oxygen');
+
+      final api = createPubApiClient(authToken: siteAdminToken);
+      final result = await api.adminInvokeAction(
+        'package-version-retraction',
+        AdminInvokeActionArguments(arguments: {
+          'package': 'oxygen',
+          'version': latest!,
+          'set-retracted': 'true',
+        }),
+      );
+
+      expect(result.output, {
+        'before': {
+          'package': 'oxygen',
+          'version': latest,
+          'isRetracted': false,
+        },
+        'after': {
+          'package': 'oxygen',
+          'version': latest,
+          'isRetracted': true,
+        },
+      });
+
+      final newLatest = await packageBackend.getLatestVersion('oxygen');
+      expect(newLatest != latest, isTrue);
     });
   });
 }
