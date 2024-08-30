@@ -8,7 +8,6 @@ import '../../shared/cookie_utils.dart';
 
 const _publicFlags = <String>{
   'dark',
-  'report',
 };
 
 const _allFlags = <String>{
@@ -83,8 +82,6 @@ class ExperimentalFlags {
     }
     return params;
   }
-
-  bool get isReportPageEnabled => true;
 
   bool get isDarkModeEnabled => isEnabled('dark');
   bool get isDarkModeDefault => isEnabled('dark-as-default');

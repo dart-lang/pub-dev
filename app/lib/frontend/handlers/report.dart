@@ -31,10 +31,6 @@ const _reportRateLimitWindowAsText = 'last 10 minutes';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
-  if (!requestContext.experimentalFlags.isReportPageEnabled) {
-    return notFoundHandler(request);
-  }
-
   final caseId = request.requestedUri.queryParameters['appeal'];
   final mc = await _loadAndVerifyCase(caseId);
 
@@ -136,10 +132,6 @@ Future<void> _verifyCaseSubject(
 /// Handles POST /api/report
 Future<String> processReportPageHandler(
     shelf.Request request, ReportForm form) async {
-  if (!requestContext.experimentalFlags.isReportPageEnabled) {
-    throw NotFoundException('Experimental flag is not enabled.');
-  }
-
   final sourceIp = request.sourceIp;
   if (sourceIp != null) {
     await verifyRequestCounts(
