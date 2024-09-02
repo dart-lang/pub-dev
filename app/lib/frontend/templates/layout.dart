@@ -65,9 +65,6 @@ String renderLayoutPage(
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
   final session = requestContext.sessionData;
   final moderationSubject = () {
-    if (!requestContext.experimentalFlags.isReportPageEnabled) {
-      return null;
-    }
     if (pageData == null) {
       return null;
     }
