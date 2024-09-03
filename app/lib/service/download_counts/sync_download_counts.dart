@@ -57,12 +57,6 @@ Map<String, int> _extractDayCounts(Map<String, dynamic> json) {
 }
 
 Future<Set<String>> processDownloadCounts(DateTime date) async {
-  final downloadCountsFileName = [
-    'daily_download_counts',
-    formatDateForFileName(date),
-    'data-000000000000.jsonl',
-  ].join('/');
-
   final fileNamePrefix =
       ['daily_download_counts', formatDateForFileName(date), 'data-'].join('/');
   final bucket =
@@ -70,14 +64,16 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
 
   final failedFiles = <String>{};
 
-  if (await bucket.list(prefix: fileNamePrefix).isEmpty) {
+  final bucketEntries = await bucket.list(prefix: fileNamePrefix).toList();
+
+  if (bucketEntries.isEmpty) {
     _logger.info('Failed to read any files with prefix "$fileNamePrefix"./n');
     failedFiles.add(fileNamePrefix);
   }
 
   final processedPackages = <String>{};
   final pool = Pool(10);
-  await for (final f in bucket.list(prefix: fileNamePrefix)) {
+  for (final f in bucketEntries) {
     final fileName = f.name;
     if (f.isDirectory) {
       _logger.severe(
@@ -141,8 +137,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
 
           dayCounts = _extractDayCounts(data);
         } on FormatException catch (e) {
-          _logger.severe(
-              'Failed to proccess line $line of file $downloadCountsFileName \n'
+          _logger.severe('Failed to proccess line $line of file $fileName \n'
               '$e');
           failedFiles.add(fileName);
           return;
@@ -186,7 +181,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
               (await packageBackend.lookupModeratedPackage(package)) == null) {
             _logger.severe(
                 'Package $package appeared in download counts data for file '
-                '$downloadCountsFileName but does not exist.\n'
+                '$fileName but does not exist.\n'
                 'Error: $e');
             return;
           } // else {
