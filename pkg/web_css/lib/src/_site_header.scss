@@ -71,10 +71,18 @@
     width: 24px;
     background-position: center;
     margin: 0 18px;
-    background-image: url("../img/light-mode-symbol-888888.svg");
+    background-image: url("../img/dark-mode-symbol-888888.svg");
     background-size: 100%;
     background-repeat: no-repeat;
     opacity: 0.8;
+
+    .dark-theme & {
+      background-image: url("../img/light-mode-symbol-888888.svg");
+    }
+
+    &:hover {
+      opacity: 1.0;
+    }
   }
 
   a.logo {
