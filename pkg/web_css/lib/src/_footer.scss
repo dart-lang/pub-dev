@@ -13,6 +13,7 @@
   > a.link {
     color: $color-footer-dark-fg;
     padding-right: 12px;
+    text-wrap: nowrap;
 
     > .inline-icon {
       display: inline-block;
