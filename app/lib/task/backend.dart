@@ -303,6 +303,9 @@ class TaskBackend {
     // Map from package to updated that has been seen.
     final seen = <String, DateTime>{};
 
+    // We will schedule longer overlaps every 6 hours.
+    var nextLongScan = clock.fromNow(hours: 6);
+
     // In theory 30 minutes overlap should be enough. In practice we should
     // allow an ample room for missed windows, and 3 days seems to be large enough.
     var since = clock.ago(days: 3);
@@ -312,8 +315,14 @@ class TaskBackend {
         ..filter('updated >', since)
         ..order('-updated');
 
-      // Next time we'll only consider changes since now - 5 minutes
-      since = clock.ago(minutes: 5);
+      if (clock.now().isAfter(nextLongScan)) {
+        // Next time we'll do a longer scan
+        since = clock.ago(days: 1);
+        nextLongScan = clock.fromNow(hours: 6);
+      } else {
+        // Next time we'll only consider changes since now - 30 minutes
+        since = clock.ago(minutes: 30);
+      }
 
       // Look at all packages that has changed
       await for (final p in q.run()) {
