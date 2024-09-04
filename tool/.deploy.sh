@@ -67,7 +67,7 @@ echo "### Deploying index.yaml"
 time -p gcloud --project "$PROJECT_ID" app deploy index.yaml
 
 # This script will build images:
-APP_IMAGE="gcr.io/$PROJECT_ID/pub-dev-$APP_VERSION-app"
+APP_IMAGE="us-central1-docker.pkg.dev/$PROJECT_ID/app-images/pub-dev:$APP_VERSION"
 WORKER_IMAGE="us-central1-docker.pkg.dev/dartlang-pub-tasks/$PROJECT_ID-worker-images/task-worker:$APP_VERSION"
 
 echo "### Building docker image for appengine: $APP_IMAGE"

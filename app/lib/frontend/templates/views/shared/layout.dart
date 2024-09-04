@@ -27,6 +27,7 @@ d.Node pageLayoutNode({
   required d.Node mainContent,
   required bool includeHighlightJs,
   required Map<String, dynamic>? schemaOrgSearchActionJson,
+  required String? moderationUrl,
   required ModerationSubject? moderationSubject,
 }) {
   return d.fragment([
@@ -239,7 +240,7 @@ d.Node pageLayoutNode({
 
             d.element('main', classes: mainClasses, child: mainContent),
             _siteFooterNode(
-              canonicalUrl: canonicalUrl,
+              moderationUrl: moderationUrl,
               moderationSubject: moderationSubject,
             ),
             if (includeHighlightJs)
@@ -261,9 +262,10 @@ d.Node pageLayoutNode({
 
 /// Renders the footer content.
 ///
-/// The [canonicalUrl] must be the canonical URL for the current page.
+/// The [moderationUrl] must be the canonical URL for the current page
+/// (note: may not be displayed as canonical URL in case of admin pages).
 d.Node _siteFooterNode({
-  required String? canonicalUrl,
+  required String? moderationUrl,
   required ModerationSubject? moderationSubject,
 }) {
   d.Node link(String href, String label, {bool sep = true}) =>
@@ -282,27 +284,25 @@ d.Node _siteFooterNode({
       );
 
   final moderationNode = () {
-    if (moderationSubject == null) {
+    if (moderationSubject == null || moderationUrl == null) {
       return null;
     }
     if (moderationSubject.package != null) {
       return link(
         urls.reportPage(
           subject: moderationSubject.fqn,
-          url: canonicalUrl,
+          url: moderationUrl,
         ),
         'Report package',
-        sep: false,
       );
     }
     if (moderationSubject.publisherId != null) {
       return link(
         urls.reportPage(
           subject: moderationSubject.fqn,
-          url: canonicalUrl,
+          url: moderationUrl,
         ),
         'Report publisher',
-        sep: false,
       );
     }
     throw ArgumentError('Unknown subject: ${moderationSubject.fqn}');
@@ -312,9 +312,8 @@ d.Node _siteFooterNode({
     'footer',
     classes: ['site-footer'],
     children: [
+      link('${urls.dartSiteRoot}/', 'Dart language', sep: false),
       if (moderationNode != null) moderationNode,
-      link('${urls.dartSiteRoot}/', 'Dart language',
-          sep: moderationNode != null),
       link('/policy', 'Policy'),
       link('https://www.google.com/intl/en/policies/terms/', 'Terms'),
       link('https://developers.google.com/terms/', 'API Terms'),

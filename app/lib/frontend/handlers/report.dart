@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -31,7 +32,20 @@ const _reportRateLimitWindowAsText = 'last 10 minutes';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
-  if (!requestContext.experimentalFlags.isReportPageEnabled) {
+  final feedback = request.requestedUri.queryParameters['feedback'];
+  if (feedback != null) {
+    switch (feedback) {
+      case 'report-submitted':
+        return htmlResponse(renderReportFeedback(
+          title: 'Report submitted',
+          message: 'The report has been submitted successfully.',
+        ));
+      case 'appeal-submitted':
+        return htmlResponse(renderReportFeedback(
+          title: 'Appeal submitted',
+          message: 'The appeal has been submitted successfully.',
+        ));
+    }
     return notFoundHandler(request);
   }
 
@@ -51,12 +65,21 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   final url = request.requestedUri.queryParameters['url'];
   _verifyUrl(url);
 
+  final kind = caseId == null ? 'report' : 'appeal';
+  final onSuccessGotoUrl = request.requestedUri.replace(
+    path: '/report',
+    queryParameters: {
+      'feedback': '$kind-submitted',
+    },
+  ).toString();
+
   return htmlResponse(
     renderReportPage(
       sessionData: requestContext.sessionData,
       subject: subject,
       url: url,
       caseId: caseId,
+      onSuccessGotoUrl: onSuccessGotoUrl,
     ),
     headers: CacheControl.explicitlyPrivate.headers,
   );
@@ -134,12 +157,8 @@ Future<void> _verifyCaseSubject(
 }
 
 /// Handles POST /api/report
-Future<String> processReportPageHandler(
+Future<Message> processReportPageHandler(
     shelf.Request request, ReportForm form) async {
-  if (!requestContext.experimentalFlags.isReportPageEnabled) {
-    throw NotFoundException('Experimental flag is not enabled.');
-  }
-
   final sourceIp = request.sourceIp;
   if (sourceIp != null) {
     await verifyRequestCounts(
@@ -216,13 +235,14 @@ Future<String> processReportPageHandler(
   });
 
   final kind = isAppeal ? 'appeal' : 'report';
-  final kindLabel = isAppeal ? 'moderation appeal' : 'content report';
+  final kindLabel = isAppeal ? 'moderation appeal' : 'content policy violation';
   final bodyText = <String>[
-    'New $kind received on ${now.toIso8601String()}: $caseId',
+    'New $kind received on ${now.toIso8601String().split('T').first}: $caseId',
     if (form.url != null) 'URL: ${form.url}',
     if (isAppeal) 'Appealed case ID: ${form.caseId}',
+    if (!isAppeal) 'Violated policy: https://pub.dev/policy',
     'Subject: ${subject.fqn}',
-    'Message:\n${form.message}',
+    'Message:\n---\${form.message}\n---',
     'This $kind will be processed by the moderation team.',
   ].join('\n\n');
 
@@ -233,5 +253,5 @@ Future<String> processReportPageHandler(
     bodyText: bodyText,
   ));
 
-  return 'The $kind was submitted successfully.';
+  return Message(message: 'The $kind was submitted successfully.');
 }

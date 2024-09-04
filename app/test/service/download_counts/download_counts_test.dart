@@ -55,7 +55,7 @@ void main() {
           downloadCountsJsonFileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'));
-      await processDownloadCounts(downloadCountsJsonFileName, date);
+      await processDownloadCounts(date);
 
       final countData =
           await downloadCountsBackend.lookupDownloadCountData('neon');
@@ -76,7 +76,7 @@ void main() {
           downloadCountsJsonFileNameJan5,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'));
-      await processDownloadCounts(downloadCountsJsonFileNameJan5, date);
+      await processDownloadCounts(date);
 
       final nextDate = DateTime.parse('2024-01-06');
       final downloadCountsJsonFileNameJan6 =
@@ -89,7 +89,7 @@ void main() {
               'service',
               'download_counts',
               'fake_download_counts_data_less_packages.jsonl'));
-      await processDownloadCounts(downloadCountsJsonFileNameJan6, nextDate);
+      await processDownloadCounts(nextDate);
 
       final countData =
           await downloadCountsBackend.lookupDownloadCountData('neon');
@@ -121,18 +121,17 @@ void main() {
               'service',
               'download_counts',
               'fake_download_counts_data_faulty_line.jsonl'));
-      bool succeeded;
+      Set<String> failedFiles;
       final messages = <String>[];
       final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
       try {
-        succeeded = await processDownloadCounts(
-            downloadCountsJsonFileNameJan6, nextDate);
+        failedFiles = await processDownloadCounts(nextDate);
       } finally {
         await subscription.cancel();
       }
-      expect(succeeded, false);
+      expect(failedFiles, isNotEmpty);
       expect(messages.first, contains('Failed to proccess line'));
       expect(messages.first,
           contains('FormatException: "count" must be a String.'));
@@ -147,23 +146,56 @@ void main() {
       expect(neonCountData, isNull);
     });
 
-    testWithProfile('file not present', fn: () async {
+    testWithProfile('with non-existing package', fn: () async {
       final nextDate = DateTime.parse('2024-01-06');
-      bool succeeded;
+      final downloadCountsJsonFileNameJan6 =
+          'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
+      await generateFakeDownloadCounts(
+          downloadCountsJsonFileNameJan6,
+          path.join(
+              Directory.current.path,
+              'test',
+              'service',
+              'download_counts',
+              'fake_download_counts_data_non_existing_package.jsonl'));
+      Set<String> failedFiles;
       final messages = <String>[];
       final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
       try {
-        succeeded =
-            await processDownloadCounts('this_file_does_not_exist', nextDate);
+        failedFiles = await processDownloadCounts(nextDate);
+      } finally {
+        await subscription.cancel();
+      }
+      expect(failedFiles, isEmpty);
+      expect(messages.first, contains('Could not find `package "hest"`.'));
+      // We still process the lines that are possible
+      final countData =
+          await downloadCountsBackend.lookupDownloadCountData('neon');
+      expect(countData, isNotNull);
+      expect(countData!.newestDate, nextDate);
+
+      final hestCountData =
+          await downloadCountsBackend.lookupDownloadCountData('hest');
+      expect(hestCountData, isNull);
+    });
+
+    testWithProfile('file not present', fn: () async {
+      final nextDate = DateTime.parse('2024-01-06');
+      Set<String> failedFiles;
+      final messages = <String>[];
+      final subscription = Logger.root.onRecord.listen((event) {
+        messages.add(event.message);
+      });
+      try {
+        failedFiles = await processDownloadCounts(nextDate);
       } finally {
         await subscription.cancel();
       }
 
-      expect(succeeded, false);
-      expect(messages.first,
-          contains('Failed to read "this_file_does_not_exist".'));
+      expect(failedFiles, isNotEmpty);
+      expect(messages.first, contains('Failed to read'));
     });
 
     testWithProfile('empty file', fn: () async {
@@ -174,19 +206,18 @@ void main() {
           downloadCountsJsonFileNameJan6,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data_empty.jsonl'));
-      bool succeeded;
+      Set<String> failedFiles;
       final messages = <String>[];
       final subscription = Logger.root.onRecord.listen((event) {
         messages.add(event.message);
       });
       try {
-        succeeded = await processDownloadCounts(
-            downloadCountsJsonFileNameJan6, nextDate);
+        failedFiles = await processDownloadCounts(nextDate);
       } finally {
         await subscription.cancel();
       }
 
-      expect(succeeded, false);
+      expect(failedFiles, isNotEmpty);
       expect(
           messages,
           contains(
@@ -302,16 +333,16 @@ void main() {
       );
       expect(
           messages.first,
-          contains('Failed to read '
+          contains('Failed to read any files with prefix '
               '"daily_download_counts/'
               '${formatDateForFileName(yesterday)}'
-              '/data-000000000000.jsonl".'));
+              '/data-'));
       expect(
           messages,
           contains(
               'Download counts sync was partial. The following files failed:\n'
               '[daily_download_counts/${formatDateForFileName(yesterday)}'
-              '/data-000000000000.jsonl]'));
+              '/data-]'));
     });
 
     testWithProfile('Sync download counts - fail', fn: () async {
@@ -331,19 +362,34 @@ void main() {
               'download_counts', 'fake_download_counts_data.jsonl'),
         );
       }
+
+      final messages = <String>[];
+      final subscription = Logger.root.onRecord.listen((event) {
+        messages.add(event.message);
+      });
+
       var exception = '';
       try {
         await syncDownloadCounts();
       } on Exception catch (e) {
         exception = e.toString();
+      } finally {
+        await subscription.cancel();
       }
+
+      expect(
+          messages.first,
+          contains('Failed to read any files with prefix '
+              '"daily_download_counts/'
+              '${formatDateForFileName(skippedDate)}'
+              '/data-'));
 
       expect(
           exception,
           'Exception: Download counts sync was partial. The following files failed:'
           '[daily_download_counts/'
           '${formatDateForFileName(skippedDate)}'
-          '/data-000000000000.jsonl]');
+          '/data-]');
 
       final countData =
           await downloadCountsBackend.lookupDownloadCountData('neon');
@@ -358,5 +404,224 @@ void main() {
         [1, 1, 1, 1, 0, 0],
       );
     });
+
+    testWithProfile('Sync download counts several data files - success',
+        fn: () async {
+      final today = clock.now();
+
+      for (int i = defaultNumberOfSyncDays; i > 0; i--) {
+        final date = today.addCalendarDays(-i);
+        final fileName = [
+          'daily_download_counts',
+          formatDateForFileName(date),
+          'data-000000000000.jsonl',
+        ].join('/');
+
+        final fileName1 = [
+          'daily_download_counts',
+          formatDateForFileName(date),
+          'data-000000000001.jsonl',
+        ].join('/');
+
+        await generateFakeDownloadCounts(
+          fileName,
+          path.join(Directory.current.path, 'test', 'service',
+              'download_counts', 'fake_download_counts_data.jsonl'),
+        );
+
+        await generateFakeDownloadCounts(
+          fileName1,
+          path.join(Directory.current.path, 'test', 'service',
+              'download_counts', 'fake_download_counts_data1.jsonl'),
+        );
+      }
+
+      await syncDownloadCounts();
+      final countDataNeon =
+          await downloadCountsBackend.lookupDownloadCountData('neon');
+      expect(countDataNeon, isNotNull);
+      expect(countDataNeon!.newestDate!.day, today.addCalendarDays(-1).day);
+      expect(
+        countDataNeon.totalCounts.take(6).toList(),
+        [1, 1, 1, 1, 1, -1],
+      );
+      expect(
+        countDataNeon.majorRangeCounts.first.counts.take(6),
+        [1, 1, 1, 1, 1, 0],
+      );
+
+      final countDataFT = await downloadCountsBackend
+          .lookupDownloadCountData('flutter_titanium');
+      expect(countDataFT, isNotNull);
+      expect(countDataFT!.newestDate!.day, today.addCalendarDays(-1).day);
+      expect(
+        countDataFT.totalCounts.take(6).toList(),
+        [1, 1, 1, 1, 1, -1],
+      );
+      expect(
+        countDataFT.majorRangeCounts.first.counts.take(6),
+        [1, 1, 1, 1, 1, 0],
+      );
+    });
+  });
+
+  testWithProfile('Sync download counts several data files - success & failure',
+      fn: () async {
+    final today = clock.now();
+
+    for (int i = defaultNumberOfSyncDays; i > 0; i--) {
+      final date = today.addCalendarDays(-i);
+      final fileName = [
+        'daily_download_counts',
+        formatDateForFileName(date),
+        'data-000000000000.jsonl',
+      ].join('/');
+
+      final fileName1 = [
+        'daily_download_counts',
+        formatDateForFileName(date),
+        'data-000000000001.jsonl',
+      ].join('/');
+
+      await generateFakeDownloadCounts(
+        fileName,
+        path.join(Directory.current.path, 'test', 'service', 'download_counts',
+            'fake_download_counts_data.jsonl'),
+      );
+
+      await generateFakeDownloadCounts(
+        fileName1,
+        path.join(Directory.current.path, 'test', 'service', 'download_counts',
+            'fake_download_counts_data_empty.jsonl'),
+      );
+    }
+    String exception = '';
+    try {
+      await syncDownloadCounts();
+    } on Exception catch (e) {
+      exception = e.toString();
+    }
+    final countDataNeon =
+        await downloadCountsBackend.lookupDownloadCountData('neon');
+    expect(countDataNeon, isNotNull);
+    expect(countDataNeon!.newestDate!.day, today.addCalendarDays(-1).day);
+    expect(
+      countDataNeon.totalCounts.take(6).toList(),
+      [1, 1, 1, 1, 1, -1],
+    );
+    expect(
+      countDataNeon.majorRangeCounts.first.counts.take(6),
+      [1, 1, 1, 1, 1, 0],
+    );
+
+    expect(
+        exception,
+        contains(
+            'Exception: Download counts sync was partial. The following files failed:'
+            '[daily_download_counts/'
+            '${formatDateForFileName(today.addCalendarDays(-1))}'
+            '/data-000000000001.jsonl'));
+
+    final countDataFT =
+        await downloadCountsBackend.lookupDownloadCountData('flutter_titanium');
+    expect(countDataFT, isNotNull);
+    expect(countDataFT!.newestDate!.day, today.addCalendarDays(-1).day);
+    expect(
+      countDataFT.totalCounts.take(6).toList(),
+      [0, 0, 0, 0, 0, -1],
+    );
+  });
+  testWithProfile('Sync download counts several data files - failure',
+      fn: () async {
+    final today = clock.now();
+
+    final goodDate = today.addCalendarDays(-2);
+    final fileName = [
+      'daily_download_counts',
+      formatDateForFileName(goodDate),
+      'data-000000000000.jsonl',
+    ].join('/');
+
+    final fileName1 = [
+      'daily_download_counts',
+      formatDateForFileName(goodDate),
+      'data-000000000001.jsonl',
+    ].join('/');
+
+    await generateFakeDownloadCounts(
+      fileName,
+      path.join(Directory.current.path, 'test', 'service', 'download_counts',
+          'fake_download_counts_data.jsonl'),
+    );
+
+    await generateFakeDownloadCounts(
+      fileName1,
+      path.join(Directory.current.path, 'test', 'service', 'download_counts',
+          'fake_download_counts_data1.jsonl'),
+    );
+    final faultyDate = today.addCalendarDays(-1);
+    final fileName2 = [
+      'daily_download_counts',
+      formatDateForFileName(faultyDate),
+      'data-000000000000.jsonl',
+    ].join('/');
+
+    final fileName3 = [
+      'daily_download_counts',
+      formatDateForFileName(faultyDate),
+      'data-000000000001.jsonl',
+    ].join('/');
+
+    await generateFakeDownloadCounts(
+      fileName2,
+      path.join(Directory.current.path, 'test', 'service', 'download_counts',
+          'fake_download_counts_data_empty.jsonl'),
+    );
+
+    await generateFakeDownloadCounts(
+      fileName3,
+      path.join(Directory.current.path, 'test', 'service', 'download_counts',
+          'fake_download_counts_data_empty.jsonl'),
+    );
+
+    String exception = '';
+    try {
+      await syncDownloadCounts();
+    } on Exception catch (e) {
+      exception = e.toString();
+    }
+    final countDataNeon =
+        await downloadCountsBackend.lookupDownloadCountData('neon');
+    expect(countDataNeon, isNotNull);
+    expect(countDataNeon!.newestDate!.day, goodDate.day);
+    expect(
+      countDataNeon.totalCounts.take(6).toList(),
+      [1, -1, -1, -1, -1, -1],
+    );
+    expect(
+      countDataNeon.majorRangeCounts.first.counts.take(6),
+      [1, 0, 0, 0, 0, 0],
+    );
+
+    expect(
+        exception,
+        contains(
+            'Exception: Download counts sync was partial. The following files failed:'
+            '[daily_download_counts/'
+            '${formatDateForFileName(faultyDate)}'
+            '/data-000000000000.jsonl'));
+
+    final countDataFT =
+        await downloadCountsBackend.lookupDownloadCountData('flutter_titanium');
+    expect(countDataFT, isNotNull);
+    expect(countDataFT!.newestDate!.day, goodDate.day);
+    expect(
+      countDataFT.totalCounts.take(6).toList(),
+      [1, -1, -1, -1, -1, -1],
+    );
+    expect(
+      countDataFT.majorRangeCounts.first.counts.take(6),
+      [1, 0, 0, 0, 0, 0],
+    );
   });
 }

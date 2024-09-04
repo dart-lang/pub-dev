@@ -7,6 +7,7 @@ RUN apt-get update && \
 
 ENV PUB_ENVIRONMENT="bot.pub_dev.pub_worker"
 ENV CI="true"
+ENV NO_COLOR="true"
 
 # Configure a 'worker' user, to avoid running processes as root when this is not
 # necessary (this is just docker hardening).
@@ -22,10 +23,10 @@ RUN mkdir -p /home/worker/config/dart-stable
 RUN mkdir -p /home/worker/config/flutter-stable
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.5.1
+RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.5.2
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.24.0
+RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.24.1
 
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin

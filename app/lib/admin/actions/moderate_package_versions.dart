@@ -88,15 +88,15 @@ Set the moderated flag on a package version (updating the flag and the timestamp
 
         // Update references to latest versions.
         final pkg = await tx.lookupValue<Package>(p.key);
-        if (pkg.mayAffectLatestVersions(v.semanticVersion)) {
-          final versions =
-              await tx.query<PackageVersion>(pkg.key).run().toList();
-          pkg.updateLatestVersionReferences(
-            versions,
-            dartSdkVersion: currentDartSdk.semanticVersion,
-            flutterSdkVersion: currentFlutterSdk.semanticVersion,
-            replaced: v,
-          );
+        final versions = await tx.query<PackageVersion>(pkg.key).run().toList();
+        pkg.updateVersions(
+          versions,
+          dartSdkVersion: currentDartSdk.semanticVersion,
+          flutterSdkVersion: currentFlutterSdk.semanticVersion,
+          replaced: v,
+        );
+        if (pkg.latestVersionKey == null) {
+          throw InvalidInputException('xx');
         }
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);

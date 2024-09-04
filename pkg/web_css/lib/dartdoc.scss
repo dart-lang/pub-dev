@@ -13,7 +13,6 @@
 @use '../../../third_party/dartdoc/resources/styles.css';
 
 @import 'src/_staging_ribbon.scss';
-@import 'src/_themes';
 
 // This is meant for a temporary override for highlight.js. We need to
 // figure out a better way to customize the syntax highlights for dark
@@ -28,4 +27,21 @@
 .dark-theme .hljs .hljs-addition {
   /* TODO(https://github.com/dart-lang/pub-dev/issues/7101): Investigate if this should be fixed in dartdoc's styles.css: the dark theme is not applied there. */
   color: black;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr {
+  background-color: var(--pub-default-background-color);
+  border-top: 1px solid #c6cbd1;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body table tr:nth-child(2n) {
+  background-color: #f6f8fa;
+}
+
+/* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
+.light-theme .markdown-body .highlight pre,
+.light-theme .markdown-body pre {
+  background-color: #f6f8fa;
 }

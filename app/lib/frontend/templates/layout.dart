@@ -65,9 +65,6 @@ String renderLayoutPage(
   final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
   final session = requestContext.sessionData;
   final moderationSubject = () {
-    if (!requestContext.experimentalFlags.isReportPageEnabled) {
-      return null;
-    }
     if (pageData == null) {
       return null;
     }
@@ -82,6 +79,7 @@ String renderLayoutPage(
     }
     return null;
   }();
+  final moderationUrl = canonicalUrl ?? moderationSubject?.canonicalUrl;
   return pageLayoutNode(
     title: title,
     description: pageDescription ?? _defaultPageDescription,
@@ -111,6 +109,7 @@ String renderLayoutPage(
     mainContent: contentNode,
     includeHighlightJs: type == PageType.package,
     schemaOrgSearchActionJson: isRoot ? _schemaOrgSearchAction : null,
+    moderationUrl: moderationUrl,
     moderationSubject: moderationSubject,
   ).toString();
 }

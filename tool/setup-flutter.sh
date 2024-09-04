@@ -44,5 +44,5 @@ fi
 # which should be already included in the tar archive. However, the tar archive requires
 # to run `flutter doctor` to work properly.
 cd "$1"
-./bin/flutter --no-version-check config --no-analytics
+./bin/flutter --no-version-check config --no-analytics --no-cli-animations
 ./bin/flutter --no-version-check doctor

@@ -14,7 +14,6 @@ import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -444,7 +443,6 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package.versionCount--;
         package.updated = clock.now().toUtc();
       } else {
         print('Package $packageName does not have a version $version.');
@@ -455,14 +453,11 @@ class AdminBackend {
             'Last version detected. Use full package removal without the version qualifier.');
       }
 
-      if (package.mayAffectLatestVersions(Version.parse(version))) {
-        package.updateLatestVersionReferences(
-          versions.where((v) => v.version != version).toList(),
-          dartSdkVersion: currentDartSdk.semanticVersion,
-          flutterSdkVersion: currentFlutterSdk.semanticVersion,
-        );
-      }
-
+      package.updateVersions(
+        versions.where((v) => v.version != version).toList(),
+        dartSdkVersion: currentDartSdk.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
+      );
       package.deletedVersions ??= <String>[];
       if (!package.deletedVersions!.contains(version)) {
         package.deletedVersions!.add(version);

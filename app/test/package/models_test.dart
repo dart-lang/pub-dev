@@ -327,6 +327,8 @@ class _PublishSequence {
     ..name = 'pkg'
     ..created = DateTime(2021, 01, 29);
 
+  final _versions = <PackageVersion>[];
+
   void publish(String version, {int sdk = 0}) {
     final minSdk = sdk > 0 ? _futureSdk : (sdk < 0 ? _pastSdk : _currentSdk);
     final pv = PackageVersion.init()
@@ -341,7 +343,8 @@ class _PublishSequence {
           'sdk': '>=$minSdk <3.0.0',
         },
       });
-    _p.updateVersion(pv,
+    _versions.add(pv);
+    _p.updateVersions(_versions,
         dartSdkVersion: _currentSdk,
         flutterSdkVersion: Version.parse('3.20.0'));
   }

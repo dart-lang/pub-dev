@@ -16,12 +16,29 @@ const _subjectKindLabels = {
   ModerationSubjectKind.publisher: 'publisher',
 };
 
+/// Renders the feedback page with a simple paragraph of [message].
+String renderReportFeedback({
+  required String title,
+  required String message,
+}) {
+  return renderLayoutPage(
+    PageType.standalone,
+    d.fragment([
+      d.h1(text: title),
+      d.p(text: message),
+    ]),
+    title: title,
+    noIndex: true,
+  );
+}
+
 /// Renders the create publisher page.
 String renderReportPage({
   SessionData? sessionData,
   required ModerationSubject subject,
   required String? url,
   required String? caseId,
+  required String onSuccessGotoUrl,
 }) {
   final isAppeal = caseId != null;
   final title = isAppeal ? 'Appeal a resolution' : 'Report a problem';
@@ -33,6 +50,7 @@ String renderReportPage({
         id: 'report-page-form',
         attributes: {
           'data-form-api-endpoint': '/api/report',
+          'data-form-success-goto': onSuccessGotoUrl,
         },
         children: [
           d.input(type: 'hidden', name: 'subject', value: subject.fqn),

@@ -17,12 +17,15 @@ Closes the moderation case and updates the status based on the actions logged on
 ''',
   options: {
     'case': 'The caseId to be closed.',
-    'status': 'The resolved status of the case. '
-        '(optional, will be automatically inferred if absent)',
+    'status': 'The resolved status of the case '
+        '(optional, will be automatically inferred if absent). '
+        'One of: ${ModerationStatus.resolveValues.join(', ')}.',
     'grounds': 'The grounds for the moderation actions '
-        '(if moderation action was taken).',
+        '(if moderation action was taken). '
+        'One of: ${ModerationGrounds.resolveValues.join(', ')}.',
     'violation': 'The high-level category of the violation reason '
-        '(if moderation action was taken).',
+        '(if moderation action was taken). '
+        'One of: ${ModerationViolation.violationValues.join(', ')}.',
     'reason': 'The text from SOR statement sent to the user '
         '(if moderation action was taken).',
   },
@@ -90,7 +93,7 @@ Closes the moderation case and updates the status based on the actions logged on
         InvalidInputException.checkAnyOf(
           grounds,
           'grounds',
-          [ModerationGrounds.illegal, ModerationGrounds.policy],
+          ModerationGrounds.resolveValues,
         );
 
         InvalidInputException.checkNotNull(violation, 'violation');

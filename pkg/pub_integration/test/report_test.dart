@@ -11,7 +11,7 @@ import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
-final _caseIdExpr = RegExp(r'[0-9]{8}-[0-9a-f]{10}');
+final _caseIdExpr = RegExp(r'[0-9]{8}I[0-9a-f]{10}');
 
 void main() {
   group('report', () {
@@ -65,10 +65,10 @@ void main() {
           await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');
-          await page.waitAndClick('#report-submit', waitForOneResponse: true);
-          expect(await page.content,
-              contains('The report was submitted successfully.'));
-          await page.waitAndClickOnDialogOk();
+          await page.waitAndClick('#report-submit');
+          await page.waitForNavigation();
+          expect(
+              await page.content, contains('has been submitted successfully'));
         },
       );
 
@@ -197,10 +197,9 @@ void main() {
 
         await page.waitFocusAndType(
             '#report-message', 'Huston, I have a different idea.');
-        await page.waitAndClick('#report-submit', waitForOneResponse: true);
-        expect(await page.content,
-            contains('The appeal was submitted successfully.'));
-        await page.waitAndClickOnDialogOk();
+        await page.waitAndClick('#report-submit');
+        await page.waitForNavigation();
+        expect(await page.content, contains('has been submitted successfully'));
       });
 
       final appealEmail = await supportUser.readLatestEmail();
@@ -214,9 +213,6 @@ void main() {
         AdminInvokeActionArguments(
           arguments: {
             'case': appealCaseId,
-            'grounds': 'policy',
-            'violation': 'scope_of_platform_service',
-            'reason': 'Package violated our policy.',
           },
         ),
       );

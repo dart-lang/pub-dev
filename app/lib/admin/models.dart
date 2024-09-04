@@ -126,13 +126,13 @@ class ModerationCase extends db.ExpandoModel<String> {
     opened = clock.now().toUtc();
   }
 
-  /// Generates a short case id like `<yyyy><mm><dd>-0123456789`.
+  /// Generates a short case id like `<yyyy><mm><dd>I0123456789`.
   static String generateCaseId({
     DateTime? now,
   }) {
     now ??= clock.now();
     return '${now.toIso8601String().split('T').first.replaceAll('-', '')}'
-        '-'
+        'I'
         '${createUuid().split('-').join('').substring(0, 10)}';
   }
 
@@ -162,6 +162,18 @@ class ModerationCase extends db.ExpandoModel<String> {
       note: note,
     ));
     setActionLog(log);
+  }
+
+  Map<String, dynamic> toCompactInfo() {
+    return {
+      'caseId': caseId,
+      'reporterEmail': reporterEmail,
+      'kind': kind,
+      'opened': opened.toIso8601String(),
+      'resolved': resolved?.toIso8601String(),
+      'subject': subject,
+      if (appealedCaseId != null) 'appealedCaseId': appealedCaseId,
+    };
   }
 
   Map<String, dynamic> toDebugInfo() {
@@ -222,8 +234,7 @@ abstract class ModerationStatus {
   static const moderationUpheld = 'moderation-upheld';
   static const moderationReverted = 'moderation-reverted';
 
-  static const _values = [
-    pending,
+  static const resolveValues = [
     noAction,
     moderationApplied,
     noActionUpheld,
@@ -231,10 +242,14 @@ abstract class ModerationStatus {
     moderationUpheld,
     moderationReverted,
   ];
+  static const _values = [
+    pending,
+    ...resolveValues,
+  ];
+
   static bool isValidStatus(String value) => _values.contains(value);
   static bool wasModerationApplied(String value) =>
       value == ModerationStatus.moderationApplied ||
-      value == ModerationStatus.moderationUpheld ||
       value == ModerationStatus.noActionReverted;
 }
 
@@ -242,6 +257,11 @@ abstract class ModerationGrounds {
   static const none = 'none';
   static const illegal = 'illegal';
   static const policy = 'policy';
+
+  static final resolveValues = [
+    illegal,
+    policy,
+  ];
 }
 
 abstract class ModerationViolation {

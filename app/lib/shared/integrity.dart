@@ -365,7 +365,10 @@ class IntegrityChecker {
       // to prevent false alarms that could happing if a new version is being published
       // while the integrity check is running.
       if (!pv.created!.isAfter(p.lastVersionPublished!)) {
-        versionCountUntilLastPublished++;
+        // Moderated versions are not counted.
+        if (!pv.isModerated) {
+          versionCountUntilLastPublished++;
+        }
       }
     }
     if (p.versionCount != versionCountUntilLastPublished) {

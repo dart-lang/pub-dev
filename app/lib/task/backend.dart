@@ -121,9 +121,21 @@ class TaskBackend {
         while (!aborted.isCompleted) {
           // Acquire the global lock and scan for package changes while lock is
           // valid.
-          await lock.withClaim((claim) async {
-            await _scanForPackageUpdates(claim, abort: aborted);
-          }, abort: aborted);
+          try {
+            await lock.withClaim((claim) async {
+              await _scanForPackageUpdates(claim, abort: aborted);
+            }, abort: aborted);
+          } catch (e, st) {
+            // Log this as very bad, and then move on. Nothing good can come
+            // from straight up stopping.
+            _log.shout(
+              'scanning failed (will retry when lock becomes free)',
+              e,
+              st,
+            );
+            // Sleep 5 minutes to reduce risk of degenerate behavior
+            await Future.delayed(Duration(minutes: 5));
+          }
         }
       } catch (e, st) {
         _log.severe('scanning loop crashed', e, st);
@@ -159,6 +171,8 @@ class TaskBackend {
               e,
               st,
             );
+            // Sleep 5 minutes to reduce risk of degenerate behavior
+            await Future.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
@@ -289,6 +303,9 @@ class TaskBackend {
     // Map from package to updated that has been seen.
     final seen = <String, DateTime>{};
 
+    // We will schedule longer overlaps every 6 hours.
+    var nextLongScan = clock.fromNow(hours: 6);
+
     // In theory 30 minutes overlap should be enough. In practice we should
     // allow an ample room for missed windows, and 3 days seems to be large enough.
     var since = clock.ago(days: 3);
@@ -298,8 +315,14 @@ class TaskBackend {
         ..filter('updated >', since)
         ..order('-updated');
 
-      // Next time we'll only consider changes since now - 5 minutes
-      since = clock.ago(minutes: 5);
+      if (clock.now().isAfter(nextLongScan)) {
+        // Next time we'll do a longer scan
+        since = clock.ago(days: 1);
+        nextLongScan = clock.fromNow(hours: 6);
+      } else {
+        // Next time we'll only consider changes since now - 30 minutes
+        since = clock.ago(minutes: 30);
+      }
 
       // Look at all packages that has changed
       await for (final p in q.run()) {

@@ -177,7 +177,9 @@ void main() {
 
       final list = await api.adminInvokeAction(
         'moderation-case-list',
-        AdminInvokeActionArguments(arguments: {}),
+        AdminInvokeActionArguments(arguments: {
+          'density': 'expanded',
+        }),
       );
       expect(list.output, {
         'cases': [
