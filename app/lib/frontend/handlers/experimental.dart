@@ -8,6 +8,7 @@ import '../../shared/cookie_utils.dart';
 
 const _publicFlags = <String>{
   'dark',
+  'search-completion',
 };
 
 const _allFlags = <String>{
@@ -82,6 +83,8 @@ class ExperimentalFlags {
     }
     return params;
   }
+
+  bool get isSearchCompletionEnabled => isEnabled('search-completion');
 
   bool get isDarkModeEnabled => isEnabled('dark');
   bool get isDarkModeDefault => isEnabled('dark-as-default');

@@ -309,6 +309,10 @@ class CachePatterns {
       .withPrefix('topic-name-completion-data-json-gz/')
       .withTTL(Duration(hours: 8))['-'];
 
+  Entry<List<int>> searchInputCompletionDataJsonGz() => _cache
+      .withPrefix('search-input-completion-data-json-gz/')
+      .withTTL(Duration(hours: 8))['-'];
+
   /// Stores the flag that latest version of packages have been scanned for job entities.
   Entry<bool> jobHistoryLatestScanned(String service) =>
       jobHistoryPackageScanned(service, '');

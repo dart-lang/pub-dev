@@ -741,6 +741,22 @@ Router _$PubApiRouter(PubApi service) {
     },
   );
   router.add(
+    'GET',
+    r'/api/search-input-completion-data',
+    (Request request) async {
+      try {
+        final _$result = await service.searchInputCompletionData(
+          request,
+        );
+        return _$result;
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
     'PUT',
     r'/api/packages/<package>/options',
     (

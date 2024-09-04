@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:gcloud/storage.dart';
+import 'package:pub_dev/frontend/templates/views/shared/search_banner.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../frontend/request_context.dart';
@@ -280,6 +282,170 @@ Future<shelf.Response> apiTopicNameCompletionDataHandler(
     ...CacheControl.completionData.headers
   });
 }
+
+/// Handles requests for
+/// - /api/search-input-completion-data
+Future<shelf.Response> apiSearchInputCompletionDataHandler(
+  shelf.Request request,
+) async {
+  // only accept requests which allow JSON response
+  if (!request.acceptsJsonContent()) {
+    throw NotAcceptableException(
+      'Client must send "Accept: application/json" header.',
+    );
+  }
+
+  final bytes = await cache.searchInputCompletionDataJsonGz().get(() async {
+    final topicsJson = await storageService
+        .bucket(activeConfiguration.reportsBucketName!)
+        .readAsBytes(topicsJsonFileName);
+    final topicsMap = json.decode(utf8.decode(topicsJson));
+    final topics = (topicsMap as Map<String, Object?>).keys.toList();
+    return gzip.encode(utf8.encode(completionDataJson(
+      topics: topics,
+      licenses: _commonLicenses,
+    )));
+  });
+
+  if (!request.acceptsGzipEncoding()) {
+    // TODO: Consider caching non-compressed response
+    // Note: We must handle non-gzipped response, as we can't set the
+    //       Content-Encoding header in the browser.
+    //       Though, all browsers will allow gzip :D
+    return shelf.Response(200, body: gzip.decode(bytes!), headers: {
+      ...jsonResponseHeaders,
+      ...CacheControl.completionData.headers
+    });
+  }
+
+  return shelf.Response(200, body: bytes, headers: {
+    ...jsonResponseHeaders,
+    'Content-Encoding': 'gzip',
+    ...CacheControl.completionData.headers
+  });
+}
+
+/// A hardcoded list of common licenses.
+///
+/// TODO: Extract a list of all licenses used from analyzed data.
+const _commonLicenses = [
+  '0bsd',
+  'aal',
+  'afl-1.1',
+  'afl-1.2',
+  'afl-2.0',
+  'afl-2.1',
+  'afl-3.0',
+  'agpl-3.0',
+  'apl-1.0',
+  'apsl-1.0',
+  'apsl-1.1',
+  'apsl-1.2',
+  'apsl-2.0',
+  'apache-1.1',
+  'apache-2.0',
+  'artistic-1.0',
+  'artistic-1.0-perl',
+  'artistic-1.0-cl8',
+  'artistic-2.0',
+  'bsd-1-clause',
+  'bsd-2-clause',
+  'bsd-2-clause-patent',
+  'bsd-3-clause',
+  'bsd-3-clause-lbnl',
+  'bsl-1.0',
+  'cal-1.0-combined-work-exception',
+  'catosl-1.1',
+  'cddl-1.0',
+  'cecill-2.1',
+  'cern-ohl-p-2.0',
+  'cern-ohl-s-2.0',
+  'cern-ohl-w-2.0',
+  'cnri-python',
+  'cpal-1.0',
+  'cpl-1.0',
+  'cua-opl-1.0',
+  'ecl-1.0',
+  'ecl-2.0',
+  'efl-1.0',
+  'efl-2.0',
+  'epl-1.0',
+  'epl-2.0',
+  'eudatagrid',
+  'eupl-1.1',
+  'eupl-1.2',
+  'entessa',
+  'fair',
+  'frameworx-1.0',
+  'gpl-2.0',
+  'gpl-3.0',
+  'hpnd',
+  'ipa',
+  'ipl-1.0',
+  'isc',
+  'intel',
+  'lgpl-2.0',
+  'lgpl-2.1',
+  'lgpl-3.0',
+  'lpl-1.0',
+  'lpl-1.02',
+  'lppl-1.3c',
+  'liliq-p-1.1',
+  'liliq-r-1.1',
+  'liliq-rplus-1.1',
+  'mit',
+  'mit-0',
+  'mit-modern-variant',
+  'mpl-1.0',
+  'mpl-1.1',
+  'mpl-2.0',
+  'ms-pl',
+  'ms-rl',
+  'miros',
+  'motosoto',
+  'mulanpsl-2.0',
+  'multics',
+  'nasa-1.3',
+  'ncsa',
+  'ngpl',
+  'nposl-3.0',
+  'ntp',
+  'naumen',
+  'nokia',
+  'oclc-2.0',
+  'ofl-1.1',
+  'ogtsl',
+  'oldap-2.8',
+  'oset-pl-2.1',
+  'osl-1.0',
+  'osl-2.0',
+  'osl-2.1',
+  'osl-3.0',
+  'php-3.0',
+  'php-3.01',
+  'postgresql',
+  'python-2.0',
+  'qpl-1.0',
+  'rpl-1.1',
+  'rpl-1.5',
+  'rpsl-1.0',
+  'rscpl',
+  'sissl',
+  'spl-1.0',
+  'simpl-2.0',
+  'sleepycat',
+  'ucl-1.0',
+  'upl-1.0',
+  'unicode-dfs-2016',
+  'unlicense',
+  'vsl-1.0',
+  'w3c',
+  'watcom-1.0',
+  'xnet',
+  'zpl-2.0',
+  'zpl-2.1',
+  'zlib',
+];
 
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {

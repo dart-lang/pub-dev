@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+
 import 'package:mdc_web/mdc_web.dart' as mdc show autoInit;
+
 import 'src/account.dart';
 import 'src/foldable.dart';
 import 'src/hoverable.dart';
@@ -14,6 +16,7 @@ import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';
 import 'src/scroll.dart';
 import 'src/search.dart';
+import 'src/widgets.dart' show setupWidgets;
 
 void main() {
   window.onLoad.listen((_) => mdc.autoInit());
@@ -39,6 +42,7 @@ void _setupAllEvents() {
   setupLikes();
   setupLikesList();
   setupScreenshotCarousel();
+  setupWidgets();
 }
 
 void _setupDarkThemeButton() {
