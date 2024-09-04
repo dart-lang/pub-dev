@@ -121,9 +121,21 @@ class TaskBackend {
         while (!aborted.isCompleted) {
           // Acquire the global lock and scan for package changes while lock is
           // valid.
-          await lock.withClaim((claim) async {
-            await _scanForPackageUpdates(claim, abort: aborted);
-          }, abort: aborted);
+          try {
+            await lock.withClaim((claim) async {
+              await _scanForPackageUpdates(claim, abort: aborted);
+            }, abort: aborted);
+          } catch (e, st) {
+            // Log this as very bad, and then move on. Nothing good can come
+            // from straight up stopping.
+            _log.shout(
+              'scanning failed (will retry when lock becomes free)',
+              e,
+              st,
+            );
+            // Sleep 5 minutes to reduce risk of degenerate behavior
+            await Future.delayed(Duration(minutes: 5));
+          }
         }
       } catch (e, st) {
         _log.severe('scanning loop crashed', e, st);
@@ -159,6 +171,8 @@ class TaskBackend {
               e,
               st,
             );
+            // Sleep 5 minutes to reduce risk of degenerate behavior
+            await Future.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
