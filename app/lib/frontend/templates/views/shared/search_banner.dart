@@ -95,6 +95,7 @@ String completionDataJson({
   List<String> licenses = const [],
 }) =>
     json.encode({
+      // TODO: Write a shared type for this in `pkg/_pub_shared/lib/data/`
       'completions': [
         {
           'match': ['', '-'],

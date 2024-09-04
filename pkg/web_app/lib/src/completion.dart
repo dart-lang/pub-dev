@@ -11,15 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' deferred as http show read;
 import 'package:web/web.dart';
 
-extension on HTMLCollection {
-  /// Take a snapshot of [HTMLCollection] as a Dart [List].
-  ///
-  /// Notice that it's not really safe to use [Iterable], because the underlying
-  /// [HTMLCollection] might change if things are added/removed during iteration.
-  /// Thus, we always convert to a Dart [List] and get a snapshot if the
-  /// [HTMLCollection].
-  List<Element> toList() => List.generate(length, (i) => item(i)!);
-}
+import 'web_util.dart';
 
 typedef _CompletionData = List<
     ({
