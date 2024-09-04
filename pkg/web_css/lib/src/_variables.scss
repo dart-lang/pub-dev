@@ -14,13 +14,24 @@
   --pub-code-text-font_family: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
   --pub-badge-default-color: var(--pub-link-text-color);
   --pub-badge-red-color: #ff4242;
+  --pub-carousel-background-color: rgba(0,0,0,0.85);
+  --pub-carousel_nav-background-color: rgba(0,0,0,0.7);
+  --pub-carousel_nav_hover-background-color: #4285f4;
+  --pub-carousel_screenshot-background-color: rgba(0,0,0,0.7);
+  --pub-carousel_screenshot-text-color: #ffffff;
+  --pub-collections_icon-background-color: #aeaeae;
+  --pub-thumbnail_container-background-color: #ffffff;
   --pub-copy_feedback-background-color: #fafaff;
   --pub-detail_tab-background-color: var(--pub-code-background-color);
   --pub-detail_tab-text-color: var(--pub-default-text-color);
   --pub-detail_tab-underline-color: #dddddd;
   --pub-detail_tab-active-color: #1967d2;
   --pub-detail_tab-admin-color: #990000;
+  --pub-hash_link-text-color: #ccc;
   --pub-home_title-text-color: #254a76;
+  --pub-home_announcement-background-color: #e7f8ff;
+  --pub-home_banner-text-color: #ffffff;
+  --pub-home_banner-link-color: #31b0fc;
   --pub-home_card-background-color: #ffffff;
   --pub-home_card-box_shadow-color: rgba(0, 0, 0, 0.3);
   --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, white);
@@ -31,22 +42,33 @@
   --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
+  --pub-input-placeholder-color: #888;
   --pub-pkg_list_item_hover-background-color: #fafafa;
+  --pub-pkg_list_recent_item-text-color: #6d7278;
+  --pub-remove_button-background-color: #ff4242;
+  --pub-remove_button-text-color: #ffffff;
+  --pub-report_header_score_error-text-color: #e13701;
+  --pub-report_header_score_warning-text-color: #ffa500;  
   --pub-report-hover-background-color: #f0f0f0;
   --pub-score_label-text-color: #6d7278;
   --pub-score_value-text-color: var(--pub-link-text-color);
+  --pub-session_warning-background-color: #ffffaa;
   --pub-sort_control-background-color: #ffffff;
   --pub-sort_control-text-color: var(--pub-default-text-color);
   --pub-sort_control_hover-background-color: #f5f5f7;
   --pub-sort_control_hover-text-color: var(--pub-default-text-color);
   --pub-sort_control_selected-background-color: #e7f8ff;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
+  --pub-spinner_frame-background-color: rgba(0, 0, 0, 0.2);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
   --pub-tag_simplebadge-background-color: #f0f0f0;
   --pub-tag_simplebadge-text-color: #444444;
+  --pub_tag_simplebadge_warning-background-color: #c0392b;
+  --pub_tag_simplebadge_warning-text-color: #f8f8f8;
   --pub-tag_sdkbadge-background-color: #e7f8ff;
   --pub-tag_sdkbadge-separator-color: rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity;
   --pub-tag_sdkbadge-text-color: #1967d2;
+  --pub-full_page_mask-background-color: rgba(0, 0, 0, 0.5); // Used to make the inaccessible UI parts fade into the background.
 
   // Material Design theme customizations
   --mdc-theme-primary: #0175c2;

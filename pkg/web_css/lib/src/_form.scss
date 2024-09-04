@@ -93,8 +93,8 @@
   padding: 2px 8px;
 
   &:hover {
-    background: $color-input-danger;
-    color: white;
+    background: var(--pub-remove_button-background-color);
+    color: var(--pub-remove_button-text-color);
   }
 }
 
