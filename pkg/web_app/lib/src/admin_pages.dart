@@ -31,6 +31,7 @@ void initAdminPages() {
 void _initGenericForm() {
   for (final form in document.querySelectorAll('[data-form-api-endpoint]')) {
     final endpoint = form.dataset['form-api-endpoint']!;
+    final onSuccessGotoUrl = form.dataset['form-success-goto'];
 
     for (final button in form.querySelectorAll('[data-form-api-button]')) {
       button.onClick.listen((event) async {
@@ -52,10 +53,19 @@ void _initGenericForm() {
           fn: () =>
               api_client.sendJson(verb: 'POST', path: endpoint, body: body),
           successMessage: null,
-          onSuccess: (result) async {
-            final message =
-                result == null ? null : result['message']?.toString();
-            await modalMessage('Success', text(message ?? 'OK.'));
+          onSuccess: (r) async {
+            final result = r ?? <String, dynamic>{};
+            // Goto a new location to display the feedback message.
+            if (onSuccessGotoUrl != null) {
+              window.location.href = onSuccessGotoUrl;
+              return;
+            }
+
+            // We shall display a minimal feedback the message is omitted.
+            final message = result['message']?.toString() ??
+                'Success. The page will reload.';
+            await modalMessage('Success', text(message));
+
             window.location.reload();
           },
         );

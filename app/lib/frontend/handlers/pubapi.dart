@@ -585,7 +585,6 @@ class PubApi {
 
   @EndPoint.post('/api/report')
   Future<Message> postReport(Request request, ReportForm body) async {
-    final message = await processReportPageHandler(request, body);
-    return Message(message: message);
+    return await processReportPageHandler(request, body);
   }
 }

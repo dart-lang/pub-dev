@@ -65,10 +65,10 @@ void main() {
           await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');
-          await page.waitAndClick('#report-submit', waitForOneResponse: true);
-          expect(await page.content,
-              contains('The report was submitted successfully.'));
-          await page.waitAndClickOnDialogOk();
+          await page.waitAndClick('#report-submit');
+          await page.waitForNavigation();
+          expect(
+              await page.content, contains('has been submitted successfully'));
         },
       );
 
@@ -197,10 +197,9 @@ void main() {
 
         await page.waitFocusAndType(
             '#report-message', 'Huston, I have a different idea.');
-        await page.waitAndClick('#report-submit', waitForOneResponse: true);
-        expect(await page.content,
-            contains('The appeal was submitted successfully.'));
-        await page.waitAndClickOnDialogOk();
+        await page.waitAndClick('#report-submit');
+        await page.waitForNavigation();
+        expect(await page.content, contains('has been submitted successfully'));
       });
 
       final appealEmail = await supportUser.readLatestEmail();

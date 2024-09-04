@@ -818,6 +818,7 @@ void main() {
         subject: ModerationSubject.package('oxygen'),
         url: 'https://pub.dev/packages/oxygen/example',
         caseId: null,
+        onSuccessGotoUrl: 'https://pub.dev/report?feedback=report-submitted',
       );
       expectGoldenFile(html, 'report_page.html');
     });
@@ -830,6 +831,7 @@ void main() {
         subject: ModerationSubject.package('oxygen'),
         url: null,
         caseId: 'fake-case-id',
+        onSuccessGotoUrl: 'https://pub.dev/report?feedback=appeal-submitted',
       );
       expectGoldenFile(html, 'report_page_appeal.html');
     });
