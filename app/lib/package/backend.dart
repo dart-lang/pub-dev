@@ -360,7 +360,7 @@ class PackageBackend {
         throw NotFoundException.resource('package "$package"');
       }
 
-      final changed = p.updateLatestVersionReferences(
+      final changed = p.updateVersions(
         versions,
         dartSdkVersion: dartSdkVersion!,
         flutterSdkVersion: flutterSdkVersion!,
@@ -633,21 +633,18 @@ class PackageBackend {
     pv.isRetracted = isRetracted;
     pv.retracted = isRetracted ? clock.now() : null;
 
-    // Update references to latest versions if the retracted version was
-    // the latest version or the restored version is newer than the latest.
-    if (p.mayAffectLatestVersions(pv.semanticVersion)) {
-      final versions = await tx.query<PackageVersion>(p.key).run().toList();
-      final currentDartSdk = await getCachedDartSdkVersion(
-          lastKnownStable: toolStableDartSdkVersion);
-      final currentFlutterSdk = await getCachedFlutterSdkVersion(
-          lastKnownStable: toolStableFlutterSdkVersion);
-      p.updateLatestVersionReferences(
-        versions,
-        dartSdkVersion: currentDartSdk.semanticVersion,
-        flutterSdkVersion: currentFlutterSdk.semanticVersion,
-        replaced: pv,
-      );
-    }
+    // Update references to latest versions.
+    final versions = await tx.query<PackageVersion>(p.key).run().toList();
+    final currentDartSdk = await getCachedDartSdkVersion(
+        lastKnownStable: toolStableDartSdkVersion);
+    final currentFlutterSdk = await getCachedFlutterSdkVersion(
+        lastKnownStable: toolStableFlutterSdkVersion);
+    p.updateVersions(
+      versions,
+      dartSdkVersion: currentDartSdk.semanticVersion,
+      flutterSdkVersion: currentFlutterSdk.semanticVersion,
+      replaced: pv,
+    );
 
     _logger.info(
         'Updating ${p.name} ${pv.version} options: isRetracted: $isRetracted');
@@ -1064,12 +1061,6 @@ class PackageBackend {
         lastKnownStable: toolStableFlutterSdkVersion);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
-    final existingLatestVersion = isNew
-        ? null
-        : await lookupPackageVersion(
-            existingPackage.name!, existingPackage.latestVersion!);
-    final existingLatestIsRetracted =
-        existingLatestVersion?.isRetracted ?? false;
 
     // check authorizations before the transaction
     await _requireUploadAuthorization(
@@ -1111,6 +1102,10 @@ class PackageBackend {
     final outgoingEmail = emailBackend.prepareEntity(email);
 
     Package? package;
+    final existingVersions = await db
+        .query<PackageVersion>(ancestorKey: newVersion.packageKey!)
+        .run()
+        .toList();
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -1159,14 +1154,12 @@ class PackageBackend {
       newVersion.publisherId = package!.publisherId;
 
       // Keep the latest version in the package object up-to-date.
-      package!.updateVersion(
-        newVersion,
+      package!.updateVersions(
+        [...existingVersions, newVersion],
         dartSdkVersion: currentDartSdk.semanticVersion,
         flutterSdkVersion: currentFlutterSdk.semanticVersion,
-        existingLatestIsRetracted: existingLatestIsRetracted,
       );
       package!.updated = clock.now().toUtc();
-      package!.versionCount++;
 
       // update automated publisher identifiers if this is the first time they have been used
       _updatePackageAutomatedPublishingLock(package!, agent);
