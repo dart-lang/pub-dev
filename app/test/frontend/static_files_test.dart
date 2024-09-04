@@ -109,8 +109,12 @@ void main() {
 
     testWithProfile('proper hash in css content', fn: () async {
       final css = cache.getFile('/static/css/style.css')!;
-      for (Match m
-          in RegExp('url\\("(.*?)"\\);').allMatches(css.contentAsString)) {
+      final matches = RegExp('url\\("([^"]*?)"\\);')
+          .allMatches(css.contentAsString)
+          .toList();
+      // expect some URLs
+      expect(matches, hasLength(greaterThan(5)));
+      for (final m in matches) {
         final matched = m.group(1)!;
         if (matched.contains('data:image')) continue;
         final uri = Uri.parse(matched);
@@ -119,7 +123,7 @@ void main() {
             .toString();
         expect(absPath, startsWith('/static/hash-xyz/'));
         final rs = await issueGet(absPath);
-        expect(rs.statusCode, 200);
+        expect(rs.statusCode, 200, reason: matched);
         expect(await rs.read().toList(), isNotEmpty);
       }
     });
