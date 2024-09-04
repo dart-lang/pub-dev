@@ -32,7 +32,7 @@
     color: $color-searchbar-dark-input-fg;
 
     &::placeholder {
-      color: #888;
+      color: var(--pub-input-placeholder-color);
     }
 
     .home-banner & {
@@ -112,7 +112,7 @@
   width: 25ex;
   border: 1px solid #000;
   max-height: 20em;
-  background-color: #fff;
+  background-color: var(--pub-default-background-color);
   font-size: 16px;
   margin-left: 48px; // counter padding-left on .search-bar>.input
   margin-top: -14px; // counter padding-top on .search-bar>.input
@@ -124,10 +124,10 @@
   }
 
   >.completion-option-selected {
-    background-color: #ccc;
+    background-color: var(--pub-search_completition_selected-background-color);
 
     &:hover {
-      background-color: #ccc;
+      background-color: var(--pub-search_completition_selected-background-color);
     }
   }
 }

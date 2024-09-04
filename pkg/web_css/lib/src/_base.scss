@@ -339,7 +339,7 @@ pre {
   right: 0;
   z-index: 10000;
 
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--pub-spinner_frame-background-color);
 
   display: flex;
   align-items: center;
@@ -361,7 +361,7 @@ pre {
 }
 
 .hash-link {
-  color: #ccc;
+  color: var(--pub-hash_link-text-color);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.5s ease-in-out 0.1s;
@@ -387,7 +387,7 @@ pre {
 .announcement-banner {
   padding: 10px 0;
 
-  background: #e7f8ff;
+  background: var(--pub-home_announcement-background-color);
   font-size: 16px;
 
   text-align: center;
@@ -411,7 +411,7 @@ a.-x-ago {
   top: 0;
   left: 0;
   right: 0;
-  background: #ffffaa;
+  background: var(--pub-session_warning-background-color);
   padding: 12px 24px;
   text-align: center;
   font-size: 14px;

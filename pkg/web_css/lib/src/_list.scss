@@ -36,7 +36,7 @@
   }
 
   .count {
-    background: rgba(218, 220, 224, 0.26);
+    background: var(--pub-code-background-color);
     display: inline-block;
     font-size: 12px;
     font-family: monospace;
@@ -106,7 +106,7 @@
   top: 0px;
   z-index: 1;
   display: none;
-  background: rgba(0,0,0,0.85);
+  background: var(--pub-carousel-background-color);
 
   .image-container {
     user-select: none;
@@ -128,7 +128,7 @@
   }
 
   .carousel-nav {
-    background-color: rgba(0,0,0,0.7);
+    background-color: var(--pub-carousel_nav-background-color);
     position: fixed;
     top: 50%;
     transform: translateY(-50%);
@@ -136,7 +136,7 @@
     z-index: 2;
 
     &:hover {
-      background-color: #4285f4;
+      background-color: var(--pub-carousel_nav_hover-background-color);
      }
    }
 
@@ -151,11 +151,11 @@
   .screenshot-description {
     font-size: 16px;
     z-index: 2;
-    color: white;
+    color: var(--pub-carousel_screenshot-text-color);
     bottom: 0;
     left: 20px;
     position: absolute;
-    background: rgba(0,0,0,0.7);
+    background: var(--pub-carousel_screenshot-background-color);
     border-radius: 25px;
     max-width: 35%;
     padding:12px;
@@ -170,7 +170,7 @@
   height: 30px;
   width: 30px;
   opacity: 70%;
-  background-color: #aeaeae;
+  background-color: var(--pub-collections_icon-background-color);
   margin-top: auto;
   margin-left: -30px;
 }
@@ -181,7 +181,7 @@
   height: inherit;
   justify-content: center;
   align-items: center;
-  background: white;
+  background: var(--pub-thumbnail_container-background-color);
 }
 
 .packages {
@@ -240,7 +240,7 @@
   }
 
   .packages-recent {
-    color: #6d7278;
+    color: var(--pub-pkg_list_recent_item-text-color);
     font-family: var(--pub-default-text-font_family);
     font-size: 12px;
     margin: 0px 8px 0px 16px;
@@ -268,7 +268,6 @@
   }
 
   .packages-api {
-    color: #3c4043;
     font-size: 12px;
     margin-top: 6px;
     display: flex;

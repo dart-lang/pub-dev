@@ -19,8 +19,8 @@
 
   &.legacy,
   &.retracted {
-    background: #c0392b;
-    color: #f8f8f8;
+    background: var(--pub_tag_simplebadge_warning-background-color);
+    color: var(--pub_tag_simplebadge_warning-text-color);
   }
 }
 
@@ -45,8 +45,8 @@
 
 /* Tag for discontinued packages. */
 .-pub-tag-discontinued {
-  background: #c0392b;
-  color: #f8f8f8;
+  background: var(--pub_tag_simplebadge_warning-background-color);
+  color: var(--pub_tag_simplebadge_warning-text-color);
   padding: 2px;
 
   >.-discontinued-main {

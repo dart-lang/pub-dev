@@ -23,11 +23,11 @@
     margin: 1em auto;
     max-width: 500px;
 
-    color: white;
+    color: var(--pub-home_banner-text-color);
     font-size: 18px;
 
     > a {
-      color: #31b0fc;
+      color: var(--pub-home_banner-link-color);
     }
   }
 
