@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Upgraded dependencies including `googleapis`.
 
 ## `20240905t122100-all`
  * Bumped runtimeVersion to `2024.09.04`.
