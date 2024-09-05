@@ -975,7 +975,7 @@ class TaskBackend {
     if (data == null) {
       final status = await packageStatus(package);
       if (status.runtimeVersion == null) {
-        return 'no log - `PackageState` entity missing';
+        return 'no log - no tracking information';
       }
       final v = status.versions[version];
       if (v == null) {
