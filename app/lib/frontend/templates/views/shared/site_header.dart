@@ -111,9 +111,9 @@ d.Node siteHeaderNode({
           _foldableMobileLinks('Dart', _dartLinks),
           if (userSession != null && userSession.isAuthenticated)
             _userBlock(userSession),
-          _themeSwitcher(),
         ],
       ),
+      _themeSwitcher(),
     ],
   );
 }
