@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/compute/v1.dart' hide Duration;
+import 'package:googleapis/compute/v1.dart' as compute_v1 show Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
@@ -456,13 +457,15 @@ runcmd:
       name: instanceName,
       description: description,
       machineType: 'zones/$zone/machineTypes/$_machineType',
-      scheduling: _Scheduling(
+      scheduling: Scheduling(
         preemptible: true,
         automaticRestart: false,
         onHostMaintenance: 'TERMINATE',
         instanceTerminationAction: 'DELETE',
         provisioningModel: 'SPOT',
-        maxRunDuration: _maxRunDuration,
+        maxRunDuration: compute_v1.Duration(
+          seconds: _maxRunDuration.inSeconds.toString(),
+        ),
       ),
       labels: {
         // Labels that allows us to filter instances when listing instances.
@@ -772,51 +775,5 @@ DateTime _parseInstanceCreationTimestamp(String? timestamp) {
     );
     // Fallback to year zero that way instances will be killed.
     return DateTime(0);
-  }
-}
-
-/// Extend [Scheduling] with support for [maxRunDuration].
-///
-/// This is only available in the Compute Beta API, but extremely useful for
-/// our use case, because GCE will then automatically delete instances.
-///
-/// The [maxRunDuration] property is encoded as:
-/// ```
-/// "maxRunDuration": {
-///   "seconds": string,
-///   "nanos": integer
-/// },
-/// ```
-/// For details, see reference documentation:
-/// https://cloud.google.com/compute/docs/reference/rest/beta/instances/insert
-class _Scheduling extends Scheduling {
-  /// Specifies the max run duration for the given instance.
-  ///
-  /// If specified, the instance termination action will be performed at the
-  /// end of the run duration.
-  Duration? maxRunDuration;
-
-  _Scheduling({
-    super.automaticRestart,
-    super.instanceTerminationAction,
-    super.locationHint, // ignore: unused_element
-    super.minNodeCpus, // ignore: unused_element
-    super.nodeAffinities, // ignore: unused_element
-    super.onHostMaintenance,
-    super.preemptible,
-    super.provisioningModel,
-    this.maxRunDuration,
-  });
-
-  @override
-  Map<String, dynamic> toJson() {
-    final maxRunDuration_ = maxRunDuration;
-    return <String, dynamic>{
-      ...super.toJson(),
-      if (maxRunDuration_ != null)
-        'maxRunDuration': <String, dynamic>{
-          'seconds': '${maxRunDuration_.inSeconds}',
-        },
-    };
   }
 }
