@@ -18,8 +18,8 @@ dependencies:
   fake_async: ^1.2.0
   fake_gcloud:
     path: ../pkg/fake_gcloud
-  gcloud: '^0.8.11'
-  googleapis: ^12.0.0
+  gcloud: '^0.8.13'
+  googleapis: ^13.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
   http: ^1.0.0
