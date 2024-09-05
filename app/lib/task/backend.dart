@@ -960,7 +960,7 @@ class TaskBackend {
 
   /// Get log from task run of [package] and [version].
   ///
-  /// Returns `null`, if not available.
+  /// If log is unavailable, it returns some information about the internal state.
   ///
   /// If log is unavailable it's usually because:
   ///  * package is not tracked for analysis,
@@ -973,13 +973,21 @@ class TaskBackend {
   Future<String?> taskLog(String package, String version) async {
     final data = await gzippedTaskResult(package, version, 'log.txt');
     if (data == null) {
-      return null;
+      final status = await packageStatus(package);
+      if (status.runtimeVersion == null) {
+        return 'no log - no tracking information';
+      }
+      final v = status.versions[version];
+      if (v == null) {
+        return 'no log - version is not tracked';
+      }
+      return 'no log - current version status: ${v.status}';
     }
     try {
       return utf8.decode(gzip.decode(data), allowMalformed: true);
     } on FormatException catch (e, st) {
       _log.shout('Task log for $package/$version is malformed', e, st);
-      return null;
+      return 'no log - `log.txt` contains malformed characters';
     }
   }
 
