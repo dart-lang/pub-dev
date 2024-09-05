@@ -32,6 +32,9 @@ final _helpMarkdown = _readDocContent('help.md');
 final _helpScoringMarkdown = _readDocContent('help-scoring.md');
 final _helpSearchMarkdown = _readDocContent('help-search.md');
 final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
+final _helpContentModerationMarkdown = _readDocContent(
+  'help-content-moderation.md',
+);
 
 late final _sideImage = d.Image.decorative(
   src: static_files.staticUrls.packagesSideImage,
@@ -95,6 +98,19 @@ String renderHelpScoringPage() {
     ),
     title: 'Scoring | Dart packages',
     canonicalUrl: '/help/scoring',
+  );
+}
+
+/// Renders the `doc/help-content-moderation.md`.
+String renderHelpContentModerationPage() {
+  return renderLayoutPage(
+    PageType.standalone,
+    standalonePageNode(
+      _helpContentModerationMarkdown,
+      sideImage: _sideImage,
+    ),
+    title: 'Content Moderation | Pub site',
+    canonicalUrl: '/help/content-moderation',
   );
 }
 

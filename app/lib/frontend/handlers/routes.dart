@@ -276,6 +276,11 @@ class PubSiteService {
   Future<Response> helpPageScoring(Request request) =>
       helpPageScoringHandler(request);
 
+  /// Renders the help page for scoring
+  @Route.get('/help/content-moderation')
+  Future<Response> helpPageContentModeration(Request request) =>
+      helpPageContentModerationHandler(request);
+
   /// Renders the help page for search
   @Route.get('/help/search')
   Future<Response> helpPageSearch(Request request) =>

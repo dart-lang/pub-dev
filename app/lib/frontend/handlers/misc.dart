@@ -46,6 +46,13 @@ Future<shelf.Response> helpPageScoringHandler(shelf.Request request) async {
   return htmlResponse(renderHelpScoringPage());
 }
 
+/// Handles requests for /help/content-moderation
+Future<shelf.Response> helpPageContentModerationHandler(
+  shelf.Request request,
+) async {
+  return htmlResponse(renderHelpContentModerationPage());
+}
+
 /// Handles requests for /help/search
 Future<shelf.Response> helpPageSearchHandler(shelf.Request request) async {
   return htmlResponse(renderHelpSearchPage());
