@@ -250,6 +250,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/help/content-moderation',
+    service.helpPageContentModeration,
+  );
+  router.add(
+    'GET',
     r'/help/search',
     service.helpPageSearch,
   );
