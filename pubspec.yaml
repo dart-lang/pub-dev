@@ -1,0 +1,19 @@
+name: workspace
+environment:
+  sdk: '^3.5.0'
+
+workspace:
+  - app/
+  - pkg/pub_integration
+  - pkg/_pub_shared
+  - pkg/api_builder
+  - pkg/web_css
+  - pkg/_popularity
+  - pkg/code_coverage
+  - pkg/pub_worker
+  - pkg/web_app
+  - pkg/fake_gcloud
+  - pkg/indexed_blob
+  - pkg/pub_package_reader
+dev_dependencies:
+  mono_repo: ^6.6.1
