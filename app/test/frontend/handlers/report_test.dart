@@ -28,8 +28,12 @@ void main() {
     });
 
     testWithProfile('page works with signed-in session', fn: () async {
+      final cookies = await acquireSessionCookies('user@pub.dev');
       await expectHtmlResponse(
-        await issueGet('/report?subject=package:oxygen'),
+        await issueGet(
+          '/report?subject=package:oxygen',
+          headers: {'cookie': cookies},
+        ),
         present: ['Please describe the issue you want to report:'],
         absent: ['Contact information'],
       );
