@@ -242,7 +242,7 @@ Future<Message> processReportPageHandler(
     if (isAppeal) 'Appealed case ID: ${form.caseId}',
     if (!isAppeal) 'Violated policy: https://pub.dev/policy',
     'Subject: ${subject.fqn}',
-    'Message:\n---\${form.message}\n---',
+    'Message:\n---\n${form.message}\n---',
     'This $kind will be processed by the moderation team.',
   ].join('\n\n');
 
