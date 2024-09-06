@@ -15,7 +15,6 @@ import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/handlers/package.dart'
     show loadPackagePageData;
 import 'package:pub_dev/frontend/request_context.dart';
@@ -141,8 +140,6 @@ void main() {
       'package show page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(
-            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await withFakeAuthRequestContext(
           adminAtPubDevEmail,
           () => loadPackagePageDataByName('oxygen', '1.2.0', AssetKind.readme),
@@ -173,8 +170,6 @@ void main() {
       'package example page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(
-            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await loadPackagePageDataByName(
             'oxygen', '1.2.0', AssetKind.example);
         final html = renderPkgExamplePage(data);
@@ -212,8 +207,6 @@ void main() {
       'package show page - with version',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(
-            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await loadPackagePageDataByName(
             'oxygen', '1.2.0', AssetKind.readme);
         final html = renderPkgShowPage(data);
@@ -484,8 +477,6 @@ void main() {
       'package versions page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(
-            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
         final rs = await issueGet('/packages/oxygen/versions');
         final html = await rs.readAsString();
@@ -523,8 +514,6 @@ void main() {
       'publisher packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        registerRequestContext(
-            RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
         final searchForm = SearchForm();
         final publisher = (await publisherBackend.getPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
@@ -811,8 +800,6 @@ void main() {
     });
 
     testWithProfile('report page', fn: () async {
-      registerRequestContext(
-          RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
       final html = renderReportPage(
         sessionData: null,
         subject: ModerationSubject.package('oxygen'),
@@ -824,8 +811,6 @@ void main() {
     });
 
     testWithProfile('report page - appeal', fn: () async {
-      registerRequestContext(
-          RequestContext(experimentalFlags: ExperimentalFlags({'report'})));
       final html = renderReportPage(
         sessionData: null,
         subject: ModerationSubject.package('oxygen'),

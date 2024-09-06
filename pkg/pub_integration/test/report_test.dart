@@ -56,10 +56,6 @@ void main() {
       // visit report page and file a report
       await anonReporter.withBrowserPage(
         (page) async {
-          // enable experimental flag
-          await page.gotoOrigin('/experimental?report=1');
-          await Future.delayed(Duration(seconds: 1));
-
           await page.gotoOrigin('/report?subject=package:oxygen');
           await page.waitAndClick('.report-page-direct-report');
           await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
@@ -188,10 +184,6 @@ void main() {
 
       // admin appeals
       await pkgAdminUser.withBrowserPage((page) async {
-        // enable experimental flag
-        await page.gotoOrigin('/experimental?report=1');
-        await Future.delayed(Duration(seconds: 1));
-
         await page
             .gotoOrigin(appealPageUrl.replaceAll('https://pub.dev/', '/'));
 

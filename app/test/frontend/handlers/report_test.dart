@@ -7,7 +7,6 @@ import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
@@ -20,10 +19,7 @@ void main() {
   group('Report handlers test', () {
     testWithProfile('page does not require authentication', fn: () async {
       await expectHtmlResponse(
-        await issueGet(
-          '/report?subject=package:oxygen',
-          headers: {'cookie': '$experimentalCookieName=report'},
-        ),
+        await issueGet('/report?subject=package:oxygen'),
         present: [
           'Please describe the issue you want to report:',
           'Contact information',
@@ -32,12 +28,8 @@ void main() {
     });
 
     testWithProfile('page works with signed-in session', fn: () async {
-      final cookies = await acquireSessionCookies('user@pub.dev');
       await expectHtmlResponse(
-        await issueGet(
-          '/report?subject=package:oxygen',
-          headers: {'cookie': '$experimentalCookieName=report; $cookies'},
-        ),
+        await issueGet('/report?subject=package:oxygen'),
         present: ['Please describe the issue you want to report:'],
         absent: ['Contact information'],
       );
@@ -45,10 +37,7 @@ void main() {
 
     testWithProfile('page with missing subject', fn: () async {
       await expectHtmlResponse(
-        await issueGet(
-          '/report',
-          headers: {'cookie': '$experimentalCookieName=report'},
-        ),
+        await issueGet('/report'),
         present: [
           '&quot;subject&quot; cannot be `null`',
         ],
@@ -61,10 +50,7 @@ void main() {
 
     testWithProfile('page with bad subject', fn: () async {
       await expectHtmlResponse(
-        await issueGet(
-          '/report?subject=x',
-          headers: {'cookie': '$experimentalCookieName=report'},
-        ),
+        await issueGet('/report?subject=x'),
         present: [
           'Invalid &quot;subject&quot; parameter.',
         ],
@@ -77,10 +63,7 @@ void main() {
 
     testWithProfile('page with package version subject', fn: () async {
       await expectHtmlResponse(
-        await issueGet(
-          '/report?subject=package-version:oxygen/1.0.0',
-          headers: {'cookie': '$experimentalCookieName=report'},
-        ),
+        await issueGet('/report?subject=package-version:oxygen/1.0.0'),
         present: [
           'Please describe the issue you want to report:',
           'oxygen/1.0.0',
@@ -92,7 +75,6 @@ void main() {
   group('Report API test', () {
     testWithProfile('unauthenticated email missing', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -112,7 +94,6 @@ void main() {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
         await withHttpPubApiClient(
-          experimental: {'report'},
           sessionId: sessionId,
           csrfToken: csrfToken,
           fn: (client) async {
@@ -133,7 +114,6 @@ void main() {
 
     testWithProfile('subject missing', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -151,7 +131,6 @@ void main() {
 
     testWithProfile('subject is invalid', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -170,7 +149,6 @@ void main() {
 
     testWithProfile('package missing', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -189,7 +167,6 @@ void main() {
 
     testWithProfile('version missing', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -208,7 +185,6 @@ void main() {
 
     testWithProfile('publisher missing', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -230,7 +206,6 @@ void main() {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
         await withHttpPubApiClient(
-          experimental: {'report'},
           sessionId: sessionId,
           csrfToken: csrfToken,
           fn: (client) async {
@@ -251,7 +226,6 @@ void main() {
 
     testWithProfile('unauthenticated report success', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
@@ -279,7 +253,6 @@ void main() {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
         await withHttpPubApiClient(
-          experimental: {'report'},
           sessionId: sessionId,
           csrfToken: csrfToken,
           fn: (client) async {
@@ -331,7 +304,6 @@ void main() {
 
     testWithProfile('failure: case does not exists', fn: () async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -351,7 +323,6 @@ void main() {
     testWithProfile('failure: case is not closed', fn: () async {
       await _prepareApplied(status: ModerationStatus.pending);
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -371,7 +342,6 @@ void main() {
     testWithProfile('failure: subject is not on the case', fn: () async {
       await _prepareApplied();
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -395,7 +365,6 @@ void main() {
       );
 
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
@@ -432,7 +401,6 @@ void main() {
 
       await withFakeAuthHttpPubApiClient(
         email: 'admin@pub.dev',
-        experimental: {'report'},
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
             subject: 'package-version:oxygen/1.2.0',
