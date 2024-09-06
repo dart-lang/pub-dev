@@ -32,7 +32,6 @@ void main() {
   group('Moderate package', () {
     Future<ModerationCase> _report(String package) async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await client.postReport(ReportForm(
             email: 'user@pub.dev',

@@ -82,7 +82,7 @@ void main() {
 final _headers = {
   'Cookie': Cookie(
     experimentalCookieName,
-    ExperimentalFlags({'report'}).encodedAsCookie(),
+    ExperimentalFlags({'experiment-name'}).encodedAsCookie(),
   ).toString(),
 };
 
