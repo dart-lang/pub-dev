@@ -73,6 +73,7 @@ void main() {
       final reportEmail2 = await supportUser.readLatestEmail();
       expect(reportEmail1, contains('package:oxygen'));
       expect(reportEmail2, contains('package:oxygen'));
+      expect(reportEmail1, contains('Huston'));
 
       // verify moderation case
       final caseId = _caseIdExpr.firstMatch(reportEmail2)!.group(0)!;
