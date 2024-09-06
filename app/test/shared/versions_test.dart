@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-
+import 'dart:isolate';
+import 'package:path/path.dart' as p;
 import 'package:_pub_shared/utils/flutter_archive.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_dev/shared/versions.dart';
@@ -97,7 +98,10 @@ void main() {
   });
 
   test('analyzer version should match resolved pana version', () async {
-    final String lockContent = await File('pubspec.lock').readAsString();
+    final String lockContent = await File(p.join(
+            p.dirname(p.dirname(Isolate.packageConfigSync!.toFilePath())),
+            'pubspec.lock'))
+        .readAsString();
     final lock = loadYaml(lockContent) as Map;
     expect(lock['packages']['pana']['version'], panaVersion);
   });
