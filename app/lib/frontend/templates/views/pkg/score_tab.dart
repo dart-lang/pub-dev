@@ -38,7 +38,7 @@ d.Node scoreTabNode({
       classes: ['score-key-figures'],
       children: [
         _likeKeyFigureNode(likeCount),
-        _pubPointsKeyFigureNode(report),
+        _pubPointsKeyFigureNode(report, showPending),
         _popularityKeyFigureNode(card.popularityScore),
       ],
     ),
@@ -266,11 +266,11 @@ d.Node _popularityKeyFigureNode(double? popularity) {
   );
 }
 
-d.Node _pubPointsKeyFigureNode(Report? report) {
+d.Node _pubPointsKeyFigureNode(Report? report, bool showPending) {
   if (report == null) {
     return _keyFigureNode(
-      value: '',
-      supplemental: 'pending',
+      value: showPending ? '' : '-',
+      supplemental: showPending ? 'pending' : '/ -',
       label: 'pub points',
     );
   }

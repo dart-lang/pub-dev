@@ -77,7 +77,7 @@ void main() {
 
     // Check that the log is missing.
     final log1 = await taskBackend.taskLog('oxygen', '1.2.0');
-    expect(log1, isNull);
+    expect(log1, 'no log - version is not tracked');
 
     // Check that the dartdoc is missing
     final dartdoc1 = await taskBackend.dartdocFile(

@@ -19,7 +19,6 @@ void main() {
       required bool? apply,
     }) async {
       await withHttpPubApiClient(
-        experimental: {'report'},
         fn: (client) async {
           await client.postReport(ReportForm(
             email: 'user@pub.dev',

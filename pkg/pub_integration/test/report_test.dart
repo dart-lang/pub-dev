@@ -56,10 +56,6 @@ void main() {
       // visit report page and file a report
       await anonReporter.withBrowserPage(
         (page) async {
-          // enable experimental flag
-          await page.gotoOrigin('/experimental?report=1');
-          await Future.delayed(Duration(seconds: 1));
-
           await page.gotoOrigin('/report?subject=package:oxygen');
           await page.waitAndClick('.report-page-direct-report');
           await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
@@ -77,6 +73,7 @@ void main() {
       final reportEmail2 = await supportUser.readLatestEmail();
       expect(reportEmail1, contains('package:oxygen'));
       expect(reportEmail2, contains('package:oxygen'));
+      expect(reportEmail1, contains('Huston'));
 
       // verify moderation case
       final caseId = _caseIdExpr.firstMatch(reportEmail2)!.group(0)!;
@@ -188,10 +185,6 @@ void main() {
 
       // admin appeals
       await pkgAdminUser.withBrowserPage((page) async {
-        // enable experimental flag
-        await page.gotoOrigin('/experimental?report=1');
-        await Future.delayed(Duration(seconds: 1));
-
         await page
             .gotoOrigin(appealPageUrl.replaceAll('https://pub.dev/', '/'));
 
