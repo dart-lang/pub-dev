@@ -35,4 +35,5 @@ class ResolvedDocUrlVersion {
   Map<String, dynamic> toJson() => _$ResolvedDocUrlVersionToJson(this);
 
   bool get isEmpty => version.isEmpty || urlSegment.isEmpty;
+  bool get isLatestStable => urlSegment == 'latest';
 }

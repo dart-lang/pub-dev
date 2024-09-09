@@ -3,7 +3,6 @@ import 'dart:io' show gzip;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
-import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -92,13 +91,12 @@ Future<shelf.Response> handleDartDoc(
               DartDocSidebar.fromJson(dataJson as Map<String, dynamic>);
           return utf8.encode(sidebar.content);
         }
-        final latestVersion = await packageBackend.getLatestVersion(package);
         final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
         final html = page.render(DartDocPageOptions(
           package: package,
           version: version,
           urlSegment: resolvedDocUrlVersion.urlSegment,
-          isLatestStable: version == latestVersion,
+          isLatestStable: resolvedDocUrlVersion.isLatestStable,
           path: path,
           searchQueryParameter: searchQueryParameter,
         ));
