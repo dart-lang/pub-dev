@@ -38,7 +38,7 @@ class Client {
 
   Future<T> _withClient<T>(FutureOr<T> Function(http.Client) fn) async {
     if (_client != null) {
-      return fn(_client!);
+      return fn(_client);
     }
     final client = http.Client();
     try {
