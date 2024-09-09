@@ -9,6 +9,7 @@ import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/urls.dart';
 import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/task/models.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 const _safeMimeTypes = {
@@ -111,7 +112,31 @@ Future<shelf.Response> handleDartDoc(
     });
     // We use empty string to indicate missing file or bug in the file
     if (htmlBytes == null || htmlBytes.isEmpty) {
-      return notFoundHandler(request);
+      final status = await taskBackend.packageStatus(package);
+      final vs = status.versions[version];
+      if (vs == null) {
+        return notFoundHandler(
+          request,
+          body: resolvedDocUrlVersion.isLatestStable
+              ? 'Analysis has not started yet.'
+              : 'Version not selected for analysis.',
+        );
+      }
+      String? message;
+      switch (vs.status) {
+        case PackageVersionStatus.pending:
+        case PackageVersionStatus.running:
+          message = 'Analysis has not finished yet.';
+          break;
+        case PackageVersionStatus.failed:
+          message =
+              'Analysis has failed, no `dartdoc` output has been generated.';
+          break;
+        case PackageVersionStatus.completed:
+          message = '`dartdoc` did not generate this page.';
+          break;
+      }
+      return notFoundHandler(request, body: message);
     }
     return htmlBytesResponse(htmlBytes);
   }
