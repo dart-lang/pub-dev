@@ -271,10 +271,10 @@ pre {
 }
 
 ._banner-bg {
-  background: $color-searchbar-dark-bg;
+  background: var(--pub-searchbar-background-color);
   background-image: url("../img/hero-bg-static.svg");
   background-size: cover;
-  color: $color-searchbar-dark-fg;
+  color: var(--pub-searchbar-text-color);
   padding: 10px 0px;
 
   a {
