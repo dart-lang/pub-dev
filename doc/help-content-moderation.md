@@ -1,4 +1,4 @@
-# Overview of Our Policies and How We Enforce Them
+# Pub.dev policies and how they are enforced
 
 Pub.dev is the official package repository for Dart and Flutter apps.
 We strive to support the publication of packages in a manner that is
@@ -43,7 +43,8 @@ Egregious violations of our policies may result in more significant enforcement
 repercussions, including but not limited to an immediate ban and escalation to
 law enforcement authorities.
 
-## How to Appeal a Content Moderation Decision
+## How to appeal a content moderation decision
+
 If you report content or an account, or your content or account was actioned
 against, you will receive a notification about the type of enforcement and
 the reasoning for any enforcement action taken.
@@ -58,18 +59,18 @@ necessary to show why our decision was in error.
 Appeals that do not include such information, and/or simply restate the facts
 and evidence stated in the initial report will be denied.
 We reserve the right to take action against users who abuse our appeals
-processes, including temporarily or permanently suspending a user’s ability to
+processes, including temporarily or permanently suspending a user's ability to
 submit further appeals if that user makes claims that are spammy,
 use inappropriate language, or are otherwise manifestly unfounded.
 
-Once we’ve reviewed your appeal, we’ll communicate the outcome to you.
-If we agree with your appeal, we’ll take appropriate action to reverse our
+Once we've reviewed your appeal, we'll communicate the outcome to you.
+If we agree with your appeal, we'll take appropriate action to reverse our
 prior decision.
 
-If you’re covered by the European Union’s Digital Services Act (“DSA”),
+If you're covered by the European Union's Digital Services Act ("DSA"),
 the option to refer your complaint to a certified out-of-court dispute
 settlement body may also be available to you.
-[Learn more about the European Union’s DSA][2].
+[Learn more about the European Union's DSA][2].
 If you have legal questions or wish to examine other remedies that may be
 available to you, including the option of referring this matter to a court,
 you may wish to speak to your own lawyer.
