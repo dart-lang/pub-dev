@@ -7,8 +7,7 @@ The [Pub.dev Policy][1] describes our policies around acceptable use of our
 services.
 These policies are designed to ensure a safe and positive experience for our
 users and abide by applicable laws.
-This Help article provides additional information on how we enforce these
-policies.
+This article provides additional information on how we enforce these policies.
 
 The Pub.dev Policy prohibits content that is harmful to our users or others
 (including name squatting, trademark and copyright infringement, and harmful or

@@ -155,8 +155,8 @@ prior decision. Appeals may not be available in all circumstances
 You will receive more information about your appeals options in the notification
 we send to you about your content or account.
 
-You can also find information about our appeals process by visiting our
-[Help Center Article][2].
+You can also find information about our appeals process by visiting
+our article on [content moderation and enforcement][2].
 
 If you're covered by the European Union's Digital Services Act ("DSA"),
 the option to refer your complaint to a certified out-of-court dispute
