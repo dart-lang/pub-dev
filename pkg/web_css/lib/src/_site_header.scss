@@ -21,8 +21,8 @@
 }
 
 .site-header {
-  background: $site-header-banner-bg;
-  color: $site-header-banner-fg;
+  background: var(--pub-site_header_banner-background-color);
+  color: var(--pub-site_header_banner-text-color);
   display: flex;
   align-items: center;
   height: 40px;
@@ -123,8 +123,8 @@
       height: 25px;
       width: 25px;
       padding: 5px 20px 5px 5px;
-      color: $site-header-banner-fg;
-      background-color: $site-header-banner-bg;
+      color: var(--pub-site_header_banner-text-color);
+      background-color: var(--pub-site_header_banner-background-color);
       background-image: url("../img/search-icon-light.svg");
       background-repeat: no-repeat;
       background-position: right;
@@ -138,7 +138,7 @@
 
       &:focus {
         width: 240px;
-        background-color: lighten($site-header-banner-bg, 10%);
+        background-color: var(--pub-site_header_banner_hover-background-color);
         padding-left: 10px;
         padding-right: 30px;
         cursor: inherit;
@@ -176,7 +176,7 @@
   }
 
   .nav-link {
-    color: $site-header-popup-fg;
+    color: var(--pub-site_header_popup-text-color);
     display: block;
     line-height: 26px;
     white-space: nowrap;
@@ -230,7 +230,7 @@
       bottom: 0;
       left: 0;
       width: 80%;
-      background: $site-header-popup-bg;
+      background: var(pub-site_header_popup-background-color);
       transform: translateX(-100%);
       transition: transform 0.3s ease;
       z-index: $z-index-nav-mask + 1;
@@ -247,7 +247,7 @@
       .nav-container,
       .nav-login-container {
         padding: 16px;
-        border-bottom: 1px solid $site-header-popup-line;
+        border-bottom: 1px solid var(--pub-site_header_popup-border-color);
 
         .nav-main-button {
           display: none;
@@ -334,8 +334,8 @@
         .nav-hover-popup {
           display: none;
           position: absolute;
-          background: $site-header-popup-bg;
-          color: $site-header-popup-fg;
+          background: var(--pub-site_header_popup-background-color);
+          color: var(--pub-site_header_popup-text-color);
           min-width: 200px;
           padding: 8px 12px;
           top: 50px;
@@ -355,12 +355,12 @@
           min-width: 100px;
 
           > h3 {
-            border-bottom: 1px solid $site-header-popup-line;
+            border-bottom: 1px solid var(--pub-site_header_popup-border-color);
           }
         }
 
         .nav-separator {
-          border-bottom: 1px solid $site-header-popup-line;
+          border-bottom: 1px solid var(--pub-site_header_popup-border-color);
           margin: 8px 0px;
         }
       }

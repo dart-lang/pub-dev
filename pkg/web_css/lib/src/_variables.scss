@@ -28,6 +28,8 @@
   --pub-detail_tab-active-color: #1967d2;
   --pub-detail_tab-admin-color: #990000;
   --pub-hash_link-text-color: #ccc;
+  --pub-footer-background-color: #27323a;
+  --pub-footer-text-color: #f8f9fa;
   --pub-home_title-text-color: #254a76;
   --pub-home_announcement-background-color: #e7f8ff;
   --pub-home_banner-text-color: #ffffff;
@@ -52,8 +54,18 @@
   --pub-report-hover-background-color: #f0f0f0;
   --pub-score_label-text-color: #6d7278;
   --pub-score_value-text-color: var(--pub-link-text-color);
+  --pub-searchbar-background-color: #132030;
+  --pub-searchbar-text-color: #8d9399;
+  --pub-searchbar_input-background-color: #35404d;
+  --pub-searchbar_input-text-color: #ffffff;
   --pub-search_completition_selected-background-color: #ccc;
   --pub-session_warning-background-color: #ffffaa;
+  --pub-site_header_banner-background-color: #1C2834;
+  --pub-site_header_banner-text-color: #f8f9fa;
+  --pub-site_header_banner_hover-background-color: #2b3d50; // 10% lighter than bg color
+  --pub-site_header_popup-background-color: #1f3044;
+  --pub-site_header_popup-text-color: #f8f9fa;
+  --pub-site_header_popup-border-color: #4a5868; // mix of bg+fg color
   --pub-sort_control-background-color: #ffffff;
   --pub-sort_control-text-color: var(--pub-default-text-color);
   --pub-sort_control_hover-background-color: #f5f5f7;
@@ -175,12 +187,6 @@
   }
 }
 
-$site-header-banner-bg: #1C2834;
-$site-header-banner-fg: #f8f9fa;
-$site-header-popup-bg: #1f3044;
-$site-header-popup-fg: #f8f9fa;
-$site-header-popup-line: mix($site-header-popup-bg, $site-header-popup-fg, 80%);
-
 $device-desktop-min-width: 641px;
 $device-mobile-max-width: 640px;
 $device-tablet-max-width: 979px;
@@ -188,12 +194,6 @@ $device-tablet-max-width: 979px;
 $z-index-nav-mask: 1000;
 
 $site-max-width: 1136px;
-$color-footer-dark-bg: #27323a;
-$color-footer-dark-fg: #f8f9fa;
-$color-searchbar-dark-bg: #132030;
-$color-searchbar-dark-fg: #8d9399;
-$color-searchbar-dark-input-bg: #35404d;
-$color-searchbar-dark-input-fg: #ffffff;
 
 $color-input-danger: #ff4242;
 
