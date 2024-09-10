@@ -15,7 +15,6 @@ import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
-import '../../package/models.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../scorecard/backend.dart';
