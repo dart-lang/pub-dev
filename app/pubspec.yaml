@@ -6,7 +6,7 @@ resolution: workspace
 dependencies:
   _popularity:
   _pub_shared:
-  appengine: ^0.13.6
+  appengine: ^0.13.8
   args: '^2.0.0'
   basics: ^0.10.0
   chunked_stream: ^1.1.0
