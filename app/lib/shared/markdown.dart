@@ -97,6 +97,8 @@ String _renderSafeHtml(
 }) {
   // Filter unsafe urls on some of the elements.
   nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
+  // Transform GitHub task lists.
+  nodes.forEach((node) => node.accept(_TaskListRewriteNodeVisitor()));
 
   if (!disableHashIds) {
     // add hash link HTML to header blocks
@@ -275,6 +277,38 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     // Safe URL fallback: removing the node containing the URL that we were not able to resolve.
     return null;
   }
+}
+
+/// HTML sanitization will remove the rendered `<input type="checkbox">` elements,
+/// we are replacing them with icons.
+class _TaskListRewriteNodeVisitor implements m.NodeVisitor {
+  @override
+  void visitElementAfter(m.Element element) {
+    if (element.tag != 'li') {
+      return;
+    }
+    if (!(element.attributes['class']?.contains('task-list-item') ?? false)) {
+      return;
+    }
+    final children = element.children;
+    if (children == null || children.isEmpty) {
+      return null;
+    }
+    final first = children.first;
+    if (first is m.Element &&
+        first.tag == 'input' &&
+        first.attributes['type'] == 'checkbox') {
+      final checked = first.attributes['checked'] == 'true';
+      children.removeAt(0);
+      children.insert(0, m.Text(checked ? '✅ ' : '❌ '));
+    }
+  }
+
+  @override
+  bool visitElementBefore(m.Element element) => true;
+
+  @override
+  void visitText(m.Text text) {}
 }
 
 bool _isAbsolute(String url) => url.contains(':');
