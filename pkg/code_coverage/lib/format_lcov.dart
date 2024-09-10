@@ -54,7 +54,7 @@ Future main() async {
             !e.key.startsWith('pkg/code_coverage/') &&
             !e.key.startsWith('pkg/fake_gcloud/') &&
             !e.key.startsWith('pkg/pub_integration/'))
-  ].whereType<Entry>();
+  ].nonNulls;
   final pubDevEntry = Entry('pub-dev')
     ..covered = libEntries.map((e) => e.covered).reduce((a, b) => a + b)
     ..total = libEntries.map((e) => e.total).reduce((a, b) => a + b);
@@ -83,7 +83,7 @@ Future main() async {
 
   final uncoveredRanges = _lineExecCounts.keys
       .map((path) => _topUncoveredRange(path, _lineExecCounts[path]!))
-      .whereType<_UncoveredRange>()
+      .nonNulls
       .where((u) => u.codeLineCount > 0)
       .toList()
     ..sort((a, b) => -a.codeLineCount.compareTo(b.codeLineCount));

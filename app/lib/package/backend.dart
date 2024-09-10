@@ -725,8 +725,8 @@ class PackageBackend {
     final newPublisherAdminEmails =
         await publisherBackend.getAdminMemberEmails(request.publisherId!);
     final allAdminEmails = <String>{
-      ...preTxUploaderEmails.whereType<String>(),
-      ...newPublisherAdminEmails.whereType<String>(),
+      ...preTxUploaderEmails,
+      ...newPublisherAdminEmails.nonNulls,
     };
 
     OutgoingEmail? email;
@@ -1440,7 +1440,7 @@ class PackageBackend {
     final emails = package.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(package.uploaders!)
         : await publisherBackend.getAdminMemberEmails(package.publisherId!);
-    final existingEmails = emails.whereType<String>().toList();
+    final existingEmails = emails.nonNulls.toList();
     if (existingEmails.isEmpty) {
       // should not happen
       throw AssertionError(

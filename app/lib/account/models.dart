@@ -415,8 +415,7 @@ String consentDedupId({
   required List<String> args,
 }) =>
     [fromAgentId, email, kind, ...args]
-        .where((s) => s != null)
-        .whereType<String>()
+        .nonNulls
         .map(Uri.encodeComponent)
         .join('/');
 

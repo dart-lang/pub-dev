@@ -47,11 +47,8 @@ class SearchAdapter {
       form,
       result!.totalCount,
       sdkLibraryHits: result.sdkLibraryHits,
-      packageHits: result.packageHits
-          .map((h) => views[h.package])
-          .where((v) => v != null)
-          .cast<PackageView>()
-          .toList(),
+      packageHits:
+          result.packageHits.map((h) => views[h.package]).nonNulls.toList(),
       errorMessage: result.errorMessage,
       statusCode: result.statusCode,
     );

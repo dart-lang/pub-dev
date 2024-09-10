@@ -283,7 +283,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
         .lookupUserById(requestContext.authenticatedUserId!))!,
     userSessionData: requestContext.sessionData!,
     startPackage: next,
-    packageHits: hits.whereType<PackageView>().toList(),
+    packageHits: hits.nonNulls.toList(),
     nextPackage: page.nextPackage,
   );
   return htmlResponse(html);

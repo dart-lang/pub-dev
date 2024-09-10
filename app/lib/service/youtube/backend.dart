@@ -165,7 +165,7 @@ class _PkgOfWeekVideoFetcher {
             }
             return null;
           },
-        ).whereType<PkgOfWeekVideo>());
+        ).nonNulls);
         // next page
         nextPageToken = rs.nextPageToken;
         check = nextPageToken != null && nextPageToken.isNotEmpty;
