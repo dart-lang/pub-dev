@@ -292,7 +292,7 @@ class _TaskListRewriteNodeVisitor implements m.NodeVisitor {
     }
     final children = element.children;
     if (children == null || children.isEmpty) {
-      return null;
+      return;
     }
     final first = children.first;
     if (first is m.Element &&
