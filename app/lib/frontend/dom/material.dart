@@ -24,11 +24,11 @@ d.Node button({
       if (raised) 'mdc-button--raised',
       if (unelevated) 'mdc-button--unelevated',
       if (customTypeClass != null) customTypeClass,
-      if (classes != null) ...classes,
+      ...?classes,
     ],
     attributes: {
       'data-mdc-auto-init': 'MDCRipple',
-      if (attributes != null) ...attributes,
+      ...?attributes,
     },
     children: isSimpleLabel
         ? [d.text(label)]
@@ -70,11 +70,11 @@ d.Node floatingActionButton({
     classes: [
       'mdc-fab',
       if (fabMini) 'mdc-fab--mini',
-      if (classes != null) ...classes,
+      ...?classes,
     ],
     attributes: {
       'data-mdc-auto-init': 'MDCRipple',
-      if (attributes != null) ...attributes,
+      ...?attributes,
     },
     children: [
       d.div(classes: ['mdc-fab__ripple']),
@@ -257,7 +257,7 @@ d.Node dataTable<T>({
               (c) => d.th(
                 classes: [
                   'mdc-data-table__header-cell',
-                  if (c.headerClasses != null) ...c.headerClasses!,
+                  ...?c.headerClasses,
                 ],
                 attributes: {
                   'role': 'columnheader',
@@ -357,7 +357,7 @@ d.Node dropdown({
     classes: [
       'mdc-select',
       'mdc-select--filled',
-      if (classes != null) ...classes,
+      ...?classes,
     ],
     attributes: {'data-mdc-auto-init': 'MDCSelect'},
     children: [

@@ -49,9 +49,8 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     final uri = urls.parseValidUrl(href);
     if (uri == null) return;
 
-    final problemCode = urlProblems == null
-        ? null
-        : urlProblems.firstWhereOrNull((p) => p.url == uri.toString())?.problem;
+    final problemCode =
+        urlProblems?.firstWhereOrNull((p) => p.url == uri.toString())?.problem;
     if (detectServiceProvider && problemCode == null) {
       final providerName = urls.inferServiceProviderName(href);
       if (providerName != null) {

@@ -37,15 +37,11 @@ class SearchAdapter {
   /// provide package names and perform search in that set.
   Future<SearchResultPage> search(SearchForm form,
       {required String? rateLimitKey}) async {
-    final result = await _searchOrFallback(form, rateLimitKey, true);
-    final views = await _getPackageViewsFromHits(
-      [
-        if (result?.packageHits != null) ...result!.packageHits,
-      ],
-    );
+    final result = (await _searchOrFallback(form, rateLimitKey, true))!;
+    final views = await _getPackageViewsFromHits([...result.packageHits]);
     return SearchResultPage(
       form,
-      result!.totalCount,
+      result.totalCount,
       sdkLibraryHits: result.sdkLibraryHits,
       packageHits: result.packageHits
           .map((h) => views[h.package])
