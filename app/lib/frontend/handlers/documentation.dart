@@ -50,7 +50,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final version = docFilePath.version!;
   final resolved = await _resolveDocUrlVersion(package, version);
   if (resolved.isEmpty) {
-    return notFoundHandler(request);
+    return notFoundHandler(
+      request,
+      body: resolved.message ?? default404NotFound,
+    );
   }
   if (version != resolved.urlSegment) {
     return redirectResponse(pkgDocUrl(
@@ -147,7 +150,8 @@ Future<ResolvedDocUrlVersion> _resolveDocUrlVersion(
     if (version == 'latest') {
       final latestFinished = await taskBackend.latestFinishedVersion(package);
       if (latestFinished == null) {
-        return ResolvedDocUrlVersion.empty();
+        return ResolvedDocUrlVersion.empty(
+            message: 'Analysis has not started yet.');
       }
       final latestVersion = await packageBackend.getLatestVersion(package);
       return ResolvedDocUrlVersion(
@@ -159,7 +163,7 @@ Future<ResolvedDocUrlVersion> _resolveDocUrlVersion(
     // Do not resolve if package version does not exists.
     final pv = await packageBackend.lookupPackageVersion(package, version);
     if (pv == null) {
-      return ResolvedDocUrlVersion.empty();
+      return ResolvedDocUrlVersion.empty(message: 'Not found.');
     }
 
     // Select the closest version (may be the same as version) that has a finished analysis.
