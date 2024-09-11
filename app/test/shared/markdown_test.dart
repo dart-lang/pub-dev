@@ -15,6 +15,17 @@ void main() {
       expect(markdownToHtml('# ABC def'),
           '<h1 class="hash-header" id="abc-def">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n');
     });
+
+    test('task list', () {
+      expect(
+        markdownToHtml('- [ ] a\n- [X] b\n- [ ] c\n'),
+        '<ul>\n'
+        '<li>❌ a</li>\n'
+        '<li>✅ b</li>\n'
+        '<li>❌ c</li>\n'
+        '</ul>\n',
+      );
+    });
   });
 
   group('Valid custom base URL', () {
