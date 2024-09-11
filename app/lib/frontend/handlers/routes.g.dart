@@ -236,32 +236,12 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add(
     'GET',
     r'/help',
-    service.helpPage,
+    service.helpPageMain,
   );
   router.add(
     'GET',
-    r'/help/api',
-    service.helpApiPage,
-  );
-  router.add(
-    'GET',
-    r'/help/scoring',
-    service.helpPageScoring,
-  );
-  router.add(
-    'GET',
-    r'/help/content-moderation',
-    service.helpPageContentModeration,
-  );
-  router.add(
-    'GET',
-    r'/help/search',
-    service.helpPageSearch,
-  );
-  router.add(
-    'GET',
-    r'/help/publishing',
-    service.helpPagePublishing,
+    r'/help/<article>',
+    service.helpPageArticle,
   );
   router.add(
     'GET',
