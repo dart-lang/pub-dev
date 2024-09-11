@@ -1,9 +1,17 @@
-// suggested naming convention: `--pub-[component]-[role]-[property]`, where
-// - `[component]` may be: `default`, `button`, `link`, `card`, ...
-// - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
-// - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
+// suggested naming convention:
+//
+// color definitions:
+// `--pub-color-<qualifier><baseColor>`
+//
+// components:
+// `--pub-[component]-[role]-[property]`, where
+//   - `[component]` may be: `default`, `button`, `link`, `card`, ...
+//   - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
+//   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
 :root {
+  --pub-color-dangerRed: #ff4242;
+
   --pub-default-background-color: #ffffff;
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-color: hsl(0, 0%, 29%);
@@ -13,7 +21,7 @@
   --pub-link-text-color: #0175c2;
   --pub-code-text-font_family: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
   --pub-badge-default-color: var(--pub-link-text-color);
-  --pub-badge-red-color: #ff4242;
+  --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-carousel-background-color: rgba(0,0,0,0.85);
   --pub-carousel_nav-background-color: rgba(0,0,0,0.7);
   --pub-carousel_nav_hover-background-color: #4285f4;
@@ -47,7 +55,7 @@
   --pub-input-placeholder-color: #888;
   --pub-pkg_list_item_hover-background-color: #fafafa;
   --pub-pkg_list_recent_item-text-color: #6d7278;
-  --pub-remove_button-background-color: #ff4242;
+  --pub-remove_button-background-color: var(--pub-color-dangerRed);
   --pub-remove_button-text-color: #ffffff;
   --pub-report_header_score_error-text-color: #e13701;
   --pub-report_header_score_warning-text-color: #ffa500;  
@@ -102,7 +110,7 @@
   --pub-code-text-color: var(--pub-default-text-color);
   --pub-link-text-color: #40c4ff;
   --pub-badge-default-color: var(--pub-link-text-color);
-  --pub-badge-red-color: #ff4242;
+  --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-copy_feedback-background-color: #404040;
   --pub-detail_tab-background-color: var(--pub-code-background-color);
   --pub-detail_tab-text-color: var(--pub-default-text-color);
@@ -194,8 +202,6 @@ $device-tablet-max-width: 979px;
 $z-index-nav-mask: 1000;
 
 $site-max-width: 1136px;
-
-$color-input-danger: #ff4242;
 
 // NOTE: keep in sync with hoverable.dart 900ms delay
 $copy-feedback-transition-opacity-delay: 0.9s;
