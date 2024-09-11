@@ -32,35 +32,16 @@ import 'cache_control.dart';
 final _log = Logger('pub.handlers.misc');
 
 /// Handles requests for /help
-Future<shelf.Response> helpPageHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpPage());
-}
-
-/// Handles requests for /help/api
-Future<shelf.Response> helpApiPageHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpApiPage());
-}
-
-/// Handles requests for /help/scoring
-Future<shelf.Response> helpPageScoringHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpScoringPage());
-}
-
-/// Handles requests for /help/content-moderation
-Future<shelf.Response> helpPageContentModerationHandler(
-  shelf.Request request,
-) async {
-  return htmlResponse(renderHelpContentModerationPage());
-}
-
-/// Handles requests for /help/search
-Future<shelf.Response> helpPageSearchHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpSearchPage());
-}
-
-/// Handles requests for /help/publishing
-Future<shelf.Response> helpPagePublishingHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpPublishingPage());
+/// Handles requests for /help/<article>
+Future<shelf.Response> helpPageHandler(
+  shelf.Request request, {
+  String? article,
+}) async {
+  final html = renderHelpPage(article: article);
+  if (html == null) {
+    return notFoundHandler(request);
+  }
+  return htmlResponse(html);
 }
 
 /// Handles requests for /policy
