@@ -58,7 +58,7 @@ class FakeInitDataFileCommand extends Command {
         r.toString(),
         r.error,
         r.stackTrace?.toString(),
-      ].where((e) => e != null).join(' '));
+      ].nonNulls.join(' '));
     });
 
     final analysis = argResults!['analysis'] as String;

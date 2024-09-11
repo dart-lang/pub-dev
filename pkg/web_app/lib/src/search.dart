@@ -145,7 +145,7 @@ String _openSectionParams() {
       .where((e) =>
           e.dataset.containsKey('section-tag') && e.classes.contains('-active'))
       .map((e) => e.dataset['section-tag'])
-      .whereType<String>()
+      .nonNulls
       .join(' ');
 }
 

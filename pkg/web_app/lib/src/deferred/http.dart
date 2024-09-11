@@ -18,8 +18,7 @@ String? _getCsrfMetaContent() {
   final values = document.head
       ?.querySelectorAll('meta[name="csrf-token"]')
       .map((e) => e.attributes['content'])
-      .where((e) => e != null)
-      .cast<String>()
+      .nonNulls
       .toList();
   if (values == null || values.isEmpty) {
     return null;

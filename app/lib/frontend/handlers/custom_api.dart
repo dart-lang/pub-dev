@@ -140,7 +140,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     final packagesJson = [];
 
     final uri = activeConfiguration.primaryApiUri;
-    for (final version in pageVersions.whereType<PackageVersion>()) {
+    for (final version in pageVersions.nonNulls) {
       final versionString = Uri.encodeComponent(version.version!);
       final packageString = Uri.encodeComponent(version.package);
 
