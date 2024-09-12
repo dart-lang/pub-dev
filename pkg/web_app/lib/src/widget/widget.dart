@@ -10,6 +10,7 @@ import 'package:web/web.dart';
 
 import '../web_util.dart';
 import 'completion/widget.dart' deferred as completion;
+import 'dismissible/widget.dart' deferred as dismissible;
 
 /// Function to create an instance of the widget given an element and options.
 ///
@@ -21,7 +22,7 @@ import 'completion/widget.dart' deferred as completion;
 /// `data-widget="completion"`. And option `src` is specified with:
 /// `data-completion-src="$value"`.
 typedef _WidgetFn = FutureOr<void> Function(
-  Element element,
+  HTMLElement element,
   Map<String, String> options,
 );
 
@@ -31,6 +32,8 @@ typedef _WidgetLoaderFn = FutureOr<_WidgetFn> Function();
 /// Map from widget name to widget loader
 final _widgets = <String, _WidgetLoaderFn>{
   'completion': () => completion.loadLibrary().then((_) => completion.create),
+  'dismissible': () =>
+      dismissible.loadLibrary().then((_) => dismissible.create),
 };
 
 Future<_WidgetFn> _noSuchWidget() async =>

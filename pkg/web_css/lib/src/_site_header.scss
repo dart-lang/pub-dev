@@ -21,6 +21,7 @@
 }
 
 .site-header {
+  z-index: 100; // for animation of announcement
   background: var(--pub-site_header_banner-background-color);
   color: var(--pub-site_header_banner-text-color);
   display: flex;
@@ -32,6 +33,7 @@
 
   @media (max-width: $device-mobile-max-width) {
     &:focus-within {
+
       .hamburger,
       .site-logo {
         opacity: 0.3;
@@ -223,6 +225,7 @@
   }
 
   .site-header-nav {
+
     /* Navigation styles for mobile. */
     @media (max-width: $device-mobile-max-width) {
       position: fixed;
@@ -354,7 +357,7 @@
           padding: 12px;
           min-width: 100px;
 
-          > h3 {
+          >h3 {
             border-bottom: 1px solid var(--pub-site_header_popup-border-color);
           }
         }

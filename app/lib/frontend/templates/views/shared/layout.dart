@@ -195,7 +195,14 @@ d.Node pageLayoutNode({
                 if (announcementBanner != null)
                   d.div(
                     classes: ['announcement-banner'],
-                    child: announcementBanner,
+                    attributes: {
+                      'data-widget': 'dismissible',
+                      'data-dismissible-by': '.dismisser'
+                    },
+                    children: [
+                      announcementBanner,
+                      d.div(classes: ['dismisser'], text: 'x'),
+                    ],
                   ),
               ],
             ),

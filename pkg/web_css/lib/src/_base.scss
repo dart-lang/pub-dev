@@ -19,7 +19,10 @@ body {
   overflow-wrap: anywhere;
 }
 
-body, input, button, select {
+body,
+input,
+button,
+select {
   font-family: var(--pub-default-text-font_family);
   -webkit-font-smoothing: antialiased;
   // we don't use font ligatures, and Google Sans fonts would otherwise change text in surprising ways
@@ -41,17 +44,39 @@ body,
   font-weight: 400;
   font-size: 16px;
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--pub-default-text-font_family);
     font-weight: 400;
   }
 
-  h1 { font-size: 36px; }
-  h2 { font-size: 24px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 18px; }
-  h5 { font-size: 16px; }
-  h6 { font-size: 16px; }
+  h1 {
+    font-size: 36px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  h4 {
+    font-size: 18px;
+  }
+
+  h5 {
+    font-size: 16px;
+  }
+
+  h6 {
+    font-size: 16px;
+  }
 }
 
 img {
@@ -134,6 +159,7 @@ main {
   .standalone-side-image-block {
     display: block;
   }
+
   .standalone-wrapper.-has-side-image {
     .standalone-content {
       margin: 0px;
@@ -167,7 +193,7 @@ pre {
   padding: 30px;
   overflow-x: auto;
 
-  > code {
+  >code {
     padding: 0px !important;
     border-radius: 0;
     display: inline-block;
@@ -232,29 +258,37 @@ pre {
 
 .markdown-body {
   p {
-    margin-top: 8px; /* overrides github-markdown.css */
-    margin-bottom: 12px; /* overrides github-markdown.css */
+    margin-top: 8px;
+    /* overrides github-markdown.css */
+    margin-bottom: 12px;
+    /* overrides github-markdown.css */
   }
 
   table {
 
-    td, th {
-      padding: 12px 12px 12px 0; /* overrides github-markdown.css */
-      border: none; /* overrides github-markdown.css */
+    td,
+    th {
+      padding: 12px 12px 12px 0;
+      /* overrides github-markdown.css */
+      border: none;
+      /* overrides github-markdown.css */
     }
 
     tr {
-      border-top: none; /* overrides github-markdown.css */
+      border-top: none;
+      /* overrides github-markdown.css */
 
       &:nth-child(2n) {
-        background-color: inherit; /* overrides github-markdown.css */
+        background-color: inherit;
+        /* overrides github-markdown.css */
       }
     }
 
     th {
       font-family: var(--pub-default-text-font_family);
       font-size: 16px;
-      font-weight: 400; /* overrides github-markdown.css */
+      font-weight: 400;
+      /* overrides github-markdown.css */
       border-bottom: 1px solid #c8c8ca;
       text-align: left;
     }
@@ -264,7 +298,8 @@ pre {
     }
 
     img {
-      background-color: inherit; /* overrides github-markdown.css */
+      background-color: inherit;
+      /* overrides github-markdown.css */
     }
   }
 }
@@ -355,8 +390,13 @@ pre {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .hash-link {
@@ -384,12 +424,37 @@ pre {
 }
 
 .announcement-banner {
+  display: none;
+
   padding: 10px 0;
 
   background: var(--pub-home_announcement-background-color);
   font-size: 16px;
 
   text-align: center;
+
+  .dismisser {
+    float: right;
+    padding: 5px 15px;
+    margin-top: -5px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  z-index: 0;
+  animation-duration: 200ms;
+  animation-name: slide-down;
+  animation-timing-function: ease;
+}
+
+@keyframes slide-down {
+  from {
+    translate: 0 -100%;
+  }
+
+  to {
+    translate: 0 0;
+  }
 }
 
 a.-x-ago {
