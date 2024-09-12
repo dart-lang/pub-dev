@@ -11,34 +11,30 @@ import 'package:web/web.dart';
 import '../web_util.dart';
 import 'completion/widget.dart' deferred as completion;
 
-/// Widget entry
-typedef _WidgetEntry = ({
-  /// Name of the widget referenced in `data-widget="<name>"`.
-  String name,
+/// Function to create an instance of the widget given an element and options.
+///
+/// [element] which carries `data-widget="$name"`.
+/// [options] a map from options to values, where options are specified as
+/// `data-$name-$option="$value"`.
+///
+/// Hence, a widget called `completion` is created on an element by adding
+/// `data-widget="completion"`. And option `src` is specified with:
+/// `data-completion-src="$value"`.
+typedef _WidgetFn = FutureOr<void> Function(
+  Element element,
+  Map<String, String> options,
+);
 
-  /// Function to create an instance of the widget given an element and options.
-  ///
-  /// [element] which carries `data-widget="$name"`.
-  /// [options] a map from options to values, where options are specified as
-  /// `data-$name-$option="$value"`.
-  ///
-  /// Hence, a widget called `completion` is created on an element by adding
-  /// `data-widget="completion"`. And option `src` is specified with:
-  /// `data-completion-src="$value"`.
-  FutureOr<void> Function(Element element, Map<String, String> options) create,
+/// Function for loading a widget.
+typedef _WidgetLoaderFn = FutureOr<_WidgetFn> Function();
 
-  /// Load widget library, if deferred (otherwise this can be `null`).
-  Future<void> Function()? loadLibrary,
-});
+/// Map from widget name to widget loader
+final _widgets = <String, _WidgetLoaderFn>{
+  'completion': () => completion.loadLibrary().then((_) => completion.create),
+};
 
-// List of registered widgets
-final _widgets = <_WidgetEntry>[
-  (
-    name: 'completion',
-    create: completion.create,
-    loadLibrary: completion.loadLibrary,
-  ),
-];
+Future<_WidgetFn> _noSuchWidget() async =>
+    (_, __) => throw AssertionError('no such widget');
 
 void setupWidgets() async {
   final widgetAndElements = document
@@ -56,20 +52,8 @@ void setupWidgets() async {
     // Get widget name and elements which it should be created for
     final MapEntry(key: name, value: elements) = entry;
 
-    // Find the widget create function and loadLibrary function
-    final (name: _, :create, :loadLibrary) = _widgets.firstWhere(
-      (widget) => widget.name == name,
-      orElse: () => (
-        name: '',
-        create: (_, __) => throw AssertionError('no such widget'),
-        loadLibrary: null,
-      ),
-    );
-
-    // Load library if this a deferred widget
-    if (loadLibrary != null) {
-      await loadLibrary();
-    }
+    // Find the widget and load it
+    final widget = await (_widgets[name] ?? _noSuchWidget)();
 
     // Create widget for each element
     await Future.wait(elements.map((element) async {
@@ -81,12 +65,12 @@ void setupWidgets() async {
             .where((attr) => attr.startsWith(prefix))
             .map((attr) {
           return MapEntry(
-            attr.substring(0, prefix.length),
+            attr.substring(prefix.length),
             element.getAttribute(attr) ?? '',
           );
         }));
 
-        await create(element, options);
+        await widget(element, options);
       } catch (e, st) {
         console.error('Failed to initialize data-widget="$name"'.toJS);
         console.error('Triggered by element:'.toJS);
