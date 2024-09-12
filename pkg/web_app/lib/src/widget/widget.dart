@@ -40,8 +40,8 @@ final _widgets = <_WidgetEntry>[
   ),
 ];
 
-Future<void> setupWidgets() async {
-  await Future.wait(document
+void setupWidgets() async {
+  final widgetAndElements = document
       // query for all elements with the property `data-widget="..."`
       .querySelectorAll('[data-widget]')
       .toList() // Convert NodeList to List
@@ -49,10 +49,10 @@ Future<void> setupWidgets() async {
       .where((node) => node.isA<HTMLElement>())
       .map((node) => node as HTMLElement)
       // group by widget
-      .groupListsBy((element) => element.getAttribute('data-widget') ?? '')
-      .entries
-      // For each (widget, elements) load widget and create widgets
-      .map((entry) async {
+      .groupListsBy((element) => element.getAttribute('data-widget') ?? '');
+
+  // For each (widget, elements) load widget and create widgets
+  await Future.wait(widgetAndElements.entries.map((entry) async {
     // Get widget name and elements which it should be created for
     final MapEntry(key: name, value: elements) = entry;
 

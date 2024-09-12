@@ -35,6 +35,7 @@ void main() {
       'package:markdown/': [
         'lib/src/deferred/markdown.dart',
       ],
+      'completion/': [],
     };
 
     for (final file in files) {
