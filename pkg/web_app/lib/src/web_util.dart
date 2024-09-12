@@ -1,3 +1,5 @@
+import 'dart:js_interop';
+
 import 'package:web/web.dart';
 
 extension NodeListTolist on NodeList {
@@ -18,4 +20,8 @@ extension HTMLCollectionToList on HTMLCollection {
   /// Thus, we always convert to a Dart [List] and get a snapshot if the
   /// [HTMLCollection].
   List<Element> toList() => List.generate(length, (i) => item(i)!);
+}
+
+extension JSStringArrayIterable on JSArray<JSString> {
+  Iterable<String> get iterable => toDart.map((s) => s.toDart);
 }

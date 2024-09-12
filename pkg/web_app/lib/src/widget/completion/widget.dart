@@ -11,7 +11,85 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' deferred as http show read;
 import 'package:web/web.dart';
 
-import 'web_util.dart';
+import '../../web_util.dart';
+
+/// Create a [_CompletionWidget] on [element].
+///
+/// Here [element] must:
+///  * be an `<input>` element, with
+///    * `type="text"`, or,
+///    * `type="search".
+///  * have properties:
+///    * `data-completion-src`, URL from which completion data should be
+///       loaded.
+///    * `data-completion-class` (optional), class that should be applied to
+///       the dropdown that provides completion options.
+///       Useful if styling multiple completer widgets.
+///
+/// The dropdown that provides completions will be appended to
+/// `document.body` and given the following classes:
+///   * `completion-dropdown` for the completion dropdown.
+///   * `completion-option` for each option in the dropdown, and,
+///   * `completion-option-select` is applied to selected options.
+void create(Element element, Map<String, String> options) {
+  if (!element.isA<HTMLInputElement>()) {
+    throw UnsupportedError('Must be <input> element');
+  }
+  final input = element as HTMLInputElement;
+
+  if (input.type != 'text' && input.type != 'search') {
+    throw UnsupportedError('Must have type="text" or type="search"');
+  }
+
+  final src = options['src'] ?? '';
+  if (src.isEmpty) {
+    throw UnsupportedError('Must have completion-src="<url>"');
+  }
+  final srcUri = Uri.tryParse(src);
+  if (srcUri == null) {
+    throw UnsupportedError('completion-src="$src" must be a valid URI');
+  }
+  final completionClass = options['class'] ?? '';
+
+  // Setup attributes
+  input.autocomplete = 'off';
+  input.autocapitalize = 'off';
+  input.spellcheck = false;
+  input.setAttribute('autocorrect', 'off'); // safari only
+
+  scheduleMicrotask(() async {
+    // Don't do anymore setup before input has focus
+    if (document.activeElement != input) {
+      await input.onFocus.first;
+    }
+
+    final _CompletionData data;
+    try {
+      data = await _CompletionWidget._completionDataFromUri(srcUri);
+    } on Exception catch (e) {
+      throw Exception(
+        'Unable to load autocompletion-src="$src", error: $e',
+      );
+    }
+
+    // Create and style the dropdown element
+    final dropdown = HTMLDivElement()
+      ..style.display = 'none'
+      ..style.position = 'absolute'
+      ..classList.add('completion-dropdown');
+    if (completionClass.isNotEmpty) {
+      dropdown.classList.add(completionClass);
+    }
+
+    _CompletionWidget._(
+      input: input,
+      dropdown: dropdown,
+      data: data,
+    );
+    // Add dropdown after the <input>
+    document.body!.after(dropdown);
+  });
+}
 
 typedef _CompletionData = List<
     ({
@@ -93,7 +171,7 @@ final class _State {
       '_State(forced: $forced, triggered: $triggered, caret: $caret, text: $text, selected: $selectedIndex)';
 }
 
-final class CompletionWidget {
+final class _CompletionWidget {
   static final _whitespace = RegExp(r'\s');
   static final optionClass = 'completion-option';
   static final selectedOptionClass = 'completion-option-selected';
@@ -103,7 +181,7 @@ final class CompletionWidget {
   final _CompletionData data;
   var state = _State();
 
-  CompletionWidget._({
+  _CompletionWidget._({
     required this.input,
     required this.dropdown,
     required this.data,
@@ -343,83 +421,6 @@ final class CompletionWidget {
     trackState();
   }
 
-  /// Create a [CompletionWidget] on [element].
-  ///
-  /// Here [element] must:
-  ///  * be an `<input>` element, with
-  ///    * `type="text"`, or,
-  ///    * `type="search".
-  ///  * have properties:
-  ///    * `data-completion-src`, URL from which completion data should be
-  ///       loaded.
-  ///    * `data-completion-class` (optional), class that should be applied to
-  ///       the dropdown that provides completion options.
-  ///       Useful if styling multiple completer widgets.
-  ///
-  /// The dropdown that provides completions will be appended to
-  /// `document.body` and given the following classes:
-  ///   * `completion-dropdown` for the completion dropdown.
-  ///   * `completion-option` for each option in the dropdown, and,
-  ///   * `completion-option-select` is applied to selected options.
-  static void create(Element element) {
-    if (!element.isA<HTMLInputElement>()) {
-      throw UnsupportedError('Must be <input> element');
-    }
-    final input = element as HTMLInputElement;
-
-    if (input.type != 'text' && input.type != 'search') {
-      throw UnsupportedError('Must have type="text" or type="search"');
-    }
-    final src = input.getAttribute('data-completion-src') ?? '';
-    if (src.isEmpty) {
-      throw UnsupportedError('Must have completion-src="<url>"');
-    }
-    final srcUri = Uri.tryParse(src);
-    if (srcUri == null) {
-      throw UnsupportedError('completion-src="$src" must be a valid URI');
-    }
-    final completionClass = input.getAttribute('data-completion-class') ?? '';
-
-    // Setup attributes
-    input.autocomplete = 'off';
-    input.autocapitalize = 'off';
-    input.spellcheck = false;
-    input.setAttribute('autocorrect', 'off'); // safari only
-
-    scheduleMicrotask(() async {
-      // Don't do anymore setup before input has focus
-      if (document.activeElement != input) {
-        await input.onFocus.first;
-      }
-
-      final _CompletionData data;
-      try {
-        data = await _completionDataFromUri(srcUri);
-      } on Exception catch (e) {
-        throw Exception(
-          'Unable to load autocompletion-src="$src", error: $e',
-        );
-      }
-
-      // Create and style the dropdown element
-      final dropdown = HTMLDivElement()
-        ..style.display = 'none'
-        ..style.position = 'absolute'
-        ..classList.add('completion-dropdown');
-      if (completionClass.isNotEmpty) {
-        dropdown.classList.add(completionClass);
-      }
-
-      CompletionWidget._(
-        input: input,
-        dropdown: dropdown,
-        data: data,
-      );
-      // Add dropdown after the <input>
-      document.body!.after(dropdown);
-    });
-  }
-
   /// Load completion data from [src].
   ///
   /// Completion data must be a JSON response on the form:
@@ -607,7 +608,7 @@ final class CompletionWidget {
       trigger: trigger,
       suggestions: completion.options
           .map((option) {
-            final overlap = lcs(prefix, option);
+            final overlap = _lcs(prefix, option);
             var html = option;
             if (overlap.isNotEmpty) {
               html = html.replaceAll(overlap, '<strong>$overlap</strong>');
@@ -632,7 +633,7 @@ final class CompletionWidget {
 }
 
 /// The longest common substring
-String lcs(String S, String T) {
+String _lcs(String S, String T) {
   final r = S.length;
   final n = T.length;
   var Lp = List.filled(n, 0); // ignore: non_constant_identifier_names
