@@ -9,7 +9,9 @@ import 'dart:math';
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/task_payload.dart';
+import 'package:_pub_shared/worker/docker_utils.dart';
 import 'package:clock/clock.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:indexed_blob/indexed_blob.dart';
@@ -18,6 +20,7 @@ import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -65,13 +68,31 @@ Future<void> processTasksLocallyWithPubWorker() async {
   ]);
 }
 
+/// Process analysis tasks locally, using either:
+/// - `fake`: the semi-randomized fake analysis that is fast
+/// - `local`: running pkg/pub_worker using the same context as the app
+/// - `worker`: running pkg/pub_worker using the dockerized container
+Future<void> processTaskFakeLocalOrWorker(String analysis) async {
+  if (analysis == 'none') {
+    return;
+  } else if (analysis == 'local') {
+    await _analyzeLocal();
+  } else if (analysis == 'worker') {
+    await _analyzeWorker();
+  } else if (analysis == 'fake') {
+    await processTasksWithFakePanaAndDartdoc();
+  } else {
+    throw ArgumentError('Unknown analysis: `$analysis`');
+  }
+}
+
 /// Updates the task status for all packages and imitates
 /// pub_worker using fake pana and dartdoc results.
 Future<void> processTasksWithFakePanaAndDartdoc() async {
-  await taskBackend.backfillAndProcessAllPackages(_processPayload);
+  await taskBackend.backfillAndProcessAllPackages(_fakeAnalysis);
 }
 
-Future<void> _processPayload(Payload payload) async {
+Future<void> _fakeAnalysis(Payload payload) async {
   for (final v in payload.versions) {
     final client = httpClientWithAuthorization(
       tokenProvider: () async => v.token,
@@ -154,10 +175,40 @@ Future<void> _processPayload(Payload payload) async {
   }
 }
 
+Future<void> _analyzeLocal() async {
+  await fork(() async {
+    await taskBackend.backfillAndProcessAllPackages((Payload payload) async {
+      final arguments = [json.encode(payload.toJson())];
+      final pr = await Process.run(
+        Platform.resolvedExecutable,
+        ['run', 'pub_worker', ...arguments],
+        workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
+      );
+      if (pr.exitCode != 0) {
+        throw Exception('Unexpected status code: ${pr.exitCode} ${pr.stdout}');
+      }
+    });
+  });
+}
+
+Future<void> _analyzeWorker() async {
+  await buildDockerImage();
+  await fork(() async {
+    await taskBackend.backfillAndProcessAllPackages((Payload payload) async {
+      final p = await startDockerAnalysis(payload);
+      final exitCode = await p.exitCode;
+      if (exitCode != 0) {
+        throw Exception(
+            'Failed to analyze ${payload.package} with exitCode $exitCode');
+      }
+    });
+  });
+}
+
 Future<void> fakeCloudComputeInstanceRunner(FakeCloudInstance instance) async {
   final payload = Payload.fromJson(
       json.decode(instance.arguments.first) as Map<String, dynamic>);
-  await _processPayload(payload);
+  await _fakeAnalysis(payload);
 }
 
 Map<String, String> _fakeDartdocFiles(
