@@ -1,7 +1,7 @@
 name: pub_dev
 description: The pub.dartlang.org website.
 environment:
-  sdk: '^3.0.0'
+  sdk: ^3.5.0
 dependencies:
   _popularity:
     path: ../pkg/_popularity

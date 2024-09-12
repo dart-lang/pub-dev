@@ -53,7 +53,7 @@ class _AuthenticatedClient extends http.BaseClient {
     }
     final currentCookies = request.headers['cookie'];
     final providedCookies =
-        _cookieProvider == null ? null : await _cookieProvider!();
+        _cookieProvider == null ? null : await _cookieProvider();
 
     final sessionId = await _sessionIdProvider();
     request.headers['cookie'] = [

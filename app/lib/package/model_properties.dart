@@ -121,7 +121,7 @@ class Pubspec {
     return (minDartVersion != null &&
             minDartVersion.value.compareTo(dartSdkVersion) > 0) ||
         (_minFlutterSdkVersion != null &&
-            _minFlutterSdkVersion!.value.compareTo(flutterSdkVersion) > 0);
+            _minFlutterSdkVersion.value.compareTo(flutterSdkVersion) > 0);
   }
 
   /// True if either the Dart or the Flutter SDK constraint is higher than the
@@ -144,8 +144,8 @@ class Pubspec {
   late final _dartSdkConstraint = _inner.environment?['sdk'];
   late final _flutterSdkConstraint = _inner.environment?['flutter'];
   late final _hasDartSdkConstraint = _dartSdkConstraint != null &&
-      !_dartSdkConstraint!.isAny &&
-      !_dartSdkConstraint!.isEmpty;
+      !_dartSdkConstraint.isAny &&
+      !_dartSdkConstraint.isEmpty;
 
   SdkConstraintStatus get _sdkConstraintStatus =>
       SdkConstraintStatus.fromSdkVersion(_dartSdkConstraint, name);

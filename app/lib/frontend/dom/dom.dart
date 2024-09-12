@@ -1036,19 +1036,18 @@ class _StringElement extends _StringNode {
   final Map<String, String>? _attributes;
   final Object? _children;
 
-  _StringElement(this._tag, this._attributes, this._children) {
-    assert(_children == null ||
-        _children is _StringNode ||
-        (_children is Iterable<Node> &&
-            (_children as Iterable<Node>).every((c) => c is _StringNode)));
-  }
+  _StringElement(this._tag, this._attributes, this._children)
+      : assert(_children == null ||
+            _children is _StringNode ||
+            (_children is Iterable<Node> &&
+                (_children).every((c) => c is _StringNode)));
 
   @override
   void writeHtml(StringSink sink) {
     sink.write('<');
     sink.write(_tag);
     if (_attributes != null) {
-      for (final e in _attributes!.entries) {
+      for (final e in _attributes.entries) {
         sink.write(' ');
         sink.write(e.key);
         sink.write('="');

@@ -9,7 +9,6 @@ analyzer:
 linter:
   rules:
   - always_declare_return_types
-  - always_require_non_null_named_parameters
   - annotate_overrides
   - avoid_empty_else
   - avoid_init_to_null
@@ -50,7 +49,6 @@ linter:
   - prefer_collection_literals
   - prefer_conditional_assignment
   - prefer_contains
-  - prefer_equal_for_default_values
   - prefer_final_fields
   - prefer_final_locals
   - prefer_for_elements_to_map_fromIterable
