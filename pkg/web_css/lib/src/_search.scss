@@ -28,8 +28,8 @@
     -webkit-box-flex: 1;
     -ms-flex-positive: 1;
     flex-grow: 1;
-    background: $color-searchbar-dark-input-bg;
-    color: $color-searchbar-dark-input-fg;
+    background: var(--pub-searchbar_input-background-color);
+    color: var(--pub-searchbar_input-text-color);
 
     &::placeholder {
       color: var(--pub-input-placeholder-color);

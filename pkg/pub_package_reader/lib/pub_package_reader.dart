@@ -208,9 +208,7 @@ Future<PackageSummary> summarizePackageArchive(
   String? licensePath = tar.firstMatchingFileNameOrNull(licenseFileNames);
 
   final contentBytes = await tar.scanAndReadFiles(
-    [readmePath, changelogPath, examplePath, licensePath]
-        .whereType<String>()
-        .toList(),
+    [readmePath, changelogPath, examplePath, licensePath].nonNulls.toList(),
     maxLength: maxContentLength,
   );
 
@@ -439,8 +437,7 @@ Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
     ...pubspec.dependencyOverrides.values.expand(expandDependency),
   ];
 
-  yield* versions
-      .whereType<Version>() // only consider non-null values
+  yield* versions.nonNulls
       .where((v) => _strictRegExp.matchAsPrefix(v.toString()) == null)
       .map((v) => ArchiveIssue(
           'Version value `$v` does not follow strict version pattern.'));

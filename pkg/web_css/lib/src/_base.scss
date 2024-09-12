@@ -32,7 +32,7 @@ p {
 }
 
 p.warning {
-  border-left: 0.25em solid $color-input-danger;
+  border-left: 0.25em solid var(--pub-color-dangerRed);
   padding-left: 10px;
 }
 
@@ -77,8 +77,7 @@ button {
   border: none;
 
   &.pub-button-danger {
-    // TODO: figure out why we can't use $color-input-danger here
-    --mdc-theme-primary: #ff4242;
+    --mdc-theme-primary: var(--pub-color-dangerRed);
   }
 
   &.pub-button-cancel {
@@ -271,10 +270,10 @@ pre {
 }
 
 ._banner-bg {
-  background: $color-searchbar-dark-bg;
+  background: var(--pub-searchbar-background-color);
   background-image: url("../img/hero-bg-static.svg");
   background-size: cover;
-  color: $color-searchbar-dark-fg;
+  color: var(--pub-searchbar-text-color);
   padding: 10px 0px;
 
   a {

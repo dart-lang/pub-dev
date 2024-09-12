@@ -16,25 +16,36 @@ import 'views/account/unauthorized.dart';
 import 'views/page/error.dart';
 import 'views/page/standalone.dart';
 
-/// The content of `/doc/api.md`
-final _apiMarkdown = _readDocContent('api.md');
-
 /// The content of `/doc/policy.md`
 final _policyMarkdown = _readDocContent('policy.md');
 
 /// The content of `/doc/security.md`
 final _securityMarkdown = _readDocContent('security.md');
 
-/// The content of `/doc/help.md`
-final _helpMarkdown = _readDocContent('help.md');
-
-/// The content of `/doc/help-*.md`
-final _helpScoringMarkdown = _readDocContent('help-scoring.md');
-final _helpSearchMarkdown = _readDocContent('help-search.md');
-final _helpPublishingMarkdown = _readDocContent('help-publishing.md');
-final _helpContentModerationMarkdown = _readDocContent(
-  'help-content-moderation.md',
-);
+/// Loads help articles and stores them as a map with their
+/// basename as a key, e.g.:
+/// - `help.md` -> (title: 'Help', content: ...)
+/// - `help-search.md` -> (title: 'Search', content: ...)
+late final _helpArticles = () {
+  final docDir = io.Directory(static_files.resolveDocDirPath());
+  final files = docDir
+      .listSync()
+      .whereType<io.File>()
+      .where((f) => f.path.endsWith('.md'));
+  final results = <String, ({String? title, d.Node content})>{};
+  for (final file in files) {
+    final basename = p.basename(file.path);
+    if (basename == 'help.md' || basename.startsWith('help-')) {
+      final content = file.readAsStringSync();
+      final firstLine = content.split('\n').first.trim();
+      final title = firstLine.startsWith('# ')
+          ? firstLine.substring(2).trim().replaceAll('`', '')
+          : null;
+      results[basename] = (title: title, content: _readDocContent(basename));
+    }
+  }
+  return results;
+}();
 
 late final _sideImage = d.Image.decorative(
   src: static_files.staticUrls.packagesSideImage,
@@ -62,81 +73,21 @@ String renderUnauthorizedPage() {
   );
 }
 
-/// Renders the `doc/api.md`.
-String renderHelpApiPage() {
+/// Renders the `doc/help[<-article>].md`.
+String? renderHelpPage({String? article}) {
+  final basename = article == null ? 'help.md' : 'help-$article.md';
+  final page = _helpArticles[basename];
+  if (page == null) {
+    return null;
+  }
   return renderLayoutPage(
     PageType.standalone,
     standalonePageNode(
-      _apiMarkdown,
+      page.content,
       sideImage: _sideImage,
     ),
-    title: 'pub.dev API',
-    canonicalUrl: '/help/api',
-  );
-}
-
-/// Renders the `doc/help.md`.
-String renderHelpPage() {
-  return renderLayoutPage(
-    PageType.standalone,
-    standalonePageNode(
-      _helpMarkdown,
-      sideImage: _sideImage,
-    ),
-    title: 'Help | Dart packages',
-    canonicalUrl: '/help',
-  );
-}
-
-/// Renders the `doc/help-scoring.md`.
-String renderHelpScoringPage() {
-  return renderLayoutPage(
-    PageType.standalone,
-    standalonePageNode(
-      _helpScoringMarkdown,
-      sideImage: _sideImage,
-    ),
-    title: 'Scoring | Dart packages',
-    canonicalUrl: '/help/scoring',
-  );
-}
-
-/// Renders the `doc/help-content-moderation.md`.
-String renderHelpContentModerationPage() {
-  return renderLayoutPage(
-    PageType.standalone,
-    standalonePageNode(
-      _helpContentModerationMarkdown,
-      sideImage: _sideImage,
-    ),
-    title: 'Content Moderation | Pub site',
-    canonicalUrl: '/help/content-moderation',
-  );
-}
-
-/// Renders the `doc/help-search.md`.
-String renderHelpSearchPage() {
-  return renderLayoutPage(
-    PageType.standalone,
-    standalonePageNode(
-      _helpSearchMarkdown,
-      sideImage: _sideImage,
-    ),
-    title: 'Search | Dart packages',
-    canonicalUrl: '/help/search',
-  );
-}
-
-/// Renders the `doc/help-publishing.md`.
-String renderHelpPublishingPage() {
-  return renderLayoutPage(
-    PageType.standalone,
-    standalonePageNode(
-      _helpPublishingMarkdown,
-      sideImage: _sideImage,
-    ),
-    title: 'Publishing | Dart packages',
-    canonicalUrl: '/help/publishing',
+    title: [page.title, 'Help', 'Dart packages'].nonNulls.toSet().join(' | '),
+    canonicalUrl: article == null ? '/help' : '/help/$article',
   );
 }
 

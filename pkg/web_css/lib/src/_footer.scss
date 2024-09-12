@@ -7,11 +7,11 @@
   margin: 0;
   text-align: center;
   font-size: 14px;
-  background: $color-footer-dark-bg;
-  color: $color-footer-dark-fg;
+  background: var(--pub-footer-background-color);
+  color: var(--pub-footer-text-color);
 
   > a.link {
-    color: $color-footer-dark-fg;
+    color: var(--pub-footer-text-color);
     padding-right: 12px;
     text-wrap: nowrap;
 
@@ -27,7 +27,7 @@
     }
 
     &.sep {
-      border-left: 1px solid $color-footer-dark-fg;
+      border-left: 1px solid var(--pub-footer-text-color);
       padding-left: 12px;
     }
   }

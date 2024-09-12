@@ -263,33 +263,14 @@ class PubSiteService {
   @Route.get('/feed.atom')
   Future<Response> atomFeed(Request request) => atomFeedHandler(request);
 
-  /// Renders the help page
+  /// Renders the main help page
   @Route.get('/help')
-  Future<Response> helpPage(Request request) => helpPageHandler(request);
+  Future<Response> helpPageMain(Request request) => helpPageHandler(request);
 
-  /// Renders the help page for API
-  @Route.get('/help/api')
-  Future<Response> helpApiPage(Request request) => helpApiPageHandler(request);
-
-  /// Renders the help page for scoring
-  @Route.get('/help/scoring')
-  Future<Response> helpPageScoring(Request request) =>
-      helpPageScoringHandler(request);
-
-  /// Renders the help page for scoring
-  @Route.get('/help/content-moderation')
-  Future<Response> helpPageContentModeration(Request request) =>
-      helpPageContentModerationHandler(request);
-
-  /// Renders the help page for search
-  @Route.get('/help/search')
-  Future<Response> helpPageSearch(Request request) =>
-      helpPageSearchHandler(request);
-
-  /// Renders the help page for publishing
-  @Route.get('/help/publishing')
-  Future<Response> helpPagePublishing(Request request) =>
-      helpPagePublishingHandler(request);
+  /// Renders a help article page
+  @Route.get('/help/<article>')
+  Future<Response> helpPageArticle(Request request, String article) =>
+      helpPageHandler(request, article: article);
 
   /// Renders the policy page
   @Route.get('/policy')

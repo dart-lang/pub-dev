@@ -573,8 +573,7 @@ class AdminBackend {
   }
 
   List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
-    return users
-        .whereType<User>()
+    return users.nonNulls
         .where((u) => !u.isDeleted)
         .map(
           (u) => api.AdminUserEntry(

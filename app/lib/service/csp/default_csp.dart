@@ -69,7 +69,7 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
 String _serializeCSP(Map<String, String>? extraValues) {
   final keys = <String>{
     ..._defaultContentSecurityPolicyMap.keys,
-    if (extraValues != null) ...extraValues.keys,
+    ...?extraValues?.keys,
   };
   return keys.map((key) {
     final list = _defaultContentSecurityPolicyMap[key];

@@ -1,13 +1,13 @@
 name: pub_dev
 description: The pub.dartlang.org website.
 environment:
-  sdk: '^3.0.0'
+  sdk: ^3.5.0
 dependencies:
   _popularity:
     path: ../pkg/_popularity
   _pub_shared:
     path: ../pkg/_pub_shared
-  appengine: ^0.13.6
+  appengine: ^0.13.8
   args: '^2.0.0'
   basics: ^0.10.0
   chunked_stream: ^1.1.0

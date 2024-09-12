@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
 import '../shared/email.dart';
@@ -129,6 +130,10 @@ class _GmailSmtpRelay implements EmailSender {
   final _connectionsBySender = <String, Future<_GmailConnection>>{};
   final _forceReconnectSenders = <String>{};
 
+  /// The current zone when this [_GmailSmtpRelay] instance was created.
+  final Zone _parentZone;
+  final _pool = Pool(1);
+
   DateTime _accessTokenRefreshed = DateTime(0);
   DateTime _backoffUntil = DateTime(0);
   Future<String>? _accessToken;
@@ -136,13 +141,18 @@ class _GmailSmtpRelay implements EmailSender {
   _GmailSmtpRelay(
     this._serviceAccountEmail,
     this._authClient,
-  );
+  ) : _parentZone = Zone.current;
 
   @override
   bool get shouldBackoff => clock.now().isBefore(_backoffUntil);
 
   @override
   Future<void> sendMessage(EmailMessage message) async {
+    // One attempt at a time.
+    await _pool.withResource(() async => _sendMessage(message));
+  }
+
+  Future<void> _sendMessage(EmailMessage message) async {
     final debugHeader = 'Message-ID:${message.localMessageId}@pub.dev '
         '(${message.subject}) '
         'from ${message.from} '
@@ -153,11 +163,7 @@ class _GmailSmtpRelay implements EmailSender {
       await retry(
         () async {
           final c = await _getConnection(sender);
-          try {
-            await c.connection.send(_toMessage(message));
-          } finally {
-            c.trackSentEmail(message.recipients.length);
-          }
+          await c.send(_toMessage(message));
         },
         retryIf: (e) =>
             e is TimeoutException ||
@@ -193,14 +199,11 @@ class _GmailSmtpRelay implements EmailSender {
       return old;
     }
     final newConnectionFuture = Future.microtask(() async {
-      if (old != null) {
-        try {
-          await old.connection.close();
-        } catch (e, st) {
-          _logger.warning('Unable to close SMTP connection.', e, st);
-        }
-      }
+      // closing the old connection if there was any, ignoring errors
+      await old?.close();
+
       return _GmailConnection(
+        _parentZone,
         PersistentConnection(
           await _getSmtpServer(sender),
           timeout: Duration(seconds: 15),
@@ -280,20 +283,28 @@ class _GmailSmtpRelay implements EmailSender {
 
 class _GmailConnection {
   final DateTime created;
-  final PersistentConnection connection;
+  final PersistentConnection _connection;
+  final Zone _parentZone;
   DateTime _lastUsed;
   var _sentCount = 0;
+  Object? _uncaughtError;
 
-  _GmailConnection(this.connection)
+  _GmailConnection(this._parentZone, this._connection)
       : created = clock.now(),
         _lastUsed = clock.now();
 
-  void trackSentEmail(int count) {
-    _sentCount += count;
-    _lastUsed = clock.now();
-  }
+  late final _zone = _parentZone.fork(specification: ZoneSpecification(
+    handleUncaughtError: (self, parent, zone, error, stackTrace) {
+      _uncaughtError = error;
+      _logger.severe('Uncaught error while sending email', error, stackTrace);
+    },
+  ));
 
   bool get isExpired {
+    // The connection is in an unknown state, better not use it.
+    if (_uncaughtError != null) {
+      return true;
+    }
     // There is a 100-recipient limit per SMTP transaction for smtp-relay.gmail.com.
     // Exceeding this limit results in an error message. To send messages to
     // additional recipients, start another transaction (new SMTP connection or RSET command).
@@ -309,5 +320,28 @@ class _GmailConnection {
       return true;
     }
     return false;
+  }
+
+  Future<SendReport> send(Message message) async {
+    _sentCount += message.recipients.length + message.ccRecipients.length;
+    try {
+      final r = await _zone.run(() async => await _connection.send(message));
+      if (_uncaughtError != null) {
+        throw EmailSenderException.failed();
+      }
+      return r;
+    } finally {
+      _lastUsed = clock.now();
+    }
+  }
+
+  Future<void> close() async {
+    try {
+      await _zone.run(() async {
+        await _connection.close();
+      });
+    } catch (e, st) {
+      _logger.warning('Unable to close SMTP connection.', e, st);
+    }
   }
 }

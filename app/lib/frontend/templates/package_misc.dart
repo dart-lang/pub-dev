@@ -58,7 +58,7 @@ d.Node tagsNodeFromPackageView({
 }) {
   searchForm ??= SearchForm();
   final tags = package.tags;
-  final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
+  final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet();
   final simpleTags = <SimpleTag>[];
   final badgeTags = <BadgeTag>[];
   d.Node? discontinuedNode;

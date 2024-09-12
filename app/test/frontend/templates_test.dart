@@ -786,7 +786,7 @@ void main() {
 
     testWithProfile('help page', fn: () async {
       final html = renderHelpPage();
-      expectGoldenFile(html, 'help_page.html');
+      expectGoldenFile(html!, 'help_page.html');
     });
 
     testWithProfile('topics page', fn: () async {
