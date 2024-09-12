@@ -710,7 +710,7 @@ class TaskBackend {
         // Only update if new dependencies have been discovered.
         // This avoids unnecessary churn on datastore when there is no changes.
         if (state.dependencies != updatedDependencies &&
-            !{...state.dependencies ?? []}.containsAll(updatedDependencies)) {
+            !{...?state.dependencies}.containsAll(updatedDependencies)) {
           state.dependencies = updatedDependencies;
         }
       }
