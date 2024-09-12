@@ -3,11 +3,11 @@ publish_to: none  # don't publish yet
 description: Tools for integration tests.
 
 environment:
-  sdk: '^3.0.0'
+  sdk: '^3.5.0'
+resolution: workspace
 
 dependencies:
   _pub_shared:
-    path: ../_pub_shared
   args: ^2.0.0
   http: ^1.0.0
   path: ^1.8.0

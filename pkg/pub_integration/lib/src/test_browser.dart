@@ -100,7 +100,7 @@ class TestBrowser {
 
     _printCoverage();
     if (_coverageDir != null) {
-      await _saveCoverage(p.join(_coverageDir!, 'puppeteer'));
+      await _saveCoverage(p.join(_coverageDir, 'puppeteer'));
     }
     await _tempDir.delete(recursive: true);
   }

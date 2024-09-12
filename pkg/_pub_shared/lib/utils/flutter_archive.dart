@@ -131,7 +131,7 @@ class FlutterRelease {
       return null;
     }
     try {
-      return Version.parse(_extractedDartSdkVersion!);
+      return Version.parse(_extractedDartSdkVersion);
     } catch (_) {
       return null;
     }

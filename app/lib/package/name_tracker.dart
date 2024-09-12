@@ -158,7 +158,7 @@ class NameTracker {
     await for (final p in _db!.query<Package>().run()) {
       data.add(TrackedPackage.fromPackage(p));
     }
-    await for (final p in _db!.query<ModeratedPackage>().run()) {
+    await for (final p in _db.query<ModeratedPackage>().run()) {
       data.addModeratedName(p.name!);
     }
     _data = data;
@@ -185,7 +185,7 @@ class NameTracker {
         _data.add(TrackedPackage.fromPackage(p));
       }
 
-      final moderatedPkgQuery = _db!.query<ModeratedPackage>()
+      final moderatedPkgQuery = _db.query<ModeratedPackage>()
         ..order('moderated')
         ..filter('moderated >', ts);
 
