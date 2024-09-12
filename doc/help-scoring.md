@@ -26,6 +26,11 @@ package page.
 To view packages you have liked, use the **My pub.dev > My liked packages** menu
 option.
 
+## Download counts
+
+The daily number of downloads for each version of each package on pub.dev is
+stored by pub.dev for providing a measure of package usage.
+
 ## Popularity
 
 Popularity measures the number of apps that depend on a package over the past 60
