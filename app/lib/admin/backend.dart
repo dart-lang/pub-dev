@@ -12,7 +12,9 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
 import '../account/backend.dart';
@@ -22,7 +24,11 @@ import '../account/models.dart';
 import '../admin/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
-    show checkPackageVersionParams, packageBackend, purgePackageCache;
+    show
+        checkPackageVersionParams,
+        packageBackend,
+        purgePackageCache,
+        tarballObjectName;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/backend.dart';
@@ -30,6 +36,7 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import 'actions/actions.dart' show AdminAction;
@@ -300,10 +307,15 @@ class AdminBackend {
   Future<void> removePackage(String packageName) async {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
-
     _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName');
+    await _removePackage(packageName);
+  }
 
+  Future<void> _removePackage(
+    String packageName, {
+    DateTime? moderated,
+  }) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
     final versions = (await _db
             .query<PackageVersion>(ancestorKey: packageKey)
@@ -312,6 +324,48 @@ class AdminBackend {
             .toList())
         .toSet();
 
+    final pool = Pool(10);
+    final futures = <Future>[];
+    versions.forEach((final v) {
+      futures.add(pool.withResource(
+          () => packageBackend.removePackageTarball(packageName, v)));
+    });
+    await Future.wait(futures);
+    await pool.close();
+
+    _logger.info('Removing package from Package.replacedBy...');
+    final replacedByQuery = _db.query<Package>()
+      ..filter('replacedBy =', packageName);
+    await for (final pkg in replacedByQuery.run()) {
+      await withRetryTransaction(_db, (tx) async {
+        final p = await tx.lookupOrNull<Package>(pkg.key);
+        if (p == null) {
+          return;
+        }
+        if (p.replacedBy == packageName) {
+          p.replacedBy = null;
+          tx.insert(p);
+        }
+      });
+    }
+
+    _logger.info('Removing package from PackageVersionInfo ...');
+    await _db.deleteWithQuery(
+        _db.query<PackageVersionInfo>()..filter('package =', packageName));
+
+    _logger.info('Removing package from PackageVersionAsset ...');
+    await _db.deleteWithQuery(
+        _db.query<PackageVersionAsset>()..filter('package =', packageName));
+
+    _logger.info('Removing package from Like ...');
+    await _db.deleteWithQuery(
+        _db.query<Like>()..filter('packageName =', packageName));
+
+    _logger.info('Removing package from AuditLogRecord...');
+    await _db.deleteWithQuery(
+        _db.query<AuditLogRecord>()..filter('packages =', packageName));
+
+    _logger.info('Removing Package from Datastore...');
     await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -335,11 +389,13 @@ class AdminBackend {
             .map((pv) => pv.version!)
             .toList());
 
+        versions.addAll(package.deletedVersions ?? const <String>[]);
+
         tx.insert(ModeratedPackage()
           ..parentKey = _db.emptyKey
           ..id = packageName
           ..name = packageName
-          ..moderated = clock.now().toUtc()
+          ..moderated = moderated ?? clock.now().toUtc()
           ..versions = versions.toList()
           ..publisherId = package.publisherId
           ..uploaders = package.uploaders);
@@ -348,30 +404,9 @@ class AdminBackend {
       }
     });
 
-    final pool = Pool(10);
-    final futures = <Future>[];
-    versions.forEach((final v) {
-      futures.add(pool.withResource(
-          () => packageBackend.removePackageTarball(packageName, v)));
-    });
-    await Future.wait(futures);
-    await pool.close();
-
     _logger.info('Removing package from PackageVersion ...');
     await _db
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
-
-    _logger.info('Removing package from PackageVersionInfo ...');
-    await _db.deleteWithQuery(
-        _db.query<PackageVersionInfo>()..filter('package =', packageName));
-
-    _logger.info('Removing package from PackageVersionAsset ...');
-    await _db.deleteWithQuery(
-        _db.query<PackageVersionAsset>()..filter('package =', packageName));
-
-    _logger.info('Removing package from Like ...');
-    await _db.deleteWithQuery(
-        _db.query<Like>()..filter('packageName =', packageName));
 
     _logger.info('Package "$packageName" got successfully removed.');
     _logger.info(
@@ -739,5 +774,97 @@ class AdminBackend {
           'ModerationCase.status ("${refCase.status}") != "$status".');
     }
     return refCase;
+  }
+
+  /// Scans datastore and deletes moderated subjects where the last action
+  /// was more than 3 years ago.
+  Future<void> deleteModeratedSubjects({
+    @visibleForTesting DateTime? before,
+  }) async {
+    before ??= clock.ago(days: 3 * 366).toUtc(); // extra buffer days
+    final canonicalBucket =
+        storageService.bucket(activeConfiguration.canonicalPackagesBucketName!);
+
+    // delete packages
+    final pQuery = _db.query<Package>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final package in pQuery.run()) {
+      // sanity check
+      if (!package.isModerated) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated package: ${package.name}');
+      await _removePackage(
+        package.name!,
+        moderated: package.moderatedAt,
+      );
+      _logger.info('Deleted moderated package: ${package.name}');
+    }
+
+    // delete package versions
+    final pvQuery = _db.query<PackageVersion>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final version in pvQuery.run()) {
+      // sanity check
+      if (!version.isModerated) {
+        continue;
+      }
+
+      _logger.info(
+          'Deleting moderated package version: ${version.qualifiedVersionKey}');
+
+      // deleting from canonical bucket
+      final objectName = tarballObjectName(version.package, version.version!);
+      final info = await canonicalBucket.tryInfo(objectName);
+      if (info != null) {
+        await canonicalBucket.delete(objectName);
+      }
+
+      // deleting from datastore
+      await withRetryTransaction(_db, (tx) async {
+        final pv = await tx.lookupOrNull<PackageVersion>(version.key);
+        if (pv == null) {
+          return null;
+        }
+        final p = await tx.lookupOrNull<Package>(version.packageKey!);
+        if (p == null) {
+          return;
+        }
+        final pvi = await tx.lookupOrNull<PackageVersionInfo>(_db.emptyKey
+            .append(PackageVersionInfo,
+                id: version.qualifiedVersionKey.qualifiedVersion));
+
+        p.deletedVersions ??= [];
+        p.deletedVersions!.add(version.version!);
+        p.deletedVersions!.sort();
+        p.updated = clock.now().toUtc();
+        tx.insert(p);
+
+        // delete version + info + assets
+        tx.delete(pv.key);
+        if (pvi != null) {
+          tx.delete(pvi.key);
+
+          for (final assetKind in pvi.assets) {
+            tx.delete(
+              _db.emptyKey.append(PackageVersionAsset,
+                  id: Uri(pathSegments: [
+                    version.package,
+                    version.version!,
+                    assetKind
+                  ]).path),
+            );
+          }
+        }
+      });
+      _logger.info(
+          'Deleted moderated package version: ${version.qualifiedVersionKey}');
+    }
+
+    // TODO: delete publisher instances
+    // TODO: mark user instances deleted
   }
 }
