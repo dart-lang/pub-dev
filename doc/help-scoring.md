@@ -28,8 +28,7 @@ option.
 
 ## Download counts
 
-The daily number of downloads for each version of each package on pub.dev is
-stored by pub.dev for providing a measure of package usage.
+Pub.dev tracks and stores how many times each version of each package gets downloaded. This is used to display package usage metrics.
 
 ## Popularity
 
