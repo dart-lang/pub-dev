@@ -106,5 +106,5 @@ bool isDartDevPublisher(String? publisherId) {
 
 /// Overriding the default maximum number of the allowed package version counts.
 const maxVersionsPerPackageOverrides = <String, int>{
-  'masamune': 1100, // last updated: 2024-09-16
+  'masamune': 1500, // last updated: 2024-09-16
 };
