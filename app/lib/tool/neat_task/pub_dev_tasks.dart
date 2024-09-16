@@ -124,7 +124,7 @@ void _setupGenericPeriodicTasks() {
   );
 
   // Deletes moderated packages, versions, publishers and users.
-  _daily(
+  _weekly(
     name: 'delete-moderated-subjects',
     isRuntimeVersioned: false,
     task: () async => adminBackend.deleteModeratedSubjects(),

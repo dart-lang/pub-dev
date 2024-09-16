@@ -304,6 +304,8 @@ class AdminBackend {
   /// Creates a [ModeratedPackage] instance (if not already present) in
   /// Datastore representing the removed package. No new package with the same
   /// name can be published.
+  ///
+  /// Verifies the current authenticated user for admin permissions.
   Future<void> removePackage(String packageName) async {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
@@ -312,6 +314,13 @@ class AdminBackend {
     await _removePackage(packageName);
   }
 
+  /// Removes the package from the Datastore and updates other related
+  /// entities. It is safe to call [removePackage] on an already removed
+  /// package, as the call is idempotent.
+  ///
+  /// Creates a [ModeratedPackage] instance (if not already present) in
+  /// Datastore representing the removed package. No new package with the same
+  /// name can be published.
   Future<void> _removePackage(
     String packageName, {
     DateTime? moderated,
@@ -326,10 +335,11 @@ class AdminBackend {
 
     final pool = Pool(10);
     final futures = <Future>[];
-    versions.forEach((final v) {
+    for (final v in versions) {
+      // Deleting public and canonical archives, 404 errors are ignored.
       futures.add(pool.withResource(
           () => packageBackend.removePackageTarball(packageName, v)));
-    });
+    }
     await Future.wait(futures);
     await pool.close();
 
