@@ -8,14 +8,15 @@ import 'dart:io';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
-import 'package:pub_dev/package/export_api_to_bucket.dart';
-import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
+import '../../admin/backend.dart';
 import '../../audit/backend.dart';
 import '../../package/backend.dart';
+import '../../package/export_api_to_bucket.dart';
 import '../../search/backend.dart';
+import '../../service/download_counts/sync_download_counts.dart';
 import '../../service/email/backend.dart';
 import '../../service/security_advisories/sync_security_advisories.dart';
 import '../../service/topics/count_topics.dart';
@@ -120,6 +121,13 @@ void _setupGenericPeriodicTasks() {
     name: 'export-package-name-completion-data-to-bucket',
     isRuntimeVersioned: true,
     task: () async => await apiExporter?.uploadPkgNameCompletionData(),
+  );
+
+  // Deletes moderated packages, versions, publishers and users.
+  _weekly(
+    name: 'delete-moderated-subjects',
+    isRuntimeVersioned: false,
+    task: () async => adminBackend.deleteModeratedSubjects(),
   );
 
   // Deletes task status entities where the status hasn't been updated

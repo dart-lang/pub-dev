@@ -8,8 +8,11 @@ import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
+import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
@@ -18,6 +21,7 @@ import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 import 'package:test/test.dart';
 
@@ -368,6 +372,44 @@ void main() {
         status: 400,
         message: 'ModerationCase.status ("no-action") != "pending".',
       );
+    });
+
+    testWithProfile(
+        'cleanup deletes datastore entities and canonical archive file',
+        fn: () async {
+      // delete old version
+      await accountBackend.withBearerToken(siteAdminToken, () async {
+        await adminBackend.removePackageVersion('oxygen', '1.0.0');
+      });
+
+      // canonical file is present
+      final bucket = storageService
+          .bucket(activeConfiguration.canonicalPackagesBucketName!);
+      expect(
+        await bucket.tryInfo(tarballObjectName('oxygen', '1.2.0')),
+        isNotNull,
+      );
+
+      // moderate and cleanup
+      await _moderate('oxygen', state: true, caseId: 'none');
+      await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
+
+      // no package, version or canonical file
+      expect(await packageBackend.lookupPackage('oxygen'), isNull);
+      expect(
+        await packageBackend.lookupPackageVersion('oxygen', '1.2.0'),
+        isNull,
+      );
+      expect(
+        await bucket.tryInfo(tarballObjectName('oxygen', '1.2.0')),
+        isNull,
+      );
+
+      // ModeratedPackage entity contains both previously deleted and current versions
+      final mp = await packageBackend.lookupModeratedPackage('oxygen');
+      expect(mp, isNotNull);
+      expect(mp!.versions, contains('1.0.0'));
+      expect(mp.versions, contains('1.2.0'));
     });
   });
 }
