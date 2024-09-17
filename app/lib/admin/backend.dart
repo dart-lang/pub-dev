@@ -150,15 +150,21 @@ class AdminBackend {
 
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
+  ///
+  /// Verifies the current authenticated user for admin permissions.
   Future<void> removeUser(String userId) async {
     final caller = await requireAuthenticatedAdmin(AdminPermission.removeUsers);
     final user = await accountBackend.lookupUserById(userId);
     if (user == null) return;
     if (user.isDeleted) return;
-
     _logger.info('${caller.displayId}) initiated the delete '
         'of ${user.userId} (${user.email})');
+    await _removeUser(user);
+  }
 
+  /// Removes user from the Datastore and updates the packages and other
+  /// entities they may have controlled.
+  Future<void> _removeUser(User user) async {
     // Package.uploaders
     final pool = Pool(10);
     final futures = <Future>[];
@@ -912,6 +918,19 @@ class AdminBackend {
       _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
     }
 
-    // TODO: mark user instances deleted
+    // mark user instances deleted
+    final userQuery = _db.query<User>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final user in userQuery.run()) {
+      // sanity check
+      if (!user.isModerated || user.isDeleted) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated user: ${user.userId}');
+      await _removeUser(user);
+      _logger.info('Deleting moderated user: ${user.userId}');
+    }
   }
 }
