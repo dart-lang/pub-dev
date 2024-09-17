@@ -141,7 +141,7 @@ d.Node _section(ReportSection section) {
                   classes: ['foldable-icon'],
                   image: d.Image(
                     src: staticUrls
-                        .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                        .getAssetUrl('/static/img/foldable-section-icon.svg'),
                     alt: 'trigger folding of the section',
                     width: 13,
                     height: 6,
