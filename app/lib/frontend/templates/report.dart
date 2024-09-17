@@ -144,6 +144,7 @@ Iterable<d.Node> _report(
 
     // direct report
     _foldableSection(
+      buttonDivClasses: ['report-page-direct-report'],
       title: d.text('I believe the $kindLabel violates pub.dev/policy.'),
       children: [
         if (!(sessionData?.isAuthenticated ?? false))
@@ -237,12 +238,13 @@ Iterable<d.Node> _appeal(
 d.Node _foldableSection({
   required d.Node title,
   required Iterable<d.Node> children,
+  Iterable<String>? buttonDivClasses,
 }) {
   return d.div(
     classes: ['foldable-section', 'foldable'],
     children: [
       d.div(
-        classes: ['foldable-button'],
+        classes: ['foldable-button', ...?buttonDivClasses],
         children: [
           d.img(
             classes: ['foldable-icon'],
