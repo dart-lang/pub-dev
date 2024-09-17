@@ -103,3 +103,8 @@ bool isDartDevPublisher(String? publisherId) {
   if (publisherId.endsWith('.google.com')) return true;
   return false;
 }
+
+/// Overriding the default maximum number of the allowed package version counts.
+const maxVersionsPerPackageOverrides = <String, int>{
+  'masamune': 1500, // last updated: 2024-09-16
+};
