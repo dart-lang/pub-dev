@@ -6,8 +6,10 @@ import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -203,6 +205,30 @@ void main() {
         status: 400,
         message: 'ModerationCase.status ("no-action") != "pending".',
       );
+    });
+
+    testWithProfile('cleanup deletes datastore entities and abandons packages',
+        fn: () async {
+      // moderate and cleanup
+      await _moderate('example.com', state: true, caseId: 'none');
+      await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
+
+      // no publisher or member
+      expect(await publisherBackend.getPublisher('example.com'), isNull);
+      expect(
+        await publisherBackend.listPublisherMembers('example.com'),
+        isEmpty,
+      );
+
+      // publisher package has no publisher or uploader
+      final pkg = await packageBackend.lookupPackage('neon');
+      expect(pkg!.publisherId, isNull);
+      expect(pkg.uploaders, isEmpty);
+
+      // other packages are not affected
+      final other = await packageBackend.lookupPackage('oxygen');
+      expect(other!.isDiscontinued, false);
+      expect(other.uploaders, isNotEmpty);
     });
   });
 }

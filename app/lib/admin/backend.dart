@@ -874,7 +874,44 @@ class AdminBackend {
           'Deleted moderated package version: ${version.qualifiedVersionKey}');
     }
 
-    // TODO: delete publisher instances
+    // delete publishers
+    final publisherQuery = _db.query<Publisher>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final publisher in publisherQuery.run()) {
+      // sanity check
+      if (!publisher.isModerated) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated publisher: ${publisher.publisherId}');
+
+      // removes packages of this publisher, no uploaders will be set, marks discontinued
+      final pkgQuery = _db.query<Package>()
+        ..filter('publisherId =', publisher.publisherId);
+      await for (final pkg in pkgQuery.run()) {
+        await withRetryTransaction(_db, (tx) async {
+          final p = await tx.lookupOrNull<Package>(pkg.key);
+          if (p == null) return;
+          if (p.publisherId != publisher.publisherId) return;
+
+          p.publisherId = null;
+          p.updated = clock.now().toUtc();
+          p.isDiscontinued = true;
+          tx.insert(p);
+        });
+      }
+
+      // removes publisher members
+      await _db.deleteWithQuery(
+          _db.query<PublisherMember>(ancestorKey: publisher.key));
+
+      // removes publisher entity
+      await _db.commit(deletes: [publisher.key]);
+
+      _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
+    }
+
     // TODO: mark user instances deleted
   }
 }
