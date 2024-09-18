@@ -20,7 +20,7 @@ import '../shared/test_services.dart';
 import 'backend_test_utils.dart';
 
 void main() {
-  final refTime = clock.now().subtract(Duration(days: 2));
+  final refTime = clock.now().subtract(Duration(days: 2 * 365));
 
   group('Upload rate limit', () {
     Future<void> upload({
@@ -63,6 +63,29 @@ environment:
       }) as R;
     }
 
+    Future<void> _expectLimit({
+      required int count,
+      required Duration shortGap,
+      required Duration longGap,
+      required String expectedMessage,
+    }) async {
+      for (var i = 0; i < count; i++) {
+        await upload(version: '1.0.$i', time: shortGap * i);
+      }
+      final rs = upload(version: '1.0.$count', time: shortGap * count);
+      await expectLater(
+        rs,
+        throwsA(
+          isA<RateLimitException>().having(
+            (e) => e.message,
+            'message',
+            contains(expectedMessage),
+          ),
+        ),
+      );
+      await upload(version: '1.0.$count', time: longGap);
+    }
+
     testWithProfile(
       'new versions 1 per minute',
       testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
@@ -75,21 +98,12 @@ environment:
               burst: 1,
             ),
           ],
-          () async {
-            await upload(version: '1.0.0', time: Duration.zero);
-            final rs = upload(version: '1.0.1', time: Duration(seconds: 16));
-            await expectLater(
-              rs,
-              throwsA(
-                isA<RateLimitException>().having(
-                  (e) => e.message,
-                  'message',
-                  contains('(1 in the last few minutes)'),
-                ),
-              ),
-            );
-            await upload(version: '1.0.1', time: Duration(minutes: 3));
-          },
+          () => _expectLimit(
+            count: 1,
+            shortGap: Duration(seconds: 16),
+            longGap: Duration(minutes: 3),
+            expectedMessage: '(1 in the last few minutes)',
+          ),
         );
       },
     );
@@ -106,26 +120,12 @@ environment:
               hourly: 12,
             ),
           ],
-          () async {
-            for (var i = 0; i < 12; i++) {
-              await upload(version: '1.0.$i', time: Duration(minutes: i * 2));
-            }
-
-            final rs =
-                upload(version: '1.0.12', time: Duration(minutes: 12 * 2));
-            await expectLater(
-              rs,
-              throwsA(
-                isA<RateLimitException>().having(
-                  (e) => e.message,
-                  'message',
-                  contains('(12 in the last hour)'),
-                ),
-              ),
-            );
-            await upload(
-                version: '1.0.12', time: Duration(hours: 1, minutes: 1));
-          },
+          () => _expectLimit(
+            count: 12,
+            shortGap: Duration(minutes: 2),
+            longGap: Duration(minutes: 61),
+            expectedMessage: '(12 in the last hour)',
+          ),
         );
       },
     );
@@ -142,26 +142,100 @@ environment:
               daily: 24,
             ),
           ],
-          () async {
-            for (var i = 0; i < 24; i++) {
-              await upload(version: '1.0.$i', time: Duration(minutes: i * 10));
-            }
+          () => _expectLimit(
+            count: 24,
+            shortGap: Duration(minutes: 10),
+            longGap: Duration(days: 1, minutes: 1),
+            expectedMessage: '(24 in the last day)',
+          ),
+        );
+      },
+    );
 
-            final rs =
-                upload(version: '1.0.24', time: Duration(minutes: 24 * 10));
-            await expectLater(
-              rs,
-              throwsA(
-                isA<RateLimitException>().having(
-                  (e) => e.message,
-                  'message',
-                  contains('(24 in the last day)'),
-                ),
-              ),
-            );
-            await upload(
-                version: '1.0.24', time: Duration(days: 1, minutes: 1));
-          },
+    testWithProfile(
+      'new versions 20 per week',
+      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packagePublished,
+              scope: RateLimitScope.package,
+              weekly: 20,
+            ),
+          ],
+          () => _expectLimit(
+            count: 20,
+            shortGap: Duration(hours: 5),
+            longGap: Duration(days: 7, minutes: 1),
+            expectedMessage: '(20 in the last week)',
+          ),
+        );
+      },
+    );
+
+    testWithProfile(
+      'new versions 20 per month',
+      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packagePublished,
+              scope: RateLimitScope.package,
+              monthly: 20,
+            ),
+          ],
+          () => _expectLimit(
+            count: 20,
+            shortGap: Duration(days: 1),
+            longGap: Duration(days: 30, minutes: 1),
+            expectedMessage: '(20 in the last month)',
+          ),
+        );
+      },
+    );
+
+    testWithProfile(
+      'new versions 20 per quarter',
+      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packagePublished,
+              scope: RateLimitScope.package,
+              quarterly: 20,
+            ),
+          ],
+          () => _expectLimit(
+            count: 20,
+            shortGap: Duration(days: 3),
+            longGap: Duration(days: 91, minutes: 1),
+            expectedMessage: '(20 in the last 3 months)',
+          ),
+        );
+      },
+    );
+
+    testWithProfile(
+      'new versions 20 per year',
+      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packagePublished,
+              scope: RateLimitScope.package,
+              yearly: 20,
+            ),
+          ],
+          () => _expectLimit(
+            count: 20,
+            shortGap: Duration(days: 3),
+            longGap: Duration(days: 365, minutes: 1),
+            expectedMessage: '(20 in the last year)',
+          ),
         );
       },
     );

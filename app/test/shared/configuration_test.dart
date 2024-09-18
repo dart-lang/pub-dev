@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart' as yaml;
@@ -73,7 +74,21 @@ void main() {
       // no duplicate rules
       expect(rateLimits.map((e) => '${e.operation}/${e.scope}').toSet().length,
           rateLimits.length);
-      // some rules for prod config
+      // only package-uploaded rules have long-term rules
+      for (final limit in rateLimits) {
+        if (limit.weekly != null ||
+            limit.monthly != null ||
+            limit.quarterly != null ||
+            limit.yearly != null) {
+          if (limit.operation == AuditLogRecordKind.packagePublished) {
+            // uploads are handling custom timestamps
+          } else {
+            fail(
+                'Rate limit operation "${limit.operation}" does not support long-term rules.');
+          }
+        }
+      }
+      // some rules are present in the prod config
       if (config.isProduction) {
         expect(rateLimits, hasLength(greaterThan(10)));
       }

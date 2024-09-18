@@ -543,16 +543,40 @@ class RateLimit {
   /// Maximum number of operations in 24 hours.
   final int? daily;
 
+  /// Maximum number of operations in 7 days.
+  final int? weekly;
+
+  /// Maximum number of operations in 30 days.
+  final int? monthly;
+
+  /// Maximum number of operations in 91 days.
+  final int? quarterly;
+
+  /// Maximum number of operations in 365 days.
+  final int? yearly;
+
   RateLimit({
     required this.operation,
     required this.scope,
     this.burst,
     this.hourly,
     this.daily,
+    this.weekly,
+    this.monthly,
+    this.quarterly,
+    this.yearly,
   });
 
   factory RateLimit.fromJson(Map<String, dynamic> json) =>
       _$RateLimitFromJson(json);
 
   Map<String, dynamic> toJson() => _$RateLimitToJson(this);
+
+  late final isEmpty = burst == null &&
+      hourly == null &&
+      daily == null &&
+      weekly == null &&
+      monthly == null &&
+      quarterly == null &&
+      yearly == null;
 }

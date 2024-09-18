@@ -1085,11 +1085,17 @@ class PackageBackend {
           'Package "${newVersion.package}" has no admin email to notify.');
     }
 
-    // check rate limits before the transaction
+    final existingVersions = await db
+        .query<PackageVersion>(ancestorKey: newVersion.packageKey!)
+        .run()
+        .toList();
+
+    // check long term (over a day) rate limits with version created timestamps
     await verifyPackageUploadRateLimit(
       agent: agent,
       package: newVersion.package,
       isNew: isNew,
+      timestamps: existingVersions.map((v) => v.created!).toList(),
     );
 
     final email = createPackageUploadedEmail(
@@ -1102,11 +1108,6 @@ class PackageBackend {
     final outgoingEmail = emailBackend.prepareEntity(email);
 
     Package? package;
-    final existingVersions = await db
-        .query<PackageVersion>(ancestorKey: newVersion.packageKey!)
-        .run()
-        .toList();
-
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
     final pv = await withRetryTransaction(db, (tx) async {
