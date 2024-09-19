@@ -80,7 +80,7 @@
 
   &.home-block-ff,
   &.home-block-pow {
-    background: var(--pub-code-background-color);
+    background: var(--pub-inset-bgColor);
   }
 
   .home-block-image {
@@ -100,7 +100,7 @@
   }
 
   .mini-list-item {
-    background: var(--pub-home_card-background-color);
+    background: var(--pub-neutral-bgColor);
     border-radius: 4px;
     box-shadow: 0px 2px 7px 0px var(--pub-home_card-box_shadow-color);
     padding: 28px 30px 30px; // title's top gap is about 2px (30-2 => 28)
@@ -108,13 +108,13 @@
     min-height: 100px;
 
     &:hover {
-      background: var(--pub-home_card_hover-background-color);
+      background: var(--pub-neutral-hover-bgColor);
       box-shadow: 0px 4px 9px 0px var(--pub-home_card_hover-box_shadow-color);
 
       @media (min-width: $device-desktop-min-width) {
         .mini-list-item-body {
           &:before {
-            background: var(--pub-home_card_hover_fadeout-background-value);
+            background: linear-gradient(transparent 90%, var(--pub-neutral-hover-bgColor));
           }
         }
       }
@@ -206,8 +206,8 @@
          top: 0;
          bottom: 0;
          right: 0;
-         background: var(--pub-home_card_fadeout-background-value);
-       }
+         background: linear-gradient(transparent 90%, var(--pub-neutral-bgColor));
+        }
     }
   }
 

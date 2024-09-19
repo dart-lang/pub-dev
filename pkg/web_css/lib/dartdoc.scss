@@ -31,7 +31,7 @@
 
 /* Note: light-theme was added to prevent non-visible table text in dartdoc's dark mode. */
 .light-theme .markdown-body table tr {
-  background-color: var(--pub-default-background-color);
+  background-color: var(--pub-neutral-bgColor);
   border-top: 1px solid #c6cbd1;
 }
 
