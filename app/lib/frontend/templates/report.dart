@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/frontend/static_files.dart';
-
 import '../../account/models.dart';
 import '../../admin/models.dart';
 import '../dom/dom.dart' as d;
 import '../dom/material.dart' as material;
+import '_utils.dart';
 import 'layout.dart';
 
 const _subjectKindLabels = {
@@ -93,7 +92,7 @@ Iterable<d.Node> _report(
     d.p(text: ''),
     // illegal content
     if (subject.isPackage)
-      _foldableSection(
+      foldableSection(
         title: d.text('I believe the package contains illegal content.'),
         children: [
           d.markdown('Please report illegal content through the '
@@ -101,7 +100,7 @@ Iterable<d.Node> _report(
         ],
       )
     else if (subject.isPublisher)
-      _foldableSection(
+      foldableSection(
         title: d.text('I believe the publisher contains illegal content.'),
         children: [
           d.markdown('Please report illegal content through the '
@@ -111,7 +110,7 @@ Iterable<d.Node> _report(
 
     // contact
     if (subject.isPackage)
-      _foldableSection(
+      foldableSection(
         title: d.text(
             'I have found a bug in the package / I need help using the package.'),
         children: [
@@ -131,7 +130,7 @@ Iterable<d.Node> _report(
         ],
       )
     else if (subject.isPublisher)
-      _foldableSection(
+      foldableSection(
         title: d.text('I want to contact the publisher.'),
         children: [
           d.markdown('Please consult the publisher page: '
@@ -143,7 +142,7 @@ Iterable<d.Node> _report(
       ),
 
     // direct report
-    _foldableSection(
+    foldableSection(
       buttonDivClasses: ['report-page-direct-report'],
       title: d.text('I believe the $kindLabel violates pub.dev/policy.'),
       children: [
@@ -176,7 +175,7 @@ Iterable<d.Node> _report(
     ),
 
     // problem with pub.dev
-    _foldableSection(
+    foldableSection(
       title: d.text('I have a problem with the pub.dev website.'),
       children: [
         d.markdown('Security vulnerabilities may be reported through '
@@ -233,36 +232,4 @@ Iterable<d.Node> _appeal(
       },
     ),
   ];
-}
-
-d.Node _foldableSection({
-  required d.Node title,
-  required Iterable<d.Node> children,
-  Iterable<String>? buttonDivClasses,
-}) {
-  return d.div(
-    classes: ['foldable-section', 'foldable'],
-    children: [
-      d.div(
-        classes: ['foldable-button', ...?buttonDivClasses],
-        children: [
-          d.img(
-            classes: ['foldable-icon'],
-            image: d.Image(
-              src: staticUrls
-                  .getAssetUrl('/static/img/foldable-section-icon.svg'),
-              alt: 'trigger folding of the section',
-              width: 13,
-              height: 6,
-            ),
-          ),
-          title,
-        ],
-      ),
-      d.div(
-        classes: ['foldable-content'],
-        children: children,
-      ),
-    ],
-  );
 }

@@ -25,6 +25,11 @@
     &:hover {
       background: var(--pub-report-hover-background-color);
     }
+
+    > h1, h2, h3 {
+      // the default `display: block` would render these in a separate row
+      display: inline-block;
+    }
   }
 
   .foldable-icon {

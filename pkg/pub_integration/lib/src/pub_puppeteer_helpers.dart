@@ -99,6 +99,7 @@ extension PubPageExt on Page {
     required String publisherId,
   }) async {
     await gotoOrigin('/packages/$package/admin');
+    await clickOnText('h2', 'Package ownership');
     await waitAndClick('#-admin-set-publisher-input');
     await waitAndClick('li[data-value="$publisherId"]');
     await waitAndClick('#-admin-set-publisher-button');
@@ -111,6 +112,7 @@ extension PubPageExt on Page {
   }) async {
     final result = <String, String>{};
     await gotoOrigin('/publishers/$publisherId/admin');
+    await clickOnText('h2', 'Members');
     final rows = await $$('#-pub-publisher-admin-members-table tbody tr');
     for (final row in rows) {
       final cols = await row.$$('td');
@@ -124,6 +126,7 @@ extension PubPageExt on Page {
     required String invitedEmail,
   }) async {
     await gotoOrigin('/publishers/$publisherId/admin');
+    await clickOnText('h2', 'Members');
     await waitAndClick('#-admin-add-member-button');
     await _waitAndType('#-admin-invite-member-input', invitedEmail);
     await _waitConfirmDialogThenConfirmOp();
@@ -134,6 +137,7 @@ extension PubPageExt on Page {
     required String invitedEmail,
   }) async {
     await gotoOrigin('/packages/$package/admin');
+    await clickOnText('h2', 'Package ownership');
     await waitAndClick('#-pkg-admin-invite-uploader-button');
     await _waitAndType('#-pkg-admin-invite-uploader-input', invitedEmail);
     await _waitConfirmDialogThenConfirmOp();
@@ -143,6 +147,7 @@ extension PubPageExt on Page {
     required String package,
   }) async {
     await gotoOrigin('/packages/$package/admin');
+    await clickOnText('h2', 'Package ownership');
     final table = await $('#-pkg-admin-uploaders-table');
     final buttons = await table.$$('.-pub-remove-uploader-button');
     final emails = <String>[];
@@ -158,6 +163,7 @@ extension PubPageExt on Page {
     required String email,
   }) async {
     await gotoOrigin('/packages/$package/admin');
+    await clickOnText('h2', 'Package ownership');
     final table = await $('#-pkg-admin-uploaders-table');
     final buttons = await table.$$('.-pub-remove-uploader-button');
     var clicked = false;
@@ -289,6 +295,15 @@ extension PubPageExt on Page {
       hidden: true,
       timeout: Duration(seconds: 5),
     );
+  }
+
+  Future<void> clickOnText(String tag, String text) async {
+    final list = await $x("//$tag[contains(., '$text')]");
+    if (list.isEmpty) {
+      throw Exception('No $tag with "$text"');
+    } else {
+      await list.first.click();
+    }
   }
 }
 

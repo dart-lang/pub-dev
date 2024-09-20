@@ -158,85 +158,99 @@
             <div class="detail-container detail-body-main">
               <div class="detail-tabs-content">
                 <section class="tab-content detail-tab-admin-content -active">
-                  <h2>Publisher information</h2>
-                  <div class="-pub-form-textfield-row">
-                    <label for="-publisher-description">Description</label>
-                    <div class="mdc-text-field mdc-text-field--textarea" data-mdc-auto-init="MDCTextField">
-                      <div class="mdc-text-field-character-counter">0 / 4096</div>
-                      <textarea id="-publisher-description" class="mdc-text-field__input" rows="5" cols="60" maxlength="4096"></textarea>
-                      <div class="mdc-notched-outline">
-                        <div class="mdc-notched-outline__leading"></div>
-                        <div class="mdc-notched-outline__trailing"></div>
-                      </div>
+                  <div class="foldable-section foldable">
+                    <div class="foldable-button">
+                      <img class="foldable-icon" src="/static/hash-%%etag%%/img/foldable-section-icon.svg" alt="trigger folding of the section" width="13" height="6"/>
+                      <h2>Publisher information</h2>
                     </div>
-                  </div>
-                  <div class="-pub-form-textfield-row">
-                    <div class="mdc-form-field">
-                      <label for="-publisher-website-url">Website</label>
-                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                        <input id="-publisher-website-url" class="mdc-text-field__input" type="text" value="https://example.com/"/>
-                        <div class="mdc-notched-outline">
-                          <div class="mdc-notched-outline__leading"></div>
-                          <div class="mdc-notched-outline__trailing"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="-pub-form-textfield-row">
-                    <div class="mdc-form-field">
-                      <label for="-publisher-contact-email">Contact email</label>
-                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                        <input id="-publisher-contact-email" class="mdc-text-field__input" type="text" value="admin@pub.dev"/>
-                        <div class="mdc-notched-outline">
-                          <div class="mdc-notched-outline__leading"></div>
-                          <div class="mdc-notched-outline__trailing"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="-pub-form-right-aligned">
-                    <button id="-publisher-update-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Update</button>
-                  </div>
-                  <h2>Members</h2>
-                  <p class="warning">This publisher only has a single member. Consider adding more members to protect against losing control of the publisher.</p>
-                  <div id="-pub-publisher-admin-members-table" class="mdc-data-table">
-                    <table class="mdc-data-table__table" aria-label="Members of publisher">
-                      <thead>
-                        <tr class="mdc-data-table__header-row">
-                          <th class="mdc-data-table__header-cell email-header" role="columnheader" scope="col">Email</th>
-                          <th class="mdc-data-table__header-cell role-header" role="columnheader" scope="col">Role</th>
-                          <th class="mdc-data-table__header-cell icons-header" role="columnheader" scope="col"></th>
-                        </tr>
-                      </thead>
-                      <tbody class="mdc-data-table__content">
-                        <tr class="mdc-data-table__row">
-                          <td class="mdc-data-table__cell">admin@pub.dev</td>
-                          <td class="mdc-data-table__cell">admin</td>
-                          <td class="mdc-data-table__cell">
-                            <a class="-pub-remove-user-button" title="Remove member" data-user-id="%%admin@pub.dev%%" data-email="admin@pub.dev">×</a>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="-pub-form-right-aligned">
-                    <button id="-admin-add-member-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Add member</button>
-                  </div>
-                  <div id="-admin-add-member-content" class="modal-content-hidden">
-                    <p>You can invite new members to this verified publisher. Once new members accept the invitation, they have full administrative rights, with the following abilities:</p>
-                    <ul>
-                      <li>Transfer packages to and from this publisher</li>
-                      <li>Upload new versions of packages owned by this publisher</li>
-                      <li>Add and remove members of this publisher</li>
-                    </ul>
-                    <div class="-pub-form-textfield-row">
-                      <div class="mdc-form-field">
-                        <label for="-admin-invite-member-input">Email address</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-admin-invite-member-input" class="mdc-text-field__input" type="text"/>
+                    <div class="foldable-content">
+                      <div class="-pub-form-textfield-row">
+                        <label for="-publisher-description">Description</label>
+                        <div class="mdc-text-field mdc-text-field--textarea" data-mdc-auto-init="MDCTextField">
+                          <div class="mdc-text-field-character-counter">0 / 4096</div>
+                          <textarea id="-publisher-description" class="mdc-text-field__input" rows="5" cols="60" maxlength="4096"></textarea>
                           <div class="mdc-notched-outline">
                             <div class="mdc-notched-outline__leading"></div>
                             <div class="mdc-notched-outline__trailing"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="-pub-form-textfield-row">
+                        <div class="mdc-form-field">
+                          <label for="-publisher-website-url">Website</label>
+                          <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                            <input id="-publisher-website-url" class="mdc-text-field__input" type="text" value="https://example.com/"/>
+                            <div class="mdc-notched-outline">
+                              <div class="mdc-notched-outline__leading"></div>
+                              <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="-pub-form-textfield-row">
+                        <div class="mdc-form-field">
+                          <label for="-publisher-contact-email">Contact email</label>
+                          <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                            <input id="-publisher-contact-email" class="mdc-text-field__input" type="text" value="admin@pub.dev"/>
+                            <div class="mdc-notched-outline">
+                              <div class="mdc-notched-outline__leading"></div>
+                              <div class="mdc-notched-outline__trailing"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="-pub-form-right-aligned">
+                        <button id="-publisher-update-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Update</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="foldable-section foldable">
+                    <div class="foldable-button">
+                      <img class="foldable-icon" src="/static/hash-%%etag%%/img/foldable-section-icon.svg" alt="trigger folding of the section" width="13" height="6"/>
+                      <h2>Members</h2>
+                    </div>
+                    <div class="foldable-content">
+                      <p class="warning">This publisher only has a single member. Consider adding more members to protect against losing control of the publisher.</p>
+                      <div id="-pub-publisher-admin-members-table" class="mdc-data-table">
+                        <table class="mdc-data-table__table" aria-label="Members of publisher">
+                          <thead>
+                            <tr class="mdc-data-table__header-row">
+                              <th class="mdc-data-table__header-cell email-header" role="columnheader" scope="col">Email</th>
+                              <th class="mdc-data-table__header-cell role-header" role="columnheader" scope="col">Role</th>
+                              <th class="mdc-data-table__header-cell icons-header" role="columnheader" scope="col"></th>
+                            </tr>
+                          </thead>
+                          <tbody class="mdc-data-table__content">
+                            <tr class="mdc-data-table__row">
+                              <td class="mdc-data-table__cell">admin@pub.dev</td>
+                              <td class="mdc-data-table__cell">admin</td>
+                              <td class="mdc-data-table__cell">
+                                <a class="-pub-remove-user-button" title="Remove member" data-user-id="%%admin@pub.dev%%" data-email="admin@pub.dev">×</a>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="-pub-form-right-aligned">
+                        <button id="-admin-add-member-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Add member</button>
+                      </div>
+                      <div id="-admin-add-member-content" class="modal-content-hidden">
+                        <p>You can invite new members to this verified publisher. Once new members accept the invitation, they have full administrative rights, with the following abilities:</p>
+                        <ul>
+                          <li>Transfer packages to and from this publisher</li>
+                          <li>Upload new versions of packages owned by this publisher</li>
+                          <li>Add and remove members of this publisher</li>
+                        </ul>
+                        <div class="-pub-form-textfield-row">
+                          <div class="mdc-form-field">
+                            <label for="-admin-invite-member-input">Email address</label>
+                            <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                              <input id="-admin-invite-member-input" class="mdc-text-field__input" type="text"/>
+                              <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

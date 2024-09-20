@@ -241,355 +241,383 @@
             <div class="detail-container detail-body-main">
               <div class="detail-tabs-content">
                 <section class="tab-content detail-tab-admin-content -active">
-                  <h2>Package ownership</h2>
-                  <div>
-                    <p>You can transfer this package to a verified publisher if you are a member of the publisher. Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.</p>
-                    <p>
-                      <strong>Upgrading to verified publishers is an irreversible operation.</strong>
-                      Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
-                    </p>
-                    <div id="-admin-set-publisher-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
-                      <div class="mdc-select__anchor">
-                        <span class="mdc-select__ripple"></span>
-                        <span class="mdc-select__selected-text"></span>
-                        <span class="mdc-select__dropdown-icon">
-                          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
-                            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
-                            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
-                          </svg>
-                        </span>
-                        <span class="mdc-floating-label">Select a publisher</span>
-                        <span class="mdc-line-ripple"></span>
-                      </div>
-                      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
-                        <ul class="mdc-list">
-                          <li class="mdc-list-item mdc-list-item--selected" data-value="">
-                            <span class="mdc-list-item__ripple"></span>
-                            <span class="mdc-list-item__text"></span>
-                          </li>
-                          <li class="mdc-list-item" data-value="example.com">
-                            <span class="mdc-list-item__ripple"></span>
-                            <span class="mdc-list-item__text">example.com</span>
-                          </li>
-                        </ul>
-                      </div>
+                  <div class="foldable-section foldable">
+                    <div class="foldable-button">
+                      <img class="foldable-icon" src="/static/hash-%%etag%%/img/foldable-section-icon.svg" alt="trigger folding of the section" width="13" height="6"/>
+                      <h2>Package ownership</h2>
                     </div>
-                    <p>
-                      <button id="-admin-set-publisher-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
-                    </p>
-                    <h3>Uploaders</h3>
-                    <p class="warning">There is only a single uploader. Consider adding more uploaders to protect against losing control of the package.</p>
-                    <div id="-pkg-admin-uploaders-table" class="mdc-data-table">
-                      <table class="mdc-data-table__table" aria-label="Uploaders of package">
-                        <thead>
-                          <tr class="mdc-data-table__header-row">
-                            <th class="mdc-data-table__header-cell email-header" role="columnheader" scope="col">Email</th>
-                            <th class="mdc-data-table__header-cell icons-header" role="columnheader" scope="col"></th>
-                          </tr>
-                        </thead>
-                        <tbody class="mdc-data-table__content">
-                          <tr class="mdc-data-table__row">
-                            <td class="mdc-data-table__cell">admin@pub.dev</td>
-                            <td class="mdc-data-table__cell">
-                              <a class="-pub-remove-uploader-button" title="Remove uploader" data-email="admin@pub.dev">×</a>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                    <p>
-                      <button id="-pkg-admin-invite-uploader-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Invite uploader</button>
-                    </p>
-                    <div id="-pkg-admin-invite-uploader-content" class="modal-content-hidden">
-                      <p>You can invite new uploader to this package. Once new uploaders accept the invitation, they have full administrative rights, with the following abilities:</p>
-                      <ul>
-                        <li>Transfer this package to a publisher</li>
-                        <li>Upload new versions of this package</li>
-                        <li>Invite and remove uploaders of this package</li>
-                      </ul>
-                      <div class="-pub-form-textfield-row">
-                        <div class="mdc-form-field">
-                          <label for="-pkg-admin-invite-uploader-input">Email address</label>
-                          <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                            <input id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input" type="text"/>
-                            <div class="mdc-notched-outline">
-                              <div class="mdc-notched-outline__leading"></div>
-                              <div class="mdc-notched-outline__trailing"></div>
+                    <div class="foldable-content">
+                      <div>
+                        <p>You can transfer this package to a verified publisher if you are a member of the publisher. Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.</p>
+                        <p>
+                          <strong>Upgrading to verified publishers is an irreversible operation.</strong>
+                          Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
+                        </p>
+                        <div id="-admin-set-publisher-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
+                          <div class="mdc-select__anchor">
+                            <span class="mdc-select__ripple"></span>
+                            <span class="mdc-select__selected-text"></span>
+                            <span class="mdc-select__dropdown-icon">
+                              <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
+                                <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
+                              </svg>
+                            </span>
+                            <span class="mdc-floating-label">Select a publisher</span>
+                            <span class="mdc-line-ripple"></span>
+                          </div>
+                          <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+                            <ul class="mdc-list">
+                              <li class="mdc-list-item mdc-list-item--selected" data-value="">
+                                <span class="mdc-list-item__ripple"></span>
+                                <span class="mdc-list-item__text"></span>
+                              </li>
+                              <li class="mdc-list-item" data-value="example.com">
+                                <span class="mdc-list-item__ripple"></span>
+                                <span class="mdc-list-item__text">example.com</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        <p>
+                          <button id="-admin-set-publisher-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+                        </p>
+                        <h3>Uploaders</h3>
+                        <p class="warning">There is only a single uploader. Consider adding more uploaders to protect against losing control of the package.</p>
+                        <div id="-pkg-admin-uploaders-table" class="mdc-data-table">
+                          <table class="mdc-data-table__table" aria-label="Uploaders of package">
+                            <thead>
+                              <tr class="mdc-data-table__header-row">
+                                <th class="mdc-data-table__header-cell email-header" role="columnheader" scope="col">Email</th>
+                                <th class="mdc-data-table__header-cell icons-header" role="columnheader" scope="col"></th>
+                              </tr>
+                            </thead>
+                            <tbody class="mdc-data-table__content">
+                              <tr class="mdc-data-table__row">
+                                <td class="mdc-data-table__cell">admin@pub.dev</td>
+                                <td class="mdc-data-table__cell">
+                                  <a class="-pub-remove-uploader-button" title="Remove uploader" data-email="admin@pub.dev">×</a>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <p>
+                          <button id="-pkg-admin-invite-uploader-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Invite uploader</button>
+                        </p>
+                        <div id="-pkg-admin-invite-uploader-content" class="modal-content-hidden">
+                          <p>You can invite new uploader to this package. Once new uploaders accept the invitation, they have full administrative rights, with the following abilities:</p>
+                          <ul>
+                            <li>Transfer this package to a publisher</li>
+                            <li>Upload new versions of this package</li>
+                            <li>Invite and remove uploaders of this package</li>
+                          </ul>
+                          <div class="-pub-form-textfield-row">
+                            <div class="mdc-form-field">
+                              <label for="-pkg-admin-invite-uploader-input">Email address</label>
+                              <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                                <input id="-pkg-admin-invite-uploader-input" class="mdc-text-field__input" type="text"/>
+                                <div class="mdc-notched-outline">
+                                  <div class="mdc-notched-outline__leading"></div>
+                                  <div class="mdc-notched-outline__trailing"></div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <h2>Package Options</h2>
-                  <h3>Discontinued</h3>
-                  <p>
-                    A package can be marked as
-                    <a href="https://dart.dev/tools/pub/publishing#discontinue">discontinued</a>
-                    to inform users that the package is no longer maintained.
-                    <em>Discontinued packages</em>
-                    remain available to package users, but they don't appear in search results on pub.dev unless the user specifies advanced search options.
-                  </p>
-                  <div class="-pub-form-checkbox-row">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
+                  <div class="foldable-section foldable">
+                    <div class="foldable-button">
+                      <img class="foldable-icon" src="/static/hash-%%etag%%/img/foldable-section-icon.svg" alt="trigger folding of the section" width="13" height="6"/>
+                      <h2>Package Options</h2>
+                    </div>
+                    <div class="foldable-content">
+                      <h3>Discontinued</h3>
+                      <p>
+                        A package can be marked as
+                        <a href="https://dart.dev/tools/pub/publishing#discontinue">discontinued</a>
+                        to inform users that the package is no longer maintained.
+                        <em>Discontinued packages</em>
+                        remain available to package users, but they don't appear in search results on pub.dev unless the user specifies advanced search options.
+                      </p>
+                      <div class="-pub-form-checkbox-row">
+                        <div class="mdc-form-field">
+                          <div class="mdc-checkbox">
+                            <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
+                            <div class="mdc-checkbox__background">
+                              <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                              </svg>
+                              <div class="mdc-checkbox__mixedmark"></div>
+                            </div>
+                            <div class="mdc-checkbox__ripple"></div>
+                          </div>
+                          <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
                         </div>
-                        <div class="mdc-checkbox__ripple"></div>
                       </div>
-                      <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
+                      <h3>Unlisted</h3>
+                      <p>
+                        A package that's marked as
+                        <em>unlisted</em>
+                        doesn't normally appear in search results on pub.dev. Unlisted packages remain publicly available, and users can search for them using advanced search options.
+                      </p>
+                      <div class="-pub-form-checkbox-row">
+                        <div class="mdc-form-field">
+                          <div class="mdc-checkbox">
+                            <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
+                            <div class="mdc-checkbox__background">
+                              <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                              </svg>
+                              <div class="mdc-checkbox__mixedmark"></div>
+                            </div>
+                            <div class="mdc-checkbox__ripple"></div>
+                          </div>
+                          <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <h3>Unlisted</h3>
-                  <p>
-                    A package that's marked as
-                    <em>unlisted</em>
-                    doesn't normally appear in search results on pub.dev. Unlisted packages remain publicly available, and users can search for them using advanced search options.
-                  </p>
-                  <div class="-pub-form-checkbox-row">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
+                  <div class="foldable-section foldable">
+                    <div class="foldable-button">
+                      <img class="foldable-icon" src="/static/hash-%%etag%%/img/foldable-section-icon.svg" alt="trigger folding of the section" width="13" height="6"/>
+                      <h2>Automated publishing</h2>
                     </div>
-                  </div>
-                  <h2>Automated publishing</h2>
-                  <h3>Publishing from GitHub Actions</h3>
-                  <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-pkg-admin-automated-github-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
+                    <div class="foldable-content">
+                      <h3>Publishing from GitHub Actions</h3>
+                      <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
+                        <div class="mdc-form-field">
+                          <div class="mdc-checkbox">
+                            <input id="-pkg-admin-automated-github-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
+                            <div class="mdc-checkbox__background">
+                              <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                              </svg>
+                              <div class="mdc-checkbox__mixedmark"></div>
+                            </div>
+                            <div class="mdc-checkbox__ripple"></div>
+                          </div>
+                          <label for="-pkg-admin-automated-github-enabled">Enable publishing from GitHub Actions</label>
                         </div>
-                        <div class="mdc-checkbox__ripple"></div>
                       </div>
-                      <label for="-pkg-admin-automated-github-enabled">Enable publishing from GitHub Actions</label>
-                    </div>
-                  </div>
-                  <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
-                    <div class="-pub-form-textfield-row">
-                      <div class="mdc-form-field">
-                        <label for="-pkg-admin-automated-github-repository">Repository (&lt;owner>/&lt;repository>)</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-pkg-admin-automated-github-repository" class="mdc-text-field__input" type="text"/>
-                          <div class="mdc-notched-outline">
-                            <div class="mdc-notched-outline__leading"></div>
-                            <div class="mdc-notched-outline__trailing"></div>
+                      <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
+                        <div class="-pub-form-textfield-row">
+                          <div class="mdc-form-field">
+                            <label for="-pkg-admin-automated-github-repository">Repository (&lt;owner>/&lt;repository>)</label>
+                            <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                              <input id="-pkg-admin-automated-github-repository" class="mdc-text-field__input" type="text"/>
+                              <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="-pub-form-textfield-row">
+                          <div class="mdc-form-field">
+                            <label for="-pkg-admin-automated-github-tagpattern">Tag pattern</label>
+                            <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                              <input id="-pkg-admin-automated-github-tagpattern" class="mdc-text-field__input" type="text" value="v{{version}}"/>
+                              <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <p>
+                            <code>{{version}}</code>
+                            will be substituted for the version number of the package. For example, for tags like
+                            <code>v1.2.3</code>
+                            use
+                            <code>v{{version}}</code>
+                            , and for
+                            <code>mypackage-1.2.3</code>
+                            use
+                            <code>mypackage-{{version}}</code>
+                            .
+                          </p>
+                        </div>
+                        <div class="-pub-form-checkbox-row">
+                          <div class="mdc-form-field">
+                            <div class="mdc-checkbox">
+                              <input id="-pkg-admin-automated-github-push-events" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
+                              <div class="mdc-checkbox__background">
+                                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                                </svg>
+                                <div class="mdc-checkbox__mixedmark"></div>
+                              </div>
+                              <div class="mdc-checkbox__ripple"></div>
+                            </div>
+                            <label for="-pkg-admin-automated-github-push-events">
+                              Enable publishing from
+                              <code>push</code>
+                              events
+                            </label>
+                          </div>
+                        </div>
+                        <div class="-pub-form-checkbox-row">
+                          <div class="mdc-form-field">
+                            <div class="mdc-checkbox">
+                              <input id="-pkg-admin-automated-github-workflowdispatch-events" class="mdc-checkbox__native-control" type="checkbox"/>
+                              <div class="mdc-checkbox__background">
+                                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                                </svg>
+                                <div class="mdc-checkbox__mixedmark"></div>
+                              </div>
+                              <div class="mdc-checkbox__ripple"></div>
+                            </div>
+                            <label for="-pkg-admin-automated-github-workflowdispatch-events">
+                              Enable publishing from
+                              <code>workflow_dispatch</code>
+                              events
+                            </label>
+                          </div>
+                        </div>
+                        <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
+                          <div class="mdc-form-field">
+                            <div class="mdc-checkbox">
+                              <input id="-pkg-admin-automated-github-requireenv" class="mdc-checkbox__native-control" type="checkbox"/>
+                              <div class="mdc-checkbox__background">
+                                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                  <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                                </svg>
+                                <div class="mdc-checkbox__mixedmark"></div>
+                              </div>
+                              <div class="mdc-checkbox__ripple"></div>
+                            </div>
+                            <label for="-pkg-admin-automated-github-requireenv">Require GitHub Actions environment</label>
+                          </div>
+                        </div>
+                        <div class="-pub-form-checkbox-indent -pub-form-textfield-row -pub-form-block-hidden">
+                          <div class="mdc-form-field">
+                            <label for="-pkg-admin-automated-github-environment">Environment</label>
+                            <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                              <input id="-pkg-admin-automated-github-environment" class="mdc-text-field__input" type="text"/>
+                              <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div class="-pub-form-textfield-row">
-                      <div class="mdc-form-field">
-                        <label for="-pkg-admin-automated-github-tagpattern">Tag pattern</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-pkg-admin-automated-github-tagpattern" class="mdc-text-field__input" type="text" value="v{{version}}"/>
-                          <div class="mdc-notched-outline">
-                            <div class="mdc-notched-outline__leading"></div>
-                            <div class="mdc-notched-outline__trailing"></div>
+                      <h3>Publishing with Google Cloud Service account</h3>
+                      <p>
+                        When publishing with a GCP
+                        <em>service account</em>
+                        is enabled, the service account configured here will be able to create temporary tokens that allows publishing of this package. To learn more about publishing using a
+                        <em>service account</em>
+                        , see
+                        <a href="https://dart.dev/go/automated-publishing">dart.dev/go/automated-publishing</a>
+                      </p>
+                      <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
+                        <div class="mdc-form-field">
+                          <div class="mdc-checkbox">
+                            <input id="-pkg-admin-automated-gcp-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
+                            <div class="mdc-checkbox__background">
+                              <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                              </svg>
+                              <div class="mdc-checkbox__mixedmark"></div>
+                            </div>
+                            <div class="mdc-checkbox__ripple"></div>
+                          </div>
+                          <label for="-pkg-admin-automated-gcp-enabled">Enable publishing with Google Cloud Service account</label>
+                        </div>
+                      </div>
+                      <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
+                        <div class="-pub-form-textfield-row">
+                          <div class="mdc-form-field">
+                            <label for="-pkg-admin-automated-gcp-serviceaccountemail">Service account email</label>
+                            <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                              <input id="-pkg-admin-automated-gcp-serviceaccountemail" class="mdc-text-field__input" type="text"/>
+                              <div class="mdc-notched-outline">
+                                <div class="mdc-notched-outline__leading"></div>
+                                <div class="mdc-notched-outline__trailing"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                       <p>
-                        <code>{{version}}</code>
-                        will be substituted for the version number of the package. For example, for tags like
-                        <code>v1.2.3</code>
-                        use
-                        <code>v{{version}}</code>
-                        , and for
-                        <code>mypackage-1.2.3</code>
-                        use
-                        <code>mypackage-{{version}}</code>
-                        .
+                        <button id="-pkg-admin-automated-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Update</button>
                       </p>
                     </div>
-                    <div class="-pub-form-checkbox-row">
-                      <div class="mdc-form-field">
-                        <div class="mdc-checkbox">
-                          <input id="-pkg-admin-automated-github-push-events" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
-                          <div class="mdc-checkbox__background">
-                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                            </svg>
-                            <div class="mdc-checkbox__mixedmark"></div>
-                          </div>
-                          <div class="mdc-checkbox__ripple"></div>
-                        </div>
-                        <label for="-pkg-admin-automated-github-push-events">
-                          Enable publishing from
-                          <code>push</code>
-                          events
-                        </label>
-                      </div>
-                    </div>
-                    <div class="-pub-form-checkbox-row">
-                      <div class="mdc-form-field">
-                        <div class="mdc-checkbox">
-                          <input id="-pkg-admin-automated-github-workflowdispatch-events" class="mdc-checkbox__native-control" type="checkbox"/>
-                          <div class="mdc-checkbox__background">
-                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                            </svg>
-                            <div class="mdc-checkbox__mixedmark"></div>
-                          </div>
-                          <div class="mdc-checkbox__ripple"></div>
-                        </div>
-                        <label for="-pkg-admin-automated-github-workflowdispatch-events">
-                          Enable publishing from
-                          <code>workflow_dispatch</code>
-                          events
-                        </label>
-                      </div>
-                    </div>
-                    <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
-                      <div class="mdc-form-field">
-                        <div class="mdc-checkbox">
-                          <input id="-pkg-admin-automated-github-requireenv" class="mdc-checkbox__native-control" type="checkbox"/>
-                          <div class="mdc-checkbox__background">
-                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                            </svg>
-                            <div class="mdc-checkbox__mixedmark"></div>
-                          </div>
-                          <div class="mdc-checkbox__ripple"></div>
-                        </div>
-                        <label for="-pkg-admin-automated-github-requireenv">Require GitHub Actions environment</label>
-                      </div>
-                    </div>
-                    <div class="-pub-form-checkbox-indent -pub-form-textfield-row -pub-form-block-hidden">
-                      <div class="mdc-form-field">
-                        <label for="-pkg-admin-automated-github-environment">Environment</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-pkg-admin-automated-github-environment" class="mdc-text-field__input" type="text"/>
-                          <div class="mdc-notched-outline">
-                            <div class="mdc-notched-outline__leading"></div>
-                            <div class="mdc-notched-outline__trailing"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                  <h3>Publishing with Google Cloud Service account</h3>
-                  <p>
-                    When publishing with a GCP
-                    <em>service account</em>
-                    is enabled, the service account configured here will be able to create temporary tokens that allows publishing of this package. To learn more about publishing using a
-                    <em>service account</em>
-                    , see
-                    <a href="https://dart.dev/go/automated-publishing">dart.dev/go/automated-publishing</a>
-                  </p>
-                  <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-pkg-admin-automated-gcp-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-pkg-admin-automated-gcp-enabled">Enable publishing with Google Cloud Service account</label>
+                  <div class="foldable-section foldable">
+                    <div class="foldable-button">
+                      <img class="foldable-icon" src="/static/hash-%%etag%%/img/foldable-section-icon.svg" alt="trigger folding of the section" width="13" height="6"/>
+                      <h2>Package Version Retraction</h2>
                     </div>
-                  </div>
-                  <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
-                    <div class="-pub-form-textfield-row">
-                      <div class="mdc-form-field">
-                        <label for="-pkg-admin-automated-gcp-serviceaccountemail">Service account email</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-pkg-admin-automated-gcp-serviceaccountemail" class="mdc-text-field__input" type="text"/>
-                          <div class="mdc-notched-outline">
-                            <div class="mdc-notched-outline__leading"></div>
-                            <div class="mdc-notched-outline__trailing"></div>
+                    <div class="foldable-content">
+                      <div>
+                        <p>
+                          You can
+                          <a href="https://dart.dev/go/package-retraction">retract</a>
+                          a package version up to 7 days after publication.
+                        </p>
+                        <p>This will not remove the package version, but warn developers using it and stop new applications from taking dependency on it without a dependency override.</p>
+                        <p>You can restore a retracted package version if the version was retracted within the last 7 days.</p>
+                        <h3>Retract Package Version</h3>
+                        <div id="-admin-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
+                          <div class="mdc-select__anchor">
+                            <span class="mdc-select__ripple"></span>
+                            <span class="mdc-select__selected-text"></span>
+                            <span class="mdc-select__dropdown-icon">
+                              <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
+                                <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
+                              </svg>
+                            </span>
+                            <span class="mdc-floating-label">Select a version</span>
+                            <span class="mdc-line-ripple"></span>
+                          </div>
+                          <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+                            <ul class="mdc-list">
+                              <li class="mdc-list-item" data-value="2.0.0">
+                                <span class="mdc-list-item__ripple"></span>
+                                <span class="mdc-list-item__text">2.0.0</span>
+                              </li>
+                            </ul>
                           </div>
                         </div>
+                        <p>
+                          <button id="-admin-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Retract Package Version</button>
+                        </p>
+                      </div>
+                      <h3>Restore Retracted Package Version</h3>
+                      <div>
+                        <div id="-admin-restore-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
+                          <div class="mdc-select__anchor">
+                            <span class="mdc-select__ripple"></span>
+                            <span class="mdc-select__selected-text"></span>
+                            <span class="mdc-select__dropdown-icon">
+                              <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
+                                <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
+                              </svg>
+                            </span>
+                            <span class="mdc-floating-label">Select a version</span>
+                            <span class="mdc-line-ripple"></span>
+                          </div>
+                          <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+                            <ul class="mdc-list">
+                              <li class="mdc-list-item" data-value="1.0.0">
+                                <span class="mdc-list-item__ripple"></span>
+                                <span class="mdc-list-item__text">1.0.0</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        <p>
+                          <button id="-admin-restore-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Restore Retraced Package Version</button>
+                        </p>
                       </div>
                     </div>
-                  </div>
-                  <p>
-                    <button id="-pkg-admin-automated-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Update</button>
-                  </p>
-                  <h2>Package Version Retraction</h2>
-                  <div>
-                    <p>
-                      You can
-                      <a href="https://dart.dev/go/package-retraction">retract</a>
-                      a package version up to 7 days after publication.
-                    </p>
-                    <p>This will not remove the package version, but warn developers using it and stop new applications from taking dependency on it without a dependency override.</p>
-                    <p>You can restore a retracted package version if the version was retracted within the last 7 days.</p>
-                    <h3>Retract Package Version</h3>
-                    <div id="-admin-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
-                      <div class="mdc-select__anchor">
-                        <span class="mdc-select__ripple"></span>
-                        <span class="mdc-select__selected-text"></span>
-                        <span class="mdc-select__dropdown-icon">
-                          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
-                            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
-                            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
-                          </svg>
-                        </span>
-                        <span class="mdc-floating-label">Select a version</span>
-                        <span class="mdc-line-ripple"></span>
-                      </div>
-                      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
-                        <ul class="mdc-list">
-                          <li class="mdc-list-item" data-value="2.0.0">
-                            <span class="mdc-list-item__ripple"></span>
-                            <span class="mdc-list-item__text">2.0.0</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <p>
-                      <button id="-admin-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Retract Package Version</button>
-                    </p>
-                  </div>
-                  <h3>Restore Retracted Package Version</h3>
-                  <div>
-                    <div id="-admin-restore-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
-                      <div class="mdc-select__anchor">
-                        <span class="mdc-select__ripple"></span>
-                        <span class="mdc-select__selected-text"></span>
-                        <span class="mdc-select__dropdown-icon">
-                          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
-                            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd" points="7 10 12 15 17 10"></polygon>
-                            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon>
-                          </svg>
-                        </span>
-                        <span class="mdc-floating-label">Select a version</span>
-                        <span class="mdc-line-ripple"></span>
-                      </div>
-                      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
-                        <ul class="mdc-list">
-                          <li class="mdc-list-item" data-value="1.0.0">
-                            <span class="mdc-list-item__ripple"></span>
-                            <span class="mdc-list-item__text">1.0.0</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <p>
-                      <button id="-admin-restore-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Restore Retraced Package Version</button>
-                    </p>
                   </div>
                 </section>
               </div>

@@ -52,6 +52,7 @@ void main() {
         // github publishing
         await user.withBrowserPage((page) async {
           await page.gotoOrigin('/packages/test_pkg/admin');
+          await page.clickOnText('h2', 'Automated publishing');
 
           await page.waitAndClick('#-pkg-admin-automated-github-enabled');
           await page.waitForLayout([

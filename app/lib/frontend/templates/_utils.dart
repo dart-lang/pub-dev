@@ -5,6 +5,7 @@
 import '../../package/models.dart' show PackageVersionAsset;
 import '../../shared/markdown.dart';
 import '../dom/dom.dart' as d;
+import '../static_files.dart';
 
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
 d.Node renderFile(
@@ -44,3 +45,35 @@ d.Node _renderDartCode(String text) =>
 
 d.Node _renderPlainText(String text) =>
     d.div(classes: ['highlight'], child: d.pre(text: text));
+
+d.Node foldableSection({
+  required d.Node title,
+  required Iterable<d.Node> children,
+  Iterable<String>? buttonDivClasses,
+}) {
+  return d.div(
+    classes: ['foldable-section', 'foldable'],
+    children: [
+      d.div(
+        classes: ['foldable-button', ...?buttonDivClasses],
+        children: [
+          d.img(
+            classes: ['foldable-icon'],
+            image: d.Image(
+              src: staticUrls
+                  .getAssetUrl('/static/img/foldable-section-icon.svg'),
+              alt: 'trigger folding of the section',
+              width: 13,
+              height: 6,
+            ),
+          ),
+          title,
+        ],
+      ),
+      d.div(
+        classes: ['foldable-content'],
+        children: children,
+      ),
+    ],
+  );
+}
