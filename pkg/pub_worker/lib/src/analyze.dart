@@ -55,15 +55,18 @@ Future<void> analyze(Payload payload) async {
   final workerDeadline = clock.now().add(_workerTimeout);
   final client = Client().withUserAgent(pubWorkerUserAgent);
   try {
-    for (final p in payload.versions) {
+    for (final vtp in payload.versions) {
       final api = PubApiClient(
         // Documentation says [payload.pubHostedUrl] should not end with a slash,
         // but server has no out-going validation. So let's just be defensive
         // and strip trailing slashes for good measure.
         stripTrailingSlashes(payload.pubHostedUrl),
-        client: client.withAuthorization(() => p.token),
+        client: client.withAuthorization(() => vtp.token),
       );
 
+      final analysisTempDir =
+          Directory(p.join(tempDir.path, 'analyis-${vtp.version}'));
+      await analysisTempDir.create(recursive: true);
       try {
         // Skip analysis, if we're past the worker deadline
         if (clock.now().isBefore(workerDeadline)) {
@@ -71,17 +74,18 @@ Future<void> analyze(Payload payload) async {
             client,
             api,
             package: payload.package,
-            version: p.version,
+            version: vtp.version,
             pubHostedUrl: payload.pubHostedUrl,
             pubCache: pubCacheDir.path,
             panaCache: panaCacheDir.path,
+            tempDir: analysisTempDir,
           );
         } else {
           await _reportPackageSkipped(
             client,
             api,
             payload.package,
-            p.version,
+            vtp.version,
             reason:
                 'Processing of package versions exceeded allocated duration.\n'
                 'This is because all versions are analyzed in a single batch,\n'
@@ -91,10 +95,30 @@ Future<void> analyze(Payload payload) async {
         }
       } catch (e, st) {
         _log.shout(
-          'failed to process ${payload.package} / ${p.version}',
+          'failed to process ${payload.package} / ${vtp.version}',
           e,
           st,
         );
+
+        String? logContent;
+        final logTxtFile = File(p.join(analysisTempDir.path, 'out', 'log.txt'));
+        if (logTxtFile.existsSync()) {
+          logContent = logTxtFile.readAsStringSync();
+        }
+
+        await _reportPackageSkipped(
+          client,
+          api,
+          payload.package,
+          vtp.version,
+          reason: [
+            'Processing of `${payload.package}/${vtp.version}` failed with the following error:\n$e',
+            st.toString(),
+            if (logContent != null) logContent,
+          ].join('\n\n'),
+        );
+      } finally {
+        await analysisTempDir.delete(recursive: true);
       }
     }
   } finally {
@@ -112,16 +136,15 @@ Future<void> _analyzePackage(
   required String pubHostedUrl,
   required String pubCache,
   required String panaCache,
+  required Directory tempDir,
 }) async {
   _log.info('Running analyze for $package / $version');
 
-  final tempDir = await Directory.systemTemp.createTemp('pub_worker-');
-
   final outDir = await Directory(p.join(tempDir.path, 'out')).create();
+  final logFile = File(p.join(outDir.path, 'log.txt'));
+  final log = logFile.openWrite();
+  var logClosed = false;
   try {
-    final logFile = File(p.join(outDir.path, 'log.txt'));
-    final log = logFile.openWrite();
-
     log.writeln('## Running analysis for "$package" version "$version"');
     log.writeln('STARTED: ${clock.now().toUtc().toIso8601String()}');
     log.writeln(''); // empty-line before the next headline
@@ -193,6 +216,7 @@ Future<void> _analyzePackage(
     log.writeln(); // always end with a newline
     await log.flush();
     await log.close();
+    logClosed = true;
 
     // Add the log file to the blob, this allows us to write any errors we found
     // along the way to the log file which is nice.
@@ -232,7 +256,12 @@ Future<void> _analyzePackage(
       retryIf: _retryIf,
     );
   } finally {
-    await tempDir.delete(recursive: true);
+    // When there is a failure, attempt to get all the log buffers flushed to
+    // disk, as they could be reported back.
+    if (!logClosed) {
+      await log.flush();
+      await log.close();
+    }
   }
 }
 
