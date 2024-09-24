@@ -11,7 +11,7 @@ import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('search completition', () {
+  group('dartdoc search', () {
     late final TestContextProvider fakeTestScenario;
     final httpClient = http.Client();
 
@@ -32,10 +32,7 @@ void main() {
             'testProfile': {
               'defaultUser': 'admin@pub.dev',
               'packages': [
-                {
-                  'name': 'oxygen',
-                  'publisher': 'example.com',
-                },
+                {'name': 'oxygen'},
               ],
             },
             'analysis': 'local',
@@ -43,37 +40,25 @@ void main() {
 
       final user = await fakeTestScenario.createAnonymousTestUser();
 
+      // test keyboard navigation
       await user.withBrowserPage((page) async {
-        await page.gotoOrigin('/experimental?search-completion=1');
+        await page.gotoOrigin('/documentation/oxygen/latest/');
 
-        await page.gotoOrigin('/');
-        await page.keyboard.type('is:un');
+        await page.keyboard.press(Key.slash);
         await Future.delayed(Duration(milliseconds: 200));
-        await page.keyboard.press(Key.enter);
+        await page.keyboard.type('enum');
         await Future.delayed(Duration(milliseconds: 200));
-        await page.keyboard.press(Key.enter);
-        await page.waitForNavigation();
-
-        // TODO: try to fix form submission to trim whitespaces
-        expect(page.url, '$origin/packages?q=is%3Aunlisted+');
-      });
-
-      await user.withBrowserPage((page) async {
-        await page.gotoOrigin('/experimental?search-completion=1');
-
-        await page.gotoOrigin('/packages?q=abc');
-        await page.focus('input[name="q"]');
-        // go to the end of the input field and start typing
         await page.keyboard.press(Key.arrowDown);
-        await page.keyboard.type(' -sdk:fl');
         await Future.delayed(Duration(milliseconds: 200));
         await page.keyboard.press(Key.enter);
-        await Future.delayed(Duration(milliseconds: 200));
-        await page.keyboard.press(Key.enter);
+
         await page.waitForNavigation();
 
-        // TODO: try to fix form submission to trim whitespaces
-        expect(page.url, '$origin/packages?q=abc+-sdk%3Aflutter+');
+        // It is likely that we end up on the `TypeEnum.html` page, but we don't
+        // need to hardcode it here, in case dartdoc changes the order of the options.
+        expect(page.url,
+            startsWith('$origin/documentation/oxygen/latest/oxygen/'));
+        expect(page.url, endsWith('.html'));
       });
     });
   }, timeout: Timeout.factor(testTimeoutFactor));

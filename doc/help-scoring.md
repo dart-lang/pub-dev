@@ -26,6 +26,10 @@ package page.
 To view packages you have liked, use the **My pub.dev > My liked packages** menu
 option.
 
+## Download counts
+
+Pub.dev tracks and stores how many times each version of each package gets downloaded. This is used to display package usage metrics.
+
 ## Popularity
 
 Popularity measures the number of apps that depend on a package over the past 60

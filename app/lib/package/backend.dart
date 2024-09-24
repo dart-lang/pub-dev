@@ -1139,9 +1139,11 @@ class PackageBackend {
         package = Package.fromVersion(newVersion);
       }
 
-      if (package!.versionCount >= maxVersionsPerPackage) {
+      final maxVersionCount = maxVersionsPerPackageOverrides[package!.name] ??
+          maxVersionsPerPackage;
+      if (package!.versionCount >= maxVersionCount) {
         throw PackageRejectedException.maxVersionCountReached(
-            newVersion.package, maxVersionsPerPackage);
+            newVersion.package, maxVersionCount);
       }
 
       if (package!.deletedVersions != null &&

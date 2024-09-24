@@ -24,10 +24,10 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2024.09.10',
+  '2024.09.17',
   // Fallback runtime versions.
+  '2024.09.10',
   '2024.09.04',
-  '2024.08.27',
 ];
 
 /// Sets the current runtime versions.
@@ -62,8 +62,8 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '3.5.0';
-final String toolStableDartSdkVersion = '3.5.2';
-final String toolStableFlutterSdkVersion = '3.24.2';
+final String toolStableDartSdkVersion = '3.5.3';
+final String toolStableFlutterSdkVersion = '3.24.3';
 
 final semanticToolStableDartSdkVersion =
     Version.parse(toolStableDartSdkVersion);
