@@ -202,13 +202,16 @@ class _GmailSmtpRelay implements EmailSender {
       // closing the old connection if there was any, ignoring errors
       await old?.close();
 
-      return _GmailConnection(
-        _parentZone,
-        PersistentConnection(
+      // PersistentConnection needs to be created in its designated zone, as its
+      // internal message subscription starts inside the constructor.
+      final connectionZone = _ConnectionZone(_parentZone);
+      final connection = await connectionZone._zone.run(
+        () async => PersistentConnection(
           await _getSmtpServer(sender),
           timeout: Duration(seconds: 15),
         ),
       );
+      return _GmailConnection(connectionZone, connection);
     });
     _connectionsBySender[sender] = newConnectionFuture;
     return newConnectionFuture;
@@ -281,17 +284,11 @@ class _GmailSmtpRelay implements EmailSender {
   }
 }
 
-class _GmailConnection {
-  final DateTime created;
-  final PersistentConnection _connection;
+class _ConnectionZone {
   final Zone _parentZone;
-  DateTime _lastUsed;
-  var _sentCount = 0;
   Object? _uncaughtError;
 
-  _GmailConnection(this._parentZone, this._connection)
-      : created = clock.now(),
-        _lastUsed = clock.now();
+  _ConnectionZone(this._parentZone);
 
   late final _zone = _parentZone.fork(specification: ZoneSpecification(
     handleUncaughtError: (self, parent, zone, error, stackTrace) {
@@ -299,10 +296,22 @@ class _GmailConnection {
       _logger.severe('Uncaught error while sending email', error, stackTrace);
     },
   ));
+}
+
+class _GmailConnection {
+  final DateTime created;
+  final PersistentConnection _connection;
+  final _ConnectionZone _connectionZone;
+  DateTime _lastUsed;
+  var _sentCount = 0;
+
+  _GmailConnection(this._connectionZone, this._connection)
+      : created = clock.now(),
+        _lastUsed = clock.now();
 
   bool get isExpired {
     // The connection is in an unknown state, better not use it.
-    if (_uncaughtError != null) {
+    if (_connectionZone._uncaughtError != null) {
       return true;
     }
     // There is a 100-recipient limit per SMTP transaction for smtp-relay.gmail.com.
@@ -325,8 +334,9 @@ class _GmailConnection {
   Future<SendReport> send(Message message) async {
     _sentCount += message.recipients.length + message.ccRecipients.length;
     try {
-      final r = await _zone.run(() async => await _connection.send(message));
-      if (_uncaughtError != null) {
+      final r = await _connectionZone._zone
+          .run(() async => await _connection.send(message));
+      if (_connectionZone._uncaughtError != null) {
         throw EmailSenderException.failed();
       }
       return r;
@@ -337,7 +347,7 @@ class _GmailConnection {
 
   Future<void> close() async {
     try {
-      await _zone.run(() async {
+      await _connectionZone._zone.run(() async {
         await _connection.close();
       });
     } catch (e, st) {
