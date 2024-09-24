@@ -140,7 +140,10 @@ CachedValue<List<PackageView>> _cachedValue(
         // Do not apply rate limit here.
         rateLimitKey: null,
       );
-      return page.packageHits;
+      // Returning `null` will not cache the value, returning empty list gets cached.
+      return page.errorMessage == null && page.packageHits.isNotEmpty
+          ? page.packageHits
+          : null;
     },
   );
 }
