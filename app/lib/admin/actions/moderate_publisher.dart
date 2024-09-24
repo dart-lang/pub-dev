@@ -20,7 +20,8 @@ moderated package page says it is moderated, packages owned by publisher
 can't be updated, administrators must not be able to update publisher options.
 ''',
   options: {
-    'case': 'The ModerationCase.caseId that this action is part of.',
+    'case':
+        'The ModerationCase.caseId that this action is part of (or `none`).',
     'publisher': 'The publisherId to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',

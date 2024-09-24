@@ -26,7 +26,8 @@ final moderatePackageVersion = AdminAction(
 Set the moderated flag on a package version (updating the flag and the timestamp).
 ''',
   options: {
-    'case': 'The ModerationCase.caseId that this action is part of.',
+    'case':
+        'The ModerationCase.caseId that this action is part of (or `none`).',
     'package': 'The package name to be moderated',
     'version': 'The version to be moderated',
     'state':
