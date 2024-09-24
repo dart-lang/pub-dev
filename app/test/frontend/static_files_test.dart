@@ -219,7 +219,7 @@ void main() {
               path.startsWith('/static/js/script.dart.js') &&
               path.endsWith('part.js'))
           .toList();
-      expect(parts.length, closeTo(11, 3));
+      expect(parts.length, closeTo(17, 3));
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
