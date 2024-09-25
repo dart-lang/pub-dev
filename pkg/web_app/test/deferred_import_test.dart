@@ -36,6 +36,7 @@ void main() {
         'lib/src/deferred/markdown.dart',
       ],
       'completion/': [],
+      'dismissible/': [],
     };
 
     for (final file in files) {
