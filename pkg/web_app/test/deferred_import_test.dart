@@ -37,6 +37,7 @@ void main() {
       ],
       'completion/': [],
       'dismiss/': [],
+      'switch/': [],
     };
 
     for (final file in files) {
