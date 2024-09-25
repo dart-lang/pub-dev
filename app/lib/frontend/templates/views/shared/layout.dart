@@ -201,9 +201,11 @@ d.Node pageLayoutNode({
                       d.div(
                         classes: ['dismisser'],
                         attributes: {
-                          'data-widget': 'dismiss',
-                          'data-dismiss-target': '.announcement-banner',
-                          'data-dismiss-message-id': announcementBannerHash,
+                          'data-widget': 'switch',
+                          'data-switch-target': '.announcement-banner',
+                          'data-switch-enabled': 'dismissed',
+                          'data-switch-initial-state': 'false',
+                          'data-switch-state-id': announcementBannerHash,
                         },
                         text: 'x',
                       ),

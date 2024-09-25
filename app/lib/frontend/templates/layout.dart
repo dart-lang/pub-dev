@@ -66,7 +66,8 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     if (type == PageType.landing) 'page-landing',
   ];
-  final announcementBannerHtml = announcementBackend.getAnnouncementHtml();
+  final announcementBannerHtml =
+      announcementBackend.getAnnouncementHtml() ?? 'TESTING';
   final session = requestContext.sessionData;
   final moderationSubject = () {
     if (pageData == null) {
