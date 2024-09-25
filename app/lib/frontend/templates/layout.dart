@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:pub_dev/admin/models.dart';
 
 import '../../frontend/request_context.dart';
@@ -97,6 +101,11 @@ String renderLayoutPage(
     announcementBanner: announcementBannerHtml == null
         ? null
         : d.unsafeRawHtml(announcementBannerHtml),
+    announcementBannerHash: announcementBannerHtml == null
+        ? ''
+        : hex
+            .encode(sha1.convert(utf8.encode(announcementBannerHtml)).bytes)
+            .substring(0, 16),
     searchBanner: showSearchBanner(type)
         ? _renderSearchBanner(
             type: type,

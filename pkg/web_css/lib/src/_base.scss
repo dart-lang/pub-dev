@@ -390,7 +390,6 @@ pre {
   font-size: 16px;
 
   text-align: center;
-  display: none;
 
   .dismisser {
     float: right;
@@ -398,6 +397,10 @@ pre {
     margin-top: -5px;
     cursor: pointer;
     user-select: none;
+  }
+
+  &.dismissed {
+    display: none;
   }
 
   z-index: 0;
