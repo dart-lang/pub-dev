@@ -75,10 +75,14 @@ void create(HTMLElement element, Map<String, String> options) {
   element.addEventListener('click', dismiss.toJS);
 }
 
-/// LocalStorage key where we store the hashes of messages that have been
+/// LocalStorage key where we store the identifiers of messages that have been
 /// dismissed.
 ///
-/// Data is stored on the format: `<hash>@<date>;<hash>@<date>;...`
+/// Data is stored on the format: `<message-id>@<date>;<message-id>@<date>;...`,
+/// where:
+///  * `<date>` is on the form `YYYY-MM-DD`.
+///  * `<message-id>` is the `data-dismiss-message-id` passed to a dismiss
+///    widget.
 const _dismissedMessageslocalStorageKey = 'dismissed-messages';
 
 late final _dismissed = [
