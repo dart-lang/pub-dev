@@ -215,6 +215,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
     });
   }));
 
+  _logger.info('Finished processing download counts for date $date');
   return failedFiles;
 }
 
