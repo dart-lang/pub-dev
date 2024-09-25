@@ -77,12 +77,8 @@ abstract class EmailSenderBase implements EmailSender {
         () async {
           final c = await _getConnection(sender);
           await c.send(message);
-          if (c.uncaughtError != null) {
-            throw EmailSenderException.failed();
-          }
         },
         retryIf: (e) =>
-            (e is EmailSenderException && e.status >= 500) ||
             e is TimeoutException ||
             e is IOException ||
             e is SmtpClientCommunicationException ||
@@ -325,12 +321,27 @@ class _CatchAllZone {
 
   _CatchAllZone(this._parentZone);
 
+  bool get hasUncaughtError => _uncaughtError != null;
+
   late final _zone = _parentZone.fork(specification: ZoneSpecification(
     handleUncaughtError: (self, parent, zone, error, stackTrace) {
       _uncaughtError = error;
       _logger.severe('Uncaught error while sending email', error, stackTrace);
     },
   ));
+
+  Future<R> runAsync<R>(Future<R> Function() fn) async {
+    final completer = Completer<R>();
+    _zone.scheduleMicrotask(() async {
+      try {
+        final r = await fn();
+        completer.complete(r);
+      } catch (e, st) {
+        completer.completeError(e, st);
+      }
+    });
+    return await completer.future;
+  }
 }
 
 /// Wraps the physical connection within a [Zone], where the send operation should
@@ -349,11 +360,9 @@ class _ZonedConnection {
       : created = clock.now(),
         _lastUsed = clock.now();
 
-  Object? get uncaughtError => _zone._uncaughtError;
-
   bool get isExpired {
     // The connection is in an unknown state, better not use it.
-    if (_zone._uncaughtError != null) {
+    if (_zone.hasUncaughtError) {
       return true;
     }
     // There is a 100-recipient limit per SMTP transaction for smtp-relay.gmail.com.
@@ -376,7 +385,12 @@ class _ZonedConnection {
   Future<void> send(EmailMessage message) async {
     _sentCount += message.recipients.length + message.ccRecipients.length;
     try {
-      await _zone._zone.run(() async => await _connection.send(message));
+      if (_zone.hasUncaughtError) {
+        throw EmailSenderException.failed();
+      }
+      await _zone.runAsync(() async {
+        await _connection.send(message);
+      });
     } finally {
       _lastUsed = clock.now();
     }
@@ -384,7 +398,7 @@ class _ZonedConnection {
 
   Future<void> close() async {
     try {
-      await _zone._zone.run(() async {
+      await _zone.runAsync(() async {
         await _connection.close();
       });
     } catch (e, st) {
