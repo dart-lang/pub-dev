@@ -150,15 +150,21 @@ class AdminBackend {
 
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
+  ///
+  /// Verifies the current authenticated user for admin permissions.
   Future<void> removeUser(String userId) async {
     final caller = await requireAuthenticatedAdmin(AdminPermission.removeUsers);
     final user = await accountBackend.lookupUserById(userId);
     if (user == null) return;
     if (user.isDeleted) return;
-
     _logger.info('${caller.displayId}) initiated the delete '
         'of ${user.userId} (${user.email})');
+    await _removeUser(user);
+  }
 
+  /// Removes user from the Datastore and updates the packages and other
+  /// entities they may have controlled.
+  Future<void> _removeUser(User user) async {
     // Package.uploaders
     final pool = Pool(10);
     final futures = <Future>[];
@@ -874,7 +880,57 @@ class AdminBackend {
           'Deleted moderated package version: ${version.qualifiedVersionKey}');
     }
 
-    // TODO: delete publisher instances
-    // TODO: mark user instances deleted
+    // delete publishers
+    final publisherQuery = _db.query<Publisher>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final publisher in publisherQuery.run()) {
+      // sanity check
+      if (!publisher.isModerated) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated publisher: ${publisher.publisherId}');
+
+      // removes packages of this publisher, no uploaders will be set, marks discontinued
+      final pkgQuery = _db.query<Package>()
+        ..filter('publisherId =', publisher.publisherId);
+      await for (final pkg in pkgQuery.run()) {
+        await withRetryTransaction(_db, (tx) async {
+          final p = await tx.lookupOrNull<Package>(pkg.key);
+          if (p == null) return;
+          if (p.publisherId != publisher.publisherId) return;
+
+          p.publisherId = null;
+          p.updated = clock.now().toUtc();
+          p.isDiscontinued = true;
+          tx.insert(p);
+        });
+      }
+
+      // removes publisher members
+      await _db.deleteWithQuery(
+          _db.query<PublisherMember>(ancestorKey: publisher.key));
+
+      // removes publisher entity
+      await _db.commit(deletes: [publisher.key]);
+
+      _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
+    }
+
+    // mark user instances deleted
+    final userQuery = _db.query<User>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final user in userQuery.run()) {
+      // sanity check
+      if (!user.isModerated || user.isDeleted) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated user: ${user.userId}');
+      await _removeUser(user);
+      _logger.info('Deleting moderated user: ${user.userId}');
+    }
   }
 }
