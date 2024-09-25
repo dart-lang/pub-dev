@@ -81,8 +81,8 @@ void create(HTMLElement element, Map<String, String> options) {
 /// Data is stored on the format: `<message-id>@<date>;<message-id>@<date>;...`,
 /// where:
 ///  * `<date>` is on the form `YYYY-MM-DD`.
-///  * `<message-id>` is the `data-dismiss-message-id` passed to a dismiss
-///    widget.
+///  * `<message-id>` is the base64 encoded `data-dismiss-message-id` passed to
+///    a dismiss widget.
 const _dismissedMessageslocalStorageKey = 'dismissed-messages';
 
 late final _dismissed = [
@@ -93,7 +93,7 @@ late final _dismissed = [
       .map((entry) {
     final [id, date, ...] = entry.split('@');
     return (
-      id: id,
+      id: window.atob(id),
       date: DateTime.tryParse(date) ?? DateTime.fromMicrosecondsSinceEpoch(0),
     );
   }).where((entry) => entry.date.isAfter(_deadline)),
@@ -106,7 +106,12 @@ void _saveDismissed() {
         .sortedBy((e) => e.date) // Sort by date
         .reversed // Reverse ordering to prefer newest dates
         .take(_maxMissedMessages) // Limit how many entries we save
-        .map((e) => e.id + '@' + e.date.toIso8601String().split('T').first)
+        .map(
+          (e) =>
+              window.btoa(e.id) +
+              '@' +
+              e.date.toIso8601String().split('T').first,
+        )
         .join(';'),
   );
 }
