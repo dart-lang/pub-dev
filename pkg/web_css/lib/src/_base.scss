@@ -10,7 +10,7 @@
 }
 
 body {
-  background-color: var(--pub-default-background-color);
+  background-color: var(--pub-neutral-bgColor);
   color: var(--pub-default-text-color);
   font-size: 14px;
   line-height: 1.6;
@@ -96,9 +96,10 @@ a {
     opacity: 0.8;
   }
 
+  // TODO: fix style to not use bgColor as text and text color as background
   &.link-button {
     background: var(--pub-link-text-color);
-    color: var(--pub-default-background-color);
+    color: var(--pub-neutral-bgColor);
     display: inline-block;
     padding: 4px 12px;
   }
