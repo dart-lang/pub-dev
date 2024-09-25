@@ -376,9 +376,8 @@ void main() {
       } finally {
         await subscription.cancel();
       }
-
       expect(
-          messages.first,
+          messages[messages.length - 2],
           contains('Failed to read any files with prefix '
               '"daily_download_counts/'
               '${formatDateForFileName(skippedDate)}'

@@ -72,6 +72,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
   }
 
   final processedPackages = <String>{};
+  final processedPackagesWithErrors = <String>{};
   final pool = Pool(10);
   for (final f in bucketEntries) {
     final fileName = f.name;
@@ -169,6 +170,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
                     '$package-$version appeared in download counts data but does'
                     ' not exist');
               }
+              processedPackagesWithErrors.add(package);
             }
           });
 
@@ -183,6 +185,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
                 'Package $package appeared in download counts data for file '
                 '$fileName but does not exist.\n'
                 'Error: $e');
+            processedPackagesWithErrors.add(package);
             return;
           } // else {
           // The package is either invisible, tombstoned or has no versions.
@@ -215,7 +218,12 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
     });
   }));
 
-  _logger.info('Finished processing download counts for date $date');
+  final filesString = bucketEntries.length == 1 ? 'file' : 'files';
+  _logger.info('Finished processing download counts for date $date:');
+  _logger.info('  - ${failedFiles.length} out of ${bucketEntries.length} '
+      '$filesString failed during processing.');
+  _logger.info('  - ${processedPackages.length} packages processed including '
+      '${processedPackagesWithErrors.length} packages with errors.');
   return failedFiles;
 }
 
