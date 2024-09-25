@@ -31,7 +31,7 @@ import '../../web_util.dart';
 ///   * `completion-dropdown` for the completion dropdown.
 ///   * `completion-option` for each option in the dropdown, and,
 ///   * `completion-option-select` is applied to selected options.
-void create(Element element, Map<String, String> options) {
+void create(HTMLElement element, Map<String, String> options) {
   if (!element.isA<HTMLInputElement>()) {
     throw UnsupportedError('Must be <input> element');
   }

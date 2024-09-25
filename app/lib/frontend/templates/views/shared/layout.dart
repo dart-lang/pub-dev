@@ -20,6 +20,7 @@ d.Node pageLayoutNode({
   required List<String>? bodyClasses,
   required d.Node siteHeader,
   required d.Node? announcementBanner,
+  required String announcementBannerHash,
   required d.Node? searchBanner,
   required bool isLanding,
   required d.Node? landingBlurb,
@@ -194,8 +195,19 @@ d.Node pageLayoutNode({
               children: [
                 if (announcementBanner != null)
                   d.div(
-                    classes: ['announcement-banner'],
-                    child: announcementBanner,
+                    classes: ['announcement-banner', 'dismissed'],
+                    children: [
+                      announcementBanner,
+                      d.div(
+                        classes: ['dismisser'],
+                        attributes: {
+                          'data-widget': 'dismiss',
+                          'data-dismiss-target': '.announcement-banner',
+                          'data-dismiss-message-id': announcementBannerHash,
+                        },
+                        text: 'x',
+                      ),
+                    ],
                   ),
               ],
             ),
