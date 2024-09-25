@@ -156,6 +156,14 @@ class EmailMessage {
       'bodyText': bodyText,
     };
   }
+
+  late final debugInfo = [
+    'Message-ID:$localMessageId@pub.dev',
+    '($subject)',
+    'from $from',
+    'to ${recipients.join(', ')}',
+    if (ccRecipients.isNotEmpty) 'cc ${ccRecipients.join(', ')}',
+  ].join(' ');
 }
 
 /// Parses the body text and splits the [input] paragraphs to [lineLength]

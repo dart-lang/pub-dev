@@ -37,6 +37,100 @@ abstract class EmailSender {
   Future<void> sendMessage(EmailMessage message);
 }
 
+abstract class EmailSenderConnection {
+  Future<void> send(EmailMessage message);
+  Future<void> close();
+}
+
+abstract class EmailSenderBase implements EmailSender {
+  /// We want to send only one email at a time.
+  final _pool = Pool(1);
+
+  /// The current zone when this [EmailSender] instance was created.
+  final Zone _parentZone;
+
+  final _connectionsBySender = <String, Future<_ZonedConnection>>{};
+  final _forceReconnectSenders = <String>{};
+  DateTime _backoffUntil = DateTime(0);
+
+  EmailSenderBase() : _parentZone = Zone.current;
+
+  Future<EmailSenderConnection> connect(String senderEmail);
+  void invalidateCredentials();
+
+  @override
+  bool get shouldBackoff => clock.now().isBefore(_backoffUntil);
+
+  @override
+  Future<void> sendMessage(EmailMessage message) async {
+    // One attempt at a time.
+    await _pool.withResource(() async {
+      return await _sendMessage(message);
+    });
+  }
+
+  Future<void> _sendMessage(EmailMessage message) async {
+    _logger.info('Sending email: ${message.debugInfo}...');
+    final sender = message.from.email;
+    try {
+      await retry(
+        () async {
+          final c = await _getConnection(sender);
+          await c.send(message);
+          if (c.uncaughtError != null) {
+            throw EmailSenderException.failed();
+          }
+        },
+        retryIf: (e) =>
+            (e is EmailSenderException && e.status >= 500) ||
+            e is TimeoutException ||
+            e is IOException ||
+            e is SmtpClientCommunicationException ||
+            e is SmtpNoGreetingException,
+        delayFactor: Duration(seconds: 2),
+        maxAttempts: 2,
+        onRetry: (_) {
+          _forceReconnectSenders.add(sender);
+        },
+      );
+    } on SmtpMessageValidationException catch (e, st) {
+      _logger.info('Sending email failed: ${message.debugInfo}.', e, st);
+      throw EmailSenderException.invalid();
+    } on SmtpClientAuthenticationException catch (e, st) {
+      _logger.shout('Sending email failed due to invalid auth: $e', e, st);
+      _forceReconnectSenders.add(sender);
+      invalidateCredentials();
+      _backoffUntil = clock.now().add(Duration(minutes: 2));
+      throw EmailSenderException.failed();
+    } on MailerException catch (e, st) {
+      _logger.warning('Sending email failed: ${message.debugInfo}.', e, st);
+      throw EmailSenderException.failed();
+    }
+  }
+
+  Future<_ZonedConnection> _getConnection(String sender) async {
+    final connectionFuture = _connectionsBySender[sender];
+    final old = connectionFuture == null ? null : await connectionFuture;
+    final forceReconnect = _forceReconnectSenders.remove(sender);
+    if (!forceReconnect && old != null && !old.isExpired) {
+      return old;
+    }
+    final newConnectionFuture = Future.microtask(() async {
+      // closing the old connection if there was any, ignoring errors
+      await old?.close();
+
+      // PersistentConnection needs to be created in its designated zone, as its
+      // internal message subscription starts inside the constructor.
+      final connectionZone = _CatchAllZone(_parentZone);
+      final connection =
+          await connectionZone._zone.run(() async => connect(sender));
+      return _ZonedConnection(connectionZone, connection);
+    });
+    _connectionsBySender[sender] = newConnectionFuture;
+    return newConnectionFuture;
+  }
+}
+
 EmailSender createGmailRelaySender(
   String serviceAccountEmail,
   http.Client authClient,
@@ -46,22 +140,32 @@ EmailSender createGmailRelaySender(
       authClient,
     );
 
-class _LoggingEmailSender implements EmailSender {
+class _LoggingEmailSender extends EmailSenderBase {
   @override
-  bool get shouldBackoff => false;
+  Future<EmailSenderConnection> connect(String senderEmail) async {
+    return _LoggingEmailSenderConnection();
+  }
 
   @override
-  Future<void> sendMessage(EmailMessage message) async {
-    final debugHeader = '(${message.subject}) '
-        'from ${message.from} '
-        'to ${message.recipients.join(', ')}';
+  void invalidateCredentials() {
+    // ignore
+  }
+}
 
+class _LoggingEmailSenderConnection extends EmailSenderConnection {
+  @override
+  Future<void> send(EmailMessage message) async {
     final urls = _simpleUrlRegExp
         .allMatches(message.bodyText)
         .map((e) => e.group(0))
         .toList();
     _logger.info('Not sending email (SMTP not configured): '
-        '$debugHeader${urls.map((e) => '\n$e').join('')}');
+        '${message.debugInfo}\n${urls.map((e) => '\n$e').join('')}');
+  }
+
+  @override
+  Future<void> close() async {
+    // ignored
   }
 }
 
@@ -119,7 +223,7 @@ Address? _toAddress(EmailAddress? input) =>
 /// [2]: https://developers.google.com/gmail/imap/xoauth2-protocol#the_sasl_xoauth2_mechanism
 /// [3]: https://developers.google.com/identity/protocols/oauth2/service-account
 /// [4]: https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signJwt
-class _GmailSmtpRelay implements EmailSender {
+class _GmailSmtpRelay extends EmailSenderBase {
   static final _googleOauth2TokenUrl =
       Uri.parse('https://oauth2.googleapis.com/token');
   static const _scopes = ['https://mail.google.com/'];
@@ -127,94 +231,25 @@ class _GmailSmtpRelay implements EmailSender {
   final String _serviceAccountEmail;
   final http.Client _authClient;
 
-  final _connectionsBySender = <String, Future<_GmailConnection>>{};
-  final _forceReconnectSenders = <String>{};
-
-  /// The current zone when this [_GmailSmtpRelay] instance was created.
-  final Zone _parentZone;
-  final _pool = Pool(1);
-
   DateTime _accessTokenRefreshed = DateTime(0);
-  DateTime _backoffUntil = DateTime(0);
   Future<String>? _accessToken;
 
   _GmailSmtpRelay(
     this._serviceAccountEmail,
     this._authClient,
-  ) : _parentZone = Zone.current;
+  );
 
   @override
-  bool get shouldBackoff => clock.now().isBefore(_backoffUntil);
+  Future<EmailSenderConnection> connect(String senderEmail) async {
+    return _GmailConnection(PersistentConnection(
+      await _getSmtpServer(senderEmail),
+      timeout: Duration(seconds: 15),
+    ));
+  }
 
   @override
-  Future<void> sendMessage(EmailMessage message) async {
-    // One attempt at a time.
-    await _pool.withResource(() async => _sendMessage(message));
-  }
-
-  Future<void> _sendMessage(EmailMessage message) async {
-    final debugHeader = 'Message-ID:${message.localMessageId}@pub.dev '
-        '(${message.subject}) '
-        'from ${message.from} '
-        'to ${message.recipients.join(', ')}';
-    _logger.info('Sending email: $debugHeader...');
-    final sender = message.from.email;
-    try {
-      await retry(
-        () async {
-          final c = await _getConnection(sender);
-          await c.send(_toMessage(message));
-        },
-        retryIf: (e) =>
-            e is TimeoutException ||
-            e is IOException ||
-            e is SmtpClientCommunicationException ||
-            e is SmtpNoGreetingException,
-        delayFactor: Duration(seconds: 2),
-        maxAttempts: 2,
-        onRetry: (_) {
-          _forceReconnectSenders.add(sender);
-        },
-      );
-    } on SmtpMessageValidationException catch (e, st) {
-      _logger.info('Sending email failed: $debugHeader.', e, st);
-      throw EmailSenderException.invalid();
-    } on SmtpClientAuthenticationException catch (e, st) {
-      _logger.shout('Sending email failed due to invalid auth: $e', e, st);
-      _backoffUntil = clock.now().add(Duration(minutes: 2));
-      _forceReconnectSenders.add(sender);
-      _accessToken = null;
-      throw EmailSenderException.failed();
-    } on MailerException catch (e, st) {
-      _logger.warning('Sending email failed: $debugHeader.', e, st);
-      throw EmailSenderException.failed();
-    }
-  }
-
-  Future<_GmailConnection> _getConnection(String sender) async {
-    final connectionFuture = _connectionsBySender[sender];
-    final old = connectionFuture == null ? null : await connectionFuture;
-    final forceReconnect = _forceReconnectSenders.remove(sender);
-    if (!forceReconnect && old != null && !old.isExpired) {
-      return old;
-    }
-    final newConnectionFuture = Future.microtask(() async {
-      // closing the old connection if there was any, ignoring errors
-      await old?.close();
-
-      // PersistentConnection needs to be created in its designated zone, as its
-      // internal message subscription starts inside the constructor.
-      final connectionZone = _ConnectionZone(_parentZone);
-      final connection = await connectionZone._zone.run(
-        () async => PersistentConnection(
-          await _getSmtpServer(sender),
-          timeout: Duration(seconds: 15),
-        ),
-      );
-      return _GmailConnection(connectionZone, connection);
-    });
-    _connectionsBySender[sender] = newConnectionFuture;
-    return newConnectionFuture;
+  void invalidateCredentials() {
+    _accessToken = null;
   }
 
   Future<SmtpServer> _getSmtpServer(String sender) async {
@@ -284,11 +319,11 @@ class _GmailSmtpRelay implements EmailSender {
   }
 }
 
-class _ConnectionZone {
+class _CatchAllZone {
   final Zone _parentZone;
   Object? _uncaughtError;
 
-  _ConnectionZone(this._parentZone);
+  _CatchAllZone(this._parentZone);
 
   late final _zone = _parentZone.fork(specification: ZoneSpecification(
     handleUncaughtError: (self, parent, zone, error, stackTrace) {
@@ -298,20 +333,27 @@ class _ConnectionZone {
   ));
 }
 
-class _GmailConnection {
+/// Wraps the physical connection within a [Zone], where the send operation should
+/// be wraped, tracking otherwise uncaught exceptions.
+///
+/// It also tracks age, usage and expiration.
+class _ZonedConnection {
   final DateTime created;
-  final PersistentConnection _connection;
-  final _ConnectionZone _connectionZone;
+  final _CatchAllZone _zone;
+  final EmailSenderConnection _connection;
+
   DateTime _lastUsed;
   var _sentCount = 0;
 
-  _GmailConnection(this._connectionZone, this._connection)
+  _ZonedConnection(this._zone, this._connection)
       : created = clock.now(),
         _lastUsed = clock.now();
 
+  Object? get uncaughtError => _zone._uncaughtError;
+
   bool get isExpired {
     // The connection is in an unknown state, better not use it.
-    if (_connectionZone._uncaughtError != null) {
+    if (_zone._uncaughtError != null) {
       return true;
     }
     // There is a 100-recipient limit per SMTP transaction for smtp-relay.gmail.com.
@@ -331,15 +373,10 @@ class _GmailConnection {
     return false;
   }
 
-  Future<SendReport> send(Message message) async {
+  Future<void> send(EmailMessage message) async {
     _sentCount += message.recipients.length + message.ccRecipients.length;
     try {
-      final r = await _connectionZone._zone
-          .run(() async => await _connection.send(message));
-      if (_connectionZone._uncaughtError != null) {
-        throw EmailSenderException.failed();
-      }
-      return r;
+      await _zone._zone.run(() async => await _connection.send(message));
     } finally {
       _lastUsed = clock.now();
     }
@@ -347,11 +384,23 @@ class _GmailConnection {
 
   Future<void> close() async {
     try {
-      await _connectionZone._zone.run(() async {
+      await _zone._zone.run(() async {
         await _connection.close();
       });
     } catch (e, st) {
       _logger.warning('Unable to close SMTP connection.', e, st);
     }
   }
+}
+
+class _GmailConnection extends EmailSenderConnection {
+  final PersistentConnection _connection;
+  _GmailConnection(this._connection);
+
+  @override
+  Future<void> send(EmailMessage message) =>
+      _connection.send(_toMessage(message));
+
+  @override
+  Future<void> close() => _connection.close();
 }
