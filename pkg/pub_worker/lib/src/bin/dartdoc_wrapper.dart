@@ -98,12 +98,6 @@ Future<void> postProcessDartdoc({
     await tmpTar.rename(p.join(outputFolder, 'doc', 'package.tar.gz'));
   } catch (e, st) {
     // We are likely out of free disk space.
-    //
-    // One of the isolate has already stopped, the other may be still working.
-    // By deleting the dartdoc-generated content, the post-processing of the other
-    // isolate will stop too.
-    await Directory(docDir).deleteIgnoringErrors(recursive: true);
-
     // Cleanup the content as we won't use it.
     await tmpOutDir.deleteIgnoringErrors(recursive: true);
     await tmpTar.deleteIgnoringErrors();
