@@ -103,6 +103,7 @@ Future<void> postProcessDartdoc({
     await tmpTar.deleteIgnoringErrors();
 
     _log.shout('Failed to run dartdoc post-processing.', e, st);
+    rethrow;
   }
 }
 
