@@ -24,15 +24,15 @@ Future<void> postProcessDartdoc({
   required String docDir,
 }) async {
   _log.info('Running dartdoc post-processing');
-  final tmpOutDir = p.join(outputFolder, '_doc');
-  await Directory(tmpOutDir).create(recursive: true);
+  final tmpOutDir = Directory(p.join(outputFolder, '_doc'));
+  await tmpOutDir.create(recursive: true);
   final processingFuture = Isolate.run(() async {
     final files = Directory(docDir)
         .list(recursive: true, followLinks: false)
         .whereType<File>();
     await for (final file in files) {
       final suffix = file.path.substring(docDir.length + 1);
-      final targetFile = File(p.join(tmpOutDir, suffix));
+      final targetFile = File(p.join(tmpOutDir.path, suffix));
       await targetFile.parent.create(recursive: true);
       final isDartDocSidebar =
           file.path.endsWith('.html') && file.path.endsWith('-sidebar.html');
@@ -85,14 +85,34 @@ Future<void> postProcessDartdoc({
     _log.info('Finished .tar.gz archive');
   });
 
-  await Future.wait([
-    processingFuture,
-    archiveFuture,
-  ]);
+  try {
+    await Future.wait([
+      processingFuture,
+      archiveFuture,
+    ]);
 
-  // Move from temporary output directory to final one, ensuring that
-  // documentation files won't be present unless all files have been processed.
-  // This helps if there is a timeout along the way.
-  await Directory(tmpOutDir).rename(p.join(outputFolder, 'doc'));
-  await tmpTar.rename(p.join(outputFolder, 'doc', 'package.tar.gz'));
+    // Move from temporary output directory to final one, ensuring that
+    // documentation files won't be present unless all files have been processed.
+    // This helps if there is a timeout along the way.
+    await tmpOutDir.rename(p.join(outputFolder, 'doc'));
+    await tmpTar.rename(p.join(outputFolder, 'doc', 'package.tar.gz'));
+  } catch (e, st) {
+    // We don't know what's wrong with the post-processing, and we treat
+    // the output as incorrect. Deleting, so it won't be included in the blob.
+    await tmpOutDir.deleteIgnoringErrors(recursive: true);
+    await tmpTar.deleteIgnoringErrors();
+
+    _log.shout('Failed to run dartdoc post-processing.', e, st);
+    rethrow;
+  }
+}
+
+extension on FileSystemEntity {
+  Future<void> deleteIgnoringErrors({bool recursive = false}) async {
+    try {
+      await delete(recursive: recursive);
+    } catch (_) {
+      // ignored
+    }
+  }
 }
