@@ -97,8 +97,8 @@ Future<void> postProcessDartdoc({
     await tmpOutDir.rename(p.join(outputFolder, 'doc'));
     await tmpTar.rename(p.join(outputFolder, 'doc', 'package.tar.gz'));
   } catch (e, st) {
-    // We are likely out of free disk space.
-    // Cleanup the content as we won't use it.
+    // We don't know what's wrong with the post-processing, and we treat
+    // the output as incorrect. Deleting, so it won't be included in the blob.
     await tmpOutDir.deleteIgnoringErrors(recursive: true);
     await tmpTar.deleteIgnoringErrors();
 
