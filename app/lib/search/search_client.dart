@@ -52,7 +52,7 @@ class SearchClient {
     // check validity first
     final validity = query.evaluateValidity();
     if (validity.isRejected) {
-      return PackageSearchResult.empty(
+      return PackageSearchResult.error(
         errorMessage: 'Search query rejected. ${validity.rejectReason}',
         statusCode: 400,
       );
@@ -87,8 +87,10 @@ class SearchClient {
         }
       }
       if (response == null) {
-        return PackageSearchResult.empty(
-            errorMessage: 'Search is temporarily unavailable.');
+        return PackageSearchResult.error(
+          errorMessage: 'Search is temporarily unavailable.',
+          statusCode: 503,
+        );
       }
       if (response.statusCode == 200) {
         return PackageSearchResult.fromJson(
@@ -97,12 +99,16 @@ class SearchClient {
       }
       // Search request before the service initialization completed.
       if (response.statusCode == searchIndexNotReadyCode) {
-        return PackageSearchResult.empty(
-            errorMessage: 'Search is temporarily unavailable.');
+        return PackageSearchResult.error(
+          errorMessage: 'Search is temporarily unavailable.',
+          statusCode: 503,
+        );
       }
       // There has been a generic issue with the service.
-      return PackageSearchResult.empty(
-          errorMessage: 'Service returned status code ${response.statusCode}.');
+      return PackageSearchResult.error(
+        errorMessage: 'Service returned status code ${response.statusCode}.',
+        statusCode: response.statusCode,
+      );
     }
 
     if (sourceIp != null) {

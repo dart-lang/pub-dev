@@ -131,7 +131,9 @@ class IsolateSearchIndex implements SearchIndex {
     } catch (e, st) {
       _logger.warning('Failed to search index.', e, st);
     }
-    return PackageSearchResult.empty(
-        errorMessage: 'Failed to process request.');
+    return PackageSearchResult.error(
+      errorMessage: 'Failed to process request.',
+      statusCode: 500,
+    );
   }
 }

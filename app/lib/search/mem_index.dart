@@ -147,6 +147,7 @@ class InMemoryPackageIndex {
       packages.removeWhere((x) => !keys.contains(x));
     }
 
+    List<String>? nameMatches;
     late List<PackageHit> packageHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
@@ -162,12 +163,10 @@ class InMemoryPackageIndex {
             .map((key, value) => value * _adjustedOverallScores[key]!);
         // If the search hits have an exact name match, we move it to the front of the result list.
         final parsedQueryText = query.parsedQuery.text;
-        final priorityPackageName =
-            packages.contains(parsedQueryText ?? '') ? parsedQueryText : null;
-        packageHits = _rankWithValues(
-          overallScore.getValues(),
-          priorityPackageName: priorityPackageName,
-        );
+        if (parsedQueryText != null && _packages.containsKey(parsedQueryText)) {
+          nameMatches = <String>[parsedQueryText];
+        }
+        packageHits = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
         final score = textResults?.pkgScore ?? Score.empty();
@@ -209,6 +208,7 @@ class InMemoryPackageIndex {
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
+      nameMatches: nameMatches,
       packageHits: packageHits,
     );
   }
@@ -333,16 +333,11 @@ class InMemoryPackageIndex {
     return null;
   }
 
-  List<PackageHit> _rankWithValues(
-    Map<String, double> values, {
-    String? priorityPackageName,
-  }) {
+  List<PackageHit> _rankWithValues(Map<String, double> values) {
     final list = values.entries
         .map((e) => PackageHit(package: e.key, score: e.value))
         .toList();
     list.sort((a, b) {
-      if (a.package == priorityPackageName) return -1;
-      if (b.package == priorityPackageName) return 1;
       final int scoreCompare = -a.score!.compareTo(b.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated

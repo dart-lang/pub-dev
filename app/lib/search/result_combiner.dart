@@ -48,10 +48,7 @@ class SearchResultCombiner {
       sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
     }
 
-    return PackageSearchResult(
-      timestamp: primaryResult.timestamp,
-      totalCount: primaryResult.totalCount,
-      packageHits: primaryResult.packageHits,
+    return primaryResult.change(
       sdkLibraryHits: sdkLibraryHits.take(3).toList(),
     );
   }

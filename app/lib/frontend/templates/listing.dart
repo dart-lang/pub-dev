@@ -5,9 +5,11 @@
 import 'dart:math';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:collection/collection.dart';
 
 import '../../package/search_adapter.dart';
 import '../../search/search_service.dart';
+import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 
 import '_consts.dart';
@@ -35,7 +37,6 @@ String renderPkgIndexPage(
   SearchResultPage searchResultPage,
   PageLinks links, {
   required SearchForm searchForm,
-  String? messageFromBackend,
   Set<String>? openSections,
 }) {
   final topPackages = getSdkDict(null).topSdkPackages;
@@ -47,8 +48,9 @@ String renderPkgIndexPage(
       searchForm: searchForm,
       totalCount: searchResultPage.totalCount,
       title: topPackages,
-      messageFromBackend: messageFromBackend,
+      messageFromBackend: searchResultPage.errorMessage,
     ),
+    nameMatches: _nameMatches(searchResultPage.nameMatches),
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
     openSections: openSections,
@@ -120,4 +122,21 @@ class PageLinks {
     final int fromCount = 1 + ((count - 1) ~/ searchForm.pageSize!);
     return min(fromSymmetry, max(currentPage!, fromCount));
   }
+}
+
+d.Node? _nameMatches(List<String>? matches) {
+  if (matches == null || matches.isEmpty) {
+    return null;
+  }
+  final singular = matches.length == 1;
+  final namePluralized = singular ? 'name' : 'names';
+  return d.p(children: [
+    d.b(text: 'Matching package $namePluralized: '),
+    ...matches.expandIndexed((i, name) {
+      return [
+        if (i > 0) d.text(', '),
+        d.code(child: d.a(href: urls.pkgPageUrl(name), text: name)),
+      ];
+    }),
+  ]);
 }

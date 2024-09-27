@@ -75,10 +75,11 @@ Map<String, dynamic> _$ApiDocPageToJson(ApiDocPage instance) =>
 
 PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
     PackageSearchResult(
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String),
+      timestamp: DateTime.parse(json['timestamp'] as String),
       totalCount: (json['totalCount'] as num).toInt(),
+      nameMatches: (json['nameMatches'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -90,7 +91,10 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
-  final val = <String, dynamic>{};
+  final val = <String, dynamic>{
+    'timestamp': instance.timestamp.toIso8601String(),
+    'totalCount': instance.totalCount,
+  };
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -98,8 +102,7 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
     }
   }
 
-  writeNotNull('timestamp', instance.timestamp?.toIso8601String());
-  val['totalCount'] = instance.totalCount;
+  writeNotNull('nameMatches', instance.nameMatches);
   val['sdkLibraryHits'] =
       instance.sdkLibraryHits.map((e) => e.toJson()).toList();
   val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();

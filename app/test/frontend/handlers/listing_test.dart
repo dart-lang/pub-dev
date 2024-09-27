@@ -77,8 +77,9 @@ void main() {
           SearchClient(MockClient((_) async => throw Exception())));
       await nameTracker.reloadFromDatastore();
       final content = await expectHtmlResponse(
-          await issueGet('/packages?q=oxyge'),
-          status: 500);
+        await issueGet('/packages?q=oxyge'),
+        status: 503,
+      );
       expect(content, contains('oxygen is awesome'));
     });
 
