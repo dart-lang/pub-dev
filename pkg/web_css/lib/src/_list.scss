@@ -36,7 +36,7 @@
   }
 
   .count {
-    background: var(--pub-code-background-color);
+    background: var(--pub-inset-bgColor);
     display: inline-block;
     font-size: 12px;
     font-family: monospace;
@@ -334,7 +334,7 @@
     display: inline-block;
     text-transform: uppercase;
     color: var(--pub-pagination-active-color);
-    background: var(--pub-pagination-background-color);
+    background: var(--pub-inset-bgColor);
     font-size: 14px;
     border-radius: 3px;
     margin-top: 40px;
@@ -346,7 +346,7 @@
 
     &.-active {
       pointer-events: none;
-      color: var(--pub-pagination-background-color);
+      color: var(--pub-inset-bgColor);
       background: var(--pub-pagination-active-color);
     }
 
@@ -427,7 +427,7 @@
     cursor: pointer;
 
     &:hover {
-      background-color: var(--pub-code-background-color);
+      background-color: var(--pub-inset-bgColor);
     }
 
     a {

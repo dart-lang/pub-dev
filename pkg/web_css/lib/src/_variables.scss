@@ -16,16 +16,17 @@
 //   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
 :root {
-  --pub-color-white: #ffffff;
+  --pub-color-white:      #ffffff;
+  --pub-color-smokeWhite: #f5f5f7; // slight deviation from official white-smoke (f5f5f5)
 
   --pub-color-dangerRed: #ff4242;
 
   --pub-neutral-bgColor: var(--pub-color-white);
+  --pub-inset-bgColor: var(--pub-color-smokeWhite);
 
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-color: hsl(0, 0%, 29%);
   --pub-default-text-font_family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
-  --pub-code-background-color: #f5f5f7;
   --pub-code-text-color: var(--pub-default-text-color);
   --pub-link-text-color: #0175c2;
   --pub-code-text-font_family: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
@@ -39,7 +40,6 @@
   --pub-collections_icon-background-color: #aeaeae;
   --pub-thumbnail_container-background-color: var(--pub-color-white); // same in dark mode
   --pub-copy_feedback-background-color: #fafaff;
-  --pub-detail_tab-background-color: var(--pub-code-background-color);
   --pub-detail_tab-text-color: var(--pub-default-text-color);
   --pub-detail_tab-underline-color: #dddddd;
   --pub-detail_tab-active-color: #1967d2;
@@ -56,7 +56,6 @@
   --pub-home_card_hover-background-color: #fafafa;
   --pub-home_card_hover-box_shadow-color: rgba(0, 0, 0, 0.4);
   --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
-  --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
   --pub-input-placeholder-color: #888;
@@ -88,7 +87,6 @@
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-spinner_frame-background-color: rgba(0, 0, 0, 0.2);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
-  --pub-tag_simplebadge-background-color: #f0f0f0;
   --pub-tag_simplebadge-text-color: #444444;
   --pub_tag_simplebadge_warning-background-color: #c0392b;
   --pub_tag_simplebadge_warning-text-color: #f8f8f8;
@@ -111,20 +109,20 @@
 
 .dark-theme {
   --pub-color-darkGunmetal: #1f262a; // close to #1d2026
+  --pub-color-anchorBlack:  #41424c;
 
   --pub-neutral-bgColor: var(--pub-color-darkGunmetal);
+  --pub-inset-bgColor: var(--pub-color-anchorBlack);
 
   --pub-default-text-color: #e0e0e0;
-  --pub-code-background-color: #474747;
   --pub-code-text-color: var(--pub-default-text-color);
   --pub-link-text-color: #40c4ff;
   --pub-badge-default-color: var(--pub-link-text-color);
   --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-copy_feedback-background-color: #404040;
-  --pub-detail_tab-background-color: var(--pub-code-background-color);
   --pub-detail_tab-text-color: var(--pub-default-text-color);
   --pub-detail_tab-underline-color: #888888;
-  --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-detail_tab-background-color) 20%);
+  --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-inset-bgColor) 20%);
   --pub-detail_tab-admin-color: #e03030;
   --pub-home_title-text-color: #31b0fc;
   --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
@@ -132,7 +130,6 @@
   --pub-home_card_hover-background-color: #383838;
   --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
   --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
-  --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
   --pub-pkg_list_item_hover-background-color: #333333;
@@ -140,12 +137,11 @@
   --pub-score_label-text-color: #a0b0b8;
   --pub-score_value-text-color: var(--pub-link-text-color);
   --pub-sort_control-text-color: var(--pub-default-text-color);
-  --pub-sort_control_hover-background-color: var(--pub-code-background-color);
+  --pub-sort_control_hover-background-color: #333333;
   --pub-sort_control_hover-text-color: var(--pub-default-text-color);
   --pub-sort_control_selected-background-color: #206080;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
-  --pub-tag_simplebadge-background-color: var(--pub-code-background-color);
   --pub-tag_simplebadge-text-color: var(--pub-default-text-color);
   --pub-tag_sdkbadge-background-color: #206080;
   --pub-tag_sdkbadge-separator-color: var(--pub-default-text-color);

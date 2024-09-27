@@ -12,7 +12,7 @@
 
 /* Tags that are simple labels. */
 .package-tag {
-  background: var(--pub-tag_simplebadge-background-color);
+  background: var(--pub-inset-bgColor);
   text-transform: uppercase;
   color: var(--pub-tag_simplebadge-text-color);
   padding: 4px 8px;
