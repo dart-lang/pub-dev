@@ -3,16 +3,25 @@
 // color definitions:
 // `--pub-color-<qualifier><baseColor>`
 //
-// components:
+// theme roles:
+// `--pub-<role>[-<modifier>]-<property>`, where:
+//   - `<role>` may be: `neutral`, `inset`
+//   - `<modifier>` may be: `hover`, `selected`
+//   - `<property>` may be: `bgColor`, `textColor`, `linkColor`
+//
+// components (**deprecated**):
 // `--pub-[component]-[role]-[property]`, where
 //   - `[component]` may be: `default`, `button`, `link`, `card`, ...
 //   - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
 //   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
 :root {
+  --pub-color-white: #ffffff;
+
   --pub-color-dangerRed: #ff4242;
 
-  --pub-default-background-color: #ffffff;
+  --pub-neutral-bgColor: var(--pub-color-white);
+
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-color: hsl(0, 0%, 29%);
   --pub-default-text-font_family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
@@ -26,9 +35,9 @@
   --pub-carousel_nav-background-color: rgba(0,0,0,0.7);
   --pub-carousel_nav_hover-background-color: #4285f4;
   --pub-carousel_screenshot-background-color: rgba(0,0,0,0.7);
-  --pub-carousel_screenshot-text-color: #ffffff;
+  --pub-carousel_screenshot-text-color: var(--pub-color-white);
   --pub-collections_icon-background-color: #aeaeae;
-  --pub-thumbnail_container-background-color: #ffffff;
+  --pub-thumbnail_container-background-color: var(--pub-color-white); // same in dark mode
   --pub-copy_feedback-background-color: #fafaff;
   --pub-detail_tab-background-color: var(--pub-code-background-color);
   --pub-detail_tab-text-color: var(--pub-default-text-color);
@@ -40,11 +49,9 @@
   --pub-footer-text-color: #f8f9fa;
   --pub-home_title-text-color: #254a76;
   --pub-home_announcement-background-color: #e7f8ff;
-  --pub-home_banner-text-color: #ffffff;
+  --pub-home_banner-text-color: var(--pub-color-white);
   --pub-home_banner-link-color: #31b0fc;
-  --pub-home_card-background-color: #ffffff;
   --pub-home_card-box_shadow-color: rgba(0, 0, 0, 0.3);
-  --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, white);
   --pub-home_card_title-text-color: #1967d2;
   --pub-home_card_hover-background-color: #fafafa;
   --pub-home_card_hover-box_shadow-color: rgba(0, 0, 0, 0.4);
@@ -56,7 +63,7 @@
   --pub-pkg_list_item_hover-background-color: #fafafa;
   --pub-pkg_list_recent_item-text-color: #6d7278;
   --pub-remove_button-background-color: var(--pub-color-dangerRed);
-  --pub-remove_button-text-color: #ffffff;
+  --pub-remove_button-text-color: var(--pub-color-white);
   --pub-report_header_score_error-text-color: #e13701;
   --pub-report_header_score_warning-text-color: #ffa500;  
   --pub-report-hover-background-color: #f0f0f0;
@@ -65,7 +72,7 @@
   --pub-searchbar-background-color: #132030;
   --pub-searchbar-text-color: #8d9399;
   --pub-searchbar_input-background-color: #35404d;
-  --pub-searchbar_input-text-color: #ffffff;
+  --pub-searchbar_input-text-color: var(--pub-color-white);
   --pub-search_completition_selected-background-color: #ccc;
   --pub-session_warning-background-color: #ffffaa;
   --pub-site_header_banner-background-color: #1C2834;
@@ -74,14 +81,13 @@
   --pub-site_header_popup-background-color: #1f3044;
   --pub-site_header_popup-text-color: #f8f9fa;
   --pub-site_header_popup-border-color: #4a5868; // mix of bg+fg color
-  --pub-sort_control-background-color: #ffffff;
   --pub-sort_control-text-color: var(--pub-default-text-color);
   --pub-sort_control_hover-background-color: #f5f5f7;
   --pub-sort_control_hover-text-color: var(--pub-default-text-color);
   --pub-sort_control_selected-background-color: #e7f8ff;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-spinner_frame-background-color: rgba(0, 0, 0, 0.2);
-  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
+  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
   --pub-tag_simplebadge-background-color: #f0f0f0;
   --pub-tag_simplebadge-text-color: #444444;
   --pub_tag_simplebadge_warning-background-color: #c0392b;
@@ -104,7 +110,10 @@
 }
 
 .dark-theme {
-  --pub-default-background-color: #212121;
+  --pub-color-darkGunmetal: #1f262a; // close to #1d2026
+
+  --pub-neutral-bgColor: var(--pub-color-darkGunmetal);
+
   --pub-default-text-color: #e0e0e0;
   --pub-code-background-color: #474747;
   --pub-code-text-color: var(--pub-default-text-color);
@@ -118,9 +127,7 @@
   --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-detail_tab-background-color) 20%);
   --pub-detail_tab-admin-color: #e03030;
   --pub-home_title-text-color: #31b0fc;
-  --pub-home_card-background-color: #303030;
   --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
-  --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card-background-color));
   --pub-home_card_title-text-color: var(--pub-home_title-text-color);
   --pub-home_card_hover-background-color: #383838;
   --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
@@ -132,13 +139,12 @@
   --pub-report-hover-background-color: #333333;
   --pub-score_label-text-color: #a0b0b8;
   --pub-score_value-text-color: var(--pub-link-text-color);
-  --pub-sort_control-background-color: #333333;
   --pub-sort_control-text-color: var(--pub-default-text-color);
   --pub-sort_control_hover-background-color: var(--pub-code-background-color);
   --pub-sort_control_hover-text-color: var(--pub-default-text-color);
   --pub-sort_control_selected-background-color: #206080;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
-  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
+  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
   --pub-tag_simplebadge-background-color: var(--pub-code-background-color);
   --pub-tag_simplebadge-text-color: var(--pub-default-text-color);
   --pub-tag_sdkbadge-background-color: #206080;
@@ -146,7 +152,7 @@
   --pub-tag_sdkbadge-text-color: var(--pub-default-text-color);
 
   // Material Design theme customizations
-  --mdc-theme-surface: var(--pub-default-background-color);
+  --mdc-theme-surface: var(--pub-neutral-bgColor);
   --mdc-theme-on-primary: var(--pub-default-text-color);
   --mdc-theme-on-secondary: var(--pub-default-text-color);
   --mdc-theme-on-surface: var(--pub-default-text-color);
