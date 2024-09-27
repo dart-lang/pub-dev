@@ -110,9 +110,10 @@
 }
 
 .dark-theme {
+  --pub-color-darkGunmetal: #1f262a; // close to #1d2026
   --pub-color-charcoalBlack: #212121;
 
-  --pub-neutral-bgColor: var(--pub-color-charcoalBlack);
+  --pub-neutral-bgColor: var(--pub-color-darkGunmetal);
 
   --pub-default-text-color: #e0e0e0;
   --pub-code-background-color: #474747;
