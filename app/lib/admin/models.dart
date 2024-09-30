@@ -34,7 +34,9 @@ class ModerationCase extends db.ExpandoModel<String> {
 
   /// The source of the case, one of:
   /// - `external-notification`,
-  /// - `internal-notification` (only used for reports from @google.com accounts), or,
+  /// - `trusted-flagger`,
+  /// - `authorities`,
+  /// - `legal-referral`,
   /// - `automated-detection`. (will not be used)
   @db.StringProperty(required: true)
   late String source;
@@ -199,17 +201,17 @@ class ModerationCase extends db.ExpandoModel<String> {
 
 abstract class ModerationSource {
   static const externalNotification = 'external-notification';
-  static const internalNotification = 'internal-notification';
   static const trustedFlagger = 'trusted-flagger';
   static const authorities = 'authorities';
   static const legalReferral = 'legal-referral';
+  static const automatedDetection = 'automated-detection';
 
   static const _values = [
     externalNotification,
-    internalNotification,
     trustedFlagger,
     authorities,
     legalReferral,
+    automatedDetection,
   ];
   static bool isValidSource(String value) => _values.contains(value);
 }
