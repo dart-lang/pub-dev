@@ -50,7 +50,7 @@ String renderPkgIndexPage(
       title: topPackages,
       messageFromBackend: searchResultPage.errorMessage,
     ),
-    nameMatches: _nameMatches(searchResultPage.nameMatches),
+    nameMatches: _nameMatches(searchForm, searchResultPage.nameMatches),
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
     openSections: openSections,
@@ -124,14 +124,18 @@ class PageLinks {
   }
 }
 
-d.Node? _nameMatches(List<String>? matches) {
+d.Node? _nameMatches(SearchForm form, List<String>? matches) {
   if (matches == null || matches.isEmpty) {
     return null;
   }
   final singular = matches.length == 1;
-  final namePluralized = singular ? 'name' : 'names';
+  final isExactNameMatch = singular && form.parsedQuery.text == matches.single;
+  final nameMatchLabel = isExactNameMatch
+      ? 'Exact package name match: '
+      : 'Matching package ${singular ? 'name' : 'names'}: ';
+
   return d.p(children: [
-    d.b(text: 'Matching package $namePluralized: '),
+    d.b(text: nameMatchLabel),
     ...matches.expandIndexed((i, name) {
       return [
         if (i > 0) d.text(', '),
