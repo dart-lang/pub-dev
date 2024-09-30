@@ -26,7 +26,7 @@ void main() {
         'kind': 'notification',
         'opened': isNotEmpty,
         'resolved': null,
-        'source': 'internal-notification',
+        'source': 'trusted-flagger',
         'subject': 'package:oxygen',
         'isSubjectOwner': false,
         'url': null,
