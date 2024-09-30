@@ -2,11 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
+import 'package:basics/basics.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/storage.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 /// Sets the download counts backend service.
 void registerDownloadCountsBackend(DownloadCountsBackend backend) =>
@@ -27,6 +34,11 @@ class DownloadCountsBackend {
       final downloadCounts = await _db.lookupOrNull<DownloadCounts>(key);
       return downloadCounts?.countData;
     }));
+  }
+
+  Future<Stream<DownloadCounts>> listAllDownloadCounts() async {
+    final query = _db.query<DownloadCounts>();
+    return query.run();
   }
 
   Future<DownloadCounts> updateDownloadCounts(
