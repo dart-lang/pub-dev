@@ -148,7 +148,7 @@ strong {
 
 .markdown-body code,
 code {
-  background: var(--pub-code-background-color);
+  background: var(--pub-inset-bgColor);
   border: none;
   border-radius: 4px;
   font-family: var(--pub-code-text-font_family);
@@ -159,7 +159,7 @@ code {
 .dark-theme .hljs,
 .markdown-body pre,
 pre {
-  background: var(--pub-code-background-color);
+  background: var(--pub-inset-bgColor);
   color: var(--pub-code-text-color);
 }
 

@@ -61,14 +61,14 @@
   border-width: 0px;
 
   .mdc-data-table__row {
-    border-top-color: var(--pub-code-background-color);
+    border-top-color: var(--pub-inset-bgColor);
 
     &:hover {
       background: inherit;
     }
 
     &:nth-child(even) {
-      background: var(--pub-code-background-color);
+      background: var(--pub-inset-bgColor);
     }
   }
 

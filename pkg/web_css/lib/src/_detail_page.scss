@@ -13,7 +13,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 .-wide-header-detail-page {
   .detail-header,
   .detail-tabs-wide-header {
-    background: var(--pub-code-background-color);
+    background: var(--pub-inset-bgColor);
     color: var(--pub-default-text-color);
   }
 
@@ -300,7 +300,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   margin: 0 0 24px -12px;
   padding: 0;
 
-  background: var(--pub-detail_tab-background-color);
+  background: var(--pub-inset-bgColor);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
