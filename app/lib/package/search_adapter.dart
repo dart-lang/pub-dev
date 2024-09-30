@@ -42,11 +42,12 @@ class SearchAdapter {
     return SearchResultPage(
       form,
       result.totalCount,
+      nameMatches: result.nameMatches,
       sdkLibraryHits: result.sdkLibraryHits,
       packageHits:
           result.packageHits.map((h) => views[h.package]).nonNulls.toList(),
       errorMessage: result.errorMessage,
-      statusCode: result.statusCode,
+      statusCode: result.statusCode ?? 200,
     );
   }
 
@@ -84,8 +85,10 @@ class SearchAdapter {
   Future<PackageSearchResult> _fallbackSearch(SearchForm form) async {
     // Some search queries must not be served with the fallback search.
     if (form.parsedQuery.tagsPredicate.isNotEmpty) {
-      return PackageSearchResult.empty(
-          errorMessage: 'Search is temporarily unavailable.');
+      return PackageSearchResult.error(
+        errorMessage: 'Search is temporarily unavailable.',
+        statusCode: 503,
+      );
     }
 
     final names = await nameTracker
@@ -108,11 +111,13 @@ class SearchAdapter {
     packageHits =
         packageHits.skip(form.offset).take(form.pageSize ?? 10).toList();
     return PackageSearchResult(
-        timestamp: clock.now().toUtc(),
-        packageHits: packageHits,
-        totalCount: totalCount,
-        errorMessage:
-            'Search is temporarily impaired, filtering and ranking may be incorrect.');
+      timestamp: clock.now().toUtc(),
+      packageHits: packageHits,
+      totalCount: totalCount,
+      errorMessage:
+          'Search is temporarily impaired, filtering and ranking may be incorrect.',
+      statusCode: 503,
+    );
   }
 
   Future<Map<String, PackageView>> _getPackageViewsFromHits(
@@ -137,6 +142,11 @@ class SearchResultPage {
   /// The total number of results available for the search.
   final int totalCount;
 
+  /// Package names that are exact name matches or close to (e.g. names that
+  /// would be considered as blocker for publishing).
+  final List<String>? nameMatches;
+
+  /// The hits from the SDK libraries.
   final List<SdkLibraryHit> sdkLibraryHits;
 
   /// The current list of packages on the page.
@@ -146,23 +156,19 @@ class SearchResultPage {
   /// the query was not processed entirely.
   final String? errorMessage;
 
-  /// The non-200 status code that will be used to render the [errorMessage].
-  final int? statusCode;
+  /// The code that will be used to render the page.
+  final int statusCode;
 
   SearchResultPage(
     this.form,
     this.totalCount, {
+    this.nameMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageView>? packageHits,
     this.errorMessage,
-    this.statusCode,
+    this.statusCode = 200,
   })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         packageHits = packageHits ?? <PackageView>[];
-
-  SearchResultPage.empty(this.form, {this.errorMessage, this.statusCode})
-      : totalCount = 0,
-        sdkLibraryHits = <SdkLibraryHit>[],
-        packageHits = [];
 
   bool get hasNoHit => sdkLibraryHits.isEmpty && packageHits.isEmpty;
   bool get hasHit => !hasNoHit;

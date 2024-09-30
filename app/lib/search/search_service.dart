@@ -303,8 +303,12 @@ class QueryValidity {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class PackageSearchResult {
-  final DateTime? timestamp;
+  final DateTime timestamp;
   final int totalCount;
+
+  /// Package names that are exact name matches or close to (e.g. names that
+  /// would be considered as blocker for publishing).
+  final List<String>? nameMatches;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
 
@@ -317,32 +321,46 @@ class PackageSearchResult {
   PackageSearchResult({
     required this.timestamp,
     required this.totalCount,
+    this.nameMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.errorMessage,
-    this.statusCode,
-  })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
-        packageHits = packageHits ?? <PackageHit>[];
+    int? statusCode,
+  })  : packageHits = packageHits ?? <PackageHit>[],
+        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
+        statusCode = statusCode;
 
-  PackageSearchResult.empty({this.errorMessage, this.statusCode})
-      : timestamp = clock.now().toUtc(),
+  PackageSearchResult.error({
+    required this.errorMessage,
+    required this.statusCode,
+  })  : timestamp = clock.now().toUtc(),
         totalCount = 0,
+        nameMatches = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
-  factory PackageSearchResult.fromJson(Map<String, dynamic> json) {
-    return _$PackageSearchResultFromJson({
-      // TODO: remove fallback in the next release
-      'errorMessage': json['message'],
-      ...json,
-    });
-  }
+  factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
+      _$PackageSearchResultFromJson(json);
 
-  Duration get age => clock.now().difference(timestamp!);
+  Duration get age => clock.now().difference(timestamp);
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 
   bool get isEmpty => packageHits.isEmpty && sdkLibraryHits.isEmpty;
+
+  PackageSearchResult change({
+    List<SdkLibraryHit>? sdkLibraryHits,
+  }) {
+    return PackageSearchResult(
+      timestamp: timestamp,
+      totalCount: totalCount,
+      nameMatches: nameMatches,
+      sdkLibraryHits: sdkLibraryHits ?? this.sdkLibraryHits,
+      packageHits: packageHits,
+      errorMessage: errorMessage,
+      statusCode: statusCode,
+    );
+  }
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

@@ -33,6 +33,7 @@ void main() {
         await expectJsonResponse(await issueGet('/search?q=oxygen'), body: {
           'timestamp': isNotNull,
           'totalCount': 1,
+          'nameMatches': ['oxygen'],
           'sdkLibraryHits': [],
           'packageHits': [
             {'package': 'oxygen', 'score': isPositive},

@@ -81,8 +81,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   );
   final int totalCount = searchResult.totalCount;
   final errorMessage = searchResult.errorMessage;
-  final statusCode =
-      searchResult.statusCode ?? (errorMessage == null ? 200 : 500);
+  final statusCode = searchResult.statusCode;
   if (errorMessage != null && statusCode >= 500) {
     _logger.severe('[pub-search-not-working] ${searchResult.errorMessage}');
   }
@@ -93,7 +92,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       searchResult,
       links,
       searchForm: searchForm,
-      messageFromBackend: searchResult.errorMessage,
       openSections: openSections,
     ),
     status: statusCode,
