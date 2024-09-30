@@ -164,13 +164,6 @@ Future<void> _analyzePackage(
       log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
     }
 
-    // Upload results, if there is any
-    _log.info('api.taskUploadResult("$package", "$version")');
-    final r = await retry(
-      () => api.taskUploadResult(package, version),
-      retryIf: _retryIf,
-    );
-
     // Create a file to store the blob, and add everything to it.
     final blobFile = File(p.join(tempDir.path, 'files.blob'));
     final builder = IndexedBlobBuilder(blobFile.openWrite());
@@ -199,6 +192,13 @@ Future<void> _analyzePackage(
     await builder.addFile(
       'log.txt',
       logFile.openRead().transform(gzip.encoder),
+    );
+
+    // Upload results, if there is any
+    _log.info('api.taskUploadResult("$package", "$version")');
+    final r = await retry(
+      () => api.taskUploadResult(package, version),
+      retryIf: _retryIf,
     );
 
     // Create BlobIndex
