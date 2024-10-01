@@ -14,7 +14,7 @@ import 'package:pub_dev/shared/utils.dart';
 Future<void> compute30DaysTotalTask() async {
   final allDownloadCounts = await downloadCountsBackend.listAllDownloadCounts();
   final totals = await compute30DayTotals(allDownloadCounts);
-  await updload30DaysTotal(totals);
+  await upload30DaysTotal(totals);
 }
 
 Future<Map<String, int>> compute30DayTotals(
@@ -36,7 +36,7 @@ int compute30DayTotal(DownloadCounts downloadCounts) {
 
 final downloadCounts30DaysTotalsFileName = 'download-counts-30-days-total.json';
 
-Future<void> updload30DaysTotal(Map<String, int> counts) async {
+Future<void> upload30DaysTotal(Map<String, int> counts) async {
   final reportsBucket =
       storageService.bucket(activeConfiguration.reportsBucketName!);
   await uploadBytesWithRetry(reportsBucket, downloadCounts30DaysTotalsFileName,

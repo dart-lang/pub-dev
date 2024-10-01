@@ -87,7 +87,7 @@ void main() {
     });
 
     testWithProfile('succesful 30 day totals upload', fn: () async {
-      await updload30DaysTotal({'foo': 70, 'bar': 105, 'baz': 140});
+      await upload30DaysTotal({'foo': 70, 'bar': 105, 'baz': 140});
 
       final data = await storageService
           .bucket(activeConfiguration.reportsBucketName!)
