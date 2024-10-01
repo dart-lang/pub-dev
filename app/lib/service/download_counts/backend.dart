@@ -29,6 +29,11 @@ class DownloadCountsBackend {
     }));
   }
 
+  Future<Stream<DownloadCounts>> listAllDownloadCounts() async {
+    final query = _db.query<DownloadCounts>();
+    return query.run();
+  }
+
   Future<DownloadCounts> updateDownloadCounts(
     String pkg,
     Map<String, int> dayCounts,
