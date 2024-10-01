@@ -72,14 +72,20 @@ Closes the moderation case and updates the status based on the actions logged on
           final appealedCase = await tx.lookupValue<ModerationCase>(dbService
               .emptyKey
               .append(ModerationCase, id: mc.appealedCaseId!));
-          final appealHadModeratedAction =
+          final appealedCaseHadModeratedAction =
               appealedCase.getActionLog().hasModeratedAction();
-          if (appealHadModeratedAction) {
-            status = hasModeratedAction
-                ? ModerationStatus.moderationReverted
-                : ModerationStatus.moderationUpheld;
+          final compositeActionLog = ModerationActionLog(entries: [
+            ...appealedCase.getActionLog().entries,
+            ...mc.getActionLog().entries,
+          ]);
+          final compositeHasModeratedAction =
+              compositeActionLog.hasModeratedAction();
+          if (appealedCaseHadModeratedAction) {
+            status = compositeHasModeratedAction
+                ? ModerationStatus.moderationUpheld
+                : ModerationStatus.moderationReverted;
           } else {
-            status = hasModeratedAction
+            status = compositeHasModeratedAction
                 ? ModerationStatus.noActionReverted
                 : ModerationStatus.noActionUpheld;
           }
