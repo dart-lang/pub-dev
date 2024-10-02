@@ -67,7 +67,7 @@
       text-align: left;
 
       &:hover {
-        background: var(--pub-sort_control_hover-background-color);
+        background: var(--pub-neutral-hover-bgColor);
         color: var(--pub-sort_control_hover-text-color);
       }
 
@@ -190,7 +190,7 @@
     padding: 15px 30px;
 
     &:hover {
-      background: var(--pub-pkg_list_item_hover-background-color);
+      background: var(--pub-neutral-hover-bgColor);
     }
   }
 
@@ -305,7 +305,7 @@
     margin-right: 8px;
 
     &:hover {
-      background: var(--pub-pkg_list_item_hover-background-color);
+      background: var(--pub-neutral-hover-bgColor);
     }
 
     .publishers-item-title {
