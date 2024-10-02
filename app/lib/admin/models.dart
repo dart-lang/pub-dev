@@ -442,21 +442,7 @@ class ModerationActionLog {
 
   Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
 
-  /// Returns true if the final state of the actions has at least one moderation.
-  bool hasModeratedAction() {
-    final subjects = <String>{};
-    for (final entry in entries) {
-      switch (entry.moderationAction) {
-        case ModerationAction.apply:
-          subjects.add(entry.subject);
-          break;
-        case ModerationAction.revert:
-          subjects.remove(entry.subject);
-          break;
-      }
-    }
-    return subjects.isNotEmpty;
-  }
+  bool get isNotEmpty => entries.isNotEmpty;
 }
 
 enum ModerationAction {
