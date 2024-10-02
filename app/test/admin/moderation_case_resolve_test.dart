@@ -115,7 +115,7 @@ void main() {
         reason: 'The package violated our policy.',
       );
 
-      final mc = await _prepare(apply: true, appealCaseId: mc1.caseId);
+      final mc = await _prepare(apply: false, appealCaseId: mc1.caseId);
       expect(await _close(mc.caseId), 'moderation-reverted');
     });
 
