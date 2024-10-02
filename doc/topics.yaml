@@ -69,6 +69,10 @@ topics:
   - logs
   - log
 - topic: testing
-  description: Packages that facilitate testing
+  description: Packages that facilitate testing.
   aliases:
   - test
+- topic: i18n
+  description: Packages that facilitate internationalization.
+  aliases:
+  - internationalization
