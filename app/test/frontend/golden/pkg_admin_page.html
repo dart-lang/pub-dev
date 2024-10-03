@@ -241,6 +241,38 @@
             <div class="detail-container detail-body-main">
               <div class="detail-tabs-content">
                 <section class="tab-content detail-tab-admin-content -active">
+                  <div class="pub-toc-container">
+                    <div class="pub-toc">
+                      <div>
+                        <b>Contents</b>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-0">
+                        <a href="#ownership">Ownership</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-0">
+                        <a href="#options">Options</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-1">
+                        <a href="#discontinued">Discontinued</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-1">
+                        <a href="#unlisted">Unlisted</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-0">
+                        <a href="#automated-publishing">Automated publishing</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-1">
+                        <a href="#github-actions">GitHub Actions</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-1">
+                        <a href="#google-cloud-service-account">Google Cloud Service account</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-0">
+                        <a href="#version-retraction">Version retraction</a>
+                      </div>
+                    </div>
+                  </div>
+                  <a name="ownership"></a>
                   <h2>Package ownership</h2>
                   <div>
                     <p>You can transfer this package to a verified publisher if you are a member of the publisher. Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.</p>
@@ -321,7 +353,9 @@
                       </div>
                     </div>
                   </div>
-                  <h2>Package Options</h2>
+                  <a name="options"></a>
+                  <h2>Package options</h2>
+                  <a name="discontinued"></a>
                   <h3>Discontinued</h3>
                   <p>
                     A package can be marked as
@@ -345,6 +379,7 @@
                       <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
                     </div>
                   </div>
+                  <a name="unlisted"></a>
                   <h3>Unlisted</h3>
                   <p>
                     A package that's marked as
@@ -366,7 +401,9 @@
                       <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
                     </div>
                   </div>
+                  <a name="automated-publishing"></a>
                   <h2>Automated publishing</h2>
+                  <a name="github-actions"></a>
                   <h3>Publishing from GitHub Actions</h3>
                   <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
                     <div class="mdc-form-field">
@@ -486,6 +523,7 @@
                       </div>
                     </div>
                   </div>
+                  <a name="google-cloud-service-account"></a>
                   <h3>Publishing with Google Cloud Service account</h3>
                   <p>
                     When publishing with a GCP
@@ -527,7 +565,8 @@
                   <p>
                     <button id="-pkg-admin-automated-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Update</button>
                   </p>
-                  <h2>Package Version Retraction</h2>
+                  <a name="version-retraction"></a>
+                  <h2>Version retraction</h2>
                   <div>
                     <p>
                       You can
@@ -536,7 +575,7 @@
                     </p>
                     <p>This will not remove the package version, but warn developers using it and stop new applications from taking dependency on it without a dependency override.</p>
                     <p>You can restore a retracted package version if the version was retracted within the last 7 days.</p>
-                    <h3>Retract Package Version</h3>
+                    <h3>Retract package version</h3>
                     <div id="-admin-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
                       <div class="mdc-select__anchor">
                         <span class="mdc-select__ripple"></span>
@@ -563,7 +602,7 @@
                       <button id="-admin-retract-package-version-button" class="mdc-button mdc-button--raised pub-button-danger" data-mdc-auto-init="MDCRipple">Retract Package Version</button>
                     </p>
                   </div>
-                  <h3>Restore Retracted Package Version</h3>
+                  <h3>Restore retracted package version</h3>
                   <div>
                     <div id="-admin-restore-retract-package-version-input" class="mdc-select mdc-select--filled -admin-dropdown" data-mdc-auto-init="MDCSelect">
                       <div class="mdc-select__anchor">

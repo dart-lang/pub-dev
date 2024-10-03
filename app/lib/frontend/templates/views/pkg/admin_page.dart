@@ -9,6 +9,7 @@ import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
+import '../shared/toc.dart';
 
 /// Creates the package admin page content.
 d.Node packageAdminPageNode({
@@ -20,6 +21,28 @@ d.Node packageAdminPageNode({
 }) {
   final pkgHasPublisher = package.publisherId != null;
   return d.fragment([
+    renderToc([
+      TocNode('Ownership', href: '#ownership'),
+      TocNode(
+        'Options',
+        href: '#options',
+        children: [
+          TocNode('Discontinued', href: '#discontinued'),
+          TocNode('Unlisted', href: '#unlisted'),
+        ],
+      ),
+      TocNode(
+        'Automated publishing',
+        href: '#automated-publishing',
+        children: [
+          TocNode('GitHub Actions', href: '#github-actions'),
+          TocNode('Google Cloud Service account',
+              href: '#google-cloud-service-account'),
+        ],
+      ),
+      TocNode('Version retraction', href: '#version-retraction'),
+    ]),
+    d.a(name: 'ownership'),
     d.h2(text: 'Package ownership'),
     d.div(children: [
       if (!pkgHasPublisher) ...[
@@ -121,7 +144,9 @@ d.Node packageAdminPageNode({
         ),
       ],
     ]),
-    d.h2(text: 'Package Options'),
+    d.a(name: 'options'),
+    d.h2(text: 'Package options'),
+    d.a(name: 'discontinued'),
     d.h3(text: 'Discontinued'),
     d.markdown(
         'A package can be marked as [discontinued](https://dart.dev/tools/pub/publishing#discontinue) '
@@ -161,6 +186,7 @@ d.Node packageAdminPageNode({
       ),
     ],
     if (!package.isDiscontinued) ...[
+      d.a(name: 'unlisted'),
       d.h3(text: 'Unlisted'),
       d.markdown(
           'A package that\'s marked as *unlisted* doesn\'t normally appear in search results on pub.dev. '
@@ -175,7 +201,8 @@ d.Node packageAdminPageNode({
       ),
     ],
     _automatedPublishing(package),
-    d.h2(text: 'Package Version Retraction'),
+    d.a(name: 'version-retraction'),
+    d.h2(text: 'Version retraction'),
     d.div(children: [
       d.markdown(
           'You can [retract](https://dart.dev/go/package-retraction) a package version up to 7 days after publication.'),
@@ -184,7 +211,7 @@ d.Node packageAdminPageNode({
           ' it and stop new applications from taking dependency on it without a dependency override.'),
       d.markdown(
           'You can restore a retracted package version if the version was retracted within the last 7 days.'),
-      d.h3(text: 'Retract Package Version'),
+      d.h3(text: 'Retract package version'),
       if (retractableVersions.isNotEmpty) ...[
         material.dropdown(
           id: '-admin-retract-package-version-input',
@@ -208,7 +235,7 @@ d.Node packageAdminPageNode({
       if (retractableVersions.isEmpty)
         d.markdown('This package has no retractable versions.'),
     ]),
-    d.h3(text: 'Restore Retracted Package Version'),
+    d.h3(text: 'Restore retracted package version'),
     d.div(children: [
       if (retractedVersions.isNotEmpty) ...[
         material.dropdown(
@@ -242,7 +269,9 @@ d.Node _automatedPublishing(Package package) {
   final gcp = package.automatedPublishing?.gcpConfig;
   final isGithubEnabled = github?.isEnabled ?? false;
   return d.fragment([
+    d.a(name: 'automated-publishing'),
     d.h2(text: 'Automated publishing'),
+    d.a(name: 'github-actions'),
     d.h3(text: 'Publishing from GitHub Actions'),
     d.div(
       classes: [
@@ -342,6 +371,7 @@ d.Node _automatedPublishing(Package package) {
         if (isGithubEnabled) _exampleGithubWorkflow(github!),
       ],
     ),
+    d.a(name: 'google-cloud-service-account'),
     d.h3(text: 'Publishing with Google Cloud Service account'),
     d.markdown(
         'When publishing with a GCP _service account_ is enabled, the service account configured here '
