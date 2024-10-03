@@ -444,8 +444,11 @@ a.-x-ago {
 .pub-toc-container {
   @media (min-width: 1600px) {
     position: fixed;
-    top: 100px;
+    top: 10px;
+    bottom: 10px;
     left: 12px;
+    display: flex;
+    align-items: center;
   }
 }
 
