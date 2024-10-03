@@ -10,7 +10,7 @@ import 'package:web/web.dart';
 
 import '../web_util.dart';
 import 'completion/widget.dart' deferred as completion;
-import 'switch/widget.dart' deferred as switch_;
+import 'switch/widget.dart' as switch_;
 
 /// Function to create an instance of the widget given an element and options.
 ///
@@ -32,7 +32,7 @@ typedef _WidgetLoaderFn = FutureOr<_WidgetFn> Function();
 /// Map from widget name to widget loader
 final _widgets = <String, _WidgetLoaderFn>{
   'completion': () => completion.loadLibrary().then((_) => completion.create),
-  'switch': () => switch_.loadLibrary().then((_) => switch_.create),
+  'switch': () => switch_.create,
 };
 
 Future<_WidgetFn> _noSuchWidget() async =>

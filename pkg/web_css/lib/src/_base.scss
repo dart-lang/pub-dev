@@ -393,7 +393,9 @@ pre {
   text-align: center;
 
   .dismisser {
-    float: right;
+    position: absolute;
+    display: inline-block;
+    right: 0px;
     padding: 5px 15px;
     margin-top: -5px;
     cursor: pointer;
@@ -401,23 +403,10 @@ pre {
   }
 
   &.dismissed {
-    visibility: hidden;
+    display: none;
   }
 
-  z-index: 0;
-  animation-duration: 200ms;
-  animation-name: slide-down;
-  animation-timing-function: ease;
-}
-
-@keyframes slide-down {
-  from {
-    translate: 0 -100%;
-  }
-
-  to {
-    translate: 0 0;
-  }
+  z-index: 1000;
 }
 
 a.-x-ago {
