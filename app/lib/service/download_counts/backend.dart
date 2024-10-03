@@ -2,9 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart';
+import 'package:pub_dev/service/download_counts/compute_30_days_total_counts.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
+import 'package:pub_dev/service/entrypoint/analyzer.dart';
+import 'package:pub_dev/shared/cached_value.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 
@@ -19,7 +27,59 @@ DownloadCountsBackend get downloadCountsBackend =>
 class DownloadCountsBackend {
   final DatastoreDB _db;
 
-  DownloadCountsBackend(this._db);
+  late CachedValue<Map<String, int>> _thirtyDaysTotals;
+  var _lastData = (data: <String, int>{}, etag: '');
+
+  DownloadCountsBackend(this._db) {
+    _thirtyDaysTotals = CachedValue(
+        name: 'thirtyDaysTotalDownloadCounts',
+        maxAge: Duration(days: 14),
+        interval: Duration(minutes: 30),
+        updateFn: _updateThirtyDaysTotals);
+  }
+
+  Future<Map<String, int>> _updateThirtyDaysTotals() async {
+    try {
+      final info = await storageService
+          .bucket(activeConfiguration.reportsBucketName!)
+          .info(downloadCounts30DaysTotalsFileName);
+
+      if (_lastData.etag == info.etag) {
+        return _lastData.data;
+      }
+      final data = (await storageService
+              .bucket(activeConfiguration.reportsBucketName!)
+              .read(downloadCounts30DaysTotalsFileName)
+              .transform(utf8.decoder)
+              .transform(json.decoder)
+              .single as Map<String, dynamic>)
+          .cast<String, int>();
+      _lastData = (data: data, etag: info.etag);
+      return data;
+    } on FormatException catch (e, st) {
+      logger.severe('Error loading 30-days total download counts:', e, st);
+      rethrow;
+    } on DetailedApiRequestError catch (e, st) {
+      if (e.status != 404) {
+        logger.severe(
+            'Failed to load $downloadCounts30DaysTotalsFileName, error : ',
+            e,
+            st);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> start() async {
+    await _thirtyDaysTotals.update();
+  }
+
+  Future<void> close() async {
+    await _thirtyDaysTotals.close();
+  }
+
+  int? lookup30DayTotalCounts(String package) =>
+      _thirtyDaysTotals.isAvailable ? _thirtyDaysTotals.value![package] : null;
 
   Future<CountData?> lookupDownloadCountData(String pkg) async {
     return (await cache.downloadCounts(pkg).get(() async {

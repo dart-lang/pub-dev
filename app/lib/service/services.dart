@@ -298,6 +298,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(topPackages.close);
     registerScopeExitCallback(youtubeBackend.close);
+    registerScopeExitCallback(downloadCountsBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
     return await fork(

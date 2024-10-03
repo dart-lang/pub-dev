@@ -8,6 +8,7 @@ import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:stream_transform/stream_transform.dart' show RateLimit;
 import 'package:watcher/watcher.dart';
@@ -52,6 +53,7 @@ Future _main() async {
   await announcementBackend.start();
   await topPackages.start();
   await youtubeBackend.start();
+  await downloadCountsBackend.start();
 
   await runHandler(_logger, appHandler, sanitize: true);
 }

@@ -11,10 +11,11 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
+import 'fake_download_counts.dart';
 
 void main() {
   group('', () {
-    testWithProfile('compute download counts 30 day totals', fn: () async {
+    testWithProfile('compute download counts 30-days totals', fn: () async {
       final pkg = 'foo';
       final versionsCounts = {
         '1.0.1': 2,
@@ -97,6 +98,26 @@ void main() {
           .single;
 
       expect(data, {'foo': 70, 'bar': 105, 'baz': 140});
+    });
+
+    testWithProfile('cache 30-days totals', fn: () async {
+      await generateFake30DaysTotals({'foo': 70, 'bar': 105, 'baz': 140});
+      expect(downloadCountsBackend.lookup30DayTotalCounts('foo'), isNull);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('bar'), isNull);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('baz'), isNull);
+
+      await downloadCountsBackend.start();
+      expect(downloadCountsBackend.lookup30DayTotalCounts('foo'), 70);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('bar'), 105);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('baz'), 140);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('bax'), isNull);
+
+      await generateFake30DaysTotals({'foo': 90, 'bar': 120, 'baz': 150});
+      await downloadCountsBackend.start();
+      expect(downloadCountsBackend.lookup30DayTotalCounts('foo'), 90);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('bar'), 120);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('baz'), 150);
+      expect(downloadCountsBackend.lookup30DayTotalCounts('bax'), isNull);
     });
   });
 }
