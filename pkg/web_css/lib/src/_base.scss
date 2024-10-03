@@ -64,7 +64,7 @@ summary {
   transition: background-color 0.3s;
 
   &:hover {
-    background: var(--pub-summary_hover-background-color);
+    background: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
   }
 
   &:focus {

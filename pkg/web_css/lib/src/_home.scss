@@ -108,13 +108,13 @@
     min-height: 100px;
 
     &:hover {
-      background: var(--pub-home_card_hover-background-color);
+      background: var(--pub-neutral-hover-bgColor);
       box-shadow: 0px 4px 9px 0px var(--pub-home_card_hover-box_shadow-color);
 
       @media (min-width: $device-desktop-min-width) {
         .mini-list-item-body {
           &:before {
-            background: var(--pub-home_card_hover_fadeout-background-value);
+            background: linear-gradient(transparent 90%, var(--pub-neutral-hover-bgColor));
           }
         }
       }

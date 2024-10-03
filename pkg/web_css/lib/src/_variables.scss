@@ -17,12 +17,14 @@
 
 :root {
   --pub-color-white:      #ffffff;
+  --pub-color-snowWhite:  #fafafa; // slight deviation from official snow-white (fffafa)
   --pub-color-smokeWhite: #f5f5f7; // slight deviation from official white-smoke (f5f5f5)
 
   --pub-color-dangerRed: #ff4242;
 
-  --pub-neutral-bgColor: var(--pub-color-white);
-  --pub-inset-bgColor: var(--pub-color-smokeWhite);
+  --pub-neutral-bgColor:       var(--pub-color-white);
+  --pub-neutral-hover-bgColor: var(--pub-color-snowWhite);
+  --pub-inset-bgColor:         var(--pub-color-smokeWhite);
 
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-color: hsl(0, 0%, 29%);
@@ -53,19 +55,15 @@
   --pub-home_banner-link-color: #31b0fc;
   --pub-home_card-box_shadow-color: rgba(0, 0, 0, 0.3);
   --pub-home_card_title-text-color: #1967d2;
-  --pub-home_card_hover-background-color: #fafafa;
   --pub-home_card_hover-box_shadow-color: rgba(0, 0, 0, 0.4);
-  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
   --pub-input-placeholder-color: #888;
-  --pub-pkg_list_item_hover-background-color: #fafafa;
   --pub-pkg_list_recent_item-text-color: #6d7278;
   --pub-remove_button-background-color: var(--pub-color-dangerRed);
   --pub-remove_button-text-color: var(--pub-color-white);
   --pub-report_header_score_error-text-color: #e13701;
   --pub-report_header_score_warning-text-color: #ffa500;  
-  --pub-report-hover-background-color: #f0f0f0;
   --pub-score_label-text-color: #6d7278;
   --pub-score_value-text-color: var(--pub-link-text-color);
   --pub-searchbar-background-color: #132030;
@@ -81,12 +79,10 @@
   --pub-site_header_popup-text-color: #f8f9fa;
   --pub-site_header_popup-border-color: #4a5868; // mix of bg+fg color
   --pub-sort_control-text-color: var(--pub-default-text-color);
-  --pub-sort_control_hover-background-color: #f5f5f7;
   --pub-sort_control_hover-text-color: var(--pub-default-text-color);
   --pub-sort_control_selected-background-color: #e7f8ff;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
   --pub-spinner_frame-background-color: rgba(0, 0, 0, 0.2);
-  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
   --pub-tag_simplebadge-text-color: #444444;
   --pub_tag_simplebadge_warning-background-color: #c0392b;
   --pub_tag_simplebadge_warning-text-color: #f8f8f8;
@@ -109,10 +105,12 @@
 
 .dark-theme {
   --pub-color-darkGunmetal: #1f262a; // close to #1d2026
+  --pub-color-shadowBlack:  #373737;
   --pub-color-anchorBlack:  #41424c;
 
-  --pub-neutral-bgColor: var(--pub-color-darkGunmetal);
-  --pub-inset-bgColor: var(--pub-color-anchorBlack);
+  --pub-neutral-bgColor:       var(--pub-color-darkGunmetal);
+  --pub-neutral-hover-bgColor: var(--pub-color-shadowBlack);
+  --pub-inset-bgColor:         var(--pub-color-anchorBlack);
 
   --pub-default-text-color: #e0e0e0;
   --pub-code-text-color: var(--pub-default-text-color);
@@ -127,21 +125,15 @@
   --pub-home_title-text-color: #31b0fc;
   --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
   --pub-home_card_title-text-color: var(--pub-home_title-text-color);
-  --pub-home_card_hover-background-color: #383838;
   --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
-  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
-  --pub-pkg_list_item_hover-background-color: #333333;
-  --pub-report-hover-background-color: #333333;
   --pub-score_label-text-color: #a0b0b8;
   --pub-score_value-text-color: var(--pub-link-text-color);
   --pub-sort_control-text-color: var(--pub-default-text-color);
-  --pub-sort_control_hover-background-color: #333333;
   --pub-sort_control_hover-text-color: var(--pub-default-text-color);
   --pub-sort_control_selected-background-color: #206080;
   --pub-sort_control_selected-text-color: var(--pub-default-text-color);
-  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-neutral-bgColor) 80%);
   --pub-tag_simplebadge-text-color: var(--pub-default-text-color);
   --pub-tag_sdkbadge-background-color: #206080;
   --pub-tag_sdkbadge-separator-color: var(--pub-default-text-color);
