@@ -407,19 +407,6 @@ pre {
   }
 
   z-index: 1000;
-
-  position: absolute;
-  left: 0px;
-  right: 0px;
-}
-
-.page-standalone .announcement-banner {
-  position: initial;
-
-  &.dismissed {
-    display: block;
-    visibility: hidden;
-  }
 }
 
 a.-x-ago {
