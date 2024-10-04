@@ -106,10 +106,10 @@ packages:
     dependency: "direct main"
     description:
       name: gcloud
-      sha256: b8fbff52ff1cfdb2bb3c53eb039c0ee3745618632969b60ec25d55b31fbb36dd
+      sha256: "2b9c755be0b38facdf886f41626a6405faf06bdb2d76b8525e06d4ce5ea5b32a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.13"
+    version: "0.8.15"
   glob:
     dependency: transitive
     description:
