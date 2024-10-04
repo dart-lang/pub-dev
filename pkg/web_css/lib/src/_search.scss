@@ -124,10 +124,10 @@
   }
 
   >.completion-option-selected {
-    background-color: var(--pub-search_completition_selected-background-color);
+    background-color: var(--pub-selected-bgColor);
 
     &:hover {
-      background-color: var(--pub-search_completition_selected-background-color);
+      background-color: var(--pub-selected-bgColor);
     }
   }
 }

@@ -26,7 +26,7 @@
 
 /* Tag that are combinations of two components e.g. Dart/Flutter extended badges. */
 .-pub-tag-badge {
-  background: var(--pub-tag_sdkbadge-background-color);
+  background: var(--pub-selected-bgColor);
 
   > .tag-badge-main,
   > .tag-badge-sub {

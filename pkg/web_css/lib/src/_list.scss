@@ -72,7 +72,7 @@
       }
 
       &.selected {
-        background: var(--pub-sort_control_selected-background-color);
+        background: var(--pub-selected-bgColor);
         color: var(--pub-sort_control_selected-text-color);
       }
     }
