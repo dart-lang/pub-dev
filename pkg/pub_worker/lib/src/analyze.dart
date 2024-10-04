@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JsonUtf8Encoder, utf8;
+import 'dart:convert' show JsonUtf8Encoder, LineSplitter, Utf8Decoder, utf8;
 import 'dart:io'
     show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 import 'dart:isolate' show Isolate;
@@ -152,8 +152,14 @@ Future<void> _analyzePackage(
       await pana.stdin.close();
 
       await Future.wait<void>([
-        pana.stderr.forEach(log.add),
-        pana.stdout.forEach(log.add),
+        pana.stderr
+            .transform(Utf8Decoder(allowMalformed: true))
+            .transform(LineSplitter())
+            .forEach(log.writeln),
+        pana.stdout
+            .transform(Utf8Decoder(allowMalformed: true))
+            .transform(LineSplitter())
+            .forEach(log.writeln),
         pana.exitOrTimeout(_panaTimeout, () {
           log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
         }),
