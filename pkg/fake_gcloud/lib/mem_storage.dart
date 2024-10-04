@@ -58,7 +58,11 @@ class MemStorage implements Storage {
   }
 
   @override
-  Future<void> copyObject(String src, String dest) async {
+  Future<void> copyObject(
+    String src,
+    String dest, {
+    ObjectMetadata? metadata,
+  }) async {
     _logger.info('Copy object from $src to $dest');
     final srcUri = Uri.parse(src);
     final destUri = Uri.parse(dest);

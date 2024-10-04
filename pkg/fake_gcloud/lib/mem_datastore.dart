@@ -231,9 +231,9 @@ class MemDatastore implements Datastore {
               return c < 0;
             case FilterRelation.LessThanOrEqual:
               return c <= 0;
-            case FilterRelation.GreatherThan:
+            case FilterRelation.GreaterThan:
               return c > 0;
-            case FilterRelation.GreatherThanOrEqual:
+            case FilterRelation.GreaterThanOrEqual:
               return c >= 0;
             default:
               throw UnimplementedError('Not handled relation: ${f.relation}');
