@@ -16,17 +16,17 @@
 //   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
 :root {
-  --pub-color-white:      #ffffff;
-  --pub-color-snowWhite:  #fafafa; // slight deviation from official snow-white (fffafa)
-  --pub-color-smokeWhite: #f5f5f7; // slight deviation from official white-smoke (f5f5f5)
-  --pub-color-aliceBlue:  #f0f8ff;
+  --pub-color-white:       #ffffff;
+  --pub-color-snowWhite:   #fafafa; // slight deviation from official snow-white (fffafa)
+  --pub-color-smokeWhite:  #f5f5f7; // slight deviation from official white-smoke (f5f5f5)
+  --pub-color-bubblesBlue: #e7f8ff; // slight deviation from official bubbles-blue (e7feff)
 
   --pub-color-dangerRed: #ff4242;
 
   --pub-neutral-bgColor:       var(--pub-color-white);
   --pub-neutral-hover-bgColor: var(--pub-color-snowWhite);
   --pub-inset-bgColor:         var(--pub-color-smokeWhite);
-  --pub-selected-bgColor:      var(--pub-color-aliceBlue);
+  --pub-selected-bgColor:      var(--pub-color-bubblesBlue);
 
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-color: hsl(0, 0%, 29%);
