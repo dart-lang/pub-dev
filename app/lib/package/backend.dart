@@ -183,6 +183,14 @@ class PackageBackend {
     return await db.lookupOrNull<ModeratedPackage>(packageKey);
   }
 
+  /// Looks up a reserved package by name.
+  ///
+  /// Returns `null` if the package doesn't exist.
+  Future<ReservedPackage?> lookupReservedPackage(String packageName) async {
+    final packageKey = db.emptyKey.append(ReservedPackage, id: packageName);
+    return await db.lookupOrNull<ReservedPackage>(packageKey);
+  }
+
   /// Looks up a package by name.
   Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
     return (await db.lookup(packageNames
@@ -1014,10 +1022,19 @@ class PackageBackend {
     required String name,
     required AuthenticatedAgent agent,
   }) async {
-    final isGoogleComUser =
-        agent is AuthenticatedUser && agent.user.email!.endsWith('@google.com');
-    final isReservedName = matchesReservedPackageName(name);
-    final isExempted = isGoogleComUser && isReservedName;
+    final reservedPackage = await lookupReservedPackage(name);
+    final reservedEmails = reservedPackage?.emails ?? const <String>[];
+
+    bool isAllowedUser = false;
+    if (agent is AuthenticatedUser) {
+      final email = agent.user.email;
+      isAllowedUser = email != null &&
+          (email.endsWith('@google.com') || reservedEmails.contains(email));
+    }
+
+    final isReservedName =
+        reservedPackage != null || matchesReservedPackageName(name);
+    final isExempted = isReservedName && isAllowedUser;
 
     final conflictingName = await nameTracker.accept(name);
     if (conflictingName != null && !isExempted) {
@@ -1039,8 +1056,8 @@ class PackageBackend {
         throw PackageRejectedException(newNameIssues.first.message);
       }
 
-      // reserved package names for the Dart team
-      if (isReservedName && !isGoogleComUser) {
+      // reserved package names for the Dart team or allowlisted users
+      if (isReservedName && !isAllowedUser) {
         throw PackageRejectedException.nameReserved(name);
       }
     }
@@ -1123,6 +1140,14 @@ class PackageBackend {
 
       if (moderatedPackage != null) {
         throw PackageRejectedException.nameReserved(newVersion.package);
+      }
+
+      if (isNew) {
+        final reservedPackage = await tx.lookupOrNull<ReservedPackage>(
+            db.emptyKey.append(ReservedPackage, id: newVersion.package));
+        if (reservedPackage != null) {
+          tx.delete(reservedPackage.key);
+        }
       }
 
       // If the version already exists, we fail.
