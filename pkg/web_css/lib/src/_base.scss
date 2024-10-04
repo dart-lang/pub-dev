@@ -441,17 +441,6 @@ a.-x-ago {
   }
 }
 
-.pub-toc-container {
-  @media (min-width: 1600px) {
-    position: fixed;
-    top: 10px;
-    bottom: 10px;
-    left: 12px;
-    display: flex;
-    align-items: center;
-  }
-}
-
 .pub-toc {
   border-left: 4px solid var(--pub-inset-bgColor);
   padding: 4px 12px;
