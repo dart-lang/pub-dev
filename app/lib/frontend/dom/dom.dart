@@ -224,6 +224,7 @@ Node a({
   String? rel,
   String? target,
   String? title,
+  String? name,
 }) {
   return dom.element(
     'a',
@@ -234,6 +235,7 @@ Node a({
       if (rel != null) 'rel': rel,
       if (target != null) 'target': target,
       if (title != null) 'title': title,
+      if (name != null) 'name': name,
       ...?attributes,
     },
     children: children,

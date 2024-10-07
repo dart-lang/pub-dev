@@ -440,3 +440,26 @@ a.-x-ago {
     padding: 8px;
   }
 }
+
+.pub-toc {
+  border-left: 4px solid var(--pub-inset-bgColor);
+  padding: 4px 12px;
+  color: var(--pub-default-text-color);
+
+  a {
+    color: var(--pub-default-text-color);
+  }
+
+  .pub-toc-node-0 {
+    margin-top: 4px;
+  }
+  .pub-toc-node-1 {
+    margin-left: 12px;
+  }
+  .pub-toc-node-2 {
+    margin-left: 24px;
+  }
+  .pub-toc-node-3 {
+    margin-left: 36px;
+  }
+}
