@@ -232,7 +232,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   static Map<String, dynamic> _dataForPublishing({
     required AuthenticatedAgent uploader,
   }) {
-    if (uploader is AuthenticatedGithubAction) {
+    if (uploader is AuthenticatedGitHubAction) {
       final runId = uploader.payload.runId;
       final sha = uploader.payload.sha;
       return <String, dynamic>{
@@ -256,7 +256,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       if (version != null) ' version `$version`',
       if (publisherId != null) ' owned by publisher `$publisherId`',
     ];
-    if (uploader is AuthenticatedGithubAction) {
+    if (uploader is AuthenticatedGitHubAction) {
       final repository = uploader.payload.repository;
       final runId = uploader.payload.runId;
       final sha = uploader.payload.sha;

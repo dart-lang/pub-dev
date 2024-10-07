@@ -473,8 +473,8 @@ class Release {
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class AutomatedPublishing {
-  GithubPublishingConfig? githubConfig;
-  GithubPublishingLock? githubLock;
+  GitHubPublishingConfig? githubConfig;
+  GitHubPublishingLock? githubLock;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
 
@@ -524,19 +524,19 @@ class AutomatedPublishingProperty extends db.Property {
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class GithubPublishingLock {
+class GitHubPublishingLock {
   final String repositoryOwnerId;
   final String repositoryId;
 
-  GithubPublishingLock({
+  GitHubPublishingLock({
     required this.repositoryOwnerId,
     required this.repositoryId,
   });
 
-  factory GithubPublishingLock.fromJson(Map<String, dynamic> json) =>
-      _$GithubPublishingLockFromJson(json);
+  factory GitHubPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$GitHubPublishingLockFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GithubPublishingLockToJson(this);
+  Map<String, dynamic> toJson() => _$GitHubPublishingLockToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

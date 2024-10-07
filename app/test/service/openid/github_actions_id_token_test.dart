@@ -55,7 +55,7 @@ void main() {
       final token = JsonWebToken.parse(tokenValue);
 
       // verify signature
-      final githubData = await fetchGithubOpenIdData();
+      final githubData = await fetchGitHubOpenIdData();
       expect(await token.verifySignature(githubData.jwks), isTrue);
 
       // verify headers

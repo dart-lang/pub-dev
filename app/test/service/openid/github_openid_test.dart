@@ -13,7 +13,7 @@ import 'jwt_test.dart';
 
 void main() {
   testWithProfile('GitHub key list', fn: () async {
-    final data = await fetchGithubOpenIdData();
+    final data = await fetchGitHubOpenIdData();
     expect(data.provider.issuer, 'https://token.actions.githubusercontent.com');
     expect(data.provider.claimsSupported,
         containsAll(GitHubJwtPayload.requiredClaims));

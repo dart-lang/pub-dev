@@ -267,7 +267,7 @@ d.Node packageAdminPageNode({
 d.Node _automatedPublishing(Package package) {
   final github = package.automatedPublishing?.githubConfig;
   final gcp = package.automatedPublishing?.gcpConfig;
-  final isGithubEnabled = github?.isEnabled ?? false;
+  final isGitHubEnabled = github?.isEnabled ?? false;
   return d.fragment([
     d.a(name: 'automated-publishing'),
     d.h2(text: 'Automated publishing'),
@@ -281,13 +281,13 @@ d.Node _automatedPublishing(Package package) {
       child: material.checkbox(
         id: '-pkg-admin-automated-github-enabled',
         label: 'Enable publishing from GitHub Actions',
-        checked: isGithubEnabled,
+        checked: isGitHubEnabled,
       ),
     ),
     d.div(
       classes: [
         '-pub-form-checkbox-indent',
-        if (!isGithubEnabled) '-pub-form-block-hidden',
+        if (!isGitHubEnabled) '-pub-form-block-hidden',
       ],
       children: [
         d.div(
@@ -368,7 +368,7 @@ d.Node _automatedPublishing(Package package) {
             value: github?.environment,
           ),
         ),
-        if (isGithubEnabled) _exampleGithubWorkflow(github!),
+        if (isGitHubEnabled) _exampleGitHubWorkflow(github!),
       ],
     ),
     d.a(name: 'google-cloud-service-account'),
@@ -415,7 +415,7 @@ d.Node _automatedPublishing(Package package) {
   ]);
 }
 
-d.Node _exampleGithubWorkflow(GithubPublishingConfig github) {
+d.Node _exampleGitHubWorkflow(GitHubPublishingConfig github) {
   final expandedTagPattern = (github.tagPattern ?? '{{version}}')
       .replaceAll('{{version}}', '[0-9]+.[0-9]+.[0-9]+*');
   final requireEnvironment = github.requireEnvironment;

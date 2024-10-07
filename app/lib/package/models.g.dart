@@ -38,11 +38,11 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
     AutomatedPublishing(
       githubConfig: json['githubConfig'] == null
           ? null
-          : GithubPublishingConfig.fromJson(
+          : GitHubPublishingConfig.fromJson(
               json['githubConfig'] as Map<String, dynamic>),
       githubLock: json['githubLock'] == null
           ? null
-          : GithubPublishingLock.fromJson(
+          : GitHubPublishingLock.fromJson(
               json['githubLock'] as Map<String, dynamic>),
       gcpConfig: json['gcpConfig'] == null
           ? null
@@ -69,15 +69,15 @@ Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
   return val;
 }
 
-GithubPublishingLock _$GithubPublishingLockFromJson(
+GitHubPublishingLock _$GitHubPublishingLockFromJson(
         Map<String, dynamic> json) =>
-    GithubPublishingLock(
+    GitHubPublishingLock(
       repositoryOwnerId: json['repositoryOwnerId'] as String,
       repositoryId: json['repositoryId'] as String,
     );
 
-Map<String, dynamic> _$GithubPublishingLockToJson(
-        GithubPublishingLock instance) =>
+Map<String, dynamic> _$GitHubPublishingLockToJson(
+        GitHubPublishingLock instance) =>
     <String, dynamic>{
       'repositoryOwnerId': instance.repositoryOwnerId,
       'repositoryId': instance.repositoryId,
