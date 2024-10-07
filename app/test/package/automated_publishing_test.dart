@@ -47,7 +47,7 @@ void main() {
       final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
-            github: GithubPublishingConfig(
+            github: GitHubPublishingConfig(
               isEnabled: true,
               repository: 'dart-lang/pub-dev',
               tagPattern: '{{version}}',
@@ -123,7 +123,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
-              github: GithubPublishingConfig(
+              github: GitHubPublishingConfig(
                 isEnabled: repository.isEmpty,
                 repository: repository,
                 tagPattern: '{{version}}',
@@ -151,7 +151,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
-              github: GithubPublishingConfig(
+              github: GitHubPublishingConfig(
                 isEnabled: false,
                 repository: 'abcd/efgh',
                 tagPattern: pattern,
@@ -177,7 +177,7 @@ void main() {
         final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
-              github: GithubPublishingConfig(
+              github: GitHubPublishingConfig(
                 isEnabled: false,
                 repository: 'abcd/efgh',
                 tagPattern: '{{version}}',
@@ -200,7 +200,7 @@ void main() {
       final rs = client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
-            github: GithubPublishingConfig(
+            github: GitHubPublishingConfig(
               isEnabled: false,
               repository: 'abcd/efgh',
               isPushEventEnabled: false,

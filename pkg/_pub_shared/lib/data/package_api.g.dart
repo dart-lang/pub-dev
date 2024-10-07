@@ -37,7 +37,7 @@ AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
     AutomatedPublishingConfig(
       github: json['github'] == null
           ? null
-          : GithubPublishingConfig.fromJson(
+          : GitHubPublishingConfig.fromJson(
               json['github'] as Map<String, dynamic>),
       gcp: json['gcp'] == null
           ? null
@@ -59,9 +59,9 @@ Map<String, dynamic> _$AutomatedPublishingConfigToJson(
   return val;
 }
 
-GithubPublishingConfig _$GithubPublishingConfigFromJson(
+GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
         Map<String, dynamic> json) =>
-    GithubPublishingConfig(
+    GitHubPublishingConfig(
       isEnabled: json['isEnabled'] as bool? ?? false,
       repository: json['repository'] as String?,
       tagPattern: json['tagPattern'] as String?,
@@ -72,8 +72,8 @@ GithubPublishingConfig _$GithubPublishingConfigFromJson(
           json['isWorkflowDispatchEventEnabled'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$GithubPublishingConfigToJson(
-    GithubPublishingConfig instance) {
+Map<String, dynamic> _$GitHubPublishingConfigToJson(
+    GitHubPublishingConfig instance) {
   final val = <String, dynamic>{
     'isEnabled': instance.isEnabled,
   };

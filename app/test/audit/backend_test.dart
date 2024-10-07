@@ -85,7 +85,7 @@ void main() {
         created: clock.now(),
         package: 'pkg',
         version: '1.2.0',
-        uploader: AuthenticatedGithubAction(
+        uploader: AuthenticatedGitHubAction(
           idToken: token,
           payload: GitHubJwtPayload(token.payload),
         ),

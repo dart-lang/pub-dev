@@ -207,7 +207,7 @@ abstract class BaseAuthProvider extends AuthProvider {
     if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
       // The token claims to be issued by GitHub. If there is any problem
       // with the token, the authentication should fail without any fallback.
-      await _verifyToken(idToken, openIdDataFetch: fetchGithubOpenIdData);
+      await _verifyToken(idToken, openIdDataFetch: fetchGitHubOpenIdData);
       return idToken;
     }
 

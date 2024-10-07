@@ -273,7 +273,7 @@ String _createGcpToken({
 }
 
 @visibleForTesting
-String createFakeGithubActionToken({
+String createFakeGitHubActionToken({
   required String repository,
   required String ref,
   // `https://pub.dev` unless specified otherwise

@@ -58,11 +58,11 @@ final maxAssetContentLength = 256 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
-final _validGithubUserOrRepoRegExp =
+final _validGitHubUserOrRepoRegExp =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
-final _validGithubVersionPattern =
+final _validGitHubVersionPattern =
     RegExp(r'^[a-z0-9\-._]+$', caseSensitive: false);
-final _validGithubEnvironment =
+final _validGitHubEnvironment =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
 /// Sets the package backend service.
@@ -538,8 +538,8 @@ class PackageBackend {
           InvalidInputException.check(parts.length == 2,
               'The `repository` field must follow the `<owner>/<repository>` pattern.');
           InvalidInputException.check(
-              _validGithubUserOrRepoRegExp.hasMatch(parts[0]) &&
-                  _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
+              _validGitHubUserOrRepoRegExp.hasMatch(parts[0]) &&
+                  _validGitHubUserOrRepoRegExp.hasMatch(parts[1]),
               'The `repository` field has invalid characters.');
         }
 
@@ -549,7 +549,7 @@ class PackageBackend {
         InvalidInputException.check(
             tagPatternParts
                 .where((e) => e.isNotEmpty)
-                .every(_validGithubVersionPattern.hasMatch),
+                .every(_validGitHubVersionPattern.hasMatch),
             'The `tagPattern` field has invalid characters.');
 
         InvalidInputException.check(
@@ -558,7 +558,7 @@ class PackageBackend {
 
         if (environment.isNotEmpty) {
           InvalidInputException.check(
-              _validGithubEnvironment.hasMatch(environment),
+              _validGitHubEnvironment.hasMatch(environment),
               'The `environment` field has invalid characters.');
         }
       }
@@ -1280,8 +1280,8 @@ class PackageBackend {
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
       return;
     }
-    if (agent is AuthenticatedGithubAction) {
-      await _checkGithubActionAllowed(agent, package, newVersion);
+    if (agent is AuthenticatedGitHubAction) {
+      await _checkGitHubActionAllowed(agent, package, newVersion);
       return;
     }
     if (agent is AuthenticatedGcpServiceAccount) {
@@ -1295,7 +1295,7 @@ class PackageBackend {
         agent.displayId, package.name!);
   }
 
-  Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
+  Future<void> _checkGitHubActionAllowed(AuthenticatedGitHubAction agent,
       Package package, String newVersion) async {
     final githubConfig = package.automatedPublishing?.githubConfig;
     final githubLock = package.automatedPublishing?.githubLock;
@@ -1648,15 +1648,15 @@ class PackageBackend {
       Package package, AuthenticatedAgent agent) {
     final current = package.automatedPublishing;
     if (current == null) {
-      if (agent is AuthenticatedGithubAction ||
+      if (agent is AuthenticatedGitHubAction ||
           agent is AuthenticatedGcpServiceAccount) {
         // This should be unreachable
         throw AssertionError('Authentication should never have been possible');
       }
       return;
     }
-    if (agent is AuthenticatedGithubAction && current.githubLock == null) {
-      current.githubLock = GithubPublishingLock(
+    if (agent is AuthenticatedGitHubAction && current.githubLock == null) {
+      current.githubLock = GitHubPublishingLock(
         repositoryOwnerId: agent.payload.repositoryOwnerId,
         repositoryId: agent.payload.repositoryId,
       );

@@ -14,7 +14,7 @@ import 'openid_utils.dart';
 final _logger = Logger('github_openid');
 
 /// Fetches the OpenID configuration and then the JSON Web Key list from GitHub.
-Future<OpenIdData> fetchGithubOpenIdData() async {
+Future<OpenIdData> fetchGitHubOpenIdData() async {
   final githubUrl =
       'https://token.actions.githubusercontent.com/.well-known/openid-configuration';
   final list = await cache

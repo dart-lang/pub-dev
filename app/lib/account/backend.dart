@@ -170,7 +170,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
     if (payload == null) {
       throw AuthenticationException.tokenInvalid('unable to parse payload');
     }
-    return AuthenticatedGithubAction(
+    return AuthenticatedGitHubAction(
       idToken: idToken,
       payload: payload,
     );

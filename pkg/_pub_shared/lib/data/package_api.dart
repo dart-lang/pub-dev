@@ -51,7 +51,7 @@ class PkgOptions {
 /// The configuration for a package's credential-less publishing.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AutomatedPublishingConfig {
-  final GithubPublishingConfig? github;
+  final GitHubPublishingConfig? github;
   final GcpPublishingConfig? gcp;
 
   AutomatedPublishingConfig({
@@ -66,7 +66,7 @@ class AutomatedPublishingConfig {
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class GithubPublishingConfig {
+class GitHubPublishingConfig {
   bool isEnabled;
 
   /// The `owner/repository` path of the project on github.com.
@@ -96,7 +96,7 @@ class GithubPublishingConfig {
   /// Whether the `workflow_dispatch` event is enabled.
   bool isWorkflowDispatchEventEnabled;
 
-  GithubPublishingConfig({
+  GitHubPublishingConfig({
     this.isEnabled = false,
     this.repository,
     this.tagPattern,
@@ -111,10 +111,10 @@ class GithubPublishingConfig {
     this.isWorkflowDispatchEventEnabled = false,
   });
 
-  factory GithubPublishingConfig.fromJson(Map<String, dynamic> json) =>
-      _$GithubPublishingConfigFromJson(json);
+  factory GitHubPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$GitHubPublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GithubPublishingConfigToJson(this);
+  Map<String, dynamic> toJson() => _$GitHubPublishingConfigToJson(this);
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

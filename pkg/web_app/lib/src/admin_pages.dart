@@ -174,7 +174,7 @@ class _PkgAdminWidget {
           await api_client.client.setAutomatedPublishing(
             pageData.pkgData!.package,
             AutomatedPublishingConfig(
-              github: GithubPublishingConfig(
+              github: GitHubPublishingConfig(
                 isEnabled: githubEnabledCheckbox!.checked ?? false,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
