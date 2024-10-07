@@ -152,7 +152,7 @@ class _File implements ObjectInfo {
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
 
   @override
-  String get etag => md5Hash.toString();
+  String get etag => base64Encode(md5Hash);
 
   @override
   ObjectGeneration get generation {
