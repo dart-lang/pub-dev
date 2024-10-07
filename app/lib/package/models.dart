@@ -173,7 +173,7 @@ class Package extends db.ExpandoModel<String> {
 
   Package();
 
-  /// Creates a new [Package] and populates all of it's fields from [version].
+  /// Creates a new [Package] and populates all of its fields from [version].
   factory Package.fromVersion(PackageVersion version) {
     final now = clock.now().toUtc();
     return Package()
