@@ -30,6 +30,23 @@ void main() {
       );
     }
 
+    Future<Map<String, dynamic>> _list() async {
+      final api = createPubApiClient(authToken: siteAdminToken);
+      final rs = await api.adminInvokeAction(
+        'package-reservation-list',
+        AdminInvokeActionArguments(arguments: {}),
+      );
+      return rs.output;
+    }
+
+    Future<void> _delete(String package) async {
+      final api = createPubApiClient(authToken: siteAdminToken);
+      await api.adminInvokeAction(
+        'package-reservation-delete',
+        AdminInvokeActionArguments(arguments: {'package': package}),
+      );
+    }
+
     testWithProfile('cannot reserve existing package', fn: () async {
       await expectApiException(
         _reserve('oxygen'),
@@ -96,6 +113,20 @@ void main() {
         status: 400,
         message: 'Package name pkg is reserved.',
       );
+    });
+
+    testWithProfile('list and delete', fn: () async {
+      await _reserve('pkg', emails: ['foo@pub.dev']);
+      expect(await _list(), {
+        'packages': [
+          {
+            'name': 'pkg',
+            'emails': ['foo@pub.dev'],
+          }
+        ]
+      });
+      await _delete('pkg');
+      expect(await _list(), {'packages': []});
     });
   });
 }

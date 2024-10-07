@@ -20,6 +20,8 @@ import 'moderation_case_update.dart';
 import 'moderation_transparency_metrics.dart';
 import 'package_info.dart';
 import 'package_reservation_create.dart';
+import 'package_reservation_delete.dart';
+import 'package_reservation_list.dart';
 import 'package_version_info.dart';
 import 'package_version_retraction.dart';
 import 'publisher_block.dart';
@@ -102,6 +104,8 @@ final class AdminAction {
     moderationTransparencyMetrics,
     packageInfo,
     packageReservationCreate,
+    packageReservationDelete,
+    packageReservationList,
     packageVersionInfo,
     packageVersionRetraction,
     publisherBlock,
