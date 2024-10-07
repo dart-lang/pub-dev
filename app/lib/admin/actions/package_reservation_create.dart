@@ -8,8 +8,8 @@ import 'package:pub_dev/shared/datastore.dart';
 
 import 'actions.dart';
 
-final packageReserve = AdminAction(
-  name: 'package-reserve',
+final packageReservationCreate = AdminAction(
+  name: 'package-reservation-create',
   summary: 'Creates a ReservedPackage entity.',
   description: '''
 Reserves a package name that can be claimed by the specified list of email addresses.

@@ -18,7 +18,7 @@ import 'moderation_case_list.dart';
 import 'moderation_case_resolve.dart';
 import 'moderation_case_update.dart';
 import 'package_info.dart';
-import 'package_reserve.dart';
+import 'package_reservation_create.dart';
 import 'package_version_info.dart';
 import 'package_version_retraction.dart';
 import 'publisher_block.dart';
@@ -99,7 +99,7 @@ final class AdminAction {
     moderationCaseResolve,
     moderationCaseUpdate,
     packageInfo,
-    packageReserve,
+    packageReservationCreate,
     packageVersionInfo,
     packageVersionRetraction,
     publisherBlock,

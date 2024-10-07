@@ -22,7 +22,7 @@ void main() {
     }) async {
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
-        'package-reserve',
+        'package-reservation-create',
         AdminInvokeActionArguments(arguments: {
           'package': package,
           if (emails != null) 'emails': emails.join(','),
