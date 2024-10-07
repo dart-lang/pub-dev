@@ -4,7 +4,6 @@
 
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:clock/clock.dart';
-import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
