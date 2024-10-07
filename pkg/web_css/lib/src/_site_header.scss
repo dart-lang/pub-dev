@@ -233,7 +233,7 @@
       bottom: 0;
       left: 0;
       width: 80%;
-      background: var(pub-site_header_popup-background-color);
+      background: var(--pub-site_header_popup-background-color);
       transform: translateX(-100%);
       transition: transform 0.3s ease;
       z-index: $z-index-nav-mask + 1;
