@@ -12,11 +12,14 @@ final packageReserve = AdminAction(
   name: 'package-reserve',
   summary: 'Creates a ReservedPackage entity.',
   description: '''
-Reserves a package name that can be claimed by @google.com accounts or
-the allowed list of email addresses.
+Reserves a package name that can be claimed by the specified list of email addresses.
 
-The action can be re-run with the same package name. In such cases the provided
-email list will be added to the existing ReservedPackage entity.
+The action can be re-run with the same package name. In such cases the previous
+email list will be discarded, and the specified email list will be updated to the
+existing ReservedPackage entity.
+
+When no emails are specified, the package will be reserved, but no user may be
+able to claim it.
 ''',
   options: {
     'package': 'The package name to be reserved.',
@@ -43,9 +46,7 @@ email list will be added to the existing ReservedPackage entity.
       final existing = await tx.lookupOrNull<ReservedPackage>(
           dbService.emptyKey.append(ReservedPackage, id: package));
       final entry = existing ?? ReservedPackage.init(package);
-      if (emails != null) {
-        entry.emails = <String>{...entry.emails, ...emails}.toList();
-      }
+      entry.emails = <String>{...?emails}.toList();
       tx.insert(entry);
       return entry;
     });

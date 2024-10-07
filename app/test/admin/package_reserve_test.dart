@@ -85,18 +85,18 @@ void main() {
       expect(rp, isNull);
     });
 
-    testWithProfile('allows Dart-team publishing', fn: () async {
+    testWithProfile('no longer allows Dart-team exemption', fn: () async {
       await _reserve('pkg');
 
       final pubspecContent = generatePubspecYaml('pkg', '1.0.0');
       final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
-      await createPubApiClient(
-              authToken: createFakeAuthTokenForEmail('developer@google.com',
-                  audience: 'fake-client-audience'))
-          .uploadPackageBytes(bytes);
-
-      final rp = await packageBackend.lookupReservedPackage('pkg');
-      expect(rp, isNull);
+      await expectApiException(
+        createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(bytes),
+        code: 'PackageRejected',
+        status: 400,
+        message: 'Package name pkg is reserved.',
+      );
     });
   });
 }

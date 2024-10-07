@@ -1023,13 +1023,16 @@ class PackageBackend {
     required AuthenticatedAgent agent,
   }) async {
     final reservedPackage = await lookupReservedPackage(name);
-    final reservedEmails = reservedPackage?.emails ?? const <String>[];
 
     bool isAllowedUser = false;
     if (agent is AuthenticatedUser) {
       final email = agent.user.email;
-      isAllowedUser = email != null &&
-          (email.endsWith('@google.com') || reservedEmails.contains(email));
+      if (reservedPackage != null) {
+        final reservedEmails = reservedPackage.emails;
+        isAllowedUser = email != null && reservedEmails.contains(email);
+      } else {
+        isAllowedUser = email != null && email.endsWith('@google.com');
+      }
     }
 
     final isReservedName =
