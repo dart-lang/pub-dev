@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
@@ -126,6 +127,8 @@ class _File implements ObjectInfo {
   @override
   final int crc32CChecksum;
   @override
+  final List<int> md5Hash;
+  @override
   final DateTime updated;
   @override
   final ObjectMetadata metadata;
@@ -137,6 +140,7 @@ class _File implements ObjectInfo {
     DateTime? updated,
   })  : // TODO: use a real CRC32 check
         crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
+        md5Hash = md5.convert(content).bytes,
         updated = updated ?? DateTime.now().toUtc(),
         metadata = ObjectMetadata(acl: Acl([]));
 
@@ -144,7 +148,7 @@ class _File implements ObjectInfo {
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
 
   @override
-  String get etag => crc32CChecksum.toRadixString(16);
+  String get etag => md5Hash.toString();
 
   @override
   ObjectGeneration get generation {
@@ -154,9 +158,6 @@ class _File implements ObjectInfo {
 
   @override
   int get length => content.length;
-
-  @override
-  List<int> get md5Hash => etag.codeUnits;
 }
 
 class _Bucket implements Bucket {
