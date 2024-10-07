@@ -86,8 +86,8 @@ void create(HTMLElement element, Map<String, String> options) {
       dropdown: dropdown,
       data: data,
     );
-    // Add dropdown after the <input>
-    document.body!.after(dropdown);
+    // Append dropdown to body
+    document.body!.append(dropdown);
   });
 }
 
