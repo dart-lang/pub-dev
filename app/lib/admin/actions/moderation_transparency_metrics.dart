@@ -82,6 +82,10 @@ required for the  transparency metrics report.
             .getActionLog()
             .entries
             .any((e) => ModerationSubject.tryParse(e.subject)!.isUser);
+        // If actions resulted in a user being blocked, then we count it as
+        // "provision", even if packages were also removed.
+        // Reasoning that it's natural that blocking a user would also
+        // remove some of the users content.
         if (hasUserRestriction) {
           restrictions.increment('provision');
         } else {
