@@ -121,13 +121,13 @@
     cursor: pointer;
     white-space: nowrap;
     padding: 0px 3px;
-  }
-
-  >.completion-option-selected {
-    background-color: var(--pub-selected-bgColor);
 
     &:hover {
       background-color: var(--pub-selected-bgColor);
     }
+  }
+
+  >.completion-option-selected {
+    background-color: var(--pub-selected-bgColor);
   }
 }
