@@ -13,7 +13,7 @@ d.Node renderToc(Iterable<TocNode> nodes) {
     child: d.div(
       classes: ['pub-toc'],
       children: [
-        d.div(child: d.b(text: 'Contents')),
+        d.div(child: d.b(text: 'Sections')),
         ...nodes.expand((n) => _renderNode(n, 0)),
       ],
     ),
