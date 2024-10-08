@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:_pub_shared/data/completion.dart';
 import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../dom/dom.dart' as d;
@@ -93,15 +94,15 @@ d.Node searchBannerNode({
 String completionDataJson({
   List<String> topics = const [],
   List<String> licenses = const [],
-}) =>
-    json.encode({
-      // TODO: Write a shared type for this in `pkg/_pub_shared/lib/data/`
-      'completions': [
-        {
-          'match': ['', '-'],
-          'terminal': false,
-          'forcedOnly': true,
-          'options': [
+}) {
+  return json.encode(
+    CompletionData(
+      completions: [
+        CompletionRule(
+          match: {'', '-'},
+          terminal: false,
+          forcedOnly: true,
+          options: [
             'has:',
             'is:',
             'license:',
@@ -114,11 +115,11 @@ String completionDataJson({
             'dependency*:',
             'publisher:',
           ],
-        },
+        ),
         // TODO: Consider completion support for dependency:, dependency*: and publisher:
-        {
-          'match': ['is:', '-is:'],
-          'options': [
+        CompletionRule(
+          match: {'is:', '-is:'},
+          options: [
             'dart3-compatible',
             'flutter-favorite',
             'legacy',
@@ -127,37 +128,37 @@ String completionDataJson({
             'unlisted',
             'wasm-ready',
           ],
-        },
-        {
-          'match': ['has:', '-has:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'has:', '-has:'},
+          options: [
             'executable',
             'screenshot',
           ],
-        },
-        {
-          'match': ['license:', '-license:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'license:', '-license:'},
+          options: [
             'osi-approved',
             ...licenses,
           ],
-        },
-        {
-          'match': ['show:', '-show:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'show:', '-show:'},
+          options: [
             'unlisted',
           ],
-        },
-        {
-          'match': ['sdk:', '-sdk:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'sdk:', '-sdk:'},
+          options: [
             'dart',
             'flutter',
           ],
-        },
-        {
-          'match': ['platform:', '-platform:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'platform:', '-platform:'},
+          options: [
             'android',
             'ios',
             'linux',
@@ -165,20 +166,22 @@ String completionDataJson({
             'web',
             'windows',
           ],
-        },
-        {
-          'match': ['runtime:', '-runtime:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'runtime:', '-runtime:'},
+          options: [
             'native-aot',
             'native-jit',
             'web',
           ],
-        },
-        {
-          'match': ['topic:', '-topic:'],
-          'options': [
+        ),
+        CompletionRule(
+          match: {'topic:', '-topic:'},
+          options: [
             ...topics,
           ],
-        },
+        ),
       ],
-    });
+    ).toJson(),
+  );
+}

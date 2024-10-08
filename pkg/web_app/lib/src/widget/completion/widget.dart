@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:math' as math;
 
+import 'package:_pub_shared/data/completion.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' deferred as http show read;
 import 'package:web/web.dart';
@@ -63,7 +64,7 @@ void create(HTMLElement element, Map<String, String> options) {
       await input.onFocus.first;
     }
 
-    final _CompletionData data;
+    final CompletionData data;
     try {
       data = await _CompletionWidget._completionDataFromUri(srcUri);
     } on Exception catch (e) {
@@ -91,13 +92,6 @@ void create(HTMLElement element, Map<String, String> options) {
   });
 }
 
-typedef _CompletionData = List<
-    ({
-      Set<String> match,
-      List<String> options,
-      bool terminal,
-      bool forcedOnly,
-    })>;
 typedef _Suggestions = List<
     ({
       String value,
@@ -178,7 +172,7 @@ final class _CompletionWidget {
 
   final HTMLInputElement input;
   final HTMLDivElement dropdown;
-  final _CompletionData data;
+  final CompletionData data;
   var state = _State();
 
   _CompletionWidget._({
@@ -451,73 +445,14 @@ final class _CompletionWidget {
   /// Ideally, an end-point serving this kind of completion data should have
   /// `Cache-Control` headers that allow caching for a decent period of time.
   /// Compression with `gzip` (or similar) would probably also be wise.
-  static Future<_CompletionData> _completionDataFromUri(Uri src) async {
+  static Future<CompletionData> _completionDataFromUri(Uri src) async {
     await http.loadLibrary();
     final root = jsonDecode(
       await http.read(src, headers: {
         'Accept': 'application/json',
       }).timeout(Duration(seconds: 30)),
     );
-    return _completionDataFromJson(root);
-  }
-
-  /// Load completion data from [json].
-  ///
-  /// Completion data must be JSON on the form:
-  /// ```js
-  /// {
-  ///   "completions": [
-  ///     {
-  ///       // The match trigger automatic completion (except empty match).
-  ///       // Example: `platform:` or `platform:win`
-  ///       // Match and an option must be combined to form a keyword.
-  ///       // Example: `platform:windows`
-  ///       "match": ["platform:", "-platform:"],
-  ///       "forcedOnly": false,  // Only display this when forced to match
-  ///       "terminal": true,     // Add whitespace when completing
-  ///       "options": [
-  ///         "linux",
-  ///         "windows",
-  ///         "android",
-  ///         "ios",
-  ///         ...
-  ///       ],
-  ///     },
-  ///     ...
-  ///   ],
-  /// }
-  /// ```
-  static _CompletionData _completionDataFromJson(Object? json) {
-    if (json is! Map) throw FormatException('root must be a object');
-    final completions = json['completions'];
-    if (completions is! List) {
-      throw FormatException('completions must be a list');
-    }
-    return completions.map((e) {
-      if (e is! Map) throw FormatException('completion entries must be object');
-      final terminal = e['terminal'] ?? true;
-      if (terminal is! bool) throw FormatException('termianl must be bool');
-      final forcedOnly = e['forcedOnly'] ?? false;
-      if (forcedOnly is! bool) throw FormatException('forcedOnly must be bool');
-      final match = e['match'];
-      if (match is! List) throw FormatException('match must be a list');
-      final options = e['options'];
-      if (options is! List) throw FormatException('options must be a list');
-      return (
-        match: match
-            .map((m) => m is String
-                ? m
-                : throw FormatException('match must be strings'))
-            .toSet(),
-        forcedOnly: forcedOnly,
-        terminal: terminal,
-        options: options
-            .map((option) => option is String
-                ? option
-                : throw FormatException('options must be strings'))
-            .toList(),
-      );
-    }).toList();
+    return CompletionData.fromJson(root as Map<String, dynamic>);
   }
 
   static late final _canvas = HTMLCanvasElement();
@@ -535,7 +470,7 @@ final class _CompletionWidget {
   /// Given [data] and [caret] position inside [text] what suggestions do we
   /// want to offer and should completion be automatically triggered?
   static ({bool trigger, _Suggestions suggestions}) suggest(
-    _CompletionData data,
+    CompletionData data,
     String text,
     int caret,
   ) {
@@ -556,7 +491,7 @@ final class _CompletionWidget {
     } else {
       // If the part before the caret is matched, then we can auto trigger
       final wordBeforeCaret = text.substring(start, caret);
-      trigger = data.any(
+      trigger = data.completions.any(
         (c) => !c.forcedOnly && c.match.any(wordBeforeCaret.startsWith),
       );
     }
@@ -565,7 +500,7 @@ final class _CompletionWidget {
     final word = text.substring(start, end);
 
     // Find the longest match for each completion entry
-    final completionWithBestMatch = data.map((c) => (
+    final completionWithBestMatch = data.completions.map((c) => (
           completion: c,
           match: maxBy(c.match.where(word.startsWith), (m) => m.length),
         ));
