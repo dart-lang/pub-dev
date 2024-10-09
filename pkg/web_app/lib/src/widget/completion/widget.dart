@@ -5,14 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:math' as math;
 
 import 'package:_pub_shared/data/completion.dart';
-import 'package:collection/collection.dart';
 import 'package:http/http.dart' deferred as http show read;
 import 'package:web/web.dart';
 
 import '../../web_util.dart';
+import 'suggest.dart';
 
 /// Create a [_CompletionWidget] on [element].
 ///
@@ -92,15 +91,6 @@ void create(HTMLElement element, Map<String, String> options) {
   });
 }
 
-typedef _Suggestions = List<
-    ({
-      String value,
-      String html, // TODO: Don't create HTML manually!
-      int start,
-      int end,
-      double score,
-    })>;
-
 final class _State {
   /// Completion is not active, happens whens:
   ///  * The input element doesn't have focus, or,
@@ -123,7 +113,7 @@ final class _State {
   final int caret;
 
   /// Suggestions on the form: {value, html, start, end}
-  final _Suggestions suggestions;
+  final Suggestions suggestions;
 
   /// Selected suggestion
   final int selectedIndex;
@@ -146,7 +136,7 @@ final class _State {
     bool? triggered,
     String? text,
     int? caret,
-    _Suggestions? suggestions,
+    Suggestions? suggestions,
     int? selectedIndex,
   }) =>
       _State(
@@ -245,7 +235,7 @@ final class _CompletionWidget {
         state.suggestions.isNotEmpty;
   }
 
-  var _renderedSuggestions = _Suggestions.empty();
+  var _renderedSuggestions = Suggestions.empty();
 
   void update() {
     if (!displayDropdown) {
@@ -466,130 +456,4 @@ final class _CompletionWidget {
     ].join(' ');
     return ctx.measureText(text).width.floor();
   }
-
-  /// Given [data] and [caret] position inside [text] what suggestions do we
-  /// want to offer and should completion be automatically triggered?
-  static ({bool trigger, _Suggestions suggestions}) suggest(
-    CompletionData data,
-    String text,
-    int caret,
-  ) {
-    // Get position before caret
-    final beforeCaret = caret > 0 ? caret - 1 : 0;
-    // Get position of space after the caret
-    final spaceAfterCaret = text.indexOf(' ', caret);
-
-    // Start and end of word we are completing
-    final start = text.lastIndexOf(' ', beforeCaret) + 1;
-    final end = spaceAfterCaret != -1 ? spaceAfterCaret : text.length;
-
-    // If caret is not at the end, and the next character isn't space then we
-    // do not automatically trigger completion.
-    bool trigger;
-    if (caret < text.length && text[caret] != ' ') {
-      trigger = false;
-    } else {
-      // If the part before the caret is matched, then we can auto trigger
-      final wordBeforeCaret = text.substring(start, caret);
-      trigger = data.completions.any(
-        (c) => !c.forcedOnly && c.match.any(wordBeforeCaret.startsWith),
-      );
-    }
-
-    // Get the word that we are completing
-    final word = text.substring(start, end);
-
-    // Find the longest match for each completion entry
-    final completionWithBestMatch = data.completions.map((c) => (
-          completion: c,
-          match: maxBy(c.match.where(word.startsWith), (m) => m.length),
-        ));
-    // Find the best completion entry
-    final (:completion, :match) = maxBy(completionWithBestMatch, (c) {
-          final m = c.match;
-          return m != null ? m.length : -1;
-        }) ??
-        (completion: null, match: null);
-    if (completion == null || match == null) {
-      return (
-        trigger: false,
-        suggestions: [],
-      );
-    }
-
-    // prefix to be used for completion of options
-    final prefix = word.substring(match.length);
-
-    if (completion.options.contains(prefix)) {
-      // If prefix is an option, and there is no other options we don't have
-      // anything to suggest.
-      if (completion.options.length == 1) {
-        return (
-          trigger: false,
-          suggestions: [],
-        );
-      }
-      // We don't to auto trigger completion unless there is an option that is
-      // also a prefix and longer than what prefix currently matches.
-      trigger &= completion.options.any(
-        (opt) => opt.startsWith(prefix) && opt != prefix,
-      );
-    }
-
-    // Terminate suggestion with a ' ' suffix, if this is a terminal completion
-    final suffix = completion.terminal ? ' ' : '';
-
-    return (
-      trigger: trigger,
-      suggestions: completion.options
-          .map((option) {
-            final overlap = _lcs(prefix, option);
-            var html = option;
-            if (overlap.isNotEmpty) {
-              html = html.replaceAll(overlap, '<strong>$overlap</strong>');
-            }
-            return (
-              value: match + option + suffix,
-              start: start,
-              end: end,
-              html: html,
-              score:
-                  (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
-                      math.pow(overlap.length, 2) +
-                      (option.startsWith(overlap) ? overlap.length : 0) +
-                      overlap.length / option.length,
-            );
-          })
-          .sortedBy<num>((s) => s.score)
-          .reversed
-          .toList(),
-    );
-  }
-}
-
-/// The longest common substring
-String _lcs(String S, String T) {
-  final r = S.length;
-  final n = T.length;
-  var Lp = List.filled(n, 0); // ignore: non_constant_identifier_names
-  var Li = List.filled(n, 0); // ignore: non_constant_identifier_names
-  var z = 0;
-  var [start, end] = [0, 0];
-  for (var i = 0; i < r; i++) {
-    for (var j = 0; j < n; j++) {
-      if (S[i] == T[j]) {
-        if (i == 0 || j == 0) {
-          Li[j] = 1;
-        } else {
-          Li[j] = Lp[j - 1] + 1;
-        }
-        if (Li[j] > z) {
-          z = Li[j];
-          [start, end] = [i - z + 1, i + 1];
-        }
-      }
-    }
-    [Lp, Li] = [Li, Lp..fillRange(0, Lp.length, 0)];
-  }
-  return S.substring(start, end);
 }
