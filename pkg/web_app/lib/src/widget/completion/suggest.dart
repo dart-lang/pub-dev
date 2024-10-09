@@ -106,31 +106,32 @@ class Suggestion {
   // Terminate suggestion with a ' ' suffix, if this is a terminal completion
   final suffix = completion.terminal ? ' ' : '';
 
+  final suggestions = completion.options.map((option) {
+    final overlap = _lcs(prefix, option);
+    var html = option;
+    if (overlap.isNotEmpty) {
+      html = html.replaceAll(overlap, '<strong>$overlap</strong>');
+    }
+    final score = (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
+        math.pow(overlap.length, 2) +
+        (option.startsWith(overlap) ? overlap.length : 0) +
+        overlap.length / option.length;
+    return Suggestion(
+      value: match + option + suffix,
+      start: start,
+      end: end,
+      html: html,
+      score: score,
+    );
+  }).sorted((a, b) {
+    final x = -a.score.compareTo(b.score);
+    if (x != 0) return x;
+    return a.value.compareTo(b.value);
+  });
+
   return (
     trigger: trigger,
-    suggestions: completion.options
-        .map((option) {
-          final overlap = _lcs(prefix, option);
-          var html = option;
-          if (overlap.isNotEmpty) {
-            html = html.replaceAll(overlap, '<strong>$overlap</strong>');
-          }
-          final score =
-              (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
-                  math.pow(overlap.length, 2) +
-                  (option.startsWith(overlap) ? overlap.length : 0) +
-                  overlap.length / option.length;
-          return Suggestion(
-            value: match + option + suffix,
-            start: start,
-            end: end,
-            html: html,
-            score: score,
-          );
-        })
-        .sortedBy<num>((s) => s.score)
-        .reversed
-        .toList(),
+    suggestions: suggestions,
   );
 }
 
