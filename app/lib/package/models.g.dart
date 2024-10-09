@@ -118,6 +118,8 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       topics:
           (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
       popularity: (json['popularity'] as num).toInt(),
+      thirtyDaysDownloadCounts:
+          (json['thirtyDaysDownloadCounts'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
@@ -146,5 +148,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('screenshots', instance.screenshots);
   writeNotNull('topics', instance.topics);
   val['popularity'] = instance.popularity;
+  writeNotNull('thirtyDaysDownloadCounts', instance.thirtyDaysDownloadCounts);
   return val;
 }

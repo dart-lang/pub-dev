@@ -9,6 +9,7 @@ import '../../shared/cookie_utils.dart';
 const _publicFlags = <String>{
   'dark',
   'search-completion',
+  'download-counts',
 };
 
 const _allFlags = <String>{
@@ -88,6 +89,8 @@ class ExperimentalFlags {
 
   bool get isDarkModeEnabled => isEnabled('dark');
   bool get isDarkModeDefault => isEnabled('dark-as-default');
+
+  bool get showDownloadCounts => isEnabled('download-counts');
 
   String encodedAsCookie() => _enabled.join(':');
 
