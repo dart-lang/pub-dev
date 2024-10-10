@@ -205,6 +205,7 @@ Future<void> _analyzePackage(
     final r = await retry(
       () => api.taskUploadResult(package, version),
       retryIf: _retryIf,
+      delayFactor: Duration(seconds: 5),
     );
 
     // Create BlobIndex
@@ -236,6 +237,7 @@ Future<void> _analyzePackage(
     await retry(
       () => api.taskUploadFinished(package, version),
       retryIf: _retryIf,
+      delayFactor: Duration(seconds: 5),
     );
   } finally {
     await tempDir.delete(recursive: true);
@@ -261,6 +263,7 @@ Future<void> _reportPackageSkipped(
   final r = await retry(
     () => api.taskUploadResult(package, version),
     retryIf: _retryIf,
+    delayFactor: Duration(seconds: 5),
   );
 
   final output = await BlobIndexPair.build(r.blobId, (addFile) async {
@@ -301,6 +304,7 @@ Future<void> _reportPackageSkipped(
   await retry(
     () => api.taskUploadFinished(package, version),
     retryIf: _retryIf,
+    delayFactor: Duration(seconds: 5),
   );
 }
 
