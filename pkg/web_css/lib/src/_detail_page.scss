@@ -14,7 +14,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   .detail-header,
   .detail-tabs-wide-header {
     background: var(--pub-inset-bgColor);
-    color: var(--pub-default-text-color);
+    color: var(--pub-code-text-color);
   }
 
   .detail-header {
@@ -190,7 +190,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     }
 
     &:focus-within {
-      border-color: var(--pub-default-text-color);
+      border-color: var(--pub-neutral-textColor);
     }
   }
 }

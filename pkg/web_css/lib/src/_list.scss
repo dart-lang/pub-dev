@@ -61,7 +61,7 @@
       display: block;
       width: 100%;
       background: var(--pub-neutral-bgColor);
-      color: var(--pub-sort_control-text-color);
+      color: var(--pub-neutral-textColor);
       font-size: 14px;
       padding: 12px 12px;
       text-align: left;
@@ -431,7 +431,7 @@
     }
 
     a {
-      color: var(--pub-default-text-color);
+      color: var(--pub-neutral-textColor);
     }
 
     label {

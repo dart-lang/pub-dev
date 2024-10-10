@@ -11,7 +11,7 @@
 
 body {
   background-color: var(--pub-neutral-bgColor);
-  color: var(--pub-default-text-color);
+  color: var(--pub-neutral-textColor);
   font-size: 14px;
   line-height: 1.6;
   margin: 0;
@@ -320,7 +320,7 @@ pre {
 
 .-pub-like-button {
   --mdc-theme-primary: #f8f8f8;
-  --mdc-theme-on-primary: var(--pub-default-text-color);
+  --mdc-theme-on-primary: var(--pub-neutral-textColor);
 }
 
 .-pub-like-button-img {
@@ -410,7 +410,7 @@ pre {
 }
 
 a.-x-ago {
-  color: var(--pub-default-text-color);
+  color: var(--pub-neutral-textColor);
   text-decoration: underline dotted #ccc;
 }
 
@@ -444,10 +444,10 @@ a.-x-ago {
 .pub-toc {
   border-left: 4px solid var(--pub-inset-bgColor);
   padding: 4px 12px;
-  color: var(--pub-default-text-color);
+  color: var(--pub-neutral-textColor);
 
   a {
-    color: var(--pub-default-text-color);
+    color: var(--pub-neutral-textColor);
   }
 
   .pub-toc-node-0 {
