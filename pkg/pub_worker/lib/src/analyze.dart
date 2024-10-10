@@ -32,6 +32,9 @@ const _panaTimeout = Duration(minutes: 50);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
+/// Retry requests with a longer delay between them.
+final _retryOptions = RetryOptions(delayFactor: Duration(seconds: 5));
+
 /// Retry request if it fails because of an [IOException] or status is 5xx.
 bool _retryIf(Exception e) =>
     e is IOException ||
@@ -202,10 +205,9 @@ Future<void> _analyzePackage(
 
     // Upload results, if there is any
     _log.info('api.taskUploadResult("$package", "$version")');
-    final r = await retry(
+    final r = await _retryOptions.retry(
       () => api.taskUploadResult(package, version),
       retryIf: _retryIf,
-      delayFactor: Duration(seconds: 5),
     );
 
     // Create BlobIndex
@@ -234,10 +236,9 @@ Future<void> _analyzePackage(
 
     // Report that we're done processing the package / version.
     _log.info('api.taskUploadFinished("$package", "$version")');
-    await retry(
+    await _retryOptions.retry(
       () => api.taskUploadFinished(package, version),
       retryIf: _retryIf,
-      delayFactor: Duration(seconds: 5),
     );
   } finally {
     await tempDir.delete(recursive: true);
@@ -260,10 +261,9 @@ Future<void> _reportPackageSkipped(
 
   _log.info('api.taskUploadResult("$package", "$version") - skipping');
 
-  final r = await retry(
+  final r = await _retryOptions.retry(
     () => api.taskUploadResult(package, version),
     retryIf: _retryIf,
-    delayFactor: Duration(seconds: 5),
   );
 
   final output = await BlobIndexPair.build(r.blobId, (addFile) async {
@@ -301,10 +301,9 @@ Future<void> _reportPackageSkipped(
 
   // Report that we're done processing the package / version.
   _log.info('api.taskUploadFinished("$package", "$version") - skipped');
-  await retry(
+  await _retryOptions.retry(
     () => api.taskUploadFinished(package, version),
     retryIf: _retryIf,
-    delayFactor: Duration(seconds: 5),
   );
 }
 
