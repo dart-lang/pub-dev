@@ -6,26 +6,17 @@
 /// The chunk will have a single digit precision, and will be
 /// rounded down, in order to prevent exaggerated counts.
 String formatWithSuffix(int value) {
-  final f = computeValueWithSuffix(value);
-  return '${_toFixed(f.value)}${f.suffix}';
-}
-
-({num value, String suffix}) computeValueWithSuffix(int value) {
   if (value >= 1000000) {
-    return (value: _singleDigitDivision(value, 1000000), suffix: 'm');
+    return '${_toFixed(value, 1000000)}m';
   } else if (value >= 1000) {
-    return (value: _singleDigitDivision(value, 1000), suffix: 'k');
+    return '${_toFixed(value, 1000)}k';
   } else {
-    return (value: value, suffix: '');
+    return value.toString();
   }
 }
 
-num _singleDigitDivision(int value, int d) {
-  return (((value * 10) ~/ d) / 10);
-}
-
-String _toFixed(num value) {
-  return value < 1000 ? '$value' : value.toStringAsFixed(1);
+String _toFixed(int value, int d) {
+  return (((value * 10) ~/ d) / 10).toStringAsFixed(1);
 }
 
 /// Formats an int [value] to human readable chunk and suffix with at most 3

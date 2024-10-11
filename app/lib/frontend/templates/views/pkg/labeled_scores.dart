@@ -21,11 +21,12 @@ d.Node labeledScoresNode({
     children: [
       d.div(
         classes: ['packages-score', 'packages-score-like'],
-        child: _labeledScore('likes', likeCount, sign: ''),
+        child: _labeledScore('likes', likeCount.toString(), sign: ''),
       ),
       d.div(
         classes: ['packages-score', 'packages-score-health'],
-        child: _labeledScore('pub points', grantedPubPoints, sign: ''),
+        child:
+            _labeledScore('pub points', grantedPubPoints?.toString(), sign: ''),
       ),
       requestContext.experimentalFlags.showDownloadCounts
           ? d.div(
@@ -33,10 +34,10 @@ d.Node labeledScoresNode({
               child: _labeledScore(
                 'downloads',
                 thirtyDaysDownloads != null
-                    ? computeValueWithSuffix(thirtyDaysDownloads).value
+                    ? formatWith3SignificantDigits(thirtyDaysDownloads).value
                     : null,
                 sign: thirtyDaysDownloads != null
-                    ? computeValueWithSuffix(thirtyDaysDownloads).suffix
+                    ? formatWith3SignificantDigits(thirtyDaysDownloads).suffix
                     : '',
               ),
             )
@@ -44,7 +45,7 @@ d.Node labeledScoresNode({
               classes: ['packages-score', 'packages-score-popularity'],
               child: _labeledScore(
                 'popularity',
-                popularityStorage.isInvalid ? null : popularity,
+                popularityStorage.isInvalid ? null : popularity.toString(),
                 sign: popularityStorage.isInvalid ? '' : '%',
               ),
             ),
@@ -52,14 +53,14 @@ d.Node labeledScoresNode({
   );
 }
 
-d.Node _labeledScore(String label, num? value, {required String sign}) {
+d.Node _labeledScore(String label, String? value, {required String sign}) {
   return d.fragment([
     d.div(
       classes: ['packages-score-value', if (value != null) '-has-value'],
       children: [
         d.span(
           classes: ['packages-score-value-number'],
-          text: value?.toString() ?? '--',
+          text: value ?? '--',
         ),
         d.span(classes: ['packages-score-value-sign'], text: sign),
       ],

@@ -12,7 +12,7 @@ import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
-import 'fake_download_counts.dart';
+import '../../../lib/fake/backend/fake_download_counts.dart';
 
 void main() {
   group('', () {
