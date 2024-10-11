@@ -18,3 +18,29 @@ String formatWithSuffix(int value) {
 String _toFixed(int value, int d) {
   return (((value * 10) ~/ d) / 10).toStringAsFixed(1);
 }
+
+/// Formats an int [value] to human readable chunk and suffix with at most 3
+/// significant digits.
+({String value, String suffix}) formatWith3SignificantDigits(int value) {
+  if (value >= 999500000) {
+    return (
+      value: (value / 1000000000).toStringAsPrecision(3),
+      suffix: 'B',
+    );
+  } else if (value >= 999500) {
+    return (
+      value: (value / 1000000).toStringAsPrecision(3),
+      suffix: 'M',
+    );
+  } else if (value >= 1000) {
+    return (
+      value: (value / 1000).toStringAsPrecision(3),
+      suffix: 'k',
+    );
+  } else {
+    return (
+      value: value.toString(),
+      suffix: '',
+    );
+  }
+}
