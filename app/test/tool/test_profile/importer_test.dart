@@ -23,7 +23,7 @@ void main() {
         packages: [
           TestPackage(
             name: 'retry',
-            versions: [TestVersion(version: '3.1.1')],
+            versions: [TestVersion(version: '3.1.0')],
             publisher: 'example.com',
           )
         ],
@@ -37,10 +37,10 @@ void main() {
         final packages = await dbService.query<Package>().run().toList();
         expect(packages.single.name, 'retry');
         expect(packages.single.publisherId, 'example.com');
-        expect(packages.single.latestVersion, '3.1.1');
+        expect(packages.single.latestVersion, '3.1.0');
 
         final versions = await dbService.query<PackageVersion>().run().toList();
-        expect(versions.single.version, '3.1.1');
+        expect(versions.single.version, '3.1.0');
         expect(versions.single.uploader, users.single.userId);
 
         final publishers = await dbService.query<Publisher>().run().toList();

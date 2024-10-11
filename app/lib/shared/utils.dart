@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:intl/intl.dart';
@@ -298,5 +299,16 @@ extension StringExt on String {
   String? trimToNull() {
     final v = trim();
     return v.isEmpty ? null : v;
+  }
+}
+
+extension ByteFolderExt on Stream<List<int>> {
+  Future<Uint8List> foldBytes() async {
+    final contents = await toList();
+    final buffer = BytesBuilder(copy: false);
+    for (final chunk in contents) {
+      buffer.add(chunk);
+    }
+    return buffer.toBytes();
   }
 }

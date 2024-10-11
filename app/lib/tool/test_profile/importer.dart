@@ -4,16 +4,20 @@
 
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
+import 'dart:io';
+
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dev/account/auth_provider.dart';
-import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dev/service/async_queue/async_queue.dart';
-import 'package:pub_dev/shared/configuration.dart';
+import 'package:tar/tar.dart';
 
+import '../../account/auth_provider.dart';
+import '../../fake/backend/fake_auth_provider.dart';
+import '../../frontend/handlers/pubapi.client.dart';
+import '../../service/async_queue/async_queue.dart';
+import '../../shared/configuration.dart';
+import '../../shared/utils.dart';
 import '../utils/pub_api_client.dart';
 import 'import_source.dart';
 import 'models.dart';
@@ -86,8 +90,9 @@ Future<void> importProfile({
           uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
       lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
-      final bytes = pendingBytes['${rv.package}/${rv.version}'] ??
+      var bytes = pendingBytes['${rv.package}/${rv.version}'] ??
           await source.getArchiveBytes(rv.package, rv.version);
+      bytes = await _mayCleanupTarModeBits(bytes);
       try {
         await withHttpPubApiClient(
           bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
@@ -215,4 +220,25 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
       .firstWhere((p) => p.name == testPackage.publisher)
       .members;
   return members.map((m) => m.email).toList();
+}
+
+/// Old archives may contain mode bits that are not supported with the current
+/// upload checks. This method reads the archive and checks for the mode bits.
+/// When the archive bits are not supported, it returns a new archive with the
+/// bits corrected.
+Future<List<int>> _mayCleanupTarModeBits(List<int> bytes) async {
+  final archiveBuilder = ArchiveBuilder();
+  final tarReader =
+      TarReader(Stream.fromIterable([bytes]).transform(gzip.decoder));
+  var needsUpdate = false;
+  while (await tarReader.moveNext()) {
+    final current = tarReader.current;
+    if (current.header.mode != 420) {
+      // 644₈
+      needsUpdate = true;
+    }
+    archiveBuilder.addFileBytes(
+        current.name, await current.contents.foldBytes());
+  }
+  return needsUpdate ? archiveBuilder.toTarGzBytes() : bytes;
 }
