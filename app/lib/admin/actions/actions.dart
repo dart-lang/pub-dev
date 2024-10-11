@@ -18,7 +18,9 @@ import 'moderation_case_list.dart';
 import 'moderation_case_resolve.dart';
 import 'moderation_case_update.dart';
 import 'moderation_transparency_metrics.dart';
+import 'package_discontinue.dart';
 import 'package_info.dart';
+import 'package_latest_update.dart';
 import 'package_reservation_create.dart';
 import 'package_reservation_delete.dart';
 import 'package_reservation_list.dart';
@@ -102,7 +104,9 @@ final class AdminAction {
     moderationCaseResolve,
     moderationCaseUpdate,
     moderationTransparencyMetrics,
+    packageDiscontinue,
     packageInfo,
+    packageLatestUpdate,
     packageReservationCreate,
     packageReservationDelete,
     packageReservationList,
