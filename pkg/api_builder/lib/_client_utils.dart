@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Utilities for use in generated client code.
-library client_utils;
+library;
 
 import 'dart:async';
 import 'dart:convert';

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The `indexed_blob` library provides support for reading and writing
-/// indexed-blobs.
+/// The `indexed_blob.dart` library provides support for
+/// reading and writing indexed-blobs.
 ///
 /// An _indexed blob_ is a blob-file and an index-file pointing into the blob.
 /// The index-file can be used to find _start_ and _end_ offset for a file
@@ -16,7 +16,7 @@
 ///
 /// To goal of this format is to support storing the many small files generated
 /// by `dartdoc` as an indexed-blob.
-library indexed_blob;
+library;
 
 import 'dart:async';
 import 'dart:convert' show utf8;

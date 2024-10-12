@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Timeout(Duration(seconds: 15))
-library pub_dartlang_org.backend_test;
+library;
 
 import 'dart:async';
 
