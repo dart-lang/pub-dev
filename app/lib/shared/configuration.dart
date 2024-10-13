@@ -433,7 +433,7 @@ class Configuration {
   late final isFakeOrTest =
       projectId == 'dartlang-pub-fake' || projectId == 'dartlang-pub-test';
 
-  late final isPublishedEmailNotificationEnabled = true;
+  bool get isPublishedEmailNotificationEnabled => true;
 }
 
 /// Data structure to describe an admin user.

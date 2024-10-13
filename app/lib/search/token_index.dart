@@ -15,15 +15,15 @@ class Score {
   Score(this._values);
   Score.empty() : _values = const <String, double>{};
 
-  late final bool isEmpty = _values.isEmpty;
-  late final bool isNotEmpty = !isEmpty;
+  bool get isEmpty => _values.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   Set<String> getKeys({bool Function(String key)? where}) =>
       _values.keys.where((e) => where == null || where(e)).toSet();
   late final double maxValue = _values.values.fold(0.0, math.max);
   Map<String, double> getValues() => _values;
   bool containsKey(String key) => _values.containsKey(key);
-  late final int length = _values.length;
+  int get length => _values.length;
 
   double operator [](String key) => _values[key] ?? 0.0;
 

@@ -26,7 +26,7 @@ final _logger = Logger('search_index');
 Future<void> main(List<String> args, var message) async {
   final timer = Timer.periodic(Duration(milliseconds: 250), (_) {});
 
-  late ServicesWrapperFn servicesWrapperFn;
+  final ServicesWrapperFn servicesWrapperFn;
   if (envConfig.isRunningInAppengine) {
     servicesWrapperFn = withServices;
     setupAppEngineLogging();

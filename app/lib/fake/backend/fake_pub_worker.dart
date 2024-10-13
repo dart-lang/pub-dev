@@ -114,7 +114,7 @@ Future<void> _fakeAnalysis(Payload payload) async {
           total: 20,
         );
 
-        late Summary summary;
+        final Summary summary;
         if (packageStatus.isObsolete || packageStatus.isLegacy) {
           summary = _emptySummary(payload.package, v.version);
           dartdocFiles.clear();

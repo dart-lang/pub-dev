@@ -171,9 +171,9 @@ Future<void> main(List<String> args) async {
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
-late final _workerConfigPath =
+final _workerConfigPath =
     _workerConfigDirectory.existsSync() ? _workerConfigDirectory.path : null;
-late final _isInsideDocker = _workerConfigPath != null;
+final _isInsideDocker = _workerConfigPath != null;
 String? _configHomePath(String sdk, String kind) {
   if (!_isInsideDocker) {
     return null;

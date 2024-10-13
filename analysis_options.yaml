@@ -70,6 +70,7 @@ linter:
   - unnecessary_brace_in_string_interps
   - unnecessary_const
   - unnecessary_getters_setters
+  - unnecessary_late
   - unnecessary_new
   - unnecessary_null_in_if_null_operators
   - unnecessary_this

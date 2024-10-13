@@ -101,5 +101,5 @@ class ClientSessionCookieStatus {
     required this.isStrict,
   });
 
-  late final isPresent = sessionId != null && sessionId!.isNotEmpty;
+  bool get isPresent => sessionId?.isNotEmpty ?? false;
 }

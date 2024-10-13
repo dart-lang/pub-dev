@@ -61,7 +61,7 @@ class ConsentBackend {
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind]!;
     final fromAgent = c.fromAgent!;
-    late String invitingUserEmail;
+    final String invitingUserEmail;
     if (looksLikeUserId(fromAgent)) {
       invitingUserEmail = (await accountBackend.getEmailOfUserId(fromAgent))!;
     } else {

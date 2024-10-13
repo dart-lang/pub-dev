@@ -148,7 +148,7 @@ class InMemoryPackageIndex {
     }
 
     List<String>? nameMatches;
-    late List<PackageHit> packageHits;
+    List<PackageHit> packageHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         if (textResults == null) {

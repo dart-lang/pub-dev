@@ -445,7 +445,7 @@ final class _CompletionWidget {
     return CompletionData.fromJson(root as Map<String, dynamic>);
   }
 
-  static late final _canvas = HTMLCanvasElement();
+  static final HTMLCanvasElement _canvas = HTMLCanvasElement();
   static int getTextWidth(String text, Element element) {
     final ctx = _canvas.context2D;
     final style = window.getComputedStyle(element);
