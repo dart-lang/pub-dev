@@ -137,7 +137,7 @@ class LastNTracker<T extends Comparable<T>> {
 
   T? _getP(double p) {
     if (_lastItems.isEmpty) return null;
-    final List<T> list = List.from(_lastItems);
+    final List<T> list = _lastItems.toList();
     list.sort();
     return list[(list.length * p).floor()];
   }

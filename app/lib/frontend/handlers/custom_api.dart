@@ -461,8 +461,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
     if (sr.errorMessage != null) 'message': sr.errorMessage,
   };
   if (hasNextPage) {
-    final newParams =
-        Map<String, dynamic>.from(request.requestedUri.queryParameters);
+    final newParams = {...request.requestedUri.queryParameters};
     newParams['page'] = (searchForm.currentPage! + 1).toString();
     final nextPageUrl =
         request.requestedUri.replace(queryParameters: newParams).toString();

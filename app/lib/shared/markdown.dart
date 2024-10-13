@@ -318,7 +318,7 @@ String _rewriteAbsoluteUrl(String url) {
   if (uri.host == 'github.com') {
     final segments = uri.pathSegments;
     if (segments.length > 3 && segments[2] == 'blob') {
-      final newSegments = List<String>.from(segments);
+      final newSegments = List.of(segments);
       newSegments[2] = 'raw';
       return uri.replace(pathSegments: newSegments).toString();
     }

@@ -358,7 +358,7 @@ class _GoogleCloudCompute extends CloudCompute {
   );
 
   @override
-  List<String> get zones => List.from(_zones);
+  List<String> get zones => List.of(_zones);
 
   @override
   String generateInstanceName() => 'worker-${Ulid()}';
