@@ -27,15 +27,15 @@ Element? _activeHover;
 ///  Their `:hover` and `.hover` style must match to have the same effect.
 void _setEventForHoverable() {
   document.body!.onClick.listen(deactivateHover);
-  for (Element h in document.querySelectorAll('.hoverable')) {
+  for (final h in document.querySelectorAll('.hoverable')) {
     registerHoverable(h);
   }
 }
 
 /// Deactivates the active hover (hiding the hovering panel).
 void deactivateHover(_) {
-  if (_activeHover != null) {
-    _activeHover!.classes.remove('hover');
+  if (_activeHover case final activeHoverElement?) {
+    activeHoverElement.classes.remove('hover');
     _activeHover = null;
   }
 }
@@ -46,7 +46,7 @@ void registerHoverable(Element h) {
     if (h != _activeHover) {
       deactivateHover(e);
       _activeHover = h;
-      _activeHover!.classes.add('hover');
+      h.classes.add('hover');
       e.stopPropagation();
     }
   });
@@ -77,16 +77,17 @@ void _setEventForPackageTitleCopyToClipboard() {
 Future<void> _animateCopyFeedback(Element feedback) async {
   feedback.classes.add('visible');
   await window.animationFrame;
-  await Future.delayed(Duration(milliseconds: 1600));
+  await Future<void>.delayed(Duration(milliseconds: 1600));
   feedback.classes.add('fadeout');
   await window.animationFrame;
   // NOTE: keep in sync with _variables.scss 0.9s animation with the key
   //       $copy-feedback-transition-opacity-delay
-  await Future.delayed(Duration(milliseconds: 900));
+  await Future<void>.delayed(Duration(milliseconds: 900));
   await window.animationFrame;
 
-  feedback.classes.remove('visible');
-  feedback.classes.remove('fadeout');
+  feedback.classes
+    ..remove('visible')
+    ..remove('fadeout');
 }
 
 void _copyToClipboard(String text) {
@@ -127,7 +128,7 @@ void _setupCopyAndFeedbackButton({
   required Element feedback,
   required String Function() textFn,
 }) {
-  copy.attributes['tabindex'] = '0';
+  copy.setAttribute('tabindex', '0');
 
   Future<void> doCopy() async {
     final text = textFn();
