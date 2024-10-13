@@ -23,7 +23,6 @@ import 'dart:convert' show utf8;
 import 'dart:typed_data';
 import 'package:jsontool/jsontool.dart'
     show JsonReader, jsonStringWriter, JsonSink;
-import 'package:meta/meta.dart';
 
 export 'src/blobindexpair.dart' show BlobIndexPair;
 
@@ -48,8 +47,7 @@ export 'src/blobindexpair.dart' show BlobIndexPair;
 /// // Finish building, and create the index
 /// await File('mydata.index').writeBytes();
 /// ```
-@sealed
-class IndexedBlobBuilder {
+final class IndexedBlobBuilder {
   final StreamSink<List<int>> _blob;
   int _offset = 0;
   final Map<String, dynamic> _index = {};
@@ -225,8 +223,7 @@ bool _skipUntilKey(JsonReader r, String key) {
 /// }
 /// ```
 ///
-@sealed
-class BlobIndex {
+final class BlobIndex {
   final Uint8List _indexFile;
 
   /// Create [BlobIndex] from [indexFile] contents.
@@ -411,8 +408,7 @@ class BlobIndex {
 }
 
 /// Range of a file in an indexed-blob.
-@sealed
-class FileRange {
+final class FileRange {
   /// Path that was looked up in [BlobIndex].
   final String path;
 
