@@ -7,13 +7,11 @@ import 'dart:io' show Directory, File, gzip;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:async/async.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import '../indexed_blob.dart' show IndexedBlobBuilder, BlobIndex;
 
 /// Pair containing and in-memory [blob] and matching [index].
-@sealed
-class BlobIndexPair {
+final class BlobIndexPair {
   /// Blob indexed by [index].
   final Uint8List blob;
 

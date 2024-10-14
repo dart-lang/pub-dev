@@ -21,7 +21,7 @@ class MemDatastore implements Datastore {
   Future<List<Key>> allocateIds(List<Key> keys) async {
     return keys.map((k) {
       if (k.elements.last.id == null) {
-        final elements = List<KeyElement>.from(k.elements);
+        final elements = List.of(k.elements);
         final last = elements.removeLast();
         elements.add(KeyElement(last.kind, _unusedId++));
         return Key(elements, partition: k.partition);

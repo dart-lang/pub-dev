@@ -398,7 +398,7 @@ String? getRepositoryUrl(
   }
   try {
     final uri = Uri.parse(repository!);
-    final segments = List<String>.from(uri.pathSegments);
+    final segments = List.of(uri.pathSegments);
     while (segments.isNotEmpty && segments.last.isEmpty) {
       segments.removeLast();
     }

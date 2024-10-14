@@ -87,7 +87,7 @@ Future<void> _batchedQuery<T extends Model>(
 
   void flush() {
     if (keys.isEmpty) return;
-    fn(List.from(keys));
+    fn(List.of(keys));
     keys.clear();
     budget = _defaultBudget;
   }

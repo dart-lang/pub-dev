@@ -200,7 +200,7 @@ class StaticFileCache {
   String get etag => _etag ??= _calculateEtagOfEtags().substring(0, 8);
 
   String _calculateEtagOfEtags() {
-    final files = List<StaticFile>.from(_files.values);
+    final files = _files.values.toList();
     files.sort((a, b) => a.requestPath.compareTo(b.requestPath));
     final concatenatedEtags = files.map((f) => f.etag).join(' ');
     final digest = crypto.sha256.convert(utf8.encode(concatenatedEtags));
@@ -402,8 +402,7 @@ class ParsedStaticUrl {
 
   factory ParsedStaticUrl.parse(Uri requestedUri) {
     final normalizedRequestPath = path.normalize(requestedUri.path);
-    final pathSegments =
-        List<String>.from(Uri(path: normalizedRequestPath).pathSegments);
+    final pathSegments = List.of(Uri(path: normalizedRequestPath).pathSegments);
     String? pathHash;
     var filePath = normalizedRequestPath;
     if (pathSegments.length > 2 && pathSegments[1].startsWith('hash-')) {
