@@ -11,7 +11,7 @@
 ///
 /// All messages may contain markdown, and should be sensible for human
 /// consumption.
-library exceptions;
+library;
 
 import 'dart:io';
 
