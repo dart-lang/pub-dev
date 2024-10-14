@@ -203,9 +203,10 @@ Future<LikedPackagesResponse> listPackageLikesHandler(
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   final packages = await likeBackend.listPackageLikes(user);
-  final List<PackageLikeResponse> packageLikes = List.from(packages.map(
-      (like) => PackageLikeResponse(
-          liked: true, package: like.package, created: like.created)));
+  final List<PackageLikeResponse> packageLikes = packages
+      .map((like) => PackageLikeResponse(
+          liked: true, package: like.package, created: like.created))
+      .toList();
   return LikedPackagesResponse(likedPackages: packageLikes);
 }
 

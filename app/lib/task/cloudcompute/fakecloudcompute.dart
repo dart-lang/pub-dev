@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/static_files.dart';
 
@@ -18,8 +17,7 @@ final _log = Logger('pub.fakecloudcompute');
 
 typedef InstanceRunner = Future<void> Function(FakeCloudInstance instance);
 
-@sealed
-class FakeCloudCompute extends CloudCompute {
+final class FakeCloudCompute extends CloudCompute {
   var _nextInstanceId = 1;
   final _instances = <FakeCloudInstance>{};
   final InstanceRunner _instanceRunner;
@@ -221,8 +219,7 @@ Future<void> _defaultInstanceRunner(FakeCloudInstance instance) async {
   _log.info('pub_worker exit code: $exitCode');
 }
 
-@sealed
-class FakeCloudInstance extends CloudInstance {
+final class FakeCloudInstance extends CloudInstance {
   @override
   final String instanceName;
 

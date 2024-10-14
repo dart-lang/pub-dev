@@ -8,6 +8,7 @@
 /// - https://pub.dev/packages/asn1lib
 /// - https://letsencrypt.org/docs/a-warm-welcome-to-asn1-and-der/
 /// - https://lapo.it/asn1js/
+library;
 
 import 'package:meta/meta.dart';
 

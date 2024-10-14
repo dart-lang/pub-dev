@@ -5,7 +5,6 @@
 import 'dart:convert' show json;
 import 'dart:io';
 
-import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -47,14 +46,13 @@ const _fakeExternalAudience = 'https://pub.dev';
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
-@sealed
 @JsonSerializable(
   anyMap: true,
   explicitToJson: true,
   checked: true,
   disallowUnrecognizedKeys: true,
 )
-class Configuration {
+final class Configuration {
   /// The name of the Cloud Storage bucket to use for storing the uploaded
   /// package archives.
   ///
@@ -455,7 +453,7 @@ class AdminId {
     required this.oauthUserId,
     required this.email,
     required Iterable<AdminPermission?> permissions,
-  }) : permissions = UnmodifiableSetView(Set.from(permissions));
+  }) : permissions = Set.unmodifiable(permissions.nonNulls);
 
   factory AdminId.fromJson(Map<String, dynamic> json) =>
       _$AdminIdFromJson(json);

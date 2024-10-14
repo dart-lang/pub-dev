@@ -10,7 +10,6 @@ import 'package:http/http.dart'
     show Client, ClientException, MultipartFile, MultipartRequest, Response;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:logging/logging.dart' show Logger;
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart' show retry;
 
 final _log = Logger('pub_worker.upload');
@@ -69,8 +68,7 @@ Future<void> upload(
             e is TimeoutException,
         delayFactor: Duration(seconds: 5));
 
-@sealed
-class UploadException implements Exception {
+final class UploadException implements Exception {
   final String message;
 
   UploadException(this.message);
@@ -79,7 +77,6 @@ class UploadException implements Exception {
   String toString() => message;
 }
 
-@sealed
-class IntermittentUploadException extends UploadException {
+final class IntermittentUploadException extends UploadException {
   IntermittentUploadException(String message) : super(message);
 }

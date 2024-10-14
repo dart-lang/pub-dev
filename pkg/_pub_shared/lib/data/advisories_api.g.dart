@@ -33,7 +33,7 @@ OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
       aliases: (json['aliases'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
-          [],
+          const <String>[],
       related:
           (json['related'] as List<dynamic>?)?.map((e) => e as String).toList(),
       summary: json['summary'] as String?,
