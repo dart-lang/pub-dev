@@ -5,14 +5,12 @@
 import 'dart:collection';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 part 'task_payload.g.dart';
 
 /// JSON payload given as single argument to the `pub_worker.dart` command.
-@sealed
 @JsonSerializable()
-class Payload {
+final class Payload {
   /// Package name of the package to be processed.
   final String package;
 
@@ -49,9 +47,8 @@ class Payload {
 }
 
 /// Pair of [version] and [token].
-@sealed
 @JsonSerializable()
-class VersionTokenPair {
+final class VersionTokenPair {
   /// Version of [Payload.package] to be processed.
   final String version;
 

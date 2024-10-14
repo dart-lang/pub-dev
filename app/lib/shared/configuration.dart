@@ -47,14 +47,13 @@ const _fakeExternalAudience = 'https://pub.dev';
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
-@sealed
 @JsonSerializable(
   anyMap: true,
   explicitToJson: true,
   checked: true,
   disallowUnrecognizedKeys: true,
 )
-class Configuration {
+final class Configuration {
   /// The name of the Cloud Storage bucket to use for storing the uploaded
   /// package archives.
   ///
