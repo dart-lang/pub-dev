@@ -82,7 +82,7 @@ extension DatastoreDBExt on DatastoreDB {
     final deletes = <T>[];
     var found = 0;
     var deleted = 0;
-    await for (T model in query.run()) {
+    await for (final model in query.run()) {
       found++;
       if (where == null || await where(model)) {
         deletes.add(model);

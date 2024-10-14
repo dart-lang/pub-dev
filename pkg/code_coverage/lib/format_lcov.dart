@@ -14,7 +14,7 @@ Future main() async {
       .where((f) => f is File)
       .cast<File>()
       .toList();
-  for (File file in files) {
+  for (final file in files) {
     final coverage = await file.readAsString();
     if (coverage.isEmpty) {
       print('${file.path} is empty.');
@@ -35,7 +35,7 @@ Future main() async {
     }
   }
 
-  for (String path in _lineExecCounts.keys) {
+  for (final path in _lineExecCounts.keys) {
     final counts = _lineExecCounts[path];
     final total = counts!.length;
     final covered = counts.values.where((i) => i > 0).length;
@@ -66,7 +66,7 @@ Future main() async {
   ].join(', '));
 
   final keys = _tree.keys.toList()..sort();
-  for (String key in keys) {
+  for (final key in keys) {
     final entry = _tree[key];
     final pctStr = entry!.percentAsString;
     final sb = StringBuffer();

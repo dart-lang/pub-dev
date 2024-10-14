@@ -75,7 +75,7 @@ class InMemoryPackageIndex {
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
 
-    for (ApiDocPage page in doc.apiDocPages ?? const []) {
+    for (final ApiDocPage page in doc.apiDocPages ?? const []) {
       final pageId = _apiDocPageId(doc.package, page);
       if (page.symbols != null && page.symbols!.isNotEmpty) {
         _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
@@ -108,10 +108,10 @@ class InMemoryPackageIndex {
       packages.removeWhere((package) {
         final doc = _packages[package]!;
         if (doc.dependencies.isEmpty) return true;
-        for (String dependency in query.parsedQuery.allDependencies) {
+        for (final dependency in query.parsedQuery.allDependencies) {
           if (!doc.dependencies.containsKey(dependency)) return true;
         }
-        for (String dependency in query.parsedQuery.refDependencies) {
+        for (final dependency in query.parsedQuery.refDependencies) {
           final type = doc.dependencies[dependency];
           if (type == null || type == DependencyTypes.transitive) return true;
         }
@@ -315,7 +315,7 @@ class InMemoryPackageIndex {
       final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
         final matched = <String, double>{};
-        for (String package in score.getKeys()) {
+        for (final package in score.getKeys()) {
           final doc = _packages[package]!;
           final bool matchedAllPhrases = phrases.every((phrase) =>
               doc.package.contains(phrase) ||

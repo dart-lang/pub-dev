@@ -92,7 +92,7 @@ Future<void> _batchedQuery<T extends Model>(
     budget = _defaultBudget;
   }
 
-  await for (Model m in query.run()) {
+  await for (final m in query.run()) {
     final size = _estimateSize(m);
     if (size * 4 >= _defaultBudget) {
       flush();

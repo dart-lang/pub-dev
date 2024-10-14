@@ -100,7 +100,7 @@ void main() {
         '/static/material/bundle/script.min.js',
       ];
 
-      for (String file in files) {
+      for (final file in files) {
         final f = cache.getFile(file)!;
         expect(f, isNotNull, reason: file);
         expect(f.etag.contains('mocked_hash_'), isFalse, reason: file);

@@ -448,7 +448,7 @@ class IntegrityChecker {
       }
     }
 
-    await for (PackageVersionInfo pvi in pviQuery.run()) {
+    await for (final pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
       yield* checkPackageVersionKey('PackageVersionInfo', key);
@@ -465,7 +465,7 @@ class IntegrityChecker {
         referencedAssetIds.add(key.assetId(kind));
       }
     }
-    for (QualifiedVersionKey key in qualifiedVersionKeys) {
+    for (final key in qualifiedVersionKeys) {
       if (!pviKeys.contains(key)) {
         yield 'PackageVersion "$key" has no PackageVersionInfo.';
       }
@@ -475,7 +475,7 @@ class IntegrityChecker {
     final pvaQuery = _db.query<PackageVersionAsset>()
       ..filter('package =', p.name);
     final foundAssetIds = <String?>{};
-    await for (PackageVersionAsset pva in pvaQuery.run()) {
+    await for (final pva in pvaQuery.run()) {
       final key = pva.qualifiedVersionKey;
       if (pva.id !=
           Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {

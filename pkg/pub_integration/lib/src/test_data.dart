@@ -41,7 +41,7 @@ Future _copy(String fromDir, String toDir) async {
       .where((fse) => fse is File)
       .cast<File>()
       .toList();
-  for (File file in files) {
+  for (final file in files) {
     final relativePath = p.relative(file.path, from: fromDir);
     final newPath = p.join(toDir, relativePath);
     final newFile = File(newPath);

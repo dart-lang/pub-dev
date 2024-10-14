@@ -243,7 +243,7 @@ class MemDatastore implements Datastore {
     ).toList();
     if (query.orders != null && query.orders!.isNotEmpty) {
       items.sort((a, b) {
-        for (Order o in query.orders!) {
+        for (final o in query.orders!) {
           if (a.unIndexedProperties.contains(o.propertyName) ||
               b.unIndexedProperties.contains(o.propertyName)) {
             throw DatastoreError(
