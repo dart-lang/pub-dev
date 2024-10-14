@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -19,15 +20,15 @@ final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex {
-  final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
-  final _packageNameIndex = PackageNameIndex();
+  final Map<String, PackageDocument> _packages = {};
+  final PackageNameIndex _packageNameIndex = PackageNameIndex();
   final TokenIndex _descrIndex = TokenIndex();
   final TokenIndex _readmeIndex = TokenIndex();
   final TokenIndex _apiSymbolIndex = TokenIndex();
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
-  final _adjustedOverallScores = <String, double>{};
+  final Map<String, double> _adjustedOverallScores = {};
   late final List<PackageHit> _overallOrderedHits;
   late final List<PackageHit> _createdOrderedHits;
   late final List<PackageHit> _updatedOrderedHits;
@@ -49,25 +50,23 @@ class InMemoryPackageIndex {
     }
     _updateOverallScores();
     _lastUpdated = clock.now().toUtc();
-    _overallOrderedHits = _rankWithComparator(_compareOverall,
+    _overallOrderedHits = _rankWithComparator(_packages, _compareOverall,
         score: (doc) => doc.overallScore ?? 0.0);
-    _createdOrderedHits = _rankWithComparator(_compareCreated);
-    _updatedOrderedHits = _rankWithComparator(_compareUpdated);
-    _popularityOrderedHits = _rankWithComparator(_comparePopularity,
+    _createdOrderedHits = _rankWithComparator(_packages, _compareCreated);
+    _updatedOrderedHits = _rankWithComparator(_packages, _compareUpdated);
+    _popularityOrderedHits = _rankWithComparator(_packages, _comparePopularity,
         score: (doc) => doc.popularityScore ?? 0);
-    _likesOrderedHits = _rankWithComparator(_compareLikes,
+    _likesOrderedHits = _rankWithComparator(_packages, _compareLikes,
         score: (doc) => doc.likeCount.toDouble());
-    _pointsOrderedHits = _rankWithComparator(_comparePoints,
+    _pointsOrderedHits = _rankWithComparator(_packages, _comparePoints,
         score: (doc) => doc.grantedPoints.toDouble());
   }
 
-  IndexInfo indexInfo() {
-    return IndexInfo(
-      isReady: true,
-      packageCount: _packages.length,
-      lastUpdated: _lastUpdated,
-    );
-  }
+  IndexInfo indexInfo() => IndexInfo(
+        isReady: true,
+        packageCount: _packages.length,
+        lastUpdated: _lastUpdated,
+      );
 
   void _addPackage(PackageDocument doc) {
     _packages[doc.package] = doc;
@@ -75,10 +74,10 @@ class InMemoryPackageIndex {
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
 
-    for (ApiDocPage page in doc.apiDocPages ?? const []) {
+    for (final page in doc.apiDocPages ?? const <ApiDocPage>[]) {
       final pageId = _apiDocPageId(doc.package, page);
-      if (page.symbols != null && page.symbols!.isNotEmpty) {
-        _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
+      if (page.symbols case final pageSymbols? when pageSymbols.isNotEmpty) {
+        _apiSymbolIndex.add(pageId, pageSymbols.join(' '));
       }
     }
   }
@@ -148,9 +147,9 @@ class InMemoryPackageIndex {
     }
 
     List<String>? nameMatches;
-    late List<PackageHit> packageHits;
-    switch (query.effectiveOrder ?? SearchOrder.top) {
-      case SearchOrder.top:
+    List<PackageHit> packageHits;
+    switch (query.effectiveOrder) {
+      case null || SearchOrder.top:
         if (textResults == null) {
           packageHits = _overallOrderedHits.whereInSet(packages);
           break;
@@ -346,59 +345,57 @@ class InMemoryPackageIndex {
     return list;
   }
 
-  List<PackageHit> _rankWithComparator(
+  static List<PackageHit> _rankWithComparator(
+    Map<String, PackageDocument> packages,
     int Function(PackageDocument a, PackageDocument b) compare, {
     double Function(PackageDocument doc)? score,
-  }) {
-    final list = _packages.values
-        .map((doc) => PackageHit(
-            package: doc.package, score: score == null ? null : score(doc)))
-        .toList();
-    list.sort((a, b) => compare(_packages[a.package]!, _packages[b.package]!));
-    return list;
-  }
+  }) =>
+      packages.entries
+          .sorted((entryA, entryB) => compare(entryA.value, entryB.value))
+          .map((e) => PackageHit(package: e.key, score: score?.call(e.value)))
+          .toList(growable: false);
 
-  int _compareCreated(PackageDocument a, PackageDocument b) {
+  static int _compareCreated(PackageDocument a, PackageDocument b) {
     return -a.created.compareTo(b.created);
   }
 
-  int _compareUpdated(PackageDocument a, PackageDocument b) {
+  static int _compareUpdated(PackageDocument a, PackageDocument b) {
     return -a.updated.compareTo(b.updated);
   }
 
-  int _compareOverall(PackageDocument a, PackageDocument b) {
+  static int _compareOverall(PackageDocument a, PackageDocument b) {
     final x = -(a.overallScore ?? 0.0).compareTo(b.overallScore ?? 0.0);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }
 
-  int _comparePopularity(PackageDocument a, PackageDocument b) {
+  static int _comparePopularity(PackageDocument a, PackageDocument b) {
     final x = -(a.popularityScore ?? 0.0).compareTo(b.popularityScore ?? 0.0);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }
 
-  int _compareLikes(PackageDocument a, PackageDocument b) {
+  static int _compareLikes(PackageDocument a, PackageDocument b) {
     final x = -a.likeCount.compareTo(b.likeCount);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }
 
-  int _comparePoints(PackageDocument a, PackageDocument b) {
+  static int _comparePoints(PackageDocument a, PackageDocument b) {
     final x = -a.grantedPoints.compareTo(b.grantedPoints);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }
 
-  String _apiDocPageId(String package, ApiDocPage page) {
+  static String _apiDocPageId(String package, ApiDocPage page) {
     return '$package::${page.relativePath}';
   }
 
-  String _apiDocPkg(String id) {
+  static String _apiDocPkg(String id) {
     return id.split('::').first;
   }
 
-  String _apiDocPath(String id) {
+  static String _apiDocPath(String id) {
     return id.split('::').last;
   }
 }
@@ -414,11 +411,6 @@ class _TextResults {
 @visibleForTesting
 class PackageNameIndex {
   final _data = <String, _PkgNameData>{};
-
-  /// Maps package name to a reduced form of the name:
-  /// the same character parts, but without `-`.
-  String _collapseName(String package) =>
-      package.replaceAll('_', '').toLowerCase();
 
   void addAll(Iterable<String> packages) {
     for (final package in packages) {
@@ -470,6 +462,11 @@ class PackageNameIndex {
     }
     return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
   }
+
+  /// Maps package name to a reduced form of the name:
+  /// the same character parts, but without `-`.
+  static String _collapseName(String package) =>
+      package.replaceAll('_', '').toLowerCase();
 }
 
 class _PkgNameData {
