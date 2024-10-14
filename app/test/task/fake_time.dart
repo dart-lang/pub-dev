@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart' show sealed;
 
 // TODO(jonasfj): Document this concept, maybe give it a better name and see if
 //                we can publish it as a separate package. Maybe, it should be
@@ -16,8 +15,7 @@ import 'package:meta/meta.dart' show sealed;
 //                Or something else clever, without being too clever!
 //                Or maybe we should rename _TravelingTimer to _FakeTimer.
 
-@sealed
-abstract class FakeTime {
+abstract final class FakeTime {
   FakeTime._();
 
   Future<void> elapse({
@@ -88,7 +86,7 @@ abstract class FakeTime {
   }
 }
 
-class _FakeTime extends FakeTime {
+final class _FakeTime extends FakeTime {
   final DateTime Function() _originalTime;
   Duration _offset;
 
