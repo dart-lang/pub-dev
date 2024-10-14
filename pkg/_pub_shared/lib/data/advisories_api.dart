@@ -54,7 +54,7 @@ class OSV {
 
   /// A list of IDs of the same vulnerability in other databases, in the form of
   /// the [id] field.
-  @JsonKey(defaultValue: <String>[])
+  @JsonKey()
   List<String> aliases;
 
   /// A list of IDs of closely related vulnerabilities, such as the same problem
