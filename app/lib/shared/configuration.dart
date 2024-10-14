@@ -5,7 +5,6 @@
 import 'dart:convert' show json;
 import 'dart:io';
 
-import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -454,7 +453,7 @@ class AdminId {
     required this.oauthUserId,
     required this.email,
     required Iterable<AdminPermission?> permissions,
-  }) : permissions = UnmodifiableSetView(Set.from(permissions));
+  }) : permissions = Set.unmodifiable(permissions.nonNulls);
 
   factory AdminId.fromJson(Map<String, dynamic> json) =>
       _$AdminIdFromJson(json);
