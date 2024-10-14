@@ -12,7 +12,6 @@ import 'package:googleapis/compute/v1.dart' hide Duration;
 import 'package:googleapis/compute/v1.dart' as compute_v1 show Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
-import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/utils.dart' show createUuid;
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:retry/retry.dart';
@@ -221,7 +220,7 @@ Future<void> deleteAbandonedInstances({
   }
 }
 
-class _GoogleCloudInstance extends CloudInstance {
+final class _GoogleCloudInstance extends CloudInstance {
   /// GCP zone this instance exists inside.
   @override
   final String zone;
@@ -248,7 +247,7 @@ class _GoogleCloudInstance extends CloudInstance {
   }
 }
 
-class _PendingGoogleCloudInstance extends CloudInstance {
+final class _PendingGoogleCloudInstance extends CloudInstance {
   /// GCP zone this instance exists inside.
   @override
   final String zone;
@@ -304,8 +303,7 @@ final _validInstanceNamePattern = RegExp(r'^[a-z]([-a-z0-9]*[a-z0-9])?$');
 String _shellSingleQuote(String string) =>
     "'${string.replaceAll("'", "'\\''")}'";
 
-@sealed
-class _GoogleCloudCompute extends CloudCompute {
+final class _GoogleCloudCompute extends CloudCompute {
   final ComputeApi _api;
 
   /// GCP project this instance is managing VMs inside.
@@ -358,7 +356,7 @@ class _GoogleCloudCompute extends CloudCompute {
   );
 
   @override
-  List<String> get zones => List.from(_zones);
+  List<String> get zones => List.of(_zones);
 
   @override
   String generateInstanceName() => 'worker-${Ulid()}';

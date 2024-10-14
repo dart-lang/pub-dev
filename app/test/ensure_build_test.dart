@@ -4,6 +4,7 @@
 
 @Timeout.factor(2)
 @Tags(['build', 'presubmit-only'])
+library;
 
 import 'package:build_verify/build_verify.dart';
 import 'package:test/test.dart';

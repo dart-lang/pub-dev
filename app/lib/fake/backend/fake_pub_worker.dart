@@ -15,7 +15,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:indexed_blob/indexed_blob.dart';
-import 'package:meta/meta.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/fake/backend/fake_pana_runner.dart';
@@ -303,8 +302,7 @@ Future<void> _upload(
       );
     }, retryIf: (e) => e is IOException || e is IntermittentUploadException);
 
-@sealed
-class UploadException implements Exception {
+final class UploadException implements Exception {
   final String message;
 
   UploadException(this.message);
@@ -313,8 +311,7 @@ class UploadException implements Exception {
   String toString() => message;
 }
 
-@sealed
-class IntermittentUploadException extends UploadException {
+final class IntermittentUploadException extends UploadException {
   IntermittentUploadException(String message) : super(message);
 }
 

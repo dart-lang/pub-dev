@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 
@@ -59,8 +60,7 @@ extension UpdateLikesExt on Iterable<PackageDocument> {
   /// The score is normalized into the range of [0.0 - 1.0] using the
   /// ordered list of packages by like counts (same like count gets the same score).
   void updateLikeScores() {
-    final sortedByLikes = List<PackageDocument>.from(this)
-      ..sort((a, b) => a.likeCount.compareTo(b.likeCount));
+    final sortedByLikes = sorted((a, b) => a.likeCount.compareTo(b.likeCount));
     for (var i = 0; i < sortedByLikes.length; i++) {
       if (i > 0 &&
           sortedByLikes[i - 1].likeCount == sortedByLikes[i].likeCount) {
