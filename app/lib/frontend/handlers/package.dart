@@ -296,7 +296,7 @@ Future<shelf.Response> _handlePackagePage({
       }
     }
     final serviceSw = Stopwatch()..start();
-    late PackagePageData data;
+    final PackagePageData data;
     try {
       data = await loadPackagePageData(package, versionName, assetKind);
     } on ModeratedException {

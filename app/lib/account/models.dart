@@ -75,7 +75,7 @@ class User extends db.ExpandoModel<String> {
   }
 
   late final isVisible = !isBlocked && !isModerated && !isDeleted;
-  late final isNotVisible = !isVisible;
+  bool get isNotVisible => !isVisible;
 
   void updateIsModerated({
     required bool isModerated,

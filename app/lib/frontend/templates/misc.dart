@@ -26,7 +26,7 @@ final _securityMarkdown = _readDocContent('security.md');
 /// basename as a key, e.g.:
 /// - `help.md` -> (title: 'Help', content: ...)
 /// - `help-search.md` -> (title: 'Search', content: ...)
-late final _helpArticles = () {
+final _helpArticles = () {
   final docDir = io.Directory(static_files.resolveDocDirPath());
   final files = docDir
       .listSync()
@@ -47,7 +47,7 @@ late final _helpArticles = () {
   return results;
 }();
 
-late final _sideImage = d.Image.decorative(
+final _sideImage = d.Image.decorative(
   src: static_files.staticUrls.packagesSideImage,
   width: 400,
   height: 400,

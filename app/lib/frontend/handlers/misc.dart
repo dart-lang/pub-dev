@@ -72,7 +72,7 @@ Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
 
 /// Handles requests for /topics
 Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
-  late Map<String, int> topics;
+  Map<String, int>? topics;
   try {
     final data = await cache.topicsPageData().get(() async {
       return await storageService
@@ -83,16 +83,14 @@ Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
     topics = (utf8JsonDecoder.convert(data!) as Map<String, dynamic>)
         .cast<String, int>();
   } on FormatException catch (e, st) {
-    topics = {};
     _log.shout('Error loading topics, error:', e, st);
   } on DetailedApiRequestError catch (e, st) {
-    topics = {};
     if (e.status != 404) {
       _log.severe('Failed to load topics.json, error : ', e, st);
     }
   }
 
-  return htmlResponse(renderTopicsPage(topics));
+  return htmlResponse(renderTopicsPage(topics ?? {}));
 }
 
 /// Handles requests for /robots.txt

@@ -29,7 +29,7 @@ void parseAndValidateHtml(String html) {
 /// - `<script> tags have no `src` attribute or have content (except `ld+json`
 ///   meta content).
 void validateHtml(Node root) {
-  late List<Element> Function(String selector) querySelectorAll;
+  final List<Element> Function(String selector) querySelectorAll;
   if (root is DocumentFragment) {
     querySelectorAll = root.querySelectorAll;
   } else if (root is Document) {

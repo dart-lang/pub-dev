@@ -18,7 +18,7 @@ Future<String> executeSetUserBlocked(List<String> args) async {
   final valueAsString = args.length == 2 ? args[1] : null;
   final blockedStatus = _parseValue(valueAsString);
 
-  late List<User> users;
+  final List<User> users;
   if (isValidEmail(idOrEmail)) {
     users = await accountBackend.lookupUsersByEmail(idOrEmail);
   } else {

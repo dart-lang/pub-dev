@@ -73,6 +73,7 @@ linter:
     - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
+    - unnecessary_late
     - unnecessary_library_name
     - unnecessary_library_directive
     - unnecessary_new
