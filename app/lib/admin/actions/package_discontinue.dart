@@ -17,8 +17,9 @@ Sets the `Package.isDiscontinued` and `Package.replacedBy` properties.
 ''',
   options: {
     'package': 'The package to be discontinued.',
+    'value': 'The value to set (defaults to true).',
     'replaced-by':
-        'The Package.replacedBy field (if not set will be set to `null`).'
+        'The Package.replacedBy field (if not set will be set to `null`).',
   },
   invoke: (options) async {
     final package = options['package'];
@@ -26,6 +27,9 @@ Sets the `Package.isDiscontinued` and `Package.replacedBy` properties.
       package != null && package.isNotEmpty,
       '`package` must be given',
     );
+    final value = options['value'] ?? 'true';
+    InvalidInputException.checkAnyOf(value, 'value', ['true', 'false']);
+    final valueToSet = value == 'true';
 
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
@@ -45,8 +49,8 @@ Sets the `Package.isDiscontinued` and `Package.replacedBy` properties.
       if (pkg == null) {
         throw NotFoundException.resource(package);
       }
-      pkg.isDiscontinued = true;
-      pkg.replacedBy = replacedBy;
+      pkg.isDiscontinued = valueToSet;
+      pkg.replacedBy = valueToSet ? replacedBy : null;
       pkg.updated = clock.now().toUtc();
       tx.insert(pkg);
       return pkg;
