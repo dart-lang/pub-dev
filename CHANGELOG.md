@@ -2,6 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2024.10.15`.
+ * Upgraded pana to `0.22.13`.
+ * Upgraded dependencies (including `mailer`).
 
 ## `20241008t115400-all`
 
