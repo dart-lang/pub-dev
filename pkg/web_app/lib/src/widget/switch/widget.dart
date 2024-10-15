@@ -20,8 +20,8 @@ import '../../web_util.dart';
 /// derived from document state.
 ///
 /// The optional `data-switch-state-id` property may be used to provide an
-/// identifier for the sttae of this switch in `localStorage`. If supplied state
-/// will be sync'ed across windows.
+/// identifier for the state of this switch in `localStorage`. If supplied state
+/// will be synced across windows.
 ///
 /// The optional `data-switch-enabled` property may be used to specify a space
 /// separated list of classes to be applied to `data-switch-target` when the

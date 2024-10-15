@@ -9,7 +9,7 @@ import 'package:mdc_web/mdc_web.dart' show MDCDialog;
 import 'deferred/markdown.dart' deferred as md;
 
 /// Displays a message via the modal window.
-Future modalMessage(String title, Element content) async {
+Future<void> modalMessage(String title, Element content) async {
   await modalWindow(
     titleText: title,
     content: content,
@@ -85,9 +85,9 @@ Element _buildDialog({
 
   /// The callback will be called with `true` when "OK" was clicked, and `false`
   /// when "Cancel" was clicked.
-  required Function(bool) closing,
+  required void Function(bool) closing,
 }) =>
-    Element.div()
+    DivElement()
       ..classes.add('mdc-dialog')
       ..attributes.addAll({
         'role': 'alertdialog',
@@ -96,17 +96,17 @@ Element _buildDialog({
         'aria-describedby': 'pub-dialog-content',
       })
       ..children = [
-        Element.div()
+        DivElement()
           ..classes.add('mdc-dialog__container')
           ..children = [
-            Element.div()
+            DivElement()
               ..classes.add('mdc-dialog__surface')
               ..children = [
-                Element.tag('h2')
+                HeadingElement.h2()
                   ..classes.add('mdc-dialog__title')
                   ..id = 'pub-dialog-title'
                   ..innerText = titleText,
-                Element.div()
+                DivElement()
                   ..classes.add('mdc-dialog__content')
                   ..id = 'pub-dialog-content'
                   ..children = [content],
@@ -114,7 +114,7 @@ Element _buildDialog({
                   ..classes.add('mdc-dialog__actions')
                   ..children = [
                     if (isQuestion)
-                      Element.tag('button')
+                      ButtonElement()
                         ..classes.addAll([
                           'mdc-button',
                           'mdc-dialog__button',
@@ -126,11 +126,11 @@ Element _buildDialog({
                           closing(false);
                         })
                         ..children = [
-                          Element.span()
+                          SpanElement()
                             ..classes.add('mdc-button__label')
                             ..innerText = cancelButtonText ?? 'Cancel',
                         ],
-                    Element.tag('button')
+                    ButtonElement()
                       ..classes.addAll([
                         'mdc-button',
                         'mdc-dialog__button',
@@ -142,18 +142,18 @@ Element _buildDialog({
                         closing(true);
                       })
                       ..children = [
-                        Element.span()
+                        SpanElement()
                           ..classes.add('mdc-button__label')
                           ..innerText = okButtonText ?? 'Ok',
                       ],
                   ],
               ],
           ],
-        Element.div()..classes.add('mdc-dialog__scrim'),
+        DivElement()..classes.add('mdc-dialog__scrim'),
       ];
 
 /// Creates an [Element] with unformatted [text] content.
-Element text(String text) => Element.div()..text = text;
+Element text(String text) => DivElement()..text = text;
 
 /// Creates an [Element] with Markdown-formatted content.
 Future<Element> markdown(String text) async {
@@ -203,12 +203,12 @@ bool _isInsideContent(Element e, Element content) {
 /// Disables all focusable elements, except for the elements inside
 /// [allowedComponents]. Returns a [Function] that will restore the
 /// original focusability state of the disabled elements.
-Function disableAllFocusability({
+void Function() disableAllFocusability({
   required List<Element> allowedComponents,
 }) {
   final focusableElements =
       document.body!.querySelectorAll(_focusableSelectors.join(', '));
-  final restoreFocusabilityFns = <Function>[];
+  final restoreFocusabilityFns = <void Function()>[];
   for (final e in focusableElements) {
     if (allowedComponents.any((content) => _isInsideContent(e, content))) {
       continue;
@@ -224,7 +224,7 @@ Function disableAllFocusability({
 
 /// Update [e] to disable focusability and return a [Function] that can be
 /// called to revert its original state.
-Function _disableFocusability(Element e) {
+void Function() _disableFocusability(Element e) {
   final isLink = e.tagName.toLowerCase() == 'a';
   final hasTabindex = e.hasAttribute('tabindex');
   final attributesToSet = <String, String>{

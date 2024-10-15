@@ -8,7 +8,7 @@ import 'package:_pub_shared/data/page_data.dart';
 
 /// The server-provided config/data for the current page.
 ///
-/// This is the <meta name="pub-page-data" content="[json-data]"> embedded in
+/// This is the `<meta name="pub-page-data" content="[json-data]">` embedded in
 /// the `head` section of the HTML page.
 final PageData pageData = _extractData();
 
@@ -16,8 +16,8 @@ PageData _extractData() {
   final meta = document.head?.querySelector('meta[name="pub-page-data"]');
   if (meta != null) {
     try {
-      final text = meta.attributes['content']!;
-      final map = pageDataJsonCodec.decode(text) as Map<String, dynamic>;
+      final text = meta.getAttribute('content')!;
+      final map = pageDataJsonCodec.decode(text) as Map<String, Object?>;
       return PageData.fromJson(map);
     } catch (_) {
       // ignore exception

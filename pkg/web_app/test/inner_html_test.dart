@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 void main() {
-  Future _checkFiles(String path) async {
+  Future<void> _checkFiles(String path) async {
     final dir = Directory(path);
     await for (final f in dir.list(recursive: true)) {
       if (f is File) {

@@ -163,7 +163,7 @@ final class _CompletionWidget {
   final HTMLInputElement input;
   final HTMLDivElement dropdown;
   final CompletionData data;
-  var state = _State();
+  _State state = _State();
 
   _CompletionWidget._({
     required this.input,
@@ -295,7 +295,7 @@ final class _CompletionWidget {
       return;
     }
 
-    // If explicily closed using 'Escape', then we handle no more keys
+    // If explicitly closed using 'Escape', then handle no more keys.
     if (state.closed) {
       return;
     }
@@ -311,7 +311,7 @@ final class _CompletionWidget {
       return;
     }
 
-    // If mouse down on an option element, then we select and apply it
+    // If mouse down on an option element, then select and apply it.
     if (event.target.isA<HTMLDivElement>()) {
       final target = event.target as HTMLDivElement;
 
@@ -442,10 +442,10 @@ final class _CompletionWidget {
         'Accept': 'application/json',
       }).timeout(Duration(seconds: 30)),
     );
-    return CompletionData.fromJson(root as Map<String, dynamic>);
+    return CompletionData.fromJson(root as Map<String, Object?>);
   }
 
-  static late final _canvas = HTMLCanvasElement();
+  static final HTMLCanvasElement _canvas = HTMLCanvasElement();
   static int getTextWidth(String text, Element element) {
     final ctx = _canvas.context2D;
     final style = window.getComputedStyle(element);

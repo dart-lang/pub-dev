@@ -13,7 +13,7 @@ void setupScroll() {
 }
 
 void _scrollToHash() {
-  final String hash = window.location.hash;
+  final hash = window.location.hash;
   if (hash.isNotEmpty) {
     final id = hash.startsWith('#') ? hash.substring(1) : hash;
     final list =
@@ -44,11 +44,11 @@ void _setEventForAnchorScroll() {
     }
     if (target is AnchorElement &&
         target.getAttribute('href') == target.hash &&
-        target.hash != null &&
-        target.hash!.isNotEmpty) {
+        (target.hash?.isNotEmpty ?? false)) {
       final elem = document.querySelector(target.hash!);
       if (elem != null) {
-        window.history.pushState({}, document.title, target.hash);
+        window.history
+            .pushState(<String, String>{}, document.title, target.hash);
         e.preventDefault();
         _scrollTo(elem);
       }
@@ -56,7 +56,7 @@ void _setEventForAnchorScroll() {
   });
 }
 
-Future _scrollTo(Element elem) async {
+Future<void> _scrollTo(Element elem) async {
   // Chrome could provide inconsistent position data just after the page has
   // been loaded. The first animation frame makes sure that the rendering is
   // stabilized and the position data is correct.

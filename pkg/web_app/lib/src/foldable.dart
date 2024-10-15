@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:math' show min, max;
+import 'dart:math' show max, min;
 
 void setupFoldable() {
   _setEventForFoldable();
@@ -61,7 +61,7 @@ void _setEventForFoldable() {
 
     final foldableIcon = h.querySelector('.foldable-icon');
     if (foldableIcon != null) {
-      foldableIcon.attributes['tabindex'] = '0';
+      foldableIcon.setAttribute('tabindex', '0');
     }
 
     // listen on trigger events

@@ -7,12 +7,12 @@ library;
 
 import 'dart:js_interop';
 
-import 'package:web/web.dart' as dart_html;
+import 'package:web/web.dart' as web;
 
 @JS('dataLayer.push')
 external void _push(JSAny? data);
 
-void _pushMap(Map<String, dynamic> data) {
+void _pushMap(Map<String, Object?> data) {
   _push(data.jsify());
 }
 
@@ -25,7 +25,7 @@ void gtmCustomEvent({
     'event': 'custom-event', // hardcoded, used in GTM Trigger
     'customEventCategory': category,
     'customEventAction': action,
-    'customEventLabel': 'path:${dart_html.window.location.pathname}',
+    'customEventLabel': 'path:${web.window.location.pathname}',
     'customEventValue': '1',
   });
 }

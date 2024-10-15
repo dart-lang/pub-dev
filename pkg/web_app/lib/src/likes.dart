@@ -7,9 +7,9 @@ import 'dart:html';
 
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
-import 'package:web_app/src/_dom_helper.dart';
-import 'package:web_app/src/account.dart';
 
+import '_dom_helper.dart';
+import 'account.dart';
 import 'api_client/api_client.dart' deferred as api_client;
 import 'page_data.dart';
 
@@ -17,7 +17,8 @@ Future<void> _done = Future.value();
 
 /// Ensure only one task runs at the same time.
 void _enqueue(Future<void> Function() task) {
-  _done = _done.then((_) => task(), onError: (e) => print('Action failed: $e'));
+  _done = _done.then((_) => task(),
+      onError: (Object? e) => print('Action failed: $e'));
 }
 
 void setupLikesList() {
@@ -52,7 +53,7 @@ void setupLikes() {
   if (likeButton == null) return;
 
   final iconButtonToggle = MDCIconButtonToggle(likeButton);
-  int likesDelta = 0;
+  var likesDelta = 0;
 
   // keep in-sync with app/lib/frontend/templates/views/shared/detail/header.dart
   String likesString() {
