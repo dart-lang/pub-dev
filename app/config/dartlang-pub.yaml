@@ -75,6 +75,10 @@ rateLimits:
     burst: 3
     hourly: 6
     daily: 12
+    weekly: 20      #  20 versions/week
+    # monthly: 32   # ~ 8 versions/week
+    # quarterly: 50 # ~ 4 versions/week
+    # yearly: 100   # ~ 2 versions/week
   - operation: package-published
     scope: user
     burst: 200

@@ -16,17 +16,17 @@ import '../../shared/redis_cache.dart';
 
 final _logger = Logger('rate_limit');
 
-/// Verifies if the current package upload has a rate limit and throws
-/// if the limit has been exceeded.
+/// Verifies if the current package upload has an applicable rate limit
+/// and throws if the limit has been exceeded.
 Future<void> verifyPackageUploadRateLimit({
   required AuthenticatedAgent agent,
   required String package,
   required bool isNew,
+  required List<DateTime> timestamps,
 }) async {
-  final packagePublishedOp = AuditLogRecordKind.packagePublished;
-
   await _verifyRateLimit(
-    rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.user),
+    rateLimit:
+        _getRateLimit(AuditLogRecordKind.packagePublished, RateLimitScope.user),
     agentId: agent.agentId,
   );
 
@@ -42,8 +42,10 @@ Future<void> verifyPackageUploadRateLimit({
 
   // regular package-specific limits
   await _verifyRateLimit(
-    rateLimit: _getRateLimit(packagePublishedOp, RateLimitScope.package),
+    rateLimit: _getRateLimit(
+        AuditLogRecordKind.packagePublished, RateLimitScope.package),
     package: package,
+    timestamps: timestamps,
   );
 }
 
@@ -72,6 +74,7 @@ Future<void> _verifyRateLimit({
   required RateLimit? rateLimit,
   String? package,
   String? agentId,
+  List<DateTime>? timestamps,
 }) async {
   assert(agentId != null || package != null);
   if (agentId == KnownAgents.pubSupport) {
@@ -81,9 +84,7 @@ Future<void> _verifyRateLimit({
   if (rateLimit == null) {
     return;
   }
-  if (rateLimit.burst == null &&
-      rateLimit.hourly == null &&
-      rateLimit.daily == null) {
+  if (rateLimit.isEmpty) {
     return;
   }
 
@@ -123,20 +124,34 @@ Future<void> _verifyRateLimit({
 
     final now = clock.now().toUtc();
     final windowStart = now.subtract(window);
-    final relevantEntries = auditEntriesFromLastDay!
-        .where((e) => e.kind == rateLimit.operation)
-        .where((e) => e.created!.isAfter(windowStart))
-        .where((e) => package == null || _containsPackage(e.packages, package))
-        .where((e) =>
-            agentId == null ||
-            e.agent == agentId ||
-            _containsUserId(e.users, agentId))
-        .toList();
 
-    if (relevantEntries.length >= maxCount) {
-      final firstTimestamp = relevantEntries
+    late List<DateTime> relevantTimestamps;
+    if (timestamps != null) {
+      relevantTimestamps =
+          timestamps.where((t) => t.isAfter(windowStart)).toList();
+    } else {
+      // Sanity check: most rate limit operations only support rate limit within a day.
+      // The ones which support longer window must provide their list of timestamps.
+      if (window.inDays > 1) {
+        throw ArgumentError(
+            'Rate limit "${rateLimit.operation}" does not support long-term rules.');
+      }
+      relevantTimestamps = auditEntriesFromLastDay!
+          .where((e) => e.kind == rateLimit.operation)
+          .where((e) => e.created!.isAfter(windowStart))
+          .where(
+              (e) => package == null || _containsPackage(e.packages, package))
+          .where((e) =>
+              agentId == null ||
+              e.agent == agentId ||
+              _containsUserId(e.users, agentId))
           .map((e) => e.created!)
-          .reduce((a, b) => a.isBefore(b) ? a : b);
+          .toList();
+    }
+
+    if (relevantTimestamps.length >= maxCount) {
+      final firstTimestamp =
+          relevantTimestamps.reduce((a, b) => a.isBefore(b) ? a : b);
       await entry.set(firstTimestamp.add(window), window);
       throw RateLimitException(
         operation: operation,
@@ -164,6 +179,32 @@ Future<void> _verifyRateLimit({
     window: Duration(days: 1),
     maxCount: rateLimit.daily,
     windowAsText: 'last day',
+  );
+
+  // note: long-term limits are only checked if timestamps are provided
+  await check(
+    operation: rateLimit.operation,
+    window: Duration(days: 7),
+    maxCount: rateLimit.weekly,
+    windowAsText: 'last week',
+  );
+  await check(
+    operation: rateLimit.operation,
+    window: Duration(days: 30),
+    maxCount: rateLimit.monthly,
+    windowAsText: 'last month',
+  );
+  await check(
+    operation: rateLimit.operation,
+    window: Duration(days: 91),
+    maxCount: rateLimit.quarterly,
+    windowAsText: 'last 3 months',
+  );
+  await check(
+    operation: rateLimit.operation,
+    window: Duration(days: 365),
+    maxCount: rateLimit.yearly,
+    windowAsText: 'last year',
   );
   sw.stop();
   _logger.info('[rate-limit-verified] Rate limit verified in ${sw.elapsed}');

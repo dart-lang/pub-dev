@@ -251,7 +251,17 @@ RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
       ($checkedConvert) {
         $checkKeys(
           json,
-          allowedKeys: const ['operation', 'scope', 'burst', 'hourly', 'daily'],
+          allowedKeys: const [
+            'operation',
+            'scope',
+            'burst',
+            'hourly',
+            'daily',
+            'weekly',
+            'monthly',
+            'quarterly',
+            'yearly'
+          ],
         );
         final val = RateLimit(
           operation: $checkedConvert('operation', (v) => v as String),
@@ -260,6 +270,10 @@ RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
           burst: $checkedConvert('burst', (v) => (v as num?)?.toInt()),
           hourly: $checkedConvert('hourly', (v) => (v as num?)?.toInt()),
           daily: $checkedConvert('daily', (v) => (v as num?)?.toInt()),
+          weekly: $checkedConvert('weekly', (v) => (v as num?)?.toInt()),
+          monthly: $checkedConvert('monthly', (v) => (v as num?)?.toInt()),
+          quarterly: $checkedConvert('quarterly', (v) => (v as num?)?.toInt()),
+          yearly: $checkedConvert('yearly', (v) => (v as num?)?.toInt()),
         );
         return val;
       },
@@ -280,6 +294,10 @@ Map<String, dynamic> _$RateLimitToJson(RateLimit instance) {
   writeNotNull('burst', instance.burst);
   writeNotNull('hourly', instance.hourly);
   writeNotNull('daily', instance.daily);
+  writeNotNull('weekly', instance.weekly);
+  writeNotNull('monthly', instance.monthly);
+  writeNotNull('quarterly', instance.quarterly);
+  writeNotNull('yearly', instance.yearly);
   return val;
 }
 
