@@ -123,13 +123,13 @@ Future<String> expectHtmlResponse(
   parseAndValidateHtml(content);
   expect(content, contains('<!DOCTYPE html>'));
   expect(content, contains('</html>'));
-  for (Pattern p in present) {
+  for (final p in present) {
     if (p.allMatches(content).isEmpty) {
       print(content);
       throw Exception('$p is missing from the content.');
     }
   }
-  for (Pattern p in absent) {
+  for (final p in absent) {
     if (p.allMatches(content).isNotEmpty) {
       throw Exception('$p is present in the content.');
     }

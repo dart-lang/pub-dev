@@ -98,7 +98,7 @@ void main() {
         'location_picker',
         'background_location_updates',
       ];
-      for (String name in names) {
+      for (final name in names) {
         index.add(name, name);
       }
       final match = index.search('location');

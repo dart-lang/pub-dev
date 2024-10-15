@@ -61,10 +61,10 @@ d.Node packageInfoBoxNode({
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = imageStorage.getImageUrl(
         package.name!, version.version!, screenshots.first.webp190Thumbnail);
-    for (ProcessedScreenshot s in screenshots) {
+    for (final screenshot in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
-          package.name!, version.version!, s.webpImage));
-      screenshotDescriptions.add(s.description);
+          package.name!, version.version!, screenshot.webpImage));
+      screenshotDescriptions.add(screenshot.description);
     }
   }
   return d.fragment([

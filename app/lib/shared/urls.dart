@@ -390,7 +390,7 @@ String? getRepositoryUrl(
   String branch = 'master',
 }) {
   if (repository == null || repository.isEmpty) return null;
-  for (var key in _repositoryReplacePrefixes.keys) {
+  for (final key in _repositoryReplacePrefixes.keys) {
     if (repository!.startsWith(key)) {
       repository =
           repository.replaceFirst(key, _repositoryReplacePrefixes[key]!);

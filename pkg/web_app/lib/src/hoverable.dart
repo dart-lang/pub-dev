@@ -27,7 +27,7 @@ Element? _activeHover;
 ///  Their `:hover` and `.hover` style must match to have the same effect.
 void _setEventForHoverable() {
   document.body!.onClick.listen(deactivateHover);
-  for (Element h in document.querySelectorAll('.hoverable')) {
+  for (final h in document.querySelectorAll('.hoverable')) {
     registerHoverable(h);
   }
 }

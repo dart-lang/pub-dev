@@ -365,7 +365,7 @@ class VersionedJsonStorage {
   Future<DeleteCounts> deleteOldData({Duration? minAgeThreshold}) async {
     var found = 0;
     var deleted = 0;
-    await for (BucketEntry entry in _bucket.list(prefix: _prefix)) {
+    await for (final entry in _bucket.list(prefix: _prefix)) {
       if (entry.isDirectory) {
         continue;
       }

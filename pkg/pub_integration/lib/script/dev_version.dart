@@ -177,12 +177,12 @@ class DevVersionScript {
       {List<Pattern>? present, List<Pattern>? absent}) {
     // removing title attributes to keep patterns simple
     content = content!.replaceAll(RegExp(' title=".*?"'), '');
-    for (Pattern p in present ?? []) {
+    for (final p in present ?? const <Pattern>[]) {
       if (p.allMatches(content).isEmpty) {
         throw Exception('$p is missing from the content.');
       }
     }
-    for (Pattern p in absent ?? []) {
+    for (final p in absent ?? const <Pattern>[]) {
       if (p.allMatches(content).isNotEmpty) {
         throw Exception('$p is present in the content.');
       }
