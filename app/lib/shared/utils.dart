@@ -312,10 +312,10 @@ extension StringExt on String {
   /// ```
   String without({String prefix = '', String suffix = ''}) {
     var val = this;
-    if (startsWith(prefix)) {
+    if (prefix.isNotEmpty && startsWith(prefix)) {
       val = val.substring(prefix.length);
     }
-    if (endsWith(suffix)) {
+    if (suffix.isNotEmpty && endsWith(suffix)) {
       val = val.substring(0, val.length - suffix.length);
     }
     return val;
