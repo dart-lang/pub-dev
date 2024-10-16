@@ -202,7 +202,7 @@ class Pubspec {
   late final List<Uri> funding = _inner.funding ?? const <Uri>[];
 
   /// Whether the pubspec has any topic entry.
-  late final hasTopic = canonicalizedTopics.isNotEmpty;
+  bool get hasTopic => canonicalizedTopics.isNotEmpty;
 }
 
 class MinSdkVersion {

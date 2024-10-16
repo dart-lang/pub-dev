@@ -52,6 +52,7 @@ linter:
     - prefer_conditional_assignment
     - prefer_contains
     - prefer_final_fields
+    - prefer_final_in_for_each
     - prefer_final_locals
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases
@@ -72,6 +73,7 @@ linter:
     - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
+    - unnecessary_late
     - unnecessary_library_name
     - unnecessary_library_directive
     - unnecessary_new

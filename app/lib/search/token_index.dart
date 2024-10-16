@@ -15,15 +15,15 @@ class Score {
   Score(this._values);
   Score.empty() : _values = const <String, double>{};
 
-  late final bool isEmpty = _values.isEmpty;
-  late final bool isNotEmpty = !isEmpty;
+  bool get isEmpty => _values.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   Set<String> getKeys({bool Function(String key)? where}) =>
       _values.keys.where((e) => where == null || where(e)).toSet();
   late final double maxValue = _values.values.fold(0.0, math.max);
   Map<String, double> getValues() => _values;
   bool containsKey(String key) => _values.containsKey(key);
-  late final int length = _values.length;
+  int get length => _values.length;
 
   double operator [](String key) => _values[key] ?? 0.0;
 
@@ -172,7 +172,7 @@ class TokenIndex {
     if (tokens == null || tokens.isEmpty) {
       return;
     }
-    for (String token in tokens.keys) {
+    for (final token in tokens.keys) {
       final Map<String, double> weights =
           _inverseIds.putIfAbsent(token, () => <String, double>{});
       weights[id] = math.max(weights[id] ?? 0.0, tokens[token]!);
@@ -219,8 +219,8 @@ class TokenIndex {
   Map<String, double> _scoreDocs(TokenMatch tokenMatch,
       {double weight = 1.0, int wordCount = 1, Set<String>? limitToIds}) {
     // Summarize the scores for the documents.
-    final Map<String, double> docScores = <String, double>{};
-    for (String token in tokenMatch.tokens) {
+    final docScores = <String, double>{};
+    for (final token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token]!;
       for (final e in docWeights.entries) {
         if (limitToIds != null && !limitToIds.contains(e.key)) continue;

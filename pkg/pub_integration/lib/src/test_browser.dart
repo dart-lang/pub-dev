@@ -45,7 +45,7 @@ class TestBrowser {
     final binaries = [
       '/usr/bin/google-chrome',
     ];
-    for (String binary in binaries) {
+    for (final binary in binaries) {
       if (File(binary).existsSync()) return binary;
     }
 

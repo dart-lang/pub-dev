@@ -95,7 +95,7 @@ Map<String, double>? tokenize(String? originalText, {bool isSplit = false}) {
   final tokens = <String, double>{};
 
   final words = isSplit ? [originalText] : splitForIndexing(originalText);
-  for (String word in words) {
+  for (final word in words) {
     if (word.length > _maxWordLength) {
       continue;
     }

@@ -62,7 +62,7 @@ class RequestContext {
             clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
   late final _isAuthenticated = sessionData?.isAuthenticated ?? false;
-  late final isNotAuthenticated = !_isAuthenticated;
+  bool get isNotAuthenticated => !_isAuthenticated;
   late final authenticatedUserId =
       _isAuthenticated ? sessionData?.userId : null;
 }

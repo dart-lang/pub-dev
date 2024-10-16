@@ -16,7 +16,7 @@ part 'models.g.dart';
 
 final _log = Logger('topics');
 
-late final canonicalTopics = () {
+final canonicalTopics = () {
   try {
     final f = File(p.join(resolveAppDir(), '../doc/topics.yaml'));
     return CanonicalTopicFileContent.fromYaml(f.readAsStringSync());

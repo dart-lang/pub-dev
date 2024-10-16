@@ -6,7 +6,7 @@ import 'dart:html';
 
 import 'package:http/http.dart' deferred as http show get;
 
-typedef PopStateFn = Function();
+typedef PopStateFn = void Function();
 
 PopStateFn? _popStateFn;
 
@@ -27,10 +27,9 @@ void setupPageUpdater(PopStateFn popStateFn) {
 
   // handle back button updates
   window.onPopState.listen((event) {
-    final state = event.state;
-    if (state is Map && state['html'] is String) {
+    if (event.state case {'html': final String htmlState?}) {
       _update(
-        state['html'] as String,
+        htmlState,
         pushState: false,
         url: null,
       );
@@ -64,13 +63,13 @@ Future<void> updateBodyWithHttpGet({
   required Uri requestUri,
   String? navigationUrl,
   Duration timeout = const Duration(seconds: 4),
-  bool Function()? preupdateCheck,
+  bool Function()? preUpdateCheck,
 }) async {
   try {
     await http.loadLibrary();
     final page = await http.get(requestUri).timeout(timeout);
     if (page.statusCode == 200) {
-      if (preupdateCheck == null || preupdateCheck()) {
+      if (preUpdateCheck == null || preUpdateCheck()) {
         _update(
           page.body,
           pushState: true,

@@ -302,6 +302,6 @@ class _BytesAndHash {
 
   _BytesAndHash(this.bytes);
 
-  late final length = bytes.length;
+  int get length => bytes.length;
   late final md5Hash = md5.convert(bytes).bytes;
 }

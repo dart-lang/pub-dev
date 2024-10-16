@@ -36,7 +36,7 @@ void _setEventForDetailMetadataToggle() {
 
   var isVisible = false;
   // ignore: cancel_subscriptions
-  StreamSubscription? stateSubscription;
+  StreamSubscription<void>? stateSubscription;
   final currentTitle = document.head?.querySelector('title')?.text?.trim();
   final currentUrl = window.location.toString();
   document.querySelectorAll('.detail-metadata-toggle').forEach((e) {

@@ -44,13 +44,11 @@ import 'tools/delete_all_staging.dart';
 import 'tools/list_package_blocked.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
-import 'tools/package_discontinued.dart';
 import 'tools/package_publisher.dart';
 import 'tools/publisher_member.dart';
 import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
 import 'tools/set_user_blocked.dart';
-import 'tools/update_package_versions.dart';
 import 'tools/user_merger.dart';
 
 final _logger = Logger('pub.admin.backend');
@@ -69,9 +67,7 @@ final Map<String, Tool> availableTools = {
   'delete-all-staging': executeDeleteAllStaging,
   'list-package-blocked': executeListPackageBlocked,
   'notify-service': executeNotifyService,
-  'package-discontinued': executeSetPackageDiscontinued,
   'package-publisher': executeSetPackagePublisher,
-  'update-package-versions': executeUpdatePackageVersions,
   'recent-uploaders': executeRecentUploaders,
   'publisher-member': executePublisherMember,
   'publisher-invite-member': executePublisherInviteMember,

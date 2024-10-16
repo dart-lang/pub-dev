@@ -5,10 +5,9 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:web_app/src/page_data.dart';
-
 import 'admin_pages.dart' deferred as admin_pages;
 import 'api_client/api_client.dart' deferred as api_client;
+import 'page_data.dart';
 
 final _signInButton = document.getElementById('-account-login');
 final isNotAuthenticated = _signInButton != null;
@@ -29,8 +28,8 @@ void _initSessionMonitor() {
     return;
   }
 
-  final minCheckDelay = Duration(minutes: 5);
-  final authenticationThreshold = Duration(minutes: 55);
+  const minCheckDelay = Duration(minutes: 5);
+  const authenticationThreshold = Duration(minutes: 55);
   final maxDurationBetweenChecks = authenticationThreshold - minCheckDelay;
   final sessionExpiresThreshold = authenticationThreshold - (minCheckDelay * 2);
 
@@ -86,7 +85,7 @@ void _initSessionMonitor() {
         // unless the user session timed out or expired.
         //
         // In any of the above cases, defaulting to the default frequency is safe.
-        await Future.delayed(minCheckDelay);
+        await Future<void>.delayed(minCheckDelay);
       } else {
         // When the session is active, we can run the next check just before the
         // authentication threshold maxes out. Added sanity checks to bound the delay
@@ -99,7 +98,7 @@ void _initSessionMonitor() {
         } else if (nextCheck < minCheckDelay) {
           nextCheck = minCheckDelay;
         }
-        await Future.delayed(nextCheck);
+        await Future<void>.delayed(nextCheck);
       }
 
       // Update session information and label.

@@ -53,32 +53,32 @@ void adjustQueryTextAfterPageShow() {
   final q = document.querySelector('input[name="q"]') as InputElement?;
   if (q == null) return null;
   final uri = Uri.tryParse(window.location.href);
-  if (q.value != uri?.queryParameters['q']) {
-    q.value = uri?.queryParameters['q'] ?? q.value;
+  final qParameter = uri?.queryParameters['q'];
+  if (q.value != qParameter) {
+    q.value = qParameter ?? q.value;
   }
 }
 
 void _setEventsForSearchForm() {
   // When a search form checkbox has a linked search label,
-  //checking the checkbox will trigger a click on the link.
+  // checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
     final checkbox = e.querySelector('input');
     final link = e.querySelector('a');
     if (checkbox != null && link != null) {
       final tag = link.dataset['tag'];
       final action = link.dataset['action'];
+      if (tag == null) return;
 
       Future<void> handleClick(Event event) async {
-        if (tag != null) {
-          await _handleInputFieldUpdate(
-            event,
-            newQueryFn: (parsedQuery) => parsedQuery.change(
-              tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
-            ),
-            gtmActionFn: (o, n) =>
-                o.tagsPredicate.hasTag(tag) ? '$action-off' : '$action-on',
-          );
-        }
+        await _handleInputFieldUpdate(
+          event,
+          newQueryFn: (parsedQuery) => parsedQuery.change(
+            tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
+          ),
+          gtmActionFn: (o, n) =>
+              o.tagsPredicate.hasTag(tag) ? '$action-off' : '$action-on',
+        );
       }
 
       checkbox.onChange.listen(handleClick);
@@ -126,7 +126,7 @@ Future<void> _handleInputFieldUpdate(
   await updateBodyWithHttpGet(
     requestUri: newRequestUri,
     navigationUrl: newVisibleUri.toString(),
-    preupdateCheck: () => _lastTargetUri == newVisibleUri,
+    preUpdateCheck: () => _lastTargetUri == newVisibleUri,
   );
 
   // notify GTM on the click

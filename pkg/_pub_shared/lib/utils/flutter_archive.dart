@@ -27,7 +27,7 @@ Future<FlutterArchive?> fetchFlutterArchive() async {
       final rs = await client.get(Uri.parse(
           'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
       return FlutterArchive.fromJson(
-          json.decode(rs.body) as Map<String, dynamic>);
+          json.decode(rs.body) as Map<String, Object?>);
     } catch (e, st) {
       _logger.warning('Unable to fetch the Flutter SDK archive', e, st);
       continue;
@@ -48,27 +48,24 @@ class FlutterArchive {
 
   FlutterArchive({this.baseUrl, this.currentRelease, this.releases});
 
-  factory FlutterArchive.fromJson(Map<String, dynamic> json) =>
+  factory FlutterArchive.fromJson(Map<String, Object?> json) =>
       _$FlutterArchiveFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FlutterArchiveToJson(this);
+  Map<String, Object?> toJson() => _$FlutterArchiveToJson(this);
 
-  late final _stableVersions = releases
-      ?.where((e) => e.channel == 'stable' && e.version != null)
-      .toList();
+  late final FlutterRelease? latestStable = _findLatestOfChannel('stable');
 
-  late final latestStable = (_stableVersions?.isNotEmpty ?? false)
-      ? _stableVersions!.reduce(
-          (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a)
-      : null;
+  late final FlutterRelease? latestBeta = _findLatestOfChannel('beta');
 
-  late final _betaVersions =
-      releases?.where((e) => e.channel == 'beta' && e.version != null).toList();
+  FlutterRelease? _findLatestOfChannel(String channelName) {
+    final releasesInChannel = releases
+        ?.where((e) => e.channel == channelName && e.version != null)
+        .toList(growable: false);
+    if (releasesInChannel == null || releasesInChannel.isEmpty) return null;
 
-  late final latestBeta = (_betaVersions?.isNotEmpty ?? false)
-      ? _betaVersions!.reduce(
-          (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a)
-      : null;
+    return releasesInChannel.reduce(
+        (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a);
+  }
 }
 
 /// The hashes of the current Flutter releases on the different channels.
@@ -80,10 +77,10 @@ class FlutterCurrentRelease {
 
   FlutterCurrentRelease({this.beta, this.dev, this.stable});
 
-  factory FlutterCurrentRelease.fromJson(Map<String, dynamic> json) =>
+  factory FlutterCurrentRelease.fromJson(Map<String, Object?> json) =>
       _$FlutterCurrentReleaseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FlutterCurrentReleaseToJson(this);
+  Map<String, Object?> toJson() => _$FlutterCurrentReleaseToJson(this);
 }
 
 /// A single release for Flutter.
@@ -109,29 +106,30 @@ class FlutterRelease {
     this.dartSdkVersion,
   });
 
-  factory FlutterRelease.fromJson(Map<String, dynamic> json) =>
+  factory FlutterRelease.fromJson(Map<String, Object?> json) =>
       _$FlutterReleaseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$FlutterReleaseToJson(this);
+  Map<String, Object?> toJson() => _$FlutterReleaseToJson(this);
 
-  late final cleanVersion =
-      version!.startsWith('v') ? version!.substring(1) : version!;
+  String get cleanVersion {
+    final version = this.version!;
+    return version.startsWith('v') ? version.substring(1) : version;
+  }
 
-  late final semanticVersion = Version.parse(cleanVersion);
-
-  /// The Dart SDK version string may be `3.4.3` for stable versions or
-  /// `3.5.0 (build 3.5.0-180.3.beta)` for prerelease versions.
-  /// For simplicity we only parse the first part of the version string.
-  late final _extractedDartSdkVersion = dartSdkVersion?.split(' ').first;
+  late final Version semanticVersion = Version.parse(cleanVersion);
 
   /// The parsed Dart SDK version or `null` if we were not able to
   /// parse the value.
-  late final semanticDartSdkVersion = () {
-    if (_extractedDartSdkVersion == null) {
+  late final Version? semanticDartSdkVersion = () {
+    // The Dart SDK version string may be `3.4.3` for stable versions or
+    // `3.5.0 (build 3.5.0-180.3.beta)` for prerelease versions.
+    // For simplicity we only parse the first part of the version string.
+    final extractedDartSdkVersion = dartSdkVersion?.split(' ').first;
+    if (extractedDartSdkVersion == null) {
       return null;
     }
     try {
-      return Version.parse(_extractedDartSdkVersion);
+      return Version.parse(extractedDartSdkVersion);
     } catch (_) {
       return null;
     }

@@ -99,7 +99,7 @@ void main() {
 
   group('SearchOrder enum', () {
     test('serialization', () {
-      for (var value in SearchOrder.values) {
+      for (final value in SearchOrder.values) {
         final serialized = value.name;
         expect(serialized, isNotEmpty);
         final SearchOrder? deserialized = parseSearchOrder(serialized);
