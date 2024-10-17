@@ -250,6 +250,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
+        'nameMatches': ['http'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http'},
