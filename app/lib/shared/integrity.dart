@@ -24,11 +24,11 @@ import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
+import '../service/email/email_templates.dart'
+    show isValidEmail, looksLikeEmail;
 import '../shared/env_config.dart';
-
 import 'configuration.dart';
 import 'datastore.dart';
-import 'email.dart' show isValidEmail, looksLikeEmail;
 import 'storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;

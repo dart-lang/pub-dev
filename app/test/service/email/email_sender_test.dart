@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:mailer/mailer.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/frontend/email_sender.dart';
-import 'package:pub_dev/shared/email.dart';
+import 'package:pub_dev/service/email/email_sender.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:test/test.dart';
 
 void main() {

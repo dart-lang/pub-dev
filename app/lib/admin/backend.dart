@@ -32,9 +32,9 @@ import '../package/backend.dart'
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/backend.dart';
+import '../service/email/email_templates.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
-import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart';

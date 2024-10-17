@@ -4,8 +4,8 @@
 
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/email.dart';
 
 import 'actions.dart';
 
