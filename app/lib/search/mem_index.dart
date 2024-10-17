@@ -153,7 +153,12 @@ class InMemoryPackageIndex {
     }
 
     // do text matching
-    final textResults = _searchText(packages, query.parsedQuery.text);
+    final parsedQueryText = query.parsedQuery.text;
+    final textResults = _searchText(
+      packages,
+      parsedQueryText,
+      includeNameMatches: (query.offset ?? 0) == 0,
+    );
 
     // filter packages that doesn't match text query
     if (textResults != null) {
@@ -161,7 +166,7 @@ class InMemoryPackageIndex {
       packages.removeWhere((x) => !keys.contains(x));
     }
 
-    List<String>? nameMatches;
+    final nameMatches = textResults?.nameMatches;
     List<PackageHit> packageHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
@@ -175,12 +180,6 @@ class InMemoryPackageIndex {
         /// multiplication outcomes.
         final overallScore = textResults.pkgScore
             .map((key, value) => value * _adjustedOverallScores[key]!);
-        // If the search hits have an exact name match, we move it to the front of the result list.
-        final parsedQueryText = query.parsedQuery.text;
-        if (parsedQueryText != null &&
-            _documentsByName.containsKey(parsedQueryText)) {
-          nameMatches = <String>[parsedQueryText];
-        }
         packageHits = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
@@ -242,12 +241,16 @@ class InMemoryPackageIndex {
     }
   }
 
-  _TextResults? _searchText(Set<String> packages, String? text) {
+  _TextResults? _searchText(
+    Set<String> packages,
+    String? text, {
+    required bool includeNameMatches,
+  }) {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
       if (words.isEmpty) {
-        return _TextResults(Score.empty(), {});
+        return _TextResults.empty();
       }
 
       bool aborted = false;
@@ -261,6 +264,12 @@ class InMemoryPackageIndex {
         return aborted;
       }
 
+      Set<String>? nameMatches;
+      if (includeNameMatches && _documentsByName.containsKey(text)) {
+        nameMatches ??= <String>{};
+        nameMatches.add(text);
+      }
+
       // Multiple words are scored separately, and then the individual scores
       // are multiplied. We can use a package filter that is applied after each
       // word to reduce the scope of the later words based on the previous results.
@@ -272,6 +281,11 @@ class InMemoryPackageIndex {
       for (final word in words) {
         final nameScore =
             _packageNameIndex.searchWord(word, packages: wordScopedPackages);
+        if (includeNameMatches && _documentsByName.containsKey(word)) {
+          nameMatches ??= <String>{};
+          nameMatches.add(word);
+        }
+
         final descr = _descrIndex
             .searchWords([word], weight: 0.90, limitToIds: wordScopedPackages);
         final readme = _readmeIndex
@@ -343,7 +357,11 @@ class InMemoryPackageIndex {
         score = Score(matched);
       }
 
-      return _TextResults(score, topApiPages);
+      return _TextResults(
+        score,
+        topApiPages,
+        nameMatches: nameMatches?.toList(),
+      );
     }
     return null;
   }
@@ -423,8 +441,19 @@ class InMemoryPackageIndex {
 class _TextResults {
   final Score pkgScore;
   final Map<String, List<MapEntry<String, double>>> topApiPages;
+  final List<String>? nameMatches;
 
-  _TextResults(this.pkgScore, this.topApiPages);
+  factory _TextResults.empty() => _TextResults(
+        Score.empty(),
+        {},
+        nameMatches: null,
+      );
+
+  _TextResults(
+    this.pkgScore,
+    this.topApiPages, {
+    required this.nameMatches,
+  });
 }
 
 /// A simple (non-inverted) index designed for package name lookup.
