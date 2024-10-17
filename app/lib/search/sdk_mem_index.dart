@@ -80,6 +80,7 @@ class SdkMemIndex {
     DartdocIndex index, {
     Set<String>? allowedLibraries,
   }) async {
+    final textsPerLibrary = <String, Map<String, String>>{};
     for (final f in index.entries) {
       final library = f.qualifiedName?.split('.').first;
       if (library == null) continue;
@@ -92,10 +93,15 @@ class SdkMemIndex {
       if (f.isLibrary) {
         _baseUriPerLibrary[library] = _baseUri.resolve(f.href!).toString();
       }
-      final tokens = _tokensPerLibrary.putIfAbsent(library, () => TokenIndex());
 
       final text = f.qualifiedName?.replaceAll('.', ' ').replaceAll(':', ' ');
-      tokens.add(f.href!, text);
+      if (text != null && text.isNotEmpty) {
+        final texts = textsPerLibrary.putIfAbsent(library, () => {});
+        texts[f.href!] = text;
+      }
+    }
+    for (final e in textsPerLibrary.entries) {
+      _tokensPerLibrary[e.key] = TokenIndex.fromMap(e.value);
     }
   }
 

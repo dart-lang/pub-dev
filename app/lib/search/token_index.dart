@@ -161,25 +161,34 @@ class TokenIndex {
   /// {id: size} map to store a value representative to the document length
   final _docSizes = <String, double>{};
 
-  /// The number of tokens stored in the index.
-  int get tokenCount => _inverseIds.length;
+  TokenIndex(List<String> keys, List<String?> values) {
+    assert(keys.length == values.length);
+    for (var i = 0; i < keys.length; i++) {
+      final id = keys[i];
+      final text = values[i];
 
-  int get documentCount => _docSizes.length;
+      if (text == null) {
+        continue;
+      }
+      final tokens = tokenize(text);
+      if (tokens == null || tokens.isEmpty) {
+        continue;
+      }
+      for (final token in tokens.keys) {
+        final weights =
+            _inverseIds.putIfAbsent(token, () => <String, double>{});
+        weights[id] = math.max(weights[id] ?? 0.0, tokens[token]!);
+      }
+      // Document size is a highly scaled-down proxy of the length.
+      final docSize = 1 + math.log(1 + tokens.length) / 100;
+      _docSizes[id] = docSize;
+    }
+  }
 
-  void add(String id, String? text) {
-    if (text == null) return;
-    final tokens = tokenize(text);
-    if (tokens == null || tokens.isEmpty) {
-      return;
-    }
-    for (final token in tokens.keys) {
-      final Map<String, double> weights =
-          _inverseIds.putIfAbsent(token, () => <String, double>{});
-      weights[id] = math.max(weights[id] ?? 0.0, tokens[token]!);
-    }
-    // Document size is a highly scaled-down proxy of the length.
-    final docSize = 1 + math.log(1 + tokens.length) / 100;
-    _docSizes[id] = docSize;
+  factory TokenIndex.fromMap(Map<String, String> map) {
+    final keys = map.keys.toList();
+    final values = map.values.toList();
+    return TokenIndex(keys, values);
   }
 
   /// Match the text against the corpus and return the tokens or

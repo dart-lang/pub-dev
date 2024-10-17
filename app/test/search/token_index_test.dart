@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   group('TokenIndex', () {
     test('partial token lookup', () {
-      final index = TokenIndex()..add('x', 'SomeCamelCasedWord and others');
+      final index = TokenIndex.fromMap({'x': 'SomeCamelCasedWord and others'});
       expect(index.lookupTokens('word').tokenWeights, {'word': 1.0});
       expect(index.lookupTokens('OtherCased').tokenWeights,
           {'cased': closeTo(0.70, 0.01)});
@@ -18,9 +18,10 @@ void main() {
     });
 
     test('No match', () {
-      final TokenIndex index = TokenIndex()
-        ..add('uri://http', 'http')
-        ..add('uri://http_magic', 'http_magic');
+      final TokenIndex index = TokenIndex.fromMap({
+        'uri://http': 'http',
+        'uri://http_magic': 'http_magic',
+      });
 
       expect(index.search('xml'), {
         // no match for http
@@ -29,9 +30,10 @@ void main() {
     });
 
     test('Scoring exact and partial matches', () {
-      final TokenIndex index = TokenIndex()
-        ..add('uri://http', 'http')
-        ..add('uri://http_magic', 'http_magic');
+      final TokenIndex index = TokenIndex.fromMap({
+        'uri://http': 'http',
+        'uri://http_magic': 'http_magic',
+      });
       expect(index.search('http'), {
         'uri://http': closeTo(0.993, 0.001),
         'uri://http_magic': closeTo(0.989, 0.001),
@@ -40,10 +42,11 @@ void main() {
 
     test('CamelCase indexing', () {
       final String queueText = '.DoubleLinkedQueue()';
-      final TokenIndex index = TokenIndex()
-        ..add('queue', queueText)
-        ..add('queue_lower', queueText.toLowerCase())
-        ..add('unmodifiable', 'CustomUnmodifiableMapBase');
+      final TokenIndex index = TokenIndex.fromMap({
+        'queue': queueText,
+        'queue_lower': queueText.toLowerCase(),
+        'unmodifiable': 'CustomUnmodifiableMapBase',
+      });
       expect(index.search('queue'), {
         'queue': closeTo(0.53, 0.01),
       });
@@ -54,10 +57,11 @@ void main() {
     });
 
     test('Wierd cases: riak client', () {
-      final TokenIndex index = TokenIndex()
-        ..add('uri://cli', 'cli')
-        ..add('uri://riak_client', 'riak_client')
-        ..add('uri://teamspeak', 'teamspeak');
+      final TokenIndex index = TokenIndex.fromMap({
+        'uri://cli': 'cli',
+        'uri://riak_client': 'riak_client',
+        'uri://teamspeak': 'teamspeak',
+      });
 
       expect(index.search('riak'), {
         'uri://riak_client': closeTo(0.99, 0.01),
@@ -68,24 +72,15 @@ void main() {
       });
     });
 
-    test('Free up memory', () {
-      final TokenIndex index = TokenIndex();
-      expect(index.tokenCount, 0);
-      index.add('url1', 'text');
-      expect(index.tokenCount, 1);
-      index.add('url2', 'another');
-      expect(index.tokenCount, 2);
-    });
-
     test('Do not overweight partial matches', () {
-      final index = TokenIndex()..add('flutter_qr_reader', 'flutter_qr_reader');
+      final index =
+          TokenIndex.fromMap({'flutter_qr_reader': 'flutter_qr_reader'});
       final data = index.search('ByteDataReader');
       // The partial match should not return more than 0.65 as score.
       expect(data, {'flutter_qr_reader': lessThan(0.65)});
     });
 
     test('longer words', () {
-      final index = TokenIndex();
       final names = [
         'location',
         'geolocator',
@@ -98,9 +93,7 @@ void main() {
         'location_picker',
         'background_location_updates',
       ];
-      for (final name in names) {
-        index.add(name, name);
-      }
+      final index = TokenIndex.fromMap(Map.fromIterables(names, names));
       final match = index.search('location');
       // location should be the top value, everything else should be lower
       final locationValue = match['location'];

@@ -19,11 +19,12 @@ final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex {
-  final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
+  final List<PackageDocument> _documents;
+  final _documentsByName = <String, PackageDocument>{};
   final _packageNameIndex = PackageNameIndex();
-  final TokenIndex _descrIndex = TokenIndex();
-  final TokenIndex _readmeIndex = TokenIndex();
-  final TokenIndex _apiSymbolIndex = TokenIndex();
+  late final TokenIndex _descrIndex;
+  late final TokenIndex _readmeIndex;
+  late final TokenIndex _apiSymbolIndex;
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
@@ -39,13 +40,38 @@ class InMemoryPackageIndex {
 
   InMemoryPackageIndex({
     required Iterable<PackageDocument> documents,
-  }) {
-    for (final doc in documents) {
-      _addPackage(doc);
+  }) : _documents = [...documents] {
+    final apiDocPageKeys = <String>[];
+    final apiDocPageValues = <String>[];
+    for (final doc in _documents) {
+      _documentsByName[doc.package] = doc;
+      _packageNameIndex.add(doc.package);
+
+      final apiDocPages = doc.apiDocPages;
+      if (apiDocPages != null) {
+        for (final page in apiDocPages) {
+          if (page.symbols != null && page.symbols!.isNotEmpty) {
+            apiDocPageKeys.add(_apiDocPageId(doc.package, page));
+            apiDocPageValues.add(page.symbols!.join(' '));
+          }
+        }
+      }
     }
+
+    final packageKeys = _documents.map((d) => d.package).toList();
+    _descrIndex = TokenIndex(
+      packageKeys,
+      _documents.map((d) => d.description).toList(),
+    );
+    _readmeIndex = TokenIndex(
+      packageKeys,
+      _documents.map((d) => d.readme).toList(),
+    );
+    _apiSymbolIndex = TokenIndex(apiDocPageKeys, apiDocPageValues);
+
     // update like scores only if they were not set (should happen only in local tests)
-    if (_packages.values.any((e) => e.likeScore == null)) {
-      _packages.values.updateLikeScores();
+    if (_documentsByName.values.any((e) => e.likeScore == null)) {
+      _documentsByName.values.updateLikeScores();
     }
     _updateOverallScores();
     _lastUpdated = clock.now().toUtc();
@@ -64,34 +90,22 @@ class InMemoryPackageIndex {
   IndexInfo indexInfo() {
     return IndexInfo(
       isReady: true,
-      packageCount: _packages.length,
+      packageCount: _documentsByName.length,
       lastUpdated: _lastUpdated,
     );
   }
 
-  void _addPackage(PackageDocument doc) {
-    _packages[doc.package] = doc;
-    _packageNameIndex.add(doc.package);
-    _descrIndex.add(doc.package, doc.description);
-    _readmeIndex.add(doc.package, doc.readme);
-
-    for (final ApiDocPage page in doc.apiDocPages ?? const []) {
-      final pageId = _apiDocPageId(doc.package, page);
-      if (page.symbols != null && page.symbols!.isNotEmpty) {
-        _apiSymbolIndex.add(pageId, page.symbols!.join(' '));
-      }
-    }
-  }
-
   PackageSearchResult search(ServiceSearchQuery query) {
-    final packages = Set<String>.of(_packages.keys);
+    final packages = Set<String>.of(_documentsByName.keys);
 
     // filter on package prefix
     if (query.parsedQuery.packagePrefix != null) {
       final String prefix = query.parsedQuery.packagePrefix!.toLowerCase();
       packages.removeWhere(
-        (package) =>
-            !_packages[package]!.package.toLowerCase().startsWith(prefix),
+        (package) => !_documentsByName[package]!
+            .package
+            .toLowerCase()
+            .startsWith(prefix),
       );
     }
 
@@ -99,14 +113,14 @@ class InMemoryPackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packages.retainWhere((package) =>
-          combinedTagsPredicate.matches(_packages[package]!.tagsForLookup));
+      packages.retainWhere((package) => combinedTagsPredicate
+          .matches(_documentsByName[package]!.tagsForLookup));
     }
 
     // filter on dependency
     if (query.parsedQuery.hasAnyDependency) {
       packages.removeWhere((package) {
-        final doc = _packages[package]!;
+        final doc = _documentsByName[package]!;
         if (doc.dependencies.isEmpty) return true;
         for (final dependency in query.parsedQuery.allDependencies) {
           if (!doc.dependencies.containsKey(dependency)) return true;
@@ -122,7 +136,7 @@ class InMemoryPackageIndex {
     // filter on points
     if (query.minPoints != null && query.minPoints! > 0) {
       packages.removeWhere((package) {
-        final doc = _packages[package]!;
+        final doc = _documentsByName[package]!;
         return doc.grantedPoints < query.minPoints!;
       });
     }
@@ -132,7 +146,7 @@ class InMemoryPackageIndex {
     if (updatedDuration != null && updatedDuration > Duration.zero) {
       final now = clock.now();
       packages.removeWhere((package) {
-        final doc = _packages[package]!;
+        final doc = _documentsByName[package]!;
         final diff = now.difference(doc.updated);
         return diff > updatedDuration;
       });
@@ -163,7 +177,8 @@ class InMemoryPackageIndex {
             .map((key, value) => value * _adjustedOverallScores[key]!);
         // If the search hits have an exact name match, we move it to the front of the result list.
         final parsedQueryText = query.parsedQuery.text;
-        if (parsedQueryText != null && _packages.containsKey(parsedQueryText)) {
+        if (parsedQueryText != null &&
+            _documentsByName.containsKey(parsedQueryText)) {
           nameMatches = <String>[parsedQueryText];
         }
         packageHits = _rankWithValues(overallScore.getValues());
@@ -215,7 +230,7 @@ class InMemoryPackageIndex {
 
   /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
   void _updateOverallScores() {
-    for (final doc in _packages.values) {
+    for (final doc in _documentsByName.values) {
       final downloadScore = doc.popularityScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
@@ -316,7 +331,7 @@ class InMemoryPackageIndex {
       if (!aborted && phrases.isNotEmpty) {
         final matched = <String, double>{};
         for (final package in score.getKeys()) {
-          final doc = _packages[package]!;
+          final doc = _documentsByName[package]!;
           final bool matchedAllPhrases = phrases.every((phrase) =>
               doc.package.contains(phrase) ||
               doc.description!.contains(phrase) ||
@@ -341,7 +356,8 @@ class InMemoryPackageIndex {
       final int scoreCompare = -a.score!.compareTo(b.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
-      return _compareUpdated(_packages[a.package]!, _packages[b.package]!);
+      return _compareUpdated(
+          _documentsByName[a.package]!, _documentsByName[b.package]!);
     });
     return list;
   }
@@ -350,11 +366,12 @@ class InMemoryPackageIndex {
     int Function(PackageDocument a, PackageDocument b) compare, {
     double Function(PackageDocument doc)? score,
   }) {
-    final list = _packages.values
+    final list = _documentsByName.values
         .map((doc) => PackageHit(
             package: doc.package, score: score == null ? null : score(doc)))
         .toList();
-    list.sort((a, b) => compare(_packages[a.package]!, _packages[b.package]!));
+    list.sort((a, b) =>
+        compare(_documentsByName[a.package]!, _documentsByName[b.package]!));
     return list;
   }
 
