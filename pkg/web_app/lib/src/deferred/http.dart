@@ -4,60 +4,42 @@
 
 import 'dart:html';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
 export 'package:http/http.dart';
 
 /// Creates an authenticated [Client] that extends request with the CSRF header.
-Client createClientWithCsrf() {
-  return _AuthenticatedClient();
-}
+Client createClientWithCsrf() => _AuthenticatedClient();
 
-String? _getCsrfMetaContent() {
-  final values = document.head
-      ?.querySelectorAll('meta[name="csrf-token"]')
-      .map((e) => e.attributes['content'])
-      .nonNulls
-      .toList();
-  if (values == null || values.isEmpty) {
-    return null;
-  }
-  return values.first.trim();
-}
+String? get _csrfMetaContent => document.head
+    ?.querySelectorAll('meta[name="csrf-token"]')
+    .map((e) => e.getAttribute('content'))
+    .firstWhereOrNull((tokenContent) => tokenContent != null)
+    ?.trim();
 
 /// An HTTP [Client] which sends custom headers alongside each request:
 ///
 ///  - `x-pub-csrf-token` header when the HTML document's `<head>` contains the
 ///    `<meta name="csrf-token" content="<token>">` element.
 class _AuthenticatedClient extends _BrowserClient {
-  _AuthenticatedClient()
-      : super(
-          getHeadersFn: () async {
-            final csrfToken = _getCsrfMetaContent();
-            return {
-              if (csrfToken != null && csrfToken.isNotEmpty)
-                'x-pub-csrf-token': csrfToken,
-            };
-          },
-        );
+  @override
+  Future<Map<String, String>> get _sendHeaders async => {
+        if (_csrfMetaContent case final csrfToken? when csrfToken.isNotEmpty)
+          'x-pub-csrf-token': csrfToken,
+      };
 }
 
 /// An [Client] which updates the headers for each request.
-class _BrowserClient extends BrowserClient {
-  final Future<Map<String, String>> Function() getHeadersFn;
-  final _client = BrowserClient();
-  _BrowserClient({
-    required this.getHeadersFn,
-  });
+abstract class _BrowserClient extends BrowserClient {
+  final BrowserClient _client = BrowserClient();
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {
-    final headers = await getHeadersFn();
-
     final modifiedRequest = _RequestImpl.fromRequest(
       request,
-      updateHeaders: headers,
+      updateHeaders: await _sendHeaders,
     );
 
     return await _client.send(modifiedRequest);
@@ -67,6 +49,8 @@ class _BrowserClient extends BrowserClient {
   void close() {
     _client.close();
   }
+
+  Future<Map<String, String>> get _sendHeaders;
 }
 
 class _RequestImpl extends BaseRequest {

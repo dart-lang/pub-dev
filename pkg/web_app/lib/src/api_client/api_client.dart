@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+
 import 'package:_pub_shared/pubapi.dart';
 import 'package:api_builder/_client_utils.dart';
 
@@ -24,18 +25,18 @@ PubApiClient get unauthenticatedClient =>
     PubApiClient(_baseUrl, client: http.Client());
 
 /// The pub API client to use with account credentials.
-PubApiClient get client {
-  return PubApiClient(_baseUrl, client: http.createClientWithCsrf());
-}
+PubApiClient get client =>
+    PubApiClient(_baseUrl, client: http.createClientWithCsrf());
 
-/// Sends a JSON request to the [path] endpoint using [verb] method with [body] content.
+/// Sends a JSON request to the [path] endpoint using
+/// [verb] method with [body] content.
 ///
 /// Sets the `Content-Type` header to `application/json; charset="utf-8` and
 /// expects a valid JSON response body.
-Future<Map<String, dynamic>> sendJson({
+Future<Map<String, Object?>> sendJson({
   required String verb,
   required String path,
-  required Map<String, dynamic>? body,
+  required Map<String, Object?>? body,
 }) async {
   final client = http.createClientWithCsrf();
   try {

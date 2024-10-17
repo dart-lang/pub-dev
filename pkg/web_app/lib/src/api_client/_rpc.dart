@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+
 import 'package:_pub_shared/pubapi.dart';
 
 import '../_dom_helper.dart';
@@ -17,7 +18,7 @@ Future<R?> rpc<R>({
 
   /// The async RPC call. If this throws, the error will be displayed as a modal
   /// popup, and then it will be re-thrown (or `onError` will be called).
-  Future<R?> Function()? fn,
+  required Future<R?> Function() fn,
 
   /// Message to show when the RPC returns without exceptions.
   required Element? successMessage,
@@ -37,12 +38,12 @@ Future<R?> rpc<R>({
     return null;
   }
 
-  // capture keys
+  // Capture key down events.
   final keyDownSubscription = window.onKeyDown.listen((event) {
     event.preventDefault();
     event.stopPropagation();
   });
-  // disable inputs and buttons that are not already disabled
+  // Disable inputs and buttons that are not already disabled.
   final inputs = document
       .querySelectorAll('input')
       .cast<InputElement>()
@@ -67,22 +68,21 @@ Future<R?> rpc<R>({
   }
 
   R? result;
-  Exception? error;
-  String? errorMessage;
+  ({Exception exception, String message})? error;
   try {
-    result = await fn!();
+    result = await fn();
   } on RequestException catch (e) {
     final asJson = e.bodyAsJson();
     if (e.status == 401 && asJson.containsKey('go')) {
-      final location = e.bodyAsJson()['go'] as String;
+      final location = asJson['go'] as String;
       final locationUri = Uri.tryParse(location);
       if (locationUri != null && locationUri.toString().isNotEmpty) {
         await cancelSpinner();
-        final errorObject = e.bodyAsJson()['error'] as Map?;
+        final errorObject = asJson['error'] as Map?;
         final message = errorObject?['message'];
         await modalMessage(
           'Further consent needed.',
-          Element.p()
+          ParagraphElement()
             ..text = [
               if (message != null) message,
               'You will be redirected, please authorize the action.',
@@ -101,21 +101,25 @@ Future<R?> rpc<R>({
         return null;
       }
     }
-    error = e;
-    errorMessage = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
+    error = (
+      exception: e,
+      message: _requestExceptionMessage(asJson) ?? 'Unexpected error: $e'
+    );
   } catch (e) {
-    error = Exception('Unexpected error: $e');
-    errorMessage = 'Unexpected error: $e';
+    error = (
+      exception: Exception('Unexpected error: $e'),
+      message: 'Unexpected error: $e'
+    );
   } finally {
     await cancelSpinner();
   }
 
   if (error != null) {
-    await modalMessage('Error', await markdown(errorMessage!));
+    await modalMessage('Error', await markdown(error.message));
     if (onError != null) {
-      return await onError(error);
+      return await onError(error.exception);
     } else {
-      throw error;
+      throw error.exception;
     }
   }
 
@@ -128,37 +132,18 @@ Future<R?> rpc<R>({
   return result;
 }
 
-String? _requestExceptionMessage(RequestException e) {
-  try {
-    final map = e.bodyAsJson();
-    String? message;
+String? _requestExceptionMessage(Map<String, Object?> jsonBody) =>
+    switch (jsonBody) {
+      {'error': {'message': final String errorMessage}} => errorMessage,
+      // TODO: Remove after the server is migrated to return only `{'error': {'message': 'XX'}}`.
+      {'message': final String errorMessage} => errorMessage,
+      // TODO: Check if we ever send responses like this and remove if not.
+      {'error': final String errorMessage} => errorMessage,
+      _ => null,
+    };
 
-    if (map['error'] is Map) {
-      final errorMap = map['error'] as Map;
-      if (errorMap['message'] is String) {
-        message = errorMap['message'] as String;
-      }
-    }
-
-    // TODO: remove after the server is migrated to returns only `{'error': {'message': 'XX'}}`
-    if (message == null && map['message'] is String) {
-      message = map['message'] as String;
-    }
-
-    // TODO: check if we ever send responses like this and remove if not
-    if (message == null && map['error'] is String) {
-      message = map['error'] as String;
-    }
-
-    return message;
-  } on FormatException catch (_) {
-    // ignore bad body
-  }
-  return null;
-}
-
-Element _createSpinner() => Element.div()
+Element _createSpinner() => DivElement()
   ..className = 'spinner-frame'
   ..children = [
-    Element.div()..className = 'spinner',
+    DivElement()..className = 'spinner',
   ];
