@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ignore_for_file: unnecessary_library_name
+
 /// Retry asynchronous functions with exponential backoff.
 ///
 /// For a simple solution see [retry], to modify and persist retry options see

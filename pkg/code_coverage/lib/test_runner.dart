@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: dangling_library_doc_comments
+
 /// Runs integration tests that use fake_pub_server, and collects code coverage
 /// on such test runs.
 
