@@ -14,11 +14,10 @@ import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
+import '../service/email/email_templates.dart' show createInviteEmail;
 import '../shared/datastore.dart';
-import '../shared/email.dart' show createInviteEmail;
 import '../shared/exceptions.dart';
 import '../shared/urls.dart';
-
 import 'backend.dart';
 import 'models.dart';
 

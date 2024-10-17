@@ -33,7 +33,6 @@ import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
 import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
-import '../frontend/email_sender.dart';
 import '../frontend/handlers.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
@@ -61,6 +60,7 @@ import '../task/backend.dart';
 import '../task/cloudcompute/fakecloudcompute.dart';
 import '../task/cloudcompute/googlecloudcompute.dart';
 import 'announcement/backend.dart';
+import 'email/email_sender.dart';
 import 'entrypoint/logging.dart';
 import 'secret/backend.dart';
 

@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/frontend/email_sender.dart';
+import 'package:pub_dev/service/email/email_sender.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../account/agent.dart';
 import '../../account/backend.dart';
 import '../../package/backend.dart';
 import '../../publisher/backend.dart';
-import '../../shared/email.dart';
+import '../../service/email/email_templates.dart';
 
 import '../models.dart';
 import 'actions.dart';

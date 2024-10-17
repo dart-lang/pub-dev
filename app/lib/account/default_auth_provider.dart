@@ -12,13 +12,13 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
+import '../service/email/email_templates.dart' show looksLikeEmail;
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
 import '../service/openid/openid_models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
-import '../shared/email.dart' show looksLikeEmail;
 import '../shared/exceptions.dart';
 import '../shared/monitoring.dart';
 import '../shared/utils.dart' show fixedTimeEquals;

@@ -5,8 +5,8 @@
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/frontend/handlers/report.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/email.dart';
 
 import 'actions.dart';
 

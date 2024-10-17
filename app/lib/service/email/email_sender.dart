@@ -16,8 +16,8 @@ import 'package:mailer/smtp_server.dart';
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
-import '../shared/email.dart';
-import '../shared/exceptions.dart';
+import '../../shared/exceptions.dart';
+import 'email_templates.dart';
 
 final _logger = Logger('pub.email');
 final _simpleUrlRegExp = RegExp(r'https?://(.+)');

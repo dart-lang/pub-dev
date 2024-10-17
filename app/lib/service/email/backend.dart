@@ -10,9 +10,9 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
 
-import '../../frontend/email_sender.dart';
 import '../../shared/datastore.dart';
-import '../../shared/email.dart';
+import 'email_sender.dart';
+import 'email_templates.dart';
 import 'models.dart';
 
 final _logger = Logger('email.backend');

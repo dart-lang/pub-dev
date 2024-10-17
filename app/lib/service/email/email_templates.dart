@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'urls.dart';
+import '../../shared/urls.dart';
 
 const _invitesAtPubDev = 'invites@pub.dev';
 const _noreplyAtPubDev = 'noreply@pub.dev';

@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/shared/email.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 
 Future<String> executeSetUserBlocked(List<String> args) async {
   if (args.isEmpty || args.length > 2) {
