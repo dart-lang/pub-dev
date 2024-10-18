@@ -167,7 +167,11 @@ Future<ResolvedDocUrlVersion> _resolveDocUrlVersion(
     }
 
     // Select the closest version (may be the same as version) that has a finished analysis.
-    final closest = await taskBackend.closestFinishedVersion(package, version);
+    final closest = await taskBackend.closestFinishedVersion(
+      package,
+      version,
+      preferDocsCompleted: true,
+    );
     return ResolvedDocUrlVersion(
       version: closest ?? version,
       urlSegment: closest ?? version,

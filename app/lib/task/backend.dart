@@ -1096,8 +1096,15 @@ class TaskBackend {
   /// If [version] or newer exists with finished analysis, it will be preferred, otherwise
   /// older versions may be considered too.
   ///
+  /// When [preferDocsCompleted] is set, a successfully completed but potentially older
+  /// version is preferred over a completed version without documentation.
+  ///
   /// Returns `null` if no such version exists.
-  Future<String?> closestFinishedVersion(String package, String version) async {
+  Future<String?> closestFinishedVersion(
+    String package,
+    String version, {
+    bool preferDocsCompleted = false,
+  }) async {
     final cachedValue =
         await cache.closestFinishedVersion(package, version).get(() async {
       final semanticVersion = Version.parse(version);
@@ -1108,7 +1115,19 @@ class TaskBackend {
         if (state == null || state.hasNeverFinished) {
           continue;
         }
-        final candidates = state.versions?.entries
+        List<Version>? candidates;
+        if (preferDocsCompleted) {
+          final finishedDocCandidates = state.versions?.entries
+              .where((e) => e.value.docs)
+              .map((e) => Version.parse(e.key))
+              .toList();
+          if (finishedDocCandidates != null &&
+              finishedDocCandidates.isNotEmpty) {
+            candidates = finishedDocCandidates;
+          }
+        }
+
+        candidates ??= state.versions?.entries
             .where((e) => e.value.finished)
             .map((e) => Version.parse(e.key))
             .toList();
