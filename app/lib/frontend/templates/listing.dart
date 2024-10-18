@@ -135,11 +135,14 @@ d.Node? _nameMatches(SearchForm form, List<String>? matches) {
       : 'Matching package ${singular ? 'name' : 'names'}: ';
 
   return d.p(children: [
-    d.b(text: nameMatchLabel),
+    d.text(nameMatchLabel),
     ...matches.expandIndexed((i, name) {
       return [
         if (i > 0) d.text(', '),
-        d.code(child: d.a(href: urls.pkgPageUrl(name), text: name)),
+        d.a(
+          href: urls.pkgPageUrl(name),
+          child: d.b(text: name),
+        ),
       ];
     }),
   ]);
