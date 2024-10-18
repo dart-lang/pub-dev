@@ -6,6 +6,8 @@
   home page
 ******************************************************/
 
+@use 'variables';
+
 .home-banner {
   text-align: center;
   padding: 30px 20px 0px 20px;
@@ -16,7 +18,7 @@
     max-height: 70px;
     margin-bottom: 28px;
 
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       max-width: 188px;
       max-height: 40px;
       margin-bottom: 22px;
@@ -115,7 +117,7 @@
       background: var(--pub-neutral-hover-bgColor);
       box-shadow: 0px 4px 9px 0px var(--pub-home_card_hover-box_shadow-color);
 
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         .mini-list-item-body {
           &:before {
             background: linear-gradient(transparent 90%, var(--pub-neutral-hover-bgColor));
@@ -166,7 +168,7 @@
     text-align: right;
     padding-right: 8px;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       margin-right: 16px;
     }
   }
@@ -177,7 +179,7 @@
     text-transform: uppercase;
   }
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     .mini-list {
       display: flex;
       flex-wrap: wrap;
@@ -215,7 +217,7 @@
     }
   }
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     &.home-block-ff,
     &.home-block-pow {
       .home-block-content {
@@ -282,7 +284,7 @@
   padding: 4px;
   margin: -3px -3px 10px -3px;
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     display: flex;
   }
 
@@ -302,7 +304,7 @@
   .pow-video-thumbnail {
     height: auto;
     width: 100%;
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       max-width: 260px;
       max-height: 195px;
     }
