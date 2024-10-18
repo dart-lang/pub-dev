@@ -197,6 +197,7 @@ d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
     popularity: view.popularity,
+    thirtyDaysDownloads: view.thirtyDaysDownloadCounts,
   );
 }
 
