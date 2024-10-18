@@ -363,11 +363,13 @@ void main() {
       );
     });
 
-    testWithProfile('unauthenticated appeal success', fn: () async {
+    testWithProfile('unauthenticated appeal success, second appeal fails',
+        fn: () async {
       await _prepareApplied(
         logSubject: 'package-version:oxygen/1.2.0',
       );
 
+      // first report: success
       await withHttpPubApiClient(
         fn: (client) async {
           final msg = await client.postReport(ReportForm(
@@ -396,6 +398,22 @@ void main() {
           expect(mc.isSubjectOwner, false);
         },
       );
+
+      // second report: rejected
+      await withHttpPubApiClient(fn: (client) async {
+        await expectApiException(
+          client.postReport(ReportForm(
+            email: 'user2@pub.dev',
+            subject: 'package-version:oxygen/1.2.0',
+            caseId: 'case/1',
+            message: 'Huston, we have a problem.',
+          )),
+          code: 'InvalidInput',
+          status: 400,
+          message:
+              'You have previously appealed this incident, we are unable to accept another appeal.',
+        );
+      });
     });
 
     testWithProfile('authenticated appeal success', fn: () async {

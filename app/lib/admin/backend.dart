@@ -929,4 +929,16 @@ class AdminBackend {
       _logger.info('Deleting moderated user: ${user.userId}');
     }
   }
+
+  /// Whether the [ModerationCase] has been appealed by [email] already.
+  Future<bool> isModerationCaseAppealedByEmail({
+    required String caseId,
+    required String email,
+  }) async {
+    final query = dbService.query<ModerationCase>()
+      ..filter('appealedCaseId =', caseId);
+    final list = await query.run().toList();
+    final emails = list.map((mc) => mc.reporterEmail).toSet();
+    return emails.contains(email);
+  }
 }
