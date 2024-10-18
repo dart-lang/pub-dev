@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -43,7 +45,8 @@ final class ExportedApi {
       ExportedPackage._(this, packageName);
 
   /// Interface for writing `/api/package-name-completion-data`
-  ExportedJsonFile get packageNameCompletionData => ExportedJsonFile._(
+  ExportedJsonFile<Map<String, Object?>> get packageNameCompletionData =>
+      ExportedJsonFile<Map<String, Object?>>._(
         this,
         '/api/package-name-completion-data',
         Duration(hours: 8),
@@ -178,7 +181,7 @@ final class ExportedPackage {
 
   ExportedPackage._(this._owner, this._package);
 
-  ExportedJsonFile _suffix(String suffix) => ExportedJsonFile._(
+  ExportedJsonFile<T> _suffix<T>(String suffix) => ExportedJsonFile<T>._(
         _owner,
         '/api/packages/$_package$suffix',
         Duration(minutes: 10),
@@ -187,10 +190,11 @@ final class ExportedPackage {
   /// Interface for writing `/api/packages/<package>`.
   ///
   /// Which contains version listing information.
-  ExportedJsonFile get versions => _suffix('');
+  ExportedJsonFile<PackageData> get versions => _suffix<PackageData>('');
 
   /// Interface for writing `/api/packages/<package>/advisories`.
-  ExportedJsonFile get advisories => _suffix('/advisories');
+  ExportedJsonFile<ListAdvisoriesResponse> get advisories =>
+      _suffix<ListAdvisoriesResponse>('/advisories');
 
   /// Interace for writing `/api/archives/<package>-<version>.tar.gz`.
   ExportedBlob tarball(String version) => ExportedBlob._(
@@ -239,7 +243,7 @@ sealed class ExportedObject {
 ///  * `Content-Type`,
 ///  * `Content-Encoding`, and,
 ///  * `Cache-Control`.
-final class ExportedJsonFile extends ExportedObject {
+final class ExportedJsonFile<T> extends ExportedObject {
   static final _jsonGzip = json.fuse(utf8).fuse(gzip);
   final Duration _maxAge;
 
@@ -256,7 +260,7 @@ final class ExportedJsonFile extends ExportedObject {
   );
 
   /// Write [data] as gzipped JSON in UTF-8 format.
-  Future<void> write(Map<String, Object?> data) async {
+  Future<void> write(T data) async {
     final gzipped = _jsonGzip.encode(data);
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
