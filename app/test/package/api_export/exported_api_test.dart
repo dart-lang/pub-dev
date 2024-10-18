@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:pub_dev/package/api_export/exported_api.dart';
@@ -55,7 +56,7 @@ void main() {
         pubspec: {},
         archiveUrl: '-',
         archiveSha256: '-',
-        published: DateTime.now(),
+        published: clock.now(),
       ),
       versions: [],
     );
