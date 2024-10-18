@@ -113,24 +113,24 @@ void main() {
     });
 
     test('remove low scores', () {
-      expect(score.getValues(), {
+      expect(score, {
         'a': 100.0,
         'b': 30.0,
         'c': 55.0,
       });
-      expect(score.removeLowValues(fraction: 0.31).getValues(), {
+      expect(score.removeLowValues(fraction: 0.31), {
         'a': 100.0,
         'c': 55.0,
       });
-      expect(score.removeLowValues(minValue: 56.0).getValues(), {
+      expect(score.removeLowValues(minValue: 56.0), {
         'a': 100.0,
       });
     });
 
     test('top', () {
-      expect(score.top(1).getValues(), {'a': 100.0});
-      expect(score.top(2).getValues(), {'a': 100.0, 'c': 55.0});
-      expect(score.top(2, minValue: 60).getValues(), {'a': 100.0});
+      expect(score.top(1), {'a': 100.0});
+      expect(score.top(2), {'a': 100.0, 'c': 55.0});
+      expect(score.top(2, minValue: 60), {'a': 100.0});
     });
   });
 }

@@ -141,7 +141,7 @@ class SdkMemIndex {
       final libraryWeight = _libraryWeights[library] ?? 1.0;
       final weightedResults = isQualifiedQuery
           ? plainResults
-          : plainResults.map(
+          : plainResults.mapValues(
               (key, value) {
                 final dir = p.dirname(key);
                 final w = (_apiPageDirWeights[dir] ?? 1.0) * libraryWeight;
@@ -169,9 +169,7 @@ class SdkMemIndex {
               description: _descriptionPerLibrary[hit.library],
               url: _baseUriPerLibrary[hit.library] ?? _baseUri.toString(),
               score: hit.score,
-              apiPages: hit.top
-                  .getValues()
-                  .entries
+              apiPages: hit.top.entries
                   .map(
                     (e) => ApiPageRef(
                       path: e.key,

@@ -162,7 +162,7 @@ class InMemoryPackageIndex {
 
     // filter packages that doesn't match text query
     if (textResults != null) {
-      final keys = textResults.pkgScore.getKeys();
+      final keys = textResults.pkgScore.keys.toSet();
       packages.removeWhere((x) => !keys.contains(x));
     }
 
@@ -179,12 +179,12 @@ class InMemoryPackageIndex {
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
         final overallScore = textResults.pkgScore
-            .map((key, value) => value * _adjustedOverallScores[key]!);
-        packageHits = _rankWithValues(overallScore.getValues());
+            .mapValues((key, value) => value * _adjustedOverallScores[key]!);
+        packageHits = _rankWithValues(overallScore);
         break;
       case SearchOrder.text:
-        final score = textResults?.pkgScore ?? Score.empty();
-        packageHits = _rankWithValues(score.getValues());
+        final score = textResults?.pkgScore ?? Score.empty;
+        packageHits = _rankWithValues(score);
         break;
       case SearchOrder.created:
         packageHits = _createdOrderedHits.whereInSet(packages);
@@ -294,7 +294,7 @@ class InMemoryPackageIndex {
         coreScores.add(score);
         // don't update if the query is single-word
         if (words.length > 1) {
-          wordScopedPackages = score.getKeys();
+          wordScopedPackages = score.keys.toSet();
           if (wordScopedPackages.isEmpty) {
             break;
           }
@@ -303,7 +303,7 @@ class InMemoryPackageIndex {
 
       final core = Score.multiply(coreScores);
 
-      var symbolPages = Score.empty();
+      var symbolPages = Score.empty;
       if (!checkAborted()) {
         symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
       }
@@ -311,7 +311,7 @@ class InMemoryPackageIndex {
       final apiPackages = <String, double>{};
       final topApiPages = <String, List<MapEntry<String, double>>>{};
       const maxApiPageCount = 2;
-      for (final entry in symbolPages.getValues().entries) {
+      for (final entry in symbolPages.entries) {
         final pkg = _apiDocPkg(entry.key);
         if (!packages.contains(pkg)) continue;
 
@@ -344,14 +344,15 @@ class InMemoryPackageIndex {
       final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
         final matched = <String, double>{};
-        for (final package in score.getKeys()) {
+        for (final MapEntry(key: package, value: packageScore)
+            in score.entries) {
           final doc = _documentsByName[package]!;
           final bool matchedAllPhrases = phrases.every((phrase) =>
               doc.package.contains(phrase) ||
               doc.description!.contains(phrase) ||
               doc.readme!.contains(phrase));
           if (matchedAllPhrases) {
-            matched[package] = score[package];
+            matched[package] = packageScore;
           }
         }
         score = Score(matched);
@@ -444,7 +445,7 @@ class _TextResults {
   final List<String>? nameMatches;
 
   factory _TextResults.empty() => _TextResults(
-        Score.empty(),
+        Score.empty,
         {},
         nameMatches: null,
       );

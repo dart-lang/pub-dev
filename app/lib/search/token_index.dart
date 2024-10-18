@@ -9,47 +9,40 @@ import 'package:meta/meta.dart';
 import 'text_utils.dart';
 
 /// Represents an evaluated score as an {id: score} map.
-class Score {
-  final Map<String, double> _values;
+extension type const Score._(Map<String, double> _values)
+    implements Map<String, double> {
+  static const Score empty = Score._({});
 
   Score(this._values);
-  Score.empty() : _values = const <String, double>{};
 
-  bool get isEmpty => _values.isEmpty;
-  bool get isNotEmpty => !isEmpty;
+  factory Score.fromEntries(Iterable<MapEntry<String, double>> entries) =>
+      Score(Map.fromEntries(entries));
 
-  Set<String> getKeys({bool Function(String key)? where}) =>
-      _values.keys.where((e) => where == null || where(e)).toSet();
-  late final double maxValue = _values.values.fold(0.0, math.max);
-  Map<String, double> getValues() => _values;
-  bool containsKey(String key) => _values.containsKey(key);
-  int get length => _values.length;
-
-  double operator [](String key) => _values[key] ?? 0.0;
+  double get maxValue => _values.values.fold(0.0, math.max);
 
   /// Calculates the intersection of the [scores], by multiplying the values.
   static Score multiply(List<Score> scores) {
     if (scores.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     if (scores.length == 1) {
       return scores.single;
     }
     if (scores.any((score) => score.isEmpty)) {
-      return Score.empty();
+      return Score.empty;
     }
-    var keys = scores.first.getValues().keys.toSet();
+    var keys = scores.first.keys.toSet();
     for (var i = 1; i < scores.length; i++) {
-      keys = keys.intersection(scores[i].getValues().keys.toSet());
+      keys = keys.intersection(scores[i].keys.toSet());
     }
     if (keys.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     final values = <String, double>{};
     for (final key in keys) {
-      var value = scores.first.getValues()[key]!;
+      var value = scores.first[key]!;
       for (var i = 1; i < scores.length; i++) {
-        value *= scores[i].getValues()[key]!;
+        value *= scores[i][key]!;
       }
       values[key] = value;
     }
@@ -63,17 +56,17 @@ class Score {
     scores.removeWhere((s) => s.isEmpty);
 
     if (scores.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     if (scores.length == 1) {
       return scores.single;
     }
-    final keys = scores.expand((e) => e.getValues().keys).toSet();
+    final keys = scores.expand((e) => e.keys).toSet();
     final result = <String, double>{};
     for (final key in keys) {
       var value = 0.0;
       for (var i = 0; i < scores.length; i++) {
-        final v = scores[i].getValues()[key];
+        final v = scores[i][key];
         if (v != null) {
           value = math.max(value, v);
         }
@@ -97,24 +90,18 @@ class Score {
     if (threshold == null) {
       return this;
     }
-    final result = Map<String, double>.fromEntries(
+    return Score.fromEntries(
         _values.entries.where((entry) => entry.value >= threshold!));
-    return Score(result);
   }
 
   /// Keeps the scores only for values in [keys].
-  Score project(Set<String> keys) {
-    final result = Map<String, double>.fromEntries(
-        _values.entries.where((entry) => keys.contains(entry.key)));
-    return Score(result);
-  }
+  Score project(Set<String> keys) => Score.fromEntries(
+      _values.entries.where((entry) => keys.contains(entry.key)));
 
   /// Transfer the score values with [f].
-  Score map(double Function(String key, double value) f) {
-    final result = Map<String, double>.fromEntries(
-        _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
-    return Score(result);
-  }
+  Score mapValues(double Function(String key, double value) f) =>
+      Score.fromEntries(
+          _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
 
   /// Returns a new [Score] object with the top [count] entry.
   Score top(int count, {double? minValue}) {
@@ -276,7 +263,7 @@ class TokenIndex {
   Score searchWords(List<String> words,
       {double weight = 1.0, Set<String>? limitToIds}) {
     if (limitToIds != null && limitToIds.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     final scores = <Score>[];
     for (final w in words) {
@@ -288,7 +275,7 @@ class TokenIndex {
         limitToIds: limitToIds,
       );
       if (values.isEmpty) {
-        return Score.empty();
+        return Score.empty;
       }
       scores.add(Score(values));
     }
