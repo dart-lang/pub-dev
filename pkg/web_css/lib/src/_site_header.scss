@@ -6,6 +6,8 @@
   site header
 ******************************************************/
 
+@use 'variables';
+
 /*
   The site logo should be hidden on mobile on the landing page (and only on that),
   because we are displaying another logo right under it.
@@ -14,7 +16,7 @@
 */
 .page-landing {
   .site-header a.logo {
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       display: none;
     }
   }
@@ -31,7 +33,7 @@
   font-size: 14px;
   position: relative;
 
-  @media (max-width: $device-mobile-max-width) {
+  @media (max-width: variables.$device-mobile-max-width) {
     &:focus-within {
 
       .hamburger,
@@ -41,7 +43,7 @@
     }
   }
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     height: 50px;
     padding: 0px 45px 0px 50px;
   }
@@ -62,7 +64,7 @@
     background-repeat: no-repeat;
     opacity: 0.8;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       display: none;
     }
   }
@@ -106,7 +108,7 @@
     bottom: 0;
     right: 0;
     background: var(--pub-full_page_mask-background-color);
-    z-index: $z-index-nav-mask;
+    z-index: variables.$z-index-nav-mask;
 
     &.-show {
       display: block;
@@ -114,7 +116,7 @@
   }
 
   .site-header-search {
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       // Takes up most of the available space, but still leaves ample whitespace
       // between the input field and the site logo.
       flex-grow: 10;
@@ -145,11 +147,11 @@
         padding-right: 30px;
         cursor: inherit;
 
-        @media (max-width: $device-tablet-max-width) {
+        @media (max-width: variables.$device-tablet-max-width) {
           width: 120px;
         }
 
-        @media (max-width: $device-mobile-max-width) {
+        @media (max-width: variables.$device-mobile-max-width) {
           width: 100%;
         }
       }
@@ -227,7 +229,7 @@
   .site-header-nav {
 
     /* Navigation styles for mobile. */
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       position: fixed;
       top: 0;
       bottom: 0;
@@ -236,7 +238,7 @@
       background: var(--pub-site_header_popup-background-color);
       transform: translateX(-100%);
       transition: transform 0.3s ease;
-      z-index: $z-index-nav-mask + 1;
+      z-index: variables.$z-index-nav-mask + 1;
       opacity: 0; // see mobile_nav.dart
       overflow-y: auto;
 
@@ -309,7 +311,7 @@
     }
 
     /* Navigation styles for desktop. */
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       display: flex;
       transform: none;
 
