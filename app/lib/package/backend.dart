@@ -1073,13 +1073,12 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
-    final currentDartSdk = await getCachedDartSdkVersion(
-        lastKnownStable: toolStableDartSdkVersion);
-    final currentFlutterSdk = await getCachedFlutterSdkVersion(
-        lastKnownStable: toolStableFlutterSdkVersion);
+    final [currentDartSdk, currentFlutterSdk] = await Future.wait([
+      getCachedDartSdkVersion(lastKnownStable: toolStableDartSdkVersion),
+      getCachedFlutterSdkVersion(lastKnownStable: toolStableFlutterSdkVersion),
+    ]);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
-
     // check authorizations before the transaction
     await _requireUploadAuthorization(
         agent, existingPackage, newVersion.version!);
@@ -1102,14 +1101,12 @@ class PackageBackend {
       throw AssertionError(
           'Package "${newVersion.package}" has no admin email to notify.');
     }
-
     // check rate limits before the transaction
     await verifyPackageUploadRateLimit(
       agent: agent,
       package: newVersion.package,
       isNew: isNew,
     );
-
     final email = createPackageUploadedEmail(
       packageName: newVersion.package,
       packageVersion: newVersion.version!,
@@ -1118,7 +1115,6 @@ class PackageBackend {
           uploaderEmails.map((email) => EmailAddress(email)).toList(),
     );
     final outgoingEmail = emailBackend.prepareEntity(email);
-
     Package? package;
     final existingVersions = await db
         .query<PackageVersion>(ancestorKey: newVersion.packageKey!)
