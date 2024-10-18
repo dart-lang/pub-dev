@@ -206,6 +206,17 @@ Future<Message> processReportPageHandler(
 
   final isAppeal = form.caseId != null;
 
+  if (isAppeal) {
+    final appealExists = await adminBackend.isModerationCaseAppealedByEmail(
+      caseId: form.caseId!,
+      email: userEmail!,
+    );
+    if (appealExists) {
+      throw InvalidInputException(
+          'You have previously appealed this incident, we are unable to accept another appeal.');
+    }
+  }
+
   bool isSubjectOwner = false;
   if (user != null) {
     if (subject.isPackage) {
