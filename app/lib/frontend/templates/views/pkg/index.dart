@@ -20,7 +20,8 @@ d.Node packageListingNode({
 }) {
   final innerContent = d.fragment([
     listingInfo,
-    if (nameMatches != null) nameMatches,
+    if (nameMatches != null)
+      d.div(classes: ['listing-highlight-block'], child: nameMatches),
     packageList,
     if (pagination != null) pagination,
     d.markdown('Check our help page for details on '
