@@ -48,7 +48,7 @@ If you report content or an account, or your content or account was actioned
 against, you will receive a notification about the type of enforcement and
 the reasoning for any enforcement action taken.
 The notification will also contain a link to submit an appeal of our decision
-if you believe it was a mistake.
+if you believe it was a mistake. We allow one appeal per incident.
 Appeals may not be available in all circumstances
 (e.g., certain court ordered removals).
 
