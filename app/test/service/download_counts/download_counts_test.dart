@@ -7,12 +7,12 @@ import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
-import 'fake_download_counts.dart';
 
 void main() {
   group('', () {

@@ -9,6 +9,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -962,6 +963,7 @@ class PackageView {
 
   final List<String>? topics;
   final int popularity;
+  final int? thirtyDaysDownloadCounts;
 
   PackageView({
     this.screenshots,
@@ -980,6 +982,7 @@ class PackageView {
     this.apiPages,
     this.topics,
     required this.popularity,
+    required this.thirtyDaysDownloadCounts,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
 
@@ -993,6 +996,7 @@ class PackageView {
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
     required int popularity,
+    required int? thirtyDaysDownloadCounts,
   }) {
     final tags = <String>{
       ...package.getTags(),
@@ -1017,6 +1021,7 @@ class PackageView {
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.canonicalizedTopics,
       popularity: popularity,
+      thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
 
@@ -1038,6 +1043,7 @@ class PackageView {
       screenshots: screenshots,
       topics: topics,
       popularity: popularity,
+      thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
 
@@ -1189,6 +1195,8 @@ class PackagePageData {
       version: version,
       scoreCard: scoreCard,
       popularity: popularityStorage.lookupAsScore(package.name!),
+      thirtyDaysDownloadCounts:
+          downloadCountsBackend.lookup30DayTotalCounts(package.name!),
     );
   }
 }
