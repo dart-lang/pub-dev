@@ -209,7 +209,7 @@ Iterable<d.Node> _appeal(
           'consider uploading these and sharing a link.',
     ),
     d.p(
-      child: d.b(text: 'You only have one appeal per incident.'),
+      child: d.b(text: 'You can appeal at most once per case.'),
     ),
     if (!(sessionData?.isAuthenticated ?? false))
       d.fragment([
