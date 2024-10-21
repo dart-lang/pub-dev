@@ -208,6 +208,9 @@ Iterable<d.Node> _appeal(
           '(source repositories, screenshots, logs, bug tracker entries, etc) '
           'consider uploading these and sharing a link.',
     ),
+    d.p(
+      child: d.b(text: 'You only have one appeal per incident.'),
+    ),
     if (!(sessionData?.isAuthenticated ?? false))
       d.fragment([
         d.p(text: 'Contact information:'),
