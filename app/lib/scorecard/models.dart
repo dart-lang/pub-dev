@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/task/models.dart';
 
 import '../scorecard/backend.dart';
@@ -70,6 +71,9 @@ class ScoreCardData {
 
   // TODO: refactor code to use popularityStorage directly.
   double get popularityScore => popularityStorage.lookup(packageName!);
+
+  int? get thirtyDaysDownloadCounts =>
+      downloadCountsBackend.lookup30DaysTotalCounts(packageName!);
 }
 
 @JsonSerializable(includeIfNull: false)

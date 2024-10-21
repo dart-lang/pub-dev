@@ -102,22 +102,22 @@ void main() {
 
     testWithProfile('cache 30-days totals', fn: () async {
       await generateFake30DaysTotals({'foo': 70, 'bar': 105, 'baz': 140});
-      expect(downloadCountsBackend.lookup30DayTotalCounts('foo'), isNull);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('bar'), isNull);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('baz'), isNull);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('foo'), isNull);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('bar'), isNull);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('baz'), isNull);
 
       await downloadCountsBackend.start();
-      expect(downloadCountsBackend.lookup30DayTotalCounts('foo'), 70);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('bar'), 105);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('baz'), 140);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('bax'), isNull);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('foo'), 70);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('bar'), 105);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('baz'), 140);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('bax'), isNull);
 
       await generateFake30DaysTotals({'foo': 90, 'bar': 120, 'baz': 150});
       await downloadCountsBackend.start();
-      expect(downloadCountsBackend.lookup30DayTotalCounts('foo'), 90);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('bar'), 120);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('baz'), 150);
-      expect(downloadCountsBackend.lookup30DayTotalCounts('bax'), isNull);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('foo'), 90);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('bar'), 120);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('baz'), 150);
+      expect(downloadCountsBackend.lookup30DaysTotalCounts('bax'), isNull);
     });
   });
 }

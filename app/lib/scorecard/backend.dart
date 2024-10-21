@@ -99,7 +99,7 @@ class ScoreCardBackend {
         scoreCard: card,
         popularity: popularityStorage.lookupAsScore(package),
         thirtyDaysDownloadCounts:
-            downloadCountsBackend.lookup30DayTotalCounts(package),
+            downloadCountsBackend.lookup30DaysTotalCounts(package),
       );
     });
   }

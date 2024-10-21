@@ -1196,7 +1196,7 @@ class PackagePageData {
       scoreCard: scoreCard,
       popularity: popularityStorage.lookupAsScore(package.name!),
       thirtyDaysDownloadCounts:
-          downloadCountsBackend.lookup30DayTotalCounts(package.name!),
+          downloadCountsBackend.lookup30DaysTotalCounts(package.name!),
     );
   }
 }
