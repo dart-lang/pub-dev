@@ -78,7 +78,7 @@ class DownloadCountsBackend {
     await _thirtyDaysTotals.close();
   }
 
-  int? lookup30DayTotalCounts(String package) =>
+  int? lookup30DaysTotalCounts(String package) =>
       _thirtyDaysTotals.isAvailable ? _thirtyDaysTotals.value![package] : null;
 
   Future<CountData?> lookupDownloadCountData(String pkg) async {
