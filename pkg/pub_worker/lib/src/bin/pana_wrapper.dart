@@ -18,6 +18,7 @@ import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
 import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 import 'package:pub_worker/src/utils.dart';
+import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 import 'package:retry/retry.dart';
 
 final _log = Logger('pana');
@@ -207,6 +208,8 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
           flutterSdks.firstOrNull;
 
+  final minMacrosVersion = pubspec.getDependencyContraintRangeMin('macros');
+
   bool matchesSdks({
     required Version? dart,
     required Version? flutter,
@@ -235,6 +238,20 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
             sdkVersion: flutterDartSdk,
             constraint: pubspec.dartSdkConstraint)) {
       return false;
+    }
+
+    // temporary exception for macros on 3.5 SDK
+    // TODO: remove after 3.6 SDK gets released
+    if (minMacrosVersion != null &&
+        minMacrosVersion.compareTo(Version.parse('0.1.3-main.0')) >= 0) {
+      if (dart != null && dart.major == 3 && dart.minor == 5) {
+        return false;
+      }
+      if (flutterDartSdk != null &&
+          flutterDartSdk.major == 3 &&
+          flutterDartSdk.minor == 5) {
+        return false;
+      }
     }
 
     // Otherwise accepting the analysis SDK bundle.
@@ -401,4 +418,18 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
       semanticFlutterDartSdkVersion: null,
     ),
   ];
+}
+
+extension on Pubspec {
+  Version? getDependencyContraintRangeMin(String package) {
+    final dep = dependencies[package] ?? devDependencies[package];
+    if (dep is! pubspek.HostedDependency) {
+      return null;
+    }
+    final vc = dep.version;
+    if (vc is! VersionRange) {
+      return null;
+    }
+    return vc.min;
+  }
 }
