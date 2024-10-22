@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20241022t092400-all`
  * Bumped runtimeVersion to `2024.10.21`.
 
 ## `20241017t095600-all`
