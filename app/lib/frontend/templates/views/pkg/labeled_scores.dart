@@ -30,6 +30,10 @@ d.Node labeledScoresNode({
       ),
       requestContext.experimentalFlags.showDownloadCounts
           ? d.div(
+              attributes: {
+                'title':
+                    'Number of downloads of this package during the past 30 days'
+              },
               classes: ['packages-score', 'packages-score-downloads'],
               child: _labeledScore(
                 'downloads',
