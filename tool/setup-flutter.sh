@@ -30,7 +30,7 @@ else
 
   # Download and extract Flutter SDK
   cd "$WORK_DIR"
-  curl -sS "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_$2-${CHANNEL}.tar.xz" >flutter.tar.xz
+  curl -sS "https://storage.googleapis.com/flutter_infra_release/releases/${CHANNEL}/linux/flutter_linux_$2-${CHANNEL}.tar.xz" >flutter.tar.xz
   tar xf flutter.tar.xz
   rm flutter.tar.xz
 
