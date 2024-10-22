@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
-import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -17,9 +14,9 @@ import 'package:retry/retry.dart';
 import '../search/backend.dart';
 import '../shared/datastore.dart';
 import '../shared/storage.dart';
-import '../shared/utils.dart';
 import '../shared/versions.dart';
 import '../task/global_lock.dart';
+import 'api_export/exported_api.dart';
 import 'backend.dart';
 import 'models.dart';
 
@@ -27,20 +24,6 @@ final Logger _logger = Logger('export_api_to_bucket');
 
 /// The default concurrency to upload API JSON files to the bucket.
 const _defaultBucketUpdateConcurrency = 8;
-
-/// The default cache timeout for content.
-const _pkgApiMaxCacheAge = Duration(minutes: 10);
-const _pkgNameCompletionDataMaxAge = Duration(hours: 8);
-
-List<String> _apiPkgObjectNames(String package) => [
-      '$runtimeVersion/api/packages/$package',
-      'current/api/packages/$package',
-    ];
-
-List<String> _apiPkgNameCompletionDataNames() => [
-      '$runtimeVersion/api/package-name-completion-data',
-      'current/api/package-name-completion-data',
-    ];
 
 /// Sets the API Exporter service.
 void registerApiExporter(ApiExporter value) =>
@@ -50,6 +33,7 @@ void registerApiExporter(ApiExporter value) =>
 ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 
 class ApiExporter {
+  final ExportedApi _api;
   final Bucket _bucket;
   final int _concurrency;
   final _pkgLastUpdated = <String, _PkgUpdatedEvent>{};
@@ -57,7 +41,8 @@ class ApiExporter {
   ApiExporter({
     required Bucket bucket,
     int concurrency = _defaultBucketUpdateConcurrency,
-  })  : _bucket = bucket,
+  })  : _api = ExportedApi(storageService, bucket),
+        _bucket = bucket,
         _concurrency = concurrency;
 
   /// Runs a forever loop and tries to get a global lock.
@@ -89,12 +74,8 @@ class ApiExporter {
 
   /// Gets and uploads the package name completion data.
   Future<void> uploadPkgNameCompletionData() async {
-    final bytes = await searchBackend.getPackageNameCompletionDataJsonGz();
-    final bytesAndHash = _BytesAndHash(bytes);
-    for (final objectName in _apiPkgNameCompletionDataNames()) {
-      await _upsert(objectName, bytesAndHash,
-          maxAge: _pkgNameCompletionDataMaxAge);
-    }
+    await _api.packageNameCompletionData
+        .write(await searchBackend.getPackageNameCompletionData());
   }
 
   /// Note: there is no global locking here, the full scan should be called
@@ -187,19 +168,11 @@ class ApiExporter {
   /// the endpoint name in the file location.
   Future<void> _uploadPackageToBucket(String package) async {
     final data = await retry(() => packageBackend.listVersions(package));
-    final rawBytes = jsonUtf8Encoder.convert(data.toJson());
-    final bytes = gzip.encode(rawBytes);
-    final bytesAndHash = _BytesAndHash(bytes);
-
-    for (final objectName in _apiPkgObjectNames(package)) {
-      await _upsert(objectName, bytesAndHash, maxAge: _pkgApiMaxCacheAge);
-    }
+    await _api.package(package).versions.write(data);
   }
 
   Future<void> _deletePackageFromBucket(String package) async {
-    for (final objectName in _apiPkgObjectNames(package)) {
-      await _bucket.tryDelete(objectName);
-    }
+    await _api.package(package).delete();
   }
 
   Stream<_PkgUpdatedEvent> _queryRecentPkgUpdatedEvents(DateTime since) async* {
@@ -250,39 +223,6 @@ class ApiExporter {
       await deleteBucketFolderRecursively(_bucket, '$v/', concurrency: 4);
     }
   }
-
-  Future<void> _upsert(
-    String objectName,
-    _BytesAndHash bytesAndHash, {
-    required Duration maxAge,
-  }) async {
-    if (await _isSameContent(objectName, bytesAndHash)) {
-      return;
-    }
-    await uploadWithRetry(
-      _bucket,
-      objectName,
-      bytesAndHash.bytes.length,
-      () => Stream.value(bytesAndHash.bytes),
-      metadata: ObjectMetadata(
-        contentType: 'application/json; charset="utf-8"',
-        contentEncoding: 'gzip',
-        cacheControl: 'public, max-age=${maxAge.inSeconds}',
-      ),
-    );
-  }
-
-  Future<bool> _isSameContent(
-      String objectName, _BytesAndHash bytesAndHash) async {
-    final info = await _bucket.tryInfo(objectName);
-    if (info == null) {
-      return false;
-    }
-    if (info.length != bytesAndHash.length) {
-      return false;
-    }
-    return fixedTimeIntListEquals(info.md5Hash, bytesAndHash.md5Hash);
-  }
 }
 
 typedef _PkgUpdatedEvent = ({String package, DateTime updated, bool isVisible});
@@ -295,13 +235,4 @@ extension on ModeratedPackage {
 extension on Package {
   _PkgUpdatedEvent asPkgUpdatedEvent() =>
       (package: name!, updated: updated!, isVisible: isVisible);
-}
-
-class _BytesAndHash {
-  final List<int> bytes;
-
-  _BytesAndHash(this.bytes);
-
-  int get length => bytes.length;
-  late final md5Hash = md5.convert(bytes).bytes;
 }
