@@ -54,6 +54,15 @@ void main() {
         'cookie-notice-container',
         'cookie-notice-button',
       ]);
+      // markdown alert classes
+      expressions.removeAll([
+        'markdown-alert-note',
+        'markdown-alert-tip',
+        'markdown-alert-important',
+        'markdown-alert-warning',
+        'markdown-alert-caution',
+        'markdown-alert-title',
+      ]);
 
       // remove third-party css expressions
       final thirdPartyCss = [
