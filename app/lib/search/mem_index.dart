@@ -33,6 +33,7 @@ class InMemoryPackageIndex {
   late final List<PackageHit> _createdOrderedHits;
   late final List<PackageHit> _updatedOrderedHits;
   late final List<PackageHit> _popularityOrderedHits;
+  late final List<PackageHit> _downloadsOrderedHits;
   late final List<PackageHit> _likesOrderedHits;
   late final List<PackageHit> _pointsOrderedHits;
 
@@ -81,6 +82,8 @@ class InMemoryPackageIndex {
     _updatedOrderedHits = _rankWithComparator(_compareUpdated);
     _popularityOrderedHits = _rankWithComparator(_comparePopularity,
         score: (doc) => doc.popularityScore ?? 0);
+    _downloadsOrderedHits = _rankWithComparator(_compareDownloads,
+        score: (doc) => doc.downloadCount.toDouble());
     _likesOrderedHits = _rankWithComparator(_compareLikes,
         score: (doc) => doc.likeCount.toDouble());
     _pointsOrderedHits = _rankWithComparator(_comparePoints,
@@ -194,6 +197,9 @@ class InMemoryPackageIndex {
         break;
       case SearchOrder.popularity:
         packageHits = _popularityOrderedHits.whereInSet(packages);
+        break;
+      case SearchOrder.downloads:
+        packageHits = _downloadsOrderedHits.whereInSet(packages);
         break;
       case SearchOrder.like:
         packageHits = _likesOrderedHits.whereInSet(packages);
@@ -410,6 +416,12 @@ class InMemoryPackageIndex {
 
   int _comparePopularity(PackageDocument a, PackageDocument b) {
     final x = -(a.popularityScore ?? 0.0).compareTo(b.popularityScore ?? 0.0);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _compareDownloads(PackageDocument a, PackageDocument b) {
+    final x = -a.downloadCount.compareTo(b.downloadCount);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }

@@ -22,6 +22,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/publisher/backend.dart';
 
 import 'package:pub_dev/search/search_client.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -356,6 +357,7 @@ class SearchBackend {
       created: p.created!,
       updated: p.lastVersionPublished!,
       readme: compactReadme(readmeAsset?.textContent),
+      downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       likeCount: p.likes,
       popularityScore: popularityStorage.lookup(packageName),
       grantedPoints: scoreCard.grantedPubPoints,

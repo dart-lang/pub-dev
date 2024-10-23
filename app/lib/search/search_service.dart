@@ -73,6 +73,7 @@ class PackageDocument {
 
   final List<String> tags;
 
+  final int downloadCount;
   final int likeCount;
 
   /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
@@ -105,6 +106,7 @@ class PackageDocument {
     DateTime? updated,
     this.readme = '',
     List<String>? tags,
+    int? downloadCount,
     int? likeCount,
     this.likeScore,
     this.popularityScore,
@@ -116,6 +118,7 @@ class PackageDocument {
     this.sourceUpdated,
   })  : created = created ?? clock.now(),
         updated = updated ?? clock.now(),
+        downloadCount = downloadCount ?? 0,
         likeCount = likeCount ?? 0,
         grantedPoints = grantedPoints ?? 0,
         maxPoints = maxPoints ?? 0,
