@@ -7,15 +7,15 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
-import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
-import '../shared/test_models.dart';
-import '../shared/test_services.dart';
-import 'backend_test_utils.dart';
+import '../../shared/test_models.dart';
+import '../../shared/test_services.dart';
+import '../backend_test_utils.dart';
 
 void main() {
   group('export API to bucket', () {

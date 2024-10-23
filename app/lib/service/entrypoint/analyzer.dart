@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
