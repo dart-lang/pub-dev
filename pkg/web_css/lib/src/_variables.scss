@@ -31,6 +31,12 @@
   --pub-inset-bgColor:         var(--pub-color-smokeWhite);
   --pub-selected-bgColor:      var(--pub-color-bubblesBlue);
 
+  --pub-markdown-alert-info: #e7f8ff;
+  --pub-markdown-alert-tip: #ecfaf7;
+  --pub-markdown-alert-important: #e2dbff;
+  --pub-markdown-alert-warning: #fcf8e3;
+  --pub-markdown-alert-error: #fde9ee;
+
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-font_family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
   --pub-code-text-color: var(--pub-neutral-textColor);
@@ -115,6 +121,12 @@
   --pub-neutral-hover-bgColor: var(--pub-color-shadowBlack);
   --pub-inset-bgColor:         var(--pub-color-anchorBlack);
   --pub-selected-bgColor:      var(--pub-color-nipponUltraBlue);
+
+  --pub-markdown-alert-info: #043875;
+  --pub-markdown-alert-tip: #065517;
+  --pub-markdown-alert-important: #4a00b4;
+  --pub-markdown-alert-warning: #7b6909;
+  --pub-markdown-alert-error: #7a0c17;
 
   --pub-code-text-color: var(--pub-neutral-textColor);
   --pub-link-text-color: #40c4ff;

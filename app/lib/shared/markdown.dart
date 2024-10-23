@@ -29,6 +29,7 @@ const _whitelistedClassNames = <String>[
   'changelog-content',
   'hash-header',
   'hash-link',
+  'markdown-alert',
   'report-summary-icon',
 ];
 
@@ -115,6 +116,7 @@ String _renderSafeHtml(
         !disableHashIds, // TODO: Use a denylist for ids used by pub site
     allowClassName: (String cn) {
       if (cn.startsWith('language-')) return true;
+      if (cn.startsWith('markdown-alert-')) return true;
       return _whitelistedClassNames.contains(cn);
     },
     addLinkRel: (String url) {

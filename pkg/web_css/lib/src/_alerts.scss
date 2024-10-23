@@ -1,0 +1,79 @@
+/* Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+.markdown-alert {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+
+  >:last-child {
+    margin-bottom: 0;
+  }
+
+  &.markdown-alert-note {
+    background-color: var(--pub-markdown-alert-info);
+
+    // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
+    // TODO: remove or fix this rule
+    // .markdown-alert-title:before {
+    //   content: 'info';
+    // }
+  }
+
+  &.markdown-alert-tip {
+    background-color: var(--pub-markdown-alert-tip);
+
+    // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
+    // TODO: remove or fix this rule
+    // .markdown-alert-title:before {
+    //   content: 'lightbulb';
+    // }
+  }
+
+  &.markdown-alert-important {
+    background-color: var(--pub-markdown-alert-important);
+
+    // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
+    // TODO: remove or fix this rule
+    // .markdown-alert-title:before {
+    //   content: 'feedback';
+    // }
+  }
+
+  &.markdown-alert-warning {
+    background-color: var(--pub-markdown-alert-warning);
+
+    // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
+    // TODO: remove or fix this rule
+    // .markdown-alert-title:before {
+    //   content: 'warning';
+    // }
+  }
+
+  &.markdown-alert-caution {
+    background-color: var(--pub-markdown-alert-error);
+
+    // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
+    // TODO: remove or fix this rule
+    // .markdown-alert-title:before {
+    //   content: 'report';
+    // }
+  }
+}
+
+.markdown-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+
+  // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
+  // TODO: remove or fix this rule
+  // &:before {
+  //   font: 24px / 1 'Material Symbols Outlined';
+  // }
+}
