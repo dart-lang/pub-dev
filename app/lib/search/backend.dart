@@ -495,24 +495,29 @@ class SearchBackend {
         'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
   }
 
+  /// Creates the content for the /api/package-name-completion-data endpoint.
+  Future<Map<String, Object?>> getPackageNameCompletionData() async {
+    final rs = await searchClient.search(
+      ServiceSearchQuery.parse(
+        tagsPredicate: TagsPredicate.regularSearch(),
+        limit: 20000,
+      ),
+      // Do not cache response at the search client level, as we'll be caching
+      // it in a processed form much longer.
+      skipCache: true,
+      // Do not apply rate limit here.
+      sourceIp: null,
+    );
+    return {
+      'packages': rs.packageHits.map((p) => p.package).toList(),
+    };
+  }
+
   /// Creates the gzipped byte content for the /api/package-name-completion-data endpoint.
   Future<List<int>> getPackageNameCompletionDataJsonGz() async {
     final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
-      final rs = await searchClient.search(
-        ServiceSearchQuery.parse(
-          tagsPredicate: TagsPredicate.regularSearch(),
-          limit: 20000,
-        ),
-        // Do not cache response at the search client level, as we'll be caching
-        // it in a processed form much longer.
-        skipCache: true,
-        // Do not apply rate limit here.
-        sourceIp: null,
-      );
-
-      return gzip.encode(jsonUtf8Encoder.convert({
-        'packages': rs.packageHits.map((p) => p.package).toList(),
-      }));
+      final data = await getPackageNameCompletionData();
+      return gzip.encode(jsonUtf8Encoder.convert(data));
     });
     return bytes!;
   }

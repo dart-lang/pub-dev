@@ -45,20 +45,20 @@ void main() {
             .toList();
         expect(files.toSet(), {
           '$runtimeVersion/api/package-name-completion-data',
-          'current/api/package-name-completion-data',
+          'latest/api/package-name-completion-data',
           '$runtimeVersion/api/packages/flutter_titanium',
           '$runtimeVersion/api/packages/neon',
           '$runtimeVersion/api/packages/oxygen',
-          'current/api/packages/flutter_titanium',
-          'current/api/packages/neon',
-          'current/api/packages/oxygen',
+          'latest/api/packages/flutter_titanium',
+          'latest/api/packages/neon',
+          'latest/api/packages/oxygen',
         });
 
         Future<Object?> readAndDecodeJson(String path) async => json
             .decode(utf8.decode(gzip.decode(await bucket.readAsBytes(path))));
 
         expect(
-          await readAndDecodeJson('current/api/packages/neon'),
+          await readAndDecodeJson('latest/api/packages/neon'),
           {
             'name': 'neon',
             'latest': isNotEmpty,
@@ -67,7 +67,7 @@ void main() {
         );
 
         expect(
-          await readAndDecodeJson('current/api/package-name-completion-data'),
+          await readAndDecodeJson('latest/api/package-name-completion-data'),
           {
             'packages': hasLength(3),
           },
@@ -81,7 +81,7 @@ void main() {
       final bucket =
           storageService.bucket(activeConfiguration.exportedApiBucketName!);
       final originalBytes =
-          await bucket.readAsBytes('current/api/packages/oxygen');
+          await bucket.readAsBytes('latest/api/packages/oxygen');
 
       final pubspecContent = generatePubspecYaml('oxygen', '9.0.0');
       final message = await createPubApiClient(authToken: adminClientToken)
@@ -91,7 +91,7 @@ void main() {
 
       await Future.delayed(Duration(seconds: 1));
       final updatedBytes =
-          await bucket.readAsBytes('current/api/packages/oxygen');
+          await bucket.readAsBytes('latest/api/packages/oxygen');
       expect(originalBytes.length, lessThan(updatedBytes.length));
     });
   });

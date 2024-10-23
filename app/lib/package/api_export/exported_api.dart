@@ -9,10 +9,12 @@ import 'dart:io';
 import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/utils.dart';
+import '../../shared/storage.dart';
 import '../../shared/versions.dart'
     show runtimeVersion, runtimeVersionPattern, shouldGCVersion;
 
@@ -268,7 +270,7 @@ final class ExportedJsonFile<T> extends ExportedObject {
     final gzipped = _jsonGzip.encode(data);
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
-        await _owner._bucket.writeBytes(
+        await _owner._bucket.writeBytesIfDifferent(
           prefix + _objectName,
           gzipped,
           metadata: _metadata,
@@ -307,7 +309,7 @@ final class ExportedBlob extends ExportedObject {
   Future<void> write(List<int> data) async {
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
-        await _owner._bucket.writeBytes(
+        await _owner._bucket.writeBytesIfDifferent(
           prefix + _objectName,
           data,
           metadata: _metadata,
@@ -331,5 +333,36 @@ final class ExportedBlob extends ExportedObject {
         );
       });
     }));
+  }
+}
+
+extension on Bucket {
+  Future<void> writeBytesIfDifferent(
+    String name,
+    List<int> bytes, {
+    ObjectMetadata? metadata,
+  }) async {
+    if (await _hasSameContent(name, bytes)) {
+      return;
+    }
+    await uploadWithRetry(
+      this,
+      name,
+      bytes.length,
+      () => Stream.value(bytes),
+      metadata: metadata,
+    );
+  }
+
+  Future<bool> _hasSameContent(String name, List<int> bytes) async {
+    final info = await tryInfo(name);
+    if (info == null) {
+      return false;
+    }
+    if (info.length != bytes.length) {
+      return false;
+    }
+    final md5Hash = md5.convert(bytes).bytes;
+    return fixedTimeIntListEquals(info.md5Hash, md5Hash);
   }
 }
