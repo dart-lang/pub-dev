@@ -17,29 +17,22 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  testWithFakeTime('ExportedApi', (fakeTime) async {
+  final retryPkgData1 = PackageData(
+    name: 'retry',
+    latest: VersionInfo(
+      version: '1.2.3',
+      retracted: false,
+      pubspec: {},
+      archiveUrl: '-',
+      archiveSha256: '-',
+      published: clock.now(),
+    ),
+    versions: [],
+  );
+
+  testWithFakeTime('ExportedApi.garbageCollect()', (fakeTime) async {
     await storageService.createBucket('exported-api');
     final bucket = storageService.bucket('exported-api');
-
-    /// Read bytes from bucket
-    Future<Uint8List?> readBytes(String path) async {
-      try {
-        return await bucket.readAsBytes(path);
-      } on DetailedApiRequestError catch (e) {
-        if (e.status == 404) return null;
-        rethrow;
-      }
-    }
-
-    /// Read gzipped JSON from bucket
-    Future<Object?> readGzippedJson(String path) async {
-      final bytes = await readBytes(path);
-      if (bytes == null) {
-        return null;
-      }
-      return utf8JsonDecoder.convert(gzip.decode(bytes));
-    }
-
     final exportedApi = ExportedApi(storageService, bucket);
 
     // Test that deletion works when bucket is empty
@@ -48,23 +41,10 @@ void main() {
     // Test that GC works when bucket is empty
     await exportedApi.garbageCollect({});
 
-    final retryPkgData1 = PackageData(
-      name: 'retry',
-      latest: VersionInfo(
-        version: '1.2.3',
-        retracted: false,
-        pubspec: {},
-        archiveUrl: '-',
-        archiveSha256: '-',
-        published: clock.now(),
-      ),
-      versions: [],
-    );
-
     await exportedApi.package('retry').versions.write(retryPkgData1);
 
     expect(
-      await readGzippedJson('latest/api/packages/retry'),
+      await bucket.readGzippedJson('latest/api/packages/retry'),
       json.decode(json.encode(retryPkgData1.toJson())),
     );
 
@@ -72,7 +52,7 @@ void main() {
     fakeTime.elapseSync(minutes: 10);
     await exportedApi.garbageCollect({});
     expect(
-      await readGzippedJson('latest/api/packages/retry'),
+      await bucket.readGzippedJson('latest/api/packages/retry'),
       isNotNull,
     );
 
@@ -80,15 +60,61 @@ void main() {
     fakeTime.elapseSync(days: 2);
     await exportedApi.garbageCollect({'retry'});
     expect(
-      await readGzippedJson('latest/api/packages/retry'),
+      await bucket.readGzippedJson('latest/api/packages/retry'),
       isNotNull,
     );
 
     // Check retry after 2 days will delete a package we don't know.
     await exportedApi.garbageCollect({});
     expect(
-      await readGzippedJson('latest/api/packages/retry'),
+      await bucket.readGzippedJson('latest/api/packages/retry'),
       isNull,
     );
+
+    // Check that stray files in old-runtimeVersions will be GC'ed
+    final oldFiles = [
+      '2023.08.10/api/packages/retry',
+      '2023.08.10/api/stray-file1',
+      '2023.08.10/stray-file2',
+    ];
+    for (final f in oldFiles) {
+      await bucket.writeBytes(f, [0]);
+      expect(
+        await bucket.readBytes(f),
+        isNotNull,
+      );
+    }
+
+    // Run GC to delete all stray files
+    await exportedApi.garbageCollect({});
+
+    for (final f in oldFiles) {
+      expect(
+        await bucket.readBytes(f),
+        isNull,
+        reason: 'expected "$f" to be GCed',
+      );
+    }
   });
+}
+
+extension on Bucket {
+  /// Read bytes from bucket, retur null if missing
+  Future<Uint8List?> readBytes(String path) async {
+    try {
+      return await readAsBytes(path);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+  }
+
+  /// Read gzipped JSON from bucket
+  Future<Object?> readGzippedJson(String path) async {
+    final bytes = await readBytes(path);
+    if (bytes == null) {
+      return null;
+    }
+    return utf8JsonDecoder.convert(gzip.decode(bytes));
+  }
 }
