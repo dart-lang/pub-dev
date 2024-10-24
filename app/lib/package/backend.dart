@@ -17,6 +17,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/package_storage.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -90,6 +91,14 @@ class PackageBackend {
   /// The following files are present:
   /// - `packages/$package-$version.tar.gz` (package archive)
   final Bucket _publicBucket;
+
+  /// The storage handling for the archive files.
+  late final packageStorage = PackageStorage(
+    db,
+    _storage,
+    _canonicalBucket,
+    _publicBucket,
+  );
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
