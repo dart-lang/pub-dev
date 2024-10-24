@@ -47,10 +47,10 @@ List ModerationCase entities with filter options.
     }
 
     final list = await query.run().where((mc) {
-      if (status == 'pending' && mc.status != ModerationStatus.pending) {
+      if (status == 'resolved' && mc.status == ModerationStatus.pending) {
         return false;
       }
-      if (status == 'resolved' && mc.status == ModerationStatus.pending) {
+      if (status != 'resolved' && mc.status != status) {
         return false;
       }
       if (kind != null && mc.kind != kind) {
