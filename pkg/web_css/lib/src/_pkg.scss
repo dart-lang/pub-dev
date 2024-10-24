@@ -2,6 +2,8 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+@use 'variables';
+
 .package-badge {
   display: inline-block;
   background: var(--pub-neutral-bgColor);
@@ -57,7 +59,7 @@
     &.badge {
       width: 100px;
 
-      @media (max-width: $device-mobile-max-width) {
+      @media (max-width: variables.$device-mobile-max-width) {
         display: none;
       }
     }
@@ -97,7 +99,7 @@
       display: none;
     }
 
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       &.sdk > span.label,
       &.uploaded > span.label {
         display: none;
@@ -144,7 +146,7 @@
   justify-content: space-evenly;
   padding: 20px 0 30px 0;
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     padding: 40px 0 50px 0;
   }
 
@@ -158,7 +160,7 @@
     font-size: 32px;
     line-height: 1;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       font-size: 64px;
     }
   }
@@ -249,7 +251,7 @@
 
     .markdown-body {
       table {
-        @media (min-width: $device-desktop-min-width) {
+        @media (min-width: variables.$device-desktop-min-width) {
           // Normally markdown-tables do use 100% width, but for
           // an unknown layout rule this is not doing it.
           // Forcing table to take the maximum available width,
@@ -311,7 +313,7 @@
 
     opacity: 1;
     display: none;
-    transition: opacity $copy-feedback-transition-opacity-delay;
+    transition: opacity variables.$copy-feedback-transition-opacity-delay;
 
     >.code {
       font-family: var(--pub-code-text-font_family);
@@ -340,7 +342,7 @@
       // to keep everything visible at the same time.
       font-size: 50%;
 
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         // On larger screens the above setting seems to be too small. The
         // vertical width scaling will roughly make the 80-character lines
         // fit the available width of the container.

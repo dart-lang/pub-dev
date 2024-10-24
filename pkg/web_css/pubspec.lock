@@ -370,10 +370,10 @@ packages:
     dependency: "direct main"
     description:
       name: sass
-      sha256: a5da06121e395d961c375a90fb26158849a07dfc695b88a74a343959e3e48191
+      sha256: "3bef6b5d842ed00d3da8807422f0ad657e53dcc830591cfad4f7df60a7dc9f48"
       url: "https://pub.dev"
     source: hosted
-    version: "1.79.5"
+    version: "1.80.2"
   shelf:
     dependency: transitive
     description:

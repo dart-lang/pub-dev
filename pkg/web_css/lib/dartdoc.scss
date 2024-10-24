@@ -12,7 +12,7 @@
 @use '../../../third_party/dartdoc/resources/github.css';
 @use '../../../third_party/dartdoc/resources/styles.css';
 
-@import 'src/_staging_ribbon.scss';
+@use 'src/_staging_ribbon.scss';
 
 // This is meant for a temporary override for highlight.js. We need to
 // figure out a better way to customize the syntax highlights for dark
