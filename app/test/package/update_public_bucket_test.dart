@@ -8,7 +8,7 @@ import 'package:pub_dev/package/package_storage.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
-import '../../shared/test_services.dart';
+import '../shared/test_services.dart';
 
 void main() {
   group('update public bucket', () {
