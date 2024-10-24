@@ -50,7 +50,7 @@ List ModerationCase entities with filter options.
       if (status == 'resolved' && mc.status == ModerationStatus.pending) {
         return false;
       }
-      if (status != 'resolved' && mc.status != status) {
+      if (status != null && status != 'resolved' && mc.status != status) {
         return false;
       }
       if (kind != null && mc.kind != kind) {
