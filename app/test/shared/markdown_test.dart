@@ -403,4 +403,17 @@ void main() {
       );
     });
   });
+
+  group('alert blocks', () {
+    test('note', () {
+      final output = markdownToHtml('> [!NOTE]\n> Extra information.');
+      expect(output.split('\n').toList(), [
+        '<div class="markdown-alert markdown-alert-note">',
+        '<p class="markdown-alert-title">Note</p>',
+        '<p>Extra information.</p>',
+        '</div>',
+        '',
+      ]);
+    });
+  });
 }
