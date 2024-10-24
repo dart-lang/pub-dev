@@ -22,7 +22,6 @@ import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/storage.dart';
-import 'package:pub_dev/tool/maintenance/update_public_bucket.dart';
 import 'package:test/test.dart';
 
 import '../admin/models_test.dart';
@@ -315,13 +314,13 @@ void main() {
       await expectStatusCode(404);
 
       // another check after background tasks are running
-      await updatePublicArchiveBucket();
+      await packageBackend.packageStorage.updatePublicArchiveBucket();
       await expectStatusCode(404);
 
       await _moderate('oxygen', state: false, caseId: mc.caseId);
       await expectStatusCode(200);
       // another check after background tasks are running
-      await updatePublicArchiveBucket();
+      await packageBackend.packageStorage.updatePublicArchiveBucket();
       final restoredBytes = await expectStatusCode(200);
       expect(restoredBytes, bytes);
     });
