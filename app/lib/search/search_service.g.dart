@@ -82,6 +82,9 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
       nameMatches: (json['nameMatches'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      topicMatches: (json['topicMatches'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -105,6 +108,7 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
   }
 
   writeNotNull('nameMatches', instance.nameMatches);
+  writeNotNull('topicMatches', instance.topicMatches);
   val['sdkLibraryHits'] =
       instance.sdkLibraryHits.map((e) => e.toJson()).toList();
   val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();

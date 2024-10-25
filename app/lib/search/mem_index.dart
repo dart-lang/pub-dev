@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/service/topics/models.dart';
 
 import '../shared/utils.dart' show boundedList;
 import 'models.dart';
@@ -37,6 +38,13 @@ class InMemoryPackageIndex {
   late final List<PackageHit> _likesOrderedHits;
   late final List<PackageHit> _pointsOrderedHits;
 
+  // Contains all of the topics the index had seen so far.
+  // TODO: consider moving this into a separate index
+  // TODO: get the list of topics from the bucket
+  final _topics = <String>{
+    ...canonicalTopics.aliasToCanonicalMap.values,
+  };
+
   late final DateTime _lastUpdated;
 
   InMemoryPackageIndex({
@@ -57,6 +65,12 @@ class InMemoryPackageIndex {
           }
         }
       }
+
+      // Note: we are not removing topics from this set, only adding them, no
+      //       need for tracking the current topic count.
+      _topics.addAll(doc.tags
+          .where((t) => t.startsWith('topic:'))
+          .map((t) => t.split('topic:').last));
     }
 
     final packageKeys = _documents.map((d) => d.package).toList();
@@ -170,7 +184,21 @@ class InMemoryPackageIndex {
     }
 
     final nameMatches = textResults?.nameMatches;
+    List<String>? topicMatches;
     List<PackageHit> packageHits;
+
+    if (parsedQueryText != null) {
+      final parts = parsedQueryText
+          .split(' ')
+          .map((t) => canonicalTopics.aliasToCanonicalMap[t] ?? t)
+          .toSet()
+          .where(_topics.contains)
+          .toList();
+      if (parts.isNotEmpty) {
+        topicMatches = parts;
+      }
+    }
+
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         if (textResults == null) {
@@ -229,6 +257,7 @@ class InMemoryPackageIndex {
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
       nameMatches: nameMatches,
+      topicMatches: topicMatches,
       packageHits: packageHits,
     );
   }

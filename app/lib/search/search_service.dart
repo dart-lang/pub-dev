@@ -312,6 +312,9 @@ class PackageSearchResult {
   /// Package names that are exact name matches or close to (e.g. names that
   /// would be considered as blocker for publishing).
   final List<String>? nameMatches;
+
+  /// Topic names that are exact name matches or close to the queried text.
+  final List<String>? topicMatches;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
 
@@ -325,6 +328,7 @@ class PackageSearchResult {
     required this.timestamp,
     required this.totalCount,
     this.nameMatches,
+    this.topicMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.errorMessage,
@@ -339,6 +343,7 @@ class PackageSearchResult {
   })  : timestamp = clock.now().toUtc(),
         totalCount = 0,
         nameMatches = null,
+        topicMatches = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
@@ -358,6 +363,7 @@ class PackageSearchResult {
       timestamp: timestamp,
       totalCount: totalCount,
       nameMatches: nameMatches,
+      topicMatches: topicMatches,
       sdkLibraryHits: sdkLibraryHits ?? this.sdkLibraryHits,
       packageHits: packageHits,
       errorMessage: errorMessage,
