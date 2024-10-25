@@ -8,7 +8,6 @@ import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
 import '../../task/backend.dart';
-import '../../tool/maintenance/update_public_bucket.dart';
 import 'actions.dart';
 
 final moderatePackage = AdminAction(
@@ -83,7 +82,7 @@ Note: the action may take a longer time to complete as the public archive bucket
       });
 
       // retract or re-populate public archive files
-      await updatePublicArchiveBucket(
+      await packageBackend.packageStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

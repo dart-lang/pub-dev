@@ -11,7 +11,6 @@ import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
 import '../../task/backend.dart';
-import '../../tool/maintenance/update_public_bucket.dart';
 
 import '../backend.dart';
 import '../models.dart';
@@ -116,7 +115,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
       });
 
       // retract or re-populate public archive files
-      await updatePublicArchiveBucket(
+      await packageBackend.packageStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,
