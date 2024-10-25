@@ -3,16 +3,20 @@
    BSD-style license that can be found in the LICENSE file. */
 
 .markdown-alert {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  padding: 1.25rem;
+  border-left: 0.25em solid var(--pub-inset-bgColor);
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
 
   >:last-child {
     margin-bottom: 0;
   }
 
   &.markdown-alert-note {
-    background-color: var(--pub-markdown-alert-info);
+    border-left-color: var(--pub-markdown-alert-note);
+
+    .markdown-alert-title {
+      color: var(--pub-markdown-alert-note);
+    }
 
     // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
     // TODO: remove or fix this rule
@@ -22,7 +26,11 @@
   }
 
   &.markdown-alert-tip {
-    background-color: var(--pub-markdown-alert-tip);
+    border-left-color: var(--pub-markdown-alert-tip);
+
+    .markdown-alert-title {
+      color: var(--pub-markdown-alert-tip);
+    }
 
     // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
     // TODO: remove or fix this rule
@@ -32,7 +40,11 @@
   }
 
   &.markdown-alert-important {
-    background-color: var(--pub-markdown-alert-important);
+    border-left-color: var(--pub-markdown-alert-important);
+
+    .markdown-alert-title {
+      color: var(--pub-markdown-alert-important);
+    }
 
     // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
     // TODO: remove or fix this rule
@@ -42,7 +54,11 @@
   }
 
   &.markdown-alert-warning {
-    background-color: var(--pub-markdown-alert-warning);
+    border-left-color: var(--pub-markdown-alert-warning);
+
+    .markdown-alert-title {
+      color: var(--pub-markdown-alert-warning);
+    }
 
     // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
     // TODO: remove or fix this rule
@@ -52,7 +68,11 @@
   }
 
   &.markdown-alert-caution {
-    background-color: var(--pub-markdown-alert-error);
+    border-left-color: var(--pub-markdown-alert-caution);
+
+    .markdown-alert-title {
+      color: var(--pub-markdown-alert-caution);
+    }
 
     // NOTE: This is a copy of the dartdoc alert style, for using Material Symbols font.
     // TODO: remove or fix this rule
