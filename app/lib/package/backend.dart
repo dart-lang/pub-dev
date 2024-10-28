@@ -1938,13 +1938,6 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
   return DerivedPackageVersionEntities(versionInfo, assets);
 }
 
-/// The GCS object name of a tarball object - excluding leading '/'.
-String tarballObjectName(String package, String version) =>
-    '${tarballObjectNamePackagePrefix(package)}$version.tar.gz';
-
-/// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
-String tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
-
 /// The GCS object name of an temporary object [guid] - excluding leading '/'.
 @visibleForTesting
 String tmpObjectName(String guid) => 'tmp/$guid';

@@ -4,6 +4,7 @@
 
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/package_storage.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:test/test.dart';
