@@ -215,3 +215,18 @@ class CountData {
       _$CountDataFromJson(json);
   Map<String, dynamic> toJson() => _$CountDataToJson(this);
 }
+
+@JsonSerializable(includeIfNull: false)
+class WeeklyDownloadCounts {
+  final List<int> weeklyDownloads;
+  final DateTime newestDate;
+
+  WeeklyDownloadCounts({
+    required this.weeklyDownloads,
+    required this.newestDate,
+  });
+
+  factory WeeklyDownloadCounts.fromJson(Map<String, dynamic> json) =>
+      _$WeeklyDownloadCountsFromJson(json);
+  Map<String, dynamic> toJson() => _$WeeklyDownloadCountsToJson(this);
+}

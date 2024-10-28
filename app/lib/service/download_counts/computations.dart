@@ -6,10 +6,13 @@ import 'dart:math';
 
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
+
+import '../../shared/redis_cache.dart' show cache;
 
 Future<void> compute30DaysTotalTask() async {
   final allDownloadCounts = await downloadCountsBackend.listAllDownloadCounts();
@@ -41,6 +44,17 @@ Future<void> upload30DaysTotal(Map<String, int> counts) async {
       storageService.bucket(activeConfiguration.reportsBucketName!);
   await uploadBytesWithRetry(reportsBucket, downloadCounts30DaysTotalsFileName,
       jsonUtf8Encoder.convert(counts));
+}
+
+Future<WeeklyDownloadCounts?> getWeeklyDownloads(String package) async {
+  return (await cache.weeklyDownloadCounts(package).get(() async {
+    final wdc = await computeWeeklyDownloads(package);
+    if (wdc.newestDate == null) {
+      return null;
+    }
+    return WeeklyDownloadCounts(
+        weeklyDownloads: wdc.weeklyDownloads, newestDate: wdc.newestDate!);
+  }));
 }
 
 /// Computes `weeklyDownloads` starting from `newestDate` for [package].
