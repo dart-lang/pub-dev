@@ -42,3 +42,32 @@ Future<void> upload30DaysTotal(Map<String, int> counts) async {
   await uploadBytesWithRetry(reportsBucket, downloadCounts30DaysTotalsFileName,
       jsonUtf8Encoder.convert(counts));
 }
+
+/// Computes `weeklyDownloads` starting from `newestDate` for [package].
+///
+/// Each number in `weeklyDownloads` is the total number of downloads for
+/// a given 7 day period starting from the newest date with download counts
+/// data available.
+Future<({List<int> weeklyDownloads, DateTime? newestDate})>
+    computeWeeklyDownloads(String package) async {
+  final weeklyDownloads = List.filled(52, 0);
+  final countData =
+      await downloadCountsBackend.lookupDownloadCountData(package);
+  if (countData == null) {
+    return (weeklyDownloads: <int>[], newestDate: null);
+  }
+
+  final totals = countData.totalCounts;
+
+  for (int w = 0; w < 52; w++) {
+    var sum = 0;
+    for (int d = 0; d < 7; d++) {
+      if (totals[w * 7 + d] > 0) {
+        sum += totals[w * 7 + d];
+      }
+    }
+    weeklyDownloads[w] = sum;
+  }
+
+  return (weeklyDownloads: weeklyDownloads, newestDate: countData.newestDate!);
+}

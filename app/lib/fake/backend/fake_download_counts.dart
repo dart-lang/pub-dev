@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:gcloud/storage.dart';
-import 'package:pub_dev/service/download_counts/compute_30_days_total_counts.dart';
+import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/utils.dart';
 

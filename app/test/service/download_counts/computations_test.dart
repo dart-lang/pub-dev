@@ -7,7 +7,7 @@ import 'package:basics/basics.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
-import 'package:pub_dev/service/download_counts/compute_30_days_total_counts.dart';
+import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
@@ -118,6 +118,50 @@ void main() {
       expect(downloadCountsBackend.lookup30DaysTotalCounts('bar'), 120);
       expect(downloadCountsBackend.lookup30DaysTotalCounts('baz'), 150);
       expect(downloadCountsBackend.lookup30DaysTotalCounts('bax'), isNull);
+    });
+
+    testWithProfile('compute weekly', fn: () async {
+      final pkg = 'foo';
+      final date = DateTime.parse('1986-02-16');
+      final versionsCounts = {
+        '1.0.1': 2,
+        '2.0.0-alpha': 2,
+        '2.0.0': 2,
+        '2.1.0': 2,
+        '3.1.0': 2,
+        '4.0.0-0': 2,
+        '6.1.0': 2,
+      };
+      final versionsCounts2 = {
+        '1.0.1': 3,
+        '2.0.0-alpha': 3,
+        '2.0.0': 3,
+        '2.1.0': 3,
+        '3.1.0': 3,
+        '4.0.0-0': 3,
+        '6.1.0': 3,
+      };
+
+      for (var i = 0; i <= 7 * 20; i++) {
+        await downloadCountsBackend.updateDownloadCounts(
+            pkg, versionsCounts, date.addCalendarDays(i));
+      }
+
+      for (var i = 7 * 20 + 1; i <= 7 * 40; i++) {
+        await downloadCountsBackend.updateDownloadCounts(
+            pkg, versionsCounts2, date.addCalendarDays(i));
+      }
+
+      final res = await computeWeeklyDownloads(pkg);
+
+      final expectedList = List.from(List.filled(20, 147))
+        ..addAll(List.filled(20, 98))
+        ..add(14)
+        ..addAll(List.filled(11, 0));
+      final expectedNewstDate = date.addCalendarDays(7 * 40);
+
+      expect(res.weeklyDownloads, expectedList);
+      expect(res.newestDate, expectedNewstDate);
     });
   });
 }
