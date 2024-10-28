@@ -265,7 +265,7 @@ final class ExportedJsonFile<T> extends ExportedObject {
       contentEncoding: 'gzip',
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
       custom: {
-        'updated': clock.now().toIso8601String(),
+        'validated': clock.now().toIso8601String(),
       },
     );
   }
@@ -312,7 +312,7 @@ final class ExportedBlob extends ExportedObject {
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
       contentDisposition: 'attachment; filename="$_filename"',
       custom: {
-        'updated': clock.now().toIso8601String(),
+        'validated': clock.now().toIso8601String(),
       },
     );
   }
@@ -347,11 +347,11 @@ final class ExportedBlob extends ExportedObject {
           if (await srcInfo case final srcInfo?) {
             if (dstInfo.contentEquals(srcInfo)) {
               // If both source and dst exists, and their content matches, then
-              // we only need to update the "updated" metadata. And we only need
-              // to update the "updated" timestamp if it's older than
+              // we only need to update the "validated" metadata. And we only
+              // need to update the "validated" timestamp if it's older than
               // _retouchDeadline
-              final retouchDeadline = clock.agoBy(_retouchDeadline);
-              if (dstInfo.metadata.updated.isBefore(retouchDeadline)) {
+              final retouchDeadline = clock.agoBy(_revalidateAfter);
+              if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
                 await _owner._bucket.updateMetadata(dst, metadata);
               }
               return;
@@ -371,7 +371,7 @@ final class ExportedBlob extends ExportedObject {
   }
 }
 
-const _retouchDeadline = Duration(days: 1);
+const _revalidateAfter = Duration(days: 1);
 
 extension on Bucket {
   Future<void> writeBytesIfDifferent(
@@ -381,7 +381,7 @@ extension on Bucket {
   ) async {
     if (await tryInfo(name) case final info?) {
       if (info.isSameContent(bytes)) {
-        if (info.metadata.updated.isBefore(clock.agoBy(_retouchDeadline))) {
+        if (info.metadata.validated.isBefore(clock.agoBy(_revalidateAfter))) {
           await updateMetadata(name, metadata);
         }
         return;
@@ -416,7 +416,7 @@ extension on ObjectInfo {
 }
 
 extension on ObjectMetadata {
-  DateTime get updated {
-    return DateTime.tryParse(custom?['updated'] ?? '') ?? DateTime(0);
+  DateTime get validated {
+    return DateTime.tryParse(custom?['validated'] ?? '') ?? DateTime(0);
   }
 }
