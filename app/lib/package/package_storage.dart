@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/storage.dart';
+import '../shared/datastore.dart';
+import '../shared/storage.dart';
+import '../shared/utils.dart';
+import 'backend.dart';
+import 'models.dart';
 
 final _logger = Logger('package_storage');
 
@@ -39,7 +42,7 @@ class PackageStorage {
     this._publicBucket,
   );
 
-  /// Gets the object info of the archive file from the public bucket.
+  /// Gets the object info of the archive file from the canonical bucket.
   Future<ObjectInfo?> getCanonicalBucketArchiveInfo(
       String package, String version) async {
     final objectName = tarballObjectName(package, version);
@@ -51,6 +54,71 @@ class PackageStorage {
       String package, String version) async {
     final objectName = tarballObjectName(package, version);
     return await _publicBucket.tryInfo(objectName);
+  }
+
+  /// Returns the publicly available download URL from the storage bucket.
+  Future<Uri> getPublicDownloadUrl(String package, String version) async {
+    final object = tarballObjectName(package, Uri.encodeComponent(version));
+    return Uri.parse(_publicBucket.objectUrl(object));
+  }
+
+  /// Verifies the content of an archive in the canonical bucket.
+  Future<ContentMatchStatus> matchArchiveContentInCanonical(
+    String package,
+    String version,
+    Uint8List bytes,
+  ) async {
+    final objectName = tarballObjectName(package, version);
+    final info = await _canonicalBucket.tryInfo(objectName);
+    if (info == null) {
+      return ContentMatchStatus.missing;
+    }
+    // TODO: implement quick md5 match that doesn't require to download full content
+    final objectBytes = await _canonicalBucket.readAsBytes(objectName);
+    if (bytes.byteToByteEquals(objectBytes)) {
+      return ContentMatchStatus.same;
+    } else {
+      return ContentMatchStatus.different;
+    }
+  }
+
+  /// Copies the uploaded object from the temp bucket to the canonical bucket.
+  Future<void> copyFromTempToCanonicalBucket({
+    required String sourceAbsoluteObjectName,
+    required String package,
+    required String version,
+  }) async {
+    await _storage.copyObject(
+      sourceAbsoluteObjectName,
+      _canonicalBucket.absoluteObjectName(tarballObjectName(package, version)),
+    );
+  }
+
+  /// Copies archive bytes from canonical bucket to public bucket.
+  Future<void> copyArchiveFromCanonicalToPublicBucket(
+      String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    await _storage.copyObject(
+      _canonicalBucket.absoluteObjectName(objectName),
+      _publicBucket.absoluteObjectName(objectName),
+    );
+  }
+
+  /// Updates the `content-disposition` header to `attachment` on the public archive file.
+  Future<void> updateContentDispositionOnPublicBucket(
+      String package, String version) async {
+    final info = await getPublicBucketArchiveInfo(package, version);
+    if (info != null) {
+      await updateContentDispositionToAttachment(info, _publicBucket);
+    }
+  }
+
+  /// Deletes package archive from all buckets.
+  Future<void> deleteArchiveFromAllBuckets(
+      String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    await deleteFromBucket(_canonicalBucket, objectName);
+    await deleteFromBucket(_publicBucket, objectName);
   }
 
   /// Deletes the package archive file from the canonical bucket.
@@ -204,4 +272,10 @@ class PublicBucketUpdateStat {
 
   bool get isAllZero =>
       archivesUpdated == 0 && archivesToBeDeleted == 0 && archivesDeleted == 0;
+}
+
+enum ContentMatchStatus {
+  missing,
+  different,
+  same;
 }
