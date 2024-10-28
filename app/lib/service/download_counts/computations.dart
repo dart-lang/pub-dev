@@ -57,6 +57,7 @@ Future<({List<int> weeklyPoints, DateTime? newestDate})> computeWeeklyDownloads(
   var sum = 0;
   for (int i = 0; i < 52 * 7; i++) {
     if (totals[i] < 0) {
+      weeklyPoints[(i ~/ 7)] = sum;
       // There is no more available data.
       break;
     }

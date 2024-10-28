@@ -142,12 +142,12 @@ void main() {
         '6.1.0': 3,
       };
 
-      for (var i = 0; i < 7 * 20; i++) {
+      for (var i = 0; i <= 7 * 20; i++) {
         await downloadCountsBackend.updateDownloadCounts(
             pkg, versionsCounts, date.addCalendarDays(i));
       }
 
-      for (var i = 7 * 20; i < 7 * 40; i++) {
+      for (var i = 7 * 20 + 1; i <= 7 * 40; i++) {
         await downloadCountsBackend.updateDownloadCounts(
             pkg, versionsCounts2, date.addCalendarDays(i));
       }
@@ -156,8 +156,9 @@ void main() {
 
       final expectedList = List.from(List.filled(20, 147))
         ..addAll(List.filled(20, 98))
-        ..addAll(List.filled(12, 0));
-      final expectedNewstDate = date.addCalendarDays(7 * 40 - 1);
+        ..add(14)
+        ..addAll(List.filled(11, 0));
+      final expectedNewstDate = date.addCalendarDays(7 * 40);
 
       expect(res.weeklyPoints, expectedList);
       expect(res.newestDate, expectedNewstDate);
