@@ -42,3 +42,29 @@ Future<void> upload30DaysTotal(Map<String, int> counts) async {
   await uploadBytesWithRetry(reportsBucket, downloadCounts30DaysTotalsFileName,
       jsonUtf8Encoder.convert(counts));
 }
+
+Future<({List<int> weeklyPoints, DateTime? newestDate})> computeWeeklyDownloads(
+    String package) async {
+  final weeklyPoints = List.filled(52, 0);
+  final countData =
+      await downloadCountsBackend.lookupDownloadCountData(package);
+  if (countData == null) {
+    return (weeklyPoints: <int>[], newestDate: null);
+  }
+
+  final totals = countData!.totalCounts;
+
+  var sum = 0;
+  for (int i = 0; i < 52 * 7; i++) {
+    if (totals[i] < 0) {
+      // There is no more available data.
+      break;
+    }
+    sum += totals[i];
+    if ((i + 1) % 7 == 0) {
+      weeklyPoints[(i ~/ 7)] = sum;
+      sum = 0;
+    }
+  }
+  return (weeklyPoints: weeklyPoints, newestDate: countData.newestDate!);
+}
