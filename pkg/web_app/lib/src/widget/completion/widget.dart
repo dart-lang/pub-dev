@@ -272,8 +272,8 @@ final class _CompletionWidget {
     // Update dropdown position
     dropdown.style
       ..display = 'block'
-      ..left = '${inputBoundingRect.left + caretOffset}px'
-      ..top = '${inputBoundingRect.bottom}px';
+      ..left = '${inputBoundingRect.left + caretOffset + window.scrollX}px'
+      ..top = '${inputBoundingRect.bottom + window.scrollY}px';
 
     // Apply selectedOptionClass to selected option
     if (state.suggestions.isNotEmpty) {
