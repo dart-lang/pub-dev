@@ -12,7 +12,6 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
@@ -24,11 +23,7 @@ import '../account/models.dart';
 import '../admin/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
-    show
-        checkPackageVersionParams,
-        packageBackend,
-        purgePackageCache,
-        tarballObjectName;
+    show checkPackageVersionParams, packageBackend, purgePackageCache;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/backend.dart';
@@ -36,7 +31,6 @@ import '../service/email/email_templates.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
-import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import 'actions/actions.dart' show AdminAction;
@@ -794,9 +788,6 @@ class AdminBackend {
     @visibleForTesting DateTime? before,
   }) async {
     before ??= clock.ago(days: 3 * 366).toUtc(); // extra buffer days
-    final canonicalBucket =
-        storageService.bucket(activeConfiguration.canonicalPackagesBucketName!);
-
     // delete packages
     final pQuery = _db.query<Package>()
       ..filter('moderatedAt <', before)
@@ -829,11 +820,8 @@ class AdminBackend {
           'Deleting moderated package version: ${version.qualifiedVersionKey}');
 
       // deleting from canonical bucket
-      final objectName = tarballObjectName(version.package, version.version!);
-      final info = await canonicalBucket.tryInfo(objectName);
-      if (info != null) {
-        await canonicalBucket.delete(objectName);
-      }
+      await packageBackend.packageStorage
+          .deleteArchiveFromCanonicalBucket(version.package, version.version!);
 
       // deleting from datastore
       await withRetryTransaction(_db, (tx) async {

@@ -8,7 +8,6 @@ import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
-import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
@@ -20,7 +19,6 @@ import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:test/test.dart';
 
@@ -430,10 +428,9 @@ void main() {
         'cleanup deletes datastore entities and canonical archive file',
         fn: () async {
       // canonical file is present
-      final bucket = storageService
-          .bucket(activeConfiguration.canonicalPackagesBucketName!);
       expect(
-        await bucket.tryInfo(tarballObjectName('oxygen', '1.0.0')),
+        await packageBackend.packageStorage
+            .getCanonicalBucketArchiveInfo('oxygen', '1.0.0'),
         isNotNull,
       );
 
@@ -462,7 +459,8 @@ void main() {
 
       // canonical file is not present
       expect(
-        await bucket.tryInfo(tarballObjectName('oxygen', '1.0.0')),
+        await packageBackend.packageStorage
+            .getCanonicalBucketArchiveInfo('oxygen', '1.0.0'),
         isNull,
       );
 
@@ -472,7 +470,8 @@ void main() {
         isNotNull,
       );
       expect(
-        await bucket.tryInfo(tarballObjectName('oxygen', '1.2.0')),
+        await packageBackend.packageStorage
+            .getCanonicalBucketArchiveInfo('oxygen', '1.2.0'),
         isNotNull,
       );
     });

@@ -9,7 +9,6 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
-import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
@@ -604,10 +603,8 @@ class IntegrityChecker {
     Uri archiveDownloadUri, {
     required bool shouldBeInPublicBucket,
   }) async* {
-    final canonicalInfo = await storageService
-        .bucket(activeConfiguration.canonicalPackagesBucketName!)
-        // ignore: invalid_use_of_visible_for_testing_member
-        .tryInfo(tarballObjectName(pv.package, pv.version!));
+    final canonicalInfo = await packageBackend.packageStorage
+        .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
     if (canonicalInfo == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
       return;
@@ -631,10 +628,8 @@ class IntegrityChecker {
       yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
     }
 
-    final publicInfo = await storageService
-        .bucket(activeConfiguration.publicPackagesBucketName!)
-        // ignore: invalid_use_of_visible_for_testing_member
-        .tryInfo(tarballObjectName(pv.package, pv.version!));
+    final publicInfo = await packageBackend.packageStorage
+        .getPublicBucketArchiveInfo(pv.package, pv.version!);
     if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
       yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
     }

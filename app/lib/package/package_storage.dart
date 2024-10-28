@@ -11,6 +11,13 @@ import 'package:pub_dev/shared/storage.dart';
 
 final _logger = Logger('package_storage');
 
+/// The GCS object name of a tarball object - excluding leading '/'.
+String tarballObjectName(String package, String version) =>
+    '${_tarballObjectNamePackagePrefix(package)}$version.tar.gz';
+
+/// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
+String _tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
+
 class PackageStorage {
   final DatastoreDB _dbService;
   final Storage _storage;
@@ -31,6 +38,30 @@ class PackageStorage {
     this._canonicalBucket,
     this._publicBucket,
   );
+
+  /// Gets the object info of the archive file from the public bucket.
+  Future<ObjectInfo?> getCanonicalBucketArchiveInfo(
+      String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    return await _canonicalBucket.tryInfo(objectName);
+  }
+
+  /// Gets the object info of the archive file from the public bucket.
+  Future<ObjectInfo?> getPublicBucketArchiveInfo(
+      String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    return await _publicBucket.tryInfo(objectName);
+  }
+
+  /// Deletes the package archive file from the canonical bucket.
+  Future<void> deleteArchiveFromCanonicalBucket(
+      String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    final info = await _canonicalBucket.tryInfo(objectName);
+    if (info != null) {
+      await _canonicalBucket.delete(objectName);
+    }
+  }
 
   /// Updates the public package archive:
   /// - copies missing archive objects from canonical to public bucket,
@@ -92,8 +123,9 @@ class PackageStorage {
       objectNamesInPublicBucket.add(objectName);
     }
 
-    final filterForNamePrefix =
-        package == null ? 'packages/' : tarballObjectNamePackagePrefix(package);
+    final filterForNamePrefix = package == null
+        ? 'packages/'
+        : _tarballObjectNamePackagePrefix(package);
     await for (final entry in _publicBucket.list(prefix: filterForNamePrefix)) {
       // Skip non-objects.
       if (!entry.isObject) {
