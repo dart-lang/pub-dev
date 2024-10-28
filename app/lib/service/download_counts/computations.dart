@@ -43,13 +43,18 @@ Future<void> upload30DaysTotal(Map<String, int> counts) async {
       jsonUtf8Encoder.convert(counts));
 }
 
-Future<({List<int> weeklyPoints, DateTime? newestDate})> computeWeeklyDownloads(
-    String package) async {
-  final weeklyPoints = List.filled(52, 0);
+/// Computes `weeklyDownloads` starting from `newestDate` for [package].
+///
+/// Each number in `weeklyDownloads` is the total number of downloads for
+/// a given 7 day period starting from the newest date with download counts
+/// data available.
+Future<({List<int> weeklyDownloads, DateTime? newestDate})>
+    computeWeeklyDownloads(String package) async {
+  final weeklyDownloads = List.filled(52, 0);
   final countData =
       await downloadCountsBackend.lookupDownloadCountData(package);
   if (countData == null) {
-    return (weeklyPoints: <int>[], newestDate: null);
+    return (weeklyDownloads: <int>[], newestDate: null);
   }
 
   final totals = countData.totalCounts;
@@ -57,15 +62,15 @@ Future<({List<int> weeklyPoints, DateTime? newestDate})> computeWeeklyDownloads(
   var sum = 0;
   for (int i = 0; i < 52 * 7; i++) {
     if (totals[i] < 0) {
-      weeklyPoints[(i ~/ 7)] = sum;
+      weeklyDownloads[(i ~/ 7)] = sum;
       // There is no more available data.
       break;
     }
     sum += totals[i];
     if ((i + 1) % 7 == 0) {
-      weeklyPoints[(i ~/ 7)] = sum;
+      weeklyDownloads[(i ~/ 7)] = sum;
       sum = 0;
     }
   }
-  return (weeklyPoints: weeklyPoints, newestDate: countData.newestDate!);
+  return (weeklyDownloads: weeklyDownloads, newestDate: countData.newestDate!);
 }

@@ -160,7 +160,7 @@ void main() {
         ..addAll(List.filled(11, 0));
       final expectedNewstDate = date.addCalendarDays(7 * 40);
 
-      expect(res.weeklyPoints, expectedList);
+      expect(res.weeklyDownloads, expectedList);
       expect(res.newestDate, expectedNewstDate);
     });
   });
