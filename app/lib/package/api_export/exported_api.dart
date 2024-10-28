@@ -259,21 +259,28 @@ final class ExportedJsonFile<T> extends ExportedObject {
     this._maxAge,
   ) : super._(_owner, _objectName);
 
-  late final _metadata = ObjectMetadata(
-    contentType: 'application/json; charset="utf-8"',
-    contentEncoding: 'gzip',
-    cacheControl: 'public, max-age=${_maxAge.inSeconds}',
-  );
+  ObjectMetadata _metadata() {
+    return ObjectMetadata(
+      contentType: 'application/json; charset="utf-8"',
+      contentEncoding: 'gzip',
+      cacheControl: 'public, max-age=${_maxAge.inSeconds}',
+      custom: {
+        'validated': clock.now().toIso8601String(),
+      },
+    );
+  }
 
   /// Write [data] as gzipped JSON in UTF-8 format.
   Future<void> write(T data) async {
     final gzipped = _jsonGzip.encode(data);
+    final metadata = _metadata();
+
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
         await _owner._bucket.writeBytesIfDifferent(
           prefix + _objectName,
           gzipped,
-          metadata: _metadata,
+          metadata,
         );
       });
     }));
@@ -299,52 +306,88 @@ final class ExportedBlob extends ExportedObject {
     this._maxAge,
   ) : super._(_owner, _objectName);
 
-  late final _metadata = ObjectMetadata(
-    contentType: _contentType,
-    cacheControl: 'public, max-age=${_maxAge.inSeconds}',
-    contentDisposition: 'attachment; filename="$_filename"',
-  );
+  ObjectMetadata _metadata() {
+    return ObjectMetadata(
+      contentType: _contentType,
+      cacheControl: 'public, max-age=${_maxAge.inSeconds}',
+      contentDisposition: 'attachment; filename="$_filename"',
+      custom: {
+        'validated': clock.now().toIso8601String(),
+      },
+    );
+  }
 
   /// Write binary blob to this file.
   Future<void> write(List<int> data) async {
+    final metadata = _metadata();
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
         await _owner._bucket.writeBytesIfDifferent(
           prefix + _objectName,
           data,
-          metadata: _metadata,
+          metadata,
         );
       });
     }));
   }
 
-  /// Copy binary blob from [absoluteObjectName] to this file.
-  ///
-  /// Notice that [absoluteObjectName] must be an a GCS URI including `gs://`.
-  /// This means that it must include bucket name.
-  /// Such URIs can be created with [Bucket.absoluteObjectName].
-  Future<void> copyFrom(String absoluteObjectName) async {
+  /// Copy binary blob from [bucket] and [source] to this file.
+  Future<void> copyFrom(Bucket bucket, String source) async {
+    final metadata = _metadata();
+    Future<ObjectInfo?>? srcInfo;
+
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
+        final dst = prefix + _objectName;
+
+        // Check if the dst already exists
+        if (await _owner._bucket.tryInfo(dst) case final dstInfo?) {
+          // Fetch info for source object (if we haven't already done this)
+          srcInfo ??= bucket.tryInfo(source);
+          if (await srcInfo case final srcInfo?) {
+            if (dstInfo.contentEquals(srcInfo)) {
+              // If both source and dst exists, and their content matches, then
+              // we only need to update the "validated" metadata. And we only
+              // need to update the "validated" timestamp if it's older than
+              // _retouchDeadline
+              final retouchDeadline = clock.agoBy(_revalidateAfter);
+              if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
+                await _owner._bucket.updateMetadata(dst, metadata);
+              }
+              return;
+            }
+          }
+        }
+
+        // If dst or source doesn't exist, then we shall attempt to make a copy.
+        // (if source doesn't exist we'll consistently get an error from here!)
         await _owner._storage.copyObject(
-          absoluteObjectName,
-          _owner._bucket.absoluteObjectName(prefix + _objectName),
-          metadata: _metadata,
+          bucket.absoluteObjectName(source),
+          _owner._bucket.absoluteObjectName(dst),
+          metadata: metadata,
         );
       });
     }));
   }
 }
 
+const _revalidateAfter = Duration(days: 1);
+
 extension on Bucket {
   Future<void> writeBytesIfDifferent(
     String name,
-    List<int> bytes, {
-    ObjectMetadata? metadata,
-  }) async {
-    if (await _hasSameContent(name, bytes)) {
-      return;
+    List<int> bytes,
+    ObjectMetadata metadata,
+  ) async {
+    if (await tryInfo(name) case final info?) {
+      if (info.isSameContent(bytes)) {
+        if (info.metadata.validated.isBefore(clock.agoBy(_revalidateAfter))) {
+          await updateMetadata(name, metadata);
+        }
+        return;
+      }
     }
+
     await uploadWithRetry(
       this,
       name,
@@ -353,16 +396,27 @@ extension on Bucket {
       metadata: metadata,
     );
   }
+}
 
-  Future<bool> _hasSameContent(String name, List<int> bytes) async {
-    final info = await tryInfo(name);
-    if (info == null) {
+extension on ObjectInfo {
+  bool isSameContent(List<int> bytes) {
+    if (length != bytes.length) {
       return false;
     }
-    if (info.length != bytes.length) {
+    final bytesHash = md5.convert(bytes).bytes;
+    return fixedTimeIntListEquals(md5Hash, bytesHash);
+  }
+
+  bool contentEquals(ObjectInfo info) {
+    if (length != info.length) {
       return false;
     }
-    final md5Hash = md5.convert(bytes).bytes;
-    return fixedTimeIntListEquals(info.md5Hash, md5Hash);
+    return fixedTimeIntListEquals(md5Hash, info.md5Hash);
+  }
+}
+
+extension on ObjectMetadata {
+  DateTime get validated {
+    return DateTime.tryParse(custom?['validated'] ?? '') ?? DateTime(0);
   }
 }
