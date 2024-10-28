@@ -52,7 +52,7 @@ Future<({List<int> weeklyPoints, DateTime? newestDate})> computeWeeklyDownloads(
     return (weeklyPoints: <int>[], newestDate: null);
   }
 
-  final totals = countData!.totalCounts;
+  final totals = countData.totalCounts;
 
   var sum = 0;
   for (int i = 0; i < 52 * 7; i++) {
