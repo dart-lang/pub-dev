@@ -20,6 +20,13 @@ import '../../shared/versions.dart'
 
 final _log = Logger('api_export:exported_bucket');
 
+/// Minimum age before an item can be consider garbage.
+///
+/// This ensures that we don't delete files we've just created.
+/// It's entirely possible that one process is writing files, while another
+/// process is running garbage collection.
+const _minGarbageAge = Duration(days: 1);
+
 /// Interface for [Bucket] containing exported API that is served directly from
 /// Google Cloud Storage.
 ///
@@ -94,8 +101,8 @@ final class ExportedApi {
       }
       if (!allPackageNames.contains(packageName)) {
         final info = await _bucket.info(item.name);
-        if (info.updated.isBefore(clock.ago(days: 1))) {
-          // Only delete if the item is more than one day old
+        if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
+          // Only delete if the item if it's older than _minGarbageAge
           // This avoids any races where we delete files we've just created
           await package(packageName).delete();
         }
@@ -111,8 +118,8 @@ final class ExportedApi {
       final packageName = item.name.without(suffix: '-').split('/').last;
       if (!allPackageNames.contains(packageName)) {
         final info = await _bucket.info(item.name);
-        if (info.updated.isBefore(clock.ago(days: 1))) {
-          // Only delete if the item is more than one day old
+        if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
+          // Only delete if the item if it's older than _minGarbageAge
           // This avoids any races where we delete files we've just created
           await package(packageName).delete();
         }
@@ -153,7 +160,7 @@ final class ExportedApi {
         await _listBucket(
           prefix: entry.name,
           delimiter: '',
-          (entry) async => await _bucket.delete(entry.name),
+          (entry) async => await _bucket.tryDelete(entry.name),
         );
       }
     }));
@@ -211,6 +218,33 @@ final class ExportedPackage {
         Duration(hours: 2),
       );
 
+  /// Garbage collect versions from this package not in [allVersionNumbers].
+  ///
+  /// [allVersionNumbers] must be encoded as canonical versions.
+  Future<void> garbageCollect(Set<String> allVersionNumbers) async {
+    await Future.wait([
+      ..._owner._prefixes.map((prefix) async {
+        final pfx = '/api/archives/$_package-';
+        await _owner._listBucket(prefix: pfx, delimiter: '', (item) async {
+          assert(item.isObject);
+          final version = item.name.without(prefix: pfx, suffix: '.tar.gz');
+          if (allVersionNumbers.contains(version)) {
+            return;
+          }
+          if (await _owner._bucket.tryInfo(item.name) case final info?) {
+            if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
+              // Only delete if the item if it's older than _minGarbageAge
+              // This avoids any races where we delete files we've just created
+              await _owner._bucket.tryDelete(item.name);
+            }
+          }
+          // Ignore cases where tryInfo fails, assuming the object has been
+          // deleted by another process.
+        });
+      }),
+    ]);
+  }
+
   /// Delete all files related to this package.
   Future<void> delete() async {
     await Future.wait([
@@ -220,7 +254,7 @@ final class ExportedPackage {
         await _owner._listBucket(
           prefix: prefix + '/api/archives/$_package-',
           delimiter: '',
-          (item) async => await _owner._bucket.delete(item.name),
+          (item) async => await _owner._bucket.tryDelete(item.name),
         );
       }),
     ]);
@@ -237,7 +271,7 @@ sealed class ExportedObject {
   Future<void> delete() async {
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
-        await _owner._bucket.delete(prefix + _objectName);
+        await _owner._bucket.tryDelete(prefix + _objectName);
       });
     }));
   }
