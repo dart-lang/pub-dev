@@ -102,7 +102,7 @@ final class ExportedApi {
       if (!allPackageNames.contains(packageName)) {
         final info = await _bucket.info(item.name);
         if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
-          // Only delete if the item if it's older than _minGarbageAge
+          // Only delete the item if it's older than _minGarbageAge
           // This avoids any races where we delete files we've just created
           await package(packageName).delete();
         }
@@ -119,7 +119,7 @@ final class ExportedApi {
       if (!allPackageNames.contains(packageName)) {
         final info = await _bucket.info(item.name);
         if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
-          // Only delete if the item if it's older than _minGarbageAge
+          // Only delete the item if it's older than _minGarbageAge
           // This avoids any races where we delete files we've just created
           await package(packageName).delete();
         }
