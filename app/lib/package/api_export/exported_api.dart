@@ -259,10 +259,8 @@ final class ExportedJsonFile<T> extends ExportedObject {
     this._maxAge,
   ) : super._(_owner, _objectName);
 
-  /// Write [data] as gzipped JSON in UTF-8 format.
-  Future<void> write(T data) async {
-    final gzipped = _jsonGzip.encode(data);
-    final metadata = ObjectMetadata(
+  ObjectMetadata _metadata() {
+    return ObjectMetadata(
       contentType: 'application/json; charset="utf-8"',
       contentEncoding: 'gzip',
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
@@ -270,6 +268,12 @@ final class ExportedJsonFile<T> extends ExportedObject {
         'updated': clock.now().toIso8601String(),
       },
     );
+  }
+
+  /// Write [data] as gzipped JSON in UTF-8 format.
+  Future<void> write(T data) async {
+    final gzipped = _jsonGzip.encode(data);
+    final metadata = _metadata();
 
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
