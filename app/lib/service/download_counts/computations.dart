@@ -59,18 +59,15 @@ Future<({List<int> weeklyDownloads, DateTime? newestDate})>
 
   final totals = countData.totalCounts;
 
-  var sum = 0;
-  for (int i = 0; i < 52 * 7; i++) {
-    if (totals[i] < 0) {
-      weeklyDownloads[(i ~/ 7)] = sum;
-      // There is no more available data.
-      break;
+  for (int w = 0; w < 52; w++) {
+    var sum = 0;
+    for (int d = 0; d < 7; d++) {
+      if (totals[w * 7 + d] > 0) {
+        sum += totals[w * 7 + d];
+      }
     }
-    sum += totals[i];
-    if ((i + 1) % 7 == 0) {
-      weeklyDownloads[(i ~/ 7)] = sum;
-      sum = 0;
-    }
+    weeklyDownloads[w] = sum;
   }
+
   return (weeklyDownloads: weeklyDownloads, newestDate: countData.newestDate!);
 }
