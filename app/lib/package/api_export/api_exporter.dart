@@ -9,6 +9,8 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/shared/parallel_foreach.dart';
 import 'package:retry/retry.dart';
 
 import '../../search/backend.dart';
@@ -76,6 +78,120 @@ class ApiExporter {
   Future<void> uploadPkgNameCompletionData() async {
     await _api.packageNameCompletionData
         .write(await searchBackend.getPackageNameCompletionData());
+  }
+
+  Future<void> fullSync() async {
+    final invisiblePackageNames = await dbService
+        .query<ModeratedPackage>()
+        .run()
+        .map((mp) => mp.name!)
+        .toSet();
+
+    final allPackageNames = <String>{};
+    final packageQuery = dbService.query<Package>();
+    await packageQuery.run().parallelForEach(_concurrency, (pkg) async {
+      final name = pkg.name!;
+      if (pkg.isNotVisible) {
+        invisiblePackageNames.add(name);
+        return;
+      }
+      allPackageNames.add(name);
+
+      // TODO: Consider retries around all this logic
+      await syncPackage(name);
+    });
+
+    final visibilityConflicts =
+        allPackageNames.intersection(invisiblePackageNames);
+    if (visibilityConflicts.isNotEmpty) {
+      // TODO: Shout into logs
+    }
+
+    await _api.garbageCollect(allPackageNames);
+  }
+
+  /// Sync package and into [ExportedApi], this will GC, etc.
+  ///
+  /// This is intended when:
+  ///  * Running a full background synchronization.
+  ///  * When a change in [Package.updated] is detected (maybe???)
+  ///  * A package is moderated, or other admin action is applied.
+  Future<void> syncPackage(String package) async {
+    final versionListing = await packageBackend.listVersions(package);
+    // TODO: Consider skipping the cache when fetching security advisories
+    final advisories = await securityAdvisoryBackend.listAdvisoriesResponse(
+      package,
+    );
+
+    await Future.wait(versionListing.versions.map((v) async {
+      final version = v.version;
+
+      // TODO: Will v.version work here, is the canonicalized version number?
+      final absoluteObjectName =
+          packageBackend.tarballStorage.getCanonicalBucketAbsoluteObjectName(
+        package,
+        version,
+      );
+      final info =
+          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
+        package,
+        version,
+      );
+      if (info == null) {
+        throw AssertionError(
+          'Expected an archive for "$package" and "$version" at '
+          '"$absoluteObjectName"',
+        );
+      }
+
+      await _api.package(package).tarball(version).copyFrom(
+            absoluteObjectName,
+            info,
+          );
+    }));
+
+    await _api.package(package).advisories.write(advisories);
+    await _api.package(package).versions.write(versionListing);
+
+    // TODO: Is this the canonoical version? (probably)
+    final allVersions = versionListing.versions.map((v) => v.version).toSet();
+    await _api.package(package).garbageCollect(allVersions);
+  }
+
+  /// Upload a single version of a new package.
+  ///
+  /// This is intended to be used when a new version of a package has been
+  /// published.
+  Future<void> uploadSingleVersion(
+    String package,
+    String version,
+  ) async {
+    final versionListing = await packageBackend.listVersions(package);
+
+    // TODO: Will v.version work here, is the canonicalized version number?
+    final absoluteObjectName =
+        packageBackend.tarballStorage.getCanonicalBucketAbsoluteObjectName(
+      package,
+      version,
+    );
+    final info =
+        await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
+      package,
+      version,
+    );
+    if (info == null) {
+      throw AssertionError(
+        'Expected an archive for "$package" and "$version" at '
+        '"$absoluteObjectName"',
+      );
+    }
+
+    await _api.package(package).tarball(version).copyFrom(
+          absoluteObjectName,
+          info,
+        );
+
+    await _api.package(package).versions.write(versionListing);
   }
 
   /// Note: there is no global locking here, the full scan should be called
