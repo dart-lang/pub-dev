@@ -76,10 +76,18 @@ final class ExportedApi {
   /// This will remove prefixes other than `latest/` where [shouldGCVersion]
   /// returns true.
   Future<void> garbageCollect(Set<String> allPackageNames) async {
+    _log.info(
+      'Garbage collection started, with ${allPackageNames.length} package names',
+    );
     await Future.wait([
       _gcOldPrefixes(),
       ..._prefixes.map((prefix) => _gcPrefix(prefix, allPackageNames)),
     ]);
+    // Check if there are any stray files left after we've done a full GC cycle.
+    await Future.wait([
+      ..._prefixes.map((prefix) => _findStrayFiles(prefix)),
+    ]);
+    _log.info('Garbage collection completed.');
   }
 
   /// Garbage collect unknown packages from [prefix].
@@ -173,6 +181,40 @@ final class ExportedApi {
         );
       }
     }));
+  }
+
+  /// Search for stray files in [prefix]
+  ///
+  /// We detect stray files by looking at the the [_validatedCustomHeader].
+  /// Whenever we save a file we update the [_validatedCustomHeader] timestamp,
+  /// if it's older than [_updateValidatedAfter]. Thus, if something haven't
+  /// been updated for [_unvalidatedStrayFileAfter], then it's probably a stray
+  /// file that we don't understand.
+  ///
+  /// If there are stray files we don't really dare to delete them. They could
+  /// be introduced by a newer [runtimeVersion]. Or it could bug, but if that's
+  /// the case, what are the implications of deleting such files?
+  /// In all such cases, it's best alert and leave deletion of files as bug to
+  /// be fixed.
+  Future<void> _findStrayFiles(String prefix) async {
+    final validatedDeadline = clock.agoBy(_unvalidatedStrayFileAfter);
+    await _listBucket(prefix: prefix, delimiter: '', (item) async {
+      assert(item.isObject);
+      if (item.isObject) {
+        // TODO: Consider creating new wrappers for GCS, as the list API
+        // end-point includes meta-data, etc. Thus, we'd avoid this unnecessary
+        // lookup for every file.
+        if (await _bucket.tryInfo(item.name) case final info?) {
+          if (info.metadata.validated.isBefore(validatedDeadline)) {
+            _log.pubNoticeShout(
+              'stray-file',
+              'The "validated" timestamp of ${item.name} indicates'
+                  ' that it is not being updated!',
+            );
+          }
+        }
+      }
+    });
   }
 
   Future<void> _listBucket(
@@ -294,6 +336,31 @@ sealed class ExportedObject {
   }
 }
 
+/// Custom meta-data key for the 'validated' field.
+///
+/// This will be stored on GCS objects as the following header:
+/// ```
+/// x-goog-meta-validated: <date-time>
+/// ```
+const _validatedCustomHeader = 'validated';
+
+/// Duration after which the [_validatedCustomHeader] should be updated.
+///
+/// When updating a file, we can check the md5 hash, if it matches we don't need
+/// to update the file. But if "validated" timestamp is older than
+/// [_updateValidatedAfter], then we have to update the meta-data.
+///
+/// This allows us to detect files that are present, but not being updated
+/// anymore. We classify such files as _stray files_ and write alerts to logs.
+const _updateValidatedAfter = Duration(days: 1);
+
+/// Duration after which a file that haven't been updated is considered stray!
+///
+/// We don't delete stray files, because there shouldn't be any, so a stray file
+/// is always indicative of a bug. Nevertheless, we write alerts to logs, so
+/// that these inconsistencies can be detected.
+const _unvalidatedStrayFileAfter = Duration(days: 7);
+
 /// Interface for an exported JSON file.
 ///
 /// This will write JSON as gzipped UTF-8, adding headers for
@@ -316,7 +383,7 @@ final class ExportedJsonFile<T> extends ExportedObject {
       contentEncoding: 'gzip',
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
       custom: {
-        'validated': clock.now().toIso8601String(),
+        _validatedCustomHeader: clock.now().toIso8601String(),
       },
     );
   }
@@ -363,7 +430,7 @@ final class ExportedBlob extends ExportedObject {
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
       contentDisposition: 'attachment; filename="$_filename"',
       custom: {
-        'validated': clock.now().toIso8601String(),
+        _validatedCustomHeader: clock.now().toIso8601String(),
       },
     );
   }
@@ -401,7 +468,7 @@ final class ExportedBlob extends ExportedObject {
               // we only need to update the "validated" metadata. And we only
               // need to update the "validated" timestamp if it's older than
               // _retouchDeadline
-              final retouchDeadline = clock.agoBy(_revalidateAfter);
+              final retouchDeadline = clock.agoBy(_updateValidatedAfter);
               if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
                 await _owner._bucket.updateMetadata(dst, metadata);
               }
@@ -422,8 +489,6 @@ final class ExportedBlob extends ExportedObject {
   }
 }
 
-const _revalidateAfter = Duration(days: 1);
-
 extension on Bucket {
   Future<void> writeBytesIfDifferent(
     String name,
@@ -432,7 +497,8 @@ extension on Bucket {
   ) async {
     if (await tryInfo(name) case final info?) {
       if (info.isSameContent(bytes)) {
-        if (info.metadata.validated.isBefore(clock.agoBy(_revalidateAfter))) {
+        if (info.metadata.validated
+            .isBefore(clock.agoBy(_updateValidatedAfter))) {
           await updateMetadata(name, metadata);
         }
         return;
@@ -468,6 +534,7 @@ extension on ObjectInfo {
 
 extension on ObjectMetadata {
   DateTime get validated {
-    return DateTime.tryParse(custom?['validated'] ?? '') ?? DateTime(0);
+    final validatedHeader = custom?[_validatedCustomHeader] ?? '';
+    return DateTime.tryParse(validatedHeader) ?? DateTime(0);
   }
 }
