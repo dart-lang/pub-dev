@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import '../shared/datastore.dart';
@@ -76,7 +77,10 @@ class PackageStorage {
     if (info.length != bytes.length) {
       return ContentMatchStatus.different;
     }
-    // TODO(https://github.com/dart-lang/pub-dev/issues/8195): add md5 hash match that doesn't require to download full content
+    final md5hash = md5.convert(bytes).bytes;
+    if (!md5hash.byteToByteEquals(info.md5Hash)) {
+      return ContentMatchStatus.different;
+    }
     final objectBytes = await _canonicalBucket.readAsBytes(objectName);
     if (bytes.byteToByteEquals(objectBytes)) {
       return ContentMatchStatus.same;
