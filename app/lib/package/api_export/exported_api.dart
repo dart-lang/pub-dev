@@ -233,7 +233,7 @@ final class ExportedPackage {
   Future<void> garbageCollect(Set<String> allVersionNumbers) async {
     await Future.wait([
       ..._owner._prefixes.map((prefix) async {
-        final pfx = '/api/archives/$_package-';
+        final pfx = prefix + '/api/archives/$_package-';
         await _owner._listBucket(prefix: pfx, delimiter: '', (item) async {
           assert(item.isObject);
           if (!item.name.endsWith('.tar.gz')) {
