@@ -5,7 +5,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:_pub_shared/data/advisories_api.dart' show OSV;
+import 'package:_pub_shared/data/advisories_api.dart'
+    show ListAdvisoriesResponse, OSV;
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -48,6 +49,16 @@ class SecurityAdvisoryBackend {
           .map((SecurityAdvisory adv) => SecurityAdvisoryData.fromModel(adv))
           .toList();
     }))!;
+  }
+
+  /// Create a [ListAdvisoriesResponse] for [package] using advisories from
+  /// cache.
+  Future<ListAdvisoriesResponse> listAdvisoriesResponse(String package) async {
+    final advisories = await lookupSecurityAdvisories(package);
+    return ListAdvisoriesResponse(
+      advisories: advisories.map((e) => e.advisory).toList(),
+      advisoriesUpdated: advisories.map((a) => a.syncTime).maxOrNull,
+    );
   }
 
   Future<SecurityAdvisory?> lookupById(String id) async {
