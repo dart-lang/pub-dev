@@ -96,6 +96,53 @@ void main() {
       );
     }
   });
+
+  testWithFakeTime('ExportedApi.garbageCollect()', (fakeTime) async {
+    await storageService.createBucket('exported-api');
+    final bucket = storageService.bucket('exported-api');
+    final exportedApi = ExportedApi(storageService, bucket);
+
+    await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 3]);
+
+    await exportedApi.package('retry').tarball('1.2.4').copyFrom(
+          bucket,
+          'latest/api/archives/retry-1.2.3.tar.gz',
+        );
+
+    // Files are present
+    expect(
+      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
+      [1, 2, 3],
+    );
+    expect(
+      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
+      [1, 2, 3],
+    );
+
+    // Nothing is GC'ed after 10 mins
+    fakeTime.elapseSync(minutes: 10);
+    await exportedApi.package('retry').garbageCollect({'1.2.3'});
+    expect(
+      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
+      [1, 2, 3],
+    );
+    expect(
+      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
+      [1, 2, 3],
+    );
+
+    // Something is GC'ed after 2 days
+    fakeTime.elapseSync(days: 2);
+    await exportedApi.package('retry').garbageCollect({'1.2.3'});
+    expect(
+      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
+      [1, 2, 3],
+    );
+    expect(
+      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
+      isNull,
+    );
+  });
 }
 
 extension on Bucket {
