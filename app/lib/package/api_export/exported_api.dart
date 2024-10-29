@@ -13,6 +13,7 @@ import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/monitoring.dart';
 import 'package:pub_dev/shared/utils.dart';
 import '../../shared/storage.dart';
 import '../../shared/versions.dart'
@@ -138,6 +139,10 @@ final class ExportedApi {
     );
     await Future.wait(topLevelprefixes.map((entry) async {
       if (entry.isObject) {
+        _log.pubNoticeShout(
+          'stray-file',
+          'Found stray top-level file "${entry.name}" in ExportedApi',
+        );
         return; // ignore top-level files
       }
 
@@ -147,6 +152,10 @@ final class ExportedApi {
       }
 
       if (!runtimeVersionPattern.hasMatch(topLevelPrefix)) {
+        _log.pubNoticeShout(
+          'stray-file',
+          'Found stray top-level prefix "${entry.name}" in ExportedApi',
+        );
         return; // Don't GC non-runtimeVersions
       }
 
@@ -227,6 +236,14 @@ final class ExportedPackage {
         final pfx = '/api/archives/$_package-';
         await _owner._listBucket(prefix: pfx, delimiter: '', (item) async {
           assert(item.isObject);
+          if (!item.name.endsWith('.tar.gz')) {
+            _log.pubNoticeShout(
+              'stray-file',
+              'Found stray file "${item.name}" in ExportedApi'
+                  ' while garbage collecting for "$_package" (ignoring it!)',
+            );
+            return;
+          }
           final version = item.name.without(prefix: pfx, suffix: '.tar.gz');
           if (allVersionNumbers.contains(version)) {
             return;
