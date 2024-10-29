@@ -9,7 +9,7 @@ dependencies:
   appengine: ^0.13.6
   json_annotation: ^4.3.0
   jsontool: ^2.0.0
-  pana: ^0.22.13
+  pana: ^0.22.15
   lints: ^5.0.0 # required for pana
   meta: ^1.7.0
   api_builder:
