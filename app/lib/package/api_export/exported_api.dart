@@ -199,19 +199,20 @@ final class ExportedApi {
   Future<void> _findStrayFiles(String prefix) async {
     final validatedDeadline = clock.agoBy(_unvalidatedStrayFileAfter);
     await _listBucket(prefix: prefix, delimiter: '', (item) async {
-      assert(item.isObject);
-      if (item.isObject) {
-        // TODO: Consider creating new wrappers for GCS, as the list API
-        // end-point includes meta-data, etc. Thus, we'd avoid this unnecessary
-        // lookup for every file.
-        if (await _bucket.tryInfo(item.name) case final info?) {
-          if (info.metadata.validated.isBefore(validatedDeadline)) {
-            _log.pubNoticeShout(
-              'stray-file',
-              'The "validated" timestamp of ${item.name} indicates'
-                  ' that it is not being updated!',
-            );
-          }
+      if (!item.isObject) {
+        throw AssertionError('there should only be objects here');
+      }
+
+      // TODO: Consider creating new wrappers for GCS, as the list API
+      // end-point includes meta-data, etc. Thus, we'd avoid this unnecessary
+      // lookup for every file.
+      if (await _bucket.tryInfo(item.name) case final info?) {
+        if (info.metadata.validated.isBefore(validatedDeadline)) {
+          _log.pubNoticeShout(
+            'stray-file',
+            'The "validated" timestamp of ${item.name} indicates'
+                ' that it is not being updated!',
+          );
         }
       }
     });
