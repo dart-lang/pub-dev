@@ -73,7 +73,10 @@ class PackageStorage {
     if (info == null) {
       return ContentMatchStatus.missing;
     }
-    // TODO: implement quick md5 match that doesn't require to download full content
+    if (info.length != bytes.length) {
+      return ContentMatchStatus.different;
+    }
+    // TODO(https://github.com/dart-lang/pub-dev/issues/8195): add md5 hash match that doesn't require to download full content
     final objectBytes = await _canonicalBucket.readAsBytes(objectName);
     if (bytes.byteToByteEquals(objectBytes)) {
       return ContentMatchStatus.same;
