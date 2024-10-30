@@ -17,7 +17,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
-import 'package:pub_dev/package/package_storage.dart';
+import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -81,8 +81,8 @@ class PackageBackend {
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _incomingBucket;
 
-  /// The storage handling for the archive files.
-  final PackageStorage packageStorage;
+  /// The storage handling for the package archive files.
+  final TarballStorage tarballStorage;
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
@@ -93,8 +93,8 @@ class PackageBackend {
     this._incomingBucket,
     Bucket canonicalBucket,
     Bucket publicBucket,
-  ) : packageStorage =
-            PackageStorage(db, storage, canonicalBucket, publicBucket);
+  ) : tarballStorage =
+            TarballStorage(db, storage, canonicalBucket, publicBucket);
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -329,7 +329,7 @@ class PackageBackend {
     // NOTE: We should maybe check for existence first?
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
-    return packageStorage.getPublicDownloadUrl(package, cv!);
+    return tarballStorage.getPublicDownloadUrl(package, cv!);
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
@@ -943,7 +943,7 @@ class PackageBackend {
 
       // Check canonical archive.
       final canonicalContentMatch =
-          await packageStorage.matchArchiveContentInCanonical(
+          await tarballStorage.matchArchiveContentInCanonical(
         pubspec.name,
         versionString,
         fileBytes,
@@ -1184,14 +1184,14 @@ class PackageBackend {
       );
       if (!hasCanonicalArchiveObject) {
         // Copy archive to canonical bucket.
-        await packageStorage.copyFromTempToCanonicalBucket(
+        await tarballStorage.copyFromTempToCanonicalBucket(
           sourceAbsoluteObjectName:
               _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
           package: newVersion.package,
           version: newVersion.version!,
         );
       }
-      await packageStorage.copyArchiveFromCanonicalToPublicBucket(
+      await tarballStorage.copyArchiveFromCanonicalToPublicBucket(
           newVersion.package, newVersion.version!);
 
       final inserts = <Model>[
@@ -1256,7 +1256,7 @@ class PackageBackend {
           apiExporter!
               .updatePackageVersion(newVersion.package, newVersion.version!),
       ]);
-      await packageStorage.updateContentDispositionOnPublicBucket(
+      await tarballStorage.updateContentDispositionOnPublicBucket(
           newVersion.package, newVersion.version!);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
@@ -1634,12 +1634,12 @@ class PackageBackend {
 
   /// Deletes the tarball of a [package] in the given [version] permanently.
   Future<void> removePackageTarball(String package, String version) async {
-    await packageStorage.deleteArchiveFromAllBuckets(package, version);
+    await tarballStorage.deleteArchiveFromAllBuckets(package, version);
   }
 
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> packageTarballInfo(String package, String version) async {
-    return await packageStorage.getPublicBucketArchiveInfo(package, version);
+    return await tarballStorage.getPublicBucketArchiveInfo(package, version);
   }
 
   void _updatePackageAutomatedPublishingLock(

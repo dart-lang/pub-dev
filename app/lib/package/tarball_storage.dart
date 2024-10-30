@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import '../shared/datastore.dart';
 import '../shared/storage.dart';
 import '../shared/utils.dart';
@@ -16,13 +17,14 @@ import 'models.dart';
 final _logger = Logger('package_storage');
 
 /// The GCS object name of a tarball object - excluding leading '/'.
+@visibleForTesting
 String tarballObjectName(String package, String version) =>
     '${_tarballObjectNamePackagePrefix(package)}$version.tar.gz';
 
 /// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
 String _tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
 
-class PackageStorage {
+class TarballStorage {
   final DatastoreDB _dbService;
   final Storage _storage;
 
@@ -36,7 +38,7 @@ class PackageStorage {
   /// - `packages/$package-$version.tar.gz` (package archive)
   final Bucket _publicBucket;
 
-  PackageStorage(
+  TarballStorage(
     this._dbService,
     this._storage,
     this._canonicalBucket,

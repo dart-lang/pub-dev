@@ -82,7 +82,7 @@ Note: the action may take a longer time to complete as the public archive bucket
       });
 
       // retract or re-populate public archive files
-      await packageBackend.packageStorage.updatePublicArchiveBucket(
+      await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

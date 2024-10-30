@@ -820,7 +820,7 @@ class AdminBackend {
           'Deleting moderated package version: ${version.qualifiedVersionKey}');
 
       // deleting from canonical bucket
-      await packageBackend.packageStorage
+      await packageBackend.tarballStorage
           .deleteArchiveFromCanonicalBucket(version.package, version.version!);
 
       // deleting from datastore
