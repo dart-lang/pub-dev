@@ -51,6 +51,11 @@ class NotAcceptableException extends ResponseException {
       : super._(406, 'NotAcceptable', message);
 }
 
+/// Thrown when the underlying analysis task has been aborted.
+class TaskAbortedException extends ResponseException {
+  TaskAbortedException(String message) : super._(400, 'TaskAborted', message);
+}
+
 /// Thrown when request input is invalid, bad payload, wrong querystring, etc.
 class InvalidInputException extends ResponseException {
   InvalidInputException._(String message)

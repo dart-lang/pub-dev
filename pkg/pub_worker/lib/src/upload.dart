@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
@@ -40,6 +41,15 @@ Future<void> upload(
         ));
       final res = await Response.fromStream(await client.send(req));
 
+      // Special case `TaskAborted` response code, it means that the analysis
+      // is no longer selected or the secret token timed out / was replaced
+      // (it may need a different analysis round).
+      if (res.statusCode == 400 &&
+          _extractExceptionCode(res) == 'TaskAborted') {
+        _log.warning(
+            'Task aborted, failed to upload: $filename, status = ${res.statusCode}');
+        throw TaskAbortedException(res.body);
+      }
       if (400 <= res.statusCode && res.statusCode < 500) {
         _log.shout('Failed to upload: $filename, status = ${res.statusCode}');
         throw UploadException(
@@ -79,4 +89,26 @@ final class UploadException implements Exception {
 
 final class IntermittentUploadException extends UploadException {
   IntermittentUploadException(String message) : super(message);
+}
+
+final class TaskAbortedException extends UploadException {
+  TaskAbortedException(String message) : super(message);
+}
+
+String? _extractExceptionCode(Response res) {
+  try {
+    final map = json.decode(res.body);
+    if (map is! Map) {
+      return null;
+    }
+    final error = map['error'];
+    if (error is! Map) {
+      return null;
+    }
+    final code = error['code'];
+    return code?.toString();
+  } on FormatException catch (_) {
+    // ignore
+  }
+  return null;
 }

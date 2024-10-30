@@ -686,13 +686,14 @@ class TaskBackend {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
       if (state == null || state.versions![version] == null) {
-        throw NotFoundException.resource('$package/$version');
+        throw TaskAbortedException(
+            '$package/$version is no longer selected for analysis.');
       }
       final versionState = state.versions![version]!;
 
       // Check the secret token
       if (!versionState.isAuthorized(_extractBearerToken(request))) {
-        throw AuthenticationException.authenticationRequired();
+        throw TaskAbortedException('Secret token is no longer accepted.');
       }
       assert(versionState.scheduled != initialTimestamp);
       assert(versionState.instance != null);

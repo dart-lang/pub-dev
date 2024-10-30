@@ -92,12 +92,12 @@ Future<void> analyze(Payload payload) async {
                 'analyze.',
           );
         }
+      } on TaskAbortedException catch (e, st) {
+        _log.warning(
+            'failed to upload ${payload.package} / ${p.version}', e, st);
       } catch (e, st) {
         _log.shout(
-          'failed to process ${payload.package} / ${p.version}',
-          e,
-          st,
-        );
+            'failed to process ${payload.package} / ${p.version}', e, st);
       }
     }
   } finally {
