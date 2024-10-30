@@ -15,7 +15,6 @@ import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
-import 'package:pub_worker/src/fetch_pubspec.dart';
 import 'package:pub_worker/src/sdks.dart';
 import 'package:pub_worker/src/utils.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
@@ -54,8 +53,11 @@ Future<void> main(List<String> args) async {
   final pubHostedUrl =
       Platform.environment['PUB_HOSTED_URL'] ?? 'https://pub.dartlang.org';
   final pubCache = Platform.environment['PUB_CACHE']!;
-  final rawDartdocOutputFolder =
-      await Directory.systemTemp.createTemp('dartdoc-$package');
+  final tempDir = await Directory.systemTemp.createTemp('pana-$package');
+  final rawDartdocOutputFolder = Directory(p.join(tempDir.path, 'raw-dartdoc'));
+  await rawDartdocOutputFolder.create(recursive: true);
+  final pkgDownloadDir = Directory(p.join(tempDir.path, package));
+  await pkgDownloadDir.create(recursive: true);
 
   // Setup logging
   Logger.root.level = Level.INFO;
@@ -78,16 +80,24 @@ Future<void> main(List<String> args) async {
     }
   });
 
-  // Fetch the pubspec so we detect which SDK to use for analysis
-  // TODO(https://github.com/dart-lang/pub-dev/issues/7268): Download the archive,
-  //       extract and load the pubspec.yaml, that way we won't have to list versions.
-  final pubspec = await fetchPubspec(
-    package: package,
-    version: version,
-    pubHostedUrl: pubHostedUrl,
+  // Download package using the Dart SDK in the path, output will be
+  // `<output-dir>/<package>-<version>`
+  await runConstrained(
+    [
+      'dart',
+      'pub',
+      'unpack',
+      '$package:$version',
+      '--output',
+      pkgDownloadDir.path,
+      '--no-resolve',
+    ],
+    environment: {
+      'PUB_HOSTED_URL': pubHostedUrl,
+    },
   );
-
-  final detected = await _detectSdks(pubspec);
+  final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
+  final detected = await _detectSdks(pkgDir.path);
 
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
@@ -107,11 +117,8 @@ Future<void> main(List<String> args) async {
   final resourcesOutputDir =
       await Directory(p.join(outputFolder, 'resources')).create();
   final pana = PackageAnalyzer(toolEnv);
-  // TODO: add a cache purge + retry if the download would fail
-  //       (e.g. the package version cache wasn't invalidated).
-  var summary = await pana.inspectPackage(
-    package,
-    version: version,
+  var summary = await pana.inspectDir(
+    pkgDir.path,
     options: InspectOptions(
       pubHostedUrl: Platform.environment['PUB_HOSTED_URL']!,
       dartdocTimeout: _dartdocTimeout,
@@ -168,7 +175,7 @@ Future<void> main(List<String> args) async {
     docDir: rawDartdocOutputFolder.path,
   );
 
-  await rawDartdocOutputFolder.delete(recursive: true);
+  await tempDir.delete(recursive: true);
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
@@ -185,7 +192,11 @@ String? _configHomePath(String sdk, String kind) {
 }
 
 Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
-    _detectSdks(Pubspec pubspec) async {
+    _detectSdks(String pkgDir) async {
+  // Load the pubspec so we detect which SDK to use for analysis
+  final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
+  final pubspec = Pubspec.parseYaml(await pubspecFile.readAsString());
+
   // Discover installed Dart and Flutter SDKs.
   // This reads sibling folders to the Dart and Flutter SDK.
   final dartSdks = await InstalledSdk.scanDirectory(
@@ -266,6 +277,8 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
     allowsMissingVersion: true,
   );
   if (matchesInstalledSdks) {
+    // TODO(https://github.com/dart-lang/pub-dev/issues/7268): Also use `pub get` for better SDK selection.
+
     return (
       configKind: 'stable',
       dartSdkPath: installedDartSdk?.path,
