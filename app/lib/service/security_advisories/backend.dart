@@ -56,7 +56,7 @@ class SecurityAdvisoryBackend {
   Future<ListAdvisoriesResponse> listAdvisoriesResponse(String package) async {
     final advisories = await lookupSecurityAdvisories(package);
     return ListAdvisoriesResponse(
-      advisories: advisories.map((e) => e.advisory).toList(),
+      advisories: advisories.map((a) => a.advisory).toList(),
       advisoriesUpdated: advisories.map((a) => a.syncTime).maxOrNull,
     );
   }
