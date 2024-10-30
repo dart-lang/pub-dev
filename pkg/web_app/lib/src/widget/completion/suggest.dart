@@ -110,7 +110,8 @@ class Suggestion {
     final overlap = _lcs(prefix, option);
     var html = option;
     if (overlap.isNotEmpty) {
-      html = html.replaceAll(overlap, '<strong>$overlap</strong>');
+      html = html.replaceAll(
+          overlap, '<span class="completion-overlap">$overlap</span>');
     }
     final score = (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
         math.pow(overlap.length, 2) +
