@@ -115,7 +115,7 @@ d.Node _downloadsChart(WeeklyDownloadCounts wdc) {
       id: '-weekly-downloads-sparkline',
       attributes: {
         'data-widget': 'weekly-sparkline',
-        'data-sparkline-points':
+        'data-weekly-sparkline-points':
             _encodeForWeeklySparkline(wdc.weeklyDownloads, wdc.newestDate),
       });
   return container;
