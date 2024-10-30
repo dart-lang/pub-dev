@@ -603,7 +603,7 @@ class IntegrityChecker {
     Uri archiveDownloadUri, {
     required bool shouldBeInPublicBucket,
   }) async* {
-    final canonicalInfo = await packageBackend.packageStorage
+    final canonicalInfo = await packageBackend.tarballStorage
         .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
     if (canonicalInfo == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
@@ -628,7 +628,7 @@ class IntegrityChecker {
       yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
     }
 
-    final publicInfo = await packageBackend.packageStorage
+    final publicInfo = await packageBackend.tarballStorage
         .getPublicBucketArchiveInfo(pv.package, pv.version!);
     if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
       yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';

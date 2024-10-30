@@ -4,7 +4,7 @@
 
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/package_storage.dart';
+import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +17,7 @@ void main() {
       Duration? ageCheckThreshold,
       Duration? deleteIfOlder,
     }) async {
-      return await packageBackend.packageStorage.updatePublicArchiveBucket(
+      return await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: ageCheckThreshold ?? Duration.zero,
         deleteIfOlder: deleteIfOlder ?? const Duration(days: 7),

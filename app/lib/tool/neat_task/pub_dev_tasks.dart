@@ -114,7 +114,7 @@ void _setupGenericPeriodicTasks() {
     name: 'sync-public-bucket-from-canonical-bucket',
     isRuntimeVersioned: false,
     task: () async =>
-        await packageBackend.packageStorage.updatePublicArchiveBucket(),
+        await packageBackend.tarballStorage.updatePublicArchiveBucket(),
   );
 
   // Exports the package name completion data to a bucket.

@@ -115,7 +115,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
       });
 
       // retract or re-populate public archive files
-      await packageBackend.packageStorage.updatePublicArchiveBucket(
+      await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

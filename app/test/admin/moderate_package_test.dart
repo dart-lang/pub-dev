@@ -312,13 +312,13 @@ void main() {
       await expectStatusCode(404);
 
       // another check after background tasks are running
-      await packageBackend.packageStorage.updatePublicArchiveBucket();
+      await packageBackend.tarballStorage.updatePublicArchiveBucket();
       await expectStatusCode(404);
 
       await _moderate('oxygen', state: false, caseId: mc.caseId);
       await expectStatusCode(200);
       // another check after background tasks are running
-      await packageBackend.packageStorage.updatePublicArchiveBucket();
+      await packageBackend.tarballStorage.updatePublicArchiveBucket();
       final restoredBytes = await expectStatusCode(200);
       expect(restoredBytes, bytes);
     });
@@ -381,7 +381,7 @@ void main() {
 
       // canonical file is present
       expect(
-        await packageBackend.packageStorage
+        await packageBackend.tarballStorage
             .getCanonicalBucketArchiveInfo('oxygen', '1.2.0'),
         isNotNull,
       );
@@ -397,7 +397,7 @@ void main() {
         isNull,
       );
       expect(
-        await packageBackend.packageStorage
+        await packageBackend.tarballStorage
             .getCanonicalBucketArchiveInfo('oxygen', '1.2.0'),
         isNull,
       );
