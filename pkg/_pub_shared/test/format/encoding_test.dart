@@ -9,7 +9,7 @@ void main() {
   test('encode/decode success', () {
     final data = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     final encoded = encodeIntsAsBigEndianBase64String(data);
-    expect(encoded, 'AAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJ');
+    expect(encoded, 'AQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAA');
     expect(decodeIntsFromBigEndianBase64String(encoded), data);
   });
 
@@ -23,7 +23,7 @@ void main() {
   test('encode/decode failure with negative integers', () {
     final data = <int>[-1, -2];
     final encoded = encodeIntsAsBigEndianBase64String(data);
-    expect(encoded, '//////////4=');
+    expect(encoded, '//////7///8=');
     expect(decodeIntsFromBigEndianBase64String(encoded), isNot(data));
   });
 }

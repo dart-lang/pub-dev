@@ -10,7 +10,7 @@ import 'dart:typed_data';
 String encodeIntsAsBigEndianBase64String(List<int> dataPoints) {
   final byteData = ByteData(4 * dataPoints.length);
   for (int i = 0; i < dataPoints.length; i++) {
-    byteData.setUint32(4 * i, dataPoints[i]);
+    byteData.setUint32(4 * i, dataPoints[i], Endian.little);
   }
   return base64Encode(byteData.buffer.asUint8List());
 }
@@ -22,7 +22,7 @@ List<int> decodeIntsFromBigEndianBase64String(String encoded) {
   final dataPoints = List.filled(resLength, -1);
   final sublist = ByteData.sublistView(bytes);
   for (int i = 0; i < resLength; i++) {
-    dataPoints[i] = sublist.getUint32(4 * i);
+    dataPoints[i] = sublist.getUint32(4 * i, Endian.little);
   }
   return dataPoints;
 }
