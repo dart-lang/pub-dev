@@ -68,14 +68,14 @@ void main() {
           'start': 0,
           'end': 5,
           'value': 'is:flutter-favorite ',
-          'html': 'flu<span class="completion-overlap">tt</span>er-favorite',
+          'html': 'is:flu<span class="completion-overlap">tt</span>er-favorite',
           'score': 4.125,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:unlisted ',
-          'html': 'unlis<span class="completion-overlap">t</span>ed',
+          'html': 'is:unlis<span class="completion-overlap">t</span>ed',
           'score': 1.125,
         },
         {
@@ -83,35 +83,35 @@ void main() {
           'end': 5,
           'value': 'is:dart3-compatible ',
           'html':
-              'dar<span class="completion-overlap">t</span>3-compa<span class="completion-overlap">t</span>ible',
+              'is:dar<span class="completion-overlap">t</span>3-compa<span class="completion-overlap">t</span>ible',
           'score': 1.0625,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:legacy ',
-          'html': 'legacy',
+          'html': 'is:legacy',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:null-safe ',
-          'html': 'null-safe',
+          'html': 'is:null-safe',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:plugin ',
-          'html': 'plugin',
+          'html': 'is:plugin',
           'score': 0.0
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:wasm-ready ',
-          'html': 'wasm-ready',
+          'html': 'is:wasm-ready',
           'score': 0.0,
         },
       ]);
