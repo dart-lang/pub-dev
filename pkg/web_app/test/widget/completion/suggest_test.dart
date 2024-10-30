@@ -68,21 +68,22 @@ void main() {
           'start': 0,
           'end': 5,
           'value': 'is:flutter-favorite ',
-          'html': 'flu<strong>tt</strong>er-favorite',
+          'html': 'flu<span class="completion-overlap">tt</span>er-favorite',
           'score': 4.125,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:unlisted ',
-          'html': 'unlis<strong>t</strong>ed',
+          'html': 'unlis<span class="completion-overlap">t</span>ed',
           'score': 1.125,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:dart3-compatible ',
-          'html': 'dar<strong>t</strong>3-compa<strong>t</strong>ible',
+          'html':
+              'dar<span class="completion-overlap">t</span>3-compa<span class="completion-overlap">t</span>ible',
           'score': 1.0625,
         },
         {
