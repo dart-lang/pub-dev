@@ -8,22 +8,22 @@ import 'package:test/test.dart';
 void main() {
   test('encode/decode success', () {
     final data = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    final encoded = encodeIntsAsBigEndianBase64String(data);
+    final encoded = encodeIntsAsLittleEndianBase64String(data);
     expect(encoded, 'AQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAA');
-    expect(decodeIntsFromBigEndianBase64String(encoded), data);
+    expect(decodeIntsFromLittleEndianBase64String(encoded), data);
   });
 
   test('encode/decode empty', () {
     final data = <int>[];
-    final encoded = encodeIntsAsBigEndianBase64String(data);
+    final encoded = encodeIntsAsLittleEndianBase64String(data);
     expect(encoded, '');
-    expect(decodeIntsFromBigEndianBase64String(encoded), data);
+    expect(decodeIntsFromLittleEndianBase64String(encoded), data);
   });
 
   test('encode/decode failure with negative integers', () {
     final data = <int>[-1, -2];
-    final encoded = encodeIntsAsBigEndianBase64String(data);
+    final encoded = encodeIntsAsLittleEndianBase64String(data);
     expect(encoded, '//////7///8=');
-    expect(decodeIntsFromBigEndianBase64String(encoded), isNot(data));
+    expect(decodeIntsFromLittleEndianBase64String(encoded), isNot(data));
   });
 }
