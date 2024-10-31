@@ -450,10 +450,19 @@ final class ExportedBlob extends ExportedObject {
     }));
   }
 
-  /// Copy binary blob from [bucket] and [source] to this file.
-  Future<void> copyFrom(Bucket bucket, String source) async {
+  /// Copy binary blob from [absoluteSourceObjectName] to this file.
+  ///
+  /// Requires that [absoluteSourceObjectName] is a `gs:/<bucket>/<objectName>`
+  /// style URL. These can be created with [Bucket.absoluteObjectName].
+  ///
+  /// [sourceInfo] is required to be [ObjectInfo] for the source object.
+  /// This method will use [ObjectInfo.length] and [ObjectInfo.md5Hash] to
+  /// determine if it's necessary to copy the object.
+  Future<void> copyFrom(
+    String absoluteSourceObjectName,
+    ObjectInfo sourceInfo,
+  ) async {
     final metadata = _metadata();
-    Future<ObjectInfo?>? srcInfo;
 
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
@@ -461,27 +470,23 @@ final class ExportedBlob extends ExportedObject {
 
         // Check if the dst already exists
         if (await _owner._bucket.tryInfo(dst) case final dstInfo?) {
-          // Fetch info for source object (if we haven't already done this)
-          srcInfo ??= bucket.tryInfo(source);
-          if (await srcInfo case final srcInfo?) {
-            if (dstInfo.contentEquals(srcInfo)) {
-              // If both source and dst exists, and their content matches, then
-              // we only need to update the "validated" metadata. And we only
-              // need to update the "validated" timestamp if it's older than
-              // _retouchDeadline
-              final retouchDeadline = clock.agoBy(_updateValidatedAfter);
-              if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
-                await _owner._bucket.updateMetadata(dst, metadata);
-              }
-              return;
+          if (dstInfo.contentEquals(sourceInfo)) {
+            // If both source and dst exists, and their content matches, then
+            // we only need to update the "validated" metadata. And we only
+            // need to update the "validated" timestamp if it's older than
+            // _retouchDeadline
+            final retouchDeadline = clock.agoBy(_updateValidatedAfter);
+            if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
+              await _owner._bucket.updateMetadata(dst, metadata);
             }
+            return;
           }
         }
 
         // If dst or source doesn't exist, then we shall attempt to make a copy.
         // (if source doesn't exist we'll consistently get an error from here!)
         await _owner._storage.copyObject(
-          bucket.absoluteObjectName(source),
+          absoluteSourceObjectName,
           _owner._bucket.absoluteObjectName(dst),
           metadata: metadata,
         );
