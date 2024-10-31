@@ -109,9 +109,14 @@ class Suggestion {
   final suggestions = completion.options.map((option) {
     final overlap = _lcs(prefix, option);
     var html = option;
+    // highlight the overlapping part of the text
     if (overlap.isNotEmpty) {
       html = html.replaceAll(
           overlap, '<span class="completion-overlap">$overlap</span>');
+    }
+    // include matched prefix as part of the display option
+    if (completion.terminal) {
+      html = '$match$html';
     }
     final score = (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
         math.pow(overlap.length, 2) +
