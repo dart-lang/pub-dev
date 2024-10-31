@@ -38,6 +38,7 @@ import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/handlers.dart';
 import 'package:pub_dev/task/models.dart'
     show
+        AbortedTokenInfo,
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
@@ -436,9 +437,19 @@ class TaskBackend {
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deselected by _versionsToTrack.
-      final deselectedVersions = [
-        ...state.versions!.keys.whereNot(versions.contains),
-      ];
+      final deselectedVersions = <String>[];
+      for (final e in state.versions!.entries) {
+        if (!versions.contains(e.key)) {
+          deselectedVersions.add(e.key);
+
+          final token = e.value.secretToken;
+          if (token != null) {
+            state.abortedTokens ??= <AbortedTokenInfo>[];
+            state.abortedTokens!.add(AbortedTokenInfo(
+                token: token, expires: clock.fromNow(days: 1)));
+          }
+        }
+      }
 
       // There should never be an overlap between versions untracked and
       // versions that tracked by now deselected.
@@ -467,6 +478,7 @@ class TaskBackend {
             ),
         });
       state.derivePendingAt();
+      state.abortedTokens?.removeWhere((t) => t.expires.isAfter(clock.now()));
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
@@ -611,18 +623,8 @@ class TaskBackend {
 
     final key = PackageState.createKey(_db, runtimeVersion, package);
     final state = await _db.lookupOrNull<PackageState>(key);
-    if (state == null || state.versions![version] == null) {
-      throw NotFoundException.resource('$package/$version');
-    }
-    final versionState = state.versions![version]!;
-
-    // Check the secret token
-    if (!versionState.isAuthorized(_extractBearerToken(request))) {
-      throw AuthenticationException.authenticationRequired();
-    }
-    assert(versionState.scheduled != initialTimestamp);
-    assert(versionState.instance != null);
-    assert(versionState.zone != null);
+    final versionState =
+        _extractAndVerifyVersionState(package, version, state, request);
 
     // Set expiration of signed URLs to remaining execution time + 5 min to
     // allow for clock skew.
@@ -685,24 +687,13 @@ class TaskBackend {
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
-      if (state == null || state.versions![version] == null) {
-        throw TaskAbortedException(
-            '$package/$version is no longer selected for analysis.');
-      }
-      final versionState = state.versions![version]!;
-
-      // Check the secret token
-      if (!versionState.isAuthorized(_extractBearerToken(request))) {
-        throw TaskAbortedException('Secret token is no longer accepted.');
-      }
-      assert(versionState.scheduled != initialTimestamp);
-      assert(versionState.instance != null);
-      assert(versionState.zone != null);
+      final versionState =
+          _extractAndVerifyVersionState(package, version, state, request);
 
       // Update dependencies, if pana summary has dependencies
       if (summary != null && summary.allDependencies != null) {
         final updatedDependencies = _updatedDependencies(
-          state.dependencies,
+          state!.dependencies,
           summary.allDependencies,
           // for logging only
           package: package,
@@ -720,7 +711,7 @@ class TaskBackend {
       instance = versionState.instance!;
 
       // Remove instanceName, zone, secretToken, and set attempts = 0
-      state.versions![version] = PackageVersionStateInfo(
+      state!.versions![version] = PackageVersionStateInfo(
         scheduled: versionState.scheduled,
         docs: hasDocIndexHtml,
         pana: summary != null,
@@ -1168,6 +1159,41 @@ String? _extractBearerToken(shelf.Request request) {
     return null;
   }
   return parts.last.trim();
+}
+
+PackageVersionStateInfo _extractAndVerifyVersionState(
+  String package,
+  String version,
+  PackageState? state,
+  shelf.Request request,
+) {
+  final token = _extractBearerToken(request);
+  if (token == null) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  if (state == null) {
+    throw NotFoundException.resource('$package/$version');
+  }
+  final versionState = state.versions![version];
+  if (versionState == null) {
+    // check if the task was aborted
+    final abortedToken =
+        state.abortedTokens?.firstWhereOrNull((t) => t.token == token);
+    if (abortedToken != null && abortedToken.expires.isBefore(clock.now())) {
+      throw TaskAbortedException('$package/$version has been aborted.');
+    }
+    // otherwise throw a generic not found error
+    throw NotFoundException.resource('$package/$version');
+  }
+
+  // Check the secret token
+  if (!versionState.isAuthorized(token)) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  assert(versionState.scheduled != initialTimestamp);
+  assert(versionState.instance != null);
+  assert(versionState.zone != null);
+  return versionState;
 }
 
 /// Given a list of versions return the list of versions that should be
