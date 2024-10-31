@@ -116,7 +116,7 @@ class Suggestion {
     }
     // include matched prefix as part of the display option
     if (completion.terminal) {
-      html = '$match$html';
+      html = '<span class="completion-overlap">$match</span>$html';
     }
     final score = (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
         math.pow(overlap.length, 2) +
