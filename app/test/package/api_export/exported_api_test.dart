@@ -105,8 +105,8 @@ void main() {
     await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 3]);
 
     await exportedApi.package('retry').tarball('1.2.4').copyFrom(
-          bucket,
-          'latest/api/archives/retry-1.2.3.tar.gz',
+          bucket.absoluteObjectName('latest/api/archives/retry-1.2.3.tar.gz'),
+          await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
         );
 
     // Files are present
