@@ -127,6 +127,7 @@ String completionDataJson({
             'plugin',
             'unlisted',
             'wasm-ready',
+            'swiftpm-plugin',
           ],
         ),
         CompletionRule(
