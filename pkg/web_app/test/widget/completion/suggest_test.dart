@@ -68,14 +68,16 @@ void main() {
           'start': 0,
           'end': 5,
           'value': 'is:flutter-favorite ',
-          'html': 'is:flu<span class="completion-overlap">tt</span>er-favorite',
+          'html':
+              '<span class="completion-overlap">is:</span>flu<span class="completion-overlap">tt</span>er-favorite',
           'score': 4.125,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:unlisted ',
-          'html': 'is:unlis<span class="completion-overlap">t</span>ed',
+          'html':
+              '<span class="completion-overlap">is:</span>unlis<span class="completion-overlap">t</span>ed',
           'score': 1.125,
         },
         {
@@ -83,35 +85,35 @@ void main() {
           'end': 5,
           'value': 'is:dart3-compatible ',
           'html':
-              'is:dar<span class="completion-overlap">t</span>3-compa<span class="completion-overlap">t</span>ible',
+              '<span class="completion-overlap">is:</span>dar<span class="completion-overlap">t</span>3-compa<span class="completion-overlap">t</span>ible',
           'score': 1.0625,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:legacy ',
-          'html': 'is:legacy',
+          'html': '<span class="completion-overlap">is:</span>legacy',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:null-safe ',
-          'html': 'is:null-safe',
+          'html': '<span class="completion-overlap">is:</span>null-safe',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:plugin ',
-          'html': 'is:plugin',
+          'html': '<span class="completion-overlap">is:</span>plugin',
           'score': 0.0
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:wasm-ready ',
-          'html': 'is:wasm-ready',
+          'html': '<span class="completion-overlap">is:</span>wasm-ready',
           'score': 0.0,
         },
       ]);

@@ -110,15 +110,11 @@
   overflow-x: hidden;
   appearance: none;
   width: 25ex;
-  padding-bottom: 4px;
-  border-left: 1px solid #000;
-  border-right: 1px solid #000;
-  border-bottom: 1px solid #000;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  border: 1px solid #000;
+  border-radius: 5px;
   max-height: 20em;
   background: var(--pub-searchbar_input-background-color);
-  color: var(--pub-input-placeholder-color);
+  color: var(--pub-searchbar_suggest-text-color);
   font-size: 16px;
   margin-left: 48px; // counter padding-left on .search-bar>.input
   margin-top: -14px; // counter padding-top on .search-bar>.input
@@ -126,10 +122,10 @@
   >.completion-option {
     cursor: pointer;
     white-space: nowrap;
-    padding: 0px 3px;
+    padding: 1px 4px;
 
     &:hover {
-      background-color: var(--pub-searchbar_input_hover-background-color);
+      background-color: var(--pub-searchbar_suggest_hover-background-color);
     }
 
     .completion-overlap {
@@ -139,6 +135,6 @@
   }
 
   >.completion-option-selected {
-    background-color: var(--pub-searchbar_input_hover-background-color);
+    background-color: var(--pub-searchbar_suggest_hover-background-color);
   }
 }
