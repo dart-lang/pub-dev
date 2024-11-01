@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
@@ -69,26 +69,43 @@ class TarballStorage {
   Future<ContentMatchStatus> matchArchiveContentInCanonical(
     String package,
     String version,
-    Uint8List bytes,
+    File file,
   ) async {
     final objectName = tarballObjectName(package, version);
     final info = await _canonicalBucket.tryInfo(objectName);
     if (info == null) {
       return ContentMatchStatus.missing;
     }
-    if (info.length != bytes.length) {
+    if (info.length != await file.length()) {
       return ContentMatchStatus.different;
     }
-    final md5hash = md5.convert(bytes).bytes;
+    final md5hash = (await file.openRead().transform(md5).single).bytes;
     if (!md5hash.byteToByteEquals(info.md5Hash)) {
       return ContentMatchStatus.different;
     }
-    final objectBytes = await _canonicalBucket.readAsBytes(objectName);
-    if (bytes.byteToByteEquals(objectBytes)) {
-      return ContentMatchStatus.same;
-    } else {
+    // limit memory use while doing the byte-to-byte comparison
+    final raf = await file.open();
+    var remainingLength = info.length;
+    try {
+      await for (final chunk in _canonicalBucket.read(objectName)) {
+        if (chunk.isEmpty) continue;
+        remainingLength -= chunk.length;
+        if (remainingLength < 0) {
+          return ContentMatchStatus.different;
+        }
+        // TODO: consider rewriting to fixed-length chunk comparison
+        final fileChunk = await raf.read(chunk.length);
+        if (!fileChunk.byteToByteEquals(chunk)) {
+          return ContentMatchStatus.different;
+        }
+      }
+    } finally {
+      await raf.close();
+    }
+    if (remainingLength != 0) {
       return ContentMatchStatus.different;
     }
+    return ContentMatchStatus.same;
   }
 
   /// Copies the uploaded object from the temp bucket to the canonical bucket.

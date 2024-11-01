@@ -904,8 +904,7 @@ class PackageBackend {
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final file = File(filename);
-      final fileBytes = await file.readAsBytes();
-      final sha256Hash = sha256.convert(fileBytes).bytes;
+      final sha256Hash = (await file.openRead().transform(sha256).single).bytes;
       final archive = await summarizePackageArchive(
         filename,
         maxContentLength: maxAssetContentLength,
@@ -946,7 +945,7 @@ class PackageBackend {
           await tarballStorage.matchArchiveContentInCanonical(
         pubspec.name,
         versionString,
-        fileBytes,
+        file,
       );
       if (canonicalContentMatch == ContentMatchStatus.different) {
         throw PackageRejectedException.versionExists(
