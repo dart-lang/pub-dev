@@ -269,7 +269,6 @@ final class _CompletionWidget {
           ..setAttribute('data-completion-option-index', i.toString())
           ..classList.add(optionClass));
       }
-      print(state.isTrimmed);
       if (state.isTrimmed) {
         dropdown.appendChild(HTMLDivElement()..textContent = '[...]');
       }
