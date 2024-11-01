@@ -123,7 +123,7 @@ class MemStorage implements Storage {
   }
 }
 
-class _File implements ObjectInfo {
+class _File implements BucketObjectEntry {
   final String bucketName;
   @override
   final String name;
@@ -162,6 +162,12 @@ class _File implements ObjectInfo {
 
   @override
   int get length => content.length;
+
+  @override
+  bool get isDirectory => false;
+
+  @override
+  bool get isObject => true;
 }
 
 class _Bucket implements Bucket {
@@ -288,18 +294,18 @@ class _Bucket implements Bucket {
           segments.add(subDirSegments.first);
         } else if (isDirPrefix && !isSubDirMatch) {
           // directory match
-          yield _BucketEntry(name, true);
+          yield _files[name]!;
         } else if (!isDirPrefix && isSubDirMatch) {
           // ignore prefix match
         } else if (!isDirPrefix && !isSubDirMatch) {
           // file prefix match
-          yield _BucketEntry(name, true);
+          yield _files[name]!;
         }
       }
     }
 
     for (final s in segments) {
-      yield _BucketEntry('$prefix$s$delimiter', false);
+      yield _BucketDirectoryEntry('$prefix$s$delimiter');
     }
   }
 
@@ -319,17 +325,17 @@ class _Bucket implements Bucket {
   }
 }
 
-class _BucketEntry implements BucketEntry {
+class _BucketDirectoryEntry implements BucketDirectoryEntry {
   @override
   final String name;
 
-  @override
-  final bool isObject;
+  _BucketDirectoryEntry(this.name);
 
   @override
-  bool get isDirectory => !isObject;
+  bool get isDirectory => true;
 
-  _BucketEntry(this.name, this.isObject);
+  @override
+  bool get isObject => false;
 }
 
 class _Page<T> implements Page<T> {
