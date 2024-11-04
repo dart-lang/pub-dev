@@ -311,32 +311,28 @@ class InMemoryPackageIndex {
       // We cannot update the main `packages` variable yet, as the dartdoc API
       // symbols are added on top of the core results, and `packages` is used
       // there too.
-      final coreScores = <Score>[];
-      var wordScopedPackages = packages;
+      final coreScores = IndexedScore(_packageNameIndex._packageNames);
+      for (var i = 0; i < _documents.length; i++) {
+        if (packages.contains(_documents[i].package)) {
+          coreScores.setValue(i, 1.0);
+        }
+      }
+
       for (final word in words) {
-        final nameScore = _packageNameIndex.searchWord(word,
-            filterOnPackages: wordScopedPackages);
         if (includeNameMatches && _documentsByName.containsKey(word)) {
           nameMatches ??= <String>{};
           nameMatches.add(word);
         }
 
-        final descr = _descrIndex
-            .searchWords([word], weight: 0.90, limitToIds: wordScopedPackages);
-        final readme = _readmeIndex
-            .searchWords([word], weight: 0.75, limitToIds: wordScopedPackages);
-        final score = Score.max([nameScore, descr, readme]);
-        coreScores.add(score);
-        // don't update if the query is single-word
-        if (words.length > 1) {
-          wordScopedPackages = score.keys.toSet();
-          if (wordScopedPackages.isEmpty) {
-            break;
-          }
-        }
+        final wordScore =
+            _packageNameIndex.searchWord(word, filterOnNonZeros: coreScores);
+        _descrIndex.searchAndAccumulate(word,
+            weight: 0.90.toDouble(), score: wordScore);
+        _readmeIndex.searchAndAccumulate(word,
+            weight: 0.75.toDouble(), score: wordScore);
+        coreScores.multiplyAllFrom(wordScore);
       }
-
-      final core = Score.multiply(coreScores);
+      final core = coreScores.toScore();
 
       var symbolPages = Score.empty;
       if (!checkAborted()) {
@@ -502,16 +498,13 @@ class _TextResults {
 @visibleForTesting
 class PackageNameIndex {
   final List<String> _packageNames;
-  late final Map<String, _PkgNameData> _data;
+  late final List<_PkgNameData> _data;
 
   PackageNameIndex(this._packageNames) {
-    _data = Map.fromEntries(_packageNames.map((package) {
+    _data = _packageNames.map((package) {
       final collapsed = _collapseName(package);
-      return MapEntry(
-        package,
-        _PkgNameData(collapsed, trigrams(collapsed).toSet()),
-      );
-    }));
+      return _PkgNameData(collapsed, trigrams(collapsed).toSet());
+    }).toList();
   }
 
   /// Maps package name to a reduced form of the name:
@@ -522,45 +515,43 @@ class PackageNameIndex {
   /// Search [text] and return the matching packages with scores.
   @visibleForTesting
   Score search(String text) {
-    Score? score;
+    IndexedScore? score;
     for (final w in splitForQuery(text)) {
-      final s = searchWord(w, filterOnPackages: score?.keys);
+      final s = searchWord(w, filterOnNonZeros: score);
       if (score == null) {
         score = s;
       } else {
-        // Note: on one hand, it is inefficient to multiply the [Score] on each
-        // iteration. However, (1) this is only happening in test, (2) it may be
-        // better for the next iteration to work on a more limited `filterOnPackages`,
-        // and (3) it will be updated to a more efficient in-place update (#8225).
-        score = Score.multiply([score, s]);
+        score.multiplyAllFrom(s);
       }
     }
-    return score ?? Score.empty;
+    return score?.toScore() ?? Score.empty;
+
   }
 
   /// Search using the parsed [word] and return the matching packages with scores
-  /// as a new [Score] instance.
+  /// as a new [IndexedScore] instance.
   ///
-  /// When [filterOnPackages] is present, only the names present are evaluated.
-  Score searchWord(
+  /// When [filterOnNonZeros] is present, only the indexes with an already
+  /// non-zero value are evaluated.
+  IndexedScore searchWord(
     String word, {
-    Iterable<String>? filterOnPackages,
+    IndexedScore? filterOnNonZeros,
   }) {
-    final pkgNamesToCheck = filterOnPackages ?? _packageNames;
-    final values = <String, double>{};
+    final score = IndexedScore(_packageNames);
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
         : word.substring(0, word.length - 1);
     final collapsedWord = _collapseName(singularWord);
     final parts =
         collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
-    for (final pkg in pkgNamesToCheck) {
-      final entry = _data[pkg];
-      if (entry == null) {
+    for (var i = 0; i < _data.length; i++) {
+      if (filterOnNonZeros?.isNotPositive(i) ?? false) {
         continue;
       }
+
+      final entry = _data[i];
       if (entry.collapsed.contains(collapsedWord)) {
-        values[pkg] = 1.0;
+        score.setValue(i, 1.0);
         continue;
       }
       var matched = 0;
@@ -574,11 +565,11 @@ class PackageNameIndex {
       if (matched > 0) {
         final v = matched / parts.length;
         if (v >= 0.5) {
-          values[pkg] = v;
+          score.setValue(i, v);
         }
       }
     }
-    return Score(values);
+    return score;
   }
 }
 
