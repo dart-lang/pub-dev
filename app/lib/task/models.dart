@@ -7,6 +7,7 @@ import 'dart:convert' show json;
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/versions.dart' as shared_versions;
@@ -433,6 +434,10 @@ class AbortedTokenInfo {
   Map<String, dynamic> toJson() => _$AbortedTokenInfoToJson(this);
 
   bool get isNotExpired => clock.now().isBefore(expires);
+
+  bool isAuthorized(String token) {
+    return fixedTimeEquals(this.token, token) && isNotExpired;
+  }
 }
 
 /// A [db.Property] encoding a List os [AbortedTokenInfo] as JSON.

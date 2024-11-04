@@ -459,6 +459,7 @@ class TaskBackend {
         ...state.versions!.entries
             .where((e) => deselectedVersions.contains(e.key))
             .map((e) => e.value)
+            .where((vs) => vs.secretToken != null)
             .map(
               (vs) => AbortedTokenInfo(
                 token: vs.secretToken!,
@@ -1190,18 +1191,18 @@ PackageVersionStateInfo _authorizeWorkerCallback(
   PackageState state,
   String token,
 ) {
-  final versionState = state.versions![version];
-  if (versionState == null) {
-    // check if the task was aborted
-    final abortedToken =
-        state.abortedTokens?.firstWhereOrNull((t) => t.token == token);
-    if (abortedToken != null && abortedToken.expires.isBefore(clock.now())) {
-      throw TaskAbortedException('$package/$version has been aborted.');
-    }
-    // otherwise throw a generic not found error
-    throw NotFoundException.resource('$package/$version');
+  // fixed-time verification of aborted tokens
+  final isKnownAbortedToken = state.abortedTokens
+      ?.map((t) => t.isAuthorized(token))
+      .fold<bool>(false, (a, b) => a || b);
+  if (isKnownAbortedToken ?? false) {
+    throw TaskAbortedException('$package/$version has been aborted.');
   }
 
+  final versionState = state.versions![version];
+  if (versionState == null) {
+    throw NotFoundException.resource('$package/$version');
+  }
   // Check the secret token
   if (!versionState.isAuthorized(token)) {
     throw AuthenticationException.authenticationRequired();
