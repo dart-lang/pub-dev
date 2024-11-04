@@ -431,6 +431,8 @@ class AbortedTokenInfo {
   factory AbortedTokenInfo.fromJson(Map<String, dynamic> m) =>
       _$AbortedTokenInfoFromJson(m);
   Map<String, dynamic> toJson() => _$AbortedTokenInfoToJson(this);
+
+  bool get isNotExpired => clock.now().isBefore(expires);
 }
 
 /// A [db.Property] encoding a List os [AbortedTokenInfo] as JSON.

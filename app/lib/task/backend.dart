@@ -455,6 +455,19 @@ class TaskBackend {
         return false;
       }
 
+      state.abortedTokens = [
+        ...state.versions!.entries
+            .where((e) => deselectedVersions.contains(e.key))
+            .map((e) => e.value)
+            .map(
+              (vs) => AbortedTokenInfo(
+                token: vs.secretToken!,
+                expires: vs.scheduled.add(maxTaskExecutionTime),
+              ),
+            ),
+        ...?state.abortedTokens,
+      ].where((t) => t.isNotExpired).take(50).toList();
+
       // Make changes!
       state.versions!
         // Remove versions that have been deselected
