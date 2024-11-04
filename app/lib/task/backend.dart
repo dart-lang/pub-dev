@@ -437,19 +437,9 @@ class TaskBackend {
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deselected by _versionsToTrack.
-      final deselectedVersions = <String>[];
-      for (final e in state.versions!.entries) {
-        if (!versions.contains(e.key)) {
-          deselectedVersions.add(e.key);
-
-          final token = e.value.secretToken;
-          if (token != null) {
-            state.abortedTokens ??= <AbortedTokenInfo>[];
-            state.abortedTokens!.add(AbortedTokenInfo(
-                token: token, expires: clock.fromNow(days: 1)));
-          }
-        }
-      }
+      final deselectedVersions = [
+        ...state.versions!.keys.whereNot(versions.contains),
+      ];
 
       // There should never be an overlap between versions untracked and
       // versions that tracked by now deselected.
