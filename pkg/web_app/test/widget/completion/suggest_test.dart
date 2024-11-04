@@ -46,15 +46,15 @@ void main() {
         {
           'start': 0,
           'end': 6,
-          'value': 'has:',
-          'html': 'has:',
+          'value': 'is:',
+          'html': 'is:',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 6,
-          'value': 'is:',
-          'html': 'is:',
+          'value': 'has:',
+          'html': 'has:',
           'score': 0.0,
         },
       ]);
@@ -98,16 +98,16 @@ void main() {
         {
           'start': 0,
           'end': 5,
-          'value': 'is:null-safe ',
-          'html': '<span class="completion-overlap">is:</span>null-safe',
-          'score': 0.0,
+          'value': 'is:plugin ',
+          'html': '<span class="completion-overlap">is:</span>plugin',
+          'score': 0.0
         },
         {
           'start': 0,
           'end': 5,
-          'value': 'is:plugin ',
-          'html': '<span class="completion-overlap">is:</span>plugin',
-          'score': 0.0
+          'value': 'is:null-safe ',
+          'html': '<span class="completion-overlap">is:</span>null-safe',
+          'score': 0.0,
         },
         {
           'start': 0,

@@ -118,6 +118,9 @@ final class _State {
   /// Selected suggestion
   final int selectedIndex;
 
+  /// Whether the suggestion list is trimmed for space consideratoins.
+  final bool isTrimmed;
+
   _State({
     this.inactive = false,
     this.closed = false,
@@ -127,6 +130,7 @@ final class _State {
     this.caret = 0,
     this.suggestions = const [],
     this.selectedIndex = 0,
+    this.isTrimmed = false,
   });
 
   _State update({
@@ -138,6 +142,7 @@ final class _State {
     int? caret,
     Suggestions? suggestions,
     int? selectedIndex,
+    bool? isTrimmed,
   }) =>
       _State(
         inactive: inactive ?? this.inactive,
@@ -148,11 +153,12 @@ final class _State {
         caret: caret ?? this.caret,
         suggestions: suggestions ?? this.suggestions,
         selectedIndex: selectedIndex ?? this.selectedIndex,
+        isTrimmed: isTrimmed ?? this.isTrimmed,
       );
 
   @override
   String toString() =>
-      '_State(forced: $forced, triggered: $triggered, caret: $caret, text: $text, selected: $selectedIndex)';
+      '_State(forced: $forced, triggered: $triggered, caret: $caret, text: $text, selected: $selectedIndex, isTrimmed: $isTrimmed)';
 }
 
 final class _CompletionWidget {
@@ -212,7 +218,7 @@ final class _CompletionWidget {
       delta = state.text.substring(caret, state.caret);
     }
     final crossedWordBoundary = delta.contains(_whitespace);
-    final (:trigger, :suggestions) = suggest(
+    final (:trigger, :suggestions, :isTrimmed) = suggest(
       data,
       text,
       caret,
@@ -223,6 +229,7 @@ final class _CompletionWidget {
       suggestions: suggestions,
       text: text,
       caret: caret,
+      isTrimmed: isTrimmed,
     );
     update();
   }
@@ -261,6 +268,9 @@ final class _CompletionWidget {
           ..setHTMLUnsafe(s.html.toJS)
           ..setAttribute('data-completion-option-index', i.toString())
           ..classList.add(optionClass));
+      }
+      if (state.isTrimmed) {
+        dropdown.appendChild(HTMLDivElement()..textContent = '[...]');
       }
     }
     _renderedSuggestions = state.suggestions;

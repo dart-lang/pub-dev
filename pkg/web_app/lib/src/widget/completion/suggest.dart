@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 
 typedef Suggestions = List<Suggestion>;
 
-class Suggestion {
+class Suggestion implements Comparable<Suggestion> {
   final int start;
   final int end;
   final String value;
@@ -32,15 +32,25 @@ class Suggestion {
         'html': html,
         'score': score,
       };
+
+  @override
+  int compareTo(Suggestion other) {
+    final sc = -score.compareTo(other.score);
+    if (sc != 0) return sc;
+    final lc = value.length.compareTo(other.value.length);
+    if (lc != 0) return lc;
+    return value.compareTo(other.value);
+  }
 }
 
 /// Given [data] and [caret] position inside [text] what suggestions do we
 /// want to offer and should completion be automatically triggered?
-({bool trigger, Suggestions suggestions}) suggest(
+({bool trigger, Suggestions suggestions, bool isTrimmed}) suggest(
   CompletionData data,
   String text,
-  int caret,
-) {
+  int caret, {
+  int maxOptionCount = 50,
+}) {
   // Get position before caret
   final beforeCaret = caret > 0 ? caret - 1 : 0;
   // Get position of space after the caret
@@ -81,6 +91,7 @@ class Suggestion {
     return (
       trigger: false,
       suggestions: [],
+      isTrimmed: false,
     );
   }
 
@@ -94,6 +105,7 @@ class Suggestion {
       return (
         trigger: false,
         suggestions: [],
+        isTrimmed: false,
       );
     }
     // We don't to auto trigger completion unless there is an option that is
@@ -106,7 +118,7 @@ class Suggestion {
   // Terminate suggestion with a ' ' suffix, if this is a terminal completion
   final suffix = completion.terminal ? ' ' : '';
 
-  final suggestions = completion.options.map((option) {
+  var suggestions = completion.options.map((option) {
     final overlap = _lcs(prefix, option);
     var html = option;
     // highlight the overlapping part of the text
@@ -129,15 +141,32 @@ class Suggestion {
       html: html,
       score: score,
     );
-  }).sorted((a, b) {
-    final x = -a.score.compareTo(b.score);
-    if (x != 0) return x;
-    return a.value.compareTo(b.value);
-  });
+  }).toList();
+  final isTrimmed = suggestions.length > maxOptionCount;
+  if (!isTrimmed) {
+    suggestions.sort();
+  } else {
+    // List of score bucket entries ordered by decreasing score.
+    final buckets = suggestions
+        .groupListsBy((s) => s.score.floor())
+        .entries
+        .toList()
+      ..sort((a, b) => -a.key.compareTo(b.key));
+    suggestions = [];
+    for (final bucket in buckets) {
+      bucket.value.sort();
+      suggestions
+          .addAll(bucket.value.take(maxOptionCount - suggestions.length));
+      if (suggestions.length >= maxOptionCount) {
+        break;
+      }
+    }
+  }
 
   return (
     trigger: trigger,
     suggestions: suggestions,
+    isTrimmed: isTrimmed,
   );
 }
 
