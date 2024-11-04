@@ -270,6 +270,69 @@ final class ExportedPackage {
         Duration(hours: 2),
       );
 
+  Future<void> synchronizeTarballs(
+    Map<String, SourceObjectInfo> versions,
+  ) async {
+    await Future.wait([
+      ..._owner._prefixes.map((prefix) async {
+        final pfx = prefix + '/api/archives/$_package-';
+
+        final versionsForUpload = versions.keys.toSet();
+        await _owner._listBucket(prefix: pfx, delimiter: '', (entry) async {
+          final item = switch (entry) {
+            final BucketDirectoryEntry _ => throw AssertionError(
+                'directory entries should not be possible',
+              ),
+            final BucketObjectEntry item => item,
+          };
+          if (!item.name.endsWith('.tar.gz')) {
+            _log.pubNoticeShout(
+              'stray-file',
+              'Found stray file "${item.name}" in ExportedApi'
+                  ' while garbage collecting for "$_package" (ignoring it!)',
+            );
+            return;
+          }
+          final version = Uri.decodeComponent(
+            item.name.without(prefix: pfx, suffix: '.tar.gz'),
+          );
+
+          final info = versions[version];
+          if (info != null) {
+            await tarball(version)._copyToPrefixFromIfNotContentEquals(
+              prefix,
+              info,
+              item,
+            );
+            // This version needs not be uploaded again
+            versionsForUpload.remove(version);
+
+            // Done, we don't need to delete this item
+            return;
+          }
+
+          // Delete the item, if it's old enough.
+          if (item.updated.isBefore(clock.agoBy(_minGarbageAge))) {
+            // Only delete if the item if it's older than _minGarbageAge
+            // This avoids any races where we delete files we've just created
+            await _owner._bucket.tryDelete(item.name);
+          }
+        });
+
+        // Upload missing versions
+        await Future.wait(versionsForUpload.map((v) async {
+          await _owner._pool.withResource(() async {
+            await tarball(v)._copyToPrefixFromIfNotContentEquals(
+              prefix,
+              versions[v]!,
+              null,
+            );
+          });
+        }));
+      }),
+    ]);
+  }
+
   /// Garbage collect versions from this package not in [allVersionNumbers].
   ///
   /// [allVersionNumbers] must be encoded as canonical versions.
@@ -319,6 +382,32 @@ final class ExportedPackage {
       }),
     ]);
   }
+}
+
+/// Information about an object to be used as source in a copy operation.
+///
+/// The [absoluteObjectName] must be a `gs:/<bucket>/<objectName>` style URL.
+/// These can be created with [Bucket.absoluteObjectName].
+///
+/// The [length] must be the length of the object, and [md5Hash] must be the
+/// MD5 hash of the object.
+final class SourceObjectInfo {
+  final String absoluteObjectName;
+  final int length;
+  final List<int> md5Hash;
+
+  SourceObjectInfo({
+    required this.absoluteObjectName,
+    required this.length,
+    required this.md5Hash,
+  });
+
+  factory SourceObjectInfo.fromObjectInfo(Bucket bucket, ObjectInfo info) =>
+      SourceObjectInfo(
+        absoluteObjectName: bucket.absoluteObjectName(info.name),
+        length: info.length,
+        md5Hash: info.md5Hash,
+      );
 }
 
 /// Interface for an exported file.
@@ -450,48 +539,57 @@ final class ExportedBlob extends ExportedObject {
     }));
   }
 
-  /// Copy binary blob from [absoluteSourceObjectName] to this file.
+  /// Copy binary blob from [SourceObjectInfo] to this file.
   ///
-  /// Requires that [absoluteSourceObjectName] is a `gs:/<bucket>/<objectName>`
+  /// Requires that `absoluteObjectName` is a `gs:/<bucket>/<objectName>`
   /// style URL. These can be created with [Bucket.absoluteObjectName].
   ///
-  /// [sourceInfo] is required to be [ObjectInfo] for the source object.
+  /// [source] is required to be [SourceObjectInfo] for the source object.
   /// This method will use [ObjectInfo.length] and [ObjectInfo.md5Hash] to
   /// determine if it's necessary to copy the object.
-  Future<void> copyFrom(
-    String absoluteSourceObjectName,
-    ObjectInfo sourceInfo,
-  ) async {
-    final metadata = _metadata();
-
+  Future<void> copyFrom(SourceObjectInfo source) async {
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
         final dst = prefix + _objectName;
 
-        // Check if the dst already exists
-        if (await _owner._bucket.tryInfo(dst) case final dstInfo?) {
-          if (dstInfo.contentEquals(sourceInfo)) {
-            // If both source and dst exists, and their content matches, then
-            // we only need to update the "validated" metadata. And we only
-            // need to update the "validated" timestamp if it's older than
-            // _retouchDeadline
-            final retouchDeadline = clock.agoBy(_updateValidatedAfter);
-            if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
-              await _owner._bucket.updateMetadata(dst, metadata);
-            }
-            return;
-          }
-        }
-
-        // If dst or source doesn't exist, then we shall attempt to make a copy.
-        // (if source doesn't exist we'll consistently get an error from here!)
-        await _owner._storage.copyObject(
-          absoluteSourceObjectName,
-          _owner._bucket.absoluteObjectName(dst),
-          metadata: metadata,
+        await _copyToPrefixFromIfNotContentEquals(
+          prefix,
+          source,
+          await _owner._bucket.tryInfo(dst),
         );
       });
     }));
+  }
+
+  Future<void> _copyToPrefixFromIfNotContentEquals(
+    String prefix,
+    SourceObjectInfo source,
+    ObjectInfo? destinationInfo,
+  ) async {
+    final dst = prefix + _objectName;
+
+    // Check if the dst already exists
+    if (destinationInfo case final dstInfo?) {
+      if (dstInfo.contentEquals(source)) {
+        // If both source and dst exists, and their content matches, then
+        // we only need to update the "validated" metadata. And we only
+        // need to update the "validated" timestamp if it's older than
+        // _retouchDeadline
+        final retouchDeadline = clock.agoBy(_updateValidatedAfter);
+        if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
+          await _owner._bucket.updateMetadata(dst, _metadata());
+        }
+        return;
+      }
+    }
+
+    // If dst or source doesn't exist, then we shall attempt to make a copy.
+    // (if source doesn't exist we'll consistently get an error from here!)
+    await _owner._storage.copyObject(
+      source.absoluteObjectName,
+      _owner._bucket.absoluteObjectName(dst),
+      metadata: _metadata(),
+    );
   }
 }
 
@@ -530,7 +628,7 @@ extension on ObjectInfo {
     return fixedTimeIntListEquals(md5Hash, bytesHash);
   }
 
-  bool contentEquals(ObjectInfo info) {
+  bool contentEquals(SourceObjectInfo info) {
     if (length != info.length) {
       return false;
     }
