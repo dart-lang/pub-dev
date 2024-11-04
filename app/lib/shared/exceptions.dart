@@ -51,7 +51,7 @@ class NotAcceptableException extends ResponseException {
       : super._(406, 'NotAcceptable', message);
 }
 
-/// Thrown when the underlying analysis task has been aborted.
+/// Thrown when part of the underlying analysis task has been aborted.
 class TaskAbortedException extends ResponseException {
   TaskAbortedException(String message) : super._(400, 'TaskAborted', message);
 }
