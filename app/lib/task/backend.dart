@@ -624,10 +624,18 @@ class TaskBackend {
     InvalidInputException.checkPackageName(package);
     version = InvalidInputException.checkSemanticVersion(version);
 
+    final token = _extractBearerToken(request);
+    if (token == null) {
+      throw AuthenticationException.authenticationRequired();
+    }
+
     final key = PackageState.createKey(_db, runtimeVersion, package);
     final state = await _db.lookupOrNull<PackageState>(key);
+    if (state == null) {
+      throw NotFoundException.resource('$package/$version');
+    }
     final versionState =
-        _extractAndVerifyVersionState(package, version, state, request);
+        _authorizeWorkerCallback(package, version, state, token);
 
     // Set expiration of signed URLs to remaining execution time + 5 min to
     // allow for clock skew.
@@ -674,6 +682,11 @@ class TaskBackend {
     InvalidInputException.checkPackageName(package);
     version = InvalidInputException.checkSemanticVersion(version);
 
+    final token = _extractBearerToken(request);
+    if (token == null) {
+      throw AuthenticationException.authenticationRequired();
+    }
+
     String? zone, instance;
     bool isInstanceDone = false;
     final index = await _loadTaskResultIndex(
@@ -690,13 +703,16 @@ class TaskBackend {
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
+      if (state == null) {
+        throw NotFoundException.resource('$package/$version');
+      }
       final versionState =
-          _extractAndVerifyVersionState(package, version, state, request);
+          _authorizeWorkerCallback(package, version, state, token);
 
       // Update dependencies, if pana summary has dependencies
       if (summary != null && summary.allDependencies != null) {
         final updatedDependencies = _updatedDependencies(
-          state!.dependencies,
+          state.dependencies,
           summary.allDependencies,
           // for logging only
           package: package,
@@ -714,7 +730,7 @@ class TaskBackend {
       instance = versionState.instance!;
 
       // Remove instanceName, zone, secretToken, and set attempts = 0
-      state!.versions![version] = PackageVersionStateInfo(
+      state.versions![version] = PackageVersionStateInfo(
         scheduled: versionState.scheduled,
         docs: hasDocIndexHtml,
         pana: summary != null,
@@ -1164,19 +1180,16 @@ String? _extractBearerToken(shelf.Request request) {
   return parts.last.trim();
 }
 
-PackageVersionStateInfo _extractAndVerifyVersionState(
+/// Authorize a worker callback for [package] / [version].
+///
+/// Returns the [PackageVersionStateInfo] that the worker is authenticated for.
+/// Or throw [ResponseException] if authorization is not possible.
+PackageVersionStateInfo _authorizeWorkerCallback(
   String package,
   String version,
-  PackageState? state,
-  shelf.Request request,
+  PackageState state,
+  String token,
 ) {
-  final token = _extractBearerToken(request);
-  if (token == null) {
-    throw AuthenticationException.authenticationRequired();
-  }
-  if (state == null) {
-    throw NotFoundException.resource('$package/$version');
-  }
   final versionState = state.versions![version];
   if (versionState == null) {
     // check if the task was aborted
