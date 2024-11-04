@@ -95,6 +95,7 @@ final class TaskAbortedException extends UploadException {
   TaskAbortedException(String message) : super(message);
 }
 
+/// Extract `error.code` from JSON body in [res].
 String? _extractExceptionCode(Response res) {
   try {
     final map = json.decode(res.body);
