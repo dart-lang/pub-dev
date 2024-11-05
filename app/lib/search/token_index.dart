@@ -164,9 +164,10 @@ class TokenIndex {
       }
       // Document weight is a highly scaled-down proxy of the length.
       final dw = 1 + math.log(1 + tokens.length) / 100;
-      for (final token in tokens.keys) {
+      for (final e in tokens.entries) {
+        final token = e.key;
         final weights = _inverseIds.putIfAbsent(token, () => {});
-        weights[i] = math.max(weights[i] ?? 0.0, tokens[token]! / dw);
+        weights[i] = math.max(weights[i] ?? 0.0, e.value / dw);
       }
     }
   }

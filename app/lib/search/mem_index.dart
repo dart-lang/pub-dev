@@ -314,8 +314,8 @@ class InMemoryPackageIndex {
       final coreScores = <Score>[];
       var wordScopedPackages = packages;
       for (final word in words) {
-        final nameScore =
-            _packageNameIndex.searchWord(word, packages: wordScopedPackages);
+        final nameScore = _packageNameIndex.searchWord(word,
+            filterOnPackages: wordScopedPackages);
         if (includeNameMatches && _documentsByName.containsKey(word)) {
           nameMatches ??= <String>{};
           nameMatches.add(word);
@@ -520,13 +520,33 @@ class PackageNameIndex {
       package.replaceAll('_', '').toLowerCase();
 
   /// Search [text] and return the matching packages with scores.
+  @visibleForTesting
   Score search(String text) {
-    return Score.multiply(splitForQuery(text).map(searchWord).toList());
+    Score? score;
+    for (final w in splitForQuery(text)) {
+      final s = searchWord(w, filterOnPackages: score?.keys);
+      if (score == null) {
+        score = s;
+      } else {
+        // Note: on one hand, it is inefficient to multiply the [Score] on each
+        // iteration. However, (1) this is only happening in test, (2) it may be
+        // better for the next iteration to work on a more limited `filterOnPackages`,
+        // and (3) it will be updated to a more efficient in-place update (#8225).
+        score = Score.multiply([score, s]);
+      }
+    }
+    return score ?? Score.empty;
   }
 
-  /// Search using the parsed [word] and return the match packages with scores.
-  Score searchWord(String word, {Set<String>? packages}) {
-    final pkgNamesToCheck = packages ?? _packageNames;
+  /// Search using the parsed [word] and return the matching packages with scores
+  /// as a new [Score] instance.
+  ///
+  /// When [filterOnPackages] is present, only the names present are evaluated.
+  Score searchWord(
+    String word, {
+    Iterable<String>? filterOnPackages,
+  }) {
+    final pkgNamesToCheck = filterOnPackages ?? _packageNames;
     final values = <String, double>{};
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
@@ -549,11 +569,16 @@ class PackageNameIndex {
           matched++;
         }
       }
+
+      // making sure that match score is minimum 0.5
       if (matched > 0) {
-        values[pkg] = matched / parts.length;
+        final v = matched / parts.length;
+        if (v >= 0.5) {
+          values[pkg] = v;
+        }
       }
     }
-    return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
+    return Score(values);
   }
 }
 
