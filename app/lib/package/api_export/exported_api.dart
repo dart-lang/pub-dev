@@ -270,6 +270,18 @@ final class ExportedPackage {
         Duration(hours: 2),
       );
 
+  /// Synchronize tarballs from [versions].
+  ///
+  /// [versions] is a map from version number to [SourceObjectInfo], where
+  /// the [SourceObjectInfo] is the GCS object from which the tarball can be
+  /// copied.
+  ///
+  /// This method will copy GCS objects, when necessary, relying on
+  /// [SourceObjectInfo.md5Hash] to avoid copying objects that haven't changed.
+  ///
+  /// [versions] **must** have an entry for each version that exists.
+  /// This will **delete** tarballs for versions that do not exist in
+  /// [versions].
   Future<void> synchronizeTarballs(
     Map<String, SourceObjectInfo> versions,
   ) async {
