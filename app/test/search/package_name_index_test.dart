@@ -7,15 +7,14 @@ import 'package:test/test.dart';
 
 void main() {
   group('PackageNameIndex', () {
-    final index = PackageNameIndex()
-      ..addAll([
-        'fluent',
-        'fluent_ui',
-        'get',
-        'get_it',
-        'modular',
-        'modular_flutter',
-      ]);
+    final index = PackageNameIndex([
+      'fluent',
+      'fluent_ui',
+      'get',
+      'get_it',
+      'modular',
+      'modular_flutter',
+    ]);
 
     test('fluent vs fluent_ui', () {
       expect(

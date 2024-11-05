@@ -22,7 +22,7 @@ final _textSearchTimeout = Duration(milliseconds: 500);
 class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
   final _documentsByName = <String, PackageDocument>{};
-  final _packageNameIndex = PackageNameIndex();
+  late final PackageNameIndex _packageNameIndex;
   late final TokenIndex _descrIndex;
   late final TokenIndex _readmeIndex;
   late final TokenIndex _apiSymbolIndex;
@@ -54,7 +54,6 @@ class InMemoryPackageIndex {
     final apiDocPageValues = <String>[];
     for (final doc in _documents) {
       _documentsByName[doc.package] = doc;
-      _packageNameIndex.add(doc.package);
 
       final apiDocPages = doc.apiDocPages;
       if (apiDocPages != null) {
@@ -74,6 +73,7 @@ class InMemoryPackageIndex {
     }
 
     final packageKeys = _documents.map((d) => d.package).toList();
+    _packageNameIndex = PackageNameIndex(packageKeys);
     _descrIndex = TokenIndex(
       packageKeys,
       _documents.map((d) => d.description).toList(),
@@ -501,26 +501,23 @@ class _TextResults {
 /// A simple (non-inverted) index designed for package name lookup.
 @visibleForTesting
 class PackageNameIndex {
-  final _data = <String, _PkgNameData>{};
+  final List<String> _packageNames;
+  late final Map<String, _PkgNameData> _data;
+
+  PackageNameIndex(this._packageNames) {
+    _data = Map.fromEntries(_packageNames.map((package) {
+      final collapsed = _collapseName(package);
+      return MapEntry(
+        package,
+        _PkgNameData(collapsed, trigrams(collapsed).toSet()),
+      );
+    }));
+  }
 
   /// Maps package name to a reduced form of the name:
   /// the same character parts, but without `-`.
   String _collapseName(String package) =>
       package.replaceAll('_', '').toLowerCase();
-
-  void addAll(Iterable<String> packages) {
-    for (final package in packages) {
-      add(package);
-    }
-  }
-
-  /// Add a new [package] to the index.
-  void add(String package) {
-    _data.putIfAbsent(package, () {
-      final collapsed = _collapseName(package);
-      return _PkgNameData(collapsed, trigrams(collapsed).toSet());
-    });
-  }
 
   /// Search [text] and return the matching packages with scores.
   Score search(String text) {
@@ -529,7 +526,7 @@ class PackageNameIndex {
 
   /// Search using the parsed [word] and return the match packages with scores.
   Score searchWord(String word, {Set<String>? packages}) {
-    final pkgNamesToCheck = packages ?? _data.keys;
+    final pkgNamesToCheck = packages ?? _packageNames;
     final values = <String, double>{};
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
