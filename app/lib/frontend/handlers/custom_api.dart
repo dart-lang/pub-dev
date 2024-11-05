@@ -140,7 +140,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     final packagesJson = [];
 
     final uri = activeConfiguration.primaryApiUri;
-    for (final version in pageVersions.whereType<PackageVersion>()) {
+    for (final version in pageVersions.nonNulls) {
       final versionString = Uri.encodeComponent(version.version!);
       final packageString = Uri.encodeComponent(version.package);
 
@@ -461,8 +461,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
     if (sr.errorMessage != null) 'message': sr.errorMessage,
   };
   if (hasNextPage) {
-    final newParams =
-        Map<String, dynamic>.from(request.requestedUri.queryParameters);
+    final newParams = {...request.requestedUri.queryParameters};
     newParams['page'] = (searchForm.currentPage! + 1).toString();
     final nextPageUrl =
         request.requestedUri.replace(queryParameters: newParams).toString();

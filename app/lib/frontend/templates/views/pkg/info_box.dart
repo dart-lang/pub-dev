@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/format/encoding.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
@@ -61,14 +63,16 @@ d.Node packageInfoBoxNode({
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = imageStorage.getImageUrl(
         package.name!, version.version!, screenshots.first.webp190Thumbnail);
-    for (ProcessedScreenshot s in screenshots) {
+    for (final screenshot in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
-          package.name!, version.version!, s.webpImage));
-      screenshotDescriptions.add(s.description);
+          package.name!, version.version!, screenshot.webpImage));
+      screenshotDescriptions.add(screenshot.description);
     }
   }
   return d.fragment([
     labeledScores,
+    if (data.weeklyDownloadCounts != null)
+      _downloadsChart(data.weeklyDownloadCounts!),
     if (thumbnailUrl != null)
       d.div(classes: [
         'detail-screenshot-thumbnail'
@@ -103,6 +107,23 @@ d.Node packageInfoBoxNode({
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(package.name!),
   ]);
+}
+
+d.Node _downloadsChart(WeeklyDownloadCounts wdc) {
+  final container = d.div(
+      classes: ['weekly-downloads-sparkline'],
+      id: '-weekly-downloads-sparkline',
+      attributes: {
+        'data-widget': 'weekly-sparkline',
+        'data-weekly-sparkline-points':
+            _encodeForWeeklySparkline(wdc.weeklyDownloads, wdc.newestDate),
+      });
+  return container;
+}
+
+String _encodeForWeeklySparkline(List<int> downloads, DateTime newestDate) {
+  final date = newestDate.toUtc().millisecondsSinceEpoch ~/ 1000;
+  return encodeIntsAsLittleEndianBase64String([date, ...downloads]);
 }
 
 d.Node _publisher(String? publisherId) {

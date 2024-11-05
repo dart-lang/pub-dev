@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.backend;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -18,7 +16,8 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -34,11 +33,11 @@ import '../account/models.dart' show User;
 import '../audit/models.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
+import '../service/email/email_templates.dart';
 import '../service/email/models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
-import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
@@ -58,11 +57,11 @@ final maxAssetContentLength = 256 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
-final _validGithubUserOrRepoRegExp =
+final _validGitHubUserOrRepoRegExp =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
-final _validGithubVersionPattern =
+final _validGitHubVersionPattern =
     RegExp(r'^[a-z0-9\-._]+$', caseSensitive: false);
-final _validGithubEnvironment =
+final _validGitHubEnvironment =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
 /// Sets the package backend service.
@@ -76,33 +75,26 @@ PackageBackend get packageBackend =>
 /// Represents the backend for the pub site.
 class PackageBackend {
   final DatastoreDB db;
-  final Storage _storage;
 
   /// The Cloud Storage bucket to use for incoming package archives.
   /// The following files are present:
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _incomingBucket;
 
-  /// The Cloud Storage bucket to use for canonical package archives.
-  /// The following files are present:
-  /// - `packages/$package-$version.tar.gz` (package archive)
-  final Bucket _canonicalBucket;
-
-  /// The Cloud Storage bucket to use for public package archives.
-  /// The following files are present:
-  /// - `packages/$package-$version.tar.gz` (package archive)
-  final Bucket _publicBucket;
+  /// The storage handling for the package archive files.
+  final TarballStorage tarballStorage;
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
 
   PackageBackend(
     this.db,
-    this._storage,
+    Storage storage,
     this._incomingBucket,
-    this._canonicalBucket,
-    this._publicBucket,
-  );
+    Bucket canonicalBucket,
+    Bucket publicBucket,
+  ) : tarballStorage =
+            TarballStorage(db, storage, canonicalBucket, publicBucket);
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -181,6 +173,14 @@ class PackageBackend {
   Future<ModeratedPackage?> lookupModeratedPackage(String packageName) async {
     final packageKey = db.emptyKey.append(ModeratedPackage, id: packageName);
     return await db.lookupOrNull<ModeratedPackage>(packageKey);
+  }
+
+  /// Looks up a reserved package by name.
+  ///
+  /// Returns `null` if the package doesn't exist.
+  Future<ReservedPackage?> lookupReservedPackage(String packageName) async {
+    final packageKey = db.emptyKey.append(ReservedPackage, id: packageName);
+    return await db.lookupOrNull<ReservedPackage>(packageKey);
   }
 
   /// Looks up a package by name.
@@ -329,8 +329,7 @@ class PackageBackend {
     // NOTE: We should maybe check for existence first?
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
-    final object = tarballObjectName(package, Uri.encodeComponent(cv!));
-    return Uri.parse(_publicBucket.objectUrl(object));
+    return tarballStorage.getPublicDownloadUrl(package, cv!);
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
@@ -538,8 +537,8 @@ class PackageBackend {
           InvalidInputException.check(parts.length == 2,
               'The `repository` field must follow the `<owner>/<repository>` pattern.');
           InvalidInputException.check(
-              _validGithubUserOrRepoRegExp.hasMatch(parts[0]) &&
-                  _validGithubUserOrRepoRegExp.hasMatch(parts[1]),
+              _validGitHubUserOrRepoRegExp.hasMatch(parts[0]) &&
+                  _validGitHubUserOrRepoRegExp.hasMatch(parts[1]),
               'The `repository` field has invalid characters.');
         }
 
@@ -549,7 +548,7 @@ class PackageBackend {
         InvalidInputException.check(
             tagPatternParts
                 .where((e) => e.isNotEmpty)
-                .every(_validGithubVersionPattern.hasMatch),
+                .every(_validGitHubVersionPattern.hasMatch),
             'The `tagPattern` field has invalid characters.');
 
         InvalidInputException.check(
@@ -558,7 +557,7 @@ class PackageBackend {
 
         if (environment.isNotEmpty) {
           InvalidInputException.check(
-              _validGithubEnvironment.hasMatch(environment),
+              _validGitHubEnvironment.hasMatch(environment),
               'The `environment` field has invalid characters.');
         }
       }
@@ -725,8 +724,8 @@ class PackageBackend {
     final newPublisherAdminEmails =
         await publisherBackend.getAdminMemberEmails(request.publisherId!);
     final allAdminEmails = <String>{
-      ...preTxUploaderEmails.whereType<String>(),
-      ...newPublisherAdminEmails.whereType<String>(),
+      ...preTxUploaderEmails,
+      ...newPublisherAdminEmails.nonNulls,
     };
 
     OutgoingEmail? email;
@@ -943,18 +942,15 @@ class PackageBackend {
       }
 
       // Check canonical archive.
-      final canonicalArchivePath =
-          tarballObjectName(pubspec.name, versionString);
-      final canonicalArchiveInfo =
-          await _canonicalBucket.tryInfo(canonicalArchivePath);
-      if (canonicalArchiveInfo != null) {
-        // Actually fetch the archive bytes and do full comparison.
-        final objectBytes =
-            await _canonicalBucket.readAsBytes(canonicalArchivePath);
-        if (!fileBytes.byteToByteEquals(objectBytes)) {
-          throw PackageRejectedException.versionExists(
-              pubspec.name, versionString);
-        }
+      final canonicalContentMatch =
+          await tarballStorage.matchArchiveContentInCanonical(
+        pubspec.name,
+        versionString,
+        fileBytes,
+      );
+      if (canonicalContentMatch == ContentMatchStatus.different) {
+        throw PackageRejectedException.versionExists(
+            pubspec.name, versionString);
       }
 
       // check existences of referenced packages
@@ -991,7 +987,8 @@ class PackageBackend {
         agent: agent,
         archive: archive,
         guid: guid,
-        hasCanonicalArchiveObject: canonicalArchiveInfo != null,
+        hasCanonicalArchiveObject:
+            canonicalContentMatch == ContentMatchStatus.same,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $guid.');
@@ -1014,10 +1011,22 @@ class PackageBackend {
     required String name,
     required AuthenticatedAgent agent,
   }) async {
-    final isGoogleComUser =
-        agent is AuthenticatedUser && agent.user.email!.endsWith('@google.com');
-    final isReservedName = matchesReservedPackageName(name);
-    final isExempted = isGoogleComUser && isReservedName;
+    final reservedPackage = await lookupReservedPackage(name);
+
+    bool isAllowedUser = false;
+    if (agent is AuthenticatedUser) {
+      final email = agent.user.email;
+      if (reservedPackage != null) {
+        final reservedEmails = reservedPackage.emails;
+        isAllowedUser = email != null && reservedEmails.contains(email);
+      } else {
+        isAllowedUser = email != null && email.endsWith('@google.com');
+      }
+    }
+
+    final isReservedName =
+        reservedPackage != null || matchesReservedPackageName(name);
+    final isExempted = isReservedName && isAllowedUser;
 
     final conflictingName = await nameTracker.accept(name);
     if (conflictingName != null && !isExempted) {
@@ -1039,8 +1048,8 @@ class PackageBackend {
         throw PackageRejectedException(newNameIssues.first.message);
       }
 
-      // reserved package names for the Dart team
-      if (isReservedName && !isGoogleComUser) {
+      // reserved package names for the Dart team or allowlisted users
+      if (isReservedName && !isAllowedUser) {
         throw PackageRejectedException.nameReserved(name);
       }
     }
@@ -1055,13 +1064,12 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final newVersion = entities.packageVersion;
-    final currentDartSdk = await getCachedDartSdkVersion(
-        lastKnownStable: toolStableDartSdkVersion);
-    final currentFlutterSdk = await getCachedFlutterSdkVersion(
-        lastKnownStable: toolStableFlutterSdkVersion);
+    final [currentDartSdk, currentFlutterSdk] = await Future.wait([
+      getCachedDartSdkVersion(lastKnownStable: toolStableDartSdkVersion),
+      getCachedFlutterSdkVersion(lastKnownStable: toolStableFlutterSdkVersion),
+    ]);
     final existingPackage = await lookupPackage(newVersion.package);
     final isNew = existingPackage == null;
-
     // check authorizations before the transaction
     await _requireUploadAuthorization(
         agent, existingPackage, newVersion.version!);
@@ -1084,14 +1092,12 @@ class PackageBackend {
       throw AssertionError(
           'Package "${newVersion.package}" has no admin email to notify.');
     }
-
     // check rate limits before the transaction
     await verifyPackageUploadRateLimit(
       agent: agent,
       package: newVersion.package,
       isNew: isNew,
     );
-
     final email = createPackageUploadedEmail(
       packageName: newVersion.package,
       packageVersion: newVersion.version!,
@@ -1100,7 +1106,6 @@ class PackageBackend {
           uploaderEmails.map((email) => EmailAddress(email)).toList(),
     );
     final outgoingEmail = emailBackend.prepareEntity(email);
-
     Package? package;
     final existingVersions = await db
         .query<PackageVersion>(ancestorKey: newVersion.packageKey!)
@@ -1125,6 +1130,14 @@ class PackageBackend {
         throw PackageRejectedException.nameReserved(newVersion.package);
       }
 
+      if (isNew) {
+        final reservedPackage = await tx.lookupOrNull<ReservedPackage>(
+            db.emptyKey.append(ReservedPackage, id: newVersion.package));
+        if (reservedPackage != null) {
+          tx.delete(reservedPackage.key);
+        }
+      }
+
       // If the version already exists, we fail.
       if (version != null) {
         _logger.info('Version ${version.version} of package '
@@ -1139,9 +1152,11 @@ class PackageBackend {
         package = Package.fromVersion(newVersion);
       }
 
-      if (package!.versionCount >= maxVersionsPerPackage) {
+      final maxVersionCount = maxVersionsPerPackageOverrides[package!.name] ??
+          maxVersionsPerPackage;
+      if (package!.versionCount >= maxVersionCount) {
         throw PackageRejectedException.maxVersionCountReached(
-            newVersion.package, maxVersionsPerPackage);
+            newVersion.package, maxVersionCount);
       }
 
       if (package!.deletedVersions != null &&
@@ -1169,18 +1184,15 @@ class PackageBackend {
       );
       if (!hasCanonicalArchiveObject) {
         // Copy archive to canonical bucket.
-        await _storage.copyObject(
-          _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
-          _canonicalBucket.absoluteObjectName(
-              tarballObjectName(newVersion.package, newVersion.version!)),
+        await tarballStorage.copyFromTempToCanonicalBucket(
+          sourceAbsoluteObjectName:
+              _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+          package: newVersion.package,
+          version: newVersion.version!,
         );
       }
-      await _storage.copyObject(
-        _canonicalBucket.absoluteObjectName(
-            tarballObjectName(newVersion.package, newVersion.version!)),
-        _publicBucket.absoluteObjectName(
-            tarballObjectName(newVersion.package, newVersion.version!)),
-      );
+      await tarballStorage.copyArchiveFromCanonicalToPublicBucket(
+          newVersion.package, newVersion.version!);
 
       final inserts = <Model>[
         package!,
@@ -1244,12 +1256,8 @@ class PackageBackend {
           apiExporter!
               .updatePackageVersion(newVersion.package, newVersion.version!),
       ]);
-      final objectName =
-          tarballObjectName(newVersion.package, newVersion.version!);
-      final info = await _publicBucket.tryInfo(objectName);
-      if (info != null) {
-        await updateContentDispositionToAttachment(info, _publicBucket);
-      }
+      await tarballStorage.updateContentDispositionOnPublicBucket(
+          newVersion.package, newVersion.version!);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
@@ -1278,8 +1286,8 @@ class PackageBackend {
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
       return;
     }
-    if (agent is AuthenticatedGithubAction) {
-      await _checkGithubActionAllowed(agent, package, newVersion);
+    if (agent is AuthenticatedGitHubAction) {
+      await _checkGitHubActionAllowed(agent, package, newVersion);
       return;
     }
     if (agent is AuthenticatedGcpServiceAccount) {
@@ -1293,7 +1301,7 @@ class PackageBackend {
         agent.displayId, package.name!);
   }
 
-  Future<void> _checkGithubActionAllowed(AuthenticatedGithubAction agent,
+  Future<void> _checkGitHubActionAllowed(AuthenticatedGitHubAction agent,
       Package package, String newVersion) async {
     final githubConfig = package.automatedPublishing?.githubConfig;
     final githubLock = package.automatedPublishing?.githubLock;
@@ -1440,19 +1448,13 @@ class PackageBackend {
     final emails = package.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(package.uploaders!)
         : await publisherBackend.getAdminMemberEmails(package.publisherId!);
-    final existingEmails = emails.whereType<String>().toList();
+    final existingEmails = emails.nonNulls.toList();
     if (existingEmails.isEmpty) {
       // should not happen
       throw AssertionError(
           'Package "${package.name}" has no admin email to notify.');
     }
     return existingEmails;
-  }
-
-  /// Read the archive bytes from the canonical bucket.
-  Future<List<int>> readArchiveBytes(String package, String version) async {
-    final objectName = tarballObjectName(package, version);
-    return await _canonicalBucket.readAsBytes(objectName);
   }
 
   // Uploaders support.
@@ -1632,29 +1634,27 @@ class PackageBackend {
 
   /// Deletes the tarball of a [package] in the given [version] permanently.
   Future<void> removePackageTarball(String package, String version) async {
-    final object = tarballObjectName(package, version);
-    await deleteFromBucket(_publicBucket, object);
-    await deleteFromBucket(_canonicalBucket, object);
+    await tarballStorage.deleteArchiveFromAllBuckets(package, version);
   }
 
   /// Gets the file info of a [package] in the given [version].
   Future<ObjectInfo?> packageTarballInfo(String package, String version) async {
-    return await _publicBucket.tryInfo(tarballObjectName(package, version));
+    return await tarballStorage.getPublicBucketArchiveInfo(package, version);
   }
 
   void _updatePackageAutomatedPublishingLock(
       Package package, AuthenticatedAgent agent) {
     final current = package.automatedPublishing;
     if (current == null) {
-      if (agent is AuthenticatedGithubAction ||
+      if (agent is AuthenticatedGitHubAction ||
           agent is AuthenticatedGcpServiceAccount) {
         // This should be unreachable
         throw AssertionError('Authentication should never have been possible');
       }
       return;
     }
-    if (agent is AuthenticatedGithubAction && current.githubLock == null) {
-      current.githubLock = GithubPublishingLock(
+    if (agent is AuthenticatedGitHubAction && current.githubLock == null) {
+      current.githubLock = GitHubPublishingLock(
         repositoryOwnerId: agent.payload.repositoryOwnerId,
         repositoryId: agent.payload.repositoryId,
       );
@@ -1904,13 +1904,6 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 
   return DerivedPackageVersionEntities(versionInfo, assets);
 }
-
-/// The GCS object name of a tarball object - excluding leading '/'.
-String tarballObjectName(String package, String version) =>
-    '${tarballObjectNamePackagePrefix(package)}$version.tar.gz';
-
-/// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
-String tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
 
 /// The GCS object name of an temporary object [guid] - excluding leading '/'.
 @visibleForTesting

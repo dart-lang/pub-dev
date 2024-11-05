@@ -9,6 +9,7 @@ targets:
       - 'lib/data/account_api.dart'
       - 'lib/data/admin_api.dart'
       - 'lib/data/advisories_api.dart'
+      - 'lib/data/completion.dart'
       - 'lib/data/package_api.dart'
       - 'lib/data/page_data.dart'
       - 'lib/data/publisher_api.dart'

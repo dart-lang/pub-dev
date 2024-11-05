@@ -45,7 +45,7 @@ d.Node renderDetailPage({
   d.Node? footerNode,
 }) {
   // active: the first one with content
-  for (Tab tab in tabs) {
+  for (final tab in tabs) {
     if (tab.contentNode != null) {
       tab.isActive = true;
       break;

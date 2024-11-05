@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.tarball_storage_namer_test;
-
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:test/test.dart';

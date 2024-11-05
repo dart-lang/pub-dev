@@ -25,7 +25,7 @@ abstract class KnownAgents {
   ///
   /// Deprecated and should not be used for new audit-log entries.
   /// This value is still present in some older audit-log entries.
-  static const _genericGithubActions = 'service:github-actions';
+  static const _genericGitHubActions = 'service:github-actions';
 
   /// Non-specific agent - only specifies it is from GCP Service Account.
   ///
@@ -67,7 +67,7 @@ abstract class KnownAgents {
   ];
 
   static const _nonSpecificAgentIds = <String>{
-    _genericGithubActions,
+    _genericGitHubActions,
     _genericGcpServiceAccount,
     pubSupport,
   };
@@ -132,7 +132,7 @@ abstract class AuthenticatedAgent {
 /// Holds the authenticated GitHub Action information.
 ///
 /// The [agentId] has the following format: `service:github-actions:<repositoryOwnerId>/<repositoryId>`
-class AuthenticatedGithubAction implements AuthenticatedAgent {
+class AuthenticatedGitHubAction implements AuthenticatedAgent {
   @override
   late final agentId = KnownAgents.githubActionsAgentId(
     repositoryOwnerId: payload.repositoryOwnerId,
@@ -140,7 +140,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   );
 
   @override
-  String get displayId => KnownAgents._genericGithubActions;
+  String get displayId => KnownAgents._genericGitHubActions;
 
   /// OIDC `id_token` the request was authenticated with.
   ///
@@ -155,7 +155,7 @@ class AuthenticatedGithubAction implements AuthenticatedAgent {
   /// The parsed, GitHub-specific JWT payload.
   final GitHubJwtPayload payload;
 
-  AuthenticatedGithubAction({
+  AuthenticatedGitHubAction({
     required this.idToken,
     required this.payload,
   }) {

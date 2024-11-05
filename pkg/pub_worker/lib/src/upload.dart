@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
 import 'package:http/http.dart'
-    show MultipartRequest, MultipartFile, Client, Response;
+    show Client, ClientException, MultipartFile, MultipartRequest, Response;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:logging/logging.dart' show Logger;
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart' show retry;
 
 final _log = Logger('pub_worker.upload');
@@ -60,10 +60,15 @@ Future<void> upload(
       throw UploadException(
         'Unhandled HTTP status = ${res.statusCode}, body: ${res.body}',
       );
-    }, retryIf: (e) => e is IOException || e is IntermittentUploadException);
+    },
+        retryIf: (e) =>
+            e is IOException ||
+            e is IntermittentUploadException ||
+            e is ClientException ||
+            e is TimeoutException,
+        delayFactor: Duration(seconds: 5));
 
-@sealed
-class UploadException implements Exception {
+final class UploadException implements Exception {
   final String message;
 
   UploadException(this.message);
@@ -72,7 +77,6 @@ class UploadException implements Exception {
   String toString() => message;
 }
 
-@sealed
-class IntermittentUploadException extends UploadException {
+final class IntermittentUploadException extends UploadException {
   IntermittentUploadException(String message) : super(message);
 }

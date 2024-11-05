@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:web_app/src/_dom_helper.dart';
+import '_dom_helper.dart';
 
 void setupScreenshotCarousel() {
   _setEventForScreenshot();
@@ -22,19 +22,22 @@ void _setEventForScreenshot() {
   final next = document.getElementById('-carousel-next')!;
   final description =
       document.getElementById('-screenshot-description') as ParagraphElement;
-  ImageElement? imageElement =
+  final existingImageElement =
       document.getElementById('-carousel-image') as ImageElement?;
-  if (imageElement == null) {
+  final ImageElement imageElement;
+  if (existingImageElement != null) {
+    imageElement = existingImageElement;
+  } else {
     imageElement = ImageElement();
     imageElement.id = '-carousel-image';
-    imageContainer.children.add(imageElement);
+    imageContainer.append(imageElement);
     imageElement.className = 'carousel-image';
   }
 
   Element? focusedTriggerSourceElement;
-  Function? restoreFocusabilityFn;
-  List<String> images = [];
-  List<String> descriptions = [];
+  void Function()? restoreFocusabilityFn;
+  var images = <String>[];
+  var descriptions = <String>[];
 
   void hideElement(Element element) {
     element.style.display = 'none';
@@ -46,7 +49,7 @@ void _setEventForScreenshot() {
 
   void showImage(int index) {
     hideElement(description);
-    hideElement(imageElement!);
+    hideElement(imageElement);
     imageElement.src = images[index];
     description.text = descriptions[index];
 
@@ -64,12 +67,12 @@ void _setEventForScreenshot() {
     }
 
     imageElement.onLoad.listen((_) {
-      showElement(imageElement!);
+      showElement(imageElement);
       showElement(description);
     });
   }
 
-  int screenshotIndex = 0;
+  var screenshotIndex = 0;
   for (final thumbnail in thumbnails) {
     void setup() {
       restoreFocusabilityFn = disableAllFocusability(
@@ -80,8 +83,9 @@ void _setEventForScreenshot() {
       );
       focusedTriggerSourceElement = thumbnail;
       showElement(carousel);
-      document.body!.classes.remove('overflow-auto');
-      document.body!.classes.add('overflow-hidden');
+      document.body!.classes
+        ..remove('overflow-auto')
+        ..add('overflow-hidden');
       images = thumbnail.dataset['thumbnail']!.split(',');
       final raw = jsonDecode(thumbnail.dataset['thumbnail-descriptions-json']!);
       descriptions = (raw as List).cast<String>();
@@ -105,16 +109,15 @@ void _setEventForScreenshot() {
     hideElement(next);
     hideElement(prev);
     hideElement(description);
-    document.body!.classes.remove('overflow-hidden');
-    document.body!.classes.add('overflow-auto');
+    document.body!.classes
+      ..remove('overflow-hidden')
+      ..add('overflow-auto');
     screenshotIndex = 0;
     images.clear();
     descriptions.clear();
     focusedTriggerSourceElement?.focus();
     focusedTriggerSourceElement = null;
-    if (restoreFocusabilityFn != null) {
-      restoreFocusabilityFn!();
-    }
+    restoreFocusabilityFn?.call();
   }
 
   void gotoPrev() {
@@ -162,7 +165,7 @@ void _setEventForScreenshot() {
     }
 
     if (event.key == 'Escape') {
-      event.stopPropagation;
+      event.stopPropagation();
       closeCarousel();
     }
     if (event.key == 'ArrowLeft') {

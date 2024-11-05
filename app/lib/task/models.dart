@@ -134,20 +134,23 @@ class PackageState extends db.ExpandoModel<String> {
   ///   * `scheduled + 31 days` for any version,
   ///   * `scheduled + 24 hours` for any version where `dependencyChanged > scheduled`
   ///   * `scheduled + 3 hours * attempts^2` for any version where `attempts > 0 && attempts < 3`.
-  void derivePendingAt() => pendingAt = [
-        // scheduled + 31 days
-        ...versions!.values.map((v) => v.scheduled.add(taskRetriggerInterval)),
-        // scheduled + 24 hours, where scheduled < lastDependencyChanged
-        ...versions!.values
-            .where((v) => v.scheduled.isBefore(lastDependencyChanged!))
-            .map((v) => v.scheduled.add(taskDependencyRetriggerCoolOff)),
-        // scheduled + 3 hours * attempts^2, where attempts > 0 && attempts < 3
-        ...versions!.values
-            .where((v) => v.attempts > 0 && v.attempts < taskRetryLimit)
-            .map((v) => v.scheduled.add(taskRetryDelay(v.attempts))),
-        // Pick the minimum of the candidates, default scheduling in year 3k
-        // if there is no date before that.
-      ].fold(DateTime(3000), (a, b) => a!.isBefore(b) ? a : b);
+  void derivePendingAt() {
+    final versionStates = versions!.values;
+    pendingAt = [
+      // scheduled + 31 days
+      ...versionStates.map((v) => v.scheduled.add(taskRetriggerInterval)),
+      // scheduled + 24 hours, where scheduled < lastDependencyChanged
+      ...versionStates
+          .where((v) => v.scheduled.isBefore(lastDependencyChanged!))
+          .map((v) => v.scheduled.add(taskDependencyRetriggerCoolOff)),
+      // scheduled + 3 hours * attempts^2, where attempts > 0 && attempts < 3
+      ...versionStates
+          .where((v) => v.attempts > 0 && v.attempts < taskRetryLimit)
+          .map((v) => v.scheduled.add(taskRetryDelay(v.attempts))),
+      // Pick the minimum of the candidates, default scheduling in year 3k
+      // if there is no date before that.
+    ].fold(DateTime(3000), (a, b) => a!.isBefore(b) ? a : b);
+  }
 
   /// Return a list of pending versions for this package.
   ///
@@ -192,7 +195,7 @@ class PackageState extends db.ExpandoModel<String> {
         'package: $package',
         'runtimeVersion: $runtimeVersion',
         'versions:',
-        ...(versions ?? {}).entries.map((e) => '    ${e.key}: ${e.value}'),
+        ...?versions?.entries.map((e) => '    ${e.key}: ${e.value}'),
         'pendingAt: $pendingAt',
         'lastDependencyChanged: $lastDependencyChanged',
         'dependencies: [' + (dependencies ?? []).join(', ') + ']',

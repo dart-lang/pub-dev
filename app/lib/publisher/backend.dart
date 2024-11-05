@@ -16,12 +16,11 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../audit/models.dart';
 import '../frontend/request_context.dart';
+import '../service/email/email_templates.dart';
 import '../shared/datastore.dart';
-import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import 'domain_verifier.dart' show domainVerifier;
-
 import 'models.dart';
 
 final _logger = Logger('pub.publisher.backend');
@@ -110,9 +109,8 @@ class PublisherBackend {
         // - search using this for query parameters
         _logger.shout('A user has more than 100 publishers.');
       }
-      final publishers = (await _db.lookup<Publisher>(publisherKeys))
-          .whereType<Publisher>()
-          .toList();
+      final publishers =
+          (await _db.lookup<Publisher>(publisherKeys)).nonNulls.toList();
       publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
         publishers: publishers

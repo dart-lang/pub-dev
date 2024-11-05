@@ -13,7 +13,7 @@ void setupIssues() {
 }
 
 void _guardReportIssue() {
-  for (AnchorElement bugLink in document.querySelectorAll('a.github_issue')) {
+  for (final bugLink in document.querySelectorAll('a.github_issue')) {
     bugLink.onClick.listen((event) {
       if (!window.confirm('This link is for reporting issues for the pub site. '
           'If you would like to report a problem with a package, please visit '
@@ -25,7 +25,8 @@ void _guardReportIssue() {
 }
 
 void _fixIssueLinks() {
-  for (AnchorElement bugLink in document.querySelectorAll('a.github_issue')) {
+  for (final bugLink
+      in document.querySelectorAll('a.github_issue').cast<AnchorElement>()) {
     var url = Uri.parse(bugLink.href!);
     final lines = <String>[
       'URL: ${window.location.href}',

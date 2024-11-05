@@ -16,7 +16,7 @@ void _setEventForMobileNav() {
   final mask = document.querySelector('.site-header-mask');
   final nav = document.querySelector('.site-header-nav');
 
-  final allElems = [nav, mask].where((e) => e != null).cast<Element>().toList();
+  final allElems = [nav, mask].nonNulls.toList();
 
   hamburger?.onClick.listen((_) {
     // This opacity hack enables smooth initialization, otherwise users would
@@ -36,7 +36,7 @@ void _setEventForDetailMetadataToggle() {
 
   var isVisible = false;
   // ignore: cancel_subscriptions
-  StreamSubscription? stateSubscription;
+  StreamSubscription<void>? stateSubscription;
   final currentTitle = document.head?.querySelector('title')?.text?.trim();
   final currentUrl = window.location.toString();
   document.querySelectorAll('.detail-metadata-toggle').forEach((e) {

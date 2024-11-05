@@ -1,7 +1,6 @@
 // Include third-party CSS into a single output file
 // to reduce the number of HTTP requests.
 @use '../../../third_party/css/github-markdown.css';
-@use '../../../third_party/css/dartdoc-github-alert.css';
 
 .light-theme {
   @import "../../../third_party/highlight/github";
@@ -14,6 +13,7 @@
 // Local styles and rules.
 @import 'src/_variables';
 @import 'src/_base';
+@import 'src/_alerts';
 @import 'src/_site_header';
 @import 'src/_activity_log';
 @import 'src/_detail_page';

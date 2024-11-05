@@ -38,11 +38,11 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
     AutomatedPublishing(
       githubConfig: json['githubConfig'] == null
           ? null
-          : GithubPublishingConfig.fromJson(
+          : GitHubPublishingConfig.fromJson(
               json['githubConfig'] as Map<String, dynamic>),
       githubLock: json['githubLock'] == null
           ? null
-          : GithubPublishingLock.fromJson(
+          : GitHubPublishingLock.fromJson(
               json['githubLock'] as Map<String, dynamic>),
       gcpConfig: json['gcpConfig'] == null
           ? null
@@ -69,15 +69,15 @@ Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
   return val;
 }
 
-GithubPublishingLock _$GithubPublishingLockFromJson(
+GitHubPublishingLock _$GitHubPublishingLockFromJson(
         Map<String, dynamic> json) =>
-    GithubPublishingLock(
+    GitHubPublishingLock(
       repositoryOwnerId: json['repositoryOwnerId'] as String,
       repositoryId: json['repositoryId'] as String,
     );
 
-Map<String, dynamic> _$GithubPublishingLockToJson(
-        GithubPublishingLock instance) =>
+Map<String, dynamic> _$GitHubPublishingLockToJson(
+        GitHubPublishingLock instance) =>
     <String, dynamic>{
       'repositoryOwnerId': instance.repositoryOwnerId,
       'repositoryId': instance.repositoryId,
@@ -118,6 +118,8 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
       topics:
           (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
       popularity: (json['popularity'] as num).toInt(),
+      thirtyDaysDownloadCounts:
+          (json['thirtyDaysDownloadCounts'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
@@ -146,5 +148,6 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('screenshots', instance.screenshots);
   writeNotNull('topics', instance.topics);
   val['popularity'] = instance.popularity;
+  writeNotNull('thirtyDaysDownloadCounts', instance.thirtyDaysDownloadCounts);
   return val;
 }

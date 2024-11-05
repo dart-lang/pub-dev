@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
+import '../../../request_context.dart';
 import '../../../static_files.dart';
 import '../../package_misc.dart' show formatScore;
 
@@ -39,7 +41,9 @@ d.Node scoreTabNode({
       children: [
         _likeKeyFigureNode(likeCount),
         _pubPointsKeyFigureNode(report, showPending),
-        _popularityKeyFigureNode(card.popularityScore),
+        requestContext.experimentalFlags.showDownloadCounts
+            ? _downloadCountsKeyFigureNode(card.thirtyDaysDownloadCounts)
+            : _popularityKeyFigureNode(card.popularityScore),
       ],
     ),
     if (showPending)
@@ -141,7 +145,7 @@ d.Node _section(ReportSection section) {
                   classes: ['foldable-icon'],
                   image: d.Image(
                     src: staticUrls
-                        .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                        .getAssetUrl('/static/img/foldable-section-icon.svg'),
                     alt: 'trigger folding of the section',
                     width: 13,
                     height: 6,
@@ -263,6 +267,21 @@ d.Node _popularityKeyFigureNode(double? popularity) {
     value: formatScore(popularity),
     supplemental: '%',
     label: 'popularity',
+  );
+}
+
+d.Node _downloadCountsKeyFigureNode(int? downloadCounts) {
+  if (downloadCounts == null) {
+    return _keyFigureNode(
+      value: '--',
+      supplemental: '',
+      label: 'downloads',
+    );
+  }
+  return _keyFigureNode(
+    value: formatWith3SignificantDigits(downloadCounts).value,
+    supplemental: formatWith3SignificantDigits(downloadCounts).suffix,
+    label: 'downloads',
   );
 }
 

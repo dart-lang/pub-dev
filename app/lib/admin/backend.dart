@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
 import '../account/backend.dart';
@@ -26,9 +27,9 @@ import '../package/backend.dart'
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/backend.dart';
+import '../service/email/email_templates.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
-import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
@@ -37,13 +38,11 @@ import 'tools/delete_all_staging.dart';
 import 'tools/list_package_blocked.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
-import 'tools/package_discontinued.dart';
 import 'tools/package_publisher.dart';
 import 'tools/publisher_member.dart';
 import 'tools/recent_uploaders.dart';
 import 'tools/set_package_blocked.dart';
 import 'tools/set_user_blocked.dart';
-import 'tools/update_package_versions.dart';
 import 'tools/user_merger.dart';
 
 final _logger = Logger('pub.admin.backend');
@@ -62,9 +61,7 @@ final Map<String, Tool> availableTools = {
   'delete-all-staging': executeDeleteAllStaging,
   'list-package-blocked': executeListPackageBlocked,
   'notify-service': executeNotifyService,
-  'package-discontinued': executeSetPackageDiscontinued,
   'package-publisher': executeSetPackagePublisher,
-  'update-package-versions': executeUpdatePackageVersions,
   'recent-uploaders': executeRecentUploaders,
   'publisher-member': executePublisherMember,
   'publisher-invite-member': executePublisherInviteMember,
@@ -143,15 +140,21 @@ class AdminBackend {
 
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
+  ///
+  /// Verifies the current authenticated user for admin permissions.
   Future<void> removeUser(String userId) async {
     final caller = await requireAuthenticatedAdmin(AdminPermission.removeUsers);
     final user = await accountBackend.lookupUserById(userId);
     if (user == null) return;
     if (user.isDeleted) return;
-
     _logger.info('${caller.displayId}) initiated the delete '
         'of ${user.userId} (${user.email})');
+    await _removeUser(user);
+  }
 
+  /// Removes user from the Datastore and updates the packages and other
+  /// entities they may have controlled.
+  Future<void> _removeUser(User user) async {
     // Package.uploaders
     final pool = Pool(10);
     final futures = <Future>[];
@@ -297,13 +300,27 @@ class AdminBackend {
   /// Creates a [ModeratedPackage] instance (if not already present) in
   /// Datastore representing the removed package. No new package with the same
   /// name can be published.
+  ///
+  /// Verifies the current authenticated user for admin permissions.
   Future<void> removePackage(String packageName) async {
     final caller =
         await requireAuthenticatedAdmin(AdminPermission.removePackage);
-
     _logger.info('${caller.displayId}) initiated the delete '
         'of package $packageName');
+    await _removePackage(packageName);
+  }
 
+  /// Removes the package from the Datastore and updates other related
+  /// entities. It is safe to call [removePackage] on an already removed
+  /// package, as the call is idempotent.
+  ///
+  /// Creates a [ModeratedPackage] instance (if not already present) in
+  /// Datastore representing the removed package. No new package with the same
+  /// name can be published.
+  Future<void> _removePackage(
+    String packageName, {
+    DateTime? moderated,
+  }) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
     final versions = (await _db
             .query<PackageVersion>(ancestorKey: packageKey)
@@ -312,6 +329,49 @@ class AdminBackend {
             .toList())
         .toSet();
 
+    final pool = Pool(10);
+    final futures = <Future>[];
+    for (final v in versions) {
+      // Deleting public and canonical archives, 404 errors are ignored.
+      futures.add(pool.withResource(
+          () => packageBackend.removePackageTarball(packageName, v)));
+    }
+    await Future.wait(futures);
+    await pool.close();
+
+    _logger.info('Removing package from Package.replacedBy...');
+    final replacedByQuery = _db.query<Package>()
+      ..filter('replacedBy =', packageName);
+    await for (final pkg in replacedByQuery.run()) {
+      await withRetryTransaction(_db, (tx) async {
+        final p = await tx.lookupOrNull<Package>(pkg.key);
+        if (p == null) {
+          return;
+        }
+        if (p.replacedBy == packageName) {
+          p.replacedBy = null;
+          tx.insert(p);
+        }
+      });
+    }
+
+    _logger.info('Removing package from PackageVersionInfo ...');
+    await _db.deleteWithQuery(
+        _db.query<PackageVersionInfo>()..filter('package =', packageName));
+
+    _logger.info('Removing package from PackageVersionAsset ...');
+    await _db.deleteWithQuery(
+        _db.query<PackageVersionAsset>()..filter('package =', packageName));
+
+    _logger.info('Removing package from Like ...');
+    await _db.deleteWithQuery(
+        _db.query<Like>()..filter('packageName =', packageName));
+
+    _logger.info('Removing package from AuditLogRecord...');
+    await _db.deleteWithQuery(
+        _db.query<AuditLogRecord>()..filter('packages =', packageName));
+
+    _logger.info('Removing Package from Datastore...');
     await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -335,11 +395,13 @@ class AdminBackend {
             .map((pv) => pv.version!)
             .toList());
 
+        versions.addAll(package.deletedVersions ?? const <String>[]);
+
         tx.insert(ModeratedPackage()
           ..parentKey = _db.emptyKey
           ..id = packageName
           ..name = packageName
-          ..moderated = clock.now().toUtc()
+          ..moderated = moderated ?? clock.now().toUtc()
           ..versions = versions.toList()
           ..publisherId = package.publisherId
           ..uploaders = package.uploaders);
@@ -348,30 +410,9 @@ class AdminBackend {
       }
     });
 
-    final pool = Pool(10);
-    final futures = <Future>[];
-    versions.forEach((final v) {
-      futures.add(pool.withResource(
-          () => packageBackend.removePackageTarball(packageName, v)));
-    });
-    await Future.wait(futures);
-    await pool.close();
-
     _logger.info('Removing package from PackageVersion ...');
     await _db
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
-
-    _logger.info('Removing package from PackageVersionInfo ...');
-    await _db.deleteWithQuery(
-        _db.query<PackageVersionInfo>()..filter('package =', packageName));
-
-    _logger.info('Removing package from PackageVersionAsset ...');
-    await _db.deleteWithQuery(
-        _db.query<PackageVersionAsset>()..filter('package =', packageName));
-
-    _logger.info('Removing package from Like ...');
-    await _db.deleteWithQuery(
-        _db.query<Like>()..filter('packageName =', packageName));
 
     _logger.info('Package "$packageName" got successfully removed.');
     _logger.info(
@@ -573,8 +614,7 @@ class AdminBackend {
   }
 
   List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
-    return users
-        .whereType<User>()
+    return users.nonNulls
         .where((u) => !u.isDeleted)
         .map(
           (u) => api.AdminUserEntry(
@@ -740,5 +780,153 @@ class AdminBackend {
           'ModerationCase.status ("${refCase.status}") != "$status".');
     }
     return refCase;
+  }
+
+  /// Scans datastore and deletes moderated subjects where the last action
+  /// was more than 3 years ago.
+  Future<void> deleteModeratedSubjects({
+    @visibleForTesting DateTime? before,
+  }) async {
+    before ??= clock.ago(days: 3 * 366).toUtc(); // extra buffer days
+    // delete packages
+    final pQuery = _db.query<Package>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final package in pQuery.run()) {
+      // sanity check
+      if (!package.isModerated) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated package: ${package.name}');
+      await _removePackage(
+        package.name!,
+        moderated: package.moderatedAt,
+      );
+      _logger.info('Deleted moderated package: ${package.name}');
+    }
+
+    // delete package versions
+    final pvQuery = _db.query<PackageVersion>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final version in pvQuery.run()) {
+      // sanity check
+      if (!version.isModerated) {
+        continue;
+      }
+
+      _logger.info(
+          'Deleting moderated package version: ${version.qualifiedVersionKey}');
+
+      // deleting from canonical bucket
+      await packageBackend.tarballStorage
+          .deleteArchiveFromCanonicalBucket(version.package, version.version!);
+
+      // deleting from datastore
+      await withRetryTransaction(_db, (tx) async {
+        final pv = await tx.lookupOrNull<PackageVersion>(version.key);
+        if (pv == null) {
+          return null;
+        }
+        final p = await tx.lookupOrNull<Package>(version.packageKey!);
+        if (p == null) {
+          return;
+        }
+        final pvi = await tx.lookupOrNull<PackageVersionInfo>(_db.emptyKey
+            .append(PackageVersionInfo,
+                id: version.qualifiedVersionKey.qualifiedVersion));
+
+        p.deletedVersions ??= [];
+        p.deletedVersions!.add(version.version!);
+        p.deletedVersions!.sort();
+        p.updated = clock.now().toUtc();
+        tx.insert(p);
+
+        // delete version + info + assets
+        tx.delete(pv.key);
+        if (pvi != null) {
+          tx.delete(pvi.key);
+
+          for (final assetKind in pvi.assets) {
+            tx.delete(
+              _db.emptyKey.append(PackageVersionAsset,
+                  id: Uri(pathSegments: [
+                    version.package,
+                    version.version!,
+                    assetKind
+                  ]).path),
+            );
+          }
+        }
+      });
+      _logger.info(
+          'Deleted moderated package version: ${version.qualifiedVersionKey}');
+    }
+
+    // delete publishers
+    final publisherQuery = _db.query<Publisher>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final publisher in publisherQuery.run()) {
+      // sanity check
+      if (!publisher.isModerated) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated publisher: ${publisher.publisherId}');
+
+      // removes packages of this publisher, no uploaders will be set, marks discontinued
+      final pkgQuery = _db.query<Package>()
+        ..filter('publisherId =', publisher.publisherId);
+      await for (final pkg in pkgQuery.run()) {
+        await withRetryTransaction(_db, (tx) async {
+          final p = await tx.lookupOrNull<Package>(pkg.key);
+          if (p == null) return;
+          if (p.publisherId != publisher.publisherId) return;
+
+          p.publisherId = null;
+          p.updated = clock.now().toUtc();
+          p.isDiscontinued = true;
+          tx.insert(p);
+        });
+      }
+
+      // removes publisher members
+      await _db.deleteWithQuery(
+          _db.query<PublisherMember>(ancestorKey: publisher.key));
+
+      // removes publisher entity
+      await _db.commit(deletes: [publisher.key]);
+
+      _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
+    }
+
+    // mark user instances deleted
+    final userQuery = _db.query<User>()
+      ..filter('moderatedAt <', before)
+      ..order('moderatedAt');
+    await for (final user in userQuery.run()) {
+      // sanity check
+      if (!user.isModerated || user.isDeleted) {
+        continue;
+      }
+
+      _logger.info('Deleting moderated user: ${user.userId}');
+      await _removeUser(user);
+      _logger.info('Deleting moderated user: ${user.userId}');
+    }
+  }
+
+  /// Whether the [ModerationCase] has been appealed by [email] already.
+  Future<bool> isModerationCaseAppealedByEmail({
+    required String caseId,
+    required String email,
+  }) async {
+    final query = dbService.query<ModerationCase>()
+      ..filter('appealedCaseId =', caseId);
+    final list = await query.run().toList();
+    final emails = list.map((mc) => mc.reporterEmail).toSet();
+    return emails.contains(email);
   }
 }

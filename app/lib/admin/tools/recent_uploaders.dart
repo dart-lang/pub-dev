@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Creates a report about recent uploaders.
+library;
 
 import 'dart:async';
 import 'dart:convert';

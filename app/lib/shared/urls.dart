@@ -390,7 +390,7 @@ String? getRepositoryUrl(
   String branch = 'master',
 }) {
   if (repository == null || repository.isEmpty) return null;
-  for (var key in _repositoryReplacePrefixes.keys) {
+  for (final key in _repositoryReplacePrefixes.keys) {
     if (repository!.startsWith(key)) {
       repository =
           repository.replaceFirst(key, _repositoryReplacePrefixes[key]!);
@@ -398,7 +398,7 @@ String? getRepositoryUrl(
   }
   try {
     final uri = Uri.parse(repository!);
-    final segments = List<String>.from(uri.pathSegments);
+    final segments = List.of(uri.pathSegments);
     while (segments.isNotEmpty && segments.last.isEmpty) {
       segments.removeLast();
     }

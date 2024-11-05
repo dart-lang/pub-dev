@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.model_properties;
-
 import 'dart:convert';
 
 import 'package:pana/pana.dart' show SdkConstraintStatus;
@@ -204,7 +202,7 @@ class Pubspec {
   late final List<Uri> funding = _inner.funding ?? const <Uri>[];
 
   /// Whether the pubspec has any topic entry.
-  late final hasTopic = canonicalizedTopics.isNotEmpty;
+  bool get hasTopic => canonicalizedTopics.isNotEmpty;
 }
 
 class MinSdkVersion {

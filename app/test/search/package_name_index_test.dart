@@ -7,19 +7,18 @@ import 'package:test/test.dart';
 
 void main() {
   group('PackageNameIndex', () {
-    final index = PackageNameIndex()
-      ..addAll([
-        'fluent',
-        'fluent_ui',
-        'get',
-        'get_it',
-        'modular',
-        'modular_flutter',
-      ]);
+    final index = PackageNameIndex([
+      'fluent',
+      'fluent_ui',
+      'get',
+      'get_it',
+      'modular',
+      'modular_flutter',
+    ]);
 
     test('fluent vs fluent_ui', () {
       expect(
-        index.search('fluent').getValues(),
+        index.search('fluent'),
         {
           'fluent': 1.0,
           'fluent_ui': 1.0,
@@ -29,7 +28,7 @@ void main() {
 
     test('get vs get_it', () {
       expect(
-        index.search('get').getValues(),
+        index.search('get'),
         {
           'get': 1.0,
           'get_it': 1.0,
@@ -38,14 +37,14 @@ void main() {
     });
 
     test('get_it', () {
-      expect(index.search('get_it').getValues(), {
+      expect(index.search('get_it'), {
         'get_it': 1.0,
       });
     });
 
     test('modular vs modular_flutter', () {
       expect(
-        index.search('modular').getValues(),
+        index.search('modular'),
         {
           'modular': 1.0,
           'modular_flutter': 1.0,
@@ -55,21 +54,21 @@ void main() {
 
     test('mixed parts: fluent it', () {
       expect(
-        index.search('fluent it').getValues(),
+        index.search('fluent it'),
         {},
       );
     });
 
     test('mixed parts: fluent flutter', () {
       expect(
-        index.search('fluent flutter').getValues(),
+        index.search('fluent flutter'),
         {},
       );
     });
 
     test('prefix: f', () {
       expect(
-        index.search('f').getValues(),
+        index.search('f'),
         {
           'fluent': 1.0,
           'fluent_ui': 1.0,
@@ -80,7 +79,7 @@ void main() {
 
     test('prefix: fl', () {
       expect(
-        index.search('fl').getValues(),
+        index.search('fl'),
         {
           'fluent': 1.0,
           'fluent_ui': 1.0,
@@ -91,7 +90,7 @@ void main() {
 
     test('prefix: flu', () {
       expect(
-        index.search('flu').getValues(),
+        index.search('flu'),
         {
           'fluent': 1.0,
           'fluent_ui': 1.0,
@@ -102,21 +101,21 @@ void main() {
 
     test('prefix: fluf', () {
       expect(
-        index.search('fluf').getValues(),
+        index.search('fluf'),
         {'fluent': 0.5, 'fluent_ui': 0.5, 'modular_flutter': 0.5},
       );
     });
 
     test('prefix: fluff', () {
       expect(
-        index.search('fluff').getValues(),
+        index.search('fluff'),
         {},
       );
     });
 
     test('prefix: fluffy', () {
       expect(
-        index.search('fluffy').getValues(),
+        index.search('fluffy'),
         {},
       );
     });

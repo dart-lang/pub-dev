@@ -82,7 +82,7 @@ class YoutubeBackend {
 /// Algorithm description at [YoutubeBackend.getTopPackageOfWeekVideos].
 @visibleForTesting
 List<T> selectRandomVideos<T>(math.Random random, List<T> source, int count) {
-  final selectable = List<T>.from(source);
+  final selectable = List.of(source);
   final selected = <T>[];
   while (selected.length < count && selectable.isNotEmpty) {
     if (selected.isEmpty) {
@@ -165,7 +165,7 @@ class _PkgOfWeekVideoFetcher {
             }
             return null;
           },
-        ).whereType<PkgOfWeekVideo>());
+        ).nonNulls);
         // next page
         nextPageToken = rs.nextPageToken;
         check = nextPageToken != null && nextPageToken.isNotEmpty;

@@ -10,6 +10,7 @@ import 'package:_pub_shared/data/advisories_api.dart'
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -296,7 +297,7 @@ Future<shelf.Response> _handlePackagePage({
       }
     }
     final serviceSw = Stopwatch()..start();
-    late PackagePageData data;
+    final PackagePageData data;
     try {
       data = await loadPackagePageData(package, versionName, assetKind);
     } on ModeratedException {
@@ -453,6 +454,8 @@ Future<PackagePageData> loadPackagePageData(
   final scoreCardFuture = scoreCardBackend
       .getScoreCardData(packageName, versionName, package: package);
 
+  final weeklyDownloadCountsFuture = getWeeklyDownloads(package.name!);
+
   await Future.wait([
     latestReleasesFuture,
     isLikedFuture,
@@ -461,6 +464,7 @@ Future<PackagePageData> loadPackagePageData(
     assetFuture,
     isAdminFuture,
     scoreCardFuture,
+    weeklyDownloadCountsFuture,
   ]);
 
   final selectedVersion = await selectedVersionFuture;
@@ -484,6 +488,7 @@ Future<PackagePageData> loadPackagePageData(
     scoreCard: await scoreCardFuture,
     isAdmin: await isAdminFuture,
     isLiked: await isLikedFuture,
+    weeklyDownloadCounts: await weeklyDownloadCountsFuture,
   );
 }
 
@@ -531,17 +536,5 @@ Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
     throw NotFoundException.resource(packageName);
   }
 
-  final advisories =
-      await securityAdvisoryBackend.lookupSecurityAdvisories(packageName);
-  if (advisories.isEmpty) {
-    return ListAdvisoriesResponse(advisories: []);
-  }
-  final advisoriesUpdated = advisories.fold(
-      advisories.first.syncTime,
-      (previousValue, advisory) => advisory.syncTime.isAfter(previousValue)
-          ? advisory.syncTime
-          : previousValue);
-  return ListAdvisoriesResponse(
-      advisories: advisories.map((e) => e.advisory).toList(),
-      advisoriesUpdated: advisoriesUpdated);
+  return await securityAdvisoryBackend.listAdvisoriesResponse(packageName);
 }

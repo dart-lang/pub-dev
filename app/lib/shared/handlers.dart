@@ -66,7 +66,7 @@ shelf.Response jsonResponse(
     body: body,
     headers: {
       ...jsonResponseHeaders,
-      if (headers != null) ...headers,
+      ...?headers,
     },
   );
 }

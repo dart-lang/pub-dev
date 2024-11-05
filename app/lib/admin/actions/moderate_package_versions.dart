@@ -11,7 +11,6 @@ import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
 import '../../task/backend.dart';
-import '../../tool/maintenance/update_public_bucket.dart';
 
 import '../backend.dart';
 import '../models.dart';
@@ -26,7 +25,8 @@ final moderatePackageVersion = AdminAction(
 Set the moderated flag on a package version (updating the flag and the timestamp).
 ''',
   options: {
-    'case': 'The ModerationCase.caseId that this action is part of.',
+    'case':
+        'The ModerationCase.caseId that this action is part of (or `none`).',
     'package': 'The package name to be moderated',
     'version': 'The version to be moderated',
     'state':
@@ -115,7 +115,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
       });
 
       // retract or re-populate public archive files
-      await updatePublicArchiveBucket(
+      await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

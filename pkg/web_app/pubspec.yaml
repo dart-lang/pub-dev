@@ -8,6 +8,7 @@ resolution: workspace
 dependencies:
   _pub_shared:
   api_builder:
+  collection: ^1.18.0
   http: ^1.0.0
   markdown: ^7.2.0
   mdc_web: ^0.6.0

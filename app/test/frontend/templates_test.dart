@@ -36,6 +36,7 @@ import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
@@ -202,6 +203,33 @@ void main() {
         'updated': data.version.created,
       });
     });
+
+    testWithProfile(
+      'package score page with downloads chart div with data',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final date = DateTime.parse('2024-01-07');
+        final versionsCounts = {
+          '1.2.0': 200,
+          '2.0.0-alpha': 2,
+          '2.0.0': 2,
+          '2.1.0': 2,
+          '3.1.0': 2,
+          '4.0.0-0': 2,
+          '6.1.0': 2,
+        };
+        await downloadCountsBackend.updateDownloadCounts(
+            'oxygen', versionsCounts, date);
+        final data = await loadPackagePageDataByName(
+            'oxygen', '1.2.0', AssetKind.changelog);
+        final html = renderPkgScorePage(data);
+        expectGoldenFile(html, 'pkg_score_page_with_downloads_chart.html',
+            timestamps: {
+              'published': data.package.created,
+              'updated': data.version.created,
+            });
+      },
+    );
 
     testWithProfile(
       'package show page - with version',
@@ -786,7 +814,7 @@ void main() {
 
     testWithProfile('help page', fn: () async {
       final html = renderHelpPage();
-      expectGoldenFile(html, 'help_page.html');
+      expectGoldenFile(html!, 'help_page.html');
     });
 
     testWithProfile('topics page', fn: () async {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
@@ -46,7 +47,7 @@ class MemStorage implements Storage {
 
   @override
   Stream<String> listBucketNames() async* {
-    for (String name in _buckets.keys) {
+    for (final name in _buckets.keys) {
       yield name;
     }
   }
@@ -58,7 +59,11 @@ class MemStorage implements Storage {
   }
 
   @override
-  Future<void> copyObject(String src, String dest) async {
+  Future<void> copyObject(
+    String src,
+    String dest, {
+    ObjectMetadata? metadata,
+  }) async {
     _logger.info('Copy object from $src to $dest');
     final srcUri = Uri.parse(src);
     final destUri = Uri.parse(dest);
@@ -118,13 +123,15 @@ class MemStorage implements Storage {
   }
 }
 
-class _File implements ObjectInfo {
+class _File implements BucketObjectEntry {
   final String bucketName;
   @override
   final String name;
   final List<int> content;
   @override
   final int crc32CChecksum;
+  @override
+  final List<int> md5Hash;
   @override
   final DateTime updated;
   @override
@@ -137,6 +144,7 @@ class _File implements ObjectInfo {
     DateTime? updated,
   })  : // TODO: use a real CRC32 check
         crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
+        md5Hash = md5.convert(content).bytes,
         updated = updated ?? DateTime.now().toUtc(),
         metadata = ObjectMetadata(acl: Acl([]));
 
@@ -144,7 +152,7 @@ class _File implements ObjectInfo {
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
 
   @override
-  String get etag => crc32CChecksum.toRadixString(16);
+  String get etag => base64Encode(md5Hash);
 
   @override
   ObjectGeneration get generation {
@@ -156,7 +164,10 @@ class _File implements ObjectInfo {
   int get length => content.length;
 
   @override
-  List<int> get md5Hash => etag.codeUnits;
+  bool get isDirectory => false;
+
+  @override
+  bool get isObject => true;
 }
 
 class _Bucket implements Bucket {
@@ -256,7 +267,7 @@ class _Bucket implements Bucket {
     final isDirPrefix =
         prefix.isEmpty || (delimiter.isNotEmpty && prefix.endsWith(delimiter));
     final segments = <String>{};
-    for (String name in _files.keys) {
+    for (final name in _files.keys) {
       bool matchesPrefix() {
         // without prefix, return everything
         if (prefix!.isEmpty) return true;
@@ -283,18 +294,18 @@ class _Bucket implements Bucket {
           segments.add(subDirSegments.first);
         } else if (isDirPrefix && !isSubDirMatch) {
           // directory match
-          yield _BucketEntry(name, true);
+          yield _files[name]!;
         } else if (!isDirPrefix && isSubDirMatch) {
           // ignore prefix match
         } else if (!isDirPrefix && !isSubDirMatch) {
           // file prefix match
-          yield _BucketEntry(name, true);
+          yield _files[name]!;
         }
       }
     }
 
     for (final s in segments) {
-      yield _BucketEntry('$prefix$s$delimiter', false);
+      yield _BucketDirectoryEntry('$prefix$s$delimiter');
     }
   }
 
@@ -314,17 +325,17 @@ class _Bucket implements Bucket {
   }
 }
 
-class _BucketEntry implements BucketEntry {
+class _BucketDirectoryEntry implements BucketDirectoryEntry {
   @override
   final String name;
 
-  @override
-  final bool isObject;
+  _BucketDirectoryEntry(this.name);
 
   @override
-  bool get isDirectory => !isObject;
+  bool get isDirectory => true;
 
-  _BucketEntry(this.name, this.isObject);
+  @override
+  bool get isObject => false;
 }
 
 class _Page<T> implements Page<T> {

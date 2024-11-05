@@ -4,6 +4,7 @@ publish_to: none
 environment:
   sdk: '^3.5.0'
 resolution: workspace
+
 dependencies:
   json_annotation: ^4.6.0
 

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The `indexed_blob` library provides support for reading and writing
-/// indexed-blobs.
+/// The `indexed_blob.dart` library provides support for
+/// reading and writing indexed-blobs.
 ///
 /// An _indexed blob_ is a blob-file and an index-file pointing into the blob.
 /// The index-file can be used to find _start_ and _end_ offset for a file
@@ -16,14 +16,13 @@
 ///
 /// To goal of this format is to support storing the many small files generated
 /// by `dartdoc` as an indexed-blob.
-library indexed_blob;
+library;
 
 import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:typed_data';
 import 'package:jsontool/jsontool.dart'
     show JsonReader, jsonStringWriter, JsonSink;
-import 'package:meta/meta.dart';
 
 export 'src/blobindexpair.dart' show BlobIndexPair;
 
@@ -48,8 +47,7 @@ export 'src/blobindexpair.dart' show BlobIndexPair;
 /// // Finish building, and create the index
 /// await File('mydata.index').writeBytes();
 /// ```
-@sealed
-class IndexedBlobBuilder {
+final class IndexedBlobBuilder {
   final StreamSink<List<int>> _blob;
   int _offset = 0;
   final Map<String, dynamic> _index = {};
@@ -225,8 +223,7 @@ bool _skipUntilKey(JsonReader r, String key) {
 /// }
 /// ```
 ///
-@sealed
-class BlobIndex {
+final class BlobIndex {
   final Uint8List _indexFile;
 
   /// Create [BlobIndex] from [indexFile] contents.
@@ -411,8 +408,7 @@ class BlobIndex {
 }
 
 /// Range of a file in an indexed-blob.
-@sealed
-class FileRange {
+final class FileRange {
   /// Path that was looked up in [BlobIndex].
   final String path;
 

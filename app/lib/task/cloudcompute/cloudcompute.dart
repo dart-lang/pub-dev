@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 /// Interface describing an instance.
 abstract class CloudInstance {
   /// Unique instance name.
@@ -105,11 +103,10 @@ abstract class CloudCompute {
 ///
 /// The caller is expected to back-off using the zone for a while before trying
 /// to create new VMs in the zone again.
-@sealed
-class ZoneExhaustedException implements Exception {
+final class ZoneExhaustedException implements Exception {
   final String zone;
-
   final String message;
+
   ZoneExhaustedException(this.zone, this.message);
 
   @override
@@ -121,9 +118,9 @@ class ZoneExhaustedException implements Exception {
 ///
 /// The caller is expected to back-off for a while before trying to create
 /// new VMs.
-@sealed
-class QuotaExhaustedException implements Exception {
+final class QuotaExhaustedException implements Exception {
   final String message;
+
   QuotaExhaustedException(this.message);
 
   @override

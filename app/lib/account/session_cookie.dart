@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Logic to do with session cookie parsing and reading.
-library session_cookie;
+library;
 
 import 'dart:io' show HttpHeaders;
 
@@ -101,5 +101,5 @@ class ClientSessionCookieStatus {
     required this.isStrict,
   });
 
-  late final isPresent = sessionId != null && sessionId!.isNotEmpty;
+  bool get isPresent => sessionId?.isNotEmpty ?? false;
 }

@@ -39,7 +39,7 @@ String _generateTestContent(List<String> files) {
   final imports = <String>[];
   final calls = <String>[];
 
-  for (String file in files) {
+  for (final file in files) {
     final alias = file.substring(0, file.length - 10).replaceAll('/', '_');
     imports.add("import '$file' as $alias;");
     calls.add("  group('$file', $alias.main);");

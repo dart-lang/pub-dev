@@ -14,7 +14,7 @@ the package disappear from searches (but keep it available to those that
 already depend on it).
 
 Exceptions can be granted to this general policy at the pub.dev
-moderators’ discretion, on email request to `support@pub.dev`.
+moderators' discretion, on email request to `support@pub.dev`.
 Examples of circumstances under which exceptions may be granted include the
 following:
 
@@ -99,7 +99,7 @@ with which the Dart code interfaces.
 
 All content published to pub.dev must comply with the
 [Google Terms of Service][1]. This includes — but is not limited to — the
-following terms: Don’t abuse, harm, interfere with, or disrupt the services —
+following terms: Don't abuse, harm, interfere with, or disrupt the services —
 for example, by accessing or using them in fraudulent or deceptive ways,
 introducing malware, or spamming, hacking, or bypassing our systems or
 protective measures.
@@ -140,28 +140,28 @@ Egregious violations of our policies may result in more significant enforcement
 repercussions, including but not limited to an immediate ban and escalation to
 law enforcement authorities.
 
-### How to appeal a Content Moderation Decision
+### How to appeal a content moderation decision
 
 If you report content or an account, or your content or account was actioned
 against, you will receive a notification about the type of enforcement and the
 reasoning for any enforcement action. The notification will also contain a link
 to submit an appeal of our decision if you believe it was a mistake.
-If you submit an appeal, we’ll ask you to identify what you would like to appeal
+If you submit an appeal, we'll ask you to identify what you would like to appeal
 and why. We encourage you to provide information to support your appeal.
-Once we’ve reviewed your appeal, we’ll communicate the outcome to you.
-If we agree with your appeal, we’ll take appropriate action to reverse our
+Once we've reviewed your appeal, we'll communicate the outcome to you.
+If we agree with your appeal, we'll take appropriate action to reverse our
 prior decision. Appeals may not be available in all circumstances
 (e.g., certain court ordered removals).
 You will receive more information about your appeals options in the notification
 we send to you about your content or account.
 
-You can also find information about our appeals process by visiting our
-[Help Center Article][2].
+You can also find information about our appeals process by visiting
+our article on [content moderation and enforcement][2].
 
-If you’re covered by the European Union’s Digital Services Act (“DSA”),
+If you're covered by the European Union's Digital Services Act ("DSA"),
 the option to refer your complaint to a certified out-of-court dispute
 settlement body may also be available to you.
-[Learn more about the European Union’s DSA][3].
+[Learn more about the European Union's DSA][3].
 If you have legal questions or wish to examine other remedies that may be
 available to you, including the option of referring this matter to a court,
 you may wish to speak to your own lawyer.
@@ -174,9 +174,9 @@ Publishers are solely responsible for the packages they publish.
 Copyright holders can use the "report package" link to report content for
 legal reasons.
 
-## Use of Google’s trademarks
+## Use of Google's trademarks
 
-The “Dart” name and logo and the “Flutter” name and logo are trademarks owned
+The "Dart" name and logo and the "Flutter" name and logo are trademarks owned
 by Google.
 You may use the Dart and Flutter marks solely in compliance with the
 [Dart brand guidelines](https://dart.dev/brand) and
@@ -212,7 +212,7 @@ To view changes refer to the [history of this document][5].
 
 
 [1]: https://policies.google.com/terms?hl=en
-[2]: http://pub.dev/help/content-moderation
+[2]: https://pub.dev/help/content-moderation
 [3]: https://support.google.com/european-union-digital-services-act-redress-options
 [4]: https://pub.dev/help/scoring
 [5]: https://github.com/dart-lang/pub-dev/commits/master/doc/policy.md

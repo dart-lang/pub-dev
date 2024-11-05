@@ -29,6 +29,7 @@ const _whitelistedClassNames = <String>[
   'changelog-content',
   'hash-header',
   'hash-link',
+  'markdown-alert',
   'report-summary-icon',
 ];
 
@@ -97,6 +98,8 @@ String _renderSafeHtml(
 }) {
   // Filter unsafe urls on some of the elements.
   nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
+  // Transform GitHub task lists.
+  nodes.forEach((node) => node.accept(_TaskListRewriteNodeVisitor()));
 
   if (!disableHashIds) {
     // add hash link HTML to header blocks
@@ -113,6 +116,7 @@ String _renderSafeHtml(
         !disableHashIds, // TODO: Use a denylist for ids used by pub site
     allowClassName: (String cn) {
       if (cn.startsWith('language-')) return true;
+      if (cn.startsWith('markdown-alert-')) return true;
       return _whitelistedClassNames.contains(cn);
     },
     addLinkRel: (String url) {
@@ -277,6 +281,38 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
   }
 }
 
+/// HTML sanitization will remove the rendered `<input type="checkbox">` elements,
+/// we are replacing them with icons.
+class _TaskListRewriteNodeVisitor implements m.NodeVisitor {
+  @override
+  void visitElementAfter(m.Element element) {
+    if (element.tag != 'li') {
+      return;
+    }
+    if (!(element.attributes['class']?.contains('task-list-item') ?? false)) {
+      return;
+    }
+    final children = element.children;
+    if (children == null || children.isEmpty) {
+      return;
+    }
+    final first = children.first;
+    if (first is m.Element &&
+        first.tag == 'input' &&
+        first.attributes['type'] == 'checkbox') {
+      final checked = first.attributes['checked'] == 'true';
+      children.removeAt(0);
+      children.insert(0, m.Text(checked ? '✅ ' : '❌ '));
+    }
+  }
+
+  @override
+  bool visitElementBefore(m.Element element) => true;
+
+  @override
+  void visitText(m.Text text) {}
+}
+
 bool _isAbsolute(String url) => url.contains(':');
 
 String _rewriteAbsoluteUrl(String url) {
@@ -284,7 +320,7 @@ String _rewriteAbsoluteUrl(String url) {
   if (uri.host == 'github.com') {
     final segments = uri.pathSegments;
     if (segments.length > 3 && segments[2] == 'blob') {
-      final newSegments = List<String>.from(segments);
+      final newSegments = List.of(segments);
       newSegments[2] = 'raw';
       return uri.replace(pathSegments: newSegments).toString();
     }

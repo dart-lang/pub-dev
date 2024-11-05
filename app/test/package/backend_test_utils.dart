@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.backend_test_utils;
-
 import 'dart:async';
 import 'dart:io';
+
+import 'package:pub_dev/tool/test_profile/import_source.dart';
 
 import '../shared/test_models.dart';
 
@@ -20,37 +20,11 @@ Future<T> withTempDirectory<T>(Future<T> Function(String temp) func) async {
 }
 
 Future<List<int>> packageArchiveBytes({required String pubspecContent}) async {
-  return await withTempDirectory((String tmp) async {
-    final readme = File('$tmp/README.md');
-    final changelog = File('$tmp/CHANGELOG.md');
-    final pubspec = File('$tmp/pubspec.yaml');
-    final license = File('$tmp/LICENSE');
-
-    await readme.writeAsString(foobarReadmeContent);
-    await changelog.writeAsString(foobarChangelogContent);
-    await pubspec.writeAsString(pubspecContent);
-    await license.writeAsString('BSD LICENSE 2.0');
-
-    await Directory('$tmp/lib').create();
-    await File('$tmp/lib/test_library.dart')
-        .writeAsString('hello() => print("hello");');
-
-    final files = [
-      'README.md',
-      'CHANGELOG.md',
-      'LICENSE',
-      'pubspec.yaml',
-      'lib/test_library.dart'
-    ];
-    final args = ['cz', ...files];
-    final Process p =
-        await Process.start('tar', args, workingDirectory: '$tmp');
-    await p.stderr.drain();
-    final bytes = await p.stdout.fold<List<int>>([], (b, d) => b..addAll(d));
-    final exitCode = await p.exitCode;
-    if (exitCode != 0) {
-      throw Exception('Failed to make tarball of test package.');
-    }
-    return bytes;
-  });
+  final builder = ArchiveBuilder();
+  builder.addFile('README.md', foobarReadmeContent);
+  builder.addFile('CHANGELOG.md', foobarChangelogContent);
+  builder.addFile('pubspec.yaml', pubspecContent);
+  builder.addFile('LICENSE', 'BSD LICENSE 2.0');
+  builder.addFile('lib/test_library.dart', 'hello() => print("hello");');
+  return builder.toTarGzBytes();
 }

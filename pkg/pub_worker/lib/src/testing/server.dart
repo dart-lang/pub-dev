@@ -1,5 +1,5 @@
-/// A test server for pub_worker
-library server;
+/// A test server for pub_worker.
+library;
 
 import 'dart:async';
 import 'dart:convert';

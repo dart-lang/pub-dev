@@ -75,5 +75,28 @@ void main() {
 
       expect(unused, isEmpty);
     });
+
+    test('all variables used have definition', () async {
+      final files = await Directory('lib')
+          .list(recursive: true)
+          .where((f) => f is File && f.path.endsWith('.scss'))
+          .cast<File>()
+          .toList();
+      final varRegExp = RegExp(r'var\((.*?)\)');
+      for (final file in files) {
+        final content = await file.readAsString();
+        for (final m in varRegExp.allMatches(content)) {
+          final name = m.group(1)!.trim();
+          if (!variables.contains(name)) {
+            // exempt Material Design variables
+            if (name.startsWith('--mdc-')) {
+              continue;
+            }
+
+            fail('${file.path} references `$name` without definition.');
+          }
+        }
+      }
+    });
   });
 }

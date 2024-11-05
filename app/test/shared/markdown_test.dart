@@ -15,6 +15,17 @@ void main() {
       expect(markdownToHtml('# ABC def'),
           '<h1 class="hash-header" id="abc-def">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n');
     });
+
+    test('task list', () {
+      expect(
+        markdownToHtml('- [ ] a\n- [X] b\n- [ ] c\n'),
+        '<ul>\n'
+        '<li>❌ a</li>\n'
+        '<li>✅ b</li>\n'
+        '<li>❌ c</li>\n'
+        '</ul>\n',
+      );
+    });
   });
 
   group('Valid custom base URL', () {
@@ -390,6 +401,19 @@ void main() {
         '<a href="#100---2022-05-30" class="hash-link">#</a>'
         '</h2>',
       );
+    });
+  });
+
+  group('alert blocks', () {
+    test('note', () {
+      final output = markdownToHtml('> [!NOTE]\n> Extra information.');
+      expect(output.split('\n').toList(), [
+        '<div class="markdown-alert markdown-alert-note">',
+        '<p class="markdown-alert-title">Note</p>',
+        '<p>Extra information.</p>',
+        '</div>',
+        '',
+      ]);
     });
   });
 }

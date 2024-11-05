@@ -6,6 +6,8 @@
 // slow, and something that could throw all sorts of exceptions, we don't want
 // run this as part of normal testing.
 @Tags(['fragile'])
+library;
+
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';

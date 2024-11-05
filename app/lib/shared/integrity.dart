@@ -9,7 +9,6 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
-import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
@@ -24,11 +23,11 @@ import '../package/model_properties.dart';
 import '../package/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
+import '../service/email/email_templates.dart'
+    show isValidEmail, looksLikeEmail;
 import '../shared/env_config.dart';
-
 import 'configuration.dart';
 import 'datastore.dart';
-import 'email.dart' show isValidEmail, looksLikeEmail;
 import 'storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
@@ -448,7 +447,7 @@ class IntegrityChecker {
       }
     }
 
-    await for (PackageVersionInfo pvi in pviQuery.run()) {
+    await for (final pvi in pviQuery.run()) {
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
       yield* checkPackageVersionKey('PackageVersionInfo', key);
@@ -465,7 +464,7 @@ class IntegrityChecker {
         referencedAssetIds.add(key.assetId(kind));
       }
     }
-    for (QualifiedVersionKey key in qualifiedVersionKeys) {
+    for (final key in qualifiedVersionKeys) {
       if (!pviKeys.contains(key)) {
         yield 'PackageVersion "$key" has no PackageVersionInfo.';
       }
@@ -475,7 +474,7 @@ class IntegrityChecker {
     final pvaQuery = _db.query<PackageVersionAsset>()
       ..filter('package =', p.name);
     final foundAssetIds = <String?>{};
-    await for (PackageVersionAsset pva in pvaQuery.run()) {
+    await for (final pva in pvaQuery.run()) {
       final key = pva.qualifiedVersionKey;
       if (pva.id !=
           Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {
@@ -604,10 +603,8 @@ class IntegrityChecker {
     Uri archiveDownloadUri, {
     required bool shouldBeInPublicBucket,
   }) async* {
-    final canonicalInfo = await storageService
-        .bucket(activeConfiguration.canonicalPackagesBucketName!)
-        // ignore: invalid_use_of_visible_for_testing_member
-        .tryInfo(tarballObjectName(pv.package, pv.version!));
+    final canonicalInfo = await packageBackend.tarballStorage
+        .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
     if (canonicalInfo == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
       return;
@@ -631,10 +628,8 @@ class IntegrityChecker {
       yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
     }
 
-    final publicInfo = await storageService
-        .bucket(activeConfiguration.publicPackagesBucketName!)
-        // ignore: invalid_use_of_visible_for_testing_member
-        .tryInfo(tarballObjectName(pv.package, pv.version!));
+    final publicInfo = await packageBackend.tarballStorage
+        .getPublicBucketArchiveInfo(pv.package, pv.version!);
     if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
       yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
     }

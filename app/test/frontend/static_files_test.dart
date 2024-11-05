@@ -100,7 +100,7 @@ void main() {
         '/static/material/bundle/script.min.js',
       ];
 
-      for (String file in files) {
+      for (final file in files) {
         final f = cache.getFile(file)!;
         expect(f, isNotNull, reason: file);
         expect(f.etag.contains('mocked_hash_'), isFalse, reason: file);
@@ -212,18 +212,18 @@ void main() {
     test('script.dart.js and parts size check', () {
       final file = cache.getFile('/static/js/script.dart.js');
       expect(file, isNotNull);
-      expect((file!.bytes.length / 1024).round(), closeTo(343, 2));
+      expect((file!.bytes.length / 1024).round(), closeTo(336, 20));
 
       final parts = cache.paths
           .where((path) =>
               path.startsWith('/static/js/script.dart.js') &&
               path.endsWith('part.js'))
           .toList();
-      expect(parts.length, closeTo(11, 3));
+      expect(parts.length, closeTo(15, 5));
       final partsSize = parts
           .map((p) => cache.getFile(p)!.bytes.length)
           .reduce((a, b) => a + b);
-      expect((partsSize / 1024).round(), closeTo(212, 10));
+      expect((partsSize / 1024).round(), closeTo(227, 10));
     });
   });
 

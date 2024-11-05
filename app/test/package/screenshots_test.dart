@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/package/screenshots/backend.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
@@ -20,9 +21,7 @@ void main() {
           1);
 
       expect(
-          await imageStorage.bucket
-              .read('new_pkg/1.2.3/image.svg')
-              .fold<List<int>>(<int>[], (buffer, data) => buffer..addAll(data)),
+          await imageStorage.bucket.read('new_pkg/1.2.3/image.svg').foldBytes(),
           [1]);
     });
 

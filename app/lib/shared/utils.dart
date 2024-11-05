@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.utils;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:intl/intl.dart';
@@ -136,7 +135,7 @@ class LastNTracker<T extends Comparable<T>> {
 
   T? _getP(double p) {
     if (_lastItems.isEmpty) return null;
-    final List<T> list = List.from(_lastItems);
+    final List<T> list = _lastItems.toList();
     list.sort();
     return list[(list.length * p).floor()];
   }
@@ -298,5 +297,37 @@ extension StringExt on String {
   String? trimToNull() {
     final v = trim();
     return v.isEmpty ? null : v;
+  }
+
+  /// Return string without [prefix] and/or [suffix].
+  ///
+  /// If [prefix] is not present, it will not be removed.
+  /// If [suffix] is not present, it will not be removed.
+  ///
+  /// **Example:**
+  /// ```
+  /// assert('dart:io'.without(prefix: 'dart:') == 'io');
+  /// assert('file.txt'.without(suffix: '.txt') == 'file');
+  /// ```
+  String without({String prefix = '', String suffix = ''}) {
+    var val = this;
+    if (prefix.isNotEmpty && startsWith(prefix)) {
+      val = val.substring(prefix.length);
+    }
+    if (suffix.isNotEmpty && endsWith(suffix)) {
+      val = val.substring(0, val.length - suffix.length);
+    }
+    return val;
+  }
+}
+
+extension ByteFolderExt on Stream<List<int>> {
+  Future<Uint8List> foldBytes() async {
+    final contents = await toList();
+    final buffer = BytesBuilder(copy: false);
+    for (final chunk in contents) {
+      buffer.add(chunk);
+    }
+    return buffer.toBytes();
   }
 }

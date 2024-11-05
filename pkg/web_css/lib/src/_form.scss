@@ -61,14 +61,14 @@
   border-width: 0px;
 
   .mdc-data-table__row {
-    border-top-color: var(--pub-code-background-color);
+    border-top-color: var(--pub-neutral-borderColor);
 
     &:hover {
       background: inherit;
     }
 
     &:nth-child(even) {
-      background: var(--pub-code-background-color);
+      background: var(--pub-inset-bgColor);
     }
   }
 
@@ -78,7 +78,7 @@
   }
 
   .mdc-data-table__cell {
-    color: var(--pub-default-text-color);
+    color: var(--pub-neutral-textColor);
   }
 
   .email-header { width: 60%; }
@@ -88,7 +88,7 @@
 .-pub-remove-uploader-button,
 .-pub-remove-user-button {
   border-radius: 3px;
-  color: var(--pub-default-text-color);
+  color: var(--pub-neutral-textColor);
   display: inline-block;
   padding: 2px 8px;
 
@@ -105,7 +105,7 @@
 .detail-tab-admin-content {
   h2 {
     &:not(:first-of-type) {
-      border-top: 1px solid #ccc;
+      border-top: 1px solid var(--pub-neutral-borderColor);
       margin-top: 16px;
       padding-top: 16px;
     }
@@ -136,7 +136,7 @@
     &:hover {
       .mdc-notched-outline__leading,
       .mdc-notched-outline__trailing {
-        border-color: var(--pub-default-text-color) !important;
+        border-color: var(--pub-neutral-textColor) !important;
       }
     }
   }
@@ -167,16 +167,16 @@
 
   .mdc-data-table__header-cell {
     border-color: var(--mdc_pub-data_table-border-color);
-    color: var(--pub-default-text-color);
+    color: var(--pub-neutral-textColor);
   }
   .mdc-data-table__cell {
-    color: var(--pub-default-text-color);
+    color: var(--pub-neutral-textColor);
   }
 
   .mdc-dialog__surface {
     .mdc-dialog__title,
     .mdc-dialog__content {
-      color: var(--pub-default-text-color);
+      color: var(--pub-neutral-textColor);
     }
   }
 }

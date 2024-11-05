@@ -13,7 +13,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
@@ -33,7 +33,6 @@ import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
 import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
-import '../frontend/email_sender.dart';
 import '../frontend/handlers.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
@@ -61,6 +60,7 @@ import '../task/backend.dart';
 import '../task/cloudcompute/fakecloudcompute.dart';
 import '../task/cloudcompute/googlecloudcompute.dart';
 import 'announcement/backend.dart';
+import 'email/email_sender.dart';
 import 'entrypoint/logging.dart';
 import 'secret/backend.dart';
 
@@ -298,6 +298,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(topPackages.close);
     registerScopeExitCallback(youtubeBackend.close);
+    registerScopeExitCallback(downloadCountsBackend.close);
 
     // Create a zone-local flag to indicate that services setup has been completed.
     return await fork(

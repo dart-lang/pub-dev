@@ -44,6 +44,7 @@ final _reservedPackageNames = <String>[
   'ok_http', // https://github.com/dart-lang/http/tree/master/pkgs/ok_http
   'credilio_sbm', // for owner of package:crediliosbm
   'app_update',
+  'flutterkit',
 ].map(reducePackageName).toList();
 
 const redirectPackageUrls = <String, String>{
@@ -103,3 +104,8 @@ bool isDartDevPublisher(String? publisherId) {
   if (publisherId.endsWith('.google.com')) return true;
   return false;
 }
+
+/// Overriding the default maximum number of the allowed package version counts.
+const maxVersionsPerPackageOverrides = <String, int>{
+  'masamune': 1500, // last updated: 2024-09-16
+};

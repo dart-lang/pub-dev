@@ -34,7 +34,9 @@ class ModerationCase extends db.ExpandoModel<String> {
 
   /// The source of the case, one of:
   /// - `external-notification`,
-  /// - `internal-notification` (only used for reports from @google.com accounts), or,
+  /// - `trusted-flagger`,
+  /// - `authorities`,
+  /// - `legal-referral`,
   /// - `automated-detection`. (will not be used)
   @db.StringProperty(required: true)
   late String source;
@@ -199,17 +201,17 @@ class ModerationCase extends db.ExpandoModel<String> {
 
 abstract class ModerationSource {
   static const externalNotification = 'external-notification';
-  static const internalNotification = 'internal-notification';
   static const trustedFlagger = 'trusted-flagger';
   static const authorities = 'authorities';
   static const legalReferral = 'legal-referral';
+  static const automatedDetection = 'automated-detection';
 
   static const _values = [
     externalNotification,
-    internalNotification,
     trustedFlagger,
     authorities,
     legalReferral,
+    automatedDetection,
   ];
   static bool isValidSource(String value) => _values.contains(value);
 }
@@ -266,22 +268,40 @@ abstract class ModerationGrounds {
 
 abstract class ModerationViolation {
   static const none = 'none';
+  static const animalWelfare = 'animal_welfare';
+  static const dataProtectionAndPrivacyViolations =
+      'data_protection_and_privacy_violations';
+  static const illegalAndHatefulSpeech = 'illegal_or_harmful_speech';
+  static const intellectualPropertyInfringements =
+      'intellectual_property_infringements';
+  static const negativeEffectsOnCivicDiscourseOrElections =
+      'negative_effects_on_civic_discourse_or_elections';
+  static const nonConsensualBehavior = 'non_consensual_behaviour';
+  static const pornographyOrSexualizedContent =
+      'pornography_or_sexualized_content';
+  static const protectionOfMinors = 'protection_of_minors';
+  static const riskForPublicSecurity = 'risk_for_public_security';
+  static const scamsAndFraud = 'scams_and_fraud';
+  static const selfHarm = 'self_harm';
+  static const scopeOfPlatformService = 'scope_of_platform_service';
+  static const unsafeAndIllegalProducts = 'unsafe_and_illegal_products';
+  static const violence = 'violence';
 
   static const violationValues = [
-    'animal_welfare',
-    'data_protection_and_privacy_violations',
-    'illegal_or_harmful_speech',
-    'intellectual_property_infringements',
-    'negative_effects_on_civic_discourse_or_elections',
-    'non_consensual_behaviour',
-    'pornography_or_sexualized_content',
-    'protection_of_minors',
-    'risk_for_public_security',
-    'scams_and_fraud',
-    'self_harm',
-    'scope_of_platform_service',
-    'unsafe_and_illegal_products',
-    'violence',
+    animalWelfare,
+    dataProtectionAndPrivacyViolations,
+    illegalAndHatefulSpeech,
+    intellectualPropertyInfringements,
+    negativeEffectsOnCivicDiscourseOrElections,
+    nonConsensualBehavior,
+    pornographyOrSexualizedContent,
+    protectionOfMinors,
+    riskForPublicSecurity,
+    scamsAndFraud,
+    selfHarm,
+    scopeOfPlatformService,
+    unsafeAndIllegalProducts,
+    violence,
   ];
 }
 
@@ -440,21 +460,7 @@ class ModerationActionLog {
 
   Map<String, Object?> toJson() => _$ModerationActionLogToJson(this);
 
-  /// Returns true if the final state of the actions has at least one moderation.
-  bool hasModeratedAction() {
-    final subjects = <String>{};
-    for (final entry in entries) {
-      switch (entry.moderationAction) {
-        case ModerationAction.apply:
-          subjects.add(entry.subject);
-          break;
-        case ModerationAction.revert:
-          subjects.remove(entry.subject);
-          break;
-      }
-    }
-    return subjects.isNotEmpty;
-  }
+  bool get isNotEmpty => entries.isNotEmpty;
 }
 
 enum ModerationAction {

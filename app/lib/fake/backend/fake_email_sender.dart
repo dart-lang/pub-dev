@@ -9,8 +9,8 @@ import 'package:mailer/mailer.dart';
 import 'package:path/path.dart' as p;
 import 'package:ulid/ulid.dart';
 
-import '../../frontend/email_sender.dart';
-import '../../shared/email.dart';
+import '../../service/email/email_sender.dart';
+import '../../service/email/email_templates.dart';
 
 FakeEmailSender get fakeEmailSender => emailSender as FakeEmailSender;
 

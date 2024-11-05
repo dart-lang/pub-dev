@@ -26,7 +26,7 @@ final _logger = Logger('search_index');
 Future<void> main(List<String> args, var message) async {
   final timer = Timer.periodic(Duration(milliseconds: 250), (_) {});
 
-  late ServicesWrapperFn servicesWrapperFn;
+  final ServicesWrapperFn servicesWrapperFn;
   if (envConfig.isRunningInAppengine) {
     servicesWrapperFn = withServices;
     setupAppEngineLogging();
@@ -131,7 +131,9 @@ class IsolateSearchIndex implements SearchIndex {
     } catch (e, st) {
       _logger.warning('Failed to search index.', e, st);
     }
-    return PackageSearchResult.empty(
-        errorMessage: 'Failed to process request.');
+    return PackageSearchResult.error(
+      errorMessage: 'Failed to process request.',
+      statusCode: 500,
+    );
   }
 }

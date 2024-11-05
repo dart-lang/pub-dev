@@ -15,7 +15,6 @@ import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
-import '../../package/models.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../scorecard/backend.dart';
@@ -204,9 +203,10 @@ Future<LikedPackagesResponse> listPackageLikesHandler(
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   final packages = await likeBackend.listPackageLikes(user);
-  final List<PackageLikeResponse> packageLikes = List.from(packages.map(
-      (like) => PackageLikeResponse(
-          liked: true, package: like.package, created: like.created)));
+  final List<PackageLikeResponse> packageLikes = packages
+      .map((like) => PackageLikeResponse(
+          liked: true, package: like.package, created: like.created))
+      .toList();
   return LikedPackagesResponse(likedPackages: packageLikes);
 }
 
@@ -283,7 +283,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
         .lookupUserById(requestContext.authenticatedUserId!))!,
     userSessionData: requestContext.sessionData!,
     startPackage: next,
-    packageHits: hits.whereType<PackageView>().toList(),
+    packageHits: hits.nonNulls.toList(),
     nextPackage: page.nextPackage,
   );
   return htmlResponse(html);

@@ -17,7 +17,7 @@ dependencies:
   fake_async: ^1.2.0
   fake_gcloud:
     path: ../pkg/fake_gcloud
-  gcloud: '^0.8.13'
+  gcloud: ^0.8.16
   googleapis: ^13.0.0
   googleapis_auth: ^1.1.0
   html: ^0.15.0
@@ -26,7 +26,7 @@ dependencies:
   indexed_blob:
   intl: '^0.19.0'
   json_annotation: '^4.3.0'
-  lints: ^4.0.0
+  lints: ^5.0.0
   logging: '>=0.9.3 <2.0.0'
   markdown: ^7.2.2
   meta: ^1.1.2
@@ -48,10 +48,10 @@ dependencies:
   watcher: ^1.0.0
   yaml: '^3.0.0'
   # pana version to be pinned
-  pana: '0.22.12'
+  pana: '0.22.15'
   # 3rd-party packages with pinned versions
-  mailer: '6.1.2'
-  ulid: '2.0.0'
+  mailer: '6.2.0'
+  ulid: '2.0.1'
   tar: '2.0.0'
   api_builder:
 

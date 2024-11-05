@@ -14,7 +14,7 @@ Future main() async {
       .where((f) => f is File)
       .cast<File>()
       .toList();
-  for (File file in files) {
+  for (final file in files) {
     final coverage = await file.readAsString();
     if (coverage.isEmpty) {
       print('${file.path} is empty.');
@@ -35,7 +35,7 @@ Future main() async {
     }
   }
 
-  for (String path in _lineExecCounts.keys) {
+  for (final path in _lineExecCounts.keys) {
     final counts = _lineExecCounts[path];
     final total = counts!.length;
     final covered = counts.values.where((i) => i > 0).length;
@@ -54,7 +54,7 @@ Future main() async {
             !e.key.startsWith('pkg/code_coverage/') &&
             !e.key.startsWith('pkg/fake_gcloud/') &&
             !e.key.startsWith('pkg/pub_integration/'))
-  ].whereType<Entry>();
+  ].nonNulls;
   final pubDevEntry = Entry('pub-dev')
     ..covered = libEntries.map((e) => e.covered).reduce((a, b) => a + b)
     ..total = libEntries.map((e) => e.total).reduce((a, b) => a + b);
@@ -66,7 +66,7 @@ Future main() async {
   ].join(', '));
 
   final keys = _tree.keys.toList()..sort();
-  for (String key in keys) {
+  for (final key in keys) {
     final entry = _tree[key];
     final pctStr = entry!.percentAsString;
     final sb = StringBuffer();
@@ -83,7 +83,7 @@ Future main() async {
 
   final uncoveredRanges = _lineExecCounts.keys
       .map((path) => _topUncoveredRange(path, _lineExecCounts[path]!))
-      .whereType<_UncoveredRange>()
+      .nonNulls
       .where((u) => u.codeLineCount > 0)
       .toList()
     ..sort((a, b) => -a.codeLineCount.compareTo(b.codeLineCount));

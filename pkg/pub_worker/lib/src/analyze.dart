@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show JsonUtf8Encoder, utf8;
+import 'dart:convert' show JsonUtf8Encoder, LineSplitter, Utf8Decoder, utf8;
 import 'dart:io'
     show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 import 'dart:isolate' show Isolate;
@@ -31,6 +31,9 @@ const _workerTimeout = Duration(minutes: 55);
 const _panaTimeout = Duration(minutes: 50);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
+
+/// Retry requests with a longer delay between them.
+final _retryOptions = RetryOptions(delayFactor: Duration(seconds: 5));
 
 /// Retry request if it fails because of an [IOException] or status is 5xx.
 bool _retryIf(Exception e) =>
@@ -152,8 +155,14 @@ Future<void> _analyzePackage(
       await pana.stdin.close();
 
       await Future.wait<void>([
-        pana.stderr.forEach(log.add),
-        pana.stdout.forEach(log.add),
+        pana.stderr
+            .transform(Utf8Decoder(allowMalformed: true))
+            .transform(LineSplitter())
+            .forEach(log.writeln),
+        pana.stdout
+            .transform(Utf8Decoder(allowMalformed: true))
+            .transform(LineSplitter())
+            .forEach(log.writeln),
         pana.exitOrTimeout(_panaTimeout, () {
           log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
         }),
@@ -163,13 +172,6 @@ Future<void> _analyzePackage(
       log.writeln('### Execution of pana exited $exitCode');
       log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
     }
-
-    // Upload results, if there is any
-    _log.info('api.taskUploadResult("$package", "$version")');
-    final r = await retry(
-      () => api.taskUploadResult(package, version),
-      retryIf: _retryIf,
-    );
 
     // Create a file to store the blob, and add everything to it.
     final blobFile = File(p.join(tempDir.path, 'files.blob'));
@@ -201,6 +203,13 @@ Future<void> _analyzePackage(
       logFile.openRead().transform(gzip.encoder),
     );
 
+    // Upload results, if there is any
+    _log.info('api.taskUploadResult("$package", "$version")');
+    final r = await _retryOptions.retry(
+      () => api.taskUploadResult(package, version),
+      retryIf: _retryIf,
+    );
+
     // Create BlobIndex
     final index = await builder.buildIndex(r.blobId);
 
@@ -227,7 +236,7 @@ Future<void> _analyzePackage(
 
     // Report that we're done processing the package / version.
     _log.info('api.taskUploadFinished("$package", "$version")');
-    await retry(
+    await _retryOptions.retry(
       () => api.taskUploadFinished(package, version),
       retryIf: _retryIf,
     );
@@ -252,7 +261,7 @@ Future<void> _reportPackageSkipped(
 
   _log.info('api.taskUploadResult("$package", "$version") - skipping');
 
-  final r = await retry(
+  final r = await _retryOptions.retry(
     () => api.taskUploadResult(package, version),
     retryIf: _retryIf,
   );
@@ -292,7 +301,7 @@ Future<void> _reportPackageSkipped(
 
   // Report that we're done processing the package / version.
   _log.info('api.taskUploadFinished("$package", "$version") - skipped');
-  await retry(
+  await _retryOptions.retry(
     () => api.taskUploadFinished(package, version),
     retryIf: _retryIf,
   );

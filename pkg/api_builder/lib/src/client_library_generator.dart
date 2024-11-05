@@ -113,12 +113,7 @@ code.Method _buildClientMethod(
   Handler h,
 ) {
   // Find url parameters
-  final params = _parser
-      .allMatches(h.route)
-      .map((m) => m[2])
-      .where((p) => p != null)
-      .cast<String>()
-      .toList();
+  final params = _parser.allMatches(h.route).map((m) => m[2]).nonNulls.toList();
   // Create a url pattern that embeds parameters above
   final urlPattern = h.route.replaceAllMapped(
     _parser,

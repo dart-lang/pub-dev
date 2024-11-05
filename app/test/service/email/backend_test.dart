@@ -5,9 +5,9 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/service/email/backend.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/email.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';

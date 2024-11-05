@@ -93,16 +93,16 @@ Iterable<d.Node> _report(
     d.p(text: ''),
     // illegal content
     if (subject.isPackage)
-      _block(
-        title: 'I believe the package contains illegal content.',
+      _foldableSection(
+        title: d.text('I believe the package contains illegal content.'),
         children: [
           d.markdown('Please report illegal content through the '
               '[illegal content reporting form here]($lcpsDeepLink).')
         ],
       )
     else if (subject.isPublisher)
-      _block(
-        title: 'I believe the publisher contains illegal content.',
+      _foldableSection(
+        title: d.text('I believe the publisher contains illegal content.'),
         children: [
           d.markdown('Please report illegal content through the '
               '[illegal content reporting form here]($lcpsDeepLink).')
@@ -111,9 +111,9 @@ Iterable<d.Node> _report(
 
     // contact
     if (subject.isPackage)
-      _block(
-        title:
-            'I have found a bug in the package / I need help using the package.',
+      _foldableSection(
+        title: d.text(
+            'I have found a bug in the package / I need help using the package.'),
         children: [
           d.markdown('Please consult the package page: '
               '[`pub.dev/packages/${subject.package}`](https://pub.dev/packages/${subject.package})'),
@@ -131,8 +131,8 @@ Iterable<d.Node> _report(
         ],
       )
     else if (subject.isPublisher)
-      _block(
-        title: 'I want to contact the publisher.',
+      _foldableSection(
+        title: d.text('I want to contact the publisher.'),
         children: [
           d.markdown('Please consult the publisher page: '
               '[`pub.dev/publishers/${subject.publisherId}`](https://pub.dev/publishers/${subject.publisherId})'),
@@ -143,9 +143,9 @@ Iterable<d.Node> _report(
       ),
 
     // direct report
-    _block(
-      classes: ['report-page-direct-report'],
-      title: 'I believe the $kindLabel violates pub.dev/policy.',
+    _foldableSection(
+      buttonDivClasses: ['report-page-direct-report'],
+      title: d.text('I believe the $kindLabel violates pub.dev/policy.'),
       children: [
         if (!(sessionData?.isAuthenticated ?? false))
           d.fragment([
@@ -176,8 +176,8 @@ Iterable<d.Node> _report(
     ),
 
     // problem with pub.dev
-    _block(
-      title: 'I have a problem with the pub.dev website.',
+    _foldableSection(
+      title: d.text('I have a problem with the pub.dev website.'),
       children: [
         d.markdown('Security vulnerabilities may be reported through '
             '[goo.gl/vulnz](https://goo.gl/vulnz)'),
@@ -208,6 +208,9 @@ Iterable<d.Node> _appeal(
           '(source repositories, screenshots, logs, bug tracker entries, etc) '
           'consider uploading these and sharing a link.',
     ),
+    d.p(
+      child: d.b(text: 'You can appeal at most once per case.'),
+    ),
     if (!(sessionData?.isAuthenticated ?? false))
       d.fragment([
         d.p(text: 'Contact information:'),
@@ -235,34 +238,34 @@ Iterable<d.Node> _appeal(
   ];
 }
 
-d.Node _block({
-  required String title,
+d.Node _foldableSection({
+  required d.Node title,
   required Iterable<d.Node> children,
-  List<String>? classes,
+  Iterable<String>? buttonDivClasses,
 }) {
   return d.div(
-    classes: ['report-page-section', 'foldable', ...?classes],
+    classes: ['foldable-section', 'foldable'],
     children: [
       d.div(
-        classes: ['report-page-section-title', 'foldable-button'],
+        classes: ['foldable-button', ...?buttonDivClasses],
         children: [
           d.img(
             classes: ['foldable-icon'],
             image: d.Image(
               src: staticUrls
-                  .getAssetUrl('/static/img/report-foldable-icon.svg'),
+                  .getAssetUrl('/static/img/foldable-section-icon.svg'),
               alt: 'trigger folding of the section',
               width: 13,
               height: 6,
             ),
           ),
-          d.text(title),
+          title,
         ],
       ),
       d.div(
-        classes: ['report-page-section-body', 'foldable-content'],
+        classes: ['foldable-content'],
         children: children,
-      )
+      ),
     ],
   );
 }

@@ -7,15 +7,15 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/tools/user_merger.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
-import 'package:pub_dev/shared/user_merger.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
-import 'test_services.dart';
+import '../shared/test_services.dart';
 
 void main() {
   Future<void> _corruptAndFix() async {

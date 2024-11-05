@@ -9,47 +9,40 @@ import 'package:meta/meta.dart';
 import 'text_utils.dart';
 
 /// Represents an evaluated score as an {id: score} map.
-class Score {
-  final Map<String, double> _values;
+extension type const Score._(Map<String, double> _values)
+    implements Map<String, double> {
+  static const Score empty = Score._({});
 
   Score(this._values);
-  Score.empty() : _values = const <String, double>{};
 
-  late final bool isEmpty = _values.isEmpty;
-  late final bool isNotEmpty = !isEmpty;
+  factory Score.fromEntries(Iterable<MapEntry<String, double>> entries) =>
+      Score(Map.fromEntries(entries));
 
-  Set<String> getKeys({bool Function(String key)? where}) =>
-      _values.keys.where((e) => where == null || where(e)).toSet();
-  late final double maxValue = _values.values.fold(0.0, math.max);
-  Map<String, double> getValues() => _values;
-  bool containsKey(String key) => _values.containsKey(key);
-  late final int length = _values.length;
-
-  double operator [](String key) => _values[key] ?? 0.0;
+  double get maxValue => _values.values.fold(0.0, math.max);
 
   /// Calculates the intersection of the [scores], by multiplying the values.
   static Score multiply(List<Score> scores) {
     if (scores.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     if (scores.length == 1) {
       return scores.single;
     }
     if (scores.any((score) => score.isEmpty)) {
-      return Score.empty();
+      return Score.empty;
     }
-    var keys = scores.first.getValues().keys.toSet();
+    var keys = scores.first.keys.toSet();
     for (var i = 1; i < scores.length; i++) {
-      keys = keys.intersection(scores[i].getValues().keys.toSet());
+      keys = keys.intersection(scores[i].keys.toSet());
     }
     if (keys.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     final values = <String, double>{};
     for (final key in keys) {
-      var value = scores.first.getValues()[key]!;
+      var value = scores.first[key]!;
       for (var i = 1; i < scores.length; i++) {
-        value *= scores[i].getValues()[key]!;
+        value *= scores[i][key]!;
       }
       values[key] = value;
     }
@@ -63,17 +56,17 @@ class Score {
     scores.removeWhere((s) => s.isEmpty);
 
     if (scores.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     if (scores.length == 1) {
       return scores.single;
     }
-    final keys = scores.expand((e) => e.getValues().keys).toSet();
+    final keys = scores.expand((e) => e.keys).toSet();
     final result = <String, double>{};
     for (final key in keys) {
       var value = 0.0;
       for (var i = 0; i < scores.length; i++) {
-        final v = scores[i].getValues()[key];
+        final v = scores[i][key];
         if (v != null) {
           value = math.max(value, v);
         }
@@ -97,24 +90,18 @@ class Score {
     if (threshold == null) {
       return this;
     }
-    final result = Map<String, double>.fromEntries(
+    return Score.fromEntries(
         _values.entries.where((entry) => entry.value >= threshold!));
-    return Score(result);
   }
 
   /// Keeps the scores only for values in [keys].
-  Score project(Set<String> keys) {
-    final result = Map<String, double>.fromEntries(
-        _values.entries.where((entry) => keys.contains(entry.key)));
-    return Score(result);
-  }
+  Score project(Set<String> keys) => Score.fromEntries(
+      _values.entries.where((entry) => keys.contains(entry.key)));
 
   /// Transfer the score values with [f].
-  Score map(double Function(String key, double value) f) {
-    final result = Map<String, double>.fromEntries(
-        _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
-    return Score(result);
-  }
+  Score mapValues(double Function(String key, double value) f) =>
+      Score.fromEntries(
+          _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
 
   /// Returns a new [Score] object with the top [count] entry.
   Score top(int count, {double? minValue}) {
@@ -155,31 +142,43 @@ class TokenMatch {
 
 /// Stores a token -> documentId inverted index with weights.
 class TokenIndex {
-  /// Maps token Strings to a weighted map of document ids.
-  final _inverseIds = <String, Map<String, double>>{};
+  final List<String> _ids;
+
+  /// Maps token Strings to a weighted documents (addressed via indexes).
+  final _inverseIds = <String, Map<int, double>>{};
 
   /// {id: size} map to store a value representative to the document length
-  final _docSizes = <String, double>{};
+  late final List<double> _docWeights;
 
-  /// The number of tokens stored in the index.
-  int get tokenCount => _inverseIds.length;
+  late final _length = _docWeights.length;
 
-  int get documentCount => _docSizes.length;
+  TokenIndex(List<String> ids, List<String?> values) : _ids = ids {
+    assert(ids.length == values.length);
+    final length = values.length;
+    _docWeights = List<double>.filled(length, 0.0);
+    for (var i = 0; i < length; i++) {
+      final text = values[i];
 
-  void add(String id, String? text) {
-    if (text == null) return;
-    final tokens = tokenize(text);
-    if (tokens == null || tokens.isEmpty) {
-      return;
+      if (text == null) {
+        continue;
+      }
+      final tokens = tokenize(text);
+      if (tokens == null || tokens.isEmpty) {
+        continue;
+      }
+      for (final token in tokens.keys) {
+        final weights = _inverseIds.putIfAbsent(token, () => {});
+        weights[i] = math.max(weights[i] ?? 0.0, tokens[token]!);
+      }
+      // Document weight is a highly scaled-down proxy of the length.
+      _docWeights[i] = 1 + math.log(1 + tokens.length) / 100;
     }
-    for (String token in tokens.keys) {
-      final Map<String, double> weights =
-          _inverseIds.putIfAbsent(token, () => <String, double>{});
-      weights[id] = math.max(weights[id] ?? 0.0, tokens[token]!);
-    }
-    // Document size is a highly scaled-down proxy of the length.
-    final docSize = 1 + math.log(1 + tokens.length) / 100;
-    _docSizes[id] = docSize;
+  }
+
+  factory TokenIndex.fromMap(Map<String, String> map) {
+    final keys = map.keys.toList();
+    final values = map.values.toList();
+    return TokenIndex(keys, values);
   }
 
   /// Match the text against the corpus and return the tokens or
@@ -191,9 +190,8 @@ class TokenIndex {
     for (final word in splitForIndexing(text)) {
       final tokens = tokenize(word, isSplit: true) ?? {};
 
-      final present = tokens.keys
-          .where((token) => (_inverseIds[token]?.length ?? 0) > 0)
-          .toList();
+      final present =
+          tokens.keys.where((token) => _inverseIds.containsKey(token)).toList();
       if (present.isEmpty) {
         return TokenMatch();
       }
@@ -219,14 +217,12 @@ class TokenIndex {
   Map<String, double> _scoreDocs(TokenMatch tokenMatch,
       {double weight = 1.0, int wordCount = 1, Set<String>? limitToIds}) {
     // Summarize the scores for the documents.
-    final Map<String, double> docScores = <String, double>{};
-    for (String token in tokenMatch.tokens) {
+    final docScores = List<double>.filled(_length, 0.0);
+    for (final token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token]!;
       for (final e in docWeights.entries) {
-        if (limitToIds != null && !limitToIds.contains(e.key)) continue;
-        final double prevValue = docScores[e.key] ?? 0.0;
-        final double currentValue = tokenMatch[token]! * e.value;
-        docScores[e.key] = math.max(prevValue, currentValue);
+        final i = e.key;
+        docScores[i] = math.max(docScores[i], tokenMatch[token]! * e.value);
       }
     }
 
@@ -235,15 +231,24 @@ class TokenIndex {
     // compensate the formula in order to prevent multiple exponential penalties.
     final double wordSizeExponent = 1.0 / wordCount;
 
+    final result = <String, double>{};
     // post-process match weights
-    docScores.updateAll((id, docScore) {
-      var docSize = _docSizes[id]!;
-      if (wordCount > 1) {
-        docSize = math.pow(docSize, wordSizeExponent).toDouble();
+    for (var i = 0; i < _length; i++) {
+      final id = _ids[i];
+      final w = docScores[i];
+      if (w <= 0.0) {
+        continue;
       }
-      return weight * docScore / docSize;
-    });
-    return docScores;
+      if (limitToIds != null && !limitToIds.contains(id)) {
+        continue;
+      }
+      var dw = _docWeights[i];
+      if (wordCount > 1) {
+        dw = math.pow(dw, wordSizeExponent).toDouble();
+      }
+      result[id] = w * weight / dw;
+    }
+    return result;
   }
 
   /// Search the index for [text], with a (term-match / document coverage percent)
@@ -258,7 +263,7 @@ class TokenIndex {
   Score searchWords(List<String> words,
       {double weight = 1.0, Set<String>? limitToIds}) {
     if (limitToIds != null && limitToIds.isEmpty) {
-      return Score.empty();
+      return Score.empty;
     }
     final scores = <Score>[];
     for (final w in words) {
@@ -270,7 +275,7 @@ class TokenIndex {
         limitToIds: limitToIds,
       );
       if (values.isEmpty) {
-        return Score.empty();
+        return Score.empty;
       }
       scores.add(Score(values));
     }

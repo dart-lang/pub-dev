@@ -5,12 +5,10 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' show Version;
 
-@sealed
-class InstalledSdk {
+final class InstalledSdk {
   final String kind;
   final String path;
   final Version version;

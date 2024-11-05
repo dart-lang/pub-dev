@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:clock/clock.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
@@ -13,6 +14,7 @@ import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
@@ -281,6 +283,29 @@ void main() {
       final p2 = await packageBackend.lookupPackage('foo');
       expect(p2!.publisherId, isNotEmpty);
       expect(p2.isDiscontinued, true);
+    });
+
+    testWithProfile('cleanup deletes datastore entities', fn: () async {
+      // moderate and cleanup
+      final origUser = await accountBackend.lookupUserByEmail('admin@pub.dev');
+      await _moderate('admin@pub.dev', state: true, reason: 'policy-violation');
+      await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
+
+      // entity is marked as deleted
+      final user = await accountBackend.lookupUserById(origUser.userId);
+      expect(user!.isDeleted, true);
+
+      // package has no uploader
+      final pkg = await packageBackend.lookupPackage('oxygen');
+      expect(pkg!.uploaders, isEmpty);
+      expect(pkg.isDiscontinued, true);
+
+      // publisher has no members
+      final publisher = await publisherBackend.getPublisher('example.com');
+      expect(publisher!.isAbandoned, true);
+      final members =
+          await publisherBackend.listPublisherMembers('example.com');
+      expect(members, isEmpty);
     });
   });
 }

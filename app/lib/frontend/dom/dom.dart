@@ -224,6 +224,7 @@ Node a({
   String? rel,
   String? target,
   String? title,
+  String? name,
 }) {
   return dom.element(
     'a',
@@ -234,7 +235,8 @@ Node a({
       if (rel != null) 'rel': rel,
       if (target != null) 'target': target,
       if (title != null) 'title': title,
-      if (attributes != null) ...attributes,
+      if (name != null) 'name': name,
+      ...?attributes,
     },
     children: children,
     child: child,
@@ -369,7 +371,7 @@ Node form({
     attributes: <String, String>{
       if (action != null) 'action': action,
       if (method != null) 'method': method,
-      if (attributes != null) ...attributes,
+      ...?attributes,
     },
     children: children,
     child: child,
@@ -512,7 +514,7 @@ Node img({
       if (title != null) 'title': title,
       if (lazy) 'loading': 'lazy',
       if (image.role != null) 'role': image.role!,
-      if (attributes != null) ...attributes,
+      ...?attributes,
     },
     children: children,
   );
@@ -546,7 +548,7 @@ Node input({
       if (value != null) 'value': value,
       if (autofocus) 'autofocus': 'autofocus',
       if (disabled) 'disabled': 'disabled',
-      if (attributes != null) ...attributes,
+      ...?attributes,
     },
     children: children,
     child: child,
@@ -616,7 +618,7 @@ Node link({
         if (title != null) 'title': title,
         if (href != null) 'href': href,
         if (as != null) 'as': as,
-        if (attributes != null) ...attributes,
+        ...?attributes,
       },
       children: children,
       child: child,
@@ -651,7 +653,7 @@ Node meta({
         if (content != null) 'content': content,
         if (rel != null) 'rel': rel,
         if (href != null) 'href': href,
-        if (attributes != null) ...attributes,
+        ...?attributes,
       },
       children: children,
       child: child,
@@ -697,7 +699,7 @@ Node option({
       if (value != null) 'value': value,
       if (disabled) 'disabled': 'disabled',
       if (selected) 'selected': 'selected',
-      if (attributes != null) ...attributes,
+      ...?attributes,
     },
     children: children,
     child: child,
@@ -767,7 +769,7 @@ Node script({
         if (async) 'async': 'async',
         if (defer) 'defer': 'defer',
         if (onload != null) 'onload': onload,
-        if (attributes != null) ...attributes,
+        ...?attributes,
       },
       children: children,
       child: child,
@@ -981,7 +983,7 @@ Map<String, String>? _mergeAttributes(
   return <String, String>{
     if (id != null) 'id': id,
     if (classes != null && classes.isNotEmpty) 'class': classes.join(' '),
-    if (attributes != null) ...attributes,
+    ...?attributes,
   };
 }
 
@@ -1036,12 +1038,11 @@ class _StringElement extends _StringNode {
   final Map<String, String>? _attributes;
   final Object? _children;
 
-  _StringElement(this._tag, this._attributes, this._children) {
-    assert(_children == null ||
-        _children is _StringNode ||
-        (_children is Iterable<Node> &&
-            (_children).every((c) => c is _StringNode)));
-  }
+  _StringElement(this._tag, this._attributes, this._children)
+      : assert(_children == null ||
+            _children is _StringNode ||
+            (_children is Iterable<Node> &&
+                (_children).every((c) => c is _StringNode)));
 
   @override
   void writeHtml(StringSink sink) {

@@ -17,7 +17,7 @@ class CompatibleListProperty<T> extends Property {
   bool validate(ModelDB db, Object? value) {
     if (!super.validate(db, value) || value is! List) return false;
 
-    for (var entry in value) {
+    for (final entry in value) {
       if (!subProperty.validate(db, entry)) return false;
     }
     return true;

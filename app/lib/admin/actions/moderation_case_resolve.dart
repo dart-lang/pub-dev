@@ -61,7 +61,7 @@ Closes the moderation case and updates the status based on the actions logged on
 
       mc.resolved = clock.now().toUtc();
 
-      final hasModeratedAction = mc.getActionLog().hasModeratedAction();
+      final hasModeratedAction = mc.getActionLog().isNotEmpty;
 
       if (status == null) {
         if (mc.kind == ModerationKind.notification) {
@@ -73,7 +73,7 @@ Closes the moderation case and updates the status based on the actions logged on
               .emptyKey
               .append(ModerationCase, id: mc.appealedCaseId!));
           final appealHadModeratedAction =
-              appealedCase.getActionLog().hasModeratedAction();
+              appealedCase.getActionLog().isNotEmpty;
           if (appealHadModeratedAction) {
             status = hasModeratedAction
                 ? ModerationStatus.moderationReverted

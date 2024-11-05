@@ -37,6 +37,7 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
+        'nameMatches': ['angular'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'angular', 'score': 1.0},

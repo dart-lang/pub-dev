@@ -75,7 +75,7 @@ class User extends db.ExpandoModel<String> {
   }
 
   late final isVisible = !isBlocked && !isModerated && !isDeleted;
-  late final isNotVisible = !isVisible;
+  bool get isNotVisible => !isVisible;
 
   void updateIsModerated({
     required bool isModerated,
@@ -415,8 +415,7 @@ String consentDedupId({
   required List<String> args,
 }) =>
     [fromAgentId, email, kind, ...args]
-        .where((s) => s != null)
-        .whereType<String>()
+        .nonNulls
         .map(Uri.encodeComponent)
         .join('/');
 

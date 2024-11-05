@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.appengine_repository.models;
-
 import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
@@ -11,6 +9,8 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -473,8 +473,8 @@ class Release {
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class AutomatedPublishing {
-  GithubPublishingConfig? githubConfig;
-  GithubPublishingLock? githubLock;
+  GitHubPublishingConfig? githubConfig;
+  GitHubPublishingLock? githubLock;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
 
@@ -524,19 +524,19 @@ class AutomatedPublishingProperty extends db.Property {
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class GithubPublishingLock {
+class GitHubPublishingLock {
   final String repositoryOwnerId;
   final String repositoryId;
 
-  GithubPublishingLock({
+  GitHubPublishingLock({
     required this.repositoryOwnerId,
     required this.repositoryId,
   });
 
-  factory GithubPublishingLock.fromJson(Map<String, dynamic> json) =>
-      _$GithubPublishingLockFromJson(json);
+  factory GitHubPublishingLock.fromJson(Map<String, dynamic> json) =>
+      _$GitHubPublishingLockFromJson(json);
 
-  Map<String, dynamic> toJson() => _$GithubPublishingLockToJson(this);
+  Map<String, dynamic> toJson() => _$GitHubPublishingLockToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
@@ -875,6 +875,28 @@ class ModeratedPackage extends db.ExpandoModel<String> {
   List<String>? versions;
 }
 
+/// Entity representing a reserved package: the name is available only
+/// for a subset of the users (`@google.com` + list of [emails]).
+@db.Kind(name: 'ReservedPackage', idType: db.IdType.String)
+class ReservedPackage extends db.ExpandoModel<String> {
+  @db.StringProperty(required: true)
+  String? name;
+
+  @db.DateTimeProperty()
+  late DateTime created;
+
+  /// List of email addresses that are allowed to claim this package name.
+  /// This is on top of the `@google.com` email addresses.
+  @db.StringListProperty()
+  List<String> emails = <String>[];
+
+  ReservedPackage();
+  ReservedPackage.init(this.name) {
+    id = name;
+    created = clock.now().toUtc();
+  }
+}
+
 /// An identifier to point to a specific [package] and [version].
 class QualifiedVersionKey {
   final String? package;
@@ -942,6 +964,7 @@ class PackageView {
 
   final List<String>? topics;
   final int popularity;
+  final int? thirtyDaysDownloadCounts;
 
   PackageView({
     this.screenshots,
@@ -960,6 +983,7 @@ class PackageView {
     this.apiPages,
     this.topics,
     required this.popularity,
+    required this.thirtyDaysDownloadCounts,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
 
@@ -973,6 +997,7 @@ class PackageView {
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
     required int popularity,
+    required int? thirtyDaysDownloadCounts,
   }) {
     final tags = <String>{
       ...package.getTags(),
@@ -997,6 +1022,7 @@ class PackageView {
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.canonicalizedTopics,
       popularity: popularity,
+      thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
 
@@ -1018,6 +1044,7 @@ class PackageView {
       screenshots: screenshots,
       topics: topics,
       popularity: popularity,
+      thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
 
@@ -1106,6 +1133,7 @@ class PackagePageData {
   final ScoreCardData scoreCard;
   final bool isAdmin;
   final bool isLiked;
+  final WeeklyDownloadCounts? weeklyDownloadCounts;
   PackageView? _view;
 
   PackagePageData({
@@ -1117,6 +1145,7 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
+    required this.weeklyDownloadCounts,
   }) : latestReleases = latestReleases ?? package.latestReleases;
 
   bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
@@ -1169,6 +1198,8 @@ class PackagePageData {
       version: version,
       scoreCard: scoreCard,
       popularity: popularityStorage.lookupAsScore(package.name!),
+      thirtyDaysDownloadCounts:
+          downloadCountsBackend.lookup30DaysTotalCounts(package.name!),
     );
   }
 }

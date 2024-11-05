@@ -21,7 +21,7 @@ class MemDatastore implements Datastore {
   Future<List<Key>> allocateIds(List<Key> keys) async {
     return keys.map((k) {
       if (k.elements.last.id == null) {
-        final elements = List<KeyElement>.from(k.elements);
+        final elements = List.of(k.elements);
         final last = elements.removeLast();
         elements.add(KeyElement(last.kind, _unusedId++));
         return Key(elements, partition: k.partition);
@@ -231,9 +231,9 @@ class MemDatastore implements Datastore {
               return c < 0;
             case FilterRelation.LessThanOrEqual:
               return c <= 0;
-            case FilterRelation.GreatherThan:
+            case FilterRelation.GreaterThan:
               return c > 0;
-            case FilterRelation.GreatherThanOrEqual:
+            case FilterRelation.GreaterThanOrEqual:
               return c >= 0;
             default:
               throw UnimplementedError('Not handled relation: ${f.relation}');
@@ -243,7 +243,7 @@ class MemDatastore implements Datastore {
     ).toList();
     if (query.orders != null && query.orders!.isNotEmpty) {
       items.sort((a, b) {
-        for (Order o in query.orders!) {
+        for (final o in query.orders!) {
           if (a.unIndexedProperties.contains(o.propertyName) ||
               b.unIndexedProperties.contains(o.propertyName)) {
             throw DatastoreError(

@@ -1,29 +1,59 @@
-// suggested naming convention: `--pub-[component]-[role]-[property]`, where
-// - `[component]` may be: `default`, `button`, `link`, `card`, ...
-// - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
-// - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
+// suggested naming convention:
+//
+// color definitions:
+// `--pub-color-<qualifier><baseColor>`
+//
+// theme roles:
+// `--pub-<role>[-<modifier>]-<property>`, where:
+//   - `<role>` may be: `neutral`, `inset`
+//   - `<modifier>` may be: `hover`, `selected`
+//   - `<property>` may be: `bgColor`, `textColor`, `linkColor`
+//
+// components (**deprecated**):
+// `--pub-[component]-[role]-[property]`, where
+//   - `[component]` may be: `default`, `button`, `link`, `card`, ...
+//   - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
+//   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
 :root {
-  --pub-default-background-color: #ffffff;
+  --pub-color-white:         #ffffff;
+  --pub-color-snowWhite:     #fafafa; // slight deviation from official snow-white (fffafa)
+  --pub-color-smokeWhite:    #f5f5f7; // slight deviation from official white-smoke (f5f5f5)
+  --pub-color-bubblesBlue:   #e7f8ff; // slight deviation from official bubbles-blue (e7feff)
+  --pub-color-gunpowderGray: #4a4a4a; // hsl(0, 0%, 29%);
+
+  --pub-color-dangerRed: #ff4242;
+
+  --pub-neutral-bgColor:       var(--pub-color-white);
+  --pub-neutral-borderColor:   var(--pub-color-smokeWhite);
+  --pub-neutral-textColor:     var(--pub-color-gunpowderGray);
+  --pub-neutral-hover-bgColor: var(--pub-color-snowWhite);
+  --pub-inset-bgColor:         var(--pub-color-smokeWhite);
+  --pub-selected-bgColor:      var(--pub-color-bubblesBlue);
+
+  // Note: these colors are copied from GitHub styles
+  --pub-markdown-alert-note:      #0969da; // accent-emphasis from GitHub
+  --pub-markdown-alert-tip:       #1a7f37; // success-emphasis from GitHub
+  --pub-markdown-alert-important: #8250df; // done-emphasis from GitHub
+  --pub-markdown-alert-warning:   #9a6700; // attention-emphasis from GitHub
+  --pub-markdown-alert-caution:   #cf222e; // danger-emphasis from GitHub
+
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
-  --pub-default-text-color: hsl(0, 0%, 29%);
   --pub-default-text-font_family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
-  --pub-code-background-color: #f5f5f7;
-  --pub-code-text-color: var(--pub-default-text-color);
+  --pub-code-text-color: var(--pub-neutral-textColor);
   --pub-link-text-color: #0175c2;
   --pub-code-text-font_family: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
   --pub-badge-default-color: var(--pub-link-text-color);
-  --pub-badge-red-color: #ff4242;
+  --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-carousel-background-color: rgba(0,0,0,0.85);
   --pub-carousel_nav-background-color: rgba(0,0,0,0.7);
   --pub-carousel_nav_hover-background-color: #4285f4;
   --pub-carousel_screenshot-background-color: rgba(0,0,0,0.7);
-  --pub-carousel_screenshot-text-color: #ffffff;
+  --pub-carousel_screenshot-text-color: var(--pub-color-white);
   --pub-collections_icon-background-color: #aeaeae;
-  --pub-thumbnail_container-background-color: #ffffff;
+  --pub-thumbnail_container-background-color: var(--pub-color-white); // same in dark mode
   --pub-copy_feedback-background-color: #fafaff;
-  --pub-detail_tab-background-color: var(--pub-code-background-color);
-  --pub-detail_tab-text-color: var(--pub-default-text-color);
+  --pub-detail_tab-text-color: var(--pub-neutral-textColor);
   --pub-detail_tab-underline-color: #dddddd;
   --pub-detail_tab-active-color: #1967d2;
   --pub-detail_tab-admin-color: #990000;
@@ -31,34 +61,28 @@
   --pub-footer-background-color: #27323a;
   --pub-footer-text-color: #f8f9fa;
   --pub-home_title-text-color: #254a76;
-  --pub-home_announcement-background-color: #e7f8ff;
-  --pub-home_banner-text-color: #ffffff;
+  --pub-home_banner-text-color: var(--pub-color-white);
   --pub-home_banner-link-color: #31b0fc;
-  --pub-home_card-background-color: #ffffff;
   --pub-home_card-box_shadow-color: rgba(0, 0, 0, 0.3);
-  --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, white);
   --pub-home_card_title-text-color: #1967d2;
-  --pub-home_card_hover-background-color: #fafafa;
   --pub-home_card_hover-box_shadow-color: rgba(0, 0, 0, 0.4);
-  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
-  --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
   --pub-input-placeholder-color: #888;
-  --pub-pkg_list_item_hover-background-color: #fafafa;
   --pub-pkg_list_recent_item-text-color: #6d7278;
-  --pub-remove_button-background-color: #ff4242;
-  --pub-remove_button-text-color: #ffffff;
+  --pub-remove_button-background-color: var(--pub-color-dangerRed);
+  --pub-remove_button-text-color: var(--pub-color-white);
   --pub-report_header_score_error-text-color: #e13701;
   --pub-report_header_score_warning-text-color: #ffa500;  
-  --pub-report-hover-background-color: #f0f0f0;
   --pub-score_label-text-color: #6d7278;
   --pub-score_value-text-color: var(--pub-link-text-color);
   --pub-searchbar-background-color: #132030;
   --pub-searchbar-text-color: #8d9399;
   --pub-searchbar_input-background-color: #35404d;
-  --pub-searchbar_input-text-color: #ffffff;
-  --pub-search_completition_selected-background-color: #ccc;
+  --pub-searchbar_input-text-color: var(--pub-color-white);
+  --pub-searchbar_suggest-background-color: #25303d;
+  --pub-searchbar_suggest_hover-background-color: #455060;
+  --pub-searchbar_suggest-text-color: #a9a9a9;
   --pub-session_warning-background-color: #ffffaa;
   --pub-site_header_banner-background-color: #1C2834;
   --pub-site_header_banner-text-color: #f8f9fa;
@@ -66,19 +90,12 @@
   --pub-site_header_popup-background-color: #1f3044;
   --pub-site_header_popup-text-color: #f8f9fa;
   --pub-site_header_popup-border-color: #4a5868; // mix of bg+fg color
-  --pub-sort_control-background-color: #ffffff;
-  --pub-sort_control-text-color: var(--pub-default-text-color);
-  --pub-sort_control_hover-background-color: #f5f5f7;
-  --pub-sort_control_hover-text-color: var(--pub-default-text-color);
-  --pub-sort_control_selected-background-color: #e7f8ff;
-  --pub-sort_control_selected-text-color: var(--pub-default-text-color);
+  --pub-sort_control_hover-text-color: var(--pub-neutral-textColor);
+  --pub-sort_control_selected-text-color: var(--pub-neutral-textColor);
   --pub-spinner_frame-background-color: rgba(0, 0, 0, 0.2);
-  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
-  --pub-tag_simplebadge-background-color: #f0f0f0;
   --pub-tag_simplebadge-text-color: #444444;
   --pub_tag_simplebadge_warning-background-color: #c0392b;
   --pub_tag_simplebadge_warning-text-color: #f8f8f8;
-  --pub-tag_sdkbadge-background-color: #e7f8ff;
   --pub-tag_sdkbadge-separator-color: rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity;
   --pub-tag_sdkbadge-text-color: #1967d2;
   --pub-full_page_mask-background-color: rgba(0, 0, 0, 0.5); // Used to make the inaccessible UI parts fade into the background.
@@ -96,67 +113,69 @@
 }
 
 .dark-theme {
-  --pub-default-background-color: #212121;
-  --pub-default-text-color: #e0e0e0;
-  --pub-code-background-color: #474747;
-  --pub-code-text-color: var(--pub-default-text-color);
+  --pub-color-darkGunmetal:    #1f262a; // close to #1d2026
+  --pub-color-shadowBlack:     #373737;
+  --pub-color-anchorBlack:     #41424c;
+  --pub-color-nipponUltraBlue: #23607f;
+  --pub-color-gainsboro:       #dcdcdc;
+
+  --pub-neutral-bgColor:       var(--pub-color-darkGunmetal);
+  --pub-neutral-borderColor:   var(--pub-color-anchorBlack);
+  --pub-neutral-textColor:     var(--pub-color-gainsboro);
+  --pub-neutral-hover-bgColor: var(--pub-color-shadowBlack);
+  --pub-inset-bgColor:         var(--pub-color-anchorBlack);
+  --pub-selected-bgColor:      var(--pub-color-nipponUltraBlue);
+
+  // Note: these colors are copied from GitHub styles
+  --pub-markdown-alert-note:      #0969da; // accent-emphasis from GitHub
+  --pub-markdown-alert-tip:       #1f883d; // success-emphasis from GitHub
+  --pub-markdown-alert-important: #8250df; // done-emphasis from GitHub
+  --pub-markdown-alert-warning:   #9a6700; // attention-emphasis from GitHub
+  --pub-markdown-alert-caution:   #cf222e; // danger-emphasis from GitHub
+
+  --pub-code-text-color: var(--pub-neutral-textColor);
   --pub-link-text-color: #40c4ff;
   --pub-badge-default-color: var(--pub-link-text-color);
-  --pub-badge-red-color: #ff4242;
+  --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-copy_feedback-background-color: #404040;
-  --pub-detail_tab-background-color: var(--pub-code-background-color);
-  --pub-detail_tab-text-color: var(--pub-default-text-color);
+  --pub-detail_tab-text-color: var(--pub-neutral-textColor);
   --pub-detail_tab-underline-color: #888888;
-  --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-detail_tab-background-color) 20%);
+  --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-inset-bgColor) 20%);
   --pub-detail_tab-admin-color: #e03030;
   --pub-home_title-text-color: #31b0fc;
-  --pub-home_card-background-color: #303030;
   --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
-  --pub-home_card_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card-background-color));
   --pub-home_card_title-text-color: var(--pub-home_title-text-color);
-  --pub-home_card_hover-background-color: #383838;
   --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
-  --pub-home_card_hover_fadeout-background-value: linear-gradient(transparent 90%, var(--pub-home_card_hover-background-color));
-  --pub-pagination-background-color: var(--pub-code-background-color);
   --pub-pagination-active-color: var(--pub-link-text-color);
   --pub-pagination-inactive-color: #aaaaaa;
-  --pub-pkg_list_item_hover-background-color: #333333;
-  --pub-report-hover-background-color: #333333;
   --pub-score_label-text-color: #a0b0b8;
   --pub-score_value-text-color: var(--pub-link-text-color);
-  --pub-sort_control-background-color: #333333;
-  --pub-sort_control-text-color: var(--pub-default-text-color);
-  --pub-sort_control_hover-background-color: var(--pub-code-background-color);
-  --pub-sort_control_hover-text-color: var(--pub-default-text-color);
-  --pub-sort_control_selected-background-color: #206080;
-  --pub-sort_control_selected-text-color: var(--pub-default-text-color);
-  --pub-summary_hover-background-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-default-background-color) 80%);
-  --pub-tag_simplebadge-background-color: var(--pub-code-background-color);
-  --pub-tag_simplebadge-text-color: var(--pub-default-text-color);
-  --pub-tag_sdkbadge-background-color: #206080;
-  --pub-tag_sdkbadge-separator-color: var(--pub-default-text-color);
-  --pub-tag_sdkbadge-text-color: var(--pub-default-text-color);
+  --pub-sort_control_hover-text-color: var(--pub-neutral-textColor);
+  --pub-sort_control_selected-text-color: var(--pub-neutral-textColor);
+  --pub-tag_simplebadge-text-color: var(--pub-neutral-textColor);
+  --pub-tag_sdkbadge-separator-color: var(--pub-neutral-textColor);
+  --pub-tag_sdkbadge-text-color: var(--pub-neutral-textColor);
 
   // Material Design theme customizations
-  --mdc-theme-surface: var(--pub-default-background-color);
-  --mdc-theme-on-primary: var(--pub-default-text-color);
-  --mdc-theme-on-secondary: var(--pub-default-text-color);
-  --mdc-theme-on-surface: var(--pub-default-text-color);
+  --mdc-theme-surface: var(--pub-neutral-bgColor);
+  --mdc-theme-on-primary: var(--pub-neutral-textColor);
+  --mdc-theme-on-secondary: var(--pub-neutral-textColor);
+  --mdc-theme-on-surface: var(--pub-neutral-textColor);
   --mdc-checkbox-unchecked-color: #777777;
   --mdc-checkbox-disabled-color: #666666;
   --mdc-filled-button-container-color: rgba(255, 255, 255, 0.1);
-  --mdc-filled-button-label-text-color: var(--pub-default-text-color);
+  --mdc-filled-button-label-text-color: var(--pub-neutral-textColor);
   --mdc-protected-button-disabled-container-color: rgba(255, 255, 255, 0.1);
-  --mdc-protected-button-disabled-label-text-color: var(--pub-default-text-color);
+  --mdc-protected-button-disabled-label-text-color: var(--pub-neutral-textColor);
 
   // Pub-specific Material Design overrides
   --mdc_pub-data_table-border-color: var(--mdc-checkbox-unchecked-color);
   --mdc_pub-select-background-color: rgba(255, 255, 255, 0.1);
   --mdc_pub-select-label-color: var(--pub-link-text-color);
-  --mdc_pub-select-text-color: var(--pub-default-text-color);
+  --mdc_pub-select-text-color: var(--pub-neutral-textColor);
   --mdc_pub-text_field-background-color: rgba(255, 255, 255, 0.1);
   --mdc_pub-text_field-border-color: var(--mdc-checkbox-unchecked-color);
-  --mdc_pub-text_field-text-color: var(--pub-default-text-color);
+  --mdc_pub-text_field-text-color: var(--pub-neutral-textColor);
 
   // Most of our SVG images are black on transparent background and they
   // are almost invisible in dark mode. Ideally we would have different
@@ -194,8 +213,6 @@ $device-tablet-max-width: 979px;
 $z-index-nav-mask: 1000;
 
 $site-max-width: 1136px;
-
-$color-input-danger: #ff4242;
 
 // NOTE: keep in sync with hoverable.dart 900ms delay
 $copy-feedback-transition-opacity-delay: 0.9s;

@@ -5,8 +5,8 @@
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/frontend/handlers/report.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/shared/email.dart';
 
 import 'actions.dart';
 
@@ -22,7 +22,7 @@ Returns the fields on the newly created moderation case.
         'The email of the reporter. (default value: `support@pub.dev`)',
     'kind': 'The kind of the moderation case. (default value: `notification`)',
     'source':
-        'The source of the moderation case. (default value: `internal-notification`)',
+        'The source of the moderation case. (default value: `trusted-flagger`)',
     'subject': 'The subject of the moderation case.',
     'url': 'The url of the moderation case (optional).'
   },
@@ -37,7 +37,7 @@ Returns the fields on the newly created moderation case.
     InvalidInputException.check(
         ModerationKind.isValidKind(kind), 'invalid kind');
 
-    final source = options['source'] ?? ModerationSource.internalNotification;
+    final source = options['source'] ?? ModerationSource.trustedFlagger;
     InvalidInputException.check(
         ModerationSource.isValidSource(source), 'invalid source');
 

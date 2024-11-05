@@ -8,7 +8,6 @@ import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
 import '../../task/backend.dart';
-import '../../tool/maintenance/update_public_bucket.dart';
 import 'actions.dart';
 
 final moderatePackage = AdminAction(
@@ -22,7 +21,8 @@ Note: the action may take a longer time to complete as the public archive bucket
       archive files will be copied over from the (private) canonical archive bucket.
 ''',
   options: {
-    'case': 'The ModerationCase.caseId that this action is part of.',
+    'case':
+        'The ModerationCase.caseId that this action is part of (or `none`).',
     'package': 'The package name to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
@@ -82,7 +82,7 @@ Note: the action may take a longer time to complete as the public archive bucket
       });
 
       // retract or re-populate public archive files
-      await updatePublicArchiveBucket(
+      await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

@@ -32,35 +32,16 @@ import 'cache_control.dart';
 final _log = Logger('pub.handlers.misc');
 
 /// Handles requests for /help
-Future<shelf.Response> helpPageHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpPage());
-}
-
-/// Handles requests for /help/api
-Future<shelf.Response> helpApiPageHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpApiPage());
-}
-
-/// Handles requests for /help/scoring
-Future<shelf.Response> helpPageScoringHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpScoringPage());
-}
-
-/// Handles requests for /help/content-moderation
-Future<shelf.Response> helpPageContentModerationHandler(
-  shelf.Request request,
-) async {
-  return htmlResponse(renderHelpContentModerationPage());
-}
-
-/// Handles requests for /help/search
-Future<shelf.Response> helpPageSearchHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpSearchPage());
-}
-
-/// Handles requests for /help/publishing
-Future<shelf.Response> helpPagePublishingHandler(shelf.Request request) async {
-  return htmlResponse(renderHelpPublishingPage());
+/// Handles requests for /help/<article>
+Future<shelf.Response> helpPageHandler(
+  shelf.Request request, {
+  String? article,
+}) async {
+  final html = renderHelpPage(article: article);
+  if (html == null) {
+    return notFoundHandler(request);
+  }
+  return htmlResponse(html);
 }
 
 /// Handles requests for /policy
@@ -91,7 +72,7 @@ Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
 
 /// Handles requests for /topics
 Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
-  late Map<String, int> topics;
+  Map<String, int>? topics;
   try {
     final data = await cache.topicsPageData().get(() async {
       return await storageService
@@ -102,16 +83,14 @@ Future<shelf.Response> topicsPageHandler(shelf.Request request) async {
     topics = (utf8JsonDecoder.convert(data!) as Map<String, dynamic>)
         .cast<String, int>();
   } on FormatException catch (e, st) {
-    topics = {};
     _log.shout('Error loading topics, error:', e, st);
   } on DetailedApiRequestError catch (e, st) {
-    topics = {};
     if (e.status != 404) {
       _log.severe('Failed to load topics.json, error : ', e, st);
     }
   }
 
-  return htmlResponse(renderTopicsPage(topics));
+  return htmlResponse(renderTopicsPage(topics ?? {}));
 }
 
 /// Handles requests for /robots.txt

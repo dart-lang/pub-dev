@@ -14,11 +14,10 @@ import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
+import '../service/email/email_templates.dart' show createInviteEmail;
 import '../shared/datastore.dart';
-import '../shared/email.dart' show createInviteEmail;
 import '../shared/exceptions.dart';
 import '../shared/urls.dart';
-
 import 'backend.dart';
 import 'models.dart';
 
@@ -61,7 +60,7 @@ class ConsentBackend {
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind]!;
     final fromAgent = c.fromAgent!;
-    late String invitingUserEmail;
+    final String invitingUserEmail;
     if (looksLikeUserId(fromAgent)) {
       invitingUserEmail = (await accountBackend.getEmailOfUserId(fromAgent))!;
     } else {
@@ -231,7 +230,7 @@ class ConsentBackend {
   Future<void> deleteObsoleteConsents() async {
     final query = _db.query<Consent>()
       ..filter('expires <', clock.now().toUtc());
-    await for (var entry in query.run()) {
+    await for (final entry in query.run()) {
       try {
         await _delete(entry, (a) => a.onExpire(entry));
       } catch (e) {

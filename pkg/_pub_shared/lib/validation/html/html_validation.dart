@@ -29,7 +29,7 @@ void parseAndValidateHtml(String html) {
 /// - `<script> tags have no `src` attribute or have content (except `ld+json`
 ///   meta content).
 void validateHtml(Node root) {
-  late List<Element> Function(String selector) querySelectorAll;
+  final List<Element> Function(String selector) querySelectorAll;
   if (root is DocumentFragment) {
     querySelectorAll = root.querySelectorAll;
   } else if (root is Document) {
@@ -60,7 +60,7 @@ void validateHtml(Node root) {
 
   // All <a target="_blank"> links must have rel="noopener"
   final links = querySelectorAll('a');
-  for (Element elem in links) {
+  for (final elem in links) {
     if (elem.attributes['target'] == '_blank') {
       if (!elem.attributes.containsKey('rel')) {
         throw AssertionError(
@@ -117,7 +117,7 @@ void validateHtml(Node root) {
 
   // No inline script tag.
   final scripts = querySelectorAll('script');
-  for (Element elem in scripts) {
+  for (final elem in scripts) {
     if (elem.attributes['type'] == 'application/ld+json') {
       if (elem.attributes.length != 1) {
         throw AssertionError(

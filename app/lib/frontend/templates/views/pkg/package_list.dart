@@ -6,7 +6,6 @@ import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
-import 'package:pana/pana.dart';
 
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
@@ -148,10 +147,10 @@ d.Node _packageItem(
     thumbnailUrl = imageStorage.getImageUrl(
         view.name, releases.stable.version, screenshots.first.webp100Thumbnail);
 
-    for (ProcessedScreenshot s in screenshots) {
+    for (final screenshot in screenshots) {
       screenshotUrls.add(imageStorage.getImageUrl(
-          view.name, releases.stable.version, s.webpImage));
-      screenshotDescriptions.add(s.description);
+          view.name, releases.stable.version, screenshot.webpImage));
+      screenshotDescriptions.add(screenshot.description);
     }
   }
 

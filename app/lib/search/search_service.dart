@@ -73,6 +73,7 @@ class PackageDocument {
 
   final List<String> tags;
 
+  final int downloadCount;
   final int likeCount;
 
   /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
@@ -105,6 +106,7 @@ class PackageDocument {
     DateTime? updated,
     this.readme = '',
     List<String>? tags,
+    int? downloadCount,
     int? likeCount,
     this.likeScore,
     this.popularityScore,
@@ -116,6 +118,7 @@ class PackageDocument {
     this.sourceUpdated,
   })  : created = created ?? clock.now(),
         updated = updated ?? clock.now(),
+        downloadCount = downloadCount ?? 0,
         likeCount = likeCount ?? 0,
         grantedPoints = grantedPoints ?? 0,
         maxPoints = maxPoints ?? 0,
@@ -128,7 +131,7 @@ class PackageDocument {
   Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
 
   @JsonKey(includeFromJson: false, includeToJson: false)
-  late final tagsForLookup = Set<String>.from(tags);
+  late final Set<String> tagsForLookup = Set.of(tags);
 }
 
 /// A reference to an API doc page
@@ -303,8 +306,15 @@ class QueryValidity {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class PackageSearchResult {
-  final DateTime? timestamp;
+  final DateTime timestamp;
   final int totalCount;
+
+  /// Package names that are exact name matches or close to (e.g. names that
+  /// would be considered as blocker for publishing).
+  final List<String>? nameMatches;
+
+  /// Topic names that are exact name matches or close to the queried text.
+  final List<String>? topicMatches;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
 
@@ -317,32 +327,49 @@ class PackageSearchResult {
   PackageSearchResult({
     required this.timestamp,
     required this.totalCount,
+    this.nameMatches,
+    this.topicMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.errorMessage,
-    this.statusCode,
-  })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
-        packageHits = packageHits ?? <PackageHit>[];
+    int? statusCode,
+  })  : packageHits = packageHits ?? <PackageHit>[],
+        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
+        statusCode = statusCode;
 
-  PackageSearchResult.empty({this.errorMessage, this.statusCode})
-      : timestamp = clock.now().toUtc(),
+  PackageSearchResult.error({
+    required this.errorMessage,
+    required this.statusCode,
+  })  : timestamp = clock.now().toUtc(),
         totalCount = 0,
+        nameMatches = null,
+        topicMatches = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
-  factory PackageSearchResult.fromJson(Map<String, dynamic> json) {
-    return _$PackageSearchResultFromJson({
-      // TODO: remove fallback in the next release
-      'errorMessage': json['message'],
-      ...json,
-    });
-  }
+  factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
+      _$PackageSearchResultFromJson(json);
 
-  Duration get age => clock.now().difference(timestamp!);
+  Duration get age => clock.now().difference(timestamp);
 
   Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 
   bool get isEmpty => packageHits.isEmpty && sdkLibraryHits.isEmpty;
+
+  PackageSearchResult change({
+    List<SdkLibraryHit>? sdkLibraryHits,
+  }) {
+    return PackageSearchResult(
+      timestamp: timestamp,
+      totalCount: totalCount,
+      nameMatches: nameMatches,
+      topicMatches: topicMatches,
+      sdkLibraryHits: sdkLibraryHits ?? this.sdkLibraryHits,
+      packageHits: packageHits,
+      errorMessage: errorMessage,
+      statusCode: statusCode,
+    );
+  }
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

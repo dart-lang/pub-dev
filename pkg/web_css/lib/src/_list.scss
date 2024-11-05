@@ -36,12 +36,16 @@
   }
 
   .count {
-    background: var(--pub-code-background-color);
+    background: var(--pub-inset-bgColor);
     display: inline-block;
     font-size: 12px;
     font-family: monospace;
     padding: 5px;
   }
+}
+
+.listing-highlight-block {
+  margin: 8px 0px;
 }
 
 .sort-control {
@@ -60,19 +64,19 @@
     .sort-control-option {
       display: block;
       width: 100%;
-      background: var(--pub-sort_control-background-color);
-      color: var(--pub-sort_control-text-color);
+      background: var(--pub-neutral-bgColor);
+      color: var(--pub-neutral-textColor);
       font-size: 14px;
       padding: 12px 12px;
       text-align: left;
 
       &:hover {
-        background: var(--pub-sort_control_hover-background-color);
+        background: var(--pub-neutral-hover-bgColor);
         color: var(--pub-sort_control_hover-text-color);
       }
 
       &.selected {
-        background: var(--pub-sort_control_selected-background-color);
+        background: var(--pub-selected-bgColor);
         color: var(--pub-sort_control_selected-text-color);
       }
     }
@@ -190,7 +194,7 @@
     padding: 15px 30px;
 
     &:hover {
-      background: var(--pub-pkg_list_item_hover-background-color);
+      background: var(--pub-neutral-hover-bgColor);
     }
   }
 
@@ -305,7 +309,7 @@
     margin-right: 8px;
 
     &:hover {
-      background: var(--pub-pkg_list_item_hover-background-color);
+      background: var(--pub-neutral-hover-bgColor);
     }
 
     .publishers-item-title {
@@ -334,7 +338,7 @@
     display: inline-block;
     text-transform: uppercase;
     color: var(--pub-pagination-active-color);
-    background: var(--pub-pagination-background-color);
+    background: var(--pub-inset-bgColor);
     font-size: 14px;
     border-radius: 3px;
     margin-top: 40px;
@@ -346,7 +350,7 @@
 
     &.-active {
       pointer-events: none;
-      color: var(--pub-pagination-background-color);
+      color: var(--pub-inset-bgColor);
       background: var(--pub-pagination-active-color);
     }
 
@@ -427,11 +431,11 @@
     cursor: pointer;
 
     &:hover {
-      background-color: var(--pub-code-background-color);
+      background-color: var(--pub-inset-bgColor);
     }
 
     a {
-      color: var(--pub-default-text-color);
+      color: var(--pub-neutral-textColor);
     }
 
     label {

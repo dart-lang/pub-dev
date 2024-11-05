@@ -16,7 +16,7 @@ import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';
 import 'src/scroll.dart';
 import 'src/search.dart';
-import 'src/widgets.dart' show setupWidgets;
+import 'src/widget/widget.dart' show setupWidgets;
 
 void main() {
   window.onLoad.listen((_) => mdc.autoInit());

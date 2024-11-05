@@ -48,15 +48,24 @@ void main() {
       expressions.removeWhere(
           (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
       expressions.removeWhere((e) => e.startsWith('package-badge-'));
+      expressions.removeWhere((e) => e.startsWith('pub-toc-node-'));
       // shared CSS file (with dartdoc)
       expressions.removeAll([
         'cookie-notice-container',
         'cookie-notice-button',
       ]);
+      // markdown alert classes
+      expressions.removeAll([
+        'markdown-alert-note',
+        'markdown-alert-tip',
+        'markdown-alert-important',
+        'markdown-alert-warning',
+        'markdown-alert-caution',
+        'markdown-alert-title',
+      ]);
 
       // remove third-party css expressions
       final thirdPartyCss = [
-        '../../third_party/css/dartdoc-github-alert.css',
         '../../third_party/css/github-markdown.css',
         '../../third_party/highlight/github.css',
         '../../third_party/highlight/github-dark.css',

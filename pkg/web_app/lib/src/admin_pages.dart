@@ -37,7 +37,7 @@ void _initGenericForm() {
       button.onClick.listen((event) async {
         final body = <String, Object?>{};
         for (final field in form.querySelectorAll('[name]')) {
-          final name = field.attributes['name']!;
+          final name = field.getAttribute('name')!;
           if (field is InputElement &&
               !(field.disabled ?? false) &&
               field.value != null) {
@@ -54,7 +54,7 @@ void _initGenericForm() {
               api_client.sendJson(verb: 'POST', path: endpoint, body: body),
           successMessage: null,
           onSuccess: (r) async {
-            final result = r ?? <String, dynamic>{};
+            final result = r ?? {};
             // Goto a new location to display the feedback message.
             if (onSuccessGotoUrl != null) {
               window.location.href = onSuccessGotoUrl;
@@ -125,10 +125,9 @@ class _PkgAdminWidget {
         .getElementById('-admin-restore-retract-package-version-button');
     _restoreRetractPackageVersionButton?.onClick
         .listen((_) => _restoreRetracted());
-    if (_inviteUploaderContent != null) {
-      _inviteUploaderContent!.remove();
-      _inviteUploaderContent!.classes.remove('modal-content-hidden');
-    }
+    _inviteUploaderContent
+      ?..classes.remove('modal-content-hidden')
+      ..remove();
     for (final btn
         in document.querySelectorAll('.-pub-remove-uploader-button')) {
       btn.onClick.listen((_) => _removeUploader(btn.dataset['email']!));
@@ -174,7 +173,7 @@ class _PkgAdminWidget {
           await api_client.client.setAutomatedPublishing(
             pageData.pkgData!.package,
             AutomatedPublishingConfig(
-              github: GithubPublishingConfig(
+              github: GitHubPublishingConfig(
                 isEnabled: githubEnabledCheckbox!.checked ?? false,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
@@ -205,7 +204,7 @@ class _PkgAdminWidget {
       isQuestion: true,
       okButtonText: 'Invite',
       content: _inviteUploaderContent!,
-      onExecute: () => _doInviteUploader(),
+      onExecute: _doInviteUploader,
     );
   }
 
@@ -495,7 +494,7 @@ class _PublisherAdminWidget {
       isQuestion: true,
       okButtonText: 'Add',
       content: _addMemberContent!,
-      onExecute: () => _inviteMember(),
+      onExecute: _inviteMember,
     );
   }
 
@@ -553,7 +552,7 @@ class _ConsentWidget {
 
   void _updateButtons(bool? granted) {
     final text = granted! ? 'Consent accepted.' : 'Consent rejected.';
-    _buttons!.replaceWith(Element.p()..text = text);
+    _buttons!.replaceWith(ParagraphElement()..text = text);
   }
 
   Future<void> _accept() async {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Tags(['presubmit-only'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -55,7 +57,7 @@ void main() {
       final token = JsonWebToken.parse(tokenValue);
 
       // verify signature
-      final githubData = await fetchGithubOpenIdData();
+      final githubData = await fetchGitHubOpenIdData();
       expect(await token.verifySignature(githubData.jwks), isTrue);
 
       // verify headers

@@ -28,7 +28,8 @@ and actions that they may be able to do will be blocked because of that.
 The active web sessions of the user will be expired.
 ''',
   options: {
-    'case': 'The ModerationCase.caseId that this action is part of.',
+    'case':
+        'The ModerationCase.caseId that this action is part of (or `none`).',
     'user': 'The user-id or the email of the user to be moderated',
     'reason': 'The reason for user moderation.',
     'state':

@@ -170,7 +170,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
     if (payload == null) {
       throw AuthenticationException.tokenInvalid('unable to parse payload');
     }
-    return AuthenticatedGithubAction(
+    return AuthenticatedGitHubAction(
       idToken: idToken,
       payload: payload,
     );
@@ -241,7 +241,7 @@ class AccountBackend {
   /// Uses in-memory cache to store entries locally for up to 10 minutes.
   Future<List<String?>> getEmailsOfUserIds(List<String> userIds) async {
     final result = <String?>[];
-    for (String userId in userIds) {
+    for (final userId in userIds) {
       result.add(await getEmailOfUserId(userId));
     }
     return result;

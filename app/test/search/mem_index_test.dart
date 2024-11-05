@@ -91,6 +91,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
+        'nameMatches': ['async'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'async', 'score': closeTo(0.65, 0.01)},
@@ -249,6 +250,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
+        'nameMatches': ['http'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http'},
@@ -594,7 +596,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             description: 'def xyz',
             maxPoints: 100,
             grantedPoints: 0,
-            tags: ['sdk:dart'],
+            tags: ['sdk:dart', 'sdk:flutter'],
           ),
           PackageDocument(
             package: 'def',
@@ -623,11 +625,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             (index.search(ServiceSearchQuery.parse(query: 'abc'))).toJson(), {
           'timestamp': isNotEmpty,
           'totalCount': 2,
+          'nameMatches': ['abc'],
           'sdkLibraryHits': [],
           'packageHits': [
-            // `abc` is first, despite its lower score
-            {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+            // `abc` is at its natural place
             {'package': 'def', 'score': closeTo(0.69, 0.01)},
+            {'package': 'abc', 'score': closeTo(0.48, 0.01)},
           ]
         });
         // exact name match with tags
@@ -637,10 +640,25 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             {
               'timestamp': isNotEmpty,
               'totalCount': 2,
+              'nameMatches': ['abc'],
               'sdkLibraryHits': [],
               'packageHits': [
-                // `abc` is first, despite its lower score
+                // `abc` is at its natural place
+                {'package': 'def', 'score': closeTo(0.69, 0.01)},
                 {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+              ]
+            });
+        // absent exact name match with tags
+        expect(
+            (index.search(ServiceSearchQuery.parse(query: 'abc -sdk:flutter')))
+                .toJson(),
+            {
+              'timestamp': isNotEmpty,
+              'totalCount': 1,
+              'nameMatches': ['abc'],
+              'sdkLibraryHits': [],
+              'packageHits': [
+                // `abc` is not present in the package list
                 {'package': 'def', 'score': closeTo(0.69, 0.01)},
               ]
             });
