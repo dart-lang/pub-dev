@@ -275,14 +275,12 @@ final class ExportedPackage {
   ) async {
     await Future.wait([
       ..._owner._prefixes.map((prefix) async {
-        final pfx = prefix + '/api/archives/$_package-';
+        final pfx = '$prefix/api/archives/$_package-';
 
         final versionsForUpload = versions.keys.toSet();
         await _owner._listBucket(prefix: pfx, delimiter: '', (entry) async {
           final item = switch (entry) {
-            final BucketDirectoryEntry _ => throw AssertionError(
-                'directory entries should not be possible',
-              ),
+            final BucketDirectoryEntry _ => throw AssertionError('unreachable'),
             final BucketObjectEntry item => item,
           };
           if (!item.name.endsWith('.tar.gz')) {
@@ -561,6 +559,18 @@ final class ExportedBlob extends ExportedObject {
     }));
   }
 
+  /// Copy from [source] to [prefix] if required by [destinationInfo].
+  ///
+  /// This will skip copying if [destinationInfo] indicates that the file
+  /// already exists, and the [ObjectInfo.length] and [ObjectInfo.md5Hash]
+  /// indicates that the contents is the same as [source].
+  ///
+  /// Even if the copy is skipped, this will update the [_validatedCustomHeader]
+  /// header, if it's older than [_updateValidatedAfter]. This ensures that we
+  /// can detect stray files that are not being updated (but also not deleted).
+  ///
+  /// Throws, if [destinationInfo] is not `null` and its [ObjectInfo.name]
+  /// doesn't match the intended target object in [prefix].
   Future<void> _copyToPrefixFromIfNotContentEquals(
     String prefix,
     SourceObjectInfo source,
@@ -569,14 +579,22 @@ final class ExportedBlob extends ExportedObject {
     final dst = prefix + _objectName;
 
     // Check if the dst already exists
-    if (destinationInfo case final dstInfo?) {
-      if (dstInfo.contentEquals(source)) {
+    if (destinationInfo != null) {
+      if (destinationInfo.name != dst) {
+        throw ArgumentError.value(
+          destinationInfo,
+          'destinationInfo',
+          'should have name "$dst" not "${destinationInfo.name}"',
+        );
+      }
+
+      if (destinationInfo.contentEquals(source)) {
         // If both source and dst exists, and their content matches, then
         // we only need to update the "validated" metadata. And we only
         // need to update the "validated" timestamp if it's older than
         // _retouchDeadline
         final retouchDeadline = clock.agoBy(_updateValidatedAfter);
-        if (dstInfo.metadata.validated.isBefore(retouchDeadline)) {
+        if (destinationInfo.metadata.validated.isBefore(retouchDeadline)) {
           await _owner._bucket.updateMetadata(dst, _metadata());
         }
         return;
