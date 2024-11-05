@@ -69,5 +69,12 @@ void main() {
         'topic:widget abc',
       );
     });
+
+    test('query with topic shortcut `#`', () {
+      expect(
+        canonicalizeSearchForm(_parse('#widget #testing'))?.query,
+        'topic:widget topic:testing',
+      );
+    });
   });
 }
