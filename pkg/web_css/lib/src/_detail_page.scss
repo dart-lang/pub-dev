@@ -234,6 +234,54 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   filter: brightness(50%);
 }
 
+
+.weekly-downloads-sparkline {
+  display: flex;
+  height: 105px;
+  width: 190px;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.weekly-downloads-sparkline-text {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--pub-weekly-chart-main-color);
+}
+
+.weekly-downloads-sparkline-tooltip {
+  border-radius: 5px;
+  margin: 0px;
+  padding: 2px 8px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  color: white;
+  background-color: var(--pub-weekly-chart-main-color);
+  opacity: 1;
+  z-index: 100000;
+  position: absolute;
+}
+
+.weekly-sparkline {
+  fill: var(--pub-weekly-chart-main-color);
+}
+
+.weekly-sparkline-bar {
+  stroke: var(--pub-weekly-chart-main-color);
+  stroke-width: 1.5;
+}
+
+.weekly-sparkline-line {
+  fill: none;
+  stroke: var(--pub-weekly-chart-main-color);
+  stroke-width: 2;
+}
+
+.weekly-sparkline-area {
+  fill: var(--pub-weekly-chart-main-color);
+  opacity: 0.3;
+  stroke-width: 0;
+}
+
 @media (min-width: $device-desktop-min-width) {
   .detail-body {
 
