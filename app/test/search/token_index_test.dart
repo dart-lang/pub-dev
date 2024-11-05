@@ -68,7 +68,7 @@ void main() {
       });
 
       expect(index.search('riak client'), {
-        'uri://riak_client': closeTo(0.99, 0.01),
+        'uri://riak_client': closeTo(0.98, 0.01),
       });
     });
 

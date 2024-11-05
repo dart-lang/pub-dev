@@ -147,15 +147,11 @@ class TokenIndex {
   /// Maps token Strings to a weighted documents (addressed via indexes).
   final _inverseIds = <String, Map<int, double>>{};
 
-  /// {id: size} map to store a value representative to the document length
-  late final List<double> _docWeights;
-
-  late final _length = _docWeights.length;
+  late final _length = _ids.length;
 
   TokenIndex(List<String> ids, List<String?> values) : _ids = ids {
     assert(ids.length == values.length);
     final length = values.length;
-    _docWeights = List<double>.filled(length, 0.0);
     for (var i = 0; i < length; i++) {
       final text = values[i];
 
@@ -166,12 +162,12 @@ class TokenIndex {
       if (tokens == null || tokens.isEmpty) {
         continue;
       }
+      // Document weight is a highly scaled-down proxy of the length.
+      final dw = 1 + math.log(1 + tokens.length) / 100;
       for (final token in tokens.keys) {
         final weights = _inverseIds.putIfAbsent(token, () => {});
-        weights[i] = math.max(weights[i] ?? 0.0, tokens[token]!);
+        weights[i] = math.max(weights[i] ?? 0.0, tokens[token]! / dw);
       }
-      // Document weight is a highly scaled-down proxy of the length.
-      _docWeights[i] = 1 + math.log(1 + tokens.length) / 100;
     }
   }
 
@@ -215,7 +211,7 @@ class TokenIndex {
   /// When [limitToIds] is specified, the result will contain only the set of
   /// identifiers in it.
   Map<String, double> _scoreDocs(TokenMatch tokenMatch,
-      {double weight = 1.0, int wordCount = 1, Set<String>? limitToIds}) {
+      {double weight = 1.0, Set<String>? limitToIds}) {
     // Summarize the scores for the documents.
     final docScores = List<double>.filled(_length, 0.0);
     for (final token in tokenMatch.tokens) {
@@ -225,11 +221,6 @@ class TokenIndex {
         docScores[i] = math.max(docScores[i], tokenMatch[token]! * e.value);
       }
     }
-
-    // In multi-word queries we will penalize the score with the document size
-    // for each word separately. As these scores will be multiplied, we need to
-    // compensate the formula in order to prevent multiple exponential penalties.
-    final double wordSizeExponent = 1.0 / wordCount;
 
     final result = <String, double>{};
     // post-process match weights
@@ -242,11 +233,7 @@ class TokenIndex {
       if (limitToIds != null && !limitToIds.contains(id)) {
         continue;
       }
-      var dw = _docWeights[i];
-      if (wordCount > 1) {
-        dw = math.pow(dw, wordSizeExponent).toDouble();
-      }
-      result[id] = w * weight / dw;
+      result[id] = w * weight;
     }
     return result;
   }
@@ -255,7 +242,7 @@ class TokenIndex {
   /// scoring.
   @visibleForTesting
   Map<String, double> search(String text) {
-    return _scoreDocs(lookupTokens(text));
+    return searchWords(splitForQuery(text))._values;
   }
 
   /// Search the index for [words], with a (term-match / document coverage percent)
@@ -271,7 +258,6 @@ class TokenIndex {
       final values = _scoreDocs(
         tokens,
         weight: weight,
-        wordCount: words.length,
         limitToIds: limitToIds,
       );
       if (values.isEmpty) {
