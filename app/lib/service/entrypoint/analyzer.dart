@@ -19,6 +19,7 @@ import '../../shared/popularity_storage.dart';
 import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
+import '../download_counts/backend.dart';
 import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
@@ -63,6 +64,7 @@ Future _workerMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
 
   await popularityStorage.start();
+  await downloadCountsBackend.start();
   await taskBackend.start();
 
   setupAnalyzerPeriodicTasks();
@@ -75,11 +77,13 @@ Future _workerMain(EntryMessage message) async {
 Future _indexBuilderMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
+  await downloadCountsBackend.start();
   await searchBackend.updateSnapshotInForeverLoop();
 }
 
 Future _apiExporterMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
+  await downloadCountsBackend.start();
   await apiExporter!.uploadInForeverLoop();
 }
