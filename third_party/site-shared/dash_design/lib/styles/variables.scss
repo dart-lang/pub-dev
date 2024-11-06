@@ -1,0 +1,52 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// styles/variables.scss:
+///
+/// Mixins that can be included to load CSS custom properties (variables)
+/// into any desired scope.
+
+/// Shared typography CSS variables.
+@mixin typography {
+  /// Used for body text and smaller UI elements, like labels.
+  --dash-default-fontFamily: 'Roboto', sans-serif;
+
+  /// Used for headlines, titles, and larger UI elements.
+  --dash-display-fontFamily: 'Roboto', sans-serif;
+
+  /// Used for monospace text, such as code blocks.
+  --dash-mono-fontFamily: 'Roboto Mono', 'Source Code Pro', 'Cascadia Mono', 'JetBrains Mono', monospace;
+
+  /// Used for icons, such as the magnifying glass for search.
+  --dash-symbol-fontFamily: 'Material Symbols', 'Material Symbols Outlined';
+}
+
+/// Color-related, theme-agnostic CSS variables.
+@mixin shared-colors {
+
+}
+
+/// Light-theme specific CSS variables.
+@mixin light-theme {
+  /// The default text color, used for body text.
+  --dash-surface-fgColor: #4a4a4a;
+}
+
+/// Dark-theme specific CSS variables.
+@mixin dark-theme {
+  --dash-surface-fgColor: #dcdcdc;
+}
+
+/// CSS variables that specify values that can only be used by Google sites,
+/// such as enabling the Google Sans font families.
+///
+/// These overrides should be included after all other variables are defined.
+@mixin google-overrides {
+  // Non-Google sites, such as self-hosted API docs,
+  // can't use Google Sans or Google Symbols.
+  --dash-default-fontFamily: 'Google Sans Text', 'Google Sans', 'Roboto', sans-serif;
+  --dash-display-fontFamily: 'Google Sans', 'Google Sans Text', 'Roboto', sans-serif;
+  --dash-mono-fontFamily: 'Google Sans Mono', 'Roboto Mono', 'Source Code Pro', 'Cascadia Mono', 'JetBrains Mono', monospace;
+  --dash-symbol-fontFamily: 'Google Symbols', 'Material Symbols', 'Material Symbols Outlined';
+}
