@@ -113,16 +113,13 @@ class InMemoryPackageIndex {
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
-    final packages = Set<String>.of(_documentsByName.keys);
+    final packageScores = IndexedScore(_packageNameIndex._packageNames, 1.0);
 
     // filter on package prefix
     if (query.parsedQuery.packagePrefix != null) {
       final String prefix = query.parsedQuery.packagePrefix!.toLowerCase();
-      packages.removeWhere(
-        (package) => !_documentsByName[package]!
-            .package
-            .toLowerCase()
-            .startsWith(prefix),
+      packageScores.retainWhere(
+        (i, _) => _documents[i].packageNameLowerCased.startsWith(prefix),
       );
     }
 
@@ -130,14 +127,14 @@ class InMemoryPackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packages.retainWhere((package) => combinedTagsPredicate
-          .matches(_documentsByName[package]!.tagsForLookup));
+      packageScores.retainWhere(
+          (i, _) => combinedTagsPredicate.matches(_documents[i].tagsForLookup));
     }
 
     // filter on dependency
     if (query.parsedQuery.hasAnyDependency) {
-      packages.removeWhere((package) {
-        final doc = _documentsByName[package]!;
+      packageScores.removeWhere((i, _) {
+        final doc = _documents[i];
         if (doc.dependencies.isEmpty) return true;
         for (final dependency in query.parsedQuery.allDependencies) {
           if (!doc.dependencies.containsKey(dependency)) return true;
@@ -152,22 +149,18 @@ class InMemoryPackageIndex {
 
     // filter on points
     if (query.minPoints != null && query.minPoints! > 0) {
-      packages.removeWhere((package) {
-        final doc = _documentsByName[package]!;
-        return doc.grantedPoints < query.minPoints!;
-      });
+      packageScores.removeWhere(
+          (i, _) => _documents[i].grantedPoints < query.minPoints!);
     }
 
     // filter on updatedDuration
     final updatedDuration = query.parsedQuery.updatedDuration;
     if (updatedDuration != null && updatedDuration > Duration.zero) {
       final now = clock.now();
-      packages.removeWhere((package) {
-        final doc = _documentsByName[package]!;
-        final diff = now.difference(doc.updated);
-        return diff > updatedDuration;
-      });
+      packageScores.removeWhere(
+          (i, _) => now.difference(_documents[i].updated) > updatedDuration);
     }
+    final packages = packageScores.toKeySet();
 
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
