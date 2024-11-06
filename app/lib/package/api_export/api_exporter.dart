@@ -2,30 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:basics/basics.dart';
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
-import 'package:pool/pool.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
-import 'package:retry/retry.dart';
 
 import '../../search/backend.dart';
 import '../../shared/datastore.dart';
-import '../../shared/storage.dart';
 import '../../shared/versions.dart';
 import '../../task/global_lock.dart';
 import '../backend.dart';
 import '../models.dart';
 import 'exported_api.dart';
 
-final Logger _logger = Logger('export_api_to_bucket');
-
-/// The default concurrency to upload API JSON files to the bucket.
-const _defaultBucketUpdateConcurrency = 8;
+final Logger _log = Logger('api_exporter');
 
 /// Sets the API Exporter service.
 void registerApiExporter(ApiExporter value) =>
@@ -34,321 +28,220 @@ void registerApiExporter(ApiExporter value) =>
 /// The active API Exporter service or null if it hasn't been initialized.
 ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 
+const _concurrency = 30;
+
 class ApiExporter {
   final ExportedApi _api;
-  final Bucket _bucket;
-  final int _concurrency;
-  final _pkgLastUpdated = <String, _PkgUpdatedEvent>{};
+
+  /// If [stop] has been called to stop background processes.
+  ///
+  /// `null` when not started yet, or we have been fully stopped.
+  Completer<void>? _aborted;
+
+  /// If background processes created by [start] have stopped.
+  ///
+  /// This won't be resolved if [start] has not been called!
+  /// `null` when not started yet.
+  Completer<void>? _stopped;
 
   ApiExporter({
     required Bucket bucket,
-    int concurrency = _defaultBucketUpdateConcurrency,
-  })  : _api = ExportedApi(storageService, bucket),
-        _bucket = bucket,
-        _concurrency = concurrency;
+  }) : _api = ExportedApi(storageService, bucket);
 
-  /// Runs a forever loop and tries to get a global lock.
+  /// Start continuous background processes for scheduling of tasks.
   ///
-  /// Once it has the claim, it scans the package entities and uploads
-  /// the package API JSONs to the bucket.
-  /// Tracks the package updates for the next up-to 24 hours and writes
-  /// the API JSONs after every few minutes.
-  ///
-  /// When other process has the claim, the loop waits a minute before
-  /// attempting to get the claim.
-  Future<Never> uploadInForeverLoop() async {
-    final lock = GlobalLock.create(
-      '$runtimeVersion/package/update-api-bucket',
-      expiration: Duration(minutes: 20),
-    );
-    while (true) {
-      try {
-        await lock.withClaim((claim) async {
-          await incrementalPkgScanAndUpload(claim);
-        });
-      } catch (e, st) {
-        _logger.warning('Package API bucket update failed.', e, st);
-      }
-      // Wait for 1 minutes for sanity, before trying again.
-      await Future.delayed(Duration(minutes: 1));
+  /// Calling [start] without first calling [stop] is an error.
+  Future<void> start() async {
+    if (_aborted != null) {
+      throw StateError('ApiExporter.start() has already been called!');
     }
+    // Note: During testing we call [start] and [stop] in a [FakeAsync.run],
+    //       this only works because the completers are created here.
+    //       If we create the completers in the constructor which gets called
+    //       outside [FakeAsync.run], then this won't work.
+    //       In the future we hopefully support running the entire service using
+    //       FakeAsync, but this point we rely on completers being created when
+    //       [start] is called -- and not in the [ApiExporter] constructor.
+    final aborted = _aborted = Completer();
+    final stopped = _stopped = Completer();
+
+    // Start scanning for packages to be tracked
+    scheduleMicrotask(() async {
+      try {
+        // Create a lock for task scheduling, so tasks
+        final lock = GlobalLock.create(
+          '$runtimeVersion/package/scan-sync-export-api',
+          expiration: Duration(minutes: 25),
+        );
+
+        while (!aborted.isCompleted) {
+          // Acquire the global lock and scan for package changes while lock is
+          // valid.
+          try {
+            await lock.withClaim((claim) async {
+              await _scanForPackageUpdates(claim, abort: aborted);
+            }, abort: aborted);
+          } catch (e, st) {
+            // Log this as very bad, and then move on. Nothing good can come
+            // from straight up stopping.
+            _log.shout(
+              'scanning failed (will retry when lock becomes free)',
+              e,
+              st,
+            );
+            // Sleep 5 minutes to reduce risk of degenerate behavior
+            await Future.delayed(Duration(minutes: 5));
+          }
+        }
+      } catch (e, st) {
+        _log.severe('scanning loop crashed', e, st);
+      } finally {
+        _log.info('scanning loop stopped');
+        // Report background processes as stopped
+        stopped.complete();
+      }
+    });
+  }
+
+  /// Stop any background process that may be running.
+  ///
+  /// Calling this method is always safe.
+  Future<void> stop() async {
+    final aborted = _aborted;
+    if (aborted == null) {
+      return;
+    }
+    if (!aborted.isCompleted) {
+      aborted.complete();
+    }
+    await _stopped!.future;
+    _aborted = null;
+    _stopped = null;
   }
 
   /// Gets and uploads the package name completion data.
-  Future<void> uploadPkgNameCompletionData() async {
-    await _api.packageNameCompletionData
-        .write(await searchBackend.getPackageNameCompletionData());
+  Future<void> synchronizePackageNameCompletionData() async {
+    await _api.packageNameCompletionData.write(
+      await searchBackend.getPackageNameCompletionData(),
+    );
   }
 
-  Future<void> fullSync() async {
-    final invisiblePackageNames = await dbService
-        .query<ModeratedPackage>()
-        .run()
-        .map((mp) => mp.name!)
-        .toSet();
-
+  /// Synchronize all exported API.
+  ///
+  /// This is intended to be scheduled from a daily background task.
+  Future<void> synchronizeExportedApi() async {
     final allPackageNames = <String>{};
     final packageQuery = dbService.query<Package>();
     await packageQuery.run().parallelForEach(_concurrency, (pkg) async {
       final name = pkg.name!;
       if (pkg.isNotVisible) {
-        invisiblePackageNames.add(name);
         return;
       }
       allPackageNames.add(name);
 
       // TODO: Consider retries around all this logic
-      await syncPackage(name);
+      await synchronizePackage(name);
     });
 
-    final visibilityConflicts =
-        allPackageNames.intersection(invisiblePackageNames);
-    if (visibilityConflicts.isNotEmpty) {
-      // TODO: Shout into logs
-    }
+    await synchronizePackageNameCompletionData();
 
     await _api.garbageCollect(allPackageNames);
   }
 
-  /// Sync package and into [ExportedApi], this will GC, etc.
+  /// Sync package and into [ExportedApi], this will synchronize package into
+  /// [ExportedApi].
+  ///
+  /// This method will update [ExportedApi] ensuring:
+  ///  * Version listing for [package] is up-to-date,
+  ///  * Advisories for [package] is up-to-date,
+  ///  * Tarballs for each version of [package] is up-to-date,
+  ///  * Delete tarballs from old versions that no-longer exist.
   ///
   /// This is intended when:
   ///  * Running a full background synchronization.
-  ///  * When a change in [Package.updated] is detected (maybe???)
+  ///  * When a change in [Package.updated] is detected.
   ///  * A package is moderated, or other admin action is applied.
-  Future<void> syncPackage(String package) async {
+  Future<void> synchronizePackage(String package) async {
+    // TODO: Handle the case where [package] is deleted or invisible!
+    // TODO: We may need to delete the package, but only if it's not too recent!
     final versionListing = await packageBackend.listVersions(package);
     // TODO: Consider skipping the cache when fetching security advisories
     final advisories = await securityAdvisoryBackend.listAdvisoriesResponse(
       package,
     );
 
-    await Future.wait(versionListing.versions.map((v) async {
-      final version = v.version;
+    final versions = await packageBackend.tarballStorage
+        .listVersionsInCanonicalBucket(package);
 
-      // TODO: Will v.version work here, is the canonicalized version number?
-      final absoluteObjectName =
-          packageBackend.tarballStorage.getCanonicalBucketAbsoluteObjectName(
-        package,
-        version,
-      );
-      final info =
-          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
-        package,
-        version,
-      );
-      if (info == null) {
-        throw AssertionError(
-          'Expected an archive for "$package" and "$version" at '
-          '"$absoluteObjectName"',
-        );
-      }
+    // Remove versions that are not exposed in the public API.
+    versions.removeWhere(
+      (version, _) => !versionListing.versions.any((v) => v.version == version),
+    );
 
-      await _api.package(package).tarball(version).copyFrom(
-            absoluteObjectName,
-            info,
-          );
-    }));
-
+    await _api.package(package).synchronizeTarballs(versions);
     await _api.package(package).advisories.write(advisories);
     await _api.package(package).versions.write(versionListing);
-
-    // TODO: Is this the canonoical version? (probably)
-    final allVersions = versionListing.versions.map((v) => v.version).toSet();
-    await _api.package(package).garbageCollect(allVersions);
   }
 
-  /// Upload a single version of a new package.
-  ///
-  /// This is intended to be used when a new version of a package has been
-  /// published.
-  Future<void> uploadSingleVersion(
-    String package,
-    String version,
-  ) async {
-    final versionListing = await packageBackend.listVersions(package);
-
-    // TODO: Will v.version work here, is the canonicalized version number?
-    final absoluteObjectName =
-        packageBackend.tarballStorage.getCanonicalBucketAbsoluteObjectName(
-      package,
-      version,
-    );
-    final info =
-        await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
-      package,
-      version,
-    );
-    if (info == null) {
-      throw AssertionError(
-        'Expected an archive for "$package" and "$version" at '
-        '"$absoluteObjectName"',
-      );
-    }
-
-    await _api.package(package).tarball(version).copyFrom(
-          absoluteObjectName,
-          info,
-        );
-
-    await _api.package(package).versions.write(versionListing);
-  }
-
-  /// Note: there is no global locking here, the full scan should be called
-  /// only once every day, and it may be racing against the incremental
-  /// updates.
-  @visibleForTesting
-  Future<void> fullPkgScanAndUpload() async {
-    final pool = Pool(_concurrency);
-    final futures = <Future>[];
-    await for (final mp in dbService.query<ModeratedPackage>().run()) {
-      final f = pool.withResource(() => _deletePackageFromBucket(mp.name!));
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    futures.clear();
-
-    await for (final package in dbService.query<Package>().run()) {
-      final f = pool.withResource(() async {
-        if (package.isVisible) {
-          await _uploadPackageToBucket(package.name!);
-        } else {
-          await _deletePackageFromBucket(package.name!);
-        }
-      });
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    await pool.close();
-  }
-
-  @visibleForTesting
-  Future<void> incrementalPkgScanAndUpload(
+  /// Scan for updates from packages until [abort] is resolved, or [claim]
+  /// is lost.
+  Future<void> _scanForPackageUpdates(
     GlobalLockClaim claim, {
-    Duration sleepDuration = const Duration(minutes: 2),
+    Completer<void>? abort,
   }) async {
-    final pool = Pool(_concurrency);
-    // The claim will be released after a day, another process may
-    // start to upload the API JSONs from scratch again.
-    final workUntil = clock.now().add(Duration(days: 1));
+    abort ??= Completer<void>();
 
-    // start monitoring with a window of 7 days lookback
-    var lastQueryStarted = clock.now().subtract(Duration(days: 7));
-    while (claim.valid) {
-      final now = clock.now().toUtc();
-      if (now.isAfter(workUntil)) {
-        break;
+    // Map from package to updated that has been seen.
+    final seen = <String, DateTime>{};
+
+    // We will schedule longer overlaps every 6 hours.
+    var nextLongScan = clock.fromNow(hours: 6);
+
+    // In theory 30 minutes overlap should be enough. In practice we should
+    // allow an ample room for missed windows, and 3 days seems to be large enough.
+    var since = clock.ago(days: 3);
+    while (claim.valid && !abort.isCompleted) {
+      // Look at all packages changed in [since]
+      final q = dbService.query<Package>()
+        ..filter('updated >', since)
+        ..order('-updated');
+
+      if (clock.now().isAfter(nextLongScan)) {
+        // Next time we'll do a longer scan
+        since = clock.ago(days: 1);
+        nextLongScan = clock.fromNow(hours: 6);
+      } else {
+        // Next time we'll only consider changes since now - 30 minutes
+        since = clock.ago(minutes: 30);
       }
 
-      // clear old entries from last seen cache
-      _pkgLastUpdated.removeWhere((key, event) =>
-          now.difference(event.updated) > const Duration(hours: 1));
-
-      lastQueryStarted = now;
-      final futures = <Future>[];
-      final eventsSince = lastQueryStarted.subtract(Duration(minutes: 5));
-      await for (final event in _queryRecentPkgUpdatedEvents(eventsSince)) {
-        if (!claim.valid) {
-          break;
+      // Look at all packages that has changed
+      await for (final p in q.run()) {
+        // Abort, if claim is invalid or abort has been resolved!
+        if (!claim.valid || abort.isCompleted) {
+          return;
         }
-        final f = pool.withResource(() async {
-          if (!claim.valid) {
-            return;
-          }
-          final last = _pkgLastUpdated[event.package];
-          if (last != null && last.updated.isAtOrAfter(event.updated)) {
-            return;
-          }
-          _pkgLastUpdated[event.package] = event;
-          if (event.isVisible) {
-            await _uploadPackageToBucket(event.package);
-          } else {
-            await _deletePackageFromBucket(event.package);
-          }
-        });
-        futures.add(f);
-      }
-      await Future.wait(futures);
-      futures.clear();
-      await Future.delayed(sleepDuration);
-    }
-    await pool.close();
-  }
 
-  /// Updates the API files after a version has changed (e.g. new version was uploaded).
-  Future<void> updatePackageVersion(String package, String version) async {
-    await _uploadPackageToBucket(package);
-  }
+        // Check if the [updated] timestamp has been seen before.
+        // If so, we skip checking it!
+        final lastSeen = seen[p.name!];
+        if (lastSeen != null && lastSeen.toUtc() == p.updated!.toUtc()) {
+          continue;
+        }
+        // Remember the updated time for this package, so we don't check it
+        // again...
+        seen[p.name!] = p.updated!;
 
-  /// Uploads the package version API response bytes to the bucket, mirroring
-  /// the endpoint name in the file location.
-  Future<void> _uploadPackageToBucket(String package) async {
-    final data = await retry(() => packageBackend.listVersions(package));
-    await _api.package(package).versions.write(data);
-  }
-
-  Future<void> _deletePackageFromBucket(String package) async {
-    await _api.package(package).delete();
-  }
-
-  Stream<_PkgUpdatedEvent> _queryRecentPkgUpdatedEvents(DateTime since) async* {
-    final q1 = dbService.query<ModeratedPackage>()
-      ..filter('moderated >=', since)
-      ..order('-moderated');
-    yield* q1.run().map((mp) => mp.asPkgUpdatedEvent());
-
-    final q2 = dbService.query<Package>()
-      ..filter('updated >=', since)
-      ..order('-updated');
-    yield* q2.run().map((p) => p.asPkgUpdatedEvent());
-  }
-
-  /// Deletes obsolete runtime-versions from the bucket.
-  Future<void> deleteObsoleteRuntimeContent() async {
-    final versions = <String>{};
-
-    // Objects in the bucket are stored under the following pattern:
-    //   `current/api/<package>`
-    //   `<runtimeVersion>/api/<package>`
-    // Thus, we list with `/` as delimiter and get a list of runtimeVersions
-    await for (final d in _bucket.list(prefix: '', delimiter: '/')) {
-      if (!d.isDirectory) {
-        _logger.warning(
-            'Bucket `${_bucket.bucketName}` should not contain any top-level object: `${d.name}`');
-        continue;
+        // Check the package
+        await synchronizePackage(p.name!);
       }
 
-      // Remove trailing slash from object prefix, to get a runtimeVersion
-      if (!d.name.endsWith('/')) {
-        _logger.warning(
-            'Unexpected top-level directory name in bucket `${_bucket.bucketName}`: `${d.name}`');
-        return;
-      }
-      final rtVersion = d.name.substring(0, d.name.length - 1);
-      if (runtimeVersionPattern.matchAsPrefix(rtVersion) == null) {
-        continue;
-      }
+      // Cleanup the [seen] map for anything older than [since], as this won't
+      // be relevant to the next iteration.
+      seen.removeWhere((_, updated) => updated.isBefore(since));
 
-      // Check if the runtimeVersion should be GC'ed
-      if (shouldGCVersion(rtVersion)) {
-        versions.add(rtVersion);
-      }
-    }
-
-    for (final v in versions) {
-      await deleteBucketFolderRecursively(_bucket, '$v/', concurrency: 4);
+      // Wait until aborted or 10 minutes before scanning again!
+      await abort.future.timeout(Duration(minutes: 10), onTimeout: () => null);
     }
   }
-}
-
-typedef _PkgUpdatedEvent = ({String package, DateTime updated, bool isVisible});
-
-extension on ModeratedPackage {
-  _PkgUpdatedEvent asPkgUpdatedEvent() =>
-      (package: name!, updated: moderated, isVisible: false);
-}
-
-extension on Package {
-  _PkgUpdatedEvent asPkgUpdatedEvent() =>
-      (package: name!, updated: updated!, isVisible: isVisible);
 }
