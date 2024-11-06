@@ -6,6 +6,8 @@ import 'dart:convert' show json;
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/versions.dart' as shared_versions;
@@ -106,6 +108,12 @@ class PackageState extends db.ExpandoModel<String> {
   /// Scheduling state for all versions of this package.
   @PackageVersionStateMapProperty(required: true)
   Map<String, PackageVersionStateInfo>? versions;
+
+  /// The list of tokens that were removed from this [PackageState].
+  /// When a worker reports back using one of these tokens, they will
+  /// recieve a [TaskAbortedException].
+  @AbortedTokenListProperty()
+  List<AbortedTokenInfo>? abortedTokens;
 
   /// Next [DateTime] at which point some package version becomes pending.
   @db.DateTimeProperty(required: true, indexed: true)
@@ -406,4 +414,59 @@ enum PackageVersionStatus {
 
   /// Analysis failed to report a result.
   failed,
+}
+
+/// Tracks a token that was removed from the [PackageState], but a worker
+/// may still use it to report a completed task. Such workers may recieve
+/// an error code that says they shouldn't really panic on the rejection.
+@JsonSerializable()
+class AbortedTokenInfo {
+  final String token;
+  final DateTime expires;
+
+  AbortedTokenInfo({
+    required this.token,
+    required this.expires,
+  });
+
+  factory AbortedTokenInfo.fromJson(Map<String, dynamic> m) =>
+      _$AbortedTokenInfoFromJson(m);
+  Map<String, dynamic> toJson() => _$AbortedTokenInfoToJson(this);
+
+  bool get isNotExpired => clock.now().isBefore(expires);
+
+  bool isAuthorized(String token) {
+    return fixedTimeEquals(this.token, token) && isNotExpired;
+  }
+}
+
+/// A [db.Property] encoding a List os [AbortedTokenInfo] as JSON.
+class AbortedTokenListProperty extends db.Property {
+  const AbortedTokenListProperty({String? propertyName, bool required = false})
+      : super(propertyName: propertyName, required: required, indexed: false);
+
+  @override
+  Object? encodeValue(
+    db.ModelDB mdb,
+    Object? value, {
+    bool forComparison = false,
+  }) =>
+      json.encode(
+          (value as List<AbortedTokenInfo>?)?.map((e) => e.toJson()).toList());
+
+  @override
+  Object? decodePrimitiveValue(
+    db.ModelDB mdb,
+    Object? value,
+  ) =>
+      value == null
+          ? null
+          : (json.decode(value as String) as List?)
+              ?.map((e) => AbortedTokenInfo.fromJson(e as Map<String, dynamic>))
+              .toList();
+
+  @override
+  bool validate(db.ModelDB mdb, Object? value) =>
+      super.validate(mdb, value) &&
+      (value == null || value is List<AbortedTokenInfo>);
 }
