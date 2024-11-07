@@ -38,17 +38,20 @@ void create(HTMLElement element, Map<String, String> options) {
 
 void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     List<({DateTime date, int downloads})> data) {
-  final height = 75;
+  final height = 80;
   final width = 190;
+  final drawingHeight = 75;
   final lastDay = data.last.date;
   final firstDay = data.first.date;
   final xAxisSpan = lastDay.difference(firstDay);
   final maxDownloads = data.fold<int>(0, (a, b) => max<int>(a, b.downloads));
 
+  final toolTipOffsetFromMouse = 15;
+
   (double, double) computeCoordinates(DateTime date, int downloads) {
     final duration = date.difference(firstDay);
     final x = width * duration.inMilliseconds / xAxisSpan.inMilliseconds;
-    final y = 5 + (height) - (height) * (downloads / maxDownloads);
+    final y = height - drawingHeight * (downloads / maxDownloads);
     return (x, y);
   }
 
@@ -121,7 +124,7 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     sparklineCursor.setAttribute('style', 'opacity:1');
     toolTip.setAttribute(
         'style',
-        'top:${e.y + 15 + document.scrollingElement!.scrollTop}px;'
+        'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
             'left:${e.x}px;');
 
     final s = (e.x - chart.getBoundingClientRect().x) / width;
