@@ -216,13 +216,14 @@ class TokenIndex {
   /// Search the index for [words], with a (term-match / document coverage percent)
   /// scoring.
   Score searchWords(List<String> words, {double weight = 1.0}) {
+    if (words.isEmpty) return Score.empty;
     IndexedScore? score;
+    weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
       final s = IndexedScore(_ids);
       searchAndAccumulate(w, score: s, weight: weight);
       if (score == null) {
         score = s;
-        // NOTE: in the subsequent round(s), weight will be re-applied on the next word(s) too.
       } else {
         score.multiplyAllFrom(s);
       }

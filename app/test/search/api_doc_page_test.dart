@@ -99,7 +99,7 @@ void main() {
         'packageHits': [
           {
             'package': 'foo',
-            'score': closeTo(0.18, 0.01), // find WebPageGenerator
+            'score': closeTo(0.26, 0.01), // find WebPageGenerator
             'apiPages': [
               {'path': 'generator.html'},
             ],
@@ -119,7 +119,7 @@ void main() {
         'packageHits': [
           {
             'package': 'foo',
-            'score': closeTo(0.11, 0.01), // find WebPageGenerator
+            'score': closeTo(0.16, 0.01), // find WebPageGenerator
             'apiPages': [
               {'path': 'generator.html'},
             ],
