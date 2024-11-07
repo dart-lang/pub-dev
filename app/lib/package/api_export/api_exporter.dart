@@ -19,7 +19,7 @@ import '../backend.dart';
 import '../models.dart';
 import 'exported_api.dart';
 
-final Logger _log = Logger('api_exporter');
+final Logger _log = Logger('api_export.api_exporter');
 
 /// Sets the API Exporter service.
 void registerApiExporter(ApiExporter value) =>
@@ -162,6 +162,8 @@ class ApiExporter {
   ///  * When a change in [Package.updated] is detected.
   ///  * A package is moderated, or other admin action is applied.
   Future<void> synchronizePackage(String package) async {
+    _log.info('synchronizePackage("$package")');
+
     // TODO: Handle the case where [package] is deleted or invisible!
     // TODO: We may need to delete the package, but only if it's not too recent!
     final versionListing = await packageBackend.listVersions(package);
