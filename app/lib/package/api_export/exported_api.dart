@@ -19,7 +19,7 @@ import '../../shared/storage.dart';
 import '../../shared/versions.dart'
     show runtimeVersion, runtimeVersionPattern, shouldGCVersion;
 
-final _log = Logger('api_export.exported_bucket');
+final _log = Logger('api_export.exported_api');
 
 /// Minimum age before an item can be consider garbage.
 ///
