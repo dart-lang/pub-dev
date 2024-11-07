@@ -254,7 +254,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   margin: 0px;
   padding: 2px 8px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-  color: white;
+  color: var(--pub-color-white);
   background-color: var(--pub-weekly-chart-main-color);
   opacity: 1;
   z-index: 100000;
