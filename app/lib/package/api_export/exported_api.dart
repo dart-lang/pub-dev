@@ -26,7 +26,7 @@ final _log = Logger('api_export:exported_bucket');
 /// This ensures that we don't delete files we've just created.
 /// It's entirely possible that one process is writing files, while another
 /// process is running garbage collection.
-const _minGarbageAge = Duration(days: 1);
+const _minGarbageAge = Duration(hours: 3);
 
 /// Interface for [Bucket] containing exported API that is served directly from
 /// Google Cloud Storage.
@@ -98,40 +98,37 @@ final class ExportedApi {
   Future<void> _gcPrefix(String prefix, Set<String> allPackageNames) async {
     _log.info('Garbage collecting "$prefix"');
 
-    await _listBucket(prefix: prefix + '/api/packages/', delimiter: '/',
-        (item) async {
-      final String packageName;
-      if (item.isObject) {
-        assert(!item.name.endsWith('/'));
-        packageName = item.name.split('/').last;
-      } else {
-        assert(item.name.endsWith('/'));
-        packageName = item.name.without(suffix: '/').split('/').last;
-      }
-      if (!allPackageNames.contains(packageName)) {
-        final info = await _bucket.info(item.name);
-        if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
-          // Only delete the item if it's older than _minGarbageAge
-          // This avoids any races where we delete files we've just created
-          await package(packageName).delete();
-        }
+    final gcFilesBefore = clock.agoBy(_minGarbageAge);
+
+    final pkgPrefix = '$prefix/api/packages/';
+    await _listBucket(prefix: pkgPrefix, delimiter: '', (entry) async {
+      final item = switch (entry) {
+        final BucketDirectoryEntry _ => throw AssertionError('unreachable'),
+        final BucketObjectEntry item => item,
+      };
+      final packageName = item.name.without(prefix: pkgPrefix).split('/').first;
+      if (!allPackageNames.contains(packageName) &&
+          item.updated.isBefore(gcFilesBefore)) {
+        // Only delete the item if it's older than _minGarbageAge
+        // This avoids any races where we delete files we've just created
+        // TODO: Conditionally deletion API from package:gcloud would be better!
+        await _bucket.tryDelete(item.name);
       }
     });
 
-    await _listBucket(prefix: prefix + '/api/archives/', delimiter: '-',
-        (item) async {
-      if (item.isObject) {
-        throw AssertionError('Unknown package archive at ${item.name}');
-      }
-      assert(item.name.endsWith('-'));
-      final packageName = item.name.without(suffix: '-').split('/').last;
-      if (!allPackageNames.contains(packageName)) {
-        final info = await _bucket.info(item.name);
-        if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
-          // Only delete the item if it's older than _minGarbageAge
-          // This avoids any races where we delete files we've just created
-          await package(packageName).delete();
-        }
+    final archivePrefix = '$prefix/api/archives/';
+    await _listBucket(prefix: archivePrefix, delimiter: '', (entry) async {
+      final item = switch (entry) {
+        final BucketDirectoryEntry _ => throw AssertionError('unreachable'),
+        final BucketObjectEntry item => item,
+      };
+      final packageName =
+          item.name.without(prefix: archivePrefix).split('-').first;
+      if (!allPackageNames.contains(packageName) &&
+          item.updated.isBefore(gcFilesBefore)) {
+        // Only delete the item if it's older than _minGarbageAge
+        // This avoids any races where we delete files we've just created
+        await _bucket.tryDelete(item.name);
       }
     });
   }
@@ -452,14 +449,14 @@ const _validatedCustomHeader = 'validated';
 ///
 /// This allows us to detect files that are present, but not being updated
 /// anymore. We classify such files as _stray files_ and write alerts to logs.
-const _updateValidatedAfter = Duration(days: 1);
+const _updateValidatedAfter = Duration(days: 3);
 
 /// Duration after which a file that haven't been updated is considered stray!
 ///
 /// We don't delete stray files, because there shouldn't be any, so a stray file
 /// is always indicative of a bug. Nevertheless, we write alerts to logs, so
 /// that these inconsistencies can be detected.
-const _unvalidatedStrayFileAfter = Duration(days: 7);
+const _unvalidatedStrayFileAfter = Duration(days: 12);
 
 /// Interface for an exported JSON file.
 ///
