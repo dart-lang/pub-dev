@@ -267,6 +267,24 @@ class TokenIndex {
     }
     return Score.multiply(scores);
   }
+
+  /// Searches the index with [word] and stores the results in [score], using
+  /// accumulation operation on the already existing values.
+  void searchAndAccumulate(
+    String word, {
+    double weight = 1.0,
+    required IndexedScore score,
+  }) {
+    assert(score.length == _length);
+    final tokenMatch = lookupTokens(word);
+    for (final token in tokenMatch.tokens) {
+      final matchWeight = tokenMatch[token]!;
+      final tokenWeight = _inverseIds[token]!;
+      for (final e in tokenWeight.entries) {
+        score.setValueMaxOf(e.key, matchWeight * e.value * weight);
+      }
+    }
+  }
 }
 
 /// Mutable score list that can accessed via integer index.
@@ -283,6 +301,10 @@ class IndexedScore {
 
   bool isNotPositive(int index) {
     return _values[index] <= 0.0;
+  }
+
+  void setValue(int index, double value) {
+    _values[index] = value;
   }
 
   void setValueMaxOf(int index, double value) {
@@ -307,6 +329,15 @@ class IndexedScore {
     }
   }
 
+  void multiplyAllFrom(IndexedScore other) {
+    assert(other._values.length == _values.length);
+    for (var i = 0; i < _values.length; i++) {
+      if (_values[i] == 0.0) continue;
+      final v = other._values[i];
+      _values[i] = v == 0.0 ? 0.0 : _values[i] * v;
+    }
+  }
+
   Set<String> toKeySet() {
     final set = <String>{};
     for (var i = 0; i < _values.length; i++) {
@@ -316,5 +347,16 @@ class IndexedScore {
       }
     }
     return set;
+  }
+
+  Score toScore() {
+    final map = <String, double>{};
+    for (var i = 0; i < _values.length; i++) {
+      final v = _values[i];
+      if (v > 0.0) {
+        map[_keys[i]] = v;
+      }
+    }
+    return Score._(map);
   }
 }
