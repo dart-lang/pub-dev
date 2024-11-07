@@ -160,21 +160,14 @@ class InMemoryPackageIndex {
       packageScores.removeWhere(
           (i, _) => now.difference(_documents[i].updated) > updatedDuration);
     }
-    final packages = packageScores.toKeySet();
 
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
     final textResults = _searchText(
-      packages,
+      packageScores,
       parsedQueryText,
       includeNameMatches: (query.offset ?? 0) == 0,
     );
-
-    // filter packages that doesn't match text query
-    if (textResults != null) {
-      final keys = textResults.pkgScore.keys.toSet();
-      packages.removeWhere((x) => !keys.contains(x));
-    }
 
     final nameMatches = textResults?.nameMatches;
     List<String>? topicMatches;
@@ -192,6 +185,7 @@ class InMemoryPackageIndex {
       }
     }
 
+    final packages = packageScores.toKeySet();
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         if (textResults == null) {
@@ -270,7 +264,7 @@ class InMemoryPackageIndex {
   }
 
   _TextResults? _searchText(
-    Set<String> packages,
+    IndexedScore packageScores,
     String? text, {
     required bool includeNameMatches,
   }) {
@@ -301,15 +295,8 @@ class InMemoryPackageIndex {
       // Multiple words are scored separately, and then the individual scores
       // are multiplied. We can use a package filter that is applied after each
       // word to reduce the scope of the later words based on the previous results.
-      // We cannot update the main `packages` variable yet, as the dartdoc API
-      // symbols are added on top of the core results, and `packages` is used
-      // there too.
-      final coreScores = IndexedScore(_packageNameIndex._packageNames);
-      for (var i = 0; i < _documents.length; i++) {
-        if (packages.contains(_documents[i].package)) {
-          coreScores.setValue(i, 1.0);
-        }
-      }
+      /// However, API docs search should be filtered on the original list.
+      final packages = packageScores.toKeySet();
       for (final word in words) {
         if (includeNameMatches && _documentsByName.containsKey(word)) {
           nameMatches ??= <String>{};
@@ -317,15 +304,13 @@ class InMemoryPackageIndex {
         }
 
         final wordScore =
-            _packageNameIndex.searchWord(word, filterOnNonZeros: coreScores);
-        _descrIndex.searchAndAccumulate(word,
-            weight: 0.90.toDouble(), score: wordScore);
-        _readmeIndex.searchAndAccumulate(word,
-            weight: 0.75.toDouble(), score: wordScore);
-        coreScores.multiplyAllFrom(wordScore);
+            _packageNameIndex.searchWord(word, filterOnNonZeros: packageScores);
+        _descrIndex.searchAndAccumulate(word, weight: 0.90, score: wordScore);
+        _readmeIndex.searchAndAccumulate(word, weight: 0.75, score: wordScore);
+        packageScores.multiplyAllFrom(wordScore);
       }
 
-      final core = coreScores.toScore();
+      final core = packageScores.toScore();
 
       var symbolPages = Score.empty;
       if (!checkAborted()) {
@@ -361,7 +346,6 @@ class InMemoryPackageIndex {
 
       final apiPkgScore = Score(apiPackages);
       var score = Score.max([core, apiPkgScore])
-          .project(packages)
           .removeLowValues(fraction: 0.2, minValue: 0.01);
 
       // filter results based on exact phrases
