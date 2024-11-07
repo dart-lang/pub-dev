@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:isolate';
 
 final _client = HttpClient();
 
@@ -22,7 +23,12 @@ Future<void> main(List<String> args) async {
     pubCacheDir.createSync(recursive: true);
   }
 
-  final pvs = _parsePubspecLockSync(File('pubspec.lock'));
+  final pvs = _parsePubspecLockSync(File.fromUri(
+      File.fromUri(Isolate.packageConfigSync!)
+          .parent
+          .parent
+          .uri
+          .resolve('pubspec.lock')));
   final packages = pvs.keys.toList()..sort();
   for (final package in packages) {
     final version = pvs[package]!;
