@@ -13,7 +13,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';

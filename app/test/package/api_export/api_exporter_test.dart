@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
-import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/versions.dart';
