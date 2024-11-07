@@ -5,10 +5,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 TEMP_DIR=$(mktemp -d)
 
-# Clone dartdoc repository
+# Clone site-shared repository
 git clone https://github.com/dart-lang/site-shared "$TEMP_DIR"
 
-# Delete resources/
+# Delete the previous version
 rm -rf "$SCRIPT_DIR/dash_design"
 
 # Copy css, js, png files to dash_design/
