@@ -8,6 +8,7 @@ environment:
 dependencies:
   gcloud: ^0.8.16
   logging: '>=0.11.3 <2.0.0'
+  clock: ^1.1.0
 
 dev_dependencies:
   coverage: any # test already depends on it
