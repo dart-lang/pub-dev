@@ -180,9 +180,9 @@ class ApiExporter {
       return;
     }
 
-    // TODO: Consider skipping the cache when fetching security advisories
     final advisories = await securityAdvisoryBackend.listAdvisoriesResponse(
       package,
+      skipCache: true, // Skipping the cache when fetching security advisories
     );
 
     final versions = await packageBackend.tarballStorage
