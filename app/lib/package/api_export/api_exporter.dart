@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
 
 import '../../search/backend.dart';
@@ -164,9 +166,20 @@ class ApiExporter {
   Future<void> synchronizePackage(String package) async {
     _log.info('synchronizePackage("$package")');
 
-    // TODO: Handle the case where [package] is deleted or invisible!
-    // TODO: We may need to delete the package, but only if it's not too recent!
-    final versionListing = await packageBackend.listVersions(package);
+    final PackageData versionListing;
+    try {
+      versionListing = await packageBackend.listVersions(package);
+    } on NotFoundException {
+      // Handle the case where package is moderated.
+      final pkg = await packageBackend.lookupPackage(package);
+      if (pkg != null && pkg.isNotVisible) {
+        // We only delete the package if it is explicitly not visible.
+        // If we can't find it, then it's safer to assume that it's a bug.
+        await _api.package(package).delete();
+      }
+      return;
+    }
+
     // TODO: Consider skipping the cache when fetching security advisories
     final advisories = await securityAdvisoryBackend.listAdvisoriesResponse(
       package,
