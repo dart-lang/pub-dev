@@ -8,6 +8,7 @@ import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/package/api_export/exported_api.dart';
 import '../shared/datastore.dart';
 import '../shared/storage.dart';
 import '../shared/utils.dart';
@@ -50,6 +51,38 @@ class TarballStorage {
       String package, String version) async {
     final objectName = tarballObjectName(package, version);
     return await _canonicalBucket.tryInfo(objectName);
+  }
+
+  /// Gets `gs:/<bucket>/<objectName>` for [package] and [version] in the
+  /// canonical bucket.
+  ///
+  /// Returns the absolute objectName on the form created by
+  /// [Bucket.absoluteObjectName].
+  String getCanonicalBucketAbsoluteObjectName(String package, String version) =>
+      _canonicalBucket.absoluteObjectName(tarballObjectName(package, version));
+
+  /// Get map from `version` to [SourceObjectInfo] for each version of [package] in
+  /// canonical bucket.
+  Future<Map<String, SourceObjectInfo>> listVersionsInCanonicalBucket(
+    String package,
+  ) async {
+    final prefix = _tarballObjectNamePackagePrefix(package);
+    final items = await _canonicalBucket
+        .list(
+          prefix: prefix,
+          delimiter: '',
+        )
+        .toList();
+    return Map.fromEntries(items.whereType<BucketObjectEntry>().map((item) {
+      final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
+      return MapEntry(
+        version,
+        SourceObjectInfo.fromObjectInfo(
+          _canonicalBucket,
+          item,
+        ),
+      );
+    }));
   }
 
   /// Gets the object info of the archive file from the public bucket.
