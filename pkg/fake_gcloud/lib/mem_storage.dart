@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -67,9 +68,13 @@ class MemStorage implements Storage {
     _logger.info('Copy object from $src to $dest');
     final srcUri = Uri.parse(src);
     final destUri = Uri.parse(dest);
-    await bucket(srcUri.host)
-        .read(srcUri.path.substring(1))
-        .pipe(bucket(destUri.host).write(destUri.path.substring(1)));
+    final srcBucket = _buckets[srcUri.host]!;
+    final srcObject = srcBucket._files[srcUri.path.substring(1)]!;
+    await bucket(destUri.host).writeBytes(
+      destUri.path.substring(1),
+      srcObject.content,
+      metadata: metadata ?? srcObject.metadata,
+    );
   }
 
   /// Serializes the content of the Storage to the [sink], with a line-by-line
@@ -107,18 +112,38 @@ class MemStorage implements Storage {
       'name': file.name,
       'content': base64.encode(file.content),
       'updated': file.updated.toUtc().toIso8601String(),
-      'metadata': null, // TODO: add metadata support
+      'metadata': {
+        'contentType': file.metadata.contentType,
+        'contentEncoding': file.metadata.contentEncoding,
+        'cacheControl': file.metadata.cacheControl,
+        'contentDisposition': file.metadata.contentDisposition,
+        'contentLanguage': file.metadata.contentLanguage,
+        'custom': file.metadata.custom,
+      },
     };
   }
 
   _File _decodeFile(Map<String, dynamic> map) {
     final content = base64.decode(map['content'] as String);
     final updated = DateTime.parse(map['updated'] as String);
+    final meta = map['metadata'] ?? <String, Object?>{};
     return _File(
       bucketName: map['bucket'] as String,
       name: map['name'] as String,
       content: content,
       updated: updated,
+      metadata: ObjectMetadata(
+        acl: Acl([]),
+        contentType: meta['contentType'] as String?,
+        contentEncoding: meta['contentEncoding'] as String?,
+        cacheControl: meta['cacheControl'] as String?,
+        contentDisposition: meta['contentDisposition'] as String?,
+        contentLanguage: meta['contentLanguage'] as String?,
+        custom: (meta['custom'] as Map?)?.map(
+              (k, v) => MapEntry(k as String, v as String),
+            ) ??
+            <String, String>{},
+      ),
     );
   }
 }
@@ -141,12 +166,12 @@ class _File implements BucketObjectEntry {
     required this.bucketName,
     required this.name,
     required this.content,
+    required this.metadata,
     DateTime? updated,
   })  : // TODO: use a real CRC32 check
         crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
         md5Hash = md5.convert(content).bytes,
-        updated = updated ?? DateTime.now().toUtc(),
-        metadata = ObjectMetadata(acl: Acl([]));
+        updated = updated ?? clock.now().toUtc();
 
   @override
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
@@ -199,10 +224,18 @@ class _Bucket implements Bucket {
       buffer.addAll(data);
       return buffer;
     }).then((content) {
+      var meta = metadata ?? ObjectMetadata();
+      if (acl != null) {
+        meta = meta.replace(acl: acl);
+      }
+      if (contentType != null) {
+        meta = meta.replace(contentType: contentType);
+      }
       _files[objectName] = _File(
         bucketName: bucketName,
         name: objectName,
         content: content,
+        metadata: meta,
       );
       _logger.info('Completed ${content.length} bytes: $objectName');
     });
