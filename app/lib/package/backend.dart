@@ -644,6 +644,9 @@ class PackageBackend {
       flutterSdkVersion: currentFlutterSdk.semanticVersion,
       replaced: pv,
     );
+    // Always update the "updated" timestamp, so these changes can be reflected
+    // in exported API
+    p.updated = clock.now().toUtc();
 
     _logger.info(
         'Updating ${p.name} ${pv.version} options: isRetracted: $isRetracted');
