@@ -206,38 +206,6 @@ class TokenIndex {
     return tokenMatch;
   }
 
-  /// Returns an {id: score} map of the documents stored in the [TokenIndex].
-  /// The tokens in [tokenMatch] will be used to calculate a weighted sum of scores.
-  ///
-  /// When [limitToIds] is specified, the result will contain only the set of
-  /// identifiers in it.
-  Map<String, double> _scoreDocs(TokenMatch tokenMatch,
-      {double weight = 1.0, Set<String>? limitToIds}) {
-    // Summarize the scores for the documents.
-    final scores = IndexedScore(_ids);
-    for (final token in tokenMatch.tokens) {
-      final docWeights = _inverseIds[token]!;
-      for (final e in docWeights.entries) {
-        scores.setValueMaxOf(e.key, tokenMatch[token]! * e.value);
-      }
-    }
-
-    if (limitToIds != null) {
-      scores.retainWhere((_, id) => limitToIds.contains(id));
-    }
-    final result = <String, double>{};
-    // post-process match weights
-    for (var i = 0; i < _length; i++) {
-      final w = scores._values[i];
-      if (w <= 0.0) {
-        continue;
-      }
-      final id = _ids[i];
-      result[id] = scores._values[i] * weight;
-    }
-    return result;
-  }
-
   /// Search the index for [text], with a (term-match / document coverage percent)
   /// scoring.
   @visibleForTesting
@@ -247,25 +215,19 @@ class TokenIndex {
 
   /// Search the index for [words], with a (term-match / document coverage percent)
   /// scoring.
-  Score searchWords(List<String> words,
-      {double weight = 1.0, Set<String>? limitToIds}) {
-    if (limitToIds != null && limitToIds.isEmpty) {
-      return Score.empty;
-    }
-    final scores = <Score>[];
+  Score searchWords(List<String> words, {double weight = 1.0}) {
+    IndexedScore? score;
     for (final w in words) {
-      final tokens = lookupTokens(w);
-      final values = _scoreDocs(
-        tokens,
-        weight: weight,
-        limitToIds: limitToIds,
-      );
-      if (values.isEmpty) {
-        return Score.empty;
+      final s = IndexedScore(_ids);
+      searchAndAccumulate(w, score: s, weight: weight);
+      if (score == null) {
+        score = s;
+        // NOTE: in the subsequent round(s), weight will be re-applied on the next word(s) too.
+      } else {
+        score.multiplyAllFrom(s);
       }
-      scores.add(Score(values));
     }
-    return Score.multiply(scores);
+    return score?.toScore() ?? Score.empty;
   }
 
   /// Searches the index with [word] and stores the results in [score], using
