@@ -45,9 +45,6 @@ void main() {
     final bucket = storageService.bucket('bucket');
     final apiExporter = ApiExporter(bucket: bucket);
 
-    // TODO: Testing DEBUG=* this will shout "[pub-notice:stray-file]" into logs
-    //       we should investigate this!
-
     await _testExportedApiSynchronization(
       fakeTime,
       bucket,
