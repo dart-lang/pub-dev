@@ -16,7 +16,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
