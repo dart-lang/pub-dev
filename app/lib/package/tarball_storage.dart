@@ -83,7 +83,7 @@ class TarballStorage {
     if (!md5hash.byteToByteEquals(info.md5Hash)) {
       return ContentMatchStatus.different;
     }
-    // limit memory use while doing the byte-to-byte comparison
+    // Limit memory use while doing the byte-to-byte comparison by streaming it chunk-wise.
     final raf = await file.open();
     var remainingLength = info.length;
     try {
