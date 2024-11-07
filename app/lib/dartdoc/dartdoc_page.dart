@@ -285,11 +285,11 @@ extension DartDocPageRender on DartDocPage {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
     return d.element('body', classes: [
       'light-theme',
-      if (activeConfiguration.isStaging) 'staging-banner',
     ], attributes: {
       'data-base-href':
           baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
       'data-using-base-href': usingBaseHref ?? 'false',
+      if (activeConfiguration.isStaging) 'data-staging': '1',
     }, children: [
       if (activeConfiguration.isStaging)
         d.div(classes: ['staging-ribbon'], text: 'staging'),
