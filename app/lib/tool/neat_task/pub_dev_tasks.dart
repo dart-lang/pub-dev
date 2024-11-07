@@ -119,9 +119,9 @@ void _setupGenericPeriodicTasks() {
 
   // Exports the package name completion data to a bucket.
   _daily(
-    name: 'export-package-name-completion-data-to-bucket',
+    name: 'synchronize-exported-api',
     isRuntimeVersioned: true,
-    task: () async => await apiExporter?.uploadPkgNameCompletionData(),
+    task: () async => await apiExporter?.synchronizeExportedApi(),
   );
 
   // Deletes moderated packages, versions, publishers and users.
@@ -165,13 +165,6 @@ void _setupGenericPeriodicTasks() {
     name: 'garbage-collect-task-results',
     isRuntimeVersioned: false,
     task: taskBackend.garbageCollect,
-  );
-
-  // Deletes exported API data for old runtime versions
-  _weekly(
-    name: 'garbage-collect-api-exports',
-    isRuntimeVersioned: true,
-    task: () async => apiExporter?.deleteObsoleteRuntimeContent(),
   );
 
   // Delete very old instances that have been abandoned

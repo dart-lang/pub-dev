@@ -85,5 +85,5 @@ Future _apiExporterMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
   await downloadCountsBackend.start();
-  await apiExporter!.uploadInForeverLoop();
+  await apiExporter!.start();
 }
