@@ -176,9 +176,8 @@ void testWithFakeTime(
   TestProfile? testProfile,
   ImportSource? importSource,
   Pattern? integrityProblem,
-  dynamic skip,
 }) {
-  scopedTest(name, skip: skip, () async {
+  scopedTest(name, () async {
     await FakeTime.run((fakeTime) async {
       setupDebugEnvBasedLogging();
       await withFakeServices(
