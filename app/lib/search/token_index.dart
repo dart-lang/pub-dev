@@ -214,27 +214,26 @@ class TokenIndex {
   Map<String, double> _scoreDocs(TokenMatch tokenMatch,
       {double weight = 1.0, Set<String>? limitToIds}) {
     // Summarize the scores for the documents.
-    final docScores = List<double>.filled(_length, 0.0);
+    final scores = IndexedScore(_ids);
     for (final token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token]!;
       for (final e in docWeights.entries) {
-        final i = e.key;
-        docScores[i] = math.max(docScores[i], tokenMatch[token]! * e.value);
+        scores.setValueMaxOf(e.key, tokenMatch[token]! * e.value);
       }
     }
 
+    if (limitToIds != null) {
+      scores.retainWhere((_, id) => limitToIds.contains(id));
+    }
     final result = <String, double>{};
     // post-process match weights
     for (var i = 0; i < _length; i++) {
-      final id = _ids[i];
-      final w = docScores[i];
+      final w = scores._values[i];
       if (w <= 0.0) {
         continue;
       }
-      if (limitToIds != null && !limitToIds.contains(id)) {
-        continue;
-      }
-      result[id] = w * weight;
+      final id = _ids[i];
+      result[id] = scores._values[i] * weight;
     }
     return result;
   }
@@ -267,5 +266,55 @@ class TokenIndex {
       scores.add(Score(values));
     }
     return Score.multiply(scores);
+  }
+}
+
+/// Mutable score list that can accessed via integer index.
+class IndexedScore {
+  final List<String> _keys;
+  final List<double> _values;
+
+  IndexedScore._(this._keys, this._values);
+
+  factory IndexedScore(List<String> keys, [double value = 0.0]) =>
+      IndexedScore._(keys, List<double>.filled(keys.length, value));
+
+  late final length = _values.length;
+
+  bool isNotPositive(int index) {
+    return _values[index] <= 0.0;
+  }
+
+  void setValueMaxOf(int index, double value) {
+    _values[index] = math.max(_values[index], value);
+  }
+
+  void removeWhere(bool Function(int index, String key) fn) {
+    for (var i = 0; i < length; i++) {
+      if (isNotPositive(i)) continue;
+      if (fn(i, _keys[i])) {
+        _values[i] = 0.0;
+      }
+    }
+  }
+
+  void retainWhere(bool Function(int index, String key) fn) {
+    for (var i = 0; i < length; i++) {
+      if (isNotPositive(i)) continue;
+      if (!fn(i, _keys[i])) {
+        _values[i] = 0.0;
+      }
+    }
+  }
+
+  Set<String> toKeySet() {
+    final set = <String>{};
+    for (var i = 0; i < _values.length; i++) {
+      final v = _values[i];
+      if (v > 0.0) {
+        set.add(_keys[i]);
+      }
+    }
+    return set;
   }
 }
