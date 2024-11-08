@@ -147,6 +147,15 @@ class ApiExporter {
 
     await synchronizePackageNameCompletionData();
 
+    await _api.notFound.write({
+      'error': {
+        'code': 'NotFound',
+        'message': 'Package or version requested could not be found.',
+      },
+      'code': 'NotFound',
+      'message': 'Package or version requested could not be found.',
+    });
+
     await _api.garbageCollect(allPackageNames);
   }
 
