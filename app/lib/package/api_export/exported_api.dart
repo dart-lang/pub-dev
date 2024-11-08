@@ -66,6 +66,15 @@ final class ExportedApi {
         Duration(hours: 8),
       );
 
+  /// Interface for writing `/api/not-found.json` which is what the bucket will
+  /// use as 404 response when serving a website.
+  ExportedJsonFile<Map<String, Object?>> get notFound =>
+      ExportedJsonFile<Map<String, Object?>>._(
+        this,
+        '/not-found.json',
+        Duration(minutes: 10),
+      );
+
   /// Run garbage collection on the bucket.
   ///
   /// This will remove all packages from `latest/` and `<runtimeVersion>/`,
