@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// import 'dart:io';
 
 import 'package:test/test.dart';
 
-final _whitespace = RegExp(r'\s+');
+// final _whitespace = RegExp(r'\s+');
 
-const _colors = {
-  'black',
-  'red',
-  'white',
-};
+// const _colors = {
+//   'black',
+//   'red',
+//   'white',
+// };
 
 void main() {
   group('Color restrictions and rules', () {
