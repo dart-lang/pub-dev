@@ -423,7 +423,7 @@ final class Configuration {
     publicPackagesBucketName!,
     searchSnapshotBucketName!,
     taskResultBucketName!,
-    if (exportedApiBucketName != null) exportedApiBucketName!,
+    exportedApiBucketName!,
   ]);
 
   late final isProduction = projectId == 'dartlang-pub';
