@@ -262,6 +262,10 @@ class IndexedScore {
 
   late final length = _values.length;
 
+  bool isPositive(int index) {
+    return _values[index] > 0.0;
+  }
+
   bool isNotPositive(int index) {
     return _values[index] <= 0.0;
   }
