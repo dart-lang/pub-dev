@@ -69,7 +69,7 @@ void main() {
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'jsontool', 'score': 1.0},
-          {'package': 'json2entity', 'score': closeTo(0.87, 0.01)},
+          {'package': 'json2entity', 'score': closeTo(0.97, 0.01)},
           {'package': 'json_to_model', 'score': closeTo(0.73, 0.01)},
         ],
       });
