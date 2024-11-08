@@ -164,7 +164,7 @@ class ApiExporter {
 
     if (errCount > 0) {
       throw Exception(
-        '$errCount exceptions happened while calling synchronizePackage',
+        '$errCount exceptions happened while calling synchronizeExportedApi',
       );
     }
   }
