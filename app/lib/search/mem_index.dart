@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/service/topics/models.dart';
@@ -30,13 +31,13 @@ class InMemoryPackageIndex {
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
   final _adjustedOverallScores = <String, double>{};
-  late final List<PackageHit> _overallOrderedHits;
-  late final List<PackageHit> _createdOrderedHits;
-  late final List<PackageHit> _updatedOrderedHits;
-  late final List<PackageHit> _popularityOrderedHits;
-  late final List<PackageHit> _downloadsOrderedHits;
-  late final List<PackageHit> _likesOrderedHits;
-  late final List<PackageHit> _pointsOrderedHits;
+  late final List<IndexedPackageHit> _overallOrderedHits;
+  late final List<IndexedPackageHit> _createdOrderedHits;
+  late final List<IndexedPackageHit> _updatedOrderedHits;
+  late final List<IndexedPackageHit> _popularityOrderedHits;
+  late final List<IndexedPackageHit> _downloadsOrderedHits;
+  late final List<IndexedPackageHit> _likesOrderedHits;
+  late final List<IndexedPackageHit> _pointsOrderedHits;
 
   // Contains all of the topics the index had seen so far.
   // TODO: consider moving this into a separate index
@@ -185,11 +186,10 @@ class InMemoryPackageIndex {
       }
     }
 
-    final packages = packageScores.toKeySet();
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         if (textResults == null) {
-          packageHits = _overallOrderedHits.whereInSet(packages);
+          packageHits = _overallOrderedHits.whereInScores(packageScores);
           break;
         }
 
@@ -205,22 +205,22 @@ class InMemoryPackageIndex {
         packageHits = _rankWithValues(score);
         break;
       case SearchOrder.created:
-        packageHits = _createdOrderedHits.whereInSet(packages);
+        packageHits = _createdOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.updated:
-        packageHits = _updatedOrderedHits.whereInSet(packages);
+        packageHits = _updatedOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.popularity:
-        packageHits = _popularityOrderedHits.whereInSet(packages);
+        packageHits = _popularityOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.downloads:
-        packageHits = _downloadsOrderedHits.whereInSet(packages);
+        packageHits = _downloadsOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.like:
-        packageHits = _likesOrderedHits.whereInSet(packages);
+        packageHits = _likesOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.points:
-        packageHits = _pointsOrderedHits.whereInSet(packages);
+        packageHits = _pointsOrderedHits.whereInScores(packageScores);
         break;
     }
 
@@ -389,16 +389,18 @@ class InMemoryPackageIndex {
     return list;
   }
 
-  List<PackageHit> _rankWithComparator(
+  List<IndexedPackageHit> _rankWithComparator(
     int Function(PackageDocument a, PackageDocument b) compare, {
     double Function(PackageDocument doc)? score,
   }) {
-    final list = _documentsByName.values
-        .map((doc) => PackageHit(
-            package: doc.package, score: score == null ? null : score(doc)))
+    final list = _documents
+        .mapIndexed((index, doc) => IndexedPackageHit(
+            index,
+            PackageHit(
+                package: doc.package,
+                score: score == null ? null : score(doc))))
         .toList();
-    list.sort((a, b) =>
-        compare(_documentsByName[a.package]!, _documentsByName[b.package]!));
+    list.sort((a, b) => compare(_documents[a.index], _documents[b.index]));
     return list;
   }
 
@@ -556,8 +558,15 @@ class _PkgNameData {
   _PkgNameData(this.collapsed, this.trigrams);
 }
 
-extension on List<PackageHit> {
-  List<PackageHit> whereInSet(Set<String> packages) {
-    return where((hit) => packages.contains(hit.package)).toList();
+extension on List<IndexedPackageHit> {
+  List<PackageHit> whereInScores(IndexedScore scores) {
+    return where((h) => scores.isPositive(h.index)).map((h) => h.hit).toList();
   }
+}
+
+class IndexedPackageHit {
+  final int index;
+  final PackageHit hit;
+
+  IndexedPackageHit(this.index, this.hit);
 }
