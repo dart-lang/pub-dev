@@ -113,16 +113,13 @@ class InMemoryPackageIndex {
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
-    final packages = Set<String>.of(_documentsByName.keys);
+    final packageScores = IndexedScore(_packageNameIndex._packageNames, 1.0);
 
     // filter on package prefix
     if (query.parsedQuery.packagePrefix != null) {
       final String prefix = query.parsedQuery.packagePrefix!.toLowerCase();
-      packages.removeWhere(
-        (package) => !_documentsByName[package]!
-            .package
-            .toLowerCase()
-            .startsWith(prefix),
+      packageScores.retainWhere(
+        (i, _) => _documents[i].packageNameLowerCased.startsWith(prefix),
       );
     }
 
@@ -130,14 +127,14 @@ class InMemoryPackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packages.retainWhere((package) => combinedTagsPredicate
-          .matches(_documentsByName[package]!.tagsForLookup));
+      packageScores.retainWhere(
+          (i, _) => combinedTagsPredicate.matches(_documents[i].tagsForLookup));
     }
 
     // filter on dependency
     if (query.parsedQuery.hasAnyDependency) {
-      packages.removeWhere((package) {
-        final doc = _documentsByName[package]!;
+      packageScores.removeWhere((i, _) {
+        final doc = _documents[i];
         if (doc.dependencies.isEmpty) return true;
         for (final dependency in query.parsedQuery.allDependencies) {
           if (!doc.dependencies.containsKey(dependency)) return true;
@@ -152,36 +149,25 @@ class InMemoryPackageIndex {
 
     // filter on points
     if (query.minPoints != null && query.minPoints! > 0) {
-      packages.removeWhere((package) {
-        final doc = _documentsByName[package]!;
-        return doc.grantedPoints < query.minPoints!;
-      });
+      packageScores.removeWhere(
+          (i, _) => _documents[i].grantedPoints < query.minPoints!);
     }
 
     // filter on updatedDuration
     final updatedDuration = query.parsedQuery.updatedDuration;
     if (updatedDuration != null && updatedDuration > Duration.zero) {
       final now = clock.now();
-      packages.removeWhere((package) {
-        final doc = _documentsByName[package]!;
-        final diff = now.difference(doc.updated);
-        return diff > updatedDuration;
-      });
+      packageScores.removeWhere(
+          (i, _) => now.difference(_documents[i].updated) > updatedDuration);
     }
 
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
     final textResults = _searchText(
-      packages,
+      packageScores,
       parsedQueryText,
       includeNameMatches: (query.offset ?? 0) == 0,
     );
-
-    // filter packages that doesn't match text query
-    if (textResults != null) {
-      final keys = textResults.pkgScore.keys.toSet();
-      packages.removeWhere((x) => !keys.contains(x));
-    }
 
     final nameMatches = textResults?.nameMatches;
     List<String>? topicMatches;
@@ -199,6 +185,7 @@ class InMemoryPackageIndex {
       }
     }
 
+    final packages = packageScores.toKeySet();
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         if (textResults == null) {
@@ -277,7 +264,7 @@ class InMemoryPackageIndex {
   }
 
   _TextResults? _searchText(
-    Set<String> packages,
+    IndexedScore packageScores,
     String? text, {
     required bool includeNameMatches,
   }) {
@@ -308,35 +295,22 @@ class InMemoryPackageIndex {
       // Multiple words are scored separately, and then the individual scores
       // are multiplied. We can use a package filter that is applied after each
       // word to reduce the scope of the later words based on the previous results.
-      // We cannot update the main `packages` variable yet, as the dartdoc API
-      // symbols are added on top of the core results, and `packages` is used
-      // there too.
-      final coreScores = <Score>[];
-      var wordScopedPackages = packages;
+      /// However, API docs search should be filtered on the original list.
+      final packages = packageScores.toKeySet();
       for (final word in words) {
-        final nameScore =
-            _packageNameIndex.searchWord(word, packages: wordScopedPackages);
         if (includeNameMatches && _documentsByName.containsKey(word)) {
           nameMatches ??= <String>{};
           nameMatches.add(word);
         }
 
-        final descr = _descrIndex
-            .searchWords([word], weight: 0.90, limitToIds: wordScopedPackages);
-        final readme = _readmeIndex
-            .searchWords([word], weight: 0.75, limitToIds: wordScopedPackages);
-        final score = Score.max([nameScore, descr, readme]);
-        coreScores.add(score);
-        // don't update if the query is single-word
-        if (words.length > 1) {
-          wordScopedPackages = score.keys.toSet();
-          if (wordScopedPackages.isEmpty) {
-            break;
-          }
-        }
+        final wordScore =
+            _packageNameIndex.searchWord(word, filterOnNonZeros: packageScores);
+        _descrIndex.searchAndAccumulate(word, score: wordScore);
+        _readmeIndex.searchAndAccumulate(word, weight: 0.75, score: wordScore);
+        packageScores.multiplyAllFrom(wordScore);
       }
 
-      final core = Score.multiply(coreScores);
+      final core = packageScores.toScore();
 
       var symbolPages = Score.empty;
       if (!checkAborted()) {
@@ -372,7 +346,6 @@ class InMemoryPackageIndex {
 
       final apiPkgScore = Score(apiPackages);
       var score = Score.max([core, apiPkgScore])
-          .project(packages)
           .removeLowValues(fraction: 0.2, minValue: 0.01);
 
       // filter results based on exact phrases
@@ -502,16 +475,13 @@ class _TextResults {
 @visibleForTesting
 class PackageNameIndex {
   final List<String> _packageNames;
-  late final Map<String, _PkgNameData> _data;
+  late final List<_PkgNameData> _data;
 
   PackageNameIndex(this._packageNames) {
-    _data = Map.fromEntries(_packageNames.map((package) {
+    _data = _packageNames.map((package) {
       final collapsed = _collapseName(package);
-      return MapEntry(
-        package,
-        _PkgNameData(collapsed, trigrams(collapsed).toSet()),
-      );
-    }));
+      return _PkgNameData(collapsed, trigrams(collapsed).toSet());
+    }).toList();
   }
 
   /// Maps package name to a reduced form of the name:
@@ -520,27 +490,44 @@ class PackageNameIndex {
       package.replaceAll('_', '').toLowerCase();
 
   /// Search [text] and return the matching packages with scores.
+  @visibleForTesting
   Score search(String text) {
-    return Score.multiply(splitForQuery(text).map(searchWord).toList());
+    IndexedScore? score;
+    for (final w in splitForQuery(text)) {
+      final s = searchWord(w, filterOnNonZeros: score);
+      if (score == null) {
+        score = s;
+      } else {
+        score.multiplyAllFrom(s);
+      }
+    }
+    return score?.toScore() ?? Score.empty;
   }
 
-  /// Search using the parsed [word] and return the match packages with scores.
-  Score searchWord(String word, {Set<String>? packages}) {
-    final pkgNamesToCheck = packages ?? _packageNames;
-    final values = <String, double>{};
+  /// Search using the parsed [word] and return the matching packages with scores
+  /// as a new [IndexedScore] instance.
+  ///
+  /// When [filterOnNonZeros] is present, only the indexes with an already
+  /// non-zero value are evaluated.
+  IndexedScore searchWord(
+    String word, {
+    IndexedScore? filterOnNonZeros,
+  }) {
+    final score = IndexedScore(_packageNames);
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
         : word.substring(0, word.length - 1);
     final collapsedWord = _collapseName(singularWord);
     final parts =
         collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
-    for (final pkg in pkgNamesToCheck) {
-      final entry = _data[pkg];
-      if (entry == null) {
+    for (var i = 0; i < _data.length; i++) {
+      if (filterOnNonZeros?.isNotPositive(i) ?? false) {
         continue;
       }
+
+      final entry = _data[i];
       if (entry.collapsed.contains(collapsedWord)) {
-        values[pkg] = 1.0;
+        score.setValue(i, 1.0);
         continue;
       }
       var matched = 0;
@@ -549,11 +536,16 @@ class PackageNameIndex {
           matched++;
         }
       }
+
+      // making sure that match score is minimum 0.5
       if (matched > 0) {
-        values[pkg] = matched / parts.length;
+        final v = matched / parts.length;
+        if (v >= 0.5) {
+          score.setValue(i, v);
+        }
       }
     }
-    return Score(values).removeLowValues(fraction: 0.5, minValue: 0.5);
+    return score;
   }
 }
 

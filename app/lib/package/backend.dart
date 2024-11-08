@@ -16,7 +16,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
@@ -644,6 +644,9 @@ class PackageBackend {
       flutterSdkVersion: currentFlutterSdk.semanticVersion,
       replaced: pv,
     );
+    // Always update the "updated" timestamp, so these changes can be reflected
+    // in exported API
+    p.updated = clock.now().toUtc();
 
     _logger.info(
         'Updating ${p.name} ${pv.version} options: isRetracted: $isRetracted');
@@ -904,8 +907,7 @@ class PackageBackend {
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final file = File(filename);
-      final fileBytes = await file.readAsBytes();
-      final sha256Hash = sha256.convert(fileBytes).bytes;
+      final sha256Hash = (await file.openRead().transform(sha256).single).bytes;
       final archive = await summarizePackageArchive(
         filename,
         maxContentLength: maxAssetContentLength,
@@ -946,7 +948,7 @@ class PackageBackend {
           await tarballStorage.matchArchiveContentInCanonical(
         pubspec.name,
         versionString,
-        fileBytes,
+        file,
       );
       if (canonicalContentMatch == ContentMatchStatus.different) {
         throw PackageRejectedException.versionExists(
@@ -1253,8 +1255,7 @@ class PackageBackend {
           emailBackend.trySendOutgoingEmail(outgoingEmail),
         taskBackend.trackPackage(newVersion.package, updateDependents: true),
         if (apiExporter != null)
-          apiExporter!
-              .updatePackageVersion(newVersion.package, newVersion.version!),
+          apiExporter!.synchronizePackage(newVersion.package),
       ]);
       await tarballStorage.updateContentDispositionOnPublicBucket(
           newVersion.package, newVersion.version!);

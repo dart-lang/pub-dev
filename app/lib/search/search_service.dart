@@ -132,6 +132,8 @@ class PackageDocument {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   late final Set<String> tagsForLookup = Set.of(tags);
+
+  late final packageNameLowerCased = package.toLowerCase();
 }
 
 /// A reference to an API doc page

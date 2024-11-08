@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/api_export/export_api_to_bucket.dart';
+import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
@@ -19,6 +19,7 @@ import '../../shared/popularity_storage.dart';
 import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
+import '../download_counts/backend.dart';
 import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
@@ -63,6 +64,7 @@ Future _workerMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
 
   await popularityStorage.start();
+  await downloadCountsBackend.start();
   await taskBackend.start();
 
   setupAnalyzerPeriodicTasks();
@@ -75,11 +77,13 @@ Future _workerMain(EntryMessage message) async {
 Future _indexBuilderMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
+  await downloadCountsBackend.start();
   await searchBackend.updateSnapshotInForeverLoop();
 }
 
 Future _apiExporterMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
   await popularityStorage.start();
-  await apiExporter!.uploadInForeverLoop();
+  await downloadCountsBackend.start();
+  await apiExporter!.start();
 }

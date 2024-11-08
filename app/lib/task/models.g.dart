@@ -48,3 +48,15 @@ Map<String, dynamic> _$PackageStateInfoToJson(PackageStateInfo instance) =>
       'package': instance.package,
       'versions': instance.versions,
     };
+
+AbortedTokenInfo _$AbortedTokenInfoFromJson(Map<String, dynamic> json) =>
+    AbortedTokenInfo(
+      token: json['token'] as String,
+      expires: DateTime.parse(json['expires'] as String),
+    );
+
+Map<String, dynamic> _$AbortedTokenInfoToJson(AbortedTokenInfo instance) =>
+    <String, dynamic>{
+      'token': instance.token,
+      'expires': instance.expires.toIso8601String(),
+    };

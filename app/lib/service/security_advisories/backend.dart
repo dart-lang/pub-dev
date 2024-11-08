@@ -39,22 +39,34 @@ class SecurityAdvisoryBackend {
   }
 
   Future<List<SecurityAdvisoryData>> lookupSecurityAdvisories(
-    String package,
-  ) async {
-    return (await cache.securityAdvisories(package).get(() async {
+    String package, {
+    bool skipCache = false,
+  }) async {
+    final loadAdvisories = () async {
       final query = _db.query<SecurityAdvisory>()
         ..filter('affectedPackages =', package);
       return query
           .run()
           .map((SecurityAdvisory adv) => SecurityAdvisoryData.fromModel(adv))
           .toList();
-    }))!;
+    };
+    if (skipCache) {
+      return await loadAdvisories();
+    }
+
+    return (await cache.securityAdvisories(package).get(loadAdvisories))!;
   }
 
   /// Create a [ListAdvisoriesResponse] for [package] using advisories from
   /// cache.
-  Future<ListAdvisoriesResponse> listAdvisoriesResponse(String package) async {
-    final advisories = await lookupSecurityAdvisories(package);
+  Future<ListAdvisoriesResponse> listAdvisoriesResponse(
+    String package, {
+    bool skipCache = false,
+  }) async {
+    final advisories = await lookupSecurityAdvisories(
+      package,
+      skipCache: skipCache,
+    );
     return ListAdvisoriesResponse(
       advisories: advisories.map((a) => a.advisory).toList(),
       advisoriesUpdated: advisories.map((a) => a.syncTime).maxOrNull,

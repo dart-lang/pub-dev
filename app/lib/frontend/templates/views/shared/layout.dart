@@ -166,8 +166,10 @@ d.Node pageLayoutNode({
             requestContext.experimentalFlags.isDarkModeDefault
                 ? 'dark-theme'
                 : 'light-theme',
-            if (activeConfiguration.isStaging) 'staging-banner',
           ],
+          attributes: {
+            if (activeConfiguration.isStaging) 'data-staging': '1',
+          },
           children: [
             // The initialization of dark theme must be in a synchronous, blocking
             // script execution, as otherwise users may see flash of unstyled content

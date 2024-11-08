@@ -147,15 +147,11 @@ class TokenIndex {
   /// Maps token Strings to a weighted documents (addressed via indexes).
   final _inverseIds = <String, Map<int, double>>{};
 
-  /// {id: size} map to store a value representative to the document length
-  late final List<double> _docWeights;
-
-  late final _length = _docWeights.length;
+  late final _length = _ids.length;
 
   TokenIndex(List<String> ids, List<String?> values) : _ids = ids {
     assert(ids.length == values.length);
     final length = values.length;
-    _docWeights = List<double>.filled(length, 0.0);
     for (var i = 0; i < length; i++) {
       final text = values[i];
 
@@ -166,12 +162,13 @@ class TokenIndex {
       if (tokens == null || tokens.isEmpty) {
         continue;
       }
-      for (final token in tokens.keys) {
-        final weights = _inverseIds.putIfAbsent(token, () => {});
-        weights[i] = math.max(weights[i] ?? 0.0, tokens[token]!);
-      }
       // Document weight is a highly scaled-down proxy of the length.
-      _docWeights[i] = 1 + math.log(1 + tokens.length) / 100;
+      final dw = 1 + math.log(1 + tokens.length) / 100;
+      for (final e in tokens.entries) {
+        final token = e.key;
+        final weights = _inverseIds.putIfAbsent(token, () => {});
+        weights[i] = math.max(weights[i] ?? 0.0, e.value / dw);
+      }
     }
   }
 
@@ -209,76 +206,120 @@ class TokenIndex {
     return tokenMatch;
   }
 
-  /// Returns an {id: score} map of the documents stored in the [TokenIndex].
-  /// The tokens in [tokenMatch] will be used to calculate a weighted sum of scores.
-  ///
-  /// When [limitToIds] is specified, the result will contain only the set of
-  /// identifiers in it.
-  Map<String, double> _scoreDocs(TokenMatch tokenMatch,
-      {double weight = 1.0, int wordCount = 1, Set<String>? limitToIds}) {
-    // Summarize the scores for the documents.
-    final docScores = List<double>.filled(_length, 0.0);
-    for (final token in tokenMatch.tokens) {
-      final docWeights = _inverseIds[token]!;
-      for (final e in docWeights.entries) {
-        final i = e.key;
-        docScores[i] = math.max(docScores[i], tokenMatch[token]! * e.value);
-      }
-    }
-
-    // In multi-word queries we will penalize the score with the document size
-    // for each word separately. As these scores will be multiplied, we need to
-    // compensate the formula in order to prevent multiple exponential penalties.
-    final double wordSizeExponent = 1.0 / wordCount;
-
-    final result = <String, double>{};
-    // post-process match weights
-    for (var i = 0; i < _length; i++) {
-      final id = _ids[i];
-      final w = docScores[i];
-      if (w <= 0.0) {
-        continue;
-      }
-      if (limitToIds != null && !limitToIds.contains(id)) {
-        continue;
-      }
-      var dw = _docWeights[i];
-      if (wordCount > 1) {
-        dw = math.pow(dw, wordSizeExponent).toDouble();
-      }
-      result[id] = w * weight / dw;
-    }
-    return result;
-  }
-
   /// Search the index for [text], with a (term-match / document coverage percent)
   /// scoring.
   @visibleForTesting
   Map<String, double> search(String text) {
-    return _scoreDocs(lookupTokens(text));
+    return searchWords(splitForQuery(text))._values;
   }
 
   /// Search the index for [words], with a (term-match / document coverage percent)
   /// scoring.
-  Score searchWords(List<String> words,
-      {double weight = 1.0, Set<String>? limitToIds}) {
-    if (limitToIds != null && limitToIds.isEmpty) {
-      return Score.empty;
-    }
-    final scores = <Score>[];
+  Score searchWords(List<String> words, {double weight = 1.0}) {
+    if (words.isEmpty) return Score.empty;
+    IndexedScore? score;
+    weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
-      final tokens = lookupTokens(w);
-      final values = _scoreDocs(
-        tokens,
-        weight: weight,
-        wordCount: words.length,
-        limitToIds: limitToIds,
-      );
-      if (values.isEmpty) {
-        return Score.empty;
+      final s = IndexedScore(_ids);
+      searchAndAccumulate(w, score: s, weight: weight);
+      if (score == null) {
+        score = s;
+      } else {
+        score.multiplyAllFrom(s);
       }
-      scores.add(Score(values));
     }
-    return Score.multiply(scores);
+    return score?.toScore() ?? Score.empty;
+  }
+
+  /// Searches the index with [word] and stores the results in [score], using
+  /// accumulation operation on the already existing values.
+  void searchAndAccumulate(
+    String word, {
+    double weight = 1.0,
+    required IndexedScore score,
+  }) {
+    assert(score.length == _length);
+    final tokenMatch = lookupTokens(word);
+    for (final token in tokenMatch.tokens) {
+      final matchWeight = tokenMatch[token]!;
+      final tokenWeight = _inverseIds[token]!;
+      for (final e in tokenWeight.entries) {
+        score.setValueMaxOf(e.key, matchWeight * e.value * weight);
+      }
+    }
+  }
+}
+
+/// Mutable score list that can accessed via integer index.
+class IndexedScore {
+  final List<String> _keys;
+  final List<double> _values;
+
+  IndexedScore._(this._keys, this._values);
+
+  factory IndexedScore(List<String> keys, [double value = 0.0]) =>
+      IndexedScore._(keys, List<double>.filled(keys.length, value));
+
+  late final length = _values.length;
+
+  bool isNotPositive(int index) {
+    return _values[index] <= 0.0;
+  }
+
+  void setValue(int index, double value) {
+    _values[index] = value;
+  }
+
+  void setValueMaxOf(int index, double value) {
+    _values[index] = math.max(_values[index], value);
+  }
+
+  void removeWhere(bool Function(int index, String key) fn) {
+    for (var i = 0; i < length; i++) {
+      if (isNotPositive(i)) continue;
+      if (fn(i, _keys[i])) {
+        _values[i] = 0.0;
+      }
+    }
+  }
+
+  void retainWhere(bool Function(int index, String key) fn) {
+    for (var i = 0; i < length; i++) {
+      if (isNotPositive(i)) continue;
+      if (!fn(i, _keys[i])) {
+        _values[i] = 0.0;
+      }
+    }
+  }
+
+  void multiplyAllFrom(IndexedScore other) {
+    assert(other._values.length == _values.length);
+    for (var i = 0; i < _values.length; i++) {
+      if (_values[i] == 0.0) continue;
+      final v = other._values[i];
+      _values[i] = v == 0.0 ? 0.0 : _values[i] * v;
+    }
+  }
+
+  Set<String> toKeySet() {
+    final set = <String>{};
+    for (var i = 0; i < _values.length; i++) {
+      final v = _values[i];
+      if (v > 0.0) {
+        set.add(_keys[i]);
+      }
+    }
+    return set;
+  }
+
+  Score toScore() {
+    final map = <String, double>{};
+    for (var i = 0; i < _values.length; i++) {
+      final v = _values[i];
+      if (v > 0.0) {
+        map[_keys[i]] = v;
+      }
+    }
+    return Score._(map);
   }
 }

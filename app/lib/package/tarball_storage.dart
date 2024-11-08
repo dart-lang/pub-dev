@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/package/api_export/exported_api.dart';
 import '../shared/datastore.dart';
 import '../shared/storage.dart';
 import '../shared/utils.dart';
@@ -52,6 +53,38 @@ class TarballStorage {
     return await _canonicalBucket.tryInfo(objectName);
   }
 
+  /// Gets `gs:/<bucket>/<objectName>` for [package] and [version] in the
+  /// canonical bucket.
+  ///
+  /// Returns the absolute objectName on the form created by
+  /// [Bucket.absoluteObjectName].
+  String getCanonicalBucketAbsoluteObjectName(String package, String version) =>
+      _canonicalBucket.absoluteObjectName(tarballObjectName(package, version));
+
+  /// Get map from `version` to [SourceObjectInfo] for each version of [package] in
+  /// canonical bucket.
+  Future<Map<String, SourceObjectInfo>> listVersionsInCanonicalBucket(
+    String package,
+  ) async {
+    final prefix = _tarballObjectNamePackagePrefix(package);
+    final items = await _canonicalBucket
+        .list(
+          prefix: prefix,
+          delimiter: '',
+        )
+        .toList();
+    return Map.fromEntries(items.whereType<BucketObjectEntry>().map((item) {
+      final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
+      return MapEntry(
+        version,
+        SourceObjectInfo.fromObjectInfo(
+          _canonicalBucket,
+          item,
+        ),
+      );
+    }));
+  }
+
   /// Gets the object info of the archive file from the public bucket.
   Future<ObjectInfo?> getPublicBucketArchiveInfo(
       String package, String version) async {
@@ -69,26 +102,43 @@ class TarballStorage {
   Future<ContentMatchStatus> matchArchiveContentInCanonical(
     String package,
     String version,
-    Uint8List bytes,
+    File file,
   ) async {
     final objectName = tarballObjectName(package, version);
     final info = await _canonicalBucket.tryInfo(objectName);
     if (info == null) {
       return ContentMatchStatus.missing;
     }
-    if (info.length != bytes.length) {
+    if (info.length != await file.length()) {
       return ContentMatchStatus.different;
     }
-    final md5hash = md5.convert(bytes).bytes;
+    final md5hash = (await file.openRead().transform(md5).single).bytes;
     if (!md5hash.byteToByteEquals(info.md5Hash)) {
       return ContentMatchStatus.different;
     }
-    final objectBytes = await _canonicalBucket.readAsBytes(objectName);
-    if (bytes.byteToByteEquals(objectBytes)) {
-      return ContentMatchStatus.same;
-    } else {
+    // Limit memory use while doing the byte-to-byte comparison by streaming it chunk-wise.
+    final raf = await file.open();
+    var remainingLength = info.length;
+    try {
+      await for (final chunk in _canonicalBucket.read(objectName)) {
+        if (chunk.isEmpty) continue;
+        remainingLength -= chunk.length;
+        if (remainingLength < 0) {
+          return ContentMatchStatus.different;
+        }
+        // TODO: consider rewriting to fixed-length chunk comparison
+        final fileChunk = await raf.read(chunk.length);
+        if (!fileChunk.byteToByteEquals(chunk)) {
+          return ContentMatchStatus.different;
+        }
+      }
+    } finally {
+      await raf.close();
+    }
+    if (remainingLength != 0) {
       return ContentMatchStatus.different;
     }
+    return ContentMatchStatus.same;
   }
 
   /// Copies the uploaded object from the temp bucket to the canonical bucket.
