@@ -16,7 +16,6 @@ const _colors = {
 
 void main() {
   group('Color restrictions and rules', () {
-    // TODO(https://github.com/dart-lang/pub-dev/issues/8248): comment in once issue is resolved.
     test('text and bg colors are only defined in _variables.scss', () {
       final files = Directory('lib')
           .listSync(recursive: true)
@@ -85,7 +84,8 @@ void main() {
               value.contains('rgb(') ||
               value.contains('rgba(') ||
               value.contains('hsl(') ||
-              _colors.any((c) => value.contains(c));
+              (_colors.any((c) => value.contains(c)) &&
+                  !value.contains('var(--pub-color-'));
           if (!hasColor) continue;
 
           badExpressions.add('${file.path} line #${i + 1}: `${expr.trim()}`');
