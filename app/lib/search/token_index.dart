@@ -141,15 +141,15 @@ class TokenMatch {
 }
 
 /// Stores a token -> documentId inverted index with weights.
-class TokenIndex {
-  final List<String> _ids;
+class TokenIndex<K> {
+  final List<K> _ids;
 
   /// Maps token Strings to a weighted documents (addressed via indexes).
   final _inverseIds = <String, Map<int, double>>{};
 
   late final _length = _ids.length;
 
-  TokenIndex(List<String> ids, List<String?> values) : _ids = ids {
+  TokenIndex(List<K> ids, List<String?> values) : _ids = ids {
     assert(ids.length == values.length);
     final length = values.length;
     for (var i = 0; i < length; i++) {
@@ -172,7 +172,7 @@ class TokenIndex {
     }
   }
 
-  factory TokenIndex.fromMap(Map<String, String> map) {
+  factory TokenIndex.fromMap(Map<K, String> map) {
     final keys = map.keys.toList();
     final values = map.values.toList();
     return TokenIndex(keys, values);
@@ -206,18 +206,10 @@ class TokenIndex {
     return tokenMatch;
   }
 
-  /// Search the index for [text], with a (term-match / document coverage percent)
-  /// scoring.
-  @visibleForTesting
-  Map<String, double> search(String text) {
-    return searchWords(splitForQuery(text))._values;
-  }
-
   /// Search the index for [words], with a (term-match / document coverage percent)
   /// scoring.
-  Score searchWords(List<String> words, {double weight = 1.0}) {
-    if (words.isEmpty) return Score.empty;
-    IndexedScore? score;
+  IndexedScore<K> searchWords(List<String> words, {double weight = 1.0}) {
+    IndexedScore<K>? score;
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
       final s = IndexedScore(_ids);
@@ -228,7 +220,7 @@ class TokenIndex {
         score.multiplyAllFrom(s);
       }
     }
-    return score?.toScore() ?? Score.empty;
+    return score ?? IndexedScore(_ids);
   }
 
   /// Searches the index with [word] and stores the results in [score], using
@@ -250,16 +242,26 @@ class TokenIndex {
   }
 }
 
+extension StringTokenIndexExt on TokenIndex<String> {
+  /// Search the index for [text], with a (term-match / document coverage percent)
+  /// scoring.
+  @visibleForTesting
+  Map<String, double> search(String text) {
+    return searchWords(splitForQuery(text)).toScore();
+  }
+}
+
 /// Mutable score list that can accessed via integer index.
-class IndexedScore {
-  final List<String> _keys;
+class IndexedScore<K> {
+  final List<K> _keys;
   final List<double> _values;
 
   IndexedScore._(this._keys, this._values);
 
-  factory IndexedScore(List<String> keys, [double value = 0.0]) =>
+  factory IndexedScore(List<K> keys, [double value = 0.0]) =>
       IndexedScore._(keys, List<double>.filled(keys.length, value));
 
+  List<K> get keys => _keys;
   late final length = _values.length;
 
   bool isPositive(int index) {
@@ -270,6 +272,10 @@ class IndexedScore {
     return _values[index] <= 0.0;
   }
 
+  double getValue(int index) {
+    return _values[index];
+  }
+
   void setValue(int index, double value) {
     _values[index] = value;
   }
@@ -278,7 +284,7 @@ class IndexedScore {
     _values[index] = math.max(_values[index], value);
   }
 
-  void removeWhere(bool Function(int index, String key) fn) {
+  void removeWhere(bool Function(int index, K key) fn) {
     for (var i = 0; i < length; i++) {
       if (isNotPositive(i)) continue;
       if (fn(i, _keys[i])) {
@@ -287,7 +293,7 @@ class IndexedScore {
     }
   }
 
-  void retainWhere(bool Function(int index, String key) fn) {
+  void retainWhere(bool Function(int index, K key) fn) {
     for (var i = 0; i < length; i++) {
       if (isNotPositive(i)) continue;
       if (!fn(i, _keys[i])) {
@@ -305,8 +311,8 @@ class IndexedScore {
     }
   }
 
-  Set<String> toKeySet() {
-    final set = <String>{};
+  Set<K> toKeySet() {
+    final set = <K>{};
     for (var i = 0; i < _values.length; i++) {
       final v = _values[i];
       if (v > 0.0) {
@@ -315,7 +321,9 @@ class IndexedScore {
     }
     return set;
   }
+}
 
+extension StringIndexedScoreExt on IndexedScore<String> {
   Score toScore() {
     final map = <String, double>{};
     for (var i = 0; i < _values.length; i++) {

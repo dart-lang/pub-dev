@@ -24,9 +24,9 @@ class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
   final _documentsByName = <String, PackageDocument>{};
   late final PackageNameIndex _packageNameIndex;
-  late final TokenIndex _descrIndex;
-  late final TokenIndex _readmeIndex;
-  late final TokenIndex _apiSymbolIndex;
+  late final TokenIndex<String> _descrIndex;
+  late final TokenIndex<String> _readmeIndex;
+  late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
@@ -51,16 +51,17 @@ class InMemoryPackageIndex {
   InMemoryPackageIndex({
     required Iterable<PackageDocument> documents,
   }) : _documents = [...documents] {
-    final apiDocPageKeys = <String>[];
+    final apiDocPageKeys = <IndexedApiDocPage>[];
     final apiDocPageValues = <String>[];
-    for (final doc in _documents) {
+    for (var i = 0; i < _documents.length; i++) {
+      final doc = _documents[i];
       _documentsByName[doc.package] = doc;
 
       final apiDocPages = doc.apiDocPages;
       if (apiDocPages != null) {
         for (final page in apiDocPages) {
           if (page.symbols != null && page.symbols!.isNotEmpty) {
-            apiDocPageKeys.add(_apiDocPageId(doc.package, page));
+            apiDocPageKeys.add(IndexedApiDocPage(i, doc.package, page));
             apiDocPageValues.add(page.symbols!.join(' '));
           }
         }
@@ -233,8 +234,7 @@ class InMemoryPackageIndex {
       packageHits = packageHits.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
             // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
-            ?.map((MapEntry<String, double> e) =>
-                ApiPageRef(path: _apiDocPath(e.key)))
+            ?.map((MapEntry<String, double> e) => ApiPageRef(path: e.key))
             .toList();
         return ps.change(apiPages: apiPages);
       }).toList();
@@ -264,7 +264,7 @@ class InMemoryPackageIndex {
   }
 
   _TextResults? _searchText(
-    IndexedScore packageScores,
+    IndexedScore<String> packageScores,
     String? text, {
     required bool includeNameMatches,
   }) {
@@ -310,64 +310,58 @@ class InMemoryPackageIndex {
         packageScores.multiplyAllFrom(wordScore);
       }
 
-      final core = packageScores.toScore();
-
-      var symbolPages = Score.empty;
-      if (!checkAborted()) {
-        symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
-      }
-
-      final apiPackages = <String, double>{};
       final topApiPages = <String, List<MapEntry<String, double>>>{};
       const maxApiPageCount = 2;
-      for (final entry in symbolPages.entries) {
-        final pkg = _apiDocPkg(entry.key);
-        if (!packages.contains(pkg)) continue;
+      if (!checkAborted()) {
+        final symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
 
-        // skip if the previously found pages are better than the current one
-        final pages = topApiPages.putIfAbsent(pkg, () => []);
-        if (pages.length >= maxApiPageCount && pages.last.value > entry.value) {
-          continue;
-        }
+        for (var i = 0; i < symbolPages.length; i++) {
+          final value = symbolPages.getValue(i);
+          if (value < 0.01) continue;
 
-        // update the top api packages score
-        apiPackages[pkg] = math.max(entry.value, apiPackages[pkg] ?? 0.0);
+          final doc = symbolPages.keys[i];
+          if (!packages.contains(doc.package)) continue;
 
-        // add the page and re-sort the current results
-        pages.add(entry);
-        if (pages.length > 1) {
-          pages.sort((a, b) => -a.value.compareTo(b.value));
-        }
-        // keep the results limited to the max count
-        if (pages.length > maxApiPageCount) {
-          pages.removeLast();
+          // skip if the previously found pages are better than the current one
+          final pages = topApiPages.putIfAbsent(doc.package, () => []);
+          if (pages.length >= maxApiPageCount && pages.last.value > value) {
+            continue;
+          }
+
+          // update the top api packages score
+          packageScores.setValueMaxOf(doc.index, value);
+
+          // add the page and re-sort the current results
+          pages.add(MapEntry(doc.page.relativePath, value));
+          if (pages.length > 1) {
+            pages.sort((a, b) => -a.value.compareTo(b.value));
+          }
+
+          // keep the results limited to the max count
+          if (pages.length > maxApiPageCount) {
+            pages.removeLast();
+          }
         }
       }
-
-      final apiPkgScore = Score(apiPackages);
-      var score = Score.max([core, apiPkgScore])
-          .removeLowValues(fraction: 0.2, minValue: 0.01);
 
       // filter results based on exact phrases
       final phrases = extractExactPhrases(text);
       if (!aborted && phrases.isNotEmpty) {
-        final matched = <String, double>{};
-        for (final MapEntry(key: package, value: packageScore)
-            in score.entries) {
-          final doc = _documentsByName[package]!;
-          final bool matchedAllPhrases = phrases.every((phrase) =>
+        for (var i = 0; i < packageScores.length; i++) {
+          if (packageScores.isNotPositive(i)) continue;
+          final doc = _documents[i];
+          final matchedAllPhrases = phrases.every((phrase) =>
               doc.package.contains(phrase) ||
               doc.description!.contains(phrase) ||
               doc.readme!.contains(phrase));
-          if (matchedAllPhrases) {
-            matched[package] = packageScore;
+          if (!matchedAllPhrases) {
+            packageScores.setValue(i, 0);
           }
         }
-        score = Score(matched);
       }
 
       return _TextResults(
-        score,
+        packageScores.toScore(),
         topApiPages,
         nameMatches: nameMatches?.toList(),
       );
@@ -441,18 +435,6 @@ class InMemoryPackageIndex {
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }
-
-  String _apiDocPageId(String package, ApiDocPage page) {
-    return '$package::${page.relativePath}';
-  }
-
-  String _apiDocPkg(String id) {
-    return id.split('::').first;
-  }
-
-  String _apiDocPath(String id) {
-    return id.split('::').last;
-  }
 }
 
 class _TextResults {
@@ -494,7 +476,7 @@ class PackageNameIndex {
   /// Search [text] and return the matching packages with scores.
   @visibleForTesting
   Score search(String text) {
-    IndexedScore? score;
+    IndexedScore<String>? score;
     for (final w in splitForQuery(text)) {
       final s = searchWord(w, filterOnNonZeros: score);
       if (score == null) {
@@ -511,9 +493,9 @@ class PackageNameIndex {
   ///
   /// When [filterOnNonZeros] is present, only the indexes with an already
   /// non-zero value are evaluated.
-  IndexedScore searchWord(
+  IndexedScore<String> searchWord(
     String word, {
-    IndexedScore? filterOnNonZeros,
+    IndexedScore<String>? filterOnNonZeros,
   }) {
     final score = IndexedScore(_packageNames);
     final singularWord = word.length <= 3 || !word.endsWith('s')
@@ -569,4 +551,12 @@ class IndexedPackageHit {
   final PackageHit hit;
 
   IndexedPackageHit(this.index, this.hit);
+}
+
+class IndexedApiDocPage {
+  final int index;
+  final String package;
+  final ApiDocPage page;
+
+  IndexedApiDocPage(this.index, this.package, this.page);
 }
