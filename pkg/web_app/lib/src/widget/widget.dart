@@ -11,6 +11,7 @@ import 'package:web/web.dart';
 import '../web_util.dart';
 import 'completion/widget.dart' deferred as completion;
 import 'switch/widget.dart' as switch_;
+import 'weekly_sparkline/widget.dart' as weekly_sparkline;
 
 /// Function to create an instance of the widget given an element and options.
 ///
@@ -33,6 +34,7 @@ typedef _WidgetLoaderFn = FutureOr<_WidgetFn> Function();
 final _widgets = <String, _WidgetLoaderFn>{
   'completion': () => completion.loadLibrary().then((_) => completion.create),
   'switch': () => switch_.create,
+  'weekly-sparkline': () => weekly_sparkline.create,
 };
 
 Future<_WidgetFn> _noSuchWidget() async =>
