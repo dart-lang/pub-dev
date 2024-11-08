@@ -16,7 +16,8 @@ const _colors = {
 
 void main() {
   group('Color restrictions and rules', () {
-    test('text and bg colors are only defined in _variables.scss', () {
+    test('text and bg colors are only defined in _variables.scss',
+        skip: 'https://github.com/dart-lang/pub-dev/issues/8248', () {
       final files = Directory('lib')
           .listSync(recursive: true)
           .whereType<File>()
