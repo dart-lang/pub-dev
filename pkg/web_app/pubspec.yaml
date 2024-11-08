@@ -2,13 +2,12 @@ name: web_app
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: '^3.5.0'
+resolution: workspace
 
 dependencies:
   _pub_shared:
-    path: ../_pub_shared
   api_builder:
-    path: ../api_builder
   collection: ^1.18.0
   http: ^1.0.0
   markdown: ^7.2.0

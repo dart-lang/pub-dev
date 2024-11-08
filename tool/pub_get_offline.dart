@@ -12,24 +12,25 @@ final _client = HttpClient();
 /// This allows us to not depend on a running `pub.dev` while deploying a new
 /// version.
 Future<void> main(List<String> args) async {
-  final pkgDir = args.single;
-  final pubCachePath =
-      Platform.environment['PUB_CACHE'] ?? '$pkgDir/.dart_tool/pub-cache';
-  final pubCacheDir = Directory(pubCachePath).absolute;
-  print('PUB_CACHE: ${pubCacheDir.path}');
-  if (pubCacheDir.existsSync()) {
-    pubCacheDir.deleteSync(recursive: true);
+  final pubCachePath = Platform.environment['PUB_CACHE'];
+  if (pubCachePath != null) {
+    final pubCacheDir = Directory(pubCachePath).absolute;
+    print('PUB_CACHE: ${pubCacheDir.path}');
+    if (pubCacheDir.existsSync()) {
+      pubCacheDir.deleteSync(recursive: true);
+    }
+    pubCacheDir.createSync(recursive: true);
   }
-  pubCacheDir.createSync(recursive: true);
 
-  final pvs = _parsePubspecLockSync(File('$pkgDir/pubspec.lock'));
+  final pvs = _parsePubspecLockSync(File.fromUri(
+      File.fromUri(Platform.script).parent.parent.uri.resolve('pubspec.lock')));
   final packages = pvs.keys.toList()..sort();
   for (final package in packages) {
     final version = pvs[package]!;
     for (var retry = 0;; retry++) {
       print('Downloading $package: $version (attempt: ${retry + 1})');
       try {
-        await _downloadInto(package, version, pubCacheDir);
+        await _downloadInto(package, version, pubCachePath);
         break;
       } catch (e) {
         if (retry >= 8) {
@@ -45,8 +46,7 @@ Future<void> main(List<String> args) async {
   final pr = Process.runSync(
     'dart',
     ['pub', 'get', '--offline', '--no-precompile', '--enforce-lockfile'],
-    environment: {'PUB_CACHE': pubCacheDir.path},
-    workingDirectory: pkgDir,
+    environment: {if (pubCachePath != null) 'PUB_CACHE': pubCachePath},
   );
   if (pr.exitCode != 0) {
     throw AssertionError(
@@ -61,6 +61,7 @@ Future<void> main(List<String> args) async {
 Map<String, String> _parsePubspecLockSync(File file) {
   final versions = <String, String>{};
   final lines = file.readAsLinesSync();
+
   String? package;
   String? source;
   for (final line in lines) {
@@ -90,9 +91,9 @@ Map<String, String> _parsePubspecLockSync(File file) {
   return versions;
 }
 
-/// Downloads the archive and preloads it into the cache at [pubCacheDir].
+/// Downloads the archive and preloads it into the cache at [pubCachePath].
 Future<void> _downloadInto(
-    String package, String version, Directory pubCacheDir) async {
+    String package, String version, String? pubCachePath) async {
   final rq = await _client.getUrl(Uri.parse(
       'https://storage.googleapis.com/dartlang-pub-public-packages/packages/${Uri.encodeComponent(package)}-${Uri.encodeComponent(version)}.tar.gz'));
   final rs = await rq.close();
@@ -108,7 +109,7 @@ Future<void> _downloadInto(
     final result = await Process.run(
       Platform.resolvedExecutable,
       ['pub', 'cache', 'preload', archiveFile.path],
-      environment: {'PUB_CACHE': pubCacheDir.path},
+      environment: {if (pubCachePath != null) 'PUB_CACHE': pubCachePath},
     );
 
     if (result.exitCode != 0) {
