@@ -30,7 +30,7 @@ void registerApiExporter(ApiExporter value) =>
 /// The active API Exporter service or null if it hasn't been initialized.
 ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 
-const _concurrency = 30;
+const _concurrency = 50;
 
 class ApiExporter {
   final ExportedApi _api;
@@ -134,6 +134,7 @@ class ApiExporter {
   Future<void> synchronizeExportedApi() async {
     final allPackageNames = <String>{};
     final packageQuery = dbService.query<Package>();
+    var errCount = 0;
     await packageQuery.run().parallelForEach(_concurrency, (pkg) async {
       final name = pkg.name!;
       if (pkg.isNotVisible) {
@@ -143,6 +144,9 @@ class ApiExporter {
 
       // TODO: Consider retries around all this logic
       await synchronizePackage(name);
+    }, onError: (e, st) {
+      _log.warning('synchronizePackage() failed', e, st);
+      errCount++;
     });
 
     await synchronizePackageNameCompletionData();
@@ -157,6 +161,12 @@ class ApiExporter {
     });
 
     await _api.garbageCollect(allPackageNames);
+
+    if (errCount > 0) {
+      throw Exception(
+        '$errCount exceptions happened while calling synchronizeExportedApi',
+      );
+    }
   }
 
   /// Sync package and into [ExportedApi], this will synchronize package into

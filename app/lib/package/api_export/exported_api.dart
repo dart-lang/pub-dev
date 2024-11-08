@@ -44,7 +44,7 @@ const _minGarbageAge = Duration(hours: 3);
 /// All writes to the bucket containing the exported API should go through this
 /// interface.
 final class ExportedApi {
-  final Pool _pool = Pool(50);
+  final Pool _pool = Pool(80);
   final Storage _storage;
   final Bucket _bucket;
   final List<String> _prefixes = [
