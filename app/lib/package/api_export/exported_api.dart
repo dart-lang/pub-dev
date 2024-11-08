@@ -16,8 +16,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/monitoring.dart';
 import 'package:pub_dev/shared/utils.dart';
 import '../../shared/storage.dart';
-import '../../shared/versions.dart'
-    show runtimeVersion, runtimeVersionPattern, shouldGCVersion;
+import '../../shared/versions.dart' show secondaryExportedApiPrefix;
 
 final _log = Logger('api_export.exported_api');
 
@@ -49,7 +48,7 @@ final class ExportedApi {
   final Bucket _bucket;
   final List<String> _prefixes = [
     'latest',
-    runtimeVersion,
+    secondaryExportedApiPrefix,
   ];
 
   ExportedApi(this._storage, this._bucket);
@@ -68,19 +67,15 @@ final class ExportedApi {
 
   /// Run garbage collection on the bucket.
   ///
-  /// This will remove all packages from `latest/` and `<runtimeVersion>/`,
-  /// where:
+  /// This will remove all packages from `latest/` and
+  /// [secondaryExportedApiPrefix], where:
   ///  * The name of the package is not in [allPackageNames], and,
   ///  * The file is more than one day old.
-  ///
-  /// This will remove prefixes other than `latest/` where [shouldGCVersion]
-  /// returns true.
   Future<void> garbageCollect(Set<String> allPackageNames) async {
     _log.info(
       'Garbage collection started, with ${allPackageNames.length} package names',
     );
     await Future.wait([
-      _gcOldPrefixes(),
       ..._prefixes.map((prefix) => _gcPrefix(prefix, allPackageNames)),
     ]);
     // Check if there are any stray files left after we've done a full GC cycle.
@@ -133,53 +128,6 @@ final class ExportedApi {
     });
   }
 
-  /// Garbage collect old prefixes.
-  ///
-  /// This will remove prefixes other than `latest/` where [shouldGCVersion]
-  /// returns true.
-  Future<void> _gcOldPrefixes() async {
-    // List all top-level prefixes, and delete the ones we don't need
-    final topLevelprefixes = await _pool.withResource(
-      () async => await _bucket.list(prefix: '', delimiter: '/').toList(),
-    );
-    await Future.wait(topLevelprefixes.map((entry) async {
-      if (entry.isObject) {
-        _log.pubNoticeShout(
-          'stray-file',
-          'Found stray top-level file "${entry.name}" in ExportedApi',
-        );
-        return; // ignore top-level files
-      }
-
-      final topLevelPrefix = entry.name.without(suffix: '/');
-      if (_prefixes.contains(topLevelPrefix)) {
-        return; // Don't GC prefixes we are writing to
-      }
-
-      if (!runtimeVersionPattern.hasMatch(topLevelPrefix)) {
-        _log.pubNoticeShout(
-          'stray-file',
-          'Found stray top-level prefix "${entry.name}" in ExportedApi',
-        );
-        return; // Don't GC non-runtimeVersions
-      }
-
-      if (shouldGCVersion(topLevelPrefix)) {
-        _log.info(
-          'Garbage collecting old prefix "$topLevelPrefix/" '
-          '(removing all objects under it)',
-        );
-
-        assert(entry.name.endsWith('/'));
-        await _listBucket(
-          prefix: entry.name,
-          delimiter: '',
-          (entry) async => await _bucket.tryDelete(entry.name),
-        );
-      }
-    }));
-  }
-
   /// Search for stray files in [prefix]
   ///
   /// We detect stray files by looking at the the [_validatedCustomHeader].
@@ -189,7 +137,7 @@ final class ExportedApi {
   /// file that we don't understand.
   ///
   /// If there are stray files we don't really dare to delete them. They could
-  /// be introduced by a newer [runtimeVersion]. Or it could bug, but if that's
+  /// be introduced by a newer deployment. Or it could bug, but if that's
   /// the case, what are the implications of deleting such files?
   /// In all such cases, it's best alert and leave deletion of files as bug to
   /// be fixed.

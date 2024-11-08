@@ -21,7 +21,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// is accepted from.
 ///
 /// Make sure that at least two versions are kept here as the next candidates
-/// when the version switch happens.
+/// when the version switch happens. And flip [secondaryExportedApiPrefix].
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
   '2024.10.29',
@@ -29,6 +29,13 @@ const _acceptedRuntimeVersions = <String>[
   '2024.10.21',
   '2024.10.15',
 ];
+
+/// Which prefix in the ExportedApi bucket should be used as secondary prefix.
+///
+/// Please flip this between first/last whenever [runtimeVersion] is bumped.
+final String secondaryExportedApiPrefix = secondaryExportedApiPrefixes.first;
+
+final secondaryExportedApiPrefixes = ['secondary-a', 'secondary-b'];
 
 /// Sets the current runtime versions.
 @visibleForTesting
