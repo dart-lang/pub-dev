@@ -25,12 +25,16 @@ void create(HTMLElement element, Map<String, String> options) {
     final decoded = decodeIntsFromLittleEndianBase64String(dataPoints);
     final newestDate = DateTime.fromMillisecondsSinceEpoch(decoded[0] * 1000);
     final weeklyDownloads = decoded.sublist(1);
+
+    // TODO(https://github.com/dart-lang/pub-dev/issues/8251): Update this to 52.
+    final dataListLength =
+        weeklyDownloads.length > 40 ? 40 : weeklyDownloads.length;
     return List.generate(
         weeklyDownloads.length,
         (i) => (
               date: newestDate.copyWith(day: newestDate.day - 7 * i),
               downloads: weeklyDownloads[i]
-            )).reversed.toList();
+            )).sublist(0, dataListLength).reversed.toList();
   }
 
   drawChart(svg, toolTip, chartSubText, prepareDataForSparkline(dataPoints));
@@ -94,7 +98,7 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   sparklineSpot
     ..setAttribute('class', 'weekly-sparkline')
-    ..setAttribute('r', '2');
+    ..setAttribute('r', '3');
 
   sparklineBar.setAttribute('class', 'weekly-sparkline-bar');
   sparklineBar.setAttribute('x1', '0');

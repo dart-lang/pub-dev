@@ -72,9 +72,6 @@ d.Node packageInfoBoxNode({
   }
   return d.fragment([
     labeledScores,
-    if (data.weeklyDownloadCounts != null &&
-        requestContext.experimentalFlags.showDownloadCounts)
-      _block('Weekly Downloads', _downloadsChart(data.weeklyDownloadCounts!)),
     if (thumbnailUrl != null)
       d.div(classes: [
         'detail-screenshot-thumbnail'
@@ -86,6 +83,9 @@ d.Node packageInfoBoxNode({
         collectionsIcon(),
       ]),
     _publisher(package.publisherId),
+    if (data.weeklyDownloadCounts != null &&
+        requestContext.experimentalFlags.showDownloadCounts)
+      _block('Weekly Downloads', _downloadsChart(data.weeklyDownloadCounts!)),
     _metadata(
       description: version.pubspec!.description,
       metaLinks: metaLinks,
