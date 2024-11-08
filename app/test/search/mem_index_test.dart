@@ -109,7 +109,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {
             'package': 'http',
-            'score': closeTo(0.85, 0.01),
+            'score': closeTo(0.93, 0.01),
           },
         ],
       });
@@ -140,7 +140,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http', 'score': closeTo(0.69, 0.01)},
-          {'package': 'async', 'score': closeTo(0.57, 0.01)},
+          {'package': 'async', 'score': closeTo(0.63, 0.01)},
         ],
       });
     });
@@ -381,7 +381,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.85, 0.01)},
+          {'package': 'http', 'score': closeTo(0.93, 0.01)},
         ],
       });
     });
@@ -494,7 +494,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.87, 0.01)},
+          {'package': 'http', 'score': closeTo(0.98, 0.01)},
         ],
       });
 
@@ -505,8 +505,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 3,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'chrome_net', 'score': closeTo(0.88, 0.01)},
-          {'package': 'async', 'score': closeTo(0.88, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.98, 0.01)},
+          {'package': 'async', 'score': closeTo(0.98, 0.01)},
           {'package': 'http', 'score': closeTo(0.72, 0.01)},
         ],
       });
@@ -520,7 +520,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.63, 0.01)},
+          {'package': 'http', 'score': closeTo(0.70, 0.01)},
         ],
       });
     });
@@ -615,8 +615,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'totalCount': 2,
             'sdkLibraryHits': [],
             'packageHits': [
-              {'package': 'def', 'score': closeTo(0.69, 0.01)},
-              {'package': 'abc', 'score': closeTo(0.42, 0.01)},
+              {'package': 'def', 'score': closeTo(0.77, 0.01)},
+              {'package': 'abc', 'score': closeTo(0.47, 0.01)},
             ]
           },
         );
@@ -629,7 +629,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'sdkLibraryHits': [],
           'packageHits': [
             // `abc` is at its natural place
-            {'package': 'def', 'score': closeTo(0.69, 0.01)},
+            {'package': 'def', 'score': closeTo(0.77, 0.01)},
             {'package': 'abc', 'score': closeTo(0.48, 0.01)},
           ]
         });
@@ -644,7 +644,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
               'sdkLibraryHits': [],
               'packageHits': [
                 // `abc` is at its natural place
-                {'package': 'def', 'score': closeTo(0.69, 0.01)},
+                {'package': 'def', 'score': closeTo(0.77, 0.01)},
                 {'package': 'abc', 'score': closeTo(0.48, 0.01)},
               ]
             });
@@ -659,7 +659,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
               'sdkLibraryHits': [],
               'packageHits': [
                 // `abc` is not present in the package list
-                {'package': 'def', 'score': closeTo(0.69, 0.01)},
+                {'package': 'def', 'score': closeTo(0.77, 0.01)},
               ]
             });
       });
@@ -690,7 +690,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'sdkLibraryHits': [],
           'packageHits': [
             {'package': 'flutter_modular', 'score': 1.0},
-            {'package': 'serveme', 'score': closeTo(0.87, 0.01)},
+            {'package': 'serveme', 'score': closeTo(0.97, 0.01)},
           ]
         },
       );

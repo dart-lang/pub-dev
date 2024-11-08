@@ -305,7 +305,7 @@ class InMemoryPackageIndex {
 
         final wordScore =
             _packageNameIndex.searchWord(word, filterOnNonZeros: packageScores);
-        _descrIndex.searchAndAccumulate(word, weight: 0.90, score: wordScore);
+        _descrIndex.searchAndAccumulate(word, score: wordScore);
         _readmeIndex.searchAndAccumulate(word, weight: 0.75, score: wordScore);
         packageScores.multiplyAllFrom(wordScore);
       }
