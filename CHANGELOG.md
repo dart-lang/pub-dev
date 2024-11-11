@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20241111t133300-all`
+
 ## `20241111t124500-all`
  * Note: `search` increased `description` weight from `0.9` to `1.0`.
  * Bump runtimeVersion to `2024.11.11`.
