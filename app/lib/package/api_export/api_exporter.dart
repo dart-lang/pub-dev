@@ -122,16 +122,19 @@ class ApiExporter {
   }
 
   /// Gets and uploads the package name completion data.
-  Future<void> synchronizePackageNameCompletionData() async {
+  Future<void> synchronizePackageNameCompletionData({
+    bool forceWrite = false,
+  }) async {
     await _api.packageNameCompletionData.write(
       await searchBackend.getPackageNameCompletionData(),
+      forceWrite: forceWrite,
     );
   }
 
   /// Synchronize all exported API.
   ///
   /// This is intended to be scheduled from a daily background task.
-  Future<void> synchronizeExportedApi() async {
+  Future<void> synchronizeExportedApi({bool forceWrite = false}) async {
     final allPackageNames = <String>{};
     final packageQuery = dbService.query<Package>();
     var errCount = 0;
@@ -143,13 +146,13 @@ class ApiExporter {
       allPackageNames.add(name);
 
       // TODO: Consider retries around all this logic
-      await synchronizePackage(name);
+      await synchronizePackage(name, forceWrite: forceWrite);
     }, onError: (e, st) {
       _log.warning('synchronizePackage() failed', e, st);
       errCount++;
     });
 
-    await synchronizePackageNameCompletionData();
+    await synchronizePackageNameCompletionData(forceWrite: forceWrite);
 
     await _api.notFound.write({
       'error': {
@@ -158,7 +161,7 @@ class ApiExporter {
       },
       'code': 'NotFound',
       'message': 'Package or version requested could not be found.',
-    });
+    }, forceWrite: forceWrite);
 
     await _api.garbageCollect(allPackageNames);
 
@@ -182,7 +185,10 @@ class ApiExporter {
   ///  * Running a full background synchronization.
   ///  * When a change in [Package.updated] is detected.
   ///  * A package is moderated, or other admin action is applied.
-  Future<void> synchronizePackage(String package) async {
+  Future<void> synchronizePackage(
+    String package, {
+    bool forceWrite = false,
+  }) async {
     _log.info('synchronizePackage("$package")');
 
     final PackageData versionListing;
@@ -212,9 +218,18 @@ class ApiExporter {
       (version, _) => !versionListing.versions.any((v) => v.version == version),
     );
 
-    await _api.package(package).synchronizeTarballs(versions);
-    await _api.package(package).advisories.write(advisories);
-    await _api.package(package).versions.write(versionListing);
+    await _api.package(package).synchronizeTarballs(
+          versions,
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).advisories.write(
+          advisories,
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).versions.write(
+          versionListing,
+          forceWrite: forceWrite,
+        );
   }
 
   /// Scan for updates from packages until [abort] is resolved, or [claim]
