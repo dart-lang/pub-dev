@@ -245,8 +245,10 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerAnnouncementBackend(AnnouncementBackend());
     if (activeConfiguration.exportedApiBucketName != null) {
       registerApiExporter(ApiExporter(
-          bucket: storageService
-              .bucket(activeConfiguration.exportedApiBucketName!)));
+        dbService,
+        bucket:
+            storageService.bucket(activeConfiguration.exportedApiBucketName!),
+      ));
     }
     registerAsyncQueue(AsyncQueue());
     registerAuditBackend(AuditBackend(dbService));

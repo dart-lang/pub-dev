@@ -33,6 +33,8 @@ ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 const _concurrency = 50;
 
 final class ApiExporter {
+  final DatastoreDB _db;
+
   final ExportedApi _api;
 
   /// If [stop] has been called to stop background processes.
@@ -46,7 +48,8 @@ final class ApiExporter {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
-  ApiExporter({
+  ApiExporter(
+    this._db, {
     required Bucket bucket,
   }) : _api = ExportedApi(storageService, bucket);
 
@@ -122,18 +125,21 @@ final class ApiExporter {
   }
 
   /// Gets and uploads the package name completion data.
-  Future<void> synchronizePackageNameCompletionData() async {
+  Future<void> synchronizePackageNameCompletionData({
+    bool forceWrite = false,
+  }) async {
     await _api.packageNameCompletionData.write(
       await searchBackend.getPackageNameCompletionData(),
+      forceWrite: forceWrite,
     );
   }
 
   /// Synchronize all exported API.
   ///
   /// This is intended to be scheduled from a daily background task.
-  Future<void> synchronizeExportedApi() async {
+  Future<void> synchronizeExportedApi({bool forceWrite = false}) async {
     final allPackageNames = <String>{};
-    final packageQuery = dbService.query<Package>();
+    final packageQuery = _db.query<Package>();
     var errCount = 0;
     await packageQuery.run().parallelForEach(_concurrency, (pkg) async {
       final name = pkg.name!;
@@ -143,13 +149,13 @@ final class ApiExporter {
       allPackageNames.add(name);
 
       // TODO: Consider retries around all this logic
-      await synchronizePackage(name);
+      await synchronizePackage(name, forceWrite: forceWrite);
     }, onError: (e, st) {
       _log.warning('synchronizePackage() failed', e, st);
       errCount++;
     });
 
-    await synchronizePackageNameCompletionData();
+    await synchronizePackageNameCompletionData(forceWrite: forceWrite);
 
     await _api.notFound.write({
       'error': {
@@ -158,7 +164,7 @@ final class ApiExporter {
       },
       'code': 'NotFound',
       'message': 'Package or version requested could not be found.',
-    });
+    }, forceWrite: forceWrite);
 
     await _api.garbageCollect(allPackageNames);
 
@@ -182,7 +188,10 @@ final class ApiExporter {
   ///  * Running a full background synchronization.
   ///  * When a change in [Package.updated] is detected.
   ///  * A package is moderated, or other admin action is applied.
-  Future<void> synchronizePackage(String package) async {
+  Future<void> synchronizePackage(
+    String package, {
+    bool forceWrite = false,
+  }) async {
     _log.info('synchronizePackage("$package")');
 
     final PackageData versionListing;
@@ -212,9 +221,18 @@ final class ApiExporter {
       (version, _) => !versionListing.versions.any((v) => v.version == version),
     );
 
-    await _api.package(package).synchronizeTarballs(versions);
-    await _api.package(package).advisories.write(advisories);
-    await _api.package(package).versions.write(versionListing);
+    await _api.package(package).synchronizeTarballs(
+          versions,
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).advisories.write(
+          advisories,
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).versions.write(
+          versionListing,
+          forceWrite: forceWrite,
+        );
   }
 
   /// Scan for updates from packages until [abort] is resolved, or [claim]
@@ -236,7 +254,7 @@ final class ApiExporter {
     var since = clock.ago(days: 3);
     while (claim.valid && !abort.isCompleted) {
       // Look at all packages changed in [since]
-      final q = dbService.query<Package>()
+      final q = _db.query<Package>()
         ..filter('updated >', since)
         ..order('-updated');
 

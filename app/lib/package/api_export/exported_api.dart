@@ -284,13 +284,16 @@ final class ExportedPackage {
   ///
   /// This method will copy GCS objects, when necessary, relying on
   /// [SourceObjectInfo.md5Hash] to avoid copying objects that haven't changed.
+  /// If [forceWrite] is given all files will be rewritten ignoring their
+  /// previous state.
   ///
   /// [versions] **must** have an entry for each version that exists.
   /// This will **delete** tarballs for versions that do not exist in
   /// [versions].
   Future<void> synchronizeTarballs(
-    Map<String, SourceObjectInfo> versions,
-  ) async {
+    Map<String, SourceObjectInfo> versions, {
+    bool forceWrite = false,
+  }) async {
     await Future.wait([
       ..._owner._prefixes.map((prefix) async {
         final pfx = '$prefix/api/archives/$_package-';
@@ -314,7 +317,7 @@ final class ExportedPackage {
           );
 
           final info = versions[version];
-          if (info != null) {
+          if (info != null && !forceWrite) {
             await tarball(version)._copyToPrefixFromIfNotContentEquals(
               prefix,
               info,
@@ -342,6 +345,7 @@ final class ExportedPackage {
               prefix,
               versions[v]!,
               null,
+              forceWrite: forceWrite,
             );
           });
         }));
@@ -495,7 +499,10 @@ final class ExportedJsonFile<T> extends ExportedObject {
   }
 
   /// Write [data] as gzipped JSON in UTF-8 format.
-  Future<void> write(T data) async {
+  ///
+  /// This will only write of `Content-Length` and `md5Hash` doesn't match the
+  /// existing file, or if [forceWrite] is given.
+  Future<void> write(T data, {bool forceWrite = false}) async {
     final gzipped = _jsonGzip.encode(data);
     final metadata = _metadata();
 
@@ -505,6 +512,7 @@ final class ExportedJsonFile<T> extends ExportedObject {
           prefix + _objectName,
           gzipped,
           metadata,
+          forceWrite: forceWrite,
         );
       });
     }));
@@ -542,7 +550,10 @@ final class ExportedBlob extends ExportedObject {
   }
 
   /// Write binary blob to this file.
-  Future<void> write(List<int> data) async {
+  ///
+  /// This will only write of `Content-Length` and `md5Hash` doesn't match the
+  /// existing file, or if [forceWrite] is given.
+  Future<void> write(List<int> data, {bool forceWrite = false}) async {
     final metadata = _metadata();
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
@@ -550,6 +561,7 @@ final class ExportedBlob extends ExportedObject {
           prefix + _objectName,
           data,
           metadata,
+          forceWrite: forceWrite,
         );
       });
     }));
@@ -563,7 +575,11 @@ final class ExportedBlob extends ExportedObject {
   /// [source] is required to be [SourceObjectInfo] for the source object.
   /// This method will use [ObjectInfo.length] and [ObjectInfo.md5Hash] to
   /// determine if it's necessary to copy the object.
-  Future<void> copyFrom(SourceObjectInfo source) async {
+  /// If [forceWrite] is given, this method will always copy the object.
+  Future<void> copyFrom(
+    SourceObjectInfo source, {
+    bool forceWrite = false,
+  }) async {
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
         final dst = prefix + _objectName;
@@ -572,6 +588,7 @@ final class ExportedBlob extends ExportedObject {
           prefix,
           source,
           await _owner._bucket.tryInfo(dst),
+          forceWrite: forceWrite,
         );
       });
     }));
@@ -592,12 +609,13 @@ final class ExportedBlob extends ExportedObject {
   Future<void> _copyToPrefixFromIfNotContentEquals(
     String prefix,
     SourceObjectInfo source,
-    ObjectInfo? destinationInfo,
-  ) async {
+    ObjectInfo? destinationInfo, {
+    bool forceWrite = false,
+  }) async {
     final dst = prefix + _objectName;
 
     // Check if the dst already exists
-    if (destinationInfo != null) {
+    if (destinationInfo != null && !forceWrite) {
       if (destinationInfo.name != dst) {
         throw ArgumentError.value(
           destinationInfo,
@@ -633,15 +651,18 @@ extension on Bucket {
   Future<void> writeBytesIfDifferent(
     String name,
     List<int> bytes,
-    ObjectMetadata metadata,
-  ) async {
-    if (await tryInfo(name) case final info?) {
-      if (info.isSameContent(bytes)) {
-        if (info.metadata.validated
-            .isBefore(clock.agoBy(_updateValidatedAfter))) {
-          await updateMetadata(name, metadata);
+    ObjectMetadata metadata, {
+    bool forceWrite = false,
+  }) async {
+    if (!forceWrite) {
+      if (await tryInfo(name) case final info?) {
+        if (info.isSameContent(bytes)) {
+          if (info.metadata.validated
+              .isBefore(clock.agoBy(_updateValidatedAfter))) {
+            await updateMetadata(name, metadata);
+          }
+          return;
         }
-        return;
       }
     }
 
