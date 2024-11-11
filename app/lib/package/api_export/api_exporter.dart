@@ -33,6 +33,8 @@ ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 const _concurrency = 50;
 
 class ApiExporter {
+  final DatastoreDB _db;
+
   final ExportedApi _api;
 
   /// If [stop] has been called to stop background processes.
@@ -46,7 +48,8 @@ class ApiExporter {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
-  ApiExporter({
+  ApiExporter(
+    this._db, {
     required Bucket bucket,
   }) : _api = ExportedApi(storageService, bucket);
 
@@ -136,7 +139,7 @@ class ApiExporter {
   /// This is intended to be scheduled from a daily background task.
   Future<void> synchronizeExportedApi({bool forceWrite = false}) async {
     final allPackageNames = <String>{};
-    final packageQuery = dbService.query<Package>();
+    final packageQuery = _db.query<Package>();
     var errCount = 0;
     await packageQuery.run().parallelForEach(_concurrency, (pkg) async {
       final name = pkg.name!;
@@ -251,7 +254,7 @@ class ApiExporter {
     var since = clock.ago(days: 3);
     while (claim.valid && !abort.isCompleted) {
       // Look at all packages changed in [since]
-      final q = dbService.query<Package>()
+      final q = _db.query<Package>()
         ..filter('updated >', since)
         ..order('-updated');
 
