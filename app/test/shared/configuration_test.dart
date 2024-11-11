@@ -77,6 +77,9 @@ void main() {
       if (config.isProduction) {
         expect(rateLimits, hasLength(greaterThan(10)));
       }
+
+      // expect bucket names are non-null
+      expect(config.allBucketNames, isNotEmpty);
     }
   });
 }
