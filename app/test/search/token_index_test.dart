@@ -126,6 +126,10 @@ void main() {
         'a': 100.0,
       });
     });
+  });
+
+  group('IndexedScore', () {
+    final score = IndexedScore.fromMap({'a': 100.0, 'b': 30.0, 'c': 55.0});
 
     test('top', () {
       expect(score.top(1), {'a': 100.0});

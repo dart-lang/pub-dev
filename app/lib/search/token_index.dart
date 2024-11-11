@@ -102,15 +102,6 @@ extension type const Score._(Map<String, double> _values)
   Score mapValues(double Function(String key, double value) f) =>
       Score.fromEntries(
           _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
-
-  /// Returns a new [Score] object with the top [count] entry.
-  Score top(int count, {double? minValue}) {
-    final entries = _values.entries
-        .where((e) => minValue == null || e.value >= minValue)
-        .toList();
-    entries.sort((a, b) => -a.value.compareTo(b.value));
-    return Score(Map.fromEntries(entries.take(count)));
-  }
 }
 
 /// The weighted tokens used for the final search.
@@ -261,6 +252,9 @@ class IndexedScore<K> {
   factory IndexedScore(List<K> keys, [double value = 0.0]) =>
       IndexedScore._(keys, List<double>.filled(keys.length, value));
 
+  factory IndexedScore.fromMap(Map<K, double> values) =>
+      IndexedScore._(values.keys.toList(), values.values.toList());
+
   List<K> get keys => _keys;
   late final length = _values.length;
 
@@ -320,6 +314,24 @@ class IndexedScore<K> {
       }
     }
     return set;
+  }
+
+  Map<K, double> top(int count, {double? minValue}) {
+    final list = <int>[];
+    double? lastValue;
+    for (var i = 0; i < length; i++) {
+      final v = _values[i];
+      if (minValue != null && v < minValue) continue;
+      if (list.length == count) {
+        if (lastValue != null && lastValue >= v) continue;
+        list[count - 1] = i;
+      } else {
+        list.add(i);
+      }
+      list.sort((a, b) => -_values[a].compareTo(_values[b]));
+      lastValue = _values[list.last];
+    }
+    return Map.fromEntries(list.map((i) => MapEntry(_keys[i], _values[i])));
   }
 }
 
