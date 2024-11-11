@@ -314,10 +314,10 @@ packages:
     dependency: transitive
     description:
       name: gcloud
-      sha256: "17e9f6b377972d2e6883edcbdacbcf402895b2fce0b265a19b5e8bd63cbf12a1"
+      sha256: "4023f8f3dde8324ca8d17bd419767986764ac90a1173b207d4bc0e1784e9095f"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.16"
+    version: "0.8.17"
   glob:
     dependency: transitive
     description:
