@@ -32,7 +32,7 @@ ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
 
 const _concurrency = 50;
 
-class ApiExporter {
+final class ApiExporter {
   final ExportedApi _api;
 
   /// If [stop] has been called to stop background processes.
