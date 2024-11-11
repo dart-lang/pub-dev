@@ -66,6 +66,7 @@ Future _workerMain(EntryMessage message) async {
   await popularityStorage.start();
   await downloadCountsBackend.start();
   await taskBackend.start();
+  registerScopeExitCallback(() => taskBackend.stop());
 
   setupAnalyzerPeriodicTasks();
   setupSearchPeriodicTasks();
@@ -86,4 +87,8 @@ Future _apiExporterMain(EntryMessage message) async {
   await popularityStorage.start();
   await downloadCountsBackend.start();
   await apiExporter!.start();
+  registerScopeExitCallback(() => apiExporter!.stop());
+
+  // wait indefinitely
+  await Completer().future;
 }
