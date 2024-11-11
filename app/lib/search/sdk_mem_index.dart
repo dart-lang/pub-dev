@@ -136,7 +136,7 @@ class SdkMemIndex {
 
       final tokens = _tokensPerLibrary[library]!;
       final plainResults =
-          tokens.searchWords(words).toScore().top(3, minValue: 0.05);
+          Score(tokens.searchWords(words).top(3, minValue: 0.05));
       if (plainResults.isEmpty) continue;
 
       final libraryWeight = _libraryWeights[library] ?? 1.0;
