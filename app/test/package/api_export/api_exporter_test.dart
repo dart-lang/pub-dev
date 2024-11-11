@@ -12,6 +12,7 @@ import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -46,7 +47,7 @@ void main() {
       (fakeTime) async {
     await storageService.createBucket('bucket');
     final bucket = storageService.bucket('bucket');
-    final apiExporter = ApiExporter(bucket: bucket);
+    final apiExporter = ApiExporter(dbService, bucket: bucket);
 
     await _testExportedApiSynchronization(
       fakeTime,
@@ -61,7 +62,7 @@ void main() {
     (fakeTime) async {
       await storageService.createBucket('bucket');
       final bucket = storageService.bucket('bucket');
-      final apiExporter = ApiExporter(bucket: bucket);
+      final apiExporter = ApiExporter(dbService, bucket: bucket);
 
       await apiExporter.synchronizeExportedApi();
 
