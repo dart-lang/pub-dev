@@ -297,10 +297,14 @@ class IndexedScore<K> {
   }
 
   void multiplyAllFrom(IndexedScore other) {
-    assert(other._values.length == _values.length);
+    multiplyAllFromValues(other._values);
+  }
+
+  void multiplyAllFromValues(List<double> values) {
+    assert(_values.length == values.length);
     for (var i = 0; i < _values.length; i++) {
       if (_values[i] == 0.0) continue;
-      final v = other._values[i];
+      final v = values[i];
       _values[i] = v == 0.0 ? 0.0 : _values[i] * v;
     }
   }

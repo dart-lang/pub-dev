@@ -30,7 +30,7 @@ class InMemoryPackageIndex {
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
-  final _adjustedOverallScores = <String, double>{};
+  late final List<double> _adjustedOverallScores;
   late final List<IndexedPackageHit> _overallOrderedHits;
   late final List<IndexedPackageHit> _createdOrderedHits;
   late final List<IndexedPackageHit> _updatedOrderedHits;
@@ -197,13 +197,11 @@ class InMemoryPackageIndex {
         /// Adjusted score takes the overall score and transforms
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
-        final overallScore = textResults.pkgScore
-            .mapValues((key, value) => value * _adjustedOverallScores[key]!);
-        packageHits = _rankWithValues(overallScore);
+        packageScores.multiplyAllFromValues(_adjustedOverallScores);
+        packageHits = _rankWithValues(packageScores);
         break;
       case SearchOrder.text:
-        final score = textResults?.pkgScore ?? Score.empty;
-        packageHits = _rankWithValues(score);
+        packageHits = _rankWithValues(packageScores);
         break;
       case SearchOrder.created:
         packageHits = _createdOrderedHits.whereInScores(packageScores);
@@ -251,7 +249,7 @@ class InMemoryPackageIndex {
 
   /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
   void _updateOverallScores() {
-    for (final doc in _documentsByName.values) {
+    _adjustedOverallScores = _documents.map((doc) {
       final downloadScore = doc.popularityScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
@@ -259,8 +257,8 @@ class InMemoryPackageIndex {
       final overall = popularity * 0.5 + points * 0.5;
       doc.overallScore = overall;
       // adding a base score prevents later multiplication with zero
-      _adjustedOverallScores[doc.package] = 0.4 + 0.6 * overall;
-    }
+      return 0.4 + 0.6 * overall;
+    }).toList();
   }
 
   _TextResults? _searchText(
@@ -272,6 +270,9 @@ class InMemoryPackageIndex {
     if (text != null && text.isNotEmpty) {
       final words = splitForQuery(text);
       if (words.isEmpty) {
+        for (var i = 0; i < packageScores.length; i++) {
+          packageScores.setValue(i, 0);
+        }
         return _TextResults.empty();
       }
 
@@ -361,7 +362,6 @@ class InMemoryPackageIndex {
       }
 
       return _TextResults(
-        packageScores.toScore(),
         topApiPages,
         nameMatches: nameMatches?.toList(),
       );
@@ -369,18 +369,21 @@ class InMemoryPackageIndex {
     return null;
   }
 
-  List<PackageHit> _rankWithValues(Map<String, double> values) {
-    final list = values.entries
-        .map((e) => PackageHit(package: e.key, score: e.value))
-        .toList();
+  List<PackageHit> _rankWithValues(IndexedScore<String> score) {
+    final list = <IndexedPackageHit>[];
+    for (var i = 0; i < score.length; i++) {
+      final value = score.getValue(i);
+      if (value <= 0.0) continue;
+      list.add(IndexedPackageHit(
+          i, PackageHit(package: score.keys[i], score: value)));
+    }
     list.sort((a, b) {
-      final int scoreCompare = -a.score!.compareTo(b.score!);
+      final scoreCompare = -a.hit.score!.compareTo(b.hit.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
-      return _compareUpdated(
-          _documentsByName[a.package]!, _documentsByName[b.package]!);
+      return _compareUpdated(_documents[a.index], _documents[b.index]);
     });
-    return list;
+    return list.map((h) => h.hit).toList();
   }
 
   List<IndexedPackageHit> _rankWithComparator(
@@ -438,18 +441,15 @@ class InMemoryPackageIndex {
 }
 
 class _TextResults {
-  final Score pkgScore;
   final Map<String, List<MapEntry<String, double>>> topApiPages;
   final List<String>? nameMatches;
 
   factory _TextResults.empty() => _TextResults(
-        Score.empty,
         {},
         nameMatches: null,
       );
 
   _TextResults(
-    this.pkgScore,
     this.topApiPages, {
     required this.nameMatches,
   });
