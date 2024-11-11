@@ -25,7 +25,6 @@ void create(HTMLElement element, Map<String, String> options) {
     final decoded = decodeIntsFromLittleEndianBase64String(dataPoints);
     final newestDate = DateTime.fromMillisecondsSinceEpoch(decoded[0] * 1000);
     final weeklyDownloads = decoded.sublist(1);
-
     // TODO(https://github.com/dart-lang/pub-dev/issues/8251): Update this to 52.
     final dataListLength =
         weeklyDownloads.length > 40 ? 40 : weeklyDownloads.length;
@@ -149,9 +148,9 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
     toolTip.text = '${selectedDay.downloads}';
 
-    final endDate = selectedDay.date.add(Duration(days: 7));
+    final startDate = selectedDay.date.subtract(Duration(days: 7));
     chartSubText.text =
-        ' ${formatDate(selectedDay.date)} - ${formatDate(endDate)}';
+        '${formatDate(startDate)} - ${formatDate(selectedDay.date)}';
 
     lastSelectedDay = selectedDay.date;
   });
