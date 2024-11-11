@@ -47,7 +47,8 @@ void main() {
       (fakeTime) async {
     await storageService.createBucket('bucket');
     final bucket = storageService.bucket('bucket');
-    final apiExporter = ApiExporter(dbService, bucket: bucket);
+    final apiExporter =
+        ApiExporter(dbService, storageService: storageService, bucket: bucket);
 
     await _testExportedApiSynchronization(
       fakeTime,
@@ -62,7 +63,8 @@ void main() {
     (fakeTime) async {
       await storageService.createBucket('bucket');
       final bucket = storageService.bucket('bucket');
-      final apiExporter = ApiExporter(dbService, bucket: bucket);
+      final apiExporter = ApiExporter(dbService,
+          storageService: storageService, bucket: bucket);
 
       await apiExporter.synchronizeExportedApi();
 

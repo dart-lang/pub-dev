@@ -246,6 +246,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     if (activeConfiguration.exportedApiBucketName != null) {
       registerApiExporter(ApiExporter(
         dbService,
+        storageService: storageService,
         bucket:
             storageService.bucket(activeConfiguration.exportedApiBucketName!),
       ));
