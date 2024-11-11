@@ -18,7 +18,7 @@ void main() {
     });
 
     test('No match', () {
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'uri://http': 'http',
         'uri://http_magic': 'http_magic',
       });
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('Scoring exact and partial matches', () {
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'uri://http': 'http',
         'uri://http_magic': 'http_magic',
       });
@@ -42,7 +42,7 @@ void main() {
 
     test('CamelCase indexing', () {
       final String queueText = '.DoubleLinkedQueue()';
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'queue': queueText,
         'queue_lower': queueText.toLowerCase(),
         'unmodifiable': 'CustomUnmodifiableMapBase',
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('Wierd cases: riak client', () {
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'uri://cli': 'cli',
         'uri://riak_client': 'riak_client',
         'uri://teamspeak': 'teamspeak',
