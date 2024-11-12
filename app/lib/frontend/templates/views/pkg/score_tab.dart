@@ -279,8 +279,9 @@ d.Node _downloadCountsKeyFigureNode(int? downloadCounts) {
     );
   }
   return _keyFigureNode(
-    value: formatWith3SignificantDigits(downloadCounts).value,
-    supplemental: formatWith3SignificantDigits(downloadCounts).suffix,
+    value: '${formatWith3SignificantDigits(downloadCounts).value}'
+        '${formatWith3SignificantDigits(downloadCounts).suffix}',
+    supplemental: '',
     label: 'downloads',
   );
 }
