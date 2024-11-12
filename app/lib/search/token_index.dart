@@ -20,84 +20,6 @@ extension type const Score._(Map<String, double> _values)
 
   double get maxValue => _values.values.fold(0.0, math.max);
 
-  /// Calculates the intersection of the [scores], by multiplying the values.
-  static Score multiply(List<Score> scores) {
-    if (scores.isEmpty) {
-      return Score.empty;
-    }
-    if (scores.length == 1) {
-      return scores.single;
-    }
-    if (scores.any((score) => score.isEmpty)) {
-      return Score.empty;
-    }
-    var keys = scores.first.keys.toSet();
-    for (var i = 1; i < scores.length; i++) {
-      keys = keys.intersection(scores[i].keys.toSet());
-    }
-    if (keys.isEmpty) {
-      return Score.empty;
-    }
-    final values = <String, double>{};
-    for (final key in keys) {
-      var value = scores.first[key]!;
-      for (var i = 1; i < scores.length; i++) {
-        value *= scores[i][key]!;
-      }
-      values[key] = value;
-    }
-    return Score(values);
-  }
-
-  /// Calculates the union of the [scores], by using the maximum values from
-  /// the sets.
-  static Score max(List<Score> scores) {
-    // remove empty scores
-    scores.removeWhere((s) => s.isEmpty);
-
-    if (scores.isEmpty) {
-      return Score.empty;
-    }
-    if (scores.length == 1) {
-      return scores.single;
-    }
-    final keys = scores.expand((e) => e.keys).toSet();
-    final result = <String, double>{};
-    for (final key in keys) {
-      var value = 0.0;
-      for (var i = 0; i < scores.length; i++) {
-        final v = scores[i][key];
-        if (v != null) {
-          value = math.max(value, v);
-        }
-      }
-      result[key] = value;
-    }
-    return Score(result);
-  }
-
-  /// Remove insignificant values below a certain threshold:
-  /// - [fraction] of the maximum value
-  /// - [minValue] as an absolute minimum filter
-  Score removeLowValues({double? fraction, double? minValue}) {
-    assert(minValue != null || fraction != null);
-    double? threshold = minValue;
-    if (fraction != null) {
-      final double fractionValue = maxValue * fraction;
-      threshold ??= fractionValue;
-      threshold = math.max(threshold, fractionValue);
-    }
-    if (threshold == null) {
-      return this;
-    }
-    return Score.fromEntries(
-        _values.entries.where((entry) => entry.value >= threshold!));
-  }
-
-  /// Keeps the scores only for values in [keys].
-  Score project(Set<String> keys) => Score.fromEntries(
-      _values.entries.where((entry) => keys.contains(entry.key)));
-
   /// Transfer the score values with [f].
   Score mapValues(double Function(String key, double value) f) =>
       Score.fromEntries(
@@ -107,23 +29,13 @@ extension type const Score._(Map<String, double> _values)
 /// The weighted tokens used for the final search.
 class TokenMatch {
   final Map<String, double> _tokenWeights = <String, double>{};
-  double? _maxWeight;
 
-  double? operator [](String token) => _tokenWeights[token];
+  Iterable<MapEntry<String, double>> get entries => _tokenWeights.entries;
 
-  void operator []=(String token, double weight) {
-    _tokenWeights[token] = weight;
-    _maxWeight = null;
-  }
-
-  Iterable<String> get tokens => _tokenWeights.keys;
-
-  double get maxWeight =>
-      _maxWeight ??= _tokenWeights.values.fold<double>(0.0, math.max);
-
+  @visibleForTesting
   Map<String, double> get tokenWeights => _tokenWeights;
 
-  void addWithMaxValue(String token, double weight) {
+  void setValueMaxOf(String token, double weight) {
     final old = _tokenWeights[token] ?? 0.0;
     if (old < weight) {
       _tokenWeights[token] = weight;
@@ -189,7 +101,7 @@ class TokenIndex<K> {
       for (final token in present) {
         final value = tokens[token]!;
         if (value >= minTokenValue) {
-          tokenMatch.addWithMaxValue(token, value);
+          tokenMatch.setValueMaxOf(token, value);
         }
       }
     }
@@ -223,8 +135,9 @@ class TokenIndex<K> {
   }) {
     assert(score.length == _length);
     final tokenMatch = lookupTokens(word);
-    for (final token in tokenMatch.tokens) {
-      final matchWeight = tokenMatch[token]!;
+    for (final entry in tokenMatch.entries) {
+      final token = entry.key;
+      final matchWeight = entry.value;
       final tokenWeight = _inverseIds[token]!;
       for (final e in tokenWeight.entries) {
         score.setValueMaxOf(e.key, matchWeight * e.value * weight);
