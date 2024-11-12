@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:_pub_shared/format/encoding.dart';
-import 'package:intl/intl.dart';
+import 'package:_pub_shared/format/number_format.dart';
 import 'package:web/web.dart';
 
 void create(HTMLElement element, Map<String, String> options) {
@@ -146,7 +146,7 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     final coords = computeCoordinates(selectedDay.date, selectedDay.downloads);
     sparklineSpot.setAttribute('cy', '${coords.$2}');
     sparklineCursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
-    toolTip.text = '${NumberFormat('#,###').format(selectedDay.downloads)}';
+    toolTip.text = '${formatWithThousandSeperators(selectedDay.downloads)}';
 
     final startDate = selectedDay.date.subtract(Duration(days: 7));
     chartSubText.text =

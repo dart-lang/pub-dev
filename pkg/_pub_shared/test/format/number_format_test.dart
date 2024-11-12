@@ -66,4 +66,18 @@ void main() {
     expect(formatWith3SignificantDigits(19000000000),
         (value: '19.0', suffix: 'B'));
   });
+
+  test('Number with thousand seperators', () {
+    // expect(formatWithThousandSeperators(1), '1');
+    expect(formatWithThousandSeperators(10), '10');
+    expect(formatWithThousandSeperators(100), '100');
+    expect(formatWithThousandSeperators(1000), '1,000');
+    expect(formatWithThousandSeperators(10000), '10,000');
+    expect(formatWithThousandSeperators(100000), '100,000');
+    expect(formatWithThousandSeperators(1000000), '1,000,000');
+    expect(formatWithThousandSeperators(10000000), '10,000,000');
+    expect(formatWithThousandSeperators(100000000), '100,000,000');
+    expect(formatWithThousandSeperators(1000000000), '1,000,000,000');
+    expect(formatWithThousandSeperators(10000000000), '10,000,000,000');
+  });
 }
