@@ -195,9 +195,6 @@ class _File implements BucketObjectEntry {
   bool get isObject => true;
 
   _File replace({ObjectMetadata? metadata}) {
-    if (metadata != null) {
-      assert(metadata.contentType != null);
-    }
     return _File(
       bucketName: bucketName,
       name: name,
