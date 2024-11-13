@@ -44,7 +44,10 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     List<({DateTime date, int downloads})> data) {
   final height = 80;
   final width = 190;
-  final drawingHeight = 75;
+  final padding = 4;
+  final drawingHeight = height - padding;
+  final drawingWidth = width - 2 * padding;
+
   final lastDay = data.last.date;
   final firstDay = data.first.date;
   final xAxisSpan = lastDay.difference(firstDay);
@@ -54,7 +57,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   (double, double) computeCoordinates(DateTime date, int downloads) {
     final duration = date.difference(firstDay);
-    final x = width * duration.inMilliseconds / xAxisSpan.inMilliseconds;
+    final x = padding +
+        drawingWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
     final y = height - drawingHeight * (downloads / maxDownloads);
     return (x, y);
   }
@@ -114,7 +118,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   final area = SVGPathElement();
   area.setAttribute('class', 'weekly-sparkline-area');
-  area.setAttribute('d', '$line  L$width $height L0 $height Z');
+  area.setAttribute(
+      'd', '$line  L${drawingWidth + padding} $height L$padding $height Z');
 
   chart.append(sparkline);
   chart.append(area);
@@ -131,7 +136,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
         'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
             'left:${e.x}px;');
 
-    final s = (e.x - chart.getBoundingClientRect().x) / width;
+    final s =
+        (e.x - (chart.getBoundingClientRect().x + padding)) / drawingWidth;
     final selectedDayIndex =
         lowerBoundBy<({DateTime date, int downloads}), double>(
             data,
