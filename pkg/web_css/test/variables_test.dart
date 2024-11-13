@@ -33,18 +33,33 @@ void main() {
   });
 
   group('CSS variables', () {
+    final dashVariables = <String>{};
     late Set<String> variables;
 
-    setUp(() async {
-      variables = (await File('lib/src/_variables.scss').readAsLines())
+    Iterable<String> extractVariables(List<String> lines) {
+      return lines
           .map((l) => l.trim())
           .where((l) => l.startsWith('--') && l.contains(':'))
           .map((l) => l.split(':').first.trim())
           .where((v) => v.isNotEmpty)
           .toSet();
+    }
+
+    setUpAll(() async {
+      variables =
+          extractVariables(await File('lib/src/_variables.scss').readAsLines())
+              .toSet();
 
       // remove Material design variables
       variables.removeWhere((v) => v.startsWith('--mdc-'));
+
+      for (final f
+          in Directory('../../third_party/site-shared/dash_design/lib/')
+              .listSync(recursive: true)
+              .whereType<File>()
+              .where((f) => f.path.endsWith('.scss'))) {
+        dashVariables.addAll(extractVariables(f.readAsLinesSync()));
+      }
     });
 
     test('variables are present', () {
@@ -90,6 +105,10 @@ void main() {
           if (!variables.contains(name)) {
             // exempt Material Design variables
             if (name.startsWith('--mdc-')) {
+              continue;
+            }
+            // exempt known dash variables
+            if (name.startsWith('--dash-') && dashVariables.contains(name)) {
               continue;
             }
 
