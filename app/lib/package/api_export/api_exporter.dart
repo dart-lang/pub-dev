@@ -216,6 +216,19 @@ final class ApiExporter {
     final versions = await packageBackend.tarballStorage
         .listVersionsInCanonicalBucket(package);
 
+    // Check versions that are not exposed in the public API and if they are moderated, delete them.
+    for (final cv in versions.entries) {
+      final version = cv.key;
+      if (versionListing.versions.any((v) => v.version == version)) {
+        continue;
+      }
+      final pv = await packageBackend.lookupPackageVersion(package, version);
+      if (pv != null && pv.isModerated) {
+        // We only delete the package if it is explicitly moderated.
+        // If we can't find it, then it's safer to assume that it's a bug.
+        await _api.package(package).deleteVersion(version);
+      }
+    }
     // Remove versions that are not exposed in the public API.
     versions.removeWhere(
       (version, _) => !versionListing.versions.any((v) => v.version == version),

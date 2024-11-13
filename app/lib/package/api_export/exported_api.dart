@@ -402,6 +402,13 @@ final class ExportedPackage {
       }),
     ]);
   }
+
+  /// Deletes the files related to this package and [version].
+  Future<void> deleteVersion(String version) async {
+    await Future.wait([
+      tarball(version).delete(),
+    ]);
+  }
 }
 
 /// Information about an object to be used as source in a copy operation.

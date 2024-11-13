@@ -20,6 +20,7 @@ import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
 import '../admin/models_test.dart';
@@ -294,15 +295,27 @@ void main() {
       expect(docs3!.where((d) => d.package == 'oxygen'), isNotEmpty);
     });
 
-    testWithProfile('archives are removed from public bucket', fn: () async {
-      final publicUri = Uri.parse('${activeConfiguration.storageBaseUrl}'
-          '/${activeConfiguration.publicPackagesBucketName}'
-          '/packages/oxygen-1.0.0.tar.gz');
+    testWithProfile('archives are removed from public buckets', fn: () async {
+      final publicUrls = [
+        '${activeConfiguration.storageBaseUrl}'
+            '/${activeConfiguration.publicPackagesBucketName}'
+            '/packages/oxygen-1.0.0.tar.gz',
+        '${activeConfiguration.storageBaseUrl}'
+            '/${activeConfiguration.exportedApiBucketName}'
+            '/latest/api/archives/oxygen-1.0.0.tar.gz',
+        '${activeConfiguration.storageBaseUrl}'
+            '/${activeConfiguration.exportedApiBucketName}'
+            '/$runtimeVersion/api/archives/oxygen-1.0.0.tar.gz',
+      ];
 
       Future<Uint8List?> expectStatusCode(int statusCode) async {
-        final rs1 = await http.get(publicUri);
-        expect(rs1.statusCode, statusCode);
-        return rs1.bodyBytes;
+        final rs = await Future.wait(
+            publicUrls.map((url) => http.get(Uri.parse(url))));
+        for (final r in rs) {
+          expect(r.statusCode, statusCode);
+          expect(r.bodyBytes, rs.first.bodyBytes);
+        }
+        return rs.first.bodyBytes;
       }
 
       final bytes = await expectStatusCode(200);

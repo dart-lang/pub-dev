@@ -4,6 +4,7 @@
 
 import '../../admin/backend.dart';
 import '../../admin/models.dart';
+import '../../package/api_export/api_exporter.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
@@ -80,6 +81,9 @@ Note: the action may take a longer time to complete as the public archive bucket
 
         return pkg;
       });
+
+      // sync exported API(s)
+      await apiExporter?.synchronizePackage(package);
 
       // retract or re-populate public archive files
       await packageBackend.tarballStorage.updatePublicArchiveBucket(
