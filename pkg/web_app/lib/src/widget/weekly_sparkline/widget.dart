@@ -48,15 +48,17 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   final drawingHeight = height - padding;
   final drawingWidth = width - 2 * padding;
 
-  final lastDay = data.last.date;
-  final firstDay = data.first.date;
-  final xAxisSpan = lastDay.difference(firstDay);
+  final lastDate = data.last.date;
+  final firstDate = data.first.date;
+  final firstDay = firstDate.copyWith(day: firstDate.day - 7);
+
+  final xAxisSpan = lastDate.difference(firstDate);
   final maxDownloads = data.fold<int>(0, (a, b) => max<int>(a, b.downloads));
 
   final toolTipOffsetFromMouse = 15;
 
   (double, double) computeCoordinates(DateTime date, int downloads) {
-    final duration = date.difference(firstDay);
+    final duration = date.difference(firstDate);
     final x = padding +
         drawingWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
     final y = height - drawingHeight * (downloads / maxDownloads);
@@ -83,8 +85,7 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   // Render chart
 
-  chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDay)}';
-
+  chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDate)}';
   final chart = SVGGElement();
   final frame = SVGRectElement();
   frame.setAttribute('height', '$height');
@@ -142,7 +143,7 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
         lowerBoundBy<({DateTime date, int downloads}), double>(
             data,
             (e) =>
-                e.date.difference(firstDay).inMilliseconds /
+                e.date.difference(firstDate).inMilliseconds /
                 xAxisSpan.inMilliseconds,
             (a, b) => a.compareTo(b),
             s);
@@ -154,9 +155,9 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     sparklineCursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
     toolTip.text = '${formatWithThousandSeperators(selectedDay.downloads)}';
 
-    final startDate = selectedDay.date.subtract(Duration(days: 7));
+    final startDay = selectedDay.date.subtract(Duration(days: 7));
     chartSubText.text =
-        '${formatDate(startDate)} - ${formatDate(selectedDay.date)}';
+        '${formatDate(startDay)} - ${formatDate(selectedDay.date)}';
 
     lastSelectedDay = selectedDay.date;
   });
@@ -164,7 +165,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   void erase(_) {
     sparklineCursor.setAttribute('style', 'opacity:0');
     toolTip.setAttribute('style', 'opacity:0;position:absolute;');
-    chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDay)}';
+
+    chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDate)}';
   }
 
   erase(1);
