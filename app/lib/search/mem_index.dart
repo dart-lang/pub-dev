@@ -479,7 +479,7 @@ class PackageNameIndex {
 
   /// Search [text] and return the matching packages with scores.
   @visibleForTesting
-  Score search(String text) {
+  Map<String, double> search(String text) {
     IndexedScore<String>? score;
     for (final w in splitForQuery(text)) {
       final s = searchWord(w, filterOnNonZeros: score);
@@ -489,7 +489,7 @@ class PackageNameIndex {
         score.multiplyAllFrom(s);
       }
     }
-    return score?.toScore() ?? Score.empty;
+    return score?.toMap() ?? {};
   }
 
   /// Search using the parsed [word] and return the matching packages with scores

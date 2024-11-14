@@ -8,24 +8,6 @@ import 'package:meta/meta.dart';
 
 import 'text_utils.dart';
 
-/// Represents an evaluated score as an {id: score} map.
-extension type const Score._(Map<String, double> _values)
-    implements Map<String, double> {
-  static const Score empty = Score._({});
-
-  Score(this._values);
-
-  factory Score.fromEntries(Iterable<MapEntry<String, double>> entries) =>
-      Score(Map.fromEntries(entries));
-
-  double get maxValue => _values.values.fold(0.0, math.max);
-
-  /// Transfer the score values with [f].
-  Score mapValues(double Function(String key, double value) f) =>
-      Score.fromEntries(
-          _values.entries.map((e) => MapEntry(e.key, f(e.key, e.value))));
-}
-
 /// The weighted tokens used for the final search.
 class TokenMatch {
   final Map<String, double> _tokenWeights = <String, double>{};
@@ -151,7 +133,7 @@ extension StringTokenIndexExt on TokenIndex<String> {
   /// scoring.
   @visibleForTesting
   Map<String, double> search(String text) {
-    return searchWords(splitForQuery(text)).toScore();
+    return searchWords(splitForQuery(text)).toMap();
   }
 }
 
@@ -250,17 +232,15 @@ class IndexedScore<K> {
     }
     return Map.fromEntries(list.map((i) => MapEntry(_keys[i], _values[i])));
   }
-}
 
-extension StringIndexedScoreExt on IndexedScore<String> {
-  Score toScore() {
-    final map = <String, double>{};
+  Map<K, double> toMap() {
+    final map = <K, double>{};
     for (var i = 0; i < _values.length; i++) {
       final v = _values[i];
       if (v > 0.0) {
         map[_keys[i]] = v;
       }
     }
-    return Score._(map);
+    return map;
   }
 }
