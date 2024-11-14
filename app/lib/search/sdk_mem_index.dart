@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:_pub_shared/utils/http.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
@@ -135,18 +137,17 @@ class SdkMemIndex {
       final isQualifiedQuery = query.contains(library.split(':').last);
 
       final tokens = _tokensPerLibrary[library]!;
-      final plainResults =
-          Score(tokens.searchWords(words).top(3, minValue: 0.05));
+      final plainResults = tokens.searchWords(words).top(3, minValue: 0.05);
       if (plainResults.isEmpty) continue;
 
       final libraryWeight = _libraryWeights[library] ?? 1.0;
       final weightedResults = isQualifiedQuery
           ? plainResults
-          : plainResults.mapValues(
+          : plainResults.map(
               (key, value) {
                 final dir = p.dirname(key);
                 final w = (_apiPageDirWeights[dir] ?? 1.0) * libraryWeight;
-                return w * value;
+                return MapEntry(key, w * value);
               },
             );
 
@@ -185,9 +186,9 @@ class SdkMemIndex {
 
 class _Hit {
   final String library;
-  final Score top;
+  final Map<String, double> top;
 
   _Hit(this.library, this.top);
 
-  late final score = top.maxValue;
+  late final score = top.values.fold(0.0, (a, b) => max(a, b));
 }
