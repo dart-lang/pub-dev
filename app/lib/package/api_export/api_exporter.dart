@@ -50,6 +50,7 @@ final class ApiExporter {
 
   ApiExporter(
     this._db, {
+    required Storage storageService,
     required Bucket bucket,
   }) : _api = ExportedApi(storageService, bucket);
 
