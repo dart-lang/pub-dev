@@ -53,7 +53,9 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   final firstDay = firstDate.copyWith(day: firstDate.day - 7);
 
   final xAxisSpan = lastDate.difference(firstDate);
-  final maxDownloads = data.fold<int>(0, (a, b) => max<int>(a, b.downloads));
+  // We start with 1 as initial value. In the special case where all downloads
+  // are 0 we want a straight line in the bottom of the chart.
+  final maxDownloads = data.fold<int>(1, (a, b) => max<int>(a, b.downloads));
 
   final toolTipOffsetFromMouse = 15;
 
