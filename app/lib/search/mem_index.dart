@@ -520,14 +520,23 @@ class PackageNameIndex {
         continue;
       }
       var matched = 0;
+      var unmatched = 0;
+      final acceptThreshold = parts.length ~/ 2;
+      final rejectThreshold = parts.length - acceptThreshold;
       for (final part in parts) {
         if (entry.trigrams.contains(part)) {
           matched++;
+        } else {
+          unmatched++;
+          if (unmatched > rejectThreshold) {
+            // we have no chance to accept this hit
+            break;
+          }
         }
       }
 
-      // making sure that match score is minimum 0.5
-      if (matched > 0) {
+      if (matched >= acceptThreshold) {
+        // making sure that match score is minimum 0.5
         final v = matched / parts.length;
         if (v >= 0.5) {
           score.setValue(i, v);
