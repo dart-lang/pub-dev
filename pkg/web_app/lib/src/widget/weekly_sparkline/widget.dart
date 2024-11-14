@@ -122,8 +122,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   area.setAttribute(
       'd', '$line  L${drawingWidth + padding} $height L$padding $height Z');
 
-  chart.append(sparkline);
   chart.append(area);
+  chart.append(sparkline);
 
   svg.append(chart);
 

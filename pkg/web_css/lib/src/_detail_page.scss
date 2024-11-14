@@ -278,9 +278,10 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 }
 
 .weekly-sparkline-area {
+  stroke: var(--pub-weekly-chart-main-color);
   fill: var(--pub-weekly-chart-main-color);
   opacity: 0.3;
-  stroke-width: 0;
+  stroke-width: 2;
 }
 
 @media (min-width: $device-desktop-min-width) {
