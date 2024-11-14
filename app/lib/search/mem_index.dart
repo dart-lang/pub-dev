@@ -173,7 +173,6 @@ class InMemoryPackageIndex {
 
     final nameMatches = textResults?.nameMatches;
     List<String>? topicMatches;
-    List<PackageHit> packageHits;
 
     if (parsedQueryText != null) {
       final parts = parsedQueryText
@@ -187,10 +186,11 @@ class InMemoryPackageIndex {
       }
     }
 
+    List<IndexedPackageHit> indexedHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
       case SearchOrder.top:
         if (textResults == null) {
-          packageHits = _overallOrderedHits.whereInScores(packageScores);
+          indexedHits = _overallOrderedHits.whereInScores(packageScores);
           break;
         }
 
@@ -198,44 +198,47 @@ class InMemoryPackageIndex {
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
         packageScores.multiplyAllFromValues(_adjustedOverallScores);
-        packageHits = _rankWithValues(packageScores);
+        indexedHits = _rankWithValues(packageScores);
         break;
       case SearchOrder.text:
-        packageHits = _rankWithValues(packageScores);
+        indexedHits = _rankWithValues(packageScores);
         break;
       case SearchOrder.created:
-        packageHits = _createdOrderedHits.whereInScores(packageScores);
+        indexedHits = _createdOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.updated:
-        packageHits = _updatedOrderedHits.whereInScores(packageScores);
+        indexedHits = _updatedOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.popularity:
-        packageHits = _popularityOrderedHits.whereInScores(packageScores);
+        indexedHits = _popularityOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.downloads:
-        packageHits = _downloadsOrderedHits.whereInScores(packageScores);
+        indexedHits = _downloadsOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.like:
-        packageHits = _likesOrderedHits.whereInScores(packageScores);
+        indexedHits = _likesOrderedHits.whereInScores(packageScores);
         break;
       case SearchOrder.points:
-        packageHits = _pointsOrderedHits.whereInScores(packageScores);
+        indexedHits = _pointsOrderedHits.whereInScores(packageScores);
         break;
     }
 
     // bound by offset and limit (or randomize items)
-    final totalCount = packageHits.length;
-    packageHits =
-        boundedList(packageHits, offset: query.offset, limit: query.limit);
+    final totalCount = indexedHits.length;
+    indexedHits =
+        boundedList(indexedHits, offset: query.offset, limit: query.limit);
 
-    if (textResults != null && textResults.topApiPages.isNotEmpty) {
-      packageHits = packageHits.map((ps) {
-        final apiPages = textResults.topApiPages[ps.package]
+    late List<PackageHit> packageHits;
+    if (textResults != null && (textResults.topApiPages?.isNotEmpty ?? false)) {
+      packageHits = indexedHits.map((ps) {
+        final apiPages = textResults.topApiPages?[ps.index]
             // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
             ?.map((MapEntry<String, double> e) => ApiPageRef(path: e.key))
             .toList();
-        return ps.change(apiPages: apiPages);
+        return ps.hit.change(apiPages: apiPages);
       }).toList();
+    } else {
+      packageHits = indexedHits.map((h) => h.hit).toList();
     }
 
     return PackageSearchResult(
@@ -311,7 +314,8 @@ class InMemoryPackageIndex {
         packageScores.multiplyAllFrom(wordScore);
       }
 
-      final topApiPages = <String, List<MapEntry<String, double>>>{};
+      final topApiPages =
+          List<List<MapEntry<String, double>>?>.filled(_documents.length, null);
       const maxApiPageCount = 2;
       if (!checkAborted()) {
         final symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
@@ -324,7 +328,7 @@ class InMemoryPackageIndex {
           if (!packages.contains(doc.package)) continue;
 
           // skip if the previously found pages are better than the current one
-          final pages = topApiPages.putIfAbsent(doc.package, () => []);
+          final pages = topApiPages[doc.index] ??= <MapEntry<String, double>>[];
           if (pages.length >= maxApiPageCount && pages.last.value > value) {
             continue;
           }
@@ -369,7 +373,7 @@ class InMemoryPackageIndex {
     return null;
   }
 
-  List<PackageHit> _rankWithValues(IndexedScore<String> score) {
+  List<IndexedPackageHit> _rankWithValues(IndexedScore<String> score) {
     final list = <IndexedPackageHit>[];
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
@@ -383,7 +387,7 @@ class InMemoryPackageIndex {
       // if two packages got the same score, order by last updated
       return _compareUpdated(_documents[a.index], _documents[b.index]);
     });
-    return list.map((h) => h.hit).toList();
+    return list.toList();
   }
 
   List<IndexedPackageHit> _rankWithComparator(
@@ -441,11 +445,11 @@ class InMemoryPackageIndex {
 }
 
 class _TextResults {
-  final Map<String, List<MapEntry<String, double>>> topApiPages;
+  final List<List<MapEntry<String, double>>?>? topApiPages;
   final List<String>? nameMatches;
 
   factory _TextResults.empty() => _TextResults(
-        {},
+        null,
         nameMatches: null,
       );
 
@@ -541,8 +545,8 @@ class _PkgNameData {
 }
 
 extension on List<IndexedPackageHit> {
-  List<PackageHit> whereInScores(IndexedScore scores) {
-    return where((h) => scores.isPositive(h.index)).map((h) => h.hit).toList();
+  List<IndexedPackageHit> whereInScores(IndexedScore scores) {
+    return where((h) => scores.isPositive(h.index)).toList();
   }
 }
 

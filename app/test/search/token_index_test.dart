@@ -106,28 +106,6 @@ void main() {
     });
   });
 
-  group('Score', () {
-    late Score score;
-    setUp(() {
-      score = Score({'a': 100.0, 'b': 30.0, 'c': 55.0});
-    });
-
-    test('remove low scores', () {
-      expect(score, {
-        'a': 100.0,
-        'b': 30.0,
-        'c': 55.0,
-      });
-      expect(score.removeLowValues(fraction: 0.31), {
-        'a': 100.0,
-        'c': 55.0,
-      });
-      expect(score.removeLowValues(minValue: 56.0), {
-        'a': 100.0,
-      });
-    });
-  });
-
   group('IndexedScore', () {
     final score = IndexedScore.fromMap({'a': 100.0, 'b': 30.0, 'c': 55.0});
 
