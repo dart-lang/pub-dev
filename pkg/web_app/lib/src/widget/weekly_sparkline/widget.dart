@@ -162,15 +162,15 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     lastSelectedDay = selectedDay.date;
   });
 
-  void erase(_) {
+  void hideSparklineCursor(_) {
     sparklineCursor.setAttribute('style', 'opacity:0');
     toolTip.setAttribute('style', 'opacity:0;position:absolute;');
-
     chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDate)}';
+    lastSelectedDay = null;
   }
 
-  erase(1);
-  chart.onMouseLeave.listen(erase);
+  hideSparklineCursor(1);
+  chart.onMouseLeave.listen(hideSparklineCursor);
 }
 
 int lowerBoundBy<E, K>(List<E> sortedList, K Function(E element) keyOf,
