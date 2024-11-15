@@ -79,6 +79,7 @@ class InMemoryPackageIndex {
     _descrIndex = TokenIndex(
       packageKeys,
       _documents.map((d) => d.description).toList(),
+      skipDocumentWeight: true,
     );
     _readmeIndex = TokenIndex(
       packageKeys,

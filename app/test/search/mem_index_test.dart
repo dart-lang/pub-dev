@@ -109,7 +109,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packageHits': [
           {
             'package': 'http',
-            'score': closeTo(0.93, 0.01),
+            'score': closeTo(0.96, 0.01),
           },
         ],
       });
@@ -140,7 +140,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http', 'score': closeTo(0.69, 0.01)},
-          {'package': 'async', 'score': closeTo(0.63, 0.01)},
+          {'package': 'async', 'score': closeTo(0.65, 0.01)},
         ],
       });
     });
@@ -381,7 +381,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.93, 0.01)},
+          {'package': 'http', 'score': closeTo(0.96, 0.01)},
         ],
       });
     });
@@ -494,7 +494,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.98, 0.01)},
+          {'package': 'http', 'score': 1.0},
         ],
       });
 
@@ -505,8 +505,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 3,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'chrome_net', 'score': closeTo(0.98, 0.01)},
-          {'package': 'async', 'score': closeTo(0.98, 0.01)},
+          {'package': 'async', 'score': 1.0},
+          {'package': 'chrome_net', 'score': 1.0},
           {'package': 'http', 'score': closeTo(0.72, 0.01)},
         ],
       });
@@ -520,7 +520,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'http', 'score': closeTo(0.70, 0.01)},
+          {'package': 'http', 'score': closeTo(0.72, 0.01)},
         ],
       });
     });
@@ -690,7 +690,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'sdkLibraryHits': [],
           'packageHits': [
             {'package': 'flutter_modular', 'score': 1.0},
-            {'package': 'serveme', 'score': closeTo(0.97, 0.01)},
+            {'package': 'serveme', 'score': 1.0},
           ]
         },
       );
