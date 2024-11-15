@@ -34,7 +34,11 @@ class TokenIndex<K> {
 
   late final _length = _ids.length;
 
-  TokenIndex(List<K> ids, List<String?> values) : _ids = ids {
+  TokenIndex(
+    List<K> ids,
+    List<String?> values, {
+    bool skipDocumentWeight = false,
+  }) : _ids = ids {
     assert(ids.length == values.length);
     final length = values.length;
     for (var i = 0; i < length; i++) {
@@ -48,7 +52,8 @@ class TokenIndex<K> {
         continue;
       }
       // Document weight is a highly scaled-down proxy of the length.
-      final dw = 1 + math.log(1 + tokens.length) / 100;
+      final dw =
+          skipDocumentWeight ? 1.0 : 1 + math.log(1 + tokens.length) / 100;
       for (final e in tokens.entries) {
         final token = e.key;
         final weights = _inverseIds.putIfAbsent(token, () => {});

@@ -68,8 +68,8 @@ void main() {
         'totalCount': 3,
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'json2entity', 'score': 1.0},
           {'package': 'jsontool', 'score': 1.0},
-          {'package': 'json2entity', 'score': closeTo(0.97, 0.01)},
           {'package': 'json_to_model', 'score': closeTo(0.73, 0.01)},
         ],
       });

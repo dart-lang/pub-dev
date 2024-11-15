@@ -57,7 +57,7 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
         'packageHits': [
           {
             'package': 'currency_cloud',
-            'score': closeTo(0.95, 0.01),
+            'score': 1.0,
           },
           {
             'package': 'cloud_firestore', // finds `rest` in name
