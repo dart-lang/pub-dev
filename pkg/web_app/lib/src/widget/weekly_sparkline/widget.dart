@@ -28,7 +28,7 @@ void create(HTMLElement element, Map<String, String> options) {
     final weeklyDownloads = decoded.sublist(1);
     // TODO(https://github.com/dart-lang/pub-dev/issues/8251): Update this to 52.
     final dataListLength =
-        weeklyDownloads.length > 40 ? 40 : weeklyDownloads.length;
+        weeklyDownloads.length > 28 ? 28 : weeklyDownloads.length;
     return List.generate(
         weeklyDownloads.length,
         (i) => (
