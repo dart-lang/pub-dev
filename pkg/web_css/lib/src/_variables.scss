@@ -16,17 +16,18 @@
 //   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
 :root {
+  @include dash_variables.light-theme;
+
   --pub-color-white:         #ffffff;
   --pub-color-snowWhite:     #fafafa; // slight deviation from official snow-white (fffafa)
   --pub-color-smokeWhite:    #f5f5f7; // slight deviation from official white-smoke (f5f5f5)
   --pub-color-bubblesBlue:   #e7f8ff; // slight deviation from official bubbles-blue (e7feff)
-  --pub-color-gunpowderGray: #4a4a4a; // hsl(0, 0%, 29%);
 
   --pub-color-dangerRed: #ff4242;
 
   --pub-neutral-bgColor:       var(--pub-color-white);
   --pub-neutral-borderColor:   var(--pub-color-smokeWhite);
-  --pub-neutral-textColor:     var(--pub-color-gunpowderGray);
+  --pub-neutral-textColor:     var(--dash-surface-fgColor);
   --pub-neutral-hover-bgColor: var(--pub-color-snowWhite);
   --pub-inset-bgColor:         var(--pub-color-smokeWhite);
   --pub-selected-bgColor:      var(--pub-color-bubblesBlue);
@@ -115,15 +116,16 @@
 }
 
 .dark-theme {
+  @include dash_variables.dark-theme;
+
   --pub-color-darkGunmetal:    #1f262a; // close to #1d2026
   --pub-color-shadowBlack:     #373737;
   --pub-color-anchorBlack:     #41424c;
   --pub-color-nipponUltraBlue: #23607f;
-  --pub-color-gainsboro:       #dcdcdc;
 
   --pub-neutral-bgColor:       var(--pub-color-darkGunmetal);
   --pub-neutral-borderColor:   var(--pub-color-anchorBlack);
-  --pub-neutral-textColor:     var(--pub-color-gainsboro);
+  --pub-neutral-textColor:     var(--dash-surface-fgColor);
   --pub-neutral-hover-bgColor: var(--pub-color-shadowBlack);
   --pub-inset-bgColor:         var(--pub-color-anchorBlack);
   --pub-selected-bgColor:      var(--pub-color-nipponUltraBlue);

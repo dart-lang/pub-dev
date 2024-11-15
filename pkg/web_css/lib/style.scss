@@ -2,6 +2,8 @@
 // to reduce the number of HTTP requests.
 @use '../../../third_party/css/github-markdown.css';
 
+@use '../../../third_party/site-shared/dash_design/lib/styles/variables.scss' as dash_variables;
+
 .light-theme {
   @import "../../../third_party/highlight/github";
 }
