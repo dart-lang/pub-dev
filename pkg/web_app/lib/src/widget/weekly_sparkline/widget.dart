@@ -89,11 +89,6 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDate)}';
   final chart = SVGGElement();
-  final frame = SVGRectElement();
-  frame.setAttribute('height', '$height');
-  frame.setAttribute('width', '$width');
-  frame.setAttribute('style', 'fill:white;stroke-width:1;stroke:white');
-  chart.append(frame);
 
   final sparklineBar = SVGLineElement();
   final sparklineCursor = SVGGElement();
