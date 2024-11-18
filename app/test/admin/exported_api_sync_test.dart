@@ -15,7 +15,7 @@ import '../shared/test_services.dart';
 void main() {
   group('Exported API sync admin action', () {
     /// Invoke exported-api-sync action
-    Future<void> exportedApiSync({
+    Future<void> syncExportedApi({
       List<String>? packages,
       bool forceWrite = false,
     }) async {
@@ -65,8 +65,8 @@ void main() {
     }
 
     testWithProfile('baseline checks', fn: () async {
-      await _sync();
-      final data = await _list();
+      await syncExportedApi();
+      final data = await listExportedApi();
       expect(data.keys, hasLength(greaterThan(20)));
       expect(data.keys, hasLength(lessThan(40)));
 
@@ -100,8 +100,8 @@ void main() {
     });
 
     testWithProfile('deleted files + full sync', fn: () async {
-      await _sync();
-      final oldRoot = await _list();
+      await syncExportedApi();
+      final oldRoot = await listExportedApi();
 
       for (final e in oldRoot.entries) {
         final path = e.key;
@@ -111,8 +111,8 @@ void main() {
             storageService.bucket(activeConfiguration.exportedApiBucketName!);
         await bucket.delete(path);
 
-        await _sync();
-        final newRoot = await _list();
+        await syncExportedApi();
+        final newRoot = await listExportedApi();
         expect(newRoot.containsKey(path), true);
         final newData = newRoot[path] as Map;
         expect(oldData['bytes'], isNotEmpty);
@@ -121,8 +121,8 @@ void main() {
     });
 
     testWithProfile('delete files + selective sync', fn: () async {
-      await _sync();
-      final oldRoot = await _list();
+      await syncExportedApi();
+      final oldRoot = await listExportedApi();
 
       final oxygenFiles =
           oldRoot.keys.where((k) => k.contains('oxygen')).toList();
@@ -133,17 +133,17 @@ void main() {
             storageService.bucket(activeConfiguration.exportedApiBucketName!);
         await bucket.delete(path);
 
-        await _sync(packages: ['neon']);
+        await syncExportedApi(packages: ['neon']);
         expect(await bucket.tryInfo(path), isNull);
 
-        await _sync(packages: ['oxygen']);
+        await syncExportedApi(packages: ['oxygen']);
         expect(await bucket.tryInfo(path), isNotNull);
       }
     });
 
     testWithProfile('modified files + selective sync', fn: () async {
-      await _sync();
-      final oldRoot = await _list();
+      await syncExportedApi();
+      final oldRoot = await listExportedApi();
 
       final oxygenFiles =
           oldRoot.keys.where((k) => k.contains('oxygen')).toList();
@@ -155,14 +155,14 @@ void main() {
             storageService.bucket(activeConfiguration.exportedApiBucketName!);
         await bucket.writeBytes(path, [1]);
 
-        await _sync(packages: ['neon']);
+        await syncExportedApi(packages: ['neon']);
         expect((await bucket.info(path)).length, 1);
 
-        await _sync(packages: ['oxygen']);
+        await syncExportedApi(packages: ['oxygen']);
         expect((await bucket.info(path)).length, greaterThan(1));
 
         // also check file content
-        final newRoot = await _list();
+        final newRoot = await listExportedApi();
         final newData = newRoot[path] as Map;
         expect(newData['length'], greaterThan(1));
         expect(oldData['bytes'], newData['bytes']);
@@ -170,8 +170,8 @@ void main() {
     });
 
     testWithProfile('modified metadata + selective sync', fn: () async {
-      await _sync();
-      final oldRoot = await _list();
+      await syncExportedApi();
+      final oldRoot = await listExportedApi();
 
       final oxygenFiles =
           oldRoot.keys.where((k) => k.contains('oxygen')).toList();
@@ -189,17 +189,17 @@ void main() {
           ),
         );
 
-        await _sync(packages: ['neon']);
+        await syncExportedApi(packages: ['neon']);
         expect((await bucket.info(path)).metadata.custom, {'x': 'x'});
 
-        await _sync(packages: ['oxygen']);
+        await syncExportedApi(packages: ['oxygen']);
         final newInfo = await bucket.info(path);
         expect(
             newInfo.metadata.contentType, oldData['metadata']['contentType']);
         expect(newInfo.metadata.custom, {'validated': isNotEmpty});
 
         // also check file content
-        final newRoot = await _list();
+        final newRoot = await listExportedApi();
         final newData = newRoot[path] as Map;
         expect(newData['length'], greaterThan(1));
         expect(oldData['bytes'], newData['bytes']);
