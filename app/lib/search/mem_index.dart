@@ -27,6 +27,7 @@ class InMemoryPackageIndex {
   late final TokenIndex<String> _descrIndex;
   late final TokenIndex<String> _readmeIndex;
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
+  late final _scorePool = ScorePool(_packageNameIndex._packageNames);
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
@@ -116,8 +117,16 @@ class InMemoryPackageIndex {
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
-    final packageScores = IndexedScore(_packageNameIndex._packageNames, 1.0);
+    return _scorePool.withScore(
+      value: 1.0,
+      fn: (score) {
+        return _search(query, score);
+      },
+    );
+  }
 
+  PackageSearchResult _search(
+      ServiceSearchQuery query, IndexedScore<String> packageScores) {
     // filter on package prefix
     if (query.parsedQuery.packagePrefix != null) {
       final String prefix = query.parsedQuery.packagePrefix!.toLowerCase();
@@ -308,11 +317,17 @@ class InMemoryPackageIndex {
           nameMatches.add(word);
         }
 
-        final wordScore =
-            _packageNameIndex.searchWord(word, filterOnNonZeros: packageScores);
-        _descrIndex.searchAndAccumulate(word, score: wordScore);
-        _readmeIndex.searchAndAccumulate(word, weight: 0.75, score: wordScore);
-        packageScores.multiplyAllFrom(wordScore);
+        _scorePool.withScore(
+          value: 0.0,
+          fn: (wordScore) {
+            _packageNameIndex.searchWord(word,
+                score: wordScore, filterOnNonZeros: packageScores);
+            _descrIndex.searchAndAccumulate(word, score: wordScore);
+            _readmeIndex.searchAndAccumulate(word,
+                weight: 0.75, score: wordScore);
+            packageScores.multiplyAllFrom(wordScore);
+          },
+        );
       }
 
       final topApiPages =
@@ -483,7 +498,8 @@ class PackageNameIndex {
   Map<String, double> search(String text) {
     IndexedScore<String>? score;
     for (final w in splitForQuery(text)) {
-      final s = searchWord(w, filterOnNonZeros: score);
+      final s = IndexedScore(_packageNames);
+      searchWord(w, score: s, filterOnNonZeros: score);
       if (score == null) {
         score = s;
       } else {
@@ -498,11 +514,12 @@ class PackageNameIndex {
   ///
   /// When [filterOnNonZeros] is present, only the indexes with an already
   /// non-zero value are evaluated.
-  IndexedScore<String> searchWord(
+  void searchWord(
     String word, {
+    required IndexedScore<String> score,
     IndexedScore<String>? filterOnNonZeros,
   }) {
-    final score = IndexedScore(_packageNames);
+    assert(score.keys.length == _packageNames.length);
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
         : word.substring(0, word.length - 1);
@@ -543,7 +560,6 @@ class PackageNameIndex {
         }
       }
     }
-    return score;
   }
 }
 
