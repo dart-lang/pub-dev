@@ -29,7 +29,21 @@ void main() {
       );
     }
 
-    Future<Map<String, dynamic>> _list() async {
+    /// Return map of all objects in the Exported API bucket.
+    ///
+    /// Returns a map from object name to JSON on the form:
+    /// ```js
+    /// {
+    ///   'updated': '<date-time>',
+    ///   'metadata': {
+    ///     'contentType': '<contentType>',
+    ///     'custom': {...},
+    ///   },
+    ///   'length': <length>,
+    ///   'bytes': [...],
+    /// }
+    /// ```
+    Future<Map<String, dynamic>> listExportedApi() async {
       final data = <String, dynamic>{};
       final bucket =
           storageService.bucket(activeConfiguration.exportedApiBucketName!);
