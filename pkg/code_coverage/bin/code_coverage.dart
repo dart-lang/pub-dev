@@ -53,7 +53,7 @@ Future<void> main() async {
         'run',
         'coverage:format_coverage',
         '--packages',
-        p.join(pkgDir, '.dart_tool', 'package_config.json'),
+        p.join(projectDir.path, '.dart_tool', 'package_config.json'),
         '-i',
         rawOutputDir,
         '--base-directory',
