@@ -100,6 +100,7 @@ class TokenIndex<K> {
   /// scoring.
   IndexedScore<K> searchWords(List<String> words, {double weight = 1.0}) {
     IndexedScore<K>? score;
+
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
       final s = IndexedScore(_ids);
@@ -139,6 +140,30 @@ extension StringTokenIndexExt on TokenIndex<String> {
   @visibleForTesting
   Map<String, double> search(String text) {
     return searchWords(splitForQuery(text)).toMap();
+  }
+}
+
+/// A reusable pool for [IndexedScore] instances to spare some memory allocation.
+class ScorePool<K> {
+  final List<K> _keys;
+  final _pool = <IndexedScore<K>>[];
+
+  ScorePool(this._keys);
+
+  R withScore<R>({
+    required double value,
+    required R Function(IndexedScore<K> score) fn,
+  }) {
+    late IndexedScore<K> score;
+    if (_pool.isNotEmpty) {
+      score = _pool.removeLast();
+      score._values.setAll(0, Iterable.generate(score.length, (_) => value));
+    } else {
+      score = IndexedScore<K>(_keys, value);
+    }
+    final r = fn(score);
+    _pool.add(score);
+    return r;
   }
 }
 
