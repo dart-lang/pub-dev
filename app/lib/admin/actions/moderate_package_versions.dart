@@ -116,7 +116,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
       });
 
       // sync exported API(s)
-      await apiExporter?.synchronizePackage(package);
+      await apiExporter?.synchronizePackage(package, forceDelete: true);
 
       // retract or re-populate public archive files
       await packageBackend.tarballStorage.updatePublicArchiveBucket(
