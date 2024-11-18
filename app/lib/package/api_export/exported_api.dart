@@ -631,7 +631,14 @@ final class ExportedBlob extends ExportedObject {
         // _retouchDeadline
         final retouchDeadline = clock.agoBy(_updateValidatedAfter);
         if (destinationInfo.metadata.validated.isBefore(retouchDeadline)) {
-          await _owner._bucket.updateMetadata(dst, _metadata());
+          try {
+            await _owner._bucket.updateMetadata(dst, _metadata());
+          } catch (e, st) {
+            // This shouldn't happen, but if a metadata update does fail, it's
+            // hardly the end of the world.
+            // We might detect stray files later as a result of this.
+            _log.warning('Failed to updateMetadata on "$dst" failed', e, st);
+          }
         }
         return;
       }
@@ -659,7 +666,14 @@ extension on Bucket {
         if (info.isSameContent(bytes)) {
           if (info.metadata.validated
               .isBefore(clock.agoBy(_updateValidatedAfter))) {
-            await updateMetadata(name, metadata);
+            try {
+              await updateMetadata(name, metadata);
+            } catch (e, st) {
+              // This shouldn't happen, but if a metadata update does fail, it's
+              // hardly the end of the world.
+              // We might detect stray files later as a result of this.
+              _log.warning('Failed to updateMetadata on "$name" failed', e, st);
+            }
           }
           return;
         }
