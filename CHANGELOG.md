@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2024.11.18`.
+ * Upgraded stable Flutter analysis SDK to `3.24.5`.
 
 ## `20241114t102300-all`
 
