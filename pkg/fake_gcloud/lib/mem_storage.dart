@@ -193,6 +193,23 @@ class _File implements BucketObjectEntry {
 
   @override
   bool get isObject => true;
+
+  _File replace({ObjectMetadata? metadata}) {
+    return _File(
+      bucketName: bucketName,
+      name: name,
+      content: content,
+      metadata: this.metadata.replace(
+            acl: metadata!.acl,
+            cacheControl: metadata.cacheControl,
+            contentDisposition: metadata.contentDisposition,
+            contentEncoding: metadata.contentEncoding,
+            contentLanguage: metadata.contentLanguage,
+            contentType: metadata.contentType,
+            custom: metadata.custom,
+          ),
+    );
+  }
 }
 
 class _Bucket implements Bucket {
@@ -353,8 +370,8 @@ class _Bucket implements Bucket {
   @override
   Future<void> updateMetadata(
       String objectName, ObjectMetadata metadata) async {
-    _logger.severe(
-        'UpdateMetadata: $objectName not yet implemented, call ignored.');
+    _validateObjectName(objectName);
+    _files[objectName] = _files[objectName]!.replace(metadata: metadata);
   }
 }
 
