@@ -211,9 +211,26 @@ void main() {
     test('text + topic with hash prefix', () {
       final query = SearchForm(query: 'abc #xyz');
       final pq = query.parsedQuery;
-      expect(pq.text, 'abc #xyz');
-      expect(pq.tagsPredicate.toQueryParameters(), []);
-      expect(pq.toString(), 'abc #xyz');
+      expect(pq.text, 'abc');
+      expect(pq.tagsPredicate.toQueryParameters(), ['#xyz']);
+      expect(pq.tagsPredicate.matches(['topic:xyz']), true);
+      expect(pq.tagsPredicate.matches(['topic:abc']), false);
+      expect(pq.toString(), '#xyz abc');
+    });
+
+    test('negative hash is parsed', () {
+      final query = SearchForm(query: '-#abc');
+      final pq = query.parsedQuery;
+      expect(pq.tagsPredicate.toQueryParameters(), ['-#abc']);
+      expect(pq.tagsPredicate.matches(['topic:xyz']), true);
+      expect(pq.tagsPredicate.matches(['topic:abc']), false);
+      expect(pq.toString(), '-#abc');
+    });
+
+    test('negative tag predicate in the serialization parsing', () {
+      final tp = TagsPredicate.parseQueryValues(['-#abc']);
+      expect(tp.matches(['topic:abc']), false);
+      expect(tp.matches(['topic:xyz']), true);
     });
   });
 

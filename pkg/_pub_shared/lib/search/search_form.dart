@@ -18,6 +18,7 @@ final _sortRegExp = RegExp('sort:([a-z]+)');
 final _updatedRegExp = RegExp('updated:([0-9][0-9a-z]*)');
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
+final _topicRegExp = RegExp(r'([\+|\-])?#([a-z0-9-]{2,32})');
 
 /// The tag prefixes that we can detect in the user-provided search query.
 final _detectedTagPrefixes = <String>{
@@ -152,6 +153,10 @@ class TagsPredicate {
       } else if (tag.startsWith('+')) {
         tag = tag.substring(1);
       }
+
+      if (tag.startsWith('#')) {
+        tag = 'topic:${tag.substring(1)}';
+      }
       p._values[tag] = required;
     }
     return p;
@@ -222,7 +227,13 @@ class TagsPredicate {
 
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
-    return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
+    return _values.entries.map((e) {
+      var tag = e.key;
+      if (tag.startsWith('topic:')) {
+        tag = '#${tag.substring(6)}';
+      }
+      return e.value ? tag : '-$tag';
+    }).toList();
   }
 }
 
@@ -263,10 +274,14 @@ class ParsedQueryText {
       queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
 
-    List<String> extractRegExp(RegExp regExp, {bool Function(String?)? where}) {
+    List<String> extractRegExp(
+      RegExp regExp, {
+      bool Function(String?)? where,
+      String? Function(Match m)? matchMapFn,
+    }) {
       final values = regExp
           .allMatches(queryText!)
-          .map((Match m) => m.group(1))
+          .map((Match m) => matchMapFn == null ? m.group(1) : matchMapFn(m))
           .where((s) => where == null || where(s))
           .cast<String>()
           .toList();
@@ -289,7 +304,13 @@ class ParsedQueryText {
       _tagRegExp,
       where: (tag) => _detectedTagPrefixes.any((p) => tag!.startsWith(p)),
     );
-    final tagsPredicate = TagsPredicate.parseQueryValues(tagValues);
+    final topicValues = extractRegExp(_topicRegExp, matchMapFn: (m) {
+      final sign = m.group(1) ?? '';
+      final value = m.group(2);
+      return '${sign}topic:$value';
+    });
+    final tagsPredicate =
+        TagsPredicate.parseQueryValues([...tagValues, ...topicValues]);
 
     queryText = queryText!.replaceAll(_whitespacesRegExp, ' ').trim();
     if (queryText!.isEmpty) {
