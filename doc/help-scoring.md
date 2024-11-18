@@ -30,6 +30,14 @@ option.
 
 Pub.dev tracks and stores how many times each version of each package gets downloaded. This is used to display package usage metrics.
 
+The displayed download counts on pub.dev are aggregates based on raw server-side numbers counting the times a package archive has been downloaded.
+
+The download count is not a measure of how many users a package has. A package can have a high usage with low download counts because users may cache the package in their `PUB_CACHE`, which is a global cache. Hence, a particular package version will only be downloaded once per user, even if the user calls `pub get` many times across different projects.
+
+On the other hand, for some packages the download count may be relatively high. For instance, the number can be high if the package is used as a dependency by other popular packages. The download counts can also be highly affected if the package is used by CI systems running tests, since these systems typically don't retain the `PUB_CACHE` between test runs.
+
+The download count is by no means a perfect metric, and should only be regarded as an indicator of popularity.
+
 ## Popularity
 
 Popularity measures the number of apps that depend on a package over the past 60
