@@ -199,6 +199,22 @@ void main() {
       expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
           ['publisher:example.com']);
     });
+
+    test('text + topic with tag prefix', () {
+      final query = SearchForm(query: 'abc topic:xyz');
+      final pq = query.parsedQuery;
+      expect(pq.text, 'abc');
+      expect(pq.tagsPredicate.toQueryParameters(), ['topic:xyz']);
+      expect(pq.toString(), 'topic:xyz abc');
+    });
+
+    test('text + topic with hash prefix', () {
+      final query = SearchForm(query: 'abc #xyz');
+      final pq = query.parsedQuery;
+      expect(pq.text, 'abc #xyz');
+      expect(pq.tagsPredicate.toQueryParameters(), []);
+      expect(pq.toString(), 'abc #xyz');
+    });
   });
 
   group('Search URLs', () {
