@@ -293,6 +293,7 @@ final class ExportedPackage {
   Future<void> synchronizeTarballs(
     Map<String, SourceObjectInfo> versions, {
     bool forceWrite = false,
+    bool forceDelete = false,
   }) async {
     await Future.wait([
       ..._owner._prefixes.map((prefix) async {
@@ -331,7 +332,8 @@ final class ExportedPackage {
           }
 
           // Delete the item, if it's old enough.
-          if (item.updated.isBefore(clock.agoBy(_minGarbageAge))) {
+          if (forceDelete ||
+              item.updated.isBefore(clock.agoBy(_minGarbageAge))) {
             // Only delete if the item if it's older than _minGarbageAge
             // This avoids any races where we delete files we've just created
             await _owner._bucket.tryDelete(item.name);

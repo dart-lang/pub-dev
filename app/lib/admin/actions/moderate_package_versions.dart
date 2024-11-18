@@ -5,6 +5,7 @@
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 
+import '../../package/api_export/api_exporter.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../scorecard/backend.dart';
@@ -113,6 +114,9 @@ Set the moderated flag on a package version (updating the flag and the timestamp
 
         return v;
       });
+
+      // sync exported API(s)
+      await apiExporter?.synchronizePackage(package, forceDelete: true);
 
       // retract or re-populate public archive files
       await packageBackend.tarballStorage.updatePublicArchiveBucket(

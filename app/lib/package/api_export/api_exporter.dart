@@ -189,9 +189,16 @@ final class ApiExporter {
   ///  * Running a full background synchronization.
   ///  * When a change in [Package.updated] is detected.
   ///  * A package is moderated, or other admin action is applied.
+  ///
+  /// When [forceDelete] is set, the age threshold limit for stray files is
+  /// ignored, they will be deleted even if they were updated recently.
+  ///
+  /// When [forceDelete] is set, the age threshold limit for stray files is
+  /// ignored, they will be deleted even if they were updated recently.
   Future<void> synchronizePackage(
     String package, {
     bool forceWrite = false,
+    bool forceDelete = false,
   }) async {
     _log.info('synchronizePackage("$package")');
 
@@ -225,6 +232,7 @@ final class ApiExporter {
     await _api.package(package).synchronizeTarballs(
           versions,
           forceWrite: forceWrite,
+          forceDelete: forceDelete,
         );
     await _api.package(package).advisories.write(
           advisories,
