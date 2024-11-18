@@ -14,7 +14,8 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Exported API sync admin action', () {
-    Future<void> _sync({
+    /// Invoke exported-api-sync action
+    Future<void> exportedApiSync({
       List<String>? packages,
       bool forceWrite = false,
     }) async {
