@@ -228,10 +228,7 @@ class TagsPredicate {
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
     return _values.entries.map((e) {
-      var tag = e.key;
-      if (tag.startsWith('topic:')) {
-        tag = '#${tag.substring(6)}';
-      }
+      final tag = e.key;
       return e.value ? tag : '-$tag';
     }).toList();
   }

@@ -212,19 +212,19 @@ void main() {
       final query = SearchForm(query: 'abc #xyz');
       final pq = query.parsedQuery;
       expect(pq.text, 'abc');
-      expect(pq.tagsPredicate.toQueryParameters(), ['#xyz']);
+      expect(pq.tagsPredicate.toQueryParameters(), ['topic:xyz']);
       expect(pq.tagsPredicate.matches(['topic:xyz']), true);
       expect(pq.tagsPredicate.matches(['topic:abc']), false);
-      expect(pq.toString(), '#xyz abc');
+      expect(pq.toString(), 'topic:xyz abc');
     });
 
     test('negative hash is parsed', () {
       final query = SearchForm(query: '-#abc');
       final pq = query.parsedQuery;
-      expect(pq.tagsPredicate.toQueryParameters(), ['-#abc']);
+      expect(pq.tagsPredicate.toQueryParameters(), ['-topic:abc']);
       expect(pq.tagsPredicate.matches(['topic:xyz']), true);
       expect(pq.tagsPredicate.matches(['topic:abc']), false);
-      expect(pq.toString(), '-#abc');
+      expect(pq.toString(), '-topic:abc');
     });
 
     test('negative tag predicate in the serialization parsing', () {
