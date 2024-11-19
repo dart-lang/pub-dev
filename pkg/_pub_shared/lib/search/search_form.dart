@@ -17,8 +17,8 @@ final RegExp _allDependencyRegExp =
 final _sortRegExp = RegExp('sort:([a-z]+)');
 final _updatedRegExp = RegExp('updated:([0-9][0-9a-z]*)');
 final _tagRegExp =
-    RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
-final _topicRegExp = RegExp(r'([\+|\-])?#([a-z0-9-]{2,32})');
+    RegExp(r'([\+\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
+final _topicRegExp = RegExp(r'([\+\-])?#([a-z0-9-]{2,32})');
 
 /// The tag prefixes that we can detect in the user-provided search query.
 final _detectedTagPrefixes = <String>{
