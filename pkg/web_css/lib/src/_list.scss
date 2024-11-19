@@ -193,7 +193,15 @@
     margin: 0px -30px 6px -30px;
     padding: 15px 30px;
 
+    .pkg-page-title-copy-icon {
+      opacity: 0.15;
+    }
+
     &:hover {
+      .pkg-page-title-copy-icon {
+        opacity: 0.25;
+      }
+
       background: var(--pub-neutral-hover-bgColor);
     }
   }
