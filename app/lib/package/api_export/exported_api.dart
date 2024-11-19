@@ -270,7 +270,7 @@ final class ExportedPackage {
   /// Interace for writing `/api/archives/<package>-<version>.tar.gz`.
   ExportedBlob tarball(String version) => ExportedBlob._(
         _owner,
-        '/api/archives/$_package-${Uri.encodeComponent(version)}.tar.gz',
+        '/api/archives/$_package-$version.tar.gz',
         '$_package-$version.tar.gz',
         'application/octet',
         Duration(hours: 2),
@@ -313,9 +313,7 @@ final class ExportedPackage {
             );
             return;
           }
-          final version = Uri.decodeComponent(
-            item.name.without(prefix: pfx, suffix: '.tar.gz'),
-          );
+          final version = item.name.without(prefix: pfx, suffix: '.tar.gz');
 
           final info = versions[version];
           if (info != null && !forceWrite) {
@@ -373,7 +371,7 @@ final class ExportedPackage {
             return;
           }
           final version = item.name.without(prefix: pfx, suffix: '.tar.gz');
-          if (allVersionNumbers.contains(Uri.decodeComponent(version))) {
+          if (allVersionNumbers.contains(version)) {
             return;
           }
           if (await _owner._bucket.tryInfo(item.name) case final info?) {

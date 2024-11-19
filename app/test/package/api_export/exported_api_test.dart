@@ -175,7 +175,7 @@ void main() {
       [1, 2, 3],
     );
     expect(
-      await bucket.readBytes('latest/api/archives/_foo-1.2.3-dev%2B2.tar.gz'),
+      await bucket.readBytes('latest/api/archives/_foo-1.2.3-dev+2.tar.gz'),
       [1, 2, 3],
     );
     expect(
@@ -184,7 +184,7 @@ void main() {
     );
     expect(
       await bucket
-          .readBytes('latest/api/archives/_foo-1.2.3-d%2B4.tar.gz.tar.gz'),
+          .readBytes('latest/api/archives/_foo-1.2.3-d+4.tar.gz.tar.gz'),
       [42],
     );
   });
@@ -309,7 +309,7 @@ void main() {
       [2, 0, 0],
     );
     expect(
-      await bucket.readBytes('latest/api/archives/retry-3.0.0%2B1.tar.gz'),
+      await bucket.readBytes('latest/api/archives/retry-3.0.0+1.tar.gz'),
       [3, 0, 0],
     );
 
@@ -333,7 +333,7 @@ void main() {
       [2, 0, 0],
     );
     expect(
-      await bucket.readBytes('latest/api/archives/retry-3.0.0%2B1.tar.gz'),
+      await bucket.readBytes('latest/api/archives/retry-3.0.0+1.tar.gz'),
       [3, 0, 0],
     );
   });
