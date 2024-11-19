@@ -349,7 +349,8 @@
     background: var(--pub-inset-bgColor);
     font-size: 14px;
     border-radius: 3px;
-    margin-top: 40px;
+    margin: 40px 3px 0 3px;
+    min-width: 42px; // otherwise page "1" would be much narrower than e.g. page "2"
 
     &.-disabled {
       pointer-events: none;
