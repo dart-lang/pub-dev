@@ -15,6 +15,7 @@
 //   - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
 //   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
+/// Variables that are not specific to the light or dark theme.
 :root {
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
   --pub-default-text-font_family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
@@ -74,7 +75,8 @@
   --mdc-typography-font-family: var(--pub-default-text-font_family);
 }
 
-.light-theme {
+/// Variables that are specific to the light theme.
+:root {
   @include dash_variables.light-theme;
 
   --pub-color-snowWhite:     #fafafa; // slight deviation from official snow-white (fffafa)
@@ -119,12 +121,15 @@
   --pub-tag_simplebadge-text-color: #444444;
   --pub-tag_sdkbadge-separator-color: rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity;
   --pub-tag_sdkbadge-text-color: #1967d2;
+}
 
+.light-theme {
   .displayed-in-dark-theme {
     display: none !important;
   }
 }
 
+/// Variables that are specific to the dark theme.
 .dark-theme {
   @include dash_variables.dark-theme;
 
