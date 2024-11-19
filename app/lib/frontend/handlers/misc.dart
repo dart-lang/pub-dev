@@ -223,7 +223,7 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
 <body>
     <h1>Experiments</h1>
     <p>
-      Experiments are not part of the official pub.dev site.
+      Experiments are not an official part of the pub.dev site.
     <p>
       They showcase features we are working on, that are not yet ready for
       deployment, and might still not:
