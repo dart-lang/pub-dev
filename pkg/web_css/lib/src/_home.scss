@@ -102,7 +102,7 @@
   .mini-list-item {
     background: var(--pub-neutral-bgColor);
     border-radius: 4px;
-    box-shadow: 0px 2px 7px 0px var(--pub-home_card-box_shadow-color);
+    border: 2px solid var(--pub-neutral-borderColor);
     padding: 28px 30px 30px; // title's top gap is about 2px (30-2 => 28)
     margin-bottom: 10px;
     min-height: 100px;
