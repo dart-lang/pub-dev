@@ -6,16 +6,18 @@ import 'package:meta/meta.dart';
 
 import '../../shared/cookie_utils.dart';
 
-const _publicFlags = <String>{
-  'dark',
-  'download-counts',
-  'search-completion',
-  'search-topics',
+typedef PublicFlag = ({String name, String description});
+
+const _publicFlags = <PublicFlag>{
+  (name: 'dark', description: 'Dark mode'),
+  (name: 'download-counts', description: 'Download count metrics'),
+  (name: 'search-completion', description: 'Completions for the search bar'),
+  (name: 'search-topics', description: 'Show matching topics when searching'),
 };
 
-const _allFlags = <String>{
+final _allFlags = <String>{
   'dark-as-default',
-  ..._publicFlags,
+  ..._publicFlags.map((x) => x.name),
 };
 
 /// The name of the experimental cookie.
@@ -33,7 +35,8 @@ class ExperimentalFlags {
   ExperimentalFlags(Set<String> enabled)
       : _enabled = enabled.intersection(_allFlags);
 
-  static final List<String> publicFlags = _publicFlags.toList()..sort();
+  static final List<PublicFlag> publicFlags = _publicFlags.toList()
+    ..sort((a, b) => a.name.compareTo(b.name));
   static final ExperimentalFlags empty = ExperimentalFlags(const {});
 
   factory ExperimentalFlags.parseFromCookie(String? value) {

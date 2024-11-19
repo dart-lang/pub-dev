@@ -204,29 +204,48 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
 
   final clearUri = Uri(
       path: '/experimental', queryParameters: flags.urlParametersForToggle());
-  final clearLink = flags.isEmpty ? '' : '(<a href="$clearUri">clear</a>).';
-  final publicBlock = ExperimentalFlags.publicFlags.map((f) {
-    final change = flags.isEnabled(f) ? '0' : '1';
-    final uri = Uri(path: '/experimental', queryParameters: {f: change});
-    return '<a href="$uri">toggle: <b>$f</b></a><br />';
-  }).join();
+  final clearLink = flags.isEmpty ? '' : '(<a href="$clearUri">clear all</a>).';
+  final publicBlock = '''
+<ul>
+  ${ExperimentalFlags.publicFlags.map((f) {
+    final change = flags.isEnabled(f.name) ? '0' : '1';
+    final uri = Uri(path: '/experimental', queryParameters: {f.name: change});
+    return '<li><b>${f.description}</b> <a href="$uri">(toggle)</a>';
+  }).join()}
+</ul>
+''';
   return htmlResponse('''
 <!doctype html>
 <html>
 <head>
-  <meta http-equiv="refresh" content="15; url=/">
   <meta name="robots" content="noindex" />
 </head>
 <body>
-  <center>
+    <h1>Experiments</h1>
+    <p>
+      Experiments are not an official part of the pub.dev site.
+    <p>
+      They showcase features we are working on, that are not yet ready for
+      deployment, and might still not:
+      <ul>
+      <li> work fully or as expected, 
+      <li> be well documented,
+      <li> have good accesibility,
+      <li> have the final polished styling.
+      </ul>
+    <p>
+      Enable experiments at your own discresion.
+    <p>
+      An experiment is no promise of an actual later launch of that given feature.
+    <p>
+      Still, feel free to provide feedback on the
+      <a href="https://github.com/dart-lang/pub-dev/issues">issue tracker</a>.
+      Be sure to mention what experiments were enabled.
     <p>
       Experiments enabled: <b>$flags</b><br>$clearLink
-    </p>
-    <p>$publicBlock</p>
+    <p>$publicBlock
     <p>
-      (redirecting to <a href="/">pub.dev</a> in 15 seconds).
-    </p>
-  </center>
+      After enabling experiments go back to <a href="/">pub.dev</a>.
 </body>
 </html>''', headers: {
     HttpHeaders.setCookieHeader: buildSetCookieValue(
