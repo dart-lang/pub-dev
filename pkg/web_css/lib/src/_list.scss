@@ -55,7 +55,8 @@
   .sort-control-popup {
     display: none;
 
-    box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--pub-neutral-borderColor);
+    border-radius: 4px;
     position: absolute;
     right: 0px;
     white-space: nowrap;
