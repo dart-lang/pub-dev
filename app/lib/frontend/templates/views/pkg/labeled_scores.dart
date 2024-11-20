@@ -38,11 +38,10 @@ d.Node labeledScoresNode({
               child: _labeledScore(
                 'downloads',
                 thirtyDaysDownloads != null
-                    ? formatWith3SignificantDigits(thirtyDaysDownloads).value
+                    ? '${formatWith3SignificantDigits(thirtyDaysDownloads).value}'
+                        '${formatWith3SignificantDigits(thirtyDaysDownloads).suffix}'
                     : null,
-                sign: thirtyDaysDownloads != null
-                    ? formatWith3SignificantDigits(thirtyDaysDownloads).suffix
-                    : '',
+                sign: '',
               ),
             )
           : d.div(

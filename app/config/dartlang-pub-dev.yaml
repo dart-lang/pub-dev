@@ -9,7 +9,7 @@ fallbackSearchServicePrefix: https://search-dot-dartlang-pub-dev.appspot.com
 defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
 popularityDumpBucketName: dartlang-pub-dev--popularity
 searchSnapshotBucketName: dartlang-pub-dev--search-snapshot
-exportedApiBucketName: null
+exportedApiBucketName: dartlang-pub-dev-exported-api
 maxTaskInstances: 50
 maxTaskRunHours: 2
 taskResultBucketName: dartlang-pub-dev-task-output

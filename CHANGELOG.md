@@ -3,6 +3,30 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20241119t142300-all`
+
+## `20241119t084600-all`
+ * Bump runtimeVersion to `2024.11.18`.
+ * Upgraded stable Flutter analysis SDK to `3.24.5`.
+
+## `20241114t102300-all`
+
+## `20241111t133300-all`
+
+## `20241111t124500-all`
+ * Note: `search` increased `description` weight from `0.9` to `1.0`.
+ * Bump runtimeVersion to `2024.11.11`.
+ * Enabled generation of `ExportedApi`.
+
+## `20241107t132800-all`
+ * `search` uses the `IndexedScore` to reduce memory allocations.
+
+## `20241031t095600-all`
+ * Bumped runtimeVersion to `2024.10.29`.
+ * Upgraded stable Dart analysis SDK to `3.5.4`
+ * Upgraded stable Flutter analysis SDK to `3.24.4`.
+ * Upgraded pana to `0.22.15`.
+
 ## `20241022t092400-all`
  * Bumped runtimeVersion to `2024.10.21`.
 

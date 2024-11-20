@@ -5,13 +5,13 @@
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 
+import '../../package/api_export/api_exporter.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
 import '../../task/backend.dart';
-import '../../tool/maintenance/update_public_bucket.dart';
 
 import '../backend.dart';
 import '../models.dart';
@@ -115,8 +115,11 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         return v;
       });
 
+      // sync exported API(s)
+      await apiExporter?.synchronizePackage(package, forceDelete: true);
+
       // retract or re-populate public archive files
-      await updatePublicArchiveBucket(
+      await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

@@ -17,6 +17,9 @@ COPY static /project/static
 COPY doc /project/doc
 COPY third_party /project/third_party
 COPY tool /project/tool
+COPY pubspec.lock /project/pubspec.lock
+COPY pubspec.yaml /project/pubspec.yaml
+
 
 WORKDIR /project/pkg/web_app
 RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app

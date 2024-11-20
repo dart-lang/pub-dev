@@ -10,6 +10,8 @@ import '../../shared/popularity_storage.dart';
 
 /// Scans the datastore for packages and generates popularity values with a
 /// deterministic random seed.
+///
+/// TODO: generate similar values for download counts.
 Future<void> generateFakePopularityValues() async {
   final values = <String, double>{};
   final query = dbService.query<Package>();

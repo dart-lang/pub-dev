@@ -200,7 +200,10 @@ void main() {
     expect(advisory.syncTime!, ingestTime);
     expect(advisory.syncTime!.isBefore(afterIngestTime), isTrue);
 
-    final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
+    final list = await securityAdvisoryBackend.lookupSecurityAdvisories(
+      'a',
+      skipCache: true,
+    );
     expect(list, isNotNull);
     expect(list.length, 1);
     expect(list.first.advisory.id, id);
@@ -229,10 +232,16 @@ void main() {
     expect(updatedAdvisory.affectedPackages!.first, affectedA.package.name);
     expect(updatedAdvisory.affectedPackages!.last, affectedC.package.name);
 
-    final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories('b');
+    final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories(
+      'b',
+      skipCache: true,
+    );
     expect(list2, isEmpty);
 
-    final list3 = await securityAdvisoryBackend.lookupSecurityAdvisories('c');
+    final list3 = await securityAdvisoryBackend.lookupSecurityAdvisories(
+      'c',
+      skipCache: true,
+    );
     expect(list3, isNotNull);
     expect(list3.length, 1);
     expect(list3.first.advisory.id, id);
@@ -269,12 +278,18 @@ void main() {
     expect(advisory.affectedPackages!.length, 1);
     expect(advisory.affectedPackages!.first, affectedA.package.name);
 
-    final list = await securityAdvisoryBackend.lookupSecurityAdvisories('a');
+    final list = await securityAdvisoryBackend.lookupSecurityAdvisories(
+      'a',
+      skipCache: true,
+    );
     expect(list, isNotNull);
     expect(list.length, 1);
     expect(list.first.advisory.id, id);
 
-    final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories('b');
+    final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories(
+      'b',
+      skipCache: true,
+    );
     expect(list2, isNotNull);
     expect(list2, isEmpty);
   });

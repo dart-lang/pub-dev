@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:_pub_shared/utils/http.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
@@ -18,7 +20,7 @@ class SdkMemIndex {
   final String _sdk;
   final String? _version;
   final Uri _baseUri;
-  final _tokensPerLibrary = <String, TokenIndex>{};
+  final _tokensPerLibrary = <String, TokenIndex<String>>{};
   final _baseUriPerLibrary = <String, String>{};
   final _descriptionPerLibrary = <String, String>{};
   final _libraryWeights = <String, double>{};
@@ -141,11 +143,11 @@ class SdkMemIndex {
       final libraryWeight = _libraryWeights[library] ?? 1.0;
       final weightedResults = isQualifiedQuery
           ? plainResults
-          : plainResults.mapValues(
+          : plainResults.map(
               (key, value) {
                 final dir = p.dirname(key);
                 final w = (_apiPageDirWeights[dir] ?? 1.0) * libraryWeight;
-                return w * value;
+                return MapEntry(key, w * value);
               },
             );
 
@@ -184,9 +186,9 @@ class SdkMemIndex {
 
 class _Hit {
   final String library;
-  final Score top;
+  final Map<String, double> top;
 
   _Hit(this.library, this.top);
 
-  late final score = top.maxValue;
+  late final score = top.values.fold(0.0, (a, b) => max(a, b));
 }

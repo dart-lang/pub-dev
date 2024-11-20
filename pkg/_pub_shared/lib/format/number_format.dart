@@ -19,6 +19,20 @@ String _toFixed(int value, int d) {
   return (((value * 10) ~/ d) / 10).toStringAsFixed(1);
 }
 
+/// Formats an int [value] with commas as thousand seperators.
+String formatWithThousandSeperators(int value) {
+  final digits = value.toString().split('');
+  final l = digits.length - 1;
+  final buffer = StringBuffer();
+  for (int j = 0; j <= l; j++) {
+    if (j > 0 && j % 3 == 0) {
+      buffer.write(',');
+    }
+    buffer.write(digits[l - j]);
+  }
+  return buffer.toString().split('').reversed.join();
+}
+
 /// Formats an int [value] to human readable chunk and suffix with at most 3
 /// significant digits.
 ({String value, String suffix}) formatWith3SignificantDigits(int value) {

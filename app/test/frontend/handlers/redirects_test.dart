@@ -117,5 +117,19 @@ void main() {
         'https://api.flutter.dev/',
       );
     });
+
+    testWithProfile('search canonicalization: topic name', fn: () async {
+      await expectRedirectResponse(
+        await issueGet('/packages?q=topic%3Awidgets'),
+        '/packages?q=topic%3Awidget',
+      );
+    });
+
+    testWithProfile('search canonicalization: topic shortcut', fn: () async {
+      await expectRedirectResponse(
+        await issueGet('/packages?q=%23hash'),
+        '/packages?q=topic%3Ahash',
+      );
+    });
   });
 }

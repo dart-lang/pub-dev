@@ -18,7 +18,7 @@ void main() {
     });
 
     test('No match', () {
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'uri://http': 'http',
         'uri://http_magic': 'http_magic',
       });
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('Scoring exact and partial matches', () {
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'uri://http': 'http',
         'uri://http_magic': 'http_magic',
       });
@@ -42,7 +42,7 @@ void main() {
 
     test('CamelCase indexing', () {
       final String queueText = '.DoubleLinkedQueue()';
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'queue': queueText,
         'queue_lower': queueText.toLowerCase(),
         'unmodifiable': 'CustomUnmodifiableMapBase',
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('Wierd cases: riak client', () {
-      final TokenIndex index = TokenIndex.fromMap({
+      final index = TokenIndex.fromMap({
         'uri://cli': 'cli',
         'uri://riak_client': 'riak_client',
         'uri://teamspeak': 'teamspeak',
@@ -68,7 +68,7 @@ void main() {
       });
 
       expect(index.search('riak client'), {
-        'uri://riak_client': closeTo(0.99, 0.01),
+        'uri://riak_client': closeTo(0.98, 0.01),
       });
     });
 
@@ -106,26 +106,8 @@ void main() {
     });
   });
 
-  group('Score', () {
-    late Score score;
-    setUp(() {
-      score = Score({'a': 100.0, 'b': 30.0, 'c': 55.0});
-    });
-
-    test('remove low scores', () {
-      expect(score, {
-        'a': 100.0,
-        'b': 30.0,
-        'c': 55.0,
-      });
-      expect(score.removeLowValues(fraction: 0.31), {
-        'a': 100.0,
-        'c': 55.0,
-      });
-      expect(score.removeLowValues(minValue: 56.0), {
-        'a': 100.0,
-      });
-    });
+  group('IndexedScore', () {
+    final score = IndexedScore.fromMap({'a': 100.0, 'b': 30.0, 'c': 55.0});
 
     test('top', () {
       expect(score.top(1), {'a': 100.0});

@@ -3,11 +3,11 @@
 // Include third-party CSS into a single output file
 // to reduce the number of HTTP requests.
 @use '../../../third_party/css/github-markdown.css';
-@use '../../../third_party/css/dartdoc-github-alert.css';
 
 // Local styles and rules.
 @use 'src/_variables';
 @use 'src/_base';
+@use 'src/_alerts';
 @use 'src/_site_header';
 @use 'src/_activity_log';
 @use 'src/_detail_page';

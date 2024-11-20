@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart';
-import 'package:pub_dev/service/download_counts/compute_30_days_total_counts.dart';
+import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';

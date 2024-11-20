@@ -4,11 +4,11 @@
 
 import '../../admin/backend.dart';
 import '../../admin/models.dart';
+import '../../package/api_export/api_exporter.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
 import '../../task/backend.dart';
-import '../../tool/maintenance/update_public_bucket.dart';
 import 'actions.dart';
 
 final moderatePackage = AdminAction(
@@ -82,8 +82,11 @@ Note: the action may take a longer time to complete as the public archive bucket
         return pkg;
       });
 
+      // sync exported API(s)
+      await apiExporter?.synchronizePackage(package, forceDelete: true);
+
       // retract or re-populate public archive files
-      await updatePublicArchiveBucket(
+      await packageBackend.tarballStorage.updatePublicArchiveBucket(
         package: package,
         ageCheckThreshold: Duration.zero,
         deleteIfOlder: Duration.zero,

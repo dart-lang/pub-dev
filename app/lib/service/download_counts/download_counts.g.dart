@@ -84,3 +84,19 @@ $Rec _$recordConvert<$Rec>(
   $Rec Function(Map) convert,
 ) =>
     convert(value as Map<String, dynamic>);
+
+WeeklyDownloadCounts _$WeeklyDownloadCountsFromJson(
+        Map<String, dynamic> json) =>
+    WeeklyDownloadCounts(
+      weeklyDownloads: (json['weeklyDownloads'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+      newestDate: DateTime.parse(json['newestDate'] as String),
+    );
+
+Map<String, dynamic> _$WeeklyDownloadCountsToJson(
+        WeeklyDownloadCounts instance) =>
+    <String, dynamic>{
+      'weeklyDownloads': instance.weeklyDownloads,
+      'newestDate': instance.newestDate.toIso8601String(),
+    };

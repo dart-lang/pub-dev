@@ -19,15 +19,14 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/publisher/backend.dart';
-
-import 'package:pub_dev/search/search_client.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
-import 'package:pub_dev/shared/redis_cache.dart';
-import 'package:pub_dev/shared/utils.dart';
 import 'package:retry/retry.dart';
 
+import '../../publisher/backend.dart';
+import '../../service/download_counts/backend.dart';
 import '../../service/topics/models.dart';
+import '../../shared/popularity_storage.dart';
+import '../../shared/redis_cache.dart';
+import '../../shared/utils.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
@@ -47,6 +46,7 @@ import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
 import 'models.dart';
 import 'result_combiner.dart';
+import 'search_client.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
 
@@ -356,6 +356,7 @@ class SearchBackend {
       created: p.created!,
       updated: p.lastVersionPublished!,
       readme: compactReadme(readmeAsset?.textContent),
+      downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       likeCount: p.likes,
       popularityScore: popularityStorage.lookup(packageName),
       grantedPoints: scoreCard.grantedPubPoints,
@@ -495,24 +496,29 @@ class SearchBackend {
         'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
   }
 
+  /// Creates the content for the /api/package-name-completion-data endpoint.
+  Future<Map<String, Object?>> getPackageNameCompletionData() async {
+    final rs = await searchClient.search(
+      ServiceSearchQuery.parse(
+        tagsPredicate: TagsPredicate.regularSearch(),
+        limit: 20000,
+      ),
+      // Do not cache response at the search client level, as we'll be caching
+      // it in a processed form much longer.
+      skipCache: true,
+      // Do not apply rate limit here.
+      sourceIp: null,
+    );
+    return {
+      'packages': rs.packageHits.map((p) => p.package).toList(),
+    };
+  }
+
   /// Creates the gzipped byte content for the /api/package-name-completion-data endpoint.
   Future<List<int>> getPackageNameCompletionDataJsonGz() async {
     final bytes = await cache.packageNameCompletionDataJsonGz().get(() async {
-      final rs = await searchClient.search(
-        ServiceSearchQuery.parse(
-          tagsPredicate: TagsPredicate.regularSearch(),
-          limit: 20000,
-        ),
-        // Do not cache response at the search client level, as we'll be caching
-        // it in a processed form much longer.
-        skipCache: true,
-        // Do not apply rate limit here.
-        sourceIp: null,
-      );
-
-      return gzip.encode(jsonUtf8Encoder.convert({
-        'packages': rs.packageHits.map((p) => p.package).toList(),
-      }));
+      final data = await getPackageNameCompletionData();
+      return gzip.encode(jsonUtf8Encoder.convert(data));
     });
     return bytes!;
   }
@@ -542,9 +548,28 @@ SearchForm? canonicalizeSearchForm(SearchForm form) {
   }
   if (newTags != null) {
     return form.change(query: query.change(tagsPredicate: newTags).toString());
-  } else {
-    return null;
   }
+
+  final newQueryText = form.parsedQuery.text?.split(' ').map((p) {
+    if (p.startsWith('#') && p.length > 1) {
+      final topic = p.substring(1);
+      // Checking the surface format, and skipping the change if the
+      // text would be an invalid topic.
+      if (!isValidTopicFormat(topic)) {
+        return p;
+      }
+      // NOTE: We don't know if this topic exists or spelled correctly.
+      //       We should consider restricting the updates to existing
+      //       topics only (TBD).
+      return 'topic:$topic';
+    }
+    return p;
+  }).join(' ');
+  if (newQueryText != form.parsedQuery.text) {
+    return form.change(query: newQueryText);
+  }
+
+  return null;
 }
 
 /// Creates the index-related API data structure from the extracted dartdoc data.

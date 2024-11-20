@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/actions/exported-api-sync.dart';
+
 import '../../shared/exceptions.dart';
 import 'download_counts_backfill.dart';
 import 'download_counts_delete.dart';
@@ -92,6 +94,7 @@ final class AdminAction {
     downloadCountsBackfill,
     downloadCountsDelete,
     emailSend,
+    exportedApiSync,
     mergeModeratedPackageIntoExisting,
     moderatePackage,
     moderatePackageVersion,

@@ -19,6 +19,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['updated'] as String),
       readme: json['readme'] as String? ?? '',
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      downloadCount: (json['downloadCount'] as num?)?.toInt(),
       likeCount: (json['likeCount'] as num?)?.toInt(),
       likeScore: (json['likeScore'] as num?)?.toDouble(),
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
@@ -49,6 +50,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'updated': instance.updated.toIso8601String(),
       'readme': instance.readme,
       'tags': instance.tags,
+      'downloadCount': instance.downloadCount,
       'likeCount': instance.likeCount,
       'likeScore': instance.likeScore,
       'popularityScore': instance.popularityScore,
@@ -80,6 +82,9 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
       nameMatches: (json['nameMatches'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      topicMatches: (json['topicMatches'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -103,6 +108,7 @@ Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
   }
 
   writeNotNull('nameMatches', instance.nameMatches);
+  writeNotNull('topicMatches', instance.topicMatches);
   val['sdkLibraryHits'] =
       instance.sdkLibraryHits.map((e) => e.toJson()).toList();
   val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();

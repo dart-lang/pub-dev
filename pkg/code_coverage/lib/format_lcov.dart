@@ -56,8 +56,8 @@ Future main() async {
             !e.key.startsWith('pkg/pub_integration/'))
   ].nonNulls;
   final pubDevEntry = Entry('pub-dev')
-    ..covered = libEntries.map((e) => e.covered).reduce((a, b) => a + b)
-    ..total = libEntries.map((e) => e.total).reduce((a, b) => a + b);
+    ..covered = libEntries.map((e) => e.covered).fold(0, (a, b) => a + b)
+    ..total = libEntries.map((e) => e.total).fold(0, (a, b) => a + b);
   output.writeln([
     pubDevEntry.formatted('pub-dev'),
     _tree['app/lib']?.formatted('app'),

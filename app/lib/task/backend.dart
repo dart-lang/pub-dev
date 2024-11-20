@@ -38,6 +38,7 @@ import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/handlers.dart';
 import 'package:pub_dev/task/models.dart'
     show
+        AbortedTokenInfo,
         PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
@@ -454,6 +455,20 @@ class TaskBackend {
         return false;
       }
 
+      state.abortedTokens = [
+        ...state.versions!.entries
+            .where((e) => deselectedVersions.contains(e.key))
+            .map((e) => e.value)
+            .where((vs) => vs.secretToken != null)
+            .map(
+              (vs) => AbortedTokenInfo(
+                token: vs.secretToken!,
+                expires: vs.scheduled.add(maxTaskExecutionTime),
+              ),
+            ),
+        ...?state.abortedTokens,
+      ].where((t) => t.isNotExpired).take(50).toList();
+
       // Make changes!
       state.versions!
         // Remove versions that have been deselected
@@ -467,6 +482,7 @@ class TaskBackend {
             ),
         });
       state.derivePendingAt();
+      state.abortedTokens?.removeWhere((t) => t.expires.isAfter(clock.now()));
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
@@ -609,20 +625,18 @@ class TaskBackend {
     InvalidInputException.checkPackageName(package);
     version = InvalidInputException.checkSemanticVersion(version);
 
-    final key = PackageState.createKey(_db, runtimeVersion, package);
-    final state = await _db.lookupOrNull<PackageState>(key);
-    if (state == null || state.versions![version] == null) {
-      throw NotFoundException.resource('$package/$version');
-    }
-    final versionState = state.versions![version]!;
-
-    // Check the secret token
-    if (!versionState.isAuthorized(_extractBearerToken(request))) {
+    final token = _extractBearerToken(request);
+    if (token == null) {
       throw AuthenticationException.authenticationRequired();
     }
-    assert(versionState.scheduled != initialTimestamp);
-    assert(versionState.instance != null);
-    assert(versionState.zone != null);
+
+    final key = PackageState.createKey(_db, runtimeVersion, package);
+    final state = await _db.lookupOrNull<PackageState>(key);
+    if (state == null) {
+      throw NotFoundException.resource('$package/$version');
+    }
+    final versionState =
+        _authorizeWorkerCallback(package, version, state, token);
 
     // Set expiration of signed URLs to remaining execution time + 5 min to
     // allow for clock skew.
@@ -669,6 +683,11 @@ class TaskBackend {
     InvalidInputException.checkPackageName(package);
     version = InvalidInputException.checkSemanticVersion(version);
 
+    final token = _extractBearerToken(request);
+    if (token == null) {
+      throw AuthenticationException.authenticationRequired();
+    }
+
     String? zone, instance;
     bool isInstanceDone = false;
     final index = await _loadTaskResultIndex(
@@ -685,18 +704,11 @@ class TaskBackend {
     await withRetryTransaction(_db, (tx) async {
       final key = PackageState.createKey(_db, runtimeVersion, package);
       final state = await tx.lookupOrNull<PackageState>(key);
-      if (state == null || state.versions![version] == null) {
+      if (state == null) {
         throw NotFoundException.resource('$package/$version');
       }
-      final versionState = state.versions![version]!;
-
-      // Check the secret token
-      if (!versionState.isAuthorized(_extractBearerToken(request))) {
-        throw AuthenticationException.authenticationRequired();
-      }
-      assert(versionState.scheduled != initialTimestamp);
-      assert(versionState.instance != null);
-      assert(versionState.zone != null);
+      final versionState =
+          _authorizeWorkerCallback(package, version, state, token);
 
       // Update dependencies, if pana summary has dependencies
       if (summary != null && summary.allDependencies != null) {
@@ -1167,6 +1179,38 @@ String? _extractBearerToken(shelf.Request request) {
     return null;
   }
   return parts.last.trim();
+}
+
+/// Authorize a worker callback for [package] / [version].
+///
+/// Returns the [PackageVersionStateInfo] that the worker is authenticated for.
+/// Or throw [ResponseException] if authorization is not possible.
+PackageVersionStateInfo _authorizeWorkerCallback(
+  String package,
+  String version,
+  PackageState state,
+  String token,
+) {
+  // fixed-time verification of aborted tokens
+  final isKnownAbortedToken = state.abortedTokens
+      ?.map((t) => t.isAuthorized(token))
+      .fold<bool>(false, (a, b) => a || b);
+  if (isKnownAbortedToken ?? false) {
+    throw TaskAbortedException('$package/$version has been aborted.');
+  }
+
+  final versionState = state.versions![version];
+  if (versionState == null) {
+    throw NotFoundException.resource('$package/$version');
+  }
+  // Check the secret token
+  if (!versionState.isAuthorized(token)) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  assert(versionState.scheduled != initialTimestamp);
+  assert(versionState.instance != null);
+  assert(versionState.zone != null);
+  return versionState;
 }
 
 /// Given a list of versions return the list of versions that should be

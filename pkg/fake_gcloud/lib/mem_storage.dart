@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -67,9 +68,13 @@ class MemStorage implements Storage {
     _logger.info('Copy object from $src to $dest');
     final srcUri = Uri.parse(src);
     final destUri = Uri.parse(dest);
-    await bucket(srcUri.host)
-        .read(srcUri.path.substring(1))
-        .pipe(bucket(destUri.host).write(destUri.path.substring(1)));
+    final srcBucket = _buckets[srcUri.host]!;
+    final srcObject = srcBucket._files[srcUri.path.substring(1)]!;
+    await bucket(destUri.host).writeBytes(
+      destUri.path.substring(1),
+      srcObject.content,
+      metadata: metadata ?? srcObject.metadata,
+    );
   }
 
   /// Serializes the content of the Storage to the [sink], with a line-by-line
@@ -107,23 +112,43 @@ class MemStorage implements Storage {
       'name': file.name,
       'content': base64.encode(file.content),
       'updated': file.updated.toUtc().toIso8601String(),
-      'metadata': null, // TODO: add metadata support
+      'metadata': {
+        'contentType': file.metadata.contentType,
+        'contentEncoding': file.metadata.contentEncoding,
+        'cacheControl': file.metadata.cacheControl,
+        'contentDisposition': file.metadata.contentDisposition,
+        'contentLanguage': file.metadata.contentLanguage,
+        'custom': file.metadata.custom,
+      },
     };
   }
 
   _File _decodeFile(Map<String, dynamic> map) {
     final content = base64.decode(map['content'] as String);
     final updated = DateTime.parse(map['updated'] as String);
+    final meta = map['metadata'] ?? <String, Object?>{};
     return _File(
       bucketName: map['bucket'] as String,
       name: map['name'] as String,
       content: content,
       updated: updated,
+      metadata: ObjectMetadata(
+        acl: Acl([]),
+        contentType: meta['contentType'] as String?,
+        contentEncoding: meta['contentEncoding'] as String?,
+        cacheControl: meta['cacheControl'] as String?,
+        contentDisposition: meta['contentDisposition'] as String?,
+        contentLanguage: meta['contentLanguage'] as String?,
+        custom: (meta['custom'] as Map?)?.map(
+              (k, v) => MapEntry(k as String, v as String),
+            ) ??
+            <String, String>{},
+      ),
     );
   }
 }
 
-class _File implements ObjectInfo {
+class _File implements BucketObjectEntry {
   final String bucketName;
   @override
   final String name;
@@ -141,12 +166,12 @@ class _File implements ObjectInfo {
     required this.bucketName,
     required this.name,
     required this.content,
+    required this.metadata,
     DateTime? updated,
   })  : // TODO: use a real CRC32 check
         crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
         md5Hash = md5.convert(content).bytes,
-        updated = updated ?? DateTime.now().toUtc(),
-        metadata = ObjectMetadata(acl: Acl([]));
+        updated = updated ?? clock.now().toUtc();
 
   @override
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
@@ -162,6 +187,29 @@ class _File implements ObjectInfo {
 
   @override
   int get length => content.length;
+
+  @override
+  bool get isDirectory => false;
+
+  @override
+  bool get isObject => true;
+
+  _File replace({ObjectMetadata? metadata}) {
+    return _File(
+      bucketName: bucketName,
+      name: name,
+      content: content,
+      metadata: this.metadata.replace(
+            acl: metadata!.acl,
+            cacheControl: metadata.cacheControl,
+            contentDisposition: metadata.contentDisposition,
+            contentEncoding: metadata.contentEncoding,
+            contentLanguage: metadata.contentLanguage,
+            contentType: metadata.contentType,
+            custom: metadata.custom,
+          ),
+    );
+  }
 }
 
 class _Bucket implements Bucket {
@@ -193,10 +241,18 @@ class _Bucket implements Bucket {
       buffer.addAll(data);
       return buffer;
     }).then((content) {
+      var meta = metadata ?? ObjectMetadata();
+      if (acl != null) {
+        meta = meta.replace(acl: acl);
+      }
+      if (contentType != null) {
+        meta = meta.replace(contentType: contentType);
+      }
       _files[objectName] = _File(
         bucketName: bucketName,
         name: objectName,
         content: content,
+        metadata: meta,
       );
       _logger.info('Completed ${content.length} bytes: $objectName');
     });
@@ -288,18 +344,18 @@ class _Bucket implements Bucket {
           segments.add(subDirSegments.first);
         } else if (isDirPrefix && !isSubDirMatch) {
           // directory match
-          yield _BucketEntry(name, true);
+          yield _files[name]!;
         } else if (!isDirPrefix && isSubDirMatch) {
           // ignore prefix match
         } else if (!isDirPrefix && !isSubDirMatch) {
           // file prefix match
-          yield _BucketEntry(name, true);
+          yield _files[name]!;
         }
       }
     }
 
     for (final s in segments) {
-      yield _BucketEntry('$prefix$s$delimiter', false);
+      yield _BucketDirectoryEntry('$prefix$s$delimiter');
     }
   }
 
@@ -314,22 +370,22 @@ class _Bucket implements Bucket {
   @override
   Future<void> updateMetadata(
       String objectName, ObjectMetadata metadata) async {
-    _logger.severe(
-        'UpdateMetadata: $objectName not yet implemented, call ignored.');
+    _validateObjectName(objectName);
+    _files[objectName] = _files[objectName]!.replace(metadata: metadata);
   }
 }
 
-class _BucketEntry implements BucketEntry {
+class _BucketDirectoryEntry implements BucketDirectoryEntry {
   @override
   final String name;
 
-  @override
-  final bool isObject;
+  _BucketDirectoryEntry(this.name);
 
   @override
-  bool get isDirectory => !isObject;
+  bool get isDirectory => true;
 
-  _BucketEntry(this.name, this.isObject);
+  @override
+  bool get isObject => false;
 }
 
 class _Page<T> implements Page<T> {

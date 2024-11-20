@@ -118,6 +118,8 @@ Future<void> _convertToLcov(
   final out = File(outputFile);
   if (await out.exists()) return;
   await out.parent.create(recursive: true);
+  final baseDir =
+      Directory(packageDir.contains('/app') ? '../' : '../../').absolute.path;
   await Process.run(
     'dart',
     [
@@ -125,11 +127,11 @@ Future<void> _convertToLcov(
       'run',
       'coverage:format_coverage',
       '--packages',
-      '$packageDir/.dart_tool/package_config.json',
+      '$baseDir/.dart_tool/package_config.json',
       '-i',
       inputFile,
       '--base-directory',
-      packageDir.contains('/app') ? '../' : '../../',
+      baseDir,
       '--lcov',
       '--out',
       outputFile,

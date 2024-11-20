@@ -73,6 +73,7 @@ class PackageDocument {
 
   final List<String> tags;
 
+  final int downloadCount;
   final int likeCount;
 
   /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
@@ -105,6 +106,7 @@ class PackageDocument {
     DateTime? updated,
     this.readme = '',
     List<String>? tags,
+    int? downloadCount,
     int? likeCount,
     this.likeScore,
     this.popularityScore,
@@ -116,6 +118,7 @@ class PackageDocument {
     this.sourceUpdated,
   })  : created = created ?? clock.now(),
         updated = updated ?? clock.now(),
+        downloadCount = downloadCount ?? 0,
         likeCount = likeCount ?? 0,
         grantedPoints = grantedPoints ?? 0,
         maxPoints = maxPoints ?? 0,
@@ -129,6 +132,8 @@ class PackageDocument {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   late final Set<String> tagsForLookup = Set.of(tags);
+
+  late final packageNameLowerCased = package.toLowerCase();
 }
 
 /// A reference to an API doc page
@@ -309,6 +314,9 @@ class PackageSearchResult {
   /// Package names that are exact name matches or close to (e.g. names that
   /// would be considered as blocker for publishing).
   final List<String>? nameMatches;
+
+  /// Topic names that are exact name matches or close to the queried text.
+  final List<String>? topicMatches;
   final List<SdkLibraryHit> sdkLibraryHits;
   final List<PackageHit> packageHits;
 
@@ -322,6 +330,7 @@ class PackageSearchResult {
     required this.timestamp,
     required this.totalCount,
     this.nameMatches,
+    this.topicMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.errorMessage,
@@ -336,6 +345,7 @@ class PackageSearchResult {
   })  : timestamp = clock.now().toUtc(),
         totalCount = 0,
         nameMatches = null,
+        topicMatches = null,
         sdkLibraryHits = <SdkLibraryHit>[],
         packageHits = <PackageHit>[];
 
@@ -355,6 +365,7 @@ class PackageSearchResult {
       timestamp: timestamp,
       totalCount: totalCount,
       nameMatches: nameMatches,
+      topicMatches: topicMatches,
       sdkLibraryHits: sdkLibraryHits ?? this.sdkLibraryHits,
       packageHits: packageHits,
       errorMessage: errorMessage,

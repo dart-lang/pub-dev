@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:yaml/yaml.dart';
@@ -92,7 +91,6 @@ class CanonicalTopicFileContent {
 }
 
 /// True, if [topic] is formatted like a valid topic.
-@visibleForTesting
 bool isValidTopicFormat(String topic) =>
     RegExp(r'^[a-z0-9-]{2,32}$').hasMatch(topic) &&
     !topic.contains('--') &&

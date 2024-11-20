@@ -110,9 +110,11 @@ Future<List<String>> _resolveEmails(String value) async {
       case ModerationSubjectKind.package:
       case ModerationSubjectKind.packageVersion:
         final pkg = await packageBackend.lookupPackage(ms.package!);
-        if (pkg!.publisherId != null) {
-          final list =
-              await publisherBackend.getAdminMemberEmails(ms.publisherId!);
+        if (pkg == null) {
+          throw InvalidInputException('Unknown package kind: ${ms.package}');
+        }
+        if (pkg.publisherId case final String publisher) {
+          final list = await publisherBackend.getAdminMemberEmails(publisher);
           emails.addAll(list.nonNulls);
         } else {
           final list = await accountBackend

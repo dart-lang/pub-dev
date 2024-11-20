@@ -10,6 +10,7 @@ import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -1132,6 +1133,7 @@ class PackagePageData {
   final ScoreCardData scoreCard;
   final bool isAdmin;
   final bool isLiked;
+  final WeeklyDownloadCounts? weeklyDownloadCounts;
   PackageView? _view;
 
   PackagePageData({
@@ -1143,6 +1145,7 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
+    required this.weeklyDownloadCounts,
   }) : latestReleases = latestReleases ?? package.latestReleases;
 
   bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);

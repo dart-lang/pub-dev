@@ -14,14 +14,22 @@ d.Node packageListingNode({
   required SearchForm searchForm,
   required d.Node listingInfo,
   required d.Node? nameMatches,
+  required d.Node? topicMatches,
   required d.Node packageList,
   required d.Node? pagination,
   required Set<String>? openSections,
 }) {
+  final matchHighlights = [
+    if (nameMatches != null) nameMatches,
+    if (topicMatches != null) topicMatches,
+  ];
   final innerContent = d.fragment([
     listingInfo,
-    if (nameMatches != null)
-      d.div(classes: ['listing-highlight-block'], child: nameMatches),
+    if (matchHighlights.isNotEmpty)
+      d.div(
+        classes: ['listing-highlight-block'],
+        children: matchHighlights,
+      ),
     packageList,
     if (pagination != null) pagination,
     d.markdown('Check our help page for details on '

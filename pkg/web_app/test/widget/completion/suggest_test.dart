@@ -46,15 +46,15 @@ void main() {
         {
           'start': 0,
           'end': 6,
-          'value': 'has:',
-          'html': 'has:',
+          'value': 'is:',
+          'html': 'is:',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 6,
-          'value': 'is:',
-          'html': 'is:',
+          'value': 'has:',
+          'html': 'has:',
           'score': 0.0,
         },
       ]);
@@ -68,49 +68,52 @@ void main() {
           'start': 0,
           'end': 5,
           'value': 'is:flutter-favorite ',
-          'html': 'flu<strong>tt</strong>er-favorite',
+          'html':
+              '<span class="completion-overlap">is:</span>flu<span class="completion-overlap">tt</span>er-favorite',
           'score': 4.125,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:unlisted ',
-          'html': 'unlis<strong>t</strong>ed',
+          'html':
+              '<span class="completion-overlap">is:</span>unlis<span class="completion-overlap">t</span>ed',
           'score': 1.125,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:dart3-compatible ',
-          'html': 'dar<strong>t</strong>3-compa<strong>t</strong>ible',
+          'html':
+              '<span class="completion-overlap">is:</span>dar<span class="completion-overlap">t</span>3-compa<span class="completion-overlap">t</span>ible',
           'score': 1.0625,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:legacy ',
-          'html': 'legacy',
-          'score': 0.0,
-        },
-        {
-          'start': 0,
-          'end': 5,
-          'value': 'is:null-safe ',
-          'html': 'null-safe',
+          'html': '<span class="completion-overlap">is:</span>legacy',
           'score': 0.0,
         },
         {
           'start': 0,
           'end': 5,
           'value': 'is:plugin ',
-          'html': 'plugin',
+          'html': '<span class="completion-overlap">is:</span>plugin',
           'score': 0.0
         },
         {
           'start': 0,
           'end': 5,
+          'value': 'is:null-safe ',
+          'html': '<span class="completion-overlap">is:</span>null-safe',
+          'score': 0.0,
+        },
+        {
+          'start': 0,
+          'end': 5,
           'value': 'is:wasm-ready ',
-          'html': 'wasm-ready',
+          'html': '<span class="completion-overlap">is:</span>wasm-ready',
           'score': 0.0,
         },
       ]);

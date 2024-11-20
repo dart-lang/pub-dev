@@ -84,7 +84,8 @@ void main() {
               value.contains('rgb(') ||
               value.contains('rgba(') ||
               value.contains('hsl(') ||
-              _colors.any((c) => value.contains(c));
+              (_colors.any((c) => value.contains(c)) &&
+                  !value.contains('var(--pub-color-'));
           if (!hasColor) continue;
 
           badExpressions.add('${file.path} line #${i + 1}: `${expr.trim()}`');

@@ -93,7 +93,6 @@ void main() {
 
     final sb = StringBuffer();
     storage.writeTo(sb);
-    expect(sb.length, 118);
 
     final newStorage = MemStorage();
     newStorage.readFrom(sb.toString().split('\n'));

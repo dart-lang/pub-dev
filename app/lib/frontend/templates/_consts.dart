@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../dom/dom.dart' as d;
 
@@ -124,5 +125,10 @@ List<SortDict> getSortDicts(bool isSearch) {
   final removeId = isSearch ? 'listing_relevance' : 'search_relevance';
   return <SortDict>[
     ..._sortDicts.where((d) => d.id != removeId),
+    if (requestContext.experimentalFlags.showDownloadCounts)
+      SortDict(
+          id: 'downloads',
+          label: 'downloads',
+          tooltip: 'Packages are sorted by their download counts.'),
   ];
 }

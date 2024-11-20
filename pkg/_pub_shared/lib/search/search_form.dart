@@ -52,6 +52,9 @@ enum SearchOrder {
   /// Search order should be in decreasing popularity score.
   popularity,
 
+  /// Search order should be in decreasing download counts.
+  downloads,
+
   /// Search order should be in decreasing like count.
   like,
 
