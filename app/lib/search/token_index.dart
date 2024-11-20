@@ -34,6 +34,8 @@ class TokenIndex<K> {
 
   late final _length = _ids.length;
 
+  late final _scorePool = ScorePool(_ids);
+
   TokenIndex(
     List<K> ids,
     List<String?> values, {
@@ -96,22 +98,27 @@ class TokenIndex<K> {
     return tokenMatch;
   }
 
-  /// Search the index for [words], with a (term-match / document coverage percent)
-  /// scoring.
-  IndexedScore<K> searchWords(List<String> words, {double weight = 1.0}) {
+  /// Search the index for [words], providing the result [IndexedScore] values
+  /// in the [fn] callback, reusing the score buffers between calls.
+  R withSearchWords<R>(List<String> words, R Function(IndexedScore<K> score) fn,
+      {double weight = 1.0}) {
     IndexedScore<K>? score;
 
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
-      final s = IndexedScore(_ids);
+      final s = _scorePool._acquire(0.0);
       searchAndAccumulate(w, score: s, weight: weight);
       if (score == null) {
         score = s;
       } else {
         score.multiplyAllFrom(s);
+        _scorePool._release(s);
       }
     }
-    return score ?? IndexedScore(_ids);
+    score ??= _scorePool._acquire(0.0);
+    final r = fn(score);
+    _scorePool._release(score);
+    return r;
   }
 
   /// Searches the index with [word] and stores the results in [score], using
@@ -139,7 +146,7 @@ extension StringTokenIndexExt on TokenIndex<String> {
   /// scoring.
   @visibleForTesting
   Map<String, double> search(String text) {
-    return searchWords(splitForQuery(text)).toMap();
+    return withSearchWords(splitForQuery(text), (score) => score.toMap());
   }
 }
 
@@ -150,10 +157,7 @@ class ScorePool<K> {
 
   ScorePool(this._keys);
 
-  R withScore<R>({
-    required double value,
-    required R Function(IndexedScore<K> score) fn,
-  }) {
+  IndexedScore<K> _acquire(double value) {
     late IndexedScore<K> score;
     if (_pool.isNotEmpty) {
       score = _pool.removeLast();
@@ -161,8 +165,20 @@ class ScorePool<K> {
     } else {
       score = IndexedScore<K>(_keys, value);
     }
-    final r = fn(score);
+    return score;
+  }
+
+  void _release(IndexedScore<K> score) {
     _pool.add(score);
+  }
+
+  R withScore<R>({
+    required double value,
+    required R Function(IndexedScore<K> score) fn,
+  }) {
+    final score = _acquire(value);
+    final r = fn(score);
+    _release(score);
     return r;
   }
 }

@@ -334,35 +334,36 @@ class InMemoryPackageIndex {
           List<List<MapEntry<String, double>>?>.filled(_documents.length, null);
       const maxApiPageCount = 2;
       if (!checkAborted()) {
-        final symbolPages = _apiSymbolIndex.searchWords(words, weight: 0.70);
+        _apiSymbolIndex.withSearchWords(words, weight: 0.70, (symbolPages) {
+          for (var i = 0; i < symbolPages.length; i++) {
+            final value = symbolPages.getValue(i);
+            if (value < 0.01) continue;
 
-        for (var i = 0; i < symbolPages.length; i++) {
-          final value = symbolPages.getValue(i);
-          if (value < 0.01) continue;
+            final doc = symbolPages.keys[i];
+            if (!packages.contains(doc.package)) continue;
 
-          final doc = symbolPages.keys[i];
-          if (!packages.contains(doc.package)) continue;
+            // skip if the previously found pages are better than the current one
+            final pages =
+                topApiPages[doc.index] ??= <MapEntry<String, double>>[];
+            if (pages.length >= maxApiPageCount && pages.last.value > value) {
+              continue;
+            }
 
-          // skip if the previously found pages are better than the current one
-          final pages = topApiPages[doc.index] ??= <MapEntry<String, double>>[];
-          if (pages.length >= maxApiPageCount && pages.last.value > value) {
-            continue;
+            // update the top api packages score
+            packageScores.setValueMaxOf(doc.index, value);
+
+            // add the page and re-sort the current results
+            pages.add(MapEntry(doc.page.relativePath, value));
+            if (pages.length > 1) {
+              pages.sort((a, b) => -a.value.compareTo(b.value));
+            }
+
+            // keep the results limited to the max count
+            if (pages.length > maxApiPageCount) {
+              pages.removeLast();
+            }
           }
-
-          // update the top api packages score
-          packageScores.setValueMaxOf(doc.index, value);
-
-          // add the page and re-sort the current results
-          pages.add(MapEntry(doc.page.relativePath, value));
-          if (pages.length > 1) {
-            pages.sort((a, b) => -a.value.compareTo(b.value));
-          }
-
-          // keep the results limited to the max count
-          if (pages.length > maxApiPageCount) {
-            pages.removeLast();
-          }
-        }
+        });
       }
 
       // filter results based on exact phrases
