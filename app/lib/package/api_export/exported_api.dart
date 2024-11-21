@@ -72,7 +72,7 @@ final class ExportedApi {
       ExportedJsonFile<Map<String, Object?>>._(
         this,
         '/not-found.json',
-        Duration(minutes: 10),
+        Duration(minutes: 2),
       );
 
   /// Run garbage collection on the bucket.
@@ -255,7 +255,7 @@ final class ExportedPackage {
   ExportedJsonFile<T> _suffix<T>(String suffix) => ExportedJsonFile<T>._(
         _owner,
         '/api/packages/$_package$suffix',
-        Duration(minutes: 10),
+        Duration(minutes: 2),
       );
 
   /// Interface for writing `/api/packages/<package>`.
