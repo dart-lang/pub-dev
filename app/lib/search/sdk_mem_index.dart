@@ -137,7 +137,8 @@ class SdkMemIndex {
       final isQualifiedQuery = query.contains(library.split(':').last);
 
       final tokens = _tokensPerLibrary[library]!;
-      final plainResults = tokens.searchWords(words).top(3, minValue: 0.05);
+      final plainResults = tokens.withSearchWords(
+          words, (score) => score.top(3, minValue: 0.05));
       if (plainResults.isEmpty) continue;
 
       final libraryWeight = _libraryWeights[library] ?? 1.0;
