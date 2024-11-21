@@ -98,7 +98,6 @@ Future<Process> _startCollect(int port, String outputFile) async {
   final p = await Process.start(
     'dart',
     [
-      'pub',
       'run',
       'coverage:collect_coverage',
       '--uri=http://localhost:$port',
@@ -123,7 +122,6 @@ Future<void> _convertToLcov(
   await Process.run(
     'dart',
     [
-      'pub',
       'run',
       'coverage:format_coverage',
       '--packages',

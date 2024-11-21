@@ -261,7 +261,6 @@ class _CoverageConfig {
     _process = await Process.start(
       'dart',
       [
-        'pub',
         'run',
         'coverage:collect_coverage',
         '--uri=http://localhost:$vmPort',
