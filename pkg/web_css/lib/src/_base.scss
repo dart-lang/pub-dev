@@ -46,12 +46,12 @@ body,
     font-weight: 400;
   }
 
-  h1 { font-size: 36px; }
-  h2 { font-size: 24px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 18px; }
-  h5 { font-size: 16px; }
-  h6 { font-size: 16px; }
+  h1 { font-size: 36px; } // note: github uses 2em, ~32px
+  h2 { font-size: 24px; } // note: github uses 1.5em, ~24px
+  h3 { font-size: 21px; } // note: github uses 1.25em, ~20px
+  h4 { font-size: 18px; } // note: github uses 1em, ~16px
+  h5 { font-size: 17px; } // note: github uses 0.875em, ~14px
+  h6 { font-size: 16px; } // note: github uses 0.85em, ~13.6px
 }
 
 img {
