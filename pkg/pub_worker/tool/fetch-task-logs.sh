@@ -21,7 +21,7 @@ if [ $# -ne 0 ]; then
 fi
 
 # Find the pub server
-PUB_HOSTED_URL='https://jonasfj-dot-dartlang-pub-dev.appspot.com'
+#PUB_HOSTED_URL='https://jonasfj-dot-dartlang-pub-dev.appspot.com'
 if [ -z "$VAR" ]; then
   PUB_HOSTED_URL='https://pub.dev'
 fi
@@ -37,7 +37,7 @@ latest_version() {
 export -f latest_version
 
 fetch_task_log() {
-  curl --retry 5 --fail -Ls "$PUB_HOSTED_URL/experimental/task-log/$1/$2/"
+  curl --retry 5 --fail -Ls "$PUB_HOSTED_URL/packages/$1/versions/$2/score/log.txt"
 }
 export -f fetch_task_log
 
