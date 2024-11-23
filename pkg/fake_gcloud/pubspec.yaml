@@ -7,9 +7,11 @@ environment:
 resolution: workspace
 
 dependencies:
+  clock: ^1.1.0
+  crypto: ^3.0.0
   gcloud: ^0.8.18
   logging: '>=0.11.3 <2.0.0'
-  clock: ^1.1.0
+  _discoveryapis_commons:
 
 dev_dependencies:
   coverage: any # test already depends on it

@@ -58,7 +58,7 @@ class PubWorkerTestServer {
     }
     started = true;
 
-    final server = await io.serve(_router, 'localhost', 0);
+    final server = await io.serve(_router.call, 'localhost', 0);
     _baseUrl = Uri.parse('http://localhost:${server.port}');
     _server = server;
   }

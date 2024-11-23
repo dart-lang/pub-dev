@@ -137,24 +137,24 @@ class _Visitor extends Visitor {
   void visitSelector(Selector node) {
     selectors
         .addAll(node.simpleSelectorSequences.map((e) => e.simpleSelector.name));
-    return super.visitSelector(node);
+    super.visitSelector(node);
   }
 
   @override
   void visitClassSelector(ClassSelector node) {
     classes.add(node.name);
-    return super.visitClassSelector(node);
+    super.visitClassSelector(node);
   }
 
   @override
   void visitIdSelector(IdSelector node) {
     ids.add(node.name);
-    return super.visitIdSelector(node);
+    super.visitIdSelector(node);
   }
 
   @override
   void visitElementSelector(ElementSelector node) {
     elements.add(node.name);
-    return super.visitElementSelector(node);
+    super.visitElementSelector(node);
   }
 }
