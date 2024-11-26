@@ -60,6 +60,8 @@ void main() {
     });
 
     test('version with a path', () {
+      testUri('/documentation/angular/4.0.0+2/subdir', 'angular', '4.0.0+2',
+          'subdir/index.html');
       testUri('/documentation/angular/4.0.0+2/subdir/', 'angular', '4.0.0+2',
           'subdir/index.html');
       testUri('/documentation/angular/4.0.0+2/file.html', 'angular', '4.0.0+2',
@@ -98,6 +100,21 @@ void main() {
     testWithProfile('trailing slash redirect', fn: () async {
       await expectRedirectResponse(await issueGet('/documentation/oxygen'),
           '/documentation/oxygen/latest/');
+      await expectRedirectResponse(await issueGet('/documentation/oxygen/'),
+          '/documentation/oxygen/latest/');
+      await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/latest'),
+          '/documentation/oxygen/latest/');
+      await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.0'),
+          '/documentation/oxygen/1.0.0/');
+
+      await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.0/abc'),
+          '/documentation/oxygen/1.0.0/abc/');
+      await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/latest/abc/def'),
+          '/documentation/oxygen/latest/abc/def/');
     });
 
     testWithProfile(
