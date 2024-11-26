@@ -574,20 +574,20 @@ SearchForm? canonicalizeSearchForm(SearchForm form) {
 
 /// Creates the index-related API data structure from the extracted dartdoc data.
 List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
-  final nameToHrefMap = <String, String>{};
+  final nameToApiElementMap = <String, ApiElement>{};
   pubData.apiElements!.forEach((e) {
     final href = e.href;
     if (href != null) {
-      nameToHrefMap[e.qualifiedName] = href;
+      nameToApiElementMap[e.qualifiedName] = e;
     }
   });
 
   final pathMap = <String, String?>{};
   final symbolMap = <String, Set<String>>{};
 
-  bool isTopLevelHref(String? href) {
+  bool isTopLevelApiElement(ApiElement? href) {
     if (href == null) return false;
-    return href.endsWith('-class.html') || href.endsWith('-library.html');
+    return href.isClass || href.isLibrary;
   }
 
   void update(String key, String symbol, String? documentation) {
@@ -599,12 +599,12 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }
 
   pubData.apiElements!.forEach((apiElement) {
-    if (isTopLevelHref(apiElement.href)) {
+    if (isTopLevelApiElement(apiElement)) {
       pathMap[apiElement.qualifiedName] = apiElement.href;
       update(
           apiElement.qualifiedName, apiElement.name, apiElement.documentation);
     } else if (apiElement.parent != null &&
-        isTopLevelHref(nameToHrefMap[apiElement.parent])) {
+        isTopLevelApiElement(nameToApiElementMap[apiElement.parent])) {
       update(apiElement.parent!, apiElement.name, apiElement.documentation);
     }
   });
