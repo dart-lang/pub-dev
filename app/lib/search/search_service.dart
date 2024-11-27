@@ -74,6 +74,10 @@ class PackageDocument {
   final List<String> tags;
 
   final int downloadCount;
+
+  /// The normalized score between [0.0-1.0] (1.0 being the most downloaded package).
+  double? downloadScore;
+
   final int likeCount;
 
   /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
@@ -107,6 +111,7 @@ class PackageDocument {
     this.readme = '',
     List<String>? tags,
     int? downloadCount,
+    this.downloadScore,
     int? likeCount,
     this.likeScore,
     this.popularityScore,

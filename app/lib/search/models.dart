@@ -33,16 +33,22 @@ class SearchSnapshot {
     documents!.remove(packageName);
   }
 
-  /// Updates the PackageDocument.likeScore for each package in the snapshot.
-  /// The score is normalized into the range of [0.0 - 1.0] using the
-  /// ordered list of packages by like counts (same like count gets the same score).
-  void updateLikeScores() {
-    documents!.values.updateLikeScores();
-  }
+  /// Updates the [PackageDocument] instance's scores for each package in the snapshot.
+  /// Sets `downloadScore`, `likeScore` and `popularityScore` fields, normalized into the
+  /// range of [0.0 - 1.0] using the ordered list of their specific counts.
+  void updateAllScores() {
+    /// Updates the PackageDocument.downloadScore for each package in the snapshot.
+    /// The score is normalized into the range of [0.0 - 1.0] using the
+    /// ordered list of packages by download counts (same download count gets the same score).
+    documents!.values.updateDownloadScores();
 
-  /// Updates all popularity values to the currently cached one, otherwise
-  /// only updated package would have been on their new values.
-  void updatePopularityScores() {
+    /// Updates the PackageDocument.likeScore for each package in the snapshot.
+    /// The score is normalized into the range of [0.0 - 1.0] using the
+    /// ordered list of packages by like counts (same like count gets the same score).
+    documents!.values.updateLikeScores();
+
+    /// Updates all popularity values to the currently cached one, otherwise
+    /// only updated package would have been on their new values.
     for (final d in documents!.values) {
       if (popularityStorage.isInvalid) {
         d.popularityScore = d.likeScore;
@@ -56,6 +62,20 @@ class SearchSnapshot {
 }
 
 extension UpdateLikesExt on Iterable<PackageDocument> {
+  /// Updates the PackageDocument.downloadScore for each package in the snapshot.
+  /// The score is normalized into the range of [0.0 - 1.0] using the
+  /// ordered list of packages by download counts (same download count gets the same score).
+  void updateDownloadScores() {
+    final list = sorted((a, b) => a.downloadCount.compareTo(b.downloadCount));
+    for (var i = 0; i < list.length; i++) {
+      if (i > 0 && list[i - 1].downloadCount == list[i].downloadCount) {
+        list[i].downloadScore = list[i - 1].downloadScore;
+      } else {
+        list[i].downloadScore = (i + 1) / list.length;
+      }
+    }
+  }
+
   /// Updates the PackageDocument.likeScore for each package in the snapshot.
   /// The score is normalized into the range of [0.0 - 1.0] using the
   /// ordered list of packages by like counts (same like count gets the same score).

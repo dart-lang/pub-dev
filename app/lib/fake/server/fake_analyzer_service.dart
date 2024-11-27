@@ -38,6 +38,7 @@ class FakeAnalyzerService {
         storage: _storage,
         cloudCompute: _cloudCompute,
         fn: () async {
+          await generateFakeDownloadCounts();
           await generateFakePopularityValues();
 
           final handler = wrapHandler(_logger, analyzerServiceHandler);

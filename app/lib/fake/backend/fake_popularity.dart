@@ -4,7 +4,10 @@
 
 import 'dart:math' as math;
 
+import 'package:clock/clock.dart';
+
 import '../../package/models.dart';
+import '../../service/download_counts/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/popularity_storage.dart';
 
@@ -22,4 +25,21 @@ Future<void> generateFakePopularityValues() async {
   }
   // ignore: invalid_use_of_visible_for_testing_member
   popularityStorage.updateValues(values, invalid: false);
+}
+
+/// Scans the datastore for packages and generates download count values with a
+/// deterministic random seed.
+Future<void> generateFakeDownloadCounts() async {
+  final query = dbService.query<Package>();
+  await for (final p in query.run()) {
+    final r = math.Random(p.name.hashCode.abs());
+    final count = (math.min(p.likes * p.likes, 50) + r.nextInt(50));
+    await downloadCountsBackend.updateDownloadCounts(
+      p.name!,
+      {
+        p.latestVersion!: count,
+      },
+      clock.now(),
+    );
+  }
 }

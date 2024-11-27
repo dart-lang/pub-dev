@@ -91,8 +91,8 @@ void main() {
               (i) => TestPackage(
                   name: 'pkg$i', versions: [TestVersion(version: '1.0.0')])),
         ), fn: () async {
-      final present = ['pkg5', 'pkg7', 'pkg11', 'pkg13', 'pkg14'];
-      final absent = ['pkg0', 'pkg2', 'pkg3', 'pkg4', 'pkg6', 'pkg9', 'pkg10'];
+      final present = ['pkg1', 'pkg4', 'pkg5', 'pkg12'];
+      final absent = ['pkg0', 'pkg3', 'pkg6', 'pkg9', 'pkg10'];
       await expectHtmlResponse(
         await issueGet('/packages?page=2'),
         present: present.map((name) => '/packages/$name').toList(),

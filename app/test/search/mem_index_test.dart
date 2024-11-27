@@ -35,6 +35,7 @@ void main() {
           ],
           likeCount: 10,
           popularityScore: 0.7,
+          downloadScore: 0.7,
           grantedPoints: 110,
           maxPoints: 110,
           dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
@@ -64,6 +65,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
           maxPoints: 110,
           dependencies: {'test': 'dev'},
           popularityScore: 0.8,
+          downloadScore: 0.8,
         ),
         PackageDocument(
           package: 'chrome_net',
@@ -78,6 +80,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           dependencies: {'foo': 'direct'},
           grantedPoints: 0,
           maxPoints: 110,
+          downloadScore: 0.0,
         ),
       ];
       lastPackageUpdated =
@@ -597,6 +600,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             maxPoints: 100,
             grantedPoints: 0,
             tags: ['sdk:dart', 'sdk:flutter'],
+            likeCount: 4,
+            downloadCount: 4,
           ),
           PackageDocument(
             package: 'def',
@@ -604,6 +609,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             maxPoints: 100,
             grantedPoints: 100,
             tags: ['sdk:dart'],
+            likeCount: 3,
+            downloadCount: 3,
           ),
         ]);
 
@@ -615,8 +622,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'totalCount': 2,
             'sdkLibraryHits': [],
             'packageHits': [
-              {'package': 'def', 'score': closeTo(0.77, 0.01)},
-              {'package': 'abc', 'score': closeTo(0.47, 0.01)},
+              {'package': 'def', 'score': closeTo(0.85, 0.01)},
+              {'package': 'abc', 'score': closeTo(0.70, 0.01)},
             ]
           },
         );
@@ -629,8 +636,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'sdkLibraryHits': [],
           'packageHits': [
             // `abc` is at its natural place
-            {'package': 'def', 'score': closeTo(0.77, 0.01)},
-            {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+            {'package': 'def', 'score': closeTo(0.85, 0.01)},
+            {'package': 'abc', 'score': closeTo(0.70, 0.01)},
           ]
         });
         // exact name match with tags
@@ -644,8 +651,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
               'sdkLibraryHits': [],
               'packageHits': [
                 // `abc` is at its natural place
-                {'package': 'def', 'score': closeTo(0.77, 0.01)},
-                {'package': 'abc', 'score': closeTo(0.48, 0.01)},
+                {'package': 'def', 'score': closeTo(0.85, 0.01)},
+                {'package': 'abc', 'score': closeTo(0.70, 0.01)},
               ]
             });
         // absent exact name match with tags
@@ -659,7 +666,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
               'sdkLibraryHits': [],
               'packageHits': [
                 // `abc` is not present in the package list
-                {'package': 'def', 'score': closeTo(0.77, 0.01)},
+                {'package': 'def', 'score': closeTo(0.85, 0.01)},
               ]
             });
       });

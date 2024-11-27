@@ -88,9 +88,14 @@ class InMemoryPackageIndex {
     );
     _apiSymbolIndex = TokenIndex(apiDocPageKeys, apiDocPageValues);
 
+    // update download scores only if they were not set (should happen on old runtime's snapshot and local tests)
+    if (_documents.any((e) => e.downloadScore == null)) {
+      _documents.updateDownloadScores();
+    }
+
     // update like scores only if they were not set (should happen only in local tests)
-    if (_documentsByName.values.any((e) => e.likeScore == null)) {
-      _documentsByName.values.updateLikeScores();
+    if (_documents.any((e) => e.likeScore == null)) {
+      _documents.updateLikeScores();
     }
     _updateOverallScores();
     _lastUpdated = clock.now().toUtc();
@@ -263,7 +268,7 @@ class InMemoryPackageIndex {
   /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
   void _updateOverallScores() {
     _adjustedOverallScores = _documents.map((doc) {
-      final downloadScore = doc.popularityScore ?? 0.0;
+      final downloadScore = doc.downloadScore ?? doc.popularityScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
       final points = doc.grantedPoints / math.max(1, doc.maxPoints);
