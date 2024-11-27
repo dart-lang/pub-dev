@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/account_api.dart';
@@ -242,8 +241,8 @@ void main() {
               '/$prefix/api/packages/oxygen';
           final rs = await http.get(Uri.parse(url));
           expect(rs.statusCode, 200);
-          final data = json.decode(utf8.decode(gzip.decode(rs.bodyBytes)))
-              as Map<String, dynamic>;
+          final data =
+              json.decode(utf8.decode(rs.bodyBytes)) as Map<String, dynamic>;
           final versions = (data['versions'] as List)
               .map((i) => (i as Map)['version'])
               .toSet();
