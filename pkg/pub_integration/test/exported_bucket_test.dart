@@ -39,11 +39,6 @@ void main() {
               ...rq.requestedUri.pathSegments
             ]);
 
-            // archive files are served from the storage bucket directly
-            if (rq.requestedUri.path.endsWith('tar.gz')) {
-              return shelf.Response.seeOther(proxyUri);
-            }
-
             // other requests are proxied
             final rs = await http.get(proxyUri);
 
