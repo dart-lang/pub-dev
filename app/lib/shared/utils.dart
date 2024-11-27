@@ -40,7 +40,7 @@ Future<T> withTempDirectory<T>(Future<T> Function(Directory dir) func,
     {String prefix = 'dart-tempdir'}) {
   return Directory.systemTemp.createTemp(prefix).then((Directory dir) {
     return func(dir).whenComplete(() {
-      return dir.delete(recursive: true);
+      dir.delete(recursive: true);
     });
   });
 }

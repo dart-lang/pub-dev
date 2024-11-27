@@ -15,5 +15,7 @@ workspace:
   - pkg/fake_gcloud
   - pkg/indexed_blob
   - pkg/pub_package_reader
+
 dev_dependencies:
+  lints: ^5.0.0
   mono_repo: ^6.6.1

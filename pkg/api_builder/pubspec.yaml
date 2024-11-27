@@ -7,10 +7,11 @@ environment:
 resolution: workspace
 
 dependencies:
+  analyzer:  ^6.0.0
   build: ^2.0.0
   build_config: ^1.0.0
+  collection: ^1.18.0
   source_gen: ^1.0.0
-  analyzer:  ^6.0.0
   shelf_router: ^1.0.0
   code_builder: ^4.0.0
   shelf: ^1.0.0
