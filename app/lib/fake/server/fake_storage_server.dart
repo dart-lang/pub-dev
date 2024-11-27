@@ -74,9 +74,14 @@ class FakeStorageServer {
       if (exists == null) {
         return Response.notFound('404 Not Found');
       }
-      final contentType = lookupMimeType(objectName);
-      return Response.ok(bucket.read(objectName),
-          headers: {if (contentType != null) 'Content-Type': contentType});
+      final contentType =
+          exists.metadata.contentType ?? lookupMimeType(objectName);
+      final contentEncoding = exists.metadata.contentEncoding;
+
+      return Response.ok(bucket.read(objectName), headers: {
+        if (contentType != null) 'Content-Type': contentType,
+        if (contentEncoding != null) 'Content-Encoding': contentEncoding,
+      });
     } else if (request.method == 'POST') {
       _logger.info('Uploading: ${request.requestedUri.path}');
       final contentHeader = _parse(request.headers['content-type']);
