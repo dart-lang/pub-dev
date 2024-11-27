@@ -424,7 +424,7 @@ class IntegrityChecker {
       isModerated: p.isModerated,
       moderatedAt: p.moderatedAt,
     );
-    if (p.isModerated) {
+    if (p.isModerated || p.isBlocked) {
       _packagesWithIsModeratedFlag.add(p.name!);
     }
 

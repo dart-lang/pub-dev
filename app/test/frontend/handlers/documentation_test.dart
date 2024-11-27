@@ -132,6 +132,9 @@ void main() {
       await dbService.commit(inserts: [pkg!..updateIsBlocked(isBlocked: true)]);
       await expectNotFoundResponse(
           await issueGet('/documentation/oxygen/latest/'));
+
+      // reverting to make sure integrity check is passing
+      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: false)]);
     });
   });
 }
