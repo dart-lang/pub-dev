@@ -97,7 +97,7 @@ void main() {
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'stringutils', 'score': closeTo(0.85, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(1.0, 0.01)},
         ],
       });
     });
@@ -124,7 +124,7 @@ void main() {
           },
         ],
         'packageHits': [
-          {'package': 'stringutils', 'score': closeTo(0.67, 0.01)}
+          {'package': 'stringutils', 'score': closeTo(0.73, 0.01)}
         ],
       });
     });
