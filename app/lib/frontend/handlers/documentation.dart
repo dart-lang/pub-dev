@@ -36,8 +36,25 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath.version == null) {
     return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
   }
-  if (docFilePath.path == null) {
-    return redirectResponse('${request.requestedUri}/');
+  final detectedPath = docFilePath.path;
+  if (detectedPath == null) {
+    return redirectResponse(
+        pkgDocUrl(docFilePath.package, version: docFilePath.version));
+  }
+  // 8.3.0 dartdoc links to directories without an ending slash.
+  // This breaks base-uri, sidebar does not load, links do not work.
+  // Redirecting to the proper directory ending with slash.
+  if (detectedPath.split('/').last == 'index.html' &&
+      !request.requestedUri.path.endsWith('/') &&
+      !request.requestedUri.path.endsWith('/index.html')) {
+    // removes last segment `index.html` and adds `/` at the end of the url.
+    return redirectResponse(
+      pkgDocUrl(
+        docFilePath.package,
+        version: docFilePath.version,
+        relativePath: detectedPath,
+      ),
+    );
   }
   final String requestMethod = request.method.toUpperCase();
 
@@ -59,10 +76,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     return redirectResponse(pkgDocUrl(
       package,
       version: resolved.urlSegment,
-      relativePath: docFilePath.path,
+      relativePath: detectedPath,
     ));
   } else {
-    return await handleDartDoc(request, package, resolved, docFilePath.path!);
+    return await handleDartDoc(request, package, resolved, detectedPath);
   }
 }
 
