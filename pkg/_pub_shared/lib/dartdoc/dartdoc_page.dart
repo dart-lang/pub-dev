@@ -89,6 +89,9 @@ final class DartDocPage {
   /// The right/below sidebar URL that dartdoc will load dynamically.
   final String? belowSidebarUrl;
 
+  /// The path URL this page redirects to.
+  final String? redirectPath;
+
   DartDocPage({
     required this.title,
     required this.description,
@@ -100,6 +103,7 @@ final class DartDocPage {
     required this.usingBaseHref,
     required this.aboveSidebarUrl,
     required this.belowSidebarUrl,
+    required this.redirectPath,
   });
 
   factory DartDocPage.fromJson(Map<String, dynamic> json) =>
@@ -125,6 +129,21 @@ final class DartDocPage {
           return ['ugc', 'nofollow'];
         },
       );
+
+  /// Indicates that the [DartDocPage] was could not parse any displayable
+  /// content from the dartdoc output. Such page is a redirect page that was
+  /// introduced in `dartdoc 8.3.0`.
+  bool isEmpty() {
+    return title.isEmpty &&
+        description.isEmpty &&
+        breadcrumbs.isEmpty &&
+        left.isEmpty &&
+        right.isEmpty &&
+        (baseHref == null || baseHref!.isEmpty) &&
+        (usingBaseHref == null || usingBaseHref!.isEmpty) &&
+        (aboveSidebarUrl == null || aboveSidebarUrl!.isEmpty) &&
+        (belowSidebarUrl == null || belowSidebarUrl!.isEmpty);
+  }
 
   static DartDocPage parse(String rawHtml) {
     final document = html_parser.parse(rawHtml);
@@ -182,6 +201,17 @@ final class DartDocPage {
     }
     final content = rawContent?.innerHtml;
 
+    final httpEquivRefresh = document.head
+        ?.querySelectorAll('meta')
+        .where((e) => e.attributes['http-equiv'] == 'refresh')
+        .firstOrNull;
+    final redirectPath = httpEquivRefresh?.attributes['content']
+        ?.split(';')
+        .map((p) => p.trim())
+        .where((p) => p.startsWith('url='))
+        .firstOrNull
+        ?.substring(4);
+
     return DartDocPage(
       title: document.querySelector('head > title')?.text ?? '',
       description: document
@@ -196,6 +226,7 @@ final class DartDocPage {
       usingBaseHref: body?.attributes['data-using-base-href'],
       aboveSidebarUrl: rawContent?.attributes['data-above-sidebar'],
       belowSidebarUrl: rawContent?.attributes['data-below-sidebar'],
+      redirectPath: redirectPath,
     );
   }
 }

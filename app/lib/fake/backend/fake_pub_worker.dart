@@ -237,6 +237,7 @@ Map<String, String> _fakeDartdocFiles(
       usingBaseHref: null,
       aboveSidebarUrl: null,
       belowSidebarUrl: null,
+      redirectPath: null,
     ).toJson()),
     'index.json': '{}',
     'pub-data.json': json.encode(pubData),
@@ -251,6 +252,7 @@ Map<String, String> _fakeDartdocFiles(
       usingBaseHref: null,
       aboveSidebarUrl: null,
       belowSidebarUrl: null,
+      redirectPath: null,
     ).toJson()),
   };
 }
