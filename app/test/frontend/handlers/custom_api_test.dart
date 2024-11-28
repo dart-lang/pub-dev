@@ -161,6 +161,10 @@ void main() {
           'nextUrl': null,
         },
       );
+
+      // reverting to make sure integrity check is passing
+      p.updateIsBlocked(isBlocked: false);
+      await dbService.commit(inserts: [p]);
     });
   });
 

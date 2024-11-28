@@ -54,6 +54,9 @@ void main() {
           await issueGet('/packages/oxygen/versions/${pkg.latestVersion}'));
       await expectNotFoundResponse(await issueGet(
           '/packages/oxygen/versions/${pkg.latestVersion}/score'));
+
+      // reverting to make sure integrity check is passing
+      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: false)]);
     });
 
     testWithProfile('/packages/foobar_not_found - not found', fn: () async {
