@@ -34,6 +34,24 @@ import '../shared/utils.dart';
 // we may need to update either the test or the rendering templates until
 // there are only known and accepted differences between the two.
 void main() {
+  group('DartDocPage parsing edge cases', () {
+    test('parse redirect URL', () {
+      final redirectContent = '''<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="canonical" href="../retry" />
+    <meta http-equiv="refresh" content="0; url=../retry" />
+  </head>
+  <body>
+    <p><a href="../retry">New URL</a></p>
+  </body>
+</html>''';
+      final page = DartDocPage.parse(redirectContent);
+      expect(page.isEmpty(), true);
+      expect(page.redirectPath, '../retry');
+    });
+  });
+
   group('DartDocPage rendering', () {
     final tempDir = Directory.systemTemp.createTempSync();
     final pkgDir = p.join(tempDir.path, 'pkg');

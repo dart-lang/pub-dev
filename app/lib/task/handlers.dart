@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io' show gzip;
 
+import 'package:path/path.dart' as p;
+
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
@@ -92,7 +94,29 @@ Future<shelf.Response> handleDartDoc(
               DartDocSidebar.fromJson(dataJson as Map<String, dynamic>);
           return utf8.encode(sidebar.content);
         }
-        final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
+        var page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
+
+        // NOTE: If the loaded page is redirecting, we try to load it and render
+        //       the page it is pointing to. Instead, we should redirect the page
+        //       to the new URL.
+        // TODO: restructure cache logic and implement proper redirect
+        final redirectPath = page.redirectPath;
+        if (page.isEmpty() &&
+            redirectPath != null &&
+            p.isRelative(redirectPath)) {
+          final newPath = p.normalize(p.joinAll([
+            p.dirname(path),
+            redirectPath,
+            if (!redirectPath.endsWith('.html')) 'index.html',
+          ]));
+          final newDataGz =
+              await taskBackend.dartdocFile(package, version, newPath);
+          if (newDataGz != null) {
+            final newDataJson = gzippedUtf8JsonCodec.decode(newDataGz);
+            page = DartDocPage.fromJson(newDataJson as Map<String, dynamic>);
+          }
+        }
+
         final html = page.render(DartDocPageOptions(
           package: package,
           version: version,

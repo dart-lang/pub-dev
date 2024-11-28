@@ -40,6 +40,7 @@ DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
       usingBaseHref: json['usingBaseHref'] as String?,
       aboveSidebarUrl: json['aboveSidebarUrl'] as String?,
       belowSidebarUrl: json['belowSidebarUrl'] as String?,
+      redirectPath: json['redirectPath'] as String?,
     );
 
 Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
@@ -54,4 +55,5 @@ Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
       'usingBaseHref': instance.usingBaseHref,
       'aboveSidebarUrl': instance.aboveSidebarUrl,
       'belowSidebarUrl': instance.belowSidebarUrl,
+      'redirectPath': instance.redirectPath,
     };
