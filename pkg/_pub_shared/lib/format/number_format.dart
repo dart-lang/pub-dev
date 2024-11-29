@@ -33,22 +33,34 @@ String formatWithThousandSeperators(int value) {
   return buffer.toString().split('').reversed.join();
 }
 
+String removeDecimalZeros(String number) {
+  final n = double.parse(number);
+
+  if (n - n.truncate() == 0) {
+    return n.truncate().toString();
+  }
+  if (n * 10 - (n * 10).truncate() == 0) {
+    return (((n * 10).truncate()) / 10).toString();
+  }
+  return number;
+}
+
 /// Formats an int [value] to human readable chunk and suffix with at most 3
-/// significant digits.
-({String value, String suffix}) formatWith3SignificantDigits(int value) {
+/// significant digits. E.g. 1200000 becomes 1.2 M.
+({String value, String suffix}) compactFormat(int value) {
   if (value >= 999500000) {
     return (
-      value: (value / 1000000000).toStringAsPrecision(3),
+      value: removeDecimalZeros((value / 1000000000).toStringAsPrecision(3)),
       suffix: 'B',
     );
   } else if (value >= 999500) {
     return (
-      value: (value / 1000000).toStringAsPrecision(3),
+      value: removeDecimalZeros((value / 1000000).toStringAsPrecision(3)),
       suffix: 'M',
     );
   } else if (value >= 1000) {
     return (
-      value: (value / 1000).toStringAsPrecision(3),
+      value: removeDecimalZeros((value / 1000).toStringAsPrecision(3)),
       suffix: 'k',
     );
   } else {

@@ -30,45 +30,39 @@ void main() {
     expect(formatWithSuffix(1234000), '1.2m');
   });
 
-  test('Significant digit 0-999', () {
-    expect(formatWith3SignificantDigits(0), (value: '0', suffix: ''));
-    expect(formatWith3SignificantDigits(1), (value: '1', suffix: ''));
-    expect(formatWith3SignificantDigits(23), (value: '23', suffix: ''));
-    expect(formatWith3SignificantDigits(999), (value: '999', suffix: ''));
+  test('Compact format 0-999', () {
+    expect(compactFormat(0), (value: '0', suffix: ''));
+    expect(compactFormat(1), (value: '1', suffix: ''));
+    expect(compactFormat(23), (value: '23', suffix: ''));
+    expect(compactFormat(999), (value: '999', suffix: ''));
   });
 
-  test('Significant digit 1000-999499', () {
-    expect(formatWith3SignificantDigits(1000), (value: '1.00', suffix: 'k'));
-    expect(formatWith3SignificantDigits(1049), (value: '1.05', suffix: 'k'));
-    expect(formatWith3SignificantDigits(1051), (value: '1.05', suffix: 'k'));
-    expect(formatWith3SignificantDigits(1100), (value: '1.10', suffix: 'k'));
-    expect(formatWith3SignificantDigits(9500), (value: '9.50', suffix: 'k'));
-    expect(formatWith3SignificantDigits(99500), (value: '99.5', suffix: 'k'));
-    expect(formatWith3SignificantDigits(100490), (value: '100', suffix: 'k'));
-    expect(formatWith3SignificantDigits(100500), (value: '101', suffix: 'k'));
-    expect(formatWith3SignificantDigits(199500), (value: '200', suffix: 'k'));
-    expect(formatWith3SignificantDigits(999499), (value: '999', suffix: 'k'));
+  test('Compact format 1000-999499', () {
+    expect(compactFormat(1000), (value: '1', suffix: 'k'));
+    expect(compactFormat(1049), (value: '1.05', suffix: 'k'));
+    expect(compactFormat(1051), (value: '1.05', suffix: 'k'));
+    expect(compactFormat(1100), (value: '1.1', suffix: 'k'));
+    expect(compactFormat(9500), (value: '9.5', suffix: 'k'));
+    expect(compactFormat(99500), (value: '99.5', suffix: 'k'));
+    expect(compactFormat(100490), (value: '100', suffix: 'k'));
+    expect(compactFormat(100500), (value: '101', suffix: 'k'));
+    expect(compactFormat(199500), (value: '200', suffix: 'k'));
+    expect(compactFormat(999499), (value: '999', suffix: 'k'));
   });
 
-  test('Significant digit 999500-100000000', () {
-    expect(formatWith3SignificantDigits(999500), (value: '1.00', suffix: 'M'));
-    expect(formatWith3SignificantDigits(999999), (value: '1.00', suffix: 'M'));
-    expect(
-        formatWith3SignificantDigits(900000000), (value: '900', suffix: 'M'));
-    expect(
-        formatWith3SignificantDigits(999500000), (value: '1.00', suffix: 'B'));
-    expect(
-        formatWith3SignificantDigits(1009450000), (value: '1.01', suffix: 'B'));
-    expect(
-        formatWith3SignificantDigits(1094599999), (value: '1.09', suffix: 'B'));
-    expect(
-        formatWith3SignificantDigits(1095000001), (value: '1.10', suffix: 'B'));
-    expect(formatWith3SignificantDigits(19000000000),
-        (value: '19.0', suffix: 'B'));
+  test('Compact format 999500-100000000', () {
+    expect(compactFormat(999500), (value: '1', suffix: 'M'));
+    expect(compactFormat(999999), (value: '1', suffix: 'M'));
+    expect(compactFormat(900000000), (value: '900', suffix: 'M'));
+    expect(compactFormat(999500000), (value: '1', suffix: 'B'));
+    expect(compactFormat(1009450000), (value: '1.01', suffix: 'B'));
+    expect(compactFormat(1094599999), (value: '1.09', suffix: 'B'));
+    expect(compactFormat(1095000001), (value: '1.1', suffix: 'B'));
+    expect(compactFormat(19000000000), (value: '19', suffix: 'B'));
   });
 
   test('Number with thousand seperators', () {
-    // expect(formatWithThousandSeperators(1), '1');
+    expect(formatWithThousandSeperators(1), '1');
     expect(formatWithThousandSeperators(10), '10');
     expect(formatWithThousandSeperators(100), '100');
     expect(formatWithThousandSeperators(1000), '1,000');
