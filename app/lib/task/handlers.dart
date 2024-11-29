@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show gzip;
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
@@ -42,6 +43,8 @@ const _safeMimeTypes = {
   // should not add it here.
 };
 
+final _logger = Logger('task.handlers');
+
 Future<shelf.Response> handleDartDoc(
   shelf.Request request,
   String package,
@@ -80,26 +83,75 @@ Future<shelf.Response> handleDartDoc(
   // Handle HTML requests
   final isHtml = ext == 'html';
   if (isHtml) {
-    final htmlBytes = await cache
-        .dartdocHtmlBytes(package, resolvedDocUrlVersion.urlSegment, path)
-        .get(() async {
+    // try cached bytes first
+    final htmlBytesCacheEntry =
+        cache.dartdocHtmlBytes(package, resolvedDocUrlVersion.urlSegment, path);
+    final htmlBytes = await htmlBytesCacheEntry.get();
+    if (htmlBytes != null) {
+      return htmlBytesResponse(htmlBytes);
+    }
+
+    // check cached status for redirect or missing pages
+    final statusCacheEntry = cache.dartdocPageStatus(
+        package, resolvedDocUrlVersion.urlSegment, path);
+    final cachedStatus = await statusCacheEntry.get();
+    final cachedStatusCode = cachedStatus?.code;
+
+    shelf.Response redirectPathResponse(String redirectPath) {
+      final newPath = p.normalize(p.joinAll([
+        p.dirname(path),
+        redirectPath,
+        if (!redirectPath.endsWith('.html')) 'index.html',
+      ]));
+      return redirectResponse(pkgDocUrl(
+        package,
+        version: resolvedDocUrlVersion.urlSegment,
+        relativePath: newPath,
+      ));
+    }
+
+    if (cachedStatusCode == DocPageStatusCode.redirect) {
+      final redirectPath = cachedStatus!.redirectPath;
+      if (redirectPath == null) {
+        _logger.shout('DocPageStatus redirect without path.');
+        return notFoundHandler(request);
+      }
+      return redirectPathResponse(redirectPath);
+    }
+
+    if (cachedStatusCode == DocPageStatusCode.missing) {
+      return notFoundHandler(request,
+          body: cachedStatus!.errorMessage ?? 'Documentation page not found.');
+    }
+
+    // try loading bytes;
+    final (status, bytes) = await () async {
+      final dataGz = await taskBackend.dartdocFile(package, version, path);
+      if (dataGz == null) {
+        return (
+          DocPageStatus(
+            code: DocPageStatusCode.missing,
+            errorMessage: await _missingPageErrorMessage(
+              package,
+              version,
+              isLatestStable: resolvedDocUrlVersion.isLatestStable,
+            ),
+          ),
+          null, // bytes
+        );
+      }
+
       try {
-        final dataGz = await taskBackend.dartdocFile(package, version, path);
-        if (dataGz == null) {
-          return const <int>[]; // store empty string for missing data
-        }
         final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
         if (path.endsWith('-sidebar.html')) {
           final sidebar =
               DartDocSidebar.fromJson(dataJson as Map<String, dynamic>);
-          return utf8.encode(sidebar.content);
+          return (DocPageStatus.ok(), utf8.encode(sidebar.content));
         }
-        var page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
 
-        // NOTE: If the loaded page is redirecting, we try to load it and render
-        //       the page it is pointing to. Instead, we should redirect the page
-        //       to the new URL.
-        // TODO: restructure cache logic and implement proper redirect
+        final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);
+
+        // check for redirect page
         final redirectPath = page.redirectPath;
         if (page.isEmpty() &&
             redirectPath != null &&
@@ -109,11 +161,14 @@ Future<shelf.Response> handleDartDoc(
             redirectPath,
             if (!redirectPath.endsWith('.html')) 'index.html',
           ]));
-          final newDataGz =
-              await taskBackend.dartdocFile(package, version, newPath);
-          if (newDataGz != null) {
-            final newDataJson = gzippedUtf8JsonCodec.decode(newDataGz);
-            page = DartDocPage.fromJson(newDataJson as Map<String, dynamic>);
+          if (await taskBackend.hasDartdocTaskResult(
+              package, version, newPath)) {
+            return (DocPageStatus.redirect(redirectPath), null);
+          } else {
+            return (
+              DocPageStatus.missing('Dartdoc redirect is missing.'),
+              null, // bytes
+            );
           }
         }
 
@@ -125,42 +180,25 @@ Future<shelf.Response> handleDartDoc(
           path: path,
           searchQueryParameter: searchQueryParameter,
         ));
-        return utf8.encode(html.toString());
-      } on FormatException {
-        // store empty string for invalid data, we treat it as a bug in
-        // the documentation generation.
-        return const <int>[];
+        return (DocPageStatus.ok(), utf8.encode(html.toString()));
+      } on FormatException catch (e, st) {
+        _logger.shout(
+            'Unable to parse dartdoc page for $package $version', e, st);
+        return (DocPageStatus.missing('Unable to render page.'), null);
       }
-    });
-    // We use empty string to indicate missing file or bug in the file
-    if (htmlBytes == null || htmlBytes.isEmpty) {
-      final status = await taskBackend.packageStatus(package);
-      final vs = status.versions[version];
-      if (vs == null) {
-        return notFoundHandler(
-          request,
-          body: resolvedDocUrlVersion.isLatestStable
-              ? 'Analysis has not started yet.'
-              : 'Version not selected for analysis.',
-        );
-      }
-      String? message;
-      switch (vs.status) {
-        case PackageVersionStatus.pending:
-        case PackageVersionStatus.running:
-          message = 'Analysis has not finished yet.';
-          break;
-        case PackageVersionStatus.failed:
-          message =
-              'Analysis has failed, no `dartdoc` output has been generated.';
-          break;
-        case PackageVersionStatus.completed:
-          message = '`dartdoc` did not generate this page.';
-          break;
-      }
-      return notFoundHandler(request, body: message);
+    }();
+    await statusCacheEntry.set(status);
+
+    switch (status.code) {
+      case DocPageStatusCode.ok:
+        await htmlBytesCacheEntry.set(bytes!);
+        return htmlBytesResponse(bytes);
+      case DocPageStatusCode.redirect:
+        return redirectPathResponse(status.redirectPath!);
+      case DocPageStatusCode.missing:
+        return notFoundHandler(request,
+            body: status.errorMessage ?? 'Documentation page not found.');
     }
-    return htmlBytesResponse(htmlBytes);
   }
 
   // Handle any non-HTML request
@@ -189,6 +227,34 @@ Future<shelf.Response> handleDartDoc(
       if (acceptsGzip) 'Content-Encoding': 'gzip',
     },
   );
+}
+
+Future<String> _missingPageErrorMessage(
+  String package,
+  String version, {
+  required bool isLatestStable,
+}) async {
+  final status = await taskBackend.packageStatus(package);
+  final vs = status.versions[version];
+  if (vs == null) {
+    return isLatestStable
+        ? 'Analysis has not started yet.'
+        : 'Version not selected for analysis.';
+  }
+  String? message;
+  switch (vs.status) {
+    case PackageVersionStatus.pending:
+    case PackageVersionStatus.running:
+      message = 'Analysis has not finished yet.';
+      break;
+    case PackageVersionStatus.failed:
+      message = 'Analysis has failed, no `dartdoc` output has been generated.';
+      break;
+    case PackageVersionStatus.completed:
+      message = '`dartdoc` did not generate this page.';
+      break;
+  }
+  return message;
 }
 
 /// Handles GET `/packages/<package>/versions/<version>/gen-res/<path|[^]*>`

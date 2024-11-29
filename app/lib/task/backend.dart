@@ -869,6 +869,18 @@ class TaskBackend {
     return index;
   }
 
+  /// Whether the task result for the given [package]/[version] has any result
+  /// dartdoc-generated file in [path].
+  Future<bool> hasDartdocTaskResult(
+      String package, String version, String path) async {
+    version = canonicalizeVersion(version)!;
+    final index = await _taskResultIndex(package, version);
+    if (index == null) {
+      return false;
+    }
+    return index.lookup('doc/$path') != null;
+  }
+
   /// Return gzipped result from task for the given [package]/[version] or
   /// `null`.
   Future<List<int>?> gzippedTaskResult(

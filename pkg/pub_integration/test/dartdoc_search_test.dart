@@ -60,6 +60,18 @@ void main() {
             startsWith('$origin/documentation/oxygen/latest/oxygen/'));
         expect(page.url, endsWith('.html'));
       });
+
+      // test library page (future redirect)
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin(
+            '/documentation/oxygen/latest/oxygen/oxygen-library.html');
+        await Future.delayed(Duration(milliseconds: 200));
+        // NOTE: This test does nothing substantial right now, but once we migrate
+        //       to dartdoc 8.3, this will test the redirect handler.
+        expect(page.url,
+            '$origin/documentation/oxygen/latest/oxygen/oxygen-library.html');
+        expect(await page.content, contains('TypeEnum'));
+      });
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }
