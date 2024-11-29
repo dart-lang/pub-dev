@@ -247,9 +247,16 @@ d.Node _toolEnvInfoNode(List<_ToolVersionInfo> values) {
 }
 
 d.Node _likeKeyFigureNode(int? likeCount) {
-  // TODO: implement k/m supplemental for values larger than 1000
+  if (likeCount == null) {
+    return _keyFigureNode(
+      value: '--',
+      supplemental: '',
+      label: 'likes',
+    );
+  }
   return _keyFigureNode(
-    value: '$likeCount',
+    value: '${compactFormat(likeCount).value}'
+        '${compactFormat(likeCount).suffix}',
     supplemental: '',
     label: 'likes',
   );

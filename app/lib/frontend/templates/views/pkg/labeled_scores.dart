@@ -21,7 +21,11 @@ d.Node labeledScoresNode({
     children: [
       d.div(
         classes: ['packages-score', 'packages-score-like'],
-        child: _labeledScore('likes', likeCount.toString(), sign: ''),
+        child: _labeledScore(
+            'likes',
+            '${compactFormat(likeCount).value}'
+                '${compactFormat(likeCount).suffix}',
+            sign: ''),
       ),
       d.div(
         classes: ['packages-score', 'packages-score-health'],
