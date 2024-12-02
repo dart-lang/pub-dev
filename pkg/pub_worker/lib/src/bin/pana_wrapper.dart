@@ -99,6 +99,9 @@ Future<void> main(List<String> args) async {
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
+  final dartdocVersion =
+      (await _overrideDartdocVersion(pkgDir.path)) ?? _dartdocVersion;
+
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
       rootPath: detected.dartSdkPath,
@@ -109,7 +112,7 @@ Future<void> main(List<String> args) async {
       configHomePath: _configHomePath('flutter', detected.configKind),
     ),
     pubCacheDir: pubCache,
-    dartdocVersion: _dartdocVersion,
+    dartdocVersion: dartdocVersion,
   );
 
   //final dartdocOutputDir =
@@ -189,6 +192,21 @@ String? _configHomePath(String sdk, String kind) {
   final path = p.join(_workerConfigPath!, '$sdk-$kind');
   Directory(path).createSync(recursive: true);
   return path;
+}
+
+/// Detects the package dependencies and overrides the dartdoc version to
+/// 8.3.0 if macros is being used.
+///
+/// TODO: remove this after the 3.6 SDK is released.
+Future<String?> _overrideDartdocVersion(String pkgDir) async {
+  final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
+  final pubspec = Pubspec.parseYaml(await pubspecFile.readAsString());
+  final minMacrosVersion = pubspec.getDependencyContraintRangeMin('macros');
+  if (minMacrosVersion != null &&
+      minMacrosVersion.compareTo(Version.parse('0.1.3-main.0')) >= 0) {
+    return '8.3.0';
+  }
+  return null;
 }
 
 Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
