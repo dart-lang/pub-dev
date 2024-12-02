@@ -13,22 +13,38 @@ String generateFragment(String text) => BlockSyntax.generateAnchorHash(
 );
 
 /// A section of the Table of Contents
-class TocSection {
+class TocNode {
+  /// What level heading this node is.
+  ///
+  /// This is not defined by what tag it is using, or how many `#` it has, but rather
+  /// how many levels of nesting have occurred in the document so far. That is to say,
+  ///
+  /// ```md
+  /// # Level 1
+  /// ### Level 2
+  /// ##### Level 3
+  /// ```
   int level;
-  Node titleNode;
-  List<TocSection> children;
-  TocSection? parent;
-  String tag;
 
-  TocSection({required this.level, required this.tag, required this.titleNode, this.parent}) :
+  /// The HTML node that represents the title of this node.
+  Node titleNode;
+
+  /// The list of [TocNode] that are nested under this heading.
+  List<TocNode> children;
+
+  /// The parent heading for this node.
+  TocNode? parent;
+
+  TocNode({required this.level,required this.titleNode, this.parent}) :
     children = [];
 
+  /// The title of the node, as a string.
   String get title => titleNode.textContent;
 
-  Uri get href => currentUri.replace(fragment: id);
+  /// Where this heading should point to on the page.
+  Uri get href => currentUri.replace(fragment: generateFragment(title));
 
-  String get id => generateFragment(title);
-
+  /// Generates a nested list of this heading and all its children.
   dom.Node toHtml() => dom.li(
     children: [
       dom.a(text: title, href: href.toString()),
@@ -42,9 +58,9 @@ class TocSection {
   );
 }
 
-List<TocSection> parse(List<Node> nodes) {
-  final result = <TocSection>[];
-  TocSection? currentSection;
+List<TocNode> parse(List<Node> nodes) {
+  final result = <TocNode>[];
+  TocNode? currentSection;
 
   for (final node in nodes) {
     if (node is! Element) continue;
@@ -53,7 +69,7 @@ List<TocSection> parse(List<Node> nodes) {
     final isHeading = currentLevel != -1;
     if (!isHeading) continue;
 
-    final section = TocSection(titleNode: node, tag: node.tag, level: currentLevel);
+    final section = TocNode(titleNode: node, level: currentLevel);
     if (currentSection == null) {
       currentSection = section;
       result.add(section);
@@ -96,7 +112,7 @@ List<TocSection> parse(List<Node> nodes) {
   return result;
 }
 
-dom.Node renderToc(List<TocSection> toc) => dom.ul(
+dom.Node renderToc(List<TocNode> toc) => dom.ul(
   children: [
     for (final heading in toc)
       heading.toHtml(),
@@ -111,7 +127,7 @@ void main(List<String> args) {
   renderMarkdownWithToc(markdown, toc);
 }
 
-void renderMarkdownWithToc(String markdown, List<TocSection> sections) {
+void renderMarkdownWithToc(String markdown, List<TocNode> sections) {
   final templateFile = io.File('$rootDir/md_toc.template');
   final template = templateFile.readAsStringSync();
   final readme = dom.markdown(markdown);
