@@ -96,13 +96,12 @@ List<TocSection> parse(List<Node> nodes) {
   return result;
 }
 
-dom.Node renderToc(List<TocSection> toc) {
-  final children = <dom.Node>[];
-  for (final heading in toc) {
-    children.add(heading.toHtml());
-  }
-  return dom.ul(children: children);
-}
+dom.Node renderToc(List<TocSection> toc) => dom.ul(
+  children: [
+    for (final heading in toc)
+      heading.toHtml(),
+  ]
+);
 
 void main(List<String> args) {
   final file = io.File('$rootDir/readme.md');
