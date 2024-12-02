@@ -271,6 +271,11 @@ d.Node _automatedPublishing(Package package) {
   return d.fragment([
     d.a(name: 'automated-publishing'),
     d.h2(text: 'Automated publishing'),
+    d.markdown(
+        'You can automate publishing from the supported automated deployment environments. '
+        'Instead of creating long-lived secrets, you may use temporary OpenID-Connect tokens '
+        'signed by either GitHub Actions or Google Cloud IAM. '
+        'See the [pub automated publishing guide](https://dart.dev/tools/pub/automated-publishing) for further details.'),
     d.a(name: 'github-actions'),
     d.h3(text: 'Publishing from GitHub Actions'),
     d.div(
