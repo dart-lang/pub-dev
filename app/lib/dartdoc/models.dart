@@ -42,3 +42,52 @@ class ResolvedDocUrlVersion {
   bool get isEmpty => version.isEmpty || urlSegment.isEmpty;
   bool get isLatestStable => urlSegment == 'latest';
 }
+
+/// Describes the status of a dartdoc page.
+@JsonSerializable(includeIfNull: false)
+class DocPageStatus {
+  final DocPageStatusCode code;
+  final String? redirectPath;
+  final String? errorMessage;
+
+  DocPageStatus({
+    required this.code,
+    this.redirectPath,
+    this.errorMessage,
+  });
+
+  factory DocPageStatus.ok() {
+    return DocPageStatus(code: DocPageStatusCode.ok);
+  }
+
+  factory DocPageStatus.redirect(String redirectPath) {
+    return DocPageStatus(
+      code: DocPageStatusCode.redirect,
+      redirectPath: redirectPath,
+    );
+  }
+
+  factory DocPageStatus.missing(String errorMessage) {
+    return DocPageStatus(
+      code: DocPageStatusCode.missing,
+      errorMessage: errorMessage,
+    );
+  }
+
+  factory DocPageStatus.fromJson(Map<String, dynamic> json) =>
+      _$DocPageStatusFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DocPageStatusToJson(this);
+}
+
+/// Explicit status of [DocPageStatus].
+enum DocPageStatusCode {
+  /// page generated and ready to be served
+  ok,
+
+  /// page generated and redirects to a new URL
+  redirect,
+
+  /// page does not exists
+  missing,
+}

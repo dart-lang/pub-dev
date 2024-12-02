@@ -378,6 +378,22 @@ class CachePatterns {
           .withPrefix('dartdoc-html/')
           .withTTL(Duration(minutes: 10))['$package/$urlSegment/$path'];
 
+  /// Cache for sanitized and re-rendered dartdoc HTML files.
+  Entry<DocPageStatus> dartdocPageStatus(
+    String package,
+    String urlSegment,
+    String path,
+  ) =>
+      _cache
+          .withPrefix('dartdoc-status/')
+          .withTTL(Duration(minutes: 10))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+              encode: (DocPageStatus s) => s.toJson(),
+              decode: (data) => DocPageStatus.fromJson(
+                  data as Map<String, dynamic>)))['$package/$urlSegment/$path'];
+
   /// Stores the OpenID Data (including the JSON Web Key list).
   ///
   /// GitHub does not provide `Cache-Control` header for their
