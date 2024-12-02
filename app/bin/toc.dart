@@ -26,20 +26,18 @@ class TocNode {
   /// ```
   int level;
 
-  /// The HTML node that represents the title of this node.
-  Node titleNode;
-
   /// The list of [TocNode] that are nested under this heading.
   List<TocNode> children;
+
+  /// The title of the node, as a string.
+  final String title;
 
   /// The parent heading for this node.
   TocNode? parent;
 
-  TocNode({required this.level,required this.titleNode, this.parent}) :
+  TocNode({required this.level,required this.title, this.parent}) :
     children = [];
 
-  /// The title of the node, as a string.
-  String get title => titleNode.textContent;
 
   /// Where this heading should point to on the page.
   Uri get href => currentUri.replace(fragment: generateFragment(title));
@@ -69,7 +67,7 @@ List<TocNode> parse(List<Node> nodes) {
     final isHeading = currentLevel != -1;
     if (!isHeading) continue;
 
-    final section = TocNode(titleNode: node, level: currentLevel);
+    final section = TocNode(title: node.textContent, level: currentLevel);
     if (currentSection == null) {
       currentSection = section;
       result.add(section);
