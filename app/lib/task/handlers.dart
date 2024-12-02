@@ -103,11 +103,24 @@ Future<shelf.Response> handleDartDoc(
         redirectPath,
         if (!redirectPath.endsWith('.html')) 'index.html',
       ]));
-      return redirectResponse(pkgDocUrl(
+      final newDocUrl = pkgDocUrl(
         package,
         version: resolvedDocUrlVersion.urlSegment,
         relativePath: newPath,
-      ));
+      );
+
+      // Sanity check to prevent redirecting outside of the generated document content,
+      // as it shouldn't happen under normal operations. It may be a dartdoc bug or the
+      // worker may have been compromised.
+      final docUrlRoot =
+          pkgDocUrl(package, version: resolvedDocUrlVersion.urlSegment);
+      if (!newDocUrl.startsWith(docUrlRoot)) {
+        _logger.shout('$package ${resolvedDocUrlVersion.version} file $path '
+            'redirects outside of the documentation root: $newDocUrl');
+        return notFoundHandler(request);
+      }
+
+      return redirectResponse(newDocUrl);
     }
 
     if (cachedStatusCode == DocPageStatusCode.redirect) {
@@ -156,20 +169,7 @@ Future<shelf.Response> handleDartDoc(
         if (page.isEmpty() &&
             redirectPath != null &&
             p.isRelative(redirectPath)) {
-          final newPath = p.normalize(p.joinAll([
-            p.dirname(path),
-            redirectPath,
-            if (!redirectPath.endsWith('.html')) 'index.html',
-          ]));
-          if (await taskBackend.hasDartdocTaskResult(
-              package, version, newPath)) {
-            return (DocPageStatus.redirect(redirectPath), null);
-          } else {
-            return (
-              DocPageStatus.missing('Dartdoc redirect is missing.'),
-              null, // bytes
-            );
-          }
+          return (DocPageStatus.redirect(redirectPath), null);
         }
 
         final html = page.render(DartDocPageOptions(
