@@ -1,10 +1,8 @@
 import 'dart:io' as io;
 
 import 'package:markdown/markdown.dart';
-import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/frontend/templates/views/shared/layout.dart';
-import 'package:simple_mustache/simple_mustache.dart';
 import 'package:pub_dev/frontend/dom/dom.dart' as dom;
+import 'package:simple_mustache/simple_mustache.dart';
 
 const _structuralHeaderTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 final currentUri = Uri();
