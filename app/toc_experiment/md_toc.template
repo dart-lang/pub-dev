@@ -1,0 +1,51 @@
+<html>
+  <head>
+      <script src="https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9" async="async"></script>
+    <script src="/static/hash-%%etag%%/js/gtm.js" async="async"></script>
+    <meta charset="utf-8"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="robots" content="noindex"/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:site" content="@dart_lang"/>
+    <meta name="twitter:description" content="oxygen is awesome"/>
+    <meta name="twitter:image" content="https://pub.dev/static/hash-%%etag%%/img/pub-dev-icon-cover-image.png"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Dart packages"/>
+    <meta property="og:title" content="oxygen example | Dart package"/>
+    <meta property="og:description" content="oxygen is awesome"/>
+    <meta property="og:image" content="https://pub.dev/static/hash-%%etag%%/img/pub-dev-icon-cover-image.png"/>
+    <title>oxygen example | Dart package</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&amp;family=Google+Sans+Display:wght@400&amp;family=Google+Sans+Text:wght@400;500;700&amp;family=Google+Sans+Mono:wght@400;700&amp;display=swap"/>
+    <link rel="shortcut icon" href="/favicon.ico?hash=mocked_hash_985685822"/>
+    <link rel="stylesheet" href="https://www.gstatic.com/glue/v25_0/ccb.min.css"/>
+    <link rel="search" type="application/opensearchdescription+xml" title="Dart packages" href="/osd.xml"/>
+    <link rel="canonical" href="https://pub.dev/packages/oxygen/example"/>
+    <meta name="description" content="oxygen is awesome"/>
+    <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/material/bundle/styles.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/hash-%%etag%%/css/style.css"/>
+    <script src="/static/hash-%%etag%%/material/bundle/script.min.js" defer="defer"></script>
+    <script src="/static/hash-%%etag%%/js/script.dart.js" defer="defer"></script>
+    <script src="https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js" defer="defer" data-autoload-cookie-consent-bar="true"></script>
+    <meta name="pub-page-data" content="eyJwa2dEYXRhIjp7InBhY2thZ2UiOiJveHlnZW4iLCJ2ZXJzaW9uIjoiMS4yLjAiLCJsaWtlcyI6MCwiaXNEaXNjb250aW51ZWQiOmZhbHNlLCJpc0xhdGVzdCI6dHJ1ZX0sInNlc3Npb25Bd2FyZSI6ZmFsc2V9"/>
+    <link rel="preload" href="/static/hash-%%etag%%/highlight/highlight-with-init.js" as="script"/>
+
+    <style>
+      body {
+        display: flex;
+      }
+      aside {
+        position: fixed;
+        width: 400px
+      }
+      main {
+        padding-left: 450px
+      }
+    </style>
+  </head>
+  <body>
+    <aside>{{ toc }}</aside>
+    <main>{{ main }}</main>
+  </body>
+</html>

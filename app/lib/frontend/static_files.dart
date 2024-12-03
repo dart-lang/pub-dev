@@ -39,7 +39,7 @@ void registerStaticFileCacheForTest(StaticFileCache cache) {
 
 /// Returns the path of the `app/` directory.
 String resolveAppDir() {
-  if (Directory.current.path.endsWith('/app') &&
+  if (Directory.current.path.endsWith('app') &&
       Directory('${Directory.current.path}/../static').existsSync()) {
     return Directory.current.path;
   }
