@@ -155,10 +155,11 @@ void main() {
             // cleanup <head> differences
             for (final link in ['/styles.css', '/github.css', '/favicon.png']) {
               fileXmlRoot.descendantElements
-                  .firstWhere((e) =>
+                  .where((e) =>
                       e.localName == 'link' &&
                       e.getAttribute('href')!.endsWith(link))
-                  .remove();
+                  .firstOrNull
+                  ?.remove();
             }
             fileXmlRoot.descendantElements
                 .firstWhereOrNull((e) => e.getAttribute('name') == 'generator')
