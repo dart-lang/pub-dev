@@ -186,10 +186,10 @@ packages:
     dependency: transitive
     description:
       name: cli_pkg
-      sha256: f812467b5d6a5f26ad0fba5dcfc95133df02edbae47dfa4ade3df5d2b5afdcf2
+      sha256: f07db5590796444efdfdc7549e596949b74ce2b707c6a2dfd1f9d841d8337dd4
       url: "https://pub.dev"
     source: hosted
-    version: "2.10.0"
+    version: "2.11.0"
   cli_repl:
     dependency: transitive
     description:
@@ -722,10 +722,10 @@ packages:
     dependency: transitive
     description:
       name: sass
-      sha256: e656cc9f827c236b6b043232cd9b8b5a1d2094e9f01a49936aeccc50d2e871a2
+      sha256: "21ba7cdfd759d0fce641a24052fe9a2d7dff89bf8c56f64a4b9e1f67727db6af"
       url: "https://pub.dev"
     source: hosted
-    version: "1.78.0"
+    version: "1.81.1"
   shelf:
     dependency: transitive
     description:

@@ -1,3 +1,7 @@
+/* Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 // Include third-party CSS into a single output file
 // to reduce the number of HTTP requests.
 @use '../../../third_party/css/github-markdown.css';
