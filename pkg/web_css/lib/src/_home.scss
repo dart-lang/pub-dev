@@ -1,3 +1,7 @@
+/* Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 /******************************************************
   home page
 ******************************************************/
@@ -91,7 +95,7 @@
     z-index: 0;
 
     > img {
-      max-height: 240px; // effective max-heigh: 240 * 1.25 = 300px, 75% of two cards total height.
+      max-height: 240px; // effective max-height: 240 * 1.25 = 300px, 75% of two cards total height.
     }
   }
 

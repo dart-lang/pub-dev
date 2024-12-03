@@ -6,7 +6,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  sass: ^1.32.8
+  sass: ^1.81.1
 
 dev_dependencies:
   csslib: ^1.0.0
