@@ -15,6 +15,8 @@
 //   - `[role]` may be the `background`, `text`, `border`, ... (multiple parts are separated by `_`)
 //   - `[property]` may be `color`, `opacity` for specific values, or a `value` for multi-part properties.
 
+@use '../../../../third_party/site-shared/dash_design/lib/styles/variables.scss' as dash_variables;
+
 /// Variables that are not specific to the light or dark theme.
 :root {
   --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
