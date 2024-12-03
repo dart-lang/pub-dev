@@ -65,25 +65,18 @@ JsonWebKey _$JsonWebKeyFromJson(Map<String, dynamic> json) => JsonWebKey(
           .fromJson(json['e'] as String?),
     );
 
-Map<String, dynamic> _$JsonWebKeyToJson(JsonWebKey instance) {
-  final val = <String, dynamic>{
-    'alg': instance.alg,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('use', instance.use);
-  writeNotNull('kid', instance.kid);
-  writeNotNull('kty', instance.kty);
-  writeNotNull('x5c', instance.x5c);
-  writeNotNull('x5t', instance.x5t);
-  writeNotNull('n',
-      const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.n));
-  writeNotNull('e',
-      const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.e));
-  return val;
-}
+Map<String, dynamic> _$JsonWebKeyToJson(JsonWebKey instance) =>
+    <String, dynamic>{
+      'alg': instance.alg,
+      if (instance.use case final value?) 'use': value,
+      if (instance.kid case final value?) 'kid': value,
+      if (instance.kty case final value?) 'kty': value,
+      if (instance.x5c case final value?) 'x5c': value,
+      if (instance.x5t case final value?) 'x5t': value,
+      if (const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.n)
+          case final value?)
+        'n': value,
+      if (const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.e)
+          case final value?)
+        'e': value,
+    };

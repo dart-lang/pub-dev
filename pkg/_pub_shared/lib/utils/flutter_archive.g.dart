@@ -18,20 +18,14 @@ FlutterArchive _$FlutterArchiveFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
-Map<String, dynamic> _$FlutterArchiveToJson(FlutterArchive instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('baseUrl', instance.baseUrl);
-  writeNotNull('current_release', instance.currentRelease?.toJson());
-  writeNotNull('releases', instance.releases?.map((e) => e.toJson()).toList());
-  return val;
-}
+Map<String, dynamic> _$FlutterArchiveToJson(FlutterArchive instance) =>
+    <String, dynamic>{
+      if (instance.baseUrl case final value?) 'baseUrl': value,
+      if (instance.currentRelease?.toJson() case final value?)
+        'current_release': value,
+      if (instance.releases?.map((e) => e.toJson()).toList() case final value?)
+        'releases': value,
+    };
 
 FlutterCurrentRelease _$FlutterCurrentReleaseFromJson(
         Map<String, dynamic> json) =>
@@ -42,20 +36,12 @@ FlutterCurrentRelease _$FlutterCurrentReleaseFromJson(
     );
 
 Map<String, dynamic> _$FlutterCurrentReleaseToJson(
-    FlutterCurrentRelease instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('beta', instance.beta);
-  writeNotNull('dev', instance.dev);
-  writeNotNull('stable', instance.stable);
-  return val;
-}
+        FlutterCurrentRelease instance) =>
+    <String, dynamic>{
+      if (instance.beta case final value?) 'beta': value,
+      if (instance.dev case final value?) 'dev': value,
+      if (instance.stable case final value?) 'stable': value,
+    };
 
 FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) =>
     FlutterRelease(
@@ -70,21 +56,14 @@ FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) =>
       dartSdkVersion: json['dart_sdk_version'] as String?,
     );
 
-Map<String, dynamic> _$FlutterReleaseToJson(FlutterRelease instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('hash', instance.hash);
-  writeNotNull('channel', instance.channel);
-  writeNotNull('version', instance.version);
-  writeNotNull('release_date', instance.releaseDate?.toIso8601String());
-  writeNotNull('archive', instance.archive);
-  writeNotNull('sha256', instance.sha256);
-  writeNotNull('dart_sdk_version', instance.dartSdkVersion);
-  return val;
-}
+Map<String, dynamic> _$FlutterReleaseToJson(FlutterRelease instance) =>
+    <String, dynamic>{
+      if (instance.hash case final value?) 'hash': value,
+      if (instance.channel case final value?) 'channel': value,
+      if (instance.version case final value?) 'version': value,
+      if (instance.releaseDate?.toIso8601String() case final value?)
+        'release_date': value,
+      if (instance.archive case final value?) 'archive': value,
+      if (instance.sha256 case final value?) 'sha256': value,
+      if (instance.dartSdkVersion case final value?) 'dart_sdk_version': value,
+    };

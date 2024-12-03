@@ -31,22 +31,13 @@ ModerationActionLogEntry _$ModerationActionLogEntryFromJson(
     );
 
 Map<String, dynamic> _$ModerationActionLogEntryToJson(
-    ModerationActionLogEntry instance) {
-  final val = <String, dynamic>{
-    'timestamp': instance.timestamp.toIso8601String(),
-    'subject': instance.subject,
-    'moderationAction': _$ModerationActionEnumMap[instance.moderationAction]!,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('note', instance.note);
-  return val;
-}
+        ModerationActionLogEntry instance) =>
+    <String, dynamic>{
+      'timestamp': instance.timestamp.toIso8601String(),
+      'subject': instance.subject,
+      'moderationAction': _$ModerationActionEnumMap[instance.moderationAction]!,
+      if (instance.note case final value?) 'note': value,
+    };
 
 const _$ModerationActionEnumMap = {
   ModerationAction.apply: 'apply',

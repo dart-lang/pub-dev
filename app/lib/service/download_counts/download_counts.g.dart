@@ -47,37 +47,29 @@ CountData _$CountDataFromJson(Map<String, dynamic> json) => CountData(
         ? null
         : DateTime.parse(json['newestDate'] as String);
 
-Map<String, dynamic> _$CountDataToJson(CountData instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('newestDate', instance.newestDate?.toIso8601String());
-  val['majorRangeCounts'] = instance.majorRangeCounts
-      .map((e) => <String, dynamic>{
-            'counts': e.counts,
-            'versionRange': e.versionRange,
-          })
-      .toList();
-  val['minorRangeCounts'] = instance.minorRangeCounts
-      .map((e) => <String, dynamic>{
-            'counts': e.counts,
-            'versionRange': e.versionRange,
-          })
-      .toList();
-  val['patchRangeCounts'] = instance.patchRangeCounts
-      .map((e) => <String, dynamic>{
-            'counts': e.counts,
-            'versionRange': e.versionRange,
-          })
-      .toList();
-  val['totalCounts'] = instance.totalCounts;
-  return val;
-}
+Map<String, dynamic> _$CountDataToJson(CountData instance) => <String, dynamic>{
+      if (instance.newestDate?.toIso8601String() case final value?)
+        'newestDate': value,
+      'majorRangeCounts': instance.majorRangeCounts
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'minorRangeCounts': instance.minorRangeCounts
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'patchRangeCounts': instance.patchRangeCounts
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'totalCounts': instance.totalCounts,
+    };
 
 $Rec _$recordConvert<$Rec>(
   Object? value,

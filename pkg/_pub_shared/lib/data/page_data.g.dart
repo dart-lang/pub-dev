@@ -17,21 +17,12 @@ PageData _$PageDataFromJson(Map<String, dynamic> json) => PageData(
       sessionAware: json['sessionAware'] as bool?,
     );
 
-Map<String, dynamic> _$PageDataToJson(PageData instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('consentId', instance.consentId);
-  writeNotNull('pkgData', instance.pkgData);
-  writeNotNull('publisher', instance.publisher);
-  writeNotNull('sessionAware', instance.sessionAware);
-  return val;
-}
+Map<String, dynamic> _$PageDataToJson(PageData instance) => <String, dynamic>{
+      if (instance.consentId case final value?) 'consentId': value,
+      if (instance.pkgData case final value?) 'pkgData': value,
+      if (instance.publisher case final value?) 'publisher': value,
+      if (instance.sessionAware case final value?) 'sessionAware': value,
+    };
 
 PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
       package: json['package'] as String,
@@ -42,24 +33,14 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
       isLatest: json['isLatest'] as bool,
     );
 
-Map<String, dynamic> _$PkgDataToJson(PkgData instance) {
-  final val = <String, dynamic>{
-    'package': instance.package,
-    'version': instance.version,
-    'likes': instance.likes,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('publisherId', instance.publisherId);
-  val['isDiscontinued'] = instance.isDiscontinued;
-  val['isLatest'] = instance.isLatest;
-  return val;
-}
+Map<String, dynamic> _$PkgDataToJson(PkgData instance) => <String, dynamic>{
+      'package': instance.package,
+      'version': instance.version,
+      'likes': instance.likes,
+      if (instance.publisherId case final value?) 'publisherId': value,
+      'isDiscontinued': instance.isDiscontinued,
+      'isLatest': instance.isLatest,
+    };
 
 PublisherData _$PublisherDataFromJson(Map<String, dynamic> json) =>
     PublisherData(

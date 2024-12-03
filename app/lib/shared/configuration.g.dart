@@ -265,23 +265,13 @@ RateLimit _$RateLimitFromJson(Map<String, dynamic> json) => $checkedCreate(
       },
     );
 
-Map<String, dynamic> _$RateLimitToJson(RateLimit instance) {
-  final val = <String, dynamic>{
-    'operation': instance.operation,
-    'scope': _$RateLimitScopeEnumMap[instance.scope]!,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('burst', instance.burst);
-  writeNotNull('hourly', instance.hourly);
-  writeNotNull('daily', instance.daily);
-  return val;
-}
+Map<String, dynamic> _$RateLimitToJson(RateLimit instance) => <String, dynamic>{
+      'operation': instance.operation,
+      'scope': _$RateLimitScopeEnumMap[instance.scope]!,
+      if (instance.burst case final value?) 'burst': value,
+      if (instance.hourly case final value?) 'hourly': value,
+      if (instance.daily case final value?) 'daily': value,
+    };
 
 const _$RateLimitScopeEnumMap = {
   RateLimitScope.package: 'package',

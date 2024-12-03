@@ -19,22 +19,13 @@ TestProfile _$TestProfileFromJson(Map<String, dynamic> json) => TestProfile(
       defaultUser: json['defaultUser'] as String?,
     );
 
-Map<String, dynamic> _$TestProfileToJson(TestProfile instance) {
-  final val = <String, dynamic>{
-    'packages': instance.packages.map((e) => e.toJson()).toList(),
-    'publishers': instance.publishers.map((e) => e.toJson()).toList(),
-    'users': instance.users.map((e) => e.toJson()).toList(),
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('defaultUser', instance.defaultUser);
-  return val;
-}
+Map<String, dynamic> _$TestProfileToJson(TestProfile instance) =>
+    <String, dynamic>{
+      'packages': instance.packages.map((e) => e.toJson()).toList(),
+      'publishers': instance.publishers.map((e) => e.toJson()).toList(),
+      'users': instance.users.map((e) => e.toJson()).toList(),
+      if (instance.defaultUser case final value?) 'defaultUser': value,
+    };
 
 TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
       name: json['name'] as String,
@@ -55,28 +46,22 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
       likeCount: (json['likeCount'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$TestPackageToJson(TestPackage instance) {
-  final val = <String, dynamic>{
-    'name': instance.name,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('uploaders', instance.uploaders);
-  writeNotNull('publisher', instance.publisher);
-  writeNotNull('versions', instance.versions?.map((e) => e.toJson()).toList());
-  writeNotNull('isDiscontinued', instance.isDiscontinued);
-  writeNotNull('replacedBy', instance.replacedBy);
-  writeNotNull('isUnlisted', instance.isUnlisted);
-  writeNotNull('isFlutterFavorite', instance.isFlutterFavorite);
-  writeNotNull('retractedVersions', instance.retractedVersions);
-  writeNotNull('likeCount', instance.likeCount);
-  return val;
-}
+Map<String, dynamic> _$TestPackageToJson(TestPackage instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      if (instance.uploaders case final value?) 'uploaders': value,
+      if (instance.publisher case final value?) 'publisher': value,
+      if (instance.versions?.map((e) => e.toJson()).toList() case final value?)
+        'versions': value,
+      if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
+      if (instance.replacedBy case final value?) 'replacedBy': value,
+      if (instance.isUnlisted case final value?) 'isUnlisted': value,
+      if (instance.isFlutterFavorite case final value?)
+        'isFlutterFavorite': value,
+      if (instance.retractedVersions case final value?)
+        'retractedVersions': value,
+      if (instance.likeCount case final value?) 'likeCount': value,
+    };
 
 TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
       version: json['version'] as String,
@@ -85,20 +70,12 @@ TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
           : DateTime.parse(json['created'] as String),
     );
 
-Map<String, dynamic> _$TestVersionToJson(TestVersion instance) {
-  final val = <String, dynamic>{
-    'version': instance.version,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('created', instance.created?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$TestVersionToJson(TestVersion instance) =>
+    <String, dynamic>{
+      'version': instance.version,
+      if (instance.created?.toIso8601String() case final value?)
+        'created': value,
+    };
 
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) =>
     TestPublisher(
@@ -145,18 +122,10 @@ ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['created'] as String),
     );
 
-Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) {
-  final val = <String, dynamic>{
-    'package': instance.package,
-    'version': instance.version,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('created', instance.created?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) =>
+    <String, dynamic>{
+      'package': instance.package,
+      'version': instance.version,
+      if (instance.created?.toIso8601String() case final value?)
+        'created': value,
+    };
