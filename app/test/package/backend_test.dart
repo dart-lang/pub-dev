@@ -165,19 +165,6 @@ void main() {
         });
       });
 
-      testWithProfile('blocked user', fn: () async {
-        final user = await accountBackend.lookupUserByEmail('admin@pub.dev');
-        await dbService.commit(inserts: [user..isBlocked = true]);
-        final rs = withFakeAuthRequestContext(
-          adminAtPubDevEmail,
-          () async {
-            return packageBackend.inviteUploader(
-                'oxygen', InviteUploaderRequest(email: 'a@b.com'));
-          },
-        );
-        await expectLater(rs, throwsA(isA<AuthenticationException>()));
-      });
-
       testWithProfile('package does not exist', fn: () async {
         await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
           final rs = packageBackend.inviteUploader(

@@ -937,17 +937,6 @@ void main() {
         expect(p2!.versionCount, 3);
       });
 
-      testWithProfile('user is blocked', fn: () async {
-        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-        await dbService.commit(inserts: [user..isBlocked = true]);
-        final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml('pkg', '1.2.3'));
-        final rs = createPubApiClient(authToken: userClientToken)
-            .uploadPackageBytes(tarball);
-        await expectApiException(rs,
-            status: 403, code: 'InsufficientPermissions');
-      });
-
       testWithProfile('upload restriction - no uploads', fn: () async {
         (secretBackend as FakeSecretBackend)
             .update(SecretKey.uploadRestriction, 'no-uploads');

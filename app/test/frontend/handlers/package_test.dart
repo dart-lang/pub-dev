@@ -43,22 +43,6 @@ void main() {
           '/packages/oxygen/versions/1.2.0/changelog');
     });
 
-    testWithProfile('withheld package - not found', fn: () async {
-      final pkg = await dbService.lookupValue<Package>(
-          dbService.emptyKey.append(Package, id: 'oxygen'));
-      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: true)]);
-      await expectNotFoundResponse(await issueGet('/packages/oxygen'));
-      await expectNotFoundResponse(await issueGet('/packages/oxygen/score'));
-      await expectNotFoundResponse(await issueGet('/packages/oxygen/versions'));
-      await expectNotFoundResponse(
-          await issueGet('/packages/oxygen/versions/${pkg.latestVersion}'));
-      await expectNotFoundResponse(await issueGet(
-          '/packages/oxygen/versions/${pkg.latestVersion}/score'));
-
-      // reverting to make sure integrity check is passing
-      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: false)]);
-    });
-
     testWithProfile('/packages/foobar_not_found - not found', fn: () async {
       await expectNotFoundResponse(
           await issueGet('/packages/foobar_not_found'));

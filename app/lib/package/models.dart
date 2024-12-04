@@ -413,16 +413,6 @@ class Package extends db.ExpandoModel<String> {
     );
   }
 
-  void updateIsBlocked({
-    required bool isBlocked,
-    String? reason,
-  }) {
-    this.isBlocked = isBlocked;
-    blockedReason = reason;
-    blocked = isBlocked ? clock.now().toUtc() : null;
-    updated = clock.now().toUtc();
-  }
-
   void updateIsModerated({
     required bool isModerated,
   }) {

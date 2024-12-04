@@ -143,15 +143,5 @@ void main() {
       },
       processJobsWithFakeRunners: true,
     );
-
-    testWithProfile('withheld package gets rejected', fn: () async {
-      final pkg = await packageBackend.lookupPackage('oxygen');
-      await dbService.commit(inserts: [pkg!..updateIsBlocked(isBlocked: true)]);
-      await expectNotFoundResponse(
-          await issueGet('/documentation/oxygen/latest/'));
-
-      // reverting to make sure integrity check is passing
-      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: false)]);
-    });
   });
 }
