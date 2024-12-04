@@ -712,26 +712,6 @@ void main() {
         expect(rs3.isRetracted, v4.isRetracted);
       });
     });
-
-    group('block user', () {
-      setupTestsWithAdminTokenIssues(
-        (client) => client.adminExecuteTool(
-          'set-user-blocked',
-          'user@pub.dev/true',
-        ),
-      );
-
-      testWithProfile('block and unblock user', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        await client.adminExecuteTool('set-user-blocked', 'user@pub.dev/true');
-        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-        expect(user.isBlocked, true);
-        await client.adminExecuteTool(
-            'set-user-blocked', '${user.userId}/false');
-        final user2 = await accountBackend.lookupUserByEmail('user@pub.dev');
-        expect(user2.isBlocked, false);
-      });
-    });
   });
 }
 

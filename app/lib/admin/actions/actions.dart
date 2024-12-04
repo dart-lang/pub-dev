@@ -27,7 +27,6 @@ import 'package_reservation_delete.dart';
 import 'package_reservation_list.dart';
 import 'package_version_info.dart';
 import 'package_version_retraction.dart';
-import 'publisher_block.dart';
 import 'publisher_create.dart';
 import 'publisher_delete.dart';
 import 'publisher_info.dart';
@@ -114,7 +113,6 @@ final class AdminAction {
     packageReservationList,
     packageVersionInfo,
     packageVersionRetraction,
-    publisherBlock,
     publisherCreate,
     publisherDelete,
     publisherInfo,
