@@ -31,6 +31,7 @@ import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
+import 'package:pub_dev/tool/backfill/backfill_new_fields.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -120,7 +121,6 @@ class FakeAppengineEnv {
           await fork(() async {
             await fn();
           });
-          // post-test integrity check
           final problems =
               await IntegrityChecker(dbService).findProblems().toList();
           if (problems.isNotEmpty &&
@@ -131,6 +131,14 @@ class FakeAppengineEnv {
           } else if (problems.isEmpty && integrityProblem != null) {
             throw Exception('Integrity problem expected but not present.');
           }
+
+          // TODO: run all background tasks here
+          await backfillNewFields();
+
+          // re-run integrity checks on the updated state
+          final laterProblems =
+              await IntegrityChecker(dbService).findProblems().toList();
+          expect(laterProblems, problems);
         },
       );
     }) as R;

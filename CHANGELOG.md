@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dartdoc to `8.3.0`.
  * Upgraded pana to `0.22.16`.
  * Upgraded dependencies.
+ * Note: started migrating `isBlocked` flags to `isModerated`.
 
 ## `20241121t150900-all`
  * Bump runtimeVersion to `2024.11.21`.
