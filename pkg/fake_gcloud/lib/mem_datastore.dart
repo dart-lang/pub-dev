@@ -172,6 +172,9 @@ class MemDatastore implements Datastore {
         return -1;
       }
     }
+    if (a is bool && b is bool) {
+      return a == b ? 0 : (a ? 1 : -1);
+    }
     if (a is Key && b is Key) {
       if (a.elements.length != 1) {
         throw UnimplementedError();
