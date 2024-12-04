@@ -15,21 +15,12 @@ ResolvedDocUrlVersion _$ResolvedDocUrlVersionFromJson(
     );
 
 Map<String, dynamic> _$ResolvedDocUrlVersionToJson(
-    ResolvedDocUrlVersion instance) {
-  final val = <String, dynamic>{
-    'version': instance.version,
-    'urlSegment': instance.urlSegment,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('message', instance.message);
-  return val;
-}
+        ResolvedDocUrlVersion instance) =>
+    <String, dynamic>{
+      'version': instance.version,
+      'urlSegment': instance.urlSegment,
+      if (instance.message case final value?) 'message': value,
+    };
 
 DocPageStatus _$DocPageStatusFromJson(Map<String, dynamic> json) =>
     DocPageStatus(
@@ -38,21 +29,12 @@ DocPageStatus _$DocPageStatusFromJson(Map<String, dynamic> json) =>
       errorMessage: json['errorMessage'] as String?,
     );
 
-Map<String, dynamic> _$DocPageStatusToJson(DocPageStatus instance) {
-  final val = <String, dynamic>{
-    'code': _$DocPageStatusCodeEnumMap[instance.code]!,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('redirectPath', instance.redirectPath);
-  writeNotNull('errorMessage', instance.errorMessage);
-  return val;
-}
+Map<String, dynamic> _$DocPageStatusToJson(DocPageStatus instance) =>
+    <String, dynamic>{
+      'code': _$DocPageStatusCodeEnumMap[instance.code]!,
+      if (instance.redirectPath case final value?) 'redirectPath': value,
+      if (instance.errorMessage case final value?) 'errorMessage': value,
+    };
 
 const _$DocPageStatusCodeEnumMap = {
   DocPageStatusCode.ok: 'ok',

@@ -67,7 +67,9 @@ void main() {
       }
       await Directory(pubCacheDir).create(recursive: true);
       toolEnv = await ToolEnvironment.create(
-        dartdocVersion: dartdocVersion,
+        dartdocVersion:
+            // TODO: clean up after 3.6 SDK is released
+            Platform.version.startsWith('3.5.') ? '8.1.0' : dartdocVersion,
         pubCacheDir: pubCacheDir,
       );
       await toolEnv.runUpgrade(pkgDir, false);

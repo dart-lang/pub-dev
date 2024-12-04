@@ -97,27 +97,18 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
       statusCode: (json['statusCode'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$PackageSearchResultToJson(PackageSearchResult instance) {
-  final val = <String, dynamic>{
-    'timestamp': instance.timestamp.toIso8601String(),
-    'totalCount': instance.totalCount,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('nameMatches', instance.nameMatches);
-  writeNotNull('topicMatches', instance.topicMatches);
-  val['sdkLibraryHits'] =
-      instance.sdkLibraryHits.map((e) => e.toJson()).toList();
-  val['packageHits'] = instance.packageHits.map((e) => e.toJson()).toList();
-  writeNotNull('errorMessage', instance.errorMessage);
-  writeNotNull('statusCode', instance.statusCode);
-  return val;
-}
+Map<String, dynamic> _$PackageSearchResultToJson(
+        PackageSearchResult instance) =>
+    <String, dynamic>{
+      'timestamp': instance.timestamp.toIso8601String(),
+      'totalCount': instance.totalCount,
+      if (instance.nameMatches case final value?) 'nameMatches': value,
+      if (instance.topicMatches case final value?) 'topicMatches': value,
+      'sdkLibraryHits': instance.sdkLibraryHits.map((e) => e.toJson()).toList(),
+      'packageHits': instance.packageHits.map((e) => e.toJson()).toList(),
+      if (instance.errorMessage case final value?) 'errorMessage': value,
+      if (instance.statusCode case final value?) 'statusCode': value,
+    };
 
 SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
     SdkLibraryHit(
@@ -132,24 +123,17 @@ SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
-Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('sdk', instance.sdk);
-  writeNotNull('version', instance.version);
-  writeNotNull('library', instance.library);
-  writeNotNull('description', instance.description);
-  writeNotNull('url', instance.url);
-  val['score'] = instance.score;
-  writeNotNull('apiPages', instance.apiPages?.map((e) => e.toJson()).toList());
-  return val;
-}
+Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) =>
+    <String, dynamic>{
+      if (instance.sdk case final value?) 'sdk': value,
+      if (instance.version case final value?) 'version': value,
+      if (instance.library case final value?) 'library': value,
+      if (instance.description case final value?) 'description': value,
+      if (instance.url case final value?) 'url': value,
+      'score': instance.score,
+      if (instance.apiPages?.map((e) => e.toJson()).toList() case final value?)
+        'apiPages': value,
+    };
 
 PackageHit _$PackageHitFromJson(Map<String, dynamic> json) => PackageHit(
       package: json['package'] as String,
@@ -159,21 +143,13 @@ PackageHit _$PackageHitFromJson(Map<String, dynamic> json) => PackageHit(
           .toList(),
     );
 
-Map<String, dynamic> _$PackageHitToJson(PackageHit instance) {
-  final val = <String, dynamic>{
-    'package': instance.package,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('score', instance.score);
-  writeNotNull('apiPages', instance.apiPages?.map((e) => e.toJson()).toList());
-  return val;
-}
+Map<String, dynamic> _$PackageHitToJson(PackageHit instance) =>
+    <String, dynamic>{
+      'package': instance.package,
+      if (instance.score case final value?) 'score': value,
+      if (instance.apiPages?.map((e) => e.toJson()).toList() case final value?)
+        'apiPages': value,
+    };
 
 ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(
       title: json['title'] as String?,
@@ -181,17 +157,9 @@ ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(
       url: json['url'] as String?,
     );
 
-Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('title', instance.title);
-  writeNotNull('path', instance.path);
-  writeNotNull('url', instance.url);
-  return val;
-}
+Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) =>
+    <String, dynamic>{
+      if (instance.title case final value?) 'title': value,
+      if (instance.path case final value?) 'path': value,
+      if (instance.url case final value?) 'url': value,
+    };

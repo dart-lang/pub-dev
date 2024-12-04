@@ -34,7 +34,7 @@ const _totalTimeout = Duration(minutes: 50);
 
 /// The dartdoc version to use.
 /// keep in-sync with app/lib/shared/versions.dart
-const _dartdocVersion = '8.1.0';
+const _dartdocVersion = '8.3.0';
 
 /// Program to be used as subprocess for running pana, ensuring that we capture
 /// all the output, and only run analysis in a subprocess that can timeout and
@@ -99,8 +99,10 @@ Future<void> main(List<String> args) async {
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
+  // Fallback for CI tests.
+  // TODO: remove after runtime SDK is migrated to 3.6 SDK
   final dartdocVersion =
-      (await _overrideDartdocVersion(pkgDir.path)) ?? _dartdocVersion;
+      Platform.version.startsWith('3.5.') ? '8.1.0' : _dartdocVersion;
 
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
@@ -192,21 +194,6 @@ String? _configHomePath(String sdk, String kind) {
   final path = p.join(_workerConfigPath!, '$sdk-$kind');
   Directory(path).createSync(recursive: true);
   return path;
-}
-
-/// Detects the package dependencies and overrides the dartdoc version to
-/// 8.3.0 if macros is being used.
-///
-/// TODO: remove this after the 3.6 SDK is released.
-Future<String?> _overrideDartdocVersion(String pkgDir) async {
-  final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
-  final pubspec = Pubspec.parseYaml(await pubspecFile.readAsString());
-  final minMacrosVersion = pubspec.getDependencyContraintRangeMin('macros');
-  if (minMacrosVersion != null &&
-      minMacrosVersion.compareTo(Version.parse('0.1.3-main.0')) >= 0) {
-    return '8.3.0';
-  }
-  return null;
 }
 
 Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
@@ -423,6 +410,8 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
 
   return [
     if (latestStableDartSdkVersion != null &&
+        // TODO: remove after 3.6 SDK is released
+        !latestStableDartSdkVersion.startsWith('3.5.') &&
         latestStableFlutterSdkVersion != null)
       _SdkBundle(
         channel: 'stable',

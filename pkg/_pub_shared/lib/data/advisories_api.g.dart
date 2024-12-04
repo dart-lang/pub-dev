@@ -53,31 +53,23 @@ OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
       databaseSpecific: json['database_specific'] as Map<String, dynamic>?,
     );
 
-Map<String, dynamic> _$OSVToJson(OSV instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('schema_version', instance.schemaVersion);
-  val['id'] = instance.id;
-  val['modified'] = instance.modified;
-  writeNotNull('published', instance.published);
-  writeNotNull('withdrawn', instance.withdrawn);
-  val['aliases'] = instance.aliases;
-  writeNotNull('related', instance.related);
-  writeNotNull('summary', instance.summary);
-  writeNotNull('details', instance.details);
-  writeNotNull('severity', instance.severity);
-  writeNotNull('affected', instance.affected);
-  writeNotNull('references', instance.references);
-  writeNotNull('credits', instance.credits);
-  writeNotNull('database_specific', instance.databaseSpecific);
-  return val;
-}
+Map<String, dynamic> _$OSVToJson(OSV instance) => <String, dynamic>{
+      if (instance.schemaVersion case final value?) 'schema_version': value,
+      'id': instance.id,
+      'modified': instance.modified,
+      if (instance.published case final value?) 'published': value,
+      if (instance.withdrawn case final value?) 'withdrawn': value,
+      'aliases': instance.aliases,
+      if (instance.related case final value?) 'related': value,
+      if (instance.summary case final value?) 'summary': value,
+      if (instance.details case final value?) 'details': value,
+      if (instance.severity case final value?) 'severity': value,
+      if (instance.affected case final value?) 'affected': value,
+      if (instance.references case final value?) 'references': value,
+      if (instance.credits case final value?) 'credits': value,
+      if (instance.databaseSpecific case final value?)
+        'database_specific': value,
+    };
 
 Severity _$SeverityFromJson(Map<String, dynamic> json) => Severity(
       type: json['type'] as String,

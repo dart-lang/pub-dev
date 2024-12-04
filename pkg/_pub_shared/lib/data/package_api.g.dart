@@ -45,19 +45,11 @@ AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
     );
 
 Map<String, dynamic> _$AutomatedPublishingConfigToJson(
-    AutomatedPublishingConfig instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('github', instance.github?.toJson());
-  writeNotNull('gcp', instance.gcp?.toJson());
-  return val;
-}
+        AutomatedPublishingConfig instance) =>
+    <String, dynamic>{
+      if (instance.github?.toJson() case final value?) 'github': value,
+      if (instance.gcp?.toJson() case final value?) 'gcp': value,
+    };
 
 GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
         Map<String, dynamic> json) =>
@@ -73,26 +65,16 @@ GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
     );
 
 Map<String, dynamic> _$GitHubPublishingConfigToJson(
-    GitHubPublishingConfig instance) {
-  final val = <String, dynamic>{
-    'isEnabled': instance.isEnabled,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('repository', instance.repository);
-  writeNotNull('tagPattern', instance.tagPattern);
-  val['requireEnvironment'] = instance.requireEnvironment;
-  writeNotNull('environment', instance.environment);
-  val['isPushEventEnabled'] = instance.isPushEventEnabled;
-  val['isWorkflowDispatchEventEnabled'] =
-      instance.isWorkflowDispatchEventEnabled;
-  return val;
-}
+        GitHubPublishingConfig instance) =>
+    <String, dynamic>{
+      'isEnabled': instance.isEnabled,
+      if (instance.repository case final value?) 'repository': value,
+      if (instance.tagPattern case final value?) 'tagPattern': value,
+      'requireEnvironment': instance.requireEnvironment,
+      if (instance.environment case final value?) 'environment': value,
+      'isPushEventEnabled': instance.isPushEventEnabled,
+      'isWorkflowDispatchEventEnabled': instance.isWorkflowDispatchEventEnabled,
+    };
 
 GcpPublishingConfig _$GcpPublishingConfigFromJson(Map<String, dynamic> json) =>
     GcpPublishingConfig(
@@ -100,20 +82,13 @@ GcpPublishingConfig _$GcpPublishingConfigFromJson(Map<String, dynamic> json) =>
       serviceAccountEmail: json['serviceAccountEmail'] as String?,
     );
 
-Map<String, dynamic> _$GcpPublishingConfigToJson(GcpPublishingConfig instance) {
-  final val = <String, dynamic>{
-    'isEnabled': instance.isEnabled,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('serviceAccountEmail', instance.serviceAccountEmail);
-  return val;
-}
+Map<String, dynamic> _$GcpPublishingConfigToJson(
+        GcpPublishingConfig instance) =>
+    <String, dynamic>{
+      'isEnabled': instance.isEnabled,
+      if (instance.serviceAccountEmail case final value?)
+        'serviceAccountEmail': value,
+    };
 
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(
@@ -168,25 +143,16 @@ PackageData _$PackageDataFromJson(Map<String, dynamic> json) => PackageData(
           : DateTime.parse(json['advisoriesUpdated'] as String),
     );
 
-Map<String, dynamic> _$PackageDataToJson(PackageData instance) {
-  final val = <String, dynamic>{
-    'name': instance.name,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('isDiscontinued', instance.isDiscontinued);
-  writeNotNull('replacedBy', instance.replacedBy);
-  val['latest'] = instance.latest;
-  val['versions'] = instance.versions;
-  writeNotNull(
-      'advisoriesUpdated', instance.advisoriesUpdated?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
+      if (instance.replacedBy case final value?) 'replacedBy': value,
+      'latest': instance.latest,
+      'versions': instance.versions,
+      if (instance.advisoriesUpdated?.toIso8601String() case final value?)
+        'advisoriesUpdated': value,
+    };
 
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
       version: json['version'] as String,
@@ -199,24 +165,16 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
           : DateTime.parse(json['published'] as String),
     );
 
-Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) {
-  final val = <String, dynamic>{
-    'version': instance.version,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('retracted', instance.retracted);
-  val['pubspec'] = instance.pubspec;
-  writeNotNull('archive_url', instance.archiveUrl);
-  writeNotNull('archive_sha256', instance.archiveSha256);
-  writeNotNull('published', instance.published?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
+    <String, dynamic>{
+      'version': instance.version,
+      if (instance.retracted case final value?) 'retracted': value,
+      'pubspec': instance.pubspec,
+      if (instance.archiveUrl case final value?) 'archive_url': value,
+      if (instance.archiveSha256 case final value?) 'archive_sha256': value,
+      if (instance.published?.toIso8601String() case final value?)
+        'published': value,
+    };
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
       grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
@@ -229,23 +187,16 @@ VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
           : DateTime.parse(json['lastUpdated'] as String),
     );
 
-Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('grantedPoints', instance.grantedPoints);
-  writeNotNull('maxPoints', instance.maxPoints);
-  writeNotNull('likeCount', instance.likeCount);
-  writeNotNull('popularityScore', instance.popularityScore);
-  writeNotNull('tags', instance.tags);
-  writeNotNull('lastUpdated', instance.lastUpdated?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) =>
+    <String, dynamic>{
+      if (instance.grantedPoints case final value?) 'grantedPoints': value,
+      if (instance.maxPoints case final value?) 'maxPoints': value,
+      if (instance.likeCount case final value?) 'likeCount': value,
+      if (instance.popularityScore case final value?) 'popularityScore': value,
+      if (instance.tags case final value?) 'tags': value,
+      if (instance.lastUpdated?.toIso8601String() case final value?)
+        'lastUpdated': value,
+    };
 
 RemoveUploaderRequest _$RemoveUploaderRequestFromJson(
         Map<String, dynamic> json) =>

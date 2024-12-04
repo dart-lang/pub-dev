@@ -75,27 +75,20 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
           .toList(),
     );
 
-Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('timestamp', instance.timestamp?.toIso8601String());
-  writeNotNull('panaRuntimeInfo', instance.panaRuntimeInfo);
-  writeNotNull('reportStatus', instance.reportStatus);
-  writeNotNull('derivedTags', instance.derivedTags);
-  writeNotNull('allDependencies', instance.allDependencies);
-  writeNotNull('licenses', instance.licenses);
-  writeNotNull('report', instance.report);
-  writeNotNull('result', instance.result);
-  writeNotNull('screenshots', instance.screenshots);
-  writeNotNull('urlProblems', instance.urlProblems);
-  return val;
-}
+Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
+    <String, dynamic>{
+      if (instance.timestamp?.toIso8601String() case final value?)
+        'timestamp': value,
+      if (instance.panaRuntimeInfo case final value?) 'panaRuntimeInfo': value,
+      if (instance.reportStatus case final value?) 'reportStatus': value,
+      if (instance.derivedTags case final value?) 'derivedTags': value,
+      if (instance.allDependencies case final value?) 'allDependencies': value,
+      if (instance.licenses case final value?) 'licenses': value,
+      if (instance.report case final value?) 'report': value,
+      if (instance.result case final value?) 'result': value,
+      if (instance.screenshots case final value?) 'screenshots': value,
+      if (instance.urlProblems case final value?) 'urlProblems': value,
+    };
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) =>
     DartdocReport(

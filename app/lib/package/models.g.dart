@@ -53,21 +53,15 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
           : GcpPublishingLock.fromJson(json['gcpLock'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$AutomatedPublishingToJson(AutomatedPublishing instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('githubConfig', instance.githubConfig?.toJson());
-  writeNotNull('githubLock', instance.githubLock?.toJson());
-  writeNotNull('gcpConfig', instance.gcpConfig?.toJson());
-  writeNotNull('gcpLock', instance.gcpLock?.toJson());
-  return val;
-}
+Map<String, dynamic> _$AutomatedPublishingToJson(
+        AutomatedPublishing instance) =>
+    <String, dynamic>{
+      if (instance.githubConfig?.toJson() case final value?)
+        'githubConfig': value,
+      if (instance.githubLock?.toJson() case final value?) 'githubLock': value,
+      if (instance.gcpConfig?.toJson() case final value?) 'gcpConfig': value,
+      if (instance.gcpLock?.toJson() case final value?) 'gcpLock': value,
+    };
 
 GitHubPublishingLock _$GitHubPublishingLockFromJson(
         Map<String, dynamic> json) =>
@@ -122,32 +116,26 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
           (json['thirtyDaysDownloadCounts'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
-  final val = <String, dynamic>{
-    'name': instance.name,
-    'releases': instance.releases,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('ellipsizedDescription', instance.ellipsizedDescription);
-  val['created'] = instance.created.toIso8601String();
-  writeNotNull('publisherId', instance.publisherId);
-  val['isPending'] = instance.isPending;
-  val['likes'] = instance.likes;
-  writeNotNull('grantedPubPoints', instance.grantedPubPoints);
-  writeNotNull('maxPubPoints', instance.maxPubPoints);
-  val['tags'] = instance.tags;
-  writeNotNull('replacedBy', instance.replacedBy);
-  writeNotNull('spdxIdentifiers', instance.spdxIdentifiers);
-  writeNotNull('apiPages', instance.apiPages);
-  writeNotNull('screenshots', instance.screenshots);
-  writeNotNull('topics', instance.topics);
-  val['popularity'] = instance.popularity;
-  writeNotNull('thirtyDaysDownloadCounts', instance.thirtyDaysDownloadCounts);
-  return val;
-}
+Map<String, dynamic> _$PackageViewToJson(PackageView instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'releases': instance.releases,
+      if (instance.ellipsizedDescription case final value?)
+        'ellipsizedDescription': value,
+      'created': instance.created.toIso8601String(),
+      if (instance.publisherId case final value?) 'publisherId': value,
+      'isPending': instance.isPending,
+      'likes': instance.likes,
+      if (instance.grantedPubPoints case final value?)
+        'grantedPubPoints': value,
+      if (instance.maxPubPoints case final value?) 'maxPubPoints': value,
+      'tags': instance.tags,
+      if (instance.replacedBy case final value?) 'replacedBy': value,
+      if (instance.spdxIdentifiers case final value?) 'spdxIdentifiers': value,
+      if (instance.apiPages case final value?) 'apiPages': value,
+      if (instance.screenshots case final value?) 'screenshots': value,
+      if (instance.topics case final value?) 'topics': value,
+      'popularity': instance.popularity,
+      if (instance.thirtyDaysDownloadCounts case final value?)
+        'thirtyDaysDownloadCounts': value,
+    };
