@@ -146,6 +146,9 @@ extension BucketExt on Bucket {
         if (e is IOException) {
           return true; // I/O issues are worth retrying
         }
+        if (e is http.ClientException) {
+          return true; // HTTP issues are worth retrying
+        }
         if (e is DetailedApiRequestError) {
           final status = e.status;
           return status == null || status >= 500; // 5xx errors are retried
