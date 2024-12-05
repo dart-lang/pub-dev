@@ -55,6 +55,13 @@ final class CacheControl {
     public: true,
   );
 
+  /// `Cache-Control` headers for API end-points returning slowly changing content,
+  /// without any hash in the URL.
+  static const mostlyStaticApi = CacheControl(
+    maxAge: Duration(hours: 8),
+    public: true,
+  );
+
   /// `Cache-Control` headers for API end-points returning completion data for
   /// use in IDE integrations.
   static const completionData = CacheControl(

@@ -42,7 +42,7 @@ Future<shelf.Response> wellKnownSecurityTxtHandler(
       'Expires: ${expiresDate}T00:00:00z\n';
   return shelf.Response.ok(
     content,
-    headers: CacheControl.completionData.headers, // 8 hours public cache
+    headers: CacheControl.mostlyStaticApi.headers,
   );
 }
 
