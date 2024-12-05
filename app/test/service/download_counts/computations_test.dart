@@ -204,7 +204,7 @@ void main() {
             pkg, versionsCounts2, date.addCalendarDays(i));
       }
 
-      final res = await computeWeeklyVersionsDownloads(pkg);
+      final res = await computeWeeklyVersionDownloads(pkg);
 
       final expectedNewestDate = date.addCalendarDays(7 * 20);
       expect(res!.newestDate, expectedNewestDate);

@@ -52,10 +52,10 @@ Future<WeeklyDownloadCounts?> getWeeklyTotalDownloads(String package) async {
   }));
 }
 
-Future<WeeklyVersionsDownloadCounts?> getWeeklyVersionsDownloads(
+Future<WeeklyVersionDownloadCounts?> getWeeklyVersionDownloads(
     String package) async {
-  return (await cache.weeklyVersionsDownloadCounts(package).get(() async {
-    return computeWeeklyVersionsDownloads(package);
+  return (await cache.weeklyVersionDownloadCounts(package).get(() async {
+    return computeWeeklyVersionDownloads(package);
   }));
 }
 
@@ -81,7 +81,7 @@ Future<WeeklyDownloadCounts?> computeWeeklyTotalDownloads(
 /// Computes weekly downloads starting from `newestDate` for [package] and 52
 /// weeks back for all stored major, minor, and patch version ranges and total
 /// downloads.
-Future<WeeklyVersionsDownloadCounts?> computeWeeklyVersionsDownloads(
+Future<WeeklyVersionDownloadCounts?> computeWeeklyVersionDownloads(
     String package) async {
   final countData =
       await downloadCountsBackend.lookupDownloadCountData(package);
@@ -111,7 +111,7 @@ Future<WeeklyVersionsDownloadCounts?> computeWeeklyVersionsDownloads(
 
   final weeklyTotalCounts = _computeWeeklyCounts(countData.totalCounts);
 
-  return WeeklyVersionsDownloadCounts(
+  return WeeklyVersionDownloadCounts(
       newestDate: countData.newestDate!,
       majorRangeWeeklyDownloads: majorRangeWeeklyCounts,
       minorRangeWeeklyDownloads: minorRangeWeeklyCounts,

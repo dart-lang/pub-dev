@@ -163,8 +163,7 @@ class ScoreCardBackend {
       taskStatus = PackageVersionStatus.pending;
     }
 
-    final weeklyVersionsDownloads =
-        await getWeeklyVersionsDownloads(packageName);
+    final weeklyVersionDownloads = await getWeeklyVersionDownloads(packageName);
 
     final data = ScoreCardData(
       packageName: packageName,
@@ -177,7 +176,7 @@ class ScoreCardBackend {
       ),
       panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       taskStatus: taskStatus,
-      weeklyVersionsDownloads: weeklyVersionsDownloads,
+      weeklyVersionDownloads: weeklyVersionDownloads,
     );
     await cacheEntry.set(data);
     return data;

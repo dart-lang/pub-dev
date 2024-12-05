@@ -79,8 +79,8 @@ d.Node scoreTabNode({
           ],
         ),
         _reportNode(report),
-        if (card.weeklyVersionsDownloads != null)
-          _versionDownloadsChart(card.weeklyVersionsDownloads!),
+        if (card.weeklyVersionDownloads != null)
+          _downloadsChart(card.weeklyVersionDownloads!),
         if (toolEnvInfo != null) toolEnvInfo,
       ]),
     if (!showPending)
@@ -177,20 +177,18 @@ d.Node _section(ReportSection section) {
   ]);
 }
 
-d.Node _versionDownloadsChart(
-    WeeklyVersionsDownloadCounts weeklyVersionsDownloads) {
+d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
   return d.div(
-    classes: ['versions-downloads-chart'],
-    id: '-versions-downloads-chart',
+    classes: ['downloads-chart'],
+    id: '-downloads-chart',
     attributes: {
-      'data-widget': 'versions-downloads-chart',
-      'data-versions-downloads-chart':
-          _encodeForVersionsChart(weeklyVersionsDownloads)
+      'data-widget': 'downloads-chart',
+      'data-downloads-chart': _encodeForDownloadsChart(weeklyVersionDownloads)
     },
   );
 }
 
-String _encodeForVersionsChart(WeeklyVersionsDownloadCounts wvcd) {
+String _encodeForDownloadsChart(WeeklyVersionDownloadCounts wvcd) {
   final date = wvcd.newestDate.toUtc().millisecondsSinceEpoch ~/ 1000;
 
   final allCounts = <int>[];
