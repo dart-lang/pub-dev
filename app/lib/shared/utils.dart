@@ -176,14 +176,14 @@ List<T> boundedList<T>(List<T> list, {int? offset, int? limit}) {
 Future<R> retryAsync<R>(
   Future<R> Function() body, {
   int maxAttempt = 3,
-  bool Function(Object)? shouldRetryOnError,
+  bool Function(Exception)? shouldRetryOnError,
   String description = 'Async operation',
   Duration sleep = const Duration(seconds: 1),
 }) async {
   for (int i = 1;; i++) {
     try {
       return await body();
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       _logger.info('$description failed (attempt: $i of $maxAttempt).', e, st);
       if (i < maxAttempt &&
           (shouldRetryOnError == null || shouldRetryOnError(e))) {
