@@ -295,6 +295,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/.well-known/security.txt',
+    service.wellKnownSecurityTxt,
+  );
+  router.add(
+    'GET',
     r'/sign-in',
     service.startSignIn,
   );

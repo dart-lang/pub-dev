@@ -309,6 +309,11 @@ class PubSiteService {
   Future<Response> experimental(Request request) =>
       experimentalHandler(request);
 
+  /// Renders the /.well-known/security.txt page
+  @Route.get('/.well-known/security.txt')
+  Future<Response> wellKnownSecurityTxt(Request request) =>
+      wellKnownSecurityTxtHandler(request);
+
   // ****
   // **** Account, authentication and user administration
   // ****
