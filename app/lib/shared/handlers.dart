@@ -12,7 +12,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/request_context.dart';
 
-import 'popularity_storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show jsonUtf8Encoder;
 import 'versions.dart';
@@ -134,14 +133,7 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
         'flutter': toolStableFlutterSdkVersion,
       },
     },
-  };
-  if (data != null) {
-    map.addAll(data);
-  }
-  map['popularity'] = {
-    'fetched': popularityStorage.lastFetched?.toIso8601String(),
-    'count': popularityStorage.count,
-    'dateRange': popularityStorage.dateRange,
+    ...?data,
   };
   return jsonResponse(map, indentJson: true);
 }
