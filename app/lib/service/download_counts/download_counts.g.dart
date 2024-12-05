@@ -98,7 +98,7 @@ WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
     WeeklyVersionsDownloadCounts(
       newestDate: DateTime.parse(json['newestDate'] as String),
       majorRangeWeeklyDownloads:
-          (json['majorRangeWeeklyCounts'] as List<dynamic>)
+          (json['majorRangeWeeklyDownloads'] as List<dynamic>)
               .map((e) => _$recordConvert(
                     e,
                     ($jsonValue) => (
@@ -110,7 +110,7 @@ WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
                   ))
               .toList(),
       minorRangeWeeklyDownloads:
-          (json['minorRangeWeeklyCounts'] as List<dynamic>)
+          (json['minorRangeWeeklyDownloads'] as List<dynamic>)
               .map((e) => _$recordConvert(
                     e,
                     ($jsonValue) => (
@@ -122,7 +122,7 @@ WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
                   ))
               .toList(),
       patchRangeWeeklyDownloads:
-          (json['patchRangeWeeklyCounts'] as List<dynamic>)
+          (json['patchRangeWeeklyDownloads'] as List<dynamic>)
               .map((e) => _$recordConvert(
                     e,
                     ($jsonValue) => (
@@ -133,7 +133,7 @@ WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
                     ),
                   ))
               .toList(),
-      totalWeeklyDownloads: (json['totalWeeklyCounts'] as List<dynamic>)
+      totalWeeklyDownloads: (json['totalWeeklyDownloads'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
     );
@@ -141,24 +141,24 @@ WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
 Map<String, dynamic> _$WeeklyVersionsDownloadCountsToJson(
         WeeklyVersionsDownloadCounts instance) =>
     <String, dynamic>{
+      'totalWeeklyDownloads': instance.totalWeeklyDownloads,
+      'majorRangeWeeklyDownloads': instance.majorRangeWeeklyDownloads
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'minorRangeWeeklyDownloads': instance.minorRangeWeeklyDownloads
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'patchRangeWeeklyDownloads': instance.patchRangeWeeklyDownloads
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
       'newestDate': instance.newestDate.toIso8601String(),
-      'majorRangeWeeklyCounts': instance.majorRangeWeeklyDownloads
-          .map((e) => <String, dynamic>{
-                'counts': e.counts,
-                'versionRange': e.versionRange,
-              })
-          .toList(),
-      'minorRangeWeeklyCounts': instance.minorRangeWeeklyDownloads
-          .map((e) => <String, dynamic>{
-                'counts': e.counts,
-                'versionRange': e.versionRange,
-              })
-          .toList(),
-      'patchRangeWeeklyCounts': instance.patchRangeWeeklyDownloads
-          .map((e) => <String, dynamic>{
-                'counts': e.counts,
-                'versionRange': e.versionRange,
-              })
-          .toList(),
-      'totalWeeklyCounts': instance.totalWeeklyDownloads,
     };
