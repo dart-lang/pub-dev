@@ -121,28 +121,33 @@ class FakeAppengineEnv {
           await fork(() async {
             await fn();
           });
-          final problems =
-              await IntegrityChecker(dbService).findProblems().toList();
-          if (problems.isNotEmpty &&
-              (integrityProblem == null ||
-                  integrityProblem.matchAsPrefix(problems.first) == null)) {
-            throw Exception(
-                '${problems.length} integrity problems detected. First: ${problems.first}');
-          } else if (problems.isEmpty && integrityProblem != null) {
-            throw Exception('Integrity problem expected but not present.');
-          }
-
-          // TODO: run all background tasks here
-          await backfillNewFields();
-
-          // re-run integrity checks on the updated state
-          final laterProblems =
-              await IntegrityChecker(dbService).findProblems().toList();
-          expect(laterProblems, problems);
+          await _postTestVerification(integrityProblem: integrityProblem);
         },
       );
     }) as R;
   }
+}
+
+Future<void> _postTestVerification({
+  required Pattern? integrityProblem,
+}) async {
+  final problems = await IntegrityChecker(dbService).findProblems().toList();
+  if (problems.isNotEmpty &&
+      (integrityProblem == null ||
+          integrityProblem.matchAsPrefix(problems.first) == null)) {
+    throw Exception(
+        '${problems.length} integrity problems detected. First: ${problems.first}');
+  } else if (problems.isEmpty && integrityProblem != null) {
+    throw Exception('Integrity problem expected but not present.');
+  }
+
+  // TODO: run all background tasks here
+  await backfillNewFields();
+
+  // re-run integrity checks on the updated state
+  final laterProblems =
+      await IntegrityChecker(dbService).findProblems().toList();
+  expect(laterProblems, problems);
 }
 
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
@@ -210,17 +215,7 @@ void testWithFakeTime(
           await fork(() async {
             await fn(fakeTime);
           });
-          // post-test integrity check
-          final problems =
-              await IntegrityChecker(dbService).findProblems().toList();
-          if (problems.isNotEmpty &&
-              (integrityProblem == null ||
-                  integrityProblem.matchAsPrefix(problems.first) == null)) {
-            throw Exception(
-                '${problems.length} integrity problems detected. First: ${problems.first}');
-          } else if (problems.isEmpty && integrityProblem != null) {
-            throw Exception('Integrity problem expected but not present.');
-          }
+          await _postTestVerification(integrityProblem: integrityProblem);
         },
       );
     });
