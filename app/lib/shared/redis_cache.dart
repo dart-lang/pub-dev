@@ -257,7 +257,7 @@ class CachePatterns {
         decode: (d) => WeeklyDownloadCounts.fromJson(d as Map<String, dynamic>),
       ))[package];
 
-  Entry<WeeklyVersionsDownloadCounts> weeklyVersionsDownloadCounts(
+  Entry<WeeklyVersionDownloadCounts> weeklyVersionDownloadCounts(
           String package) =>
       _cache
           .withPrefix('weekly-versions-download-counts/')
@@ -265,9 +265,9 @@ class CachePatterns {
           .withCodec(utf8)
           .withCodec(json)
           .withCodec(wrapAsCodec(
-            encode: (WeeklyVersionsDownloadCounts wdc) => wdc.toJson(),
-            decode: (d) => WeeklyVersionsDownloadCounts.fromJson(
-                d as Map<String, dynamic>),
+            encode: (WeeklyVersionDownloadCounts wdc) => wdc.toJson(),
+            decode: (d) =>
+                WeeklyVersionDownloadCounts.fromJson(d as Map<String, dynamic>),
           ))[package];
 
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache

@@ -244,7 +244,7 @@ class WeeklyDownloadCounts {
 }
 
 @JsonSerializable(includeIfNull: false)
-class WeeklyVersionsDownloadCounts {
+class WeeklyVersionDownloadCounts {
   /// An integer list where each number is the total number of downloads for a
   /// given 7 day period starting from [newestDate].
   final List<int> totalWeeklyDownloads;
@@ -273,7 +273,7 @@ class WeeklyVersionsDownloadCounts {
   /// The newest date with download counts data available.
   final DateTime newestDate;
 
-  WeeklyVersionsDownloadCounts({
+  WeeklyVersionDownloadCounts({
     required this.newestDate,
     required this.majorRangeWeeklyDownloads,
     required this.minorRangeWeeklyDownloads,
@@ -281,7 +281,7 @@ class WeeklyVersionsDownloadCounts {
     required this.totalWeeklyDownloads,
   });
 
-  factory WeeklyVersionsDownloadCounts.fromJson(Map<String, dynamic> json) =>
-      _$WeeklyVersionsDownloadCountsFromJson(json);
-  Map<String, dynamic> toJson() => _$WeeklyVersionsDownloadCountsToJson(this);
+  factory WeeklyVersionDownloadCounts.fromJson(Map<String, dynamic> json) =>
+      _$WeeklyVersionDownloadCountsFromJson(json);
+  Map<String, dynamic> toJson() => _$WeeklyVersionDownloadCountsToJson(this);
 }

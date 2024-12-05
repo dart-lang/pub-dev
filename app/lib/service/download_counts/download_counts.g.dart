@@ -93,9 +93,9 @@ Map<String, dynamic> _$WeeklyDownloadCountsToJson(
       'newestDate': instance.newestDate.toIso8601String(),
     };
 
-WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
+WeeklyVersionDownloadCounts _$WeeklyVersionDownloadCountsFromJson(
         Map<String, dynamic> json) =>
-    WeeklyVersionsDownloadCounts(
+    WeeklyVersionDownloadCounts(
       newestDate: DateTime.parse(json['newestDate'] as String),
       majorRangeWeeklyDownloads:
           (json['majorRangeWeeklyDownloads'] as List<dynamic>)
@@ -138,8 +138,8 @@ WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
           .toList(),
     );
 
-Map<String, dynamic> _$WeeklyVersionsDownloadCountsToJson(
-        WeeklyVersionsDownloadCounts instance) =>
+Map<String, dynamic> _$WeeklyVersionDownloadCountsToJson(
+        WeeklyVersionDownloadCounts instance) =>
     <String, dynamic>{
       'totalWeeklyDownloads': instance.totalWeeklyDownloads,
       'majorRangeWeeklyDownloads': instance.majorRangeWeeklyDownloads

@@ -34,7 +34,7 @@ class ScoreCardData {
   final DartdocReport? dartdocReport;
   final PanaReport? panaReport;
   final PackageVersionStatus? taskStatus;
-  final WeeklyVersionsDownloadCounts? weeklyVersionsDownloads;
+  final WeeklyVersionDownloadCounts? weeklyVersionDownloads;
 
   ScoreCardData({
     this.packageName,
@@ -44,7 +44,7 @@ class ScoreCardData {
     this.dartdocReport,
     this.panaReport,
     this.taskStatus,
-    this.weeklyVersionsDownloads,
+    this.weeklyVersionDownloads,
   });
 
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
