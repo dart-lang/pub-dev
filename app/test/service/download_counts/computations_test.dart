@@ -152,16 +152,128 @@ void main() {
             pkg, versionsCounts2, date.addCalendarDays(i));
       }
 
-      final res = await computeWeeklyDownloads(pkg);
+      final res = await computeWeeklyTotalDownloads(pkg);
 
       final expectedList = List.from(List.filled(20, 147))
         ..addAll(List.filled(20, 98))
         ..add(14)
         ..addAll(List.filled(11, 0));
-      final expectedNewstDate = date.addCalendarDays(7 * 40);
+      final expectedNewestDate = date.addCalendarDays(7 * 40);
 
-      expect(res.weeklyDownloads, expectedList);
-      expect(res.newestDate, expectedNewstDate);
+      expect(res!.weeklyDownloads, expectedList);
+      expect(res.newestDate, expectedNewestDate);
+    });
+
+    testWithProfile('compute weekly for all verion ranges', fn: () async {
+      final pkg = 'foo';
+      final date = DateTime.parse('1986-02-16');
+      final versions = [
+        '1.1.0',
+        '2.0.0-alpha',
+        '2.0.0',
+        '2.1.0',
+        '3.1.0',
+        '4.0.0-0',
+        '6.0.1',
+        '6.1.1',
+        '6.1.2-alpha',
+        '6.1.2',
+        '6.1.3',
+        '6.1.4',
+        '6.1.4-0',
+        '6.1.6',
+        '6.2.0-alpha',
+        '6.2.0',
+        '6.2.1',
+        '6.3.1',
+        '6.4.0-0',
+        '6.6.1',
+      ];
+      final versionsCounts = <String, int>{};
+      versions.forEach((v) => versionsCounts[v] = 2);
+
+      final versionsCounts2 = <String, int>{};
+      versions.forEach((v) => versionsCounts2[v] = 1);
+
+      for (var i = 0; i <= 7 * 10; i++) {
+        await downloadCountsBackend.updateDownloadCounts(
+            pkg, versionsCounts, date.addCalendarDays(i));
+      }
+      for (var i = 7 * 10 + 1; i <= 7 * 20; i++) {
+        await downloadCountsBackend.updateDownloadCounts(
+            pkg, versionsCounts2, date.addCalendarDays(i));
+      }
+
+      final res = await computeWeeklyVersionsDownloads(pkg);
+
+      final expectedNewestDate = date.addCalendarDays(7 * 20);
+      expect(res!.newestDate, expectedNewestDate);
+
+      final List<int> l1 = List.from(List.filled(10, 7))
+        ..addAll(List.filled(10, 14))
+        ..add(2)
+        ..addAll(List.filled(31, 0));
+      final List<int> l2 = List.from(List.filled(10, 21))
+        ..addAll(List.filled(10, 42))
+        ..add(6)
+        ..addAll(List.filled(31, 0));
+      final List<int> l3 = List.from(List.filled(10, 98))
+        ..addAll(List.filled(10, 196))
+        ..add(28)
+        ..addAll(List.filled(31, 0));
+      final List<int> l4 = List.from(List.filled(10, 49))
+        ..addAll(List.filled(10, 98))
+        ..add(14)
+        ..addAll(List.filled(31, 0));
+      final List<int> l5 = List.from(List.filled(10, 14))
+        ..addAll(List.filled(10, 28))
+        ..add(4)
+        ..addAll(List.filled(31, 0));
+
+      final expectedMajorWeeklyDownloads = [
+        (counts: l1, versionRange: '>=1.0.0-0 <2.0.0'),
+        (counts: l2, versionRange: '>=2.0.0-0 <3.0.0'),
+        (counts: l1, versionRange: '>=3.0.0-0 <4.0.0'),
+        (counts: l1, versionRange: '>=4.0.0-0 <5.0.0'),
+        (counts: l3, versionRange: '>=6.0.0-0 <7.0.0')
+      ];
+
+      for (int i = 0; i < 5; i++) {
+        expect(res.majorRangeWeeklyDownloads[i].counts,
+            expectedMajorWeeklyDownloads[i].counts);
+        expect(res.majorRangeWeeklyDownloads[i].versionRange,
+            expectedMajorWeeklyDownloads[i].versionRange);
+      }
+
+      final expectedMinorWeeklyDownloads = [
+        (counts: l4, versionRange: '>=6.1.0-0 <6.2.0'),
+        (counts: l2, versionRange: '>=6.2.0-0 <6.3.0'),
+        (counts: l1, versionRange: '>=6.3.0-0 <6.4.0'),
+        (counts: l1, versionRange: '>=6.4.0-0 <6.5.0'),
+        (counts: l1, versionRange: '>=6.6.0-0 <6.7.0')
+      ];
+
+      for (int i = 0; i < 5; i++) {
+        expect(res.minorRangeWeeklyDownloads[i].counts,
+            expectedMinorWeeklyDownloads[i].counts);
+        expect(res.minorRangeWeeklyDownloads[i].versionRange,
+            expectedMinorWeeklyDownloads[i].versionRange);
+      }
+
+      final expectedPatchWeeklyDownloads = [
+        (counts: l5, versionRange: '>=6.2.0-0 <6.2.1'),
+        (counts: l1, versionRange: '>=6.2.1-0 <6.2.2'),
+        (counts: l1, versionRange: '>=6.3.1-0 <6.3.2'),
+        (counts: l1, versionRange: '>=6.4.0-0 <6.4.1'),
+        (counts: l1, versionRange: '>=6.6.1-0 <6.6.2'),
+      ];
+
+      for (int i = 0; i < 5; i++) {
+        expect(res.patchRangeWeeklyDownloads[i].counts,
+            expectedPatchWeeklyDownloads[i].counts);
+        expect(res.patchRangeWeeklyDownloads[i].versionRange,
+            expectedPatchWeeklyDownloads[i].versionRange);
+      }
     });
   });
 }

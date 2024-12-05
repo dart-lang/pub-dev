@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/task/models.dart';
 
 import '../scorecard/backend.dart';
@@ -33,6 +34,7 @@ class ScoreCardData {
   final DartdocReport? dartdocReport;
   final PanaReport? panaReport;
   final PackageVersionStatus? taskStatus;
+  final WeeklyVersionsDownloadCounts? weeklyVersionsDownloads;
 
   ScoreCardData({
     this.packageName,
@@ -42,6 +44,7 @@ class ScoreCardData {
     this.dartdocReport,
     this.panaReport,
     this.taskStatus,
+    this.weeklyVersionsDownloads,
   });
 
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
