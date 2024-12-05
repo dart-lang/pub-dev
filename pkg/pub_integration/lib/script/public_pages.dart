@@ -28,6 +28,7 @@ class PublicPagesScript {
       await _atomFeed();
       await _searchPage();
       await _sitemaps();
+      await _wellKnownFiles();
       await _customApis();
       await _badRequest();
     } finally {
@@ -79,6 +80,10 @@ class PublicPagesScript {
   Future<void> _sitemaps() async {
     await _pubClient.getContent('/sitemap.txt');
     await _pubClient.getContent('/sitemap-2.txt');
+  }
+
+  Future<void> _wellKnownFiles() async {
+    await _pubClient.getContent('/.well-known/security.txt');
   }
 
   Future<void> _customApis() async {

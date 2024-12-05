@@ -31,6 +31,21 @@ import 'cache_control.dart';
 
 final _log = Logger('pub.handlers.misc');
 
+/// Handles requests for /.well-known/security.txt
+Future<shelf.Response> wellKnownSecurityTxtHandler(
+    shelf.Request request) async {
+  final expiresDate =
+      clock.now().add(Duration(days: 31)).toIso8601String().split('T').first;
+  final content = 'Contact: https://goo.gl/vulnz\n'
+      'Policy: https://pub.dev/security\n'
+      'Preferred-Languages: en\n'
+      'Expires: ${expiresDate}T00:00:00z\n';
+  return shelf.Response.ok(
+    content,
+    headers: CacheControl.mostlyStaticApi.headers,
+  );
+}
+
 /// Handles requests for /help
 /// Handles requests for /help/<article>
 Future<shelf.Response> helpPageHandler(
