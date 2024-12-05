@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:gcloud/db.dart';
-import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -41,22 +39,6 @@ void main() {
       await expectRedirectResponse(
           await issueGet('/packages/oxygen/versions/1.2.00/changelog'),
           '/packages/oxygen/versions/1.2.0/changelog');
-    });
-
-    testWithProfile('withheld package - not found', fn: () async {
-      final pkg = await dbService.lookupValue<Package>(
-          dbService.emptyKey.append(Package, id: 'oxygen'));
-      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: true)]);
-      await expectNotFoundResponse(await issueGet('/packages/oxygen'));
-      await expectNotFoundResponse(await issueGet('/packages/oxygen/score'));
-      await expectNotFoundResponse(await issueGet('/packages/oxygen/versions'));
-      await expectNotFoundResponse(
-          await issueGet('/packages/oxygen/versions/${pkg.latestVersion}'));
-      await expectNotFoundResponse(await issueGet(
-          '/packages/oxygen/versions/${pkg.latestVersion}/score'));
-
-      // reverting to make sure integrity check is passing
-      await dbService.commit(inserts: [pkg..updateIsBlocked(isBlocked: false)]);
     });
 
     testWithProfile('/packages/foobar_not_found - not found', fn: () async {

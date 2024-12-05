@@ -91,15 +91,6 @@ class Publisher extends db.ExpandoModel<String> {
     isModerated = false;
   }
 
-  /// Clears most properties on the entity and sets the [isBlocked] flag.
-  void markForBlocked() {
-    isBlocked = true;
-    isAbandoned = true;
-    contactEmail = null;
-    description = '';
-    updated = clock.now().toUtc();
-  }
-
   /// Whether the publisher has a displayable description.
   bool get hasDescription => description != null && description!.isNotEmpty;
 

@@ -147,7 +147,7 @@ void main() {
         },
       );
       final p = await packageBackend.lookupPackage('neon');
-      p!.updateIsBlocked(isBlocked: true, reason: 'spam');
+      p!.updateIsModerated(isModerated: true);
       expect(p.isVisible, isFalse);
       await dbService.commit(inserts: [p]);
       await nameTracker.reloadFromDatastore();
@@ -163,7 +163,7 @@ void main() {
       );
 
       // reverting to make sure integrity check is passing
-      p.updateIsBlocked(isBlocked: false);
+      p.updateIsModerated(isModerated: false);
       await dbService.commit(inserts: [p]);
     });
   });

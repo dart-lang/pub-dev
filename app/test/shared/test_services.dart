@@ -240,11 +240,15 @@ void setupTestsWithCallerAuthorizationIssues(
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 
-  testWithProfile('Active user is blocked', fn: () async {
+  testWithProfile('Active user is moderated', fn: () async {
     final users = await dbService.query<User>().run().toList();
     final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
     final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-    await dbService.commit(inserts: [user..isBlocked = true]);
+    await dbService.commit(inserts: [
+      user
+        ..isModerated = true
+        ..moderatedAt = clock.now()
+    ]);
     final rs = fn(client);
     await expectApiException(rs,
         status: 401, code: 'MissingAuthentication', message: 'failed');

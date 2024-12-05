@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -15,8 +16,12 @@ void main() {
   group('Migrate isBlocked', () {
     testWithProfile('package', fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
-      await dbService.commit(
-          inserts: [p1!..updateIsBlocked(isBlocked: true, reason: 'abc')]);
+      await dbService.commit(inserts: [
+        p1!
+          ..isBlocked = true
+          ..blocked = clock.now()
+          ..blockedReason = 'abc'
+      ]);
       await migrateIsBlocked();
 
       final p2 = await packageBackend.lookupPackage('oxygen');
@@ -25,7 +30,7 @@ void main() {
 
     testWithProfile('publisher', fn: () async {
       final p1 = await publisherBackend.getPublisher('example.com');
-      await dbService.commit(inserts: [p1!..markForBlocked()]);
+      await dbService.commit(inserts: [p1!..isBlocked = true]);
       final members =
           await publisherBackend.listPublisherMembers('example.com');
       for (final m in members) {
