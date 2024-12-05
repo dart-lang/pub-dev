@@ -8,11 +8,19 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_semver/pub_semver.dart';
 part 'download_counts.g.dart';
 
-/// A tuple containing a string describing a `versionRange`, for instance
-/// '>=1.0.0-0 <2.0.0', and a list of integers with a count for each day.
-/// The `counts` list contains at most [maxAge] entries. The first entry
-/// represents the number of downloads on `newestDate` followed by the
-/// downloads on `newestDate` - 1 and so on. E.g.
+/// A [VersionRangeCount] is a tuple containing a version range and a list of
+/// download counts for periods of same length.
+///
+/// The first entry in the tuple is a string describing the `versionRange`, for
+/// instance '>=1.0.0-0 <2.0.0'.
+///
+/// The second entry in the tuple is an integer list of `counts` with download
+/// counts for each period. A period could for instance be a day, or a week etc.
+/// The `counts` list contains at most [maxAge] entries.
+///
+/// Consider the example of period being one day. The first count represents the
+/// number of downloads on `newestDate` followed by the downloads on
+/// `newestDate` - 1 and so on. E.g.
 ///
 ///  counts = [ 42, 21, 55 ]
 ///              ▲   ▲   ▲
@@ -218,7 +226,11 @@ class CountData {
 
 @JsonSerializable(includeIfNull: false)
 class WeeklyDownloadCounts {
+  /// Each number in [weeklyDownloads] is the total number of downloads for
+  /// a given 7 day period starting from [newestDate].
   final List<int> weeklyDownloads;
+
+  /// The newest date with download counts data available.
   final DateTime newestDate;
 
   WeeklyDownloadCounts({
@@ -229,4 +241,47 @@ class WeeklyDownloadCounts {
   factory WeeklyDownloadCounts.fromJson(Map<String, dynamic> json) =>
       _$WeeklyDownloadCountsFromJson(json);
   Map<String, dynamic> toJson() => _$WeeklyDownloadCountsToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class WeeklyVersionsDownloadCounts {
+  /// An integer list where each number is the total number of downloads for a
+  /// given 7 day period starting from [newestDate].
+  final List<int> totalWeeklyDownloads;
+
+  /// A list of [VersionRangeCount] with major version ranges and weekly
+  /// downloads for these ranges.
+  ///
+  /// E.g. each number in the `counts` list is the total number of downloads for
+  /// the range in a 7 day period starting from [newestDate].
+  final List<VersionRangeCount> majorRangeWeeklyDownloads;
+
+  /// A list of [VersionRangeCount] with minor version ranges and weekly
+  /// downloads for these ranges.
+  ///
+  /// E.g. each number in the `counts` list is the total number of downloads for
+  /// the range in a 7 day period starting from [newestDate].
+  final List<VersionRangeCount> minorRangeWeeklyDownloads;
+
+  /// A list of [VersionRangeCount] with patch version ranges and weekly
+  /// downloads for these ranges.
+  ///
+  /// E.g. each number in the `counts` list is the total number of downloads for
+  /// the range in a 7 day period starting from [newestDate].
+  final List<VersionRangeCount> patchRangeWeeklyDownloads;
+
+  /// The newest date with download counts data available.
+  final DateTime newestDate;
+
+  WeeklyVersionsDownloadCounts({
+    required this.newestDate,
+    required this.majorRangeWeeklyDownloads,
+    required this.minorRangeWeeklyDownloads,
+    required this.patchRangeWeeklyDownloads,
+    required this.totalWeeklyDownloads,
+  });
+
+  factory WeeklyVersionsDownloadCounts.fromJson(Map<String, dynamic> json) =>
+      _$WeeklyVersionsDownloadCountsFromJson(json);
+  Map<String, dynamic> toJson() => _$WeeklyVersionsDownloadCountsToJson(this);
 }

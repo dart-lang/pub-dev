@@ -92,3 +92,73 @@ Map<String, dynamic> _$WeeklyDownloadCountsToJson(
       'weeklyDownloads': instance.weeklyDownloads,
       'newestDate': instance.newestDate.toIso8601String(),
     };
+
+WeeklyVersionsDownloadCounts _$WeeklyVersionsDownloadCountsFromJson(
+        Map<String, dynamic> json) =>
+    WeeklyVersionsDownloadCounts(
+      newestDate: DateTime.parse(json['newestDate'] as String),
+      majorRangeWeeklyDownloads:
+          (json['majorRangeWeeklyCounts'] as List<dynamic>)
+              .map((e) => _$recordConvert(
+                    e,
+                    ($jsonValue) => (
+                      counts: ($jsonValue['counts'] as List<dynamic>)
+                          .map((e) => (e as num).toInt())
+                          .toList(),
+                      versionRange: $jsonValue['versionRange'] as String,
+                    ),
+                  ))
+              .toList(),
+      minorRangeWeeklyDownloads:
+          (json['minorRangeWeeklyCounts'] as List<dynamic>)
+              .map((e) => _$recordConvert(
+                    e,
+                    ($jsonValue) => (
+                      counts: ($jsonValue['counts'] as List<dynamic>)
+                          .map((e) => (e as num).toInt())
+                          .toList(),
+                      versionRange: $jsonValue['versionRange'] as String,
+                    ),
+                  ))
+              .toList(),
+      patchRangeWeeklyDownloads:
+          (json['patchRangeWeeklyCounts'] as List<dynamic>)
+              .map((e) => _$recordConvert(
+                    e,
+                    ($jsonValue) => (
+                      counts: ($jsonValue['counts'] as List<dynamic>)
+                          .map((e) => (e as num).toInt())
+                          .toList(),
+                      versionRange: $jsonValue['versionRange'] as String,
+                    ),
+                  ))
+              .toList(),
+      totalWeeklyDownloads: (json['totalWeeklyCounts'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+    );
+
+Map<String, dynamic> _$WeeklyVersionsDownloadCountsToJson(
+        WeeklyVersionsDownloadCounts instance) =>
+    <String, dynamic>{
+      'newestDate': instance.newestDate.toIso8601String(),
+      'majorRangeWeeklyCounts': instance.majorRangeWeeklyDownloads
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'minorRangeWeeklyCounts': instance.minorRangeWeeklyDownloads
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'patchRangeWeeklyCounts': instance.patchRangeWeeklyDownloads
+          .map((e) => <String, dynamic>{
+                'counts': e.counts,
+                'versionRange': e.versionRange,
+              })
+          .toList(),
+      'totalWeeklyCounts': instance.totalWeeklyDownloads,
+    };

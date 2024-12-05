@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/format/encoding.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
@@ -77,6 +79,8 @@ d.Node scoreTabNode({
           ],
         ),
         _reportNode(report),
+        if (card.weeklyVersionsDownloads != null)
+          _versionDownloadsChart(card.weeklyVersionsDownloads!),
         if (toolEnvInfo != null) toolEnvInfo,
       ]),
     if (!showPending)
@@ -171,6 +175,39 @@ d.Node _section(ReportSection section) {
       ],
     ),
   ]);
+}
+
+d.Node _versionDownloadsChart(
+    WeeklyVersionsDownloadCounts weeklyVersionsDownloads) {
+  return d.div(
+    classes: ['versions-downloads-chart'],
+    id: '-versions-downloads-chart',
+    attributes: {
+      'data-widget': 'versions-downloads-chart',
+      'data-versions-downloads-chart':
+          _encodeForVersionsChart(weeklyVersionsDownloads)
+    },
+  );
+}
+
+String _encodeForVersionsChart(WeeklyVersionsDownloadCounts wvcd) {
+  final date = wvcd.newestDate.toUtc().millisecondsSinceEpoch ~/ 1000;
+
+  final allCounts = <int>[];
+  final allRanges = <String>[];
+  wvcd.majorRangeWeeklyDownloads.forEach((e) => allCounts.addAll(e.counts));
+  wvcd.minorRangeWeeklyDownloads.forEach((e) => allCounts.addAll(e.counts));
+  wvcd.patchRangeWeeklyDownloads.forEach((e) => allCounts.addAll(e.counts));
+  allCounts.addAll(wvcd.totalWeeklyDownloads);
+
+  wvcd.majorRangeWeeklyDownloads.forEach((e) => allRanges.add(e.versionRange));
+  wvcd.minorRangeWeeklyDownloads.forEach((e) => allRanges.add(e.versionRange));
+  wvcd.patchRangeWeeklyDownloads.forEach((e) => allRanges.add(e.versionRange));
+
+  return [
+    encodeIntsAsLittleEndianBase64String([date, ...allCounts]),
+    allRanges
+  ].join(',');
 }
 
 final _statusIconUrls = {

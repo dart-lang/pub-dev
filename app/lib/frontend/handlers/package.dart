@@ -454,7 +454,7 @@ Future<PackagePageData> loadPackagePageData(
   final scoreCardFuture = scoreCardBackend
       .getScoreCardData(packageName, versionName, package: package);
 
-  final weeklyDownloadCountsFuture = getWeeklyDownloads(package.name!);
+  final weeklyDownloadCountsFuture = getWeeklyTotalDownloads(package.name!);
 
   await Future.wait([
     latestReleasesFuture,
