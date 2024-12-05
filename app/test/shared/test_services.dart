@@ -31,7 +31,7 @@ import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
-import 'package:pub_dev/tool/backfill/backfill_new_fields.dart';
+import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -141,8 +141,10 @@ Future<void> _postTestVerification({
     throw Exception('Integrity problem expected but not present.');
   }
 
-  // TODO: run all background tasks here
-  await backfillNewFields();
+  // run all background tasks here
+  for (final scheduler in createPeriodicTaskSchedulers()) {
+    await scheduler.trigger();
+  }
 
   // re-run integrity checks on the updated state
   final laterProblems =

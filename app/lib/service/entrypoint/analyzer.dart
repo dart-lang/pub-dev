@@ -68,8 +68,7 @@ Future _workerMain(EntryMessage message) async {
   await taskBackend.start();
   registerScopeExitCallback(() => taskBackend.stop());
 
-  setupAnalyzerPeriodicTasks();
-  setupSearchPeriodicTasks();
+  setupPeriodTaskSchedulers();
 
   // wait indefinitely
   await Completer().future;
