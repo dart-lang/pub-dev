@@ -11,7 +11,7 @@ import '../shared/markdown.dart';
 final _separatorChars = '_.?!,;:=()<>[]{}~@#\$%&|+-*\\/"\'`';
 final _escapedSeparators = _separatorChars.split('').map((s) => '\\$s').join();
 final _separators = RegExp('[$_escapedSeparators]|\\s');
-final RegExp _nonCharacterRegExp = RegExp('[^a-z0-9]');
+final _nonCharactersRegExp = RegExp('[^a-z0-9]+');
 final RegExp _multiWhitespaceRegExp = RegExp('\\s+');
 final RegExp _exactTermRegExp = RegExp(r'"([^"]+)"');
 
@@ -58,12 +58,7 @@ String compactReadme(String? text) {
 
 String normalizeBeforeIndexing(String? text) {
   if (text == null) return '';
-  final String t = text
-      .toLowerCase()
-      .replaceAll(_nonCharacterRegExp, ' ')
-      .replaceAll(_multiWhitespaceRegExp, ' ')
-      .trim();
-  return t;
+  return text.toLowerCase().replaceAll(_nonCharactersRegExp, ' ').trim();
 }
 
 Iterable<String> splitForIndexing(String? text) {
