@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: `search` isolate renewal is randomized.
 
 ## `20241205t082000-all`
  * Bump runtimeVersion to `2024.12.04`.

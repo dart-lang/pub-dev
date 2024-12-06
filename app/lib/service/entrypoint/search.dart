@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
@@ -18,6 +19,7 @@ import '../../shared/handler_helpers.dart';
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub.search');
+final _random = Random.secure();
 
 class SearchCommand extends Command {
   @override
@@ -28,6 +30,10 @@ class SearchCommand extends Command {
 
   @override
   Future<void> run() async {
+    // An instance-specific additional drift, to make sure that the index updates
+    // are stretched out over time.
+    final delayDrift = _random.nextInt(60);
+
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
       final index = await startQueryIsolate(
@@ -39,10 +45,22 @@ class SearchCommand extends Command {
 
       registerSearchIndex(IsolateSearchIndex(index));
 
-      final renewTimer = Timer.periodic(Duration(minutes: 15), (_) async {
-        await index.renew(count: 1, wait: Duration(minutes: 2));
-      });
-      registerScopeExitCallback(() => renewTimer.cancel());
+      void scheduleRenew() {
+        scheduleMicrotask(() async {
+          // 12 - 17 minutes delay
+          final delay =
+              Duration(minutes: 12, seconds: delayDrift + _random.nextInt(240));
+          await Future.delayed(delay);
+
+          // create a new index and handover with a 2-minute maximum wait
+          await index.renew(count: 1, wait: Duration(minutes: 2));
+
+          // schedule the renewal again
+          scheduleRenew();
+        });
+      }
+
+      scheduleRenew();
 
       await runHandler(_logger, searchServiceHandler);
     });
