@@ -75,22 +75,34 @@ extension StorageExt on Storage {
 extension BucketExt on Bucket {
   /// Returns an [ObjectInfo] if [name] exists, `null` otherwise.
   Future<ObjectInfo?> tryInfo(String name) async {
-    try {
-      return await info(name);
-    } on DetailedApiRequestError catch (e) {
-      if (e.status == 404) return null;
-      rethrow;
-    }
+    return await retry(
+      () async {
+        try {
+          return await info(name);
+        } on DetailedApiRequestError catch (e) {
+          if (e.status == 404) return null;
+          rethrow;
+        }
+      },
+      maxAttempts: 3,
+      retryIf: _retryIf,
+    );
   }
 
   /// Deletes [name] if it exists, ignores 404 otherwise.
   Future<void> tryDelete(String name) async {
-    try {
-      return await delete(name);
-    } on DetailedApiRequestError catch (e) {
-      if (e.status == 404) return null;
-      rethrow;
-    }
+    return await retry(
+      () async {
+        try {
+          return await delete(name);
+        } on DetailedApiRequestError catch (e) {
+          if (e.status == 404) return null;
+          rethrow;
+        }
+      },
+      maxAttempts: 3,
+      retryIf: _retryIf,
+    );
   }
 
   Future uploadPublic(String objectName, int length,
@@ -139,22 +151,7 @@ extension BucketExt on Bucket {
         return builder.toBytes();
       },
       maxAttempts: 3,
-      retryIf: (e) {
-        if (e is TimeoutException) {
-          return true; // Timeouts we can retry
-        }
-        if (e is IOException) {
-          return true; // I/O issues are worth retrying
-        }
-        if (e is http.ClientException) {
-          return true; // HTTP issues are worth retrying
-        }
-        if (e is DetailedApiRequestError) {
-          final status = e.status;
-          return status == null || status >= 500; // 5xx errors are retried
-        }
-        return e is ApiRequestError; // Unknown API errors are retried
-      },
+      retryIf: _retryIf,
     );
   }
 
@@ -162,6 +159,23 @@ extension BucketExt on Bucket {
   String objectUrl(String objectName) {
     return '${activeConfiguration.storageBaseUrl}/$bucketName/$objectName';
   }
+}
+
+bool _retryIf(Exception e) {
+  if (e is TimeoutException) {
+    return true; // Timeouts we can retry
+  }
+  if (e is IOException) {
+    return true; // I/O issues are worth retrying
+  }
+  if (e is http.ClientException) {
+    return true; // HTTP issues are worth retrying
+  }
+  if (e is DetailedApiRequestError) {
+    final status = e.status;
+    return status == null || status >= 500; // 5xx errors are retried
+  }
+  return e is ApiRequestError; // Unknown API errors are retried
 }
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
@@ -264,18 +278,7 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
       await sink.close();
     },
     description: 'Upload to $objectName',
-    shouldRetryOnError: (e) {
-      // upstream proxy or rate limit issue
-      if (e is DetailedApiRequestError) {
-        return _retryStatusCodes.contains(e.status);
-      }
-      // network connection failures
-      if (e is http.ClientException || e is SocketException) {
-        return true;
-      }
-      // otherwise no retry
-      return false;
-    },
+    shouldRetryOnError: _retryIf,
     sleep: Duration(seconds: 10),
   );
 }
