@@ -19,9 +19,9 @@ Future<void> main(List<String> args) async {
       json.decode(utf8.decode(gzip.decode(await file.readAsBytes())))
           as Map<String, Object?>;
   final snapshot = SearchSnapshot.fromJson(content);
-  snapshot.documents!
-      .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-  final index = InMemoryPackageIndex(documents: snapshot.documents!.values);
+  final index = InMemoryPackageIndex(
+      documents:
+          snapshot.documents!.values.where((d) => !isSoftRemoved(d.package)));
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [
