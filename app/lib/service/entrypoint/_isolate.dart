@@ -64,6 +64,9 @@ class IsolateRunner {
     required Duration wait,
   }) async {
     final isolatesToClose = [..._isolates];
+    final lastId = isolatesToClose.isEmpty ? null : isolatesToClose.last.id;
+    logger.info('About to renew $count isolate(s) '
+        '(closing ${isolatesToClose.length}, last: `$lastId`).');
 
     await start(count);
     // prevent traffic to hit the old instances
@@ -75,6 +78,8 @@ class IsolateRunner {
     for (final i in isolatesToClose) {
       await i.close();
     }
+    logger.info('Renewed $count isolate(s) '
+        '(closing ${isolatesToClose.length}, last: `$lastId`).');
   }
 
   /// Send [RequestMessage] and wait for [ReplyMessage] returning
