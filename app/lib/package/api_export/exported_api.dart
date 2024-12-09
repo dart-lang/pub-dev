@@ -482,10 +482,10 @@ final class ExportedJsonFile<T> extends ExportedObject {
   final Duration _maxAge;
 
   ExportedJsonFile._(
-    ExportedApi _owner,
-    String _objectName,
+    super._owner,
+    super._objectName,
     this._maxAge,
-  ) : super._(_owner, _objectName);
+  ) : super._();
 
   ObjectMetadata _metadata() {
     return ObjectMetadata(
@@ -531,12 +531,12 @@ final class ExportedBlob extends ExportedObject {
   final String _filename;
 
   ExportedBlob._(
-    ExportedApi _owner,
-    String _objectName,
+    super._owner,
+    super._objectName,
     this._filename,
     this._contentType,
     this._maxAge,
-  ) : super._(_owner, _objectName);
+  ) : super._();
 
   ObjectMetadata _metadata() {
     return ObjectMetadata(

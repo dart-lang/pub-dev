@@ -314,7 +314,7 @@ final class UploadException implements Exception {
 }
 
 final class IntermittentUploadException extends UploadException {
-  IntermittentUploadException(String message) : super(message);
+  IntermittentUploadException(super.message);
 }
 
 Summary _emptySummary(String package, String version) {

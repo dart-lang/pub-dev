@@ -88,11 +88,11 @@ final class UploadException implements Exception {
 }
 
 final class IntermittentUploadException extends UploadException {
-  IntermittentUploadException(String message) : super(message);
+  IntermittentUploadException(super.message);
 }
 
 final class TaskAbortedException extends UploadException {
-  TaskAbortedException(String message) : super(message);
+  TaskAbortedException(super.message);
 }
 
 /// Extract `error.code` from JSON body in [res].
