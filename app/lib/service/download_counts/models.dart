@@ -16,8 +16,8 @@ class DownloadCounts extends db.ExpandoModel<String> {
 }
 
 class CountDataProperty extends db.Property {
-  const CountDataProperty({String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+  const CountDataProperty({super.propertyName, super.required = false})
+      : super(indexed: false);
 
   @override
   Object? decodePrimitiveValue(db.ModelDB db, Object? value) {

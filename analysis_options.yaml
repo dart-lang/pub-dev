@@ -43,6 +43,7 @@ linter:
     - prefer_final_locals
     - prefer_for_elements_to_map_fromIterable
     - prefer_if_null_operators
+    - prefer_initializing_formals
     - prefer_null_aware_operators
     - prefer_single_quotes
     - prefer_spread_collections
@@ -63,3 +64,4 @@ linter:
     - unnecessary_this
     - use_function_type_syntax_for_parameters
     - use_rethrow_when_possible
+    - use_super_parameters

@@ -42,12 +42,13 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
 
   NeatTaskStatus();
 
-  NeatTaskStatus.init(String name, {required bool isRuntimeVersioned}) {
-    this.name = name;
-    runtimeVersion =
-        _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
+  NeatTaskStatus.init(String name, {required bool isRuntimeVersioned})
+      // ignore: prefer_initializing_formals
+      : name = name,
+        runtimeVersion =
+            _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned),
+        updated = clock.now().toUtc() {
     id = _compositeId(name, isRuntimeVersioned: isRuntimeVersioned);
-    updated = clock.now().toUtc();
   }
 }
 

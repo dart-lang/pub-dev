@@ -236,8 +236,8 @@ class MinSdkVersion {
 }
 
 class PubspecProperty extends StringProperty {
-  const PubspecProperty({String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+  const PubspecProperty({super.propertyName, super.required = false})
+      : super(indexed: false);
 
   @override
   bool validate(ModelDB db, Object? value) =>

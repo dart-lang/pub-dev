@@ -484,8 +484,8 @@ class AutomatedPublishing {
 /// A [db.Property] encoding [AutomatedPublishing] as JSON.
 class AutomatedPublishingProperty extends db.Property {
   const AutomatedPublishingProperty(
-      {String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+      {super.propertyName, super.required = false})
+      : super(indexed: false);
 
   @override
   Object? encodeValue(

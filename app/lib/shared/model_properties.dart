@@ -10,8 +10,8 @@ class CompatibleListProperty<T> extends Property {
   final PrimitiveProperty subProperty;
 
   const CompatibleListProperty(this.subProperty,
-      {String? propertyName, bool indexed = true})
-      : super(propertyName: propertyName, required: true, indexed: indexed);
+      {super.propertyName, super.indexed})
+      : super(required: true);
 
   @override
   bool validate(ModelDB db, Object? value) {
