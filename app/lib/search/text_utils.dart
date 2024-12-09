@@ -102,23 +102,23 @@ Map<String, double>? tokenize(String? originalText, {bool isSplit = false}) {
 
     // Scan for CamelCase phrases and extract Camel and Case separately.
     final wordCodeUnits = word.codeUnits;
-    final changeIndex = <int>[0];
     bool prevLower = _isLower(wordCodeUnits[0]);
-    for (int i = 1; i < word.length; i++) {
-      final lower = _isLower(wordCodeUnits[i]);
-      if (!lower && prevLower) {
-        changeIndex.add(i);
+    int prevIndex = 0;
+    for (int i = 1; i <= word.length; i++) {
+      if (i < word.length) {
+        final lower = _isLower(wordCodeUnits[i]);
+        final isChanging = !lower && prevLower;
+        prevLower = lower;
+        if (!isChanging) continue;
       }
-      prevLower = lower;
-    }
-    changeIndex.add(word.length);
-    for (int i = 1; i < changeIndex.length; i++) {
-      final token = normalizeBeforeIndexing(
-          word.substring(changeIndex[i - 1], changeIndex[i]));
+
+      final token = normalizeBeforeIndexing(word.substring(prevIndex, i));
       final weight = math.pow((token.length / word.length), 0.5).toDouble();
       if ((tokens[token] ?? 0.0) < weight) {
         tokens[token] = weight;
       }
+
+      prevIndex = i;
     }
   }
   return tokens;
