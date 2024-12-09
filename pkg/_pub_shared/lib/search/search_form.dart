@@ -131,6 +131,8 @@ class TagsPredicate {
   bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
 
+  Iterable<MapEntry<String, bool>> get entries => _values.entries;
+
   bool isRequiredTag(String tag) => _values[tag] == true;
   bool isProhibitedTag(String tag) => _values[tag] == false;
   bool hasTag(String tag) => _values.containsKey(tag);
@@ -185,19 +187,6 @@ class TagsPredicate {
     p._values.addAll(_values);
     p._values.addAll(other._values);
     return p;
-  }
-
-  /// Evaluate this predicate against the list of supplied [tags].
-  /// Returns true if the predicate matches the [tags], false otherwise.
-  bool matches(Iterable<String> tags) {
-    for (final entry in _values.entries) {
-      final tag = entry.key;
-      final required = entry.value;
-      final present = tags.contains(tag);
-      if (required && !present) return false;
-      if (!required && present) return false;
-    }
-    return true;
   }
 
   /// Toggles [tag] between required and absent status.
