@@ -28,6 +28,8 @@ class InMemoryPackageIndex {
   late final TokenIndex<String> _readmeIndex;
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
   late final _scorePool = ScorePool(_packageNameIndex._packageNames);
+  final _tagIds = <String, int>{};
+  final _documentTagIds = <List<int>>[];
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
@@ -57,6 +59,14 @@ class InMemoryPackageIndex {
     for (var i = 0; i < _documents.length; i++) {
       final doc = _documents[i];
       _documentsByName[doc.package] = doc;
+
+      // transform tags into numberical IDs
+      final tagIds = <int>[];
+      for (final tag in doc.tags) {
+        tagIds.add(_tagIds.putIfAbsent(tag, () => _tagIds.length));
+      }
+      tagIds.sort();
+      _documentTagIds.add(tagIds);
 
       final apiDocPages = doc.apiDocPages;
       if (apiDocPages != null) {
@@ -144,8 +154,49 @@ class InMemoryPackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packageScores.retainWhere(
-          (i, _) => combinedTagsPredicate.matches(_documents[i].tagsForLookup));
+      // The list of predicate tag entries, converted to tag IDs (or -1 if there is no indexed tag),
+      // sorted by their id.
+      final entriesToCheck = combinedTagsPredicate.entries
+          .map((e) => MapEntry(_tagIds[e.key] ?? -1, e.value))
+          .toList()
+        ..sort((a, b) => a.key.compareTo(b.key));
+
+      packageScores.retainWhere((docIndex, _) {
+        // keeping track of tag id iteration with the `nextTagIndex`
+        final tagIds = _documentTagIds[docIndex];
+        var nextTagIndex = 0;
+
+        for (final entry in entriesToCheck) {
+          if (entry.key == -1) {
+            // no tag id is present for this predicate
+            if (entry.value) {
+              // the predicate is required, no document will match it
+              return false;
+            } else {
+              // the predicate is prohibited, no document has it, always a match
+              continue;
+            }
+          }
+
+          // skipping the present tag ids until the currently matched predicate tag id
+          while (nextTagIndex < tagIds.length &&
+              tagIds[nextTagIndex] < entry.key) {
+            nextTagIndex++;
+          }
+
+          // checking presence
+          late bool present;
+          if (nextTagIndex == tagIds.length) {
+            present = false;
+          } else {
+            present = tagIds[nextTagIndex] == entry.key;
+          }
+
+          if (entry.value && !present) return false;
+          if (!entry.value && present) return false;
+        }
+        return true;
+      });
     }
 
     // filter on dependency

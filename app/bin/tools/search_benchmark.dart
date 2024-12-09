@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/search/search_form.dart';
 import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/models.dart';
@@ -24,6 +25,7 @@ Future<void> main(List<String> args) async {
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [
+    'chart',
     'json',
     'camera',
     'android camera',
@@ -33,7 +35,10 @@ Future<void> main(List<String> args) async {
   final sw = Stopwatch()..start();
   var count = 0;
   for (var i = 0; i < 100; i++) {
-    index.search(ServiceSearchQuery.parse(query: queries[i % queries.length]));
+    index.search(ServiceSearchQuery.parse(
+      query: queries[i % queries.length],
+      tagsPredicate: TagsPredicate.regularSearch(),
+    ));
     count++;
   }
   sw.stop();
