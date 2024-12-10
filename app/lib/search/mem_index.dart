@@ -122,6 +122,14 @@ class InMemoryPackageIndex {
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
+    // prevent any work if offset is outside of the range
+    if ((query.offset ?? 0) > _documents.length) {
+      return PackageSearchResult(
+        timestamp: clock.now(),
+        totalCount: 0,
+        packageHits: [],
+      );
+    }
     return _scorePool.withScore(
       value: 1.0,
       fn: (score) {
