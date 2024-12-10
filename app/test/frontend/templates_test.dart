@@ -137,7 +137,7 @@ void main() {
       },
     );
 
-// TODO(https://github.com/dart-lang/pub-dev/issues/8385): reanble out commented tests.
+// TODO(https://github.com/dart-lang/pub-dev/issues/8385): enable out commented tests.
 
     // testWithProfile(
     //   'package show page',
