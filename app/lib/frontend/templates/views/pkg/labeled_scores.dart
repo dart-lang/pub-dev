@@ -29,8 +29,7 @@ d.Node labeledScoresNode({
       ),
       d.div(
         classes: ['packages-score', 'packages-score-health'],
-        child:
-            _labeledScore('pub points', grantedPubPoints?.toString(), sign: ''),
+        child: _labeledScore('points', grantedPubPoints?.toString(), sign: ''),
       ),
       requestContext.experimentalFlags.showDownloadCounts
           ? d.div(
