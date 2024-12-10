@@ -24,8 +24,8 @@ import 'package:pub_dev/frontend/templates/consent.dart';
 import 'package:pub_dev/frontend/templates/landing.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
-import 'package:pub_dev/frontend/templates/package.dart';
-import 'package:pub_dev/frontend/templates/package_admin.dart';
+// import 'package:pub_dev/frontend/templates/package.dart';
+// import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/report.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
@@ -36,17 +36,17 @@ import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/search_service.dart';
-import 'package:pub_dev/service/download_counts/backend.dart';
+// import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/youtube/backend.dart';
 import 'package:pub_dev/shared/utils.dart' show shortDateFormat;
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/tool/test_profile/models.dart';
+// import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 import '../shared/utils.dart';
-import 'handlers/_utils.dart';
+// import 'handlers/_utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
 
