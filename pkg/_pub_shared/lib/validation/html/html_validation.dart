@@ -18,8 +18,7 @@ void parseAndValidateHtml(String html) {
   if (html.startsWith('<html>')) {
     html = '<!DOCTYPE html>\n$html';
   }
-  // TODO(https://github.com/dart-lang/pub-dev/issues/8385): set `strict` to true
-  validateHtml(parser.HtmlParser(html, strict: false).parse());
+  validateHtml(parser.HtmlParser(html, strict: true).parse());
 }
 
 /// Validates the parsed HTML content and throws AssertionError if any of the
