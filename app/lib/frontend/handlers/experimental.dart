@@ -96,6 +96,7 @@ class ExperimentalFlags {
   bool get isDarkModeDefault => isEnabled('dark-as-default');
 
   bool get showDownloadCounts => isEnabled('download-counts');
+  bool get showDownloadCountsChart => isEnabled('download-counts-chart');
 
   String encodedAsCookie() => _enabled.join(':');
 
