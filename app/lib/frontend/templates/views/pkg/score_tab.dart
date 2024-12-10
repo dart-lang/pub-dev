@@ -80,7 +80,7 @@ d.Node scoreTabNode({
         ),
         _reportNode(report),
         if (card.weeklyVersionDownloads != null &&
-            requestContext.experimentalFlags.showDownloadCountsChart)
+            requestContext.experimentalFlags.showDownloadCountsVersionChart)
           _downloadsChart(card.weeklyVersionDownloads!),
         if (toolEnvInfo != null) toolEnvInfo,
       ]),
