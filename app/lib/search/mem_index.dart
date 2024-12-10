@@ -72,7 +72,7 @@ class InMemoryPackageIndex {
       if (apiDocPages != null) {
         for (final page in apiDocPages) {
           if (page.symbols != null && page.symbols!.isNotEmpty) {
-            apiDocPageKeys.add(IndexedApiDocPage(i, doc.package, page));
+            apiDocPageKeys.add(IndexedApiDocPage(i, page));
             apiDocPageValues.add(page.symbols!.join(' '));
           }
         }
@@ -376,7 +376,8 @@ class InMemoryPackageIndex {
       // are multiplied. We can use a package filter that is applied after each
       // word to reduce the scope of the later words based on the previous results.
       /// However, API docs search should be filtered on the original list.
-      final packages = packageScores.toKeySet();
+      final indexedPositiveList = packageScores.toIndexedPositiveList();
+
       for (final word in words) {
         if (includeNameMatches && _documentsByName.containsKey(word)) {
           nameMatches ??= <String>{};
@@ -406,7 +407,7 @@ class InMemoryPackageIndex {
             if (value < 0.01) continue;
 
             final doc = symbolPages.keys[i];
-            if (!packages.contains(doc.package)) continue;
+            if (!indexedPositiveList[doc.index]) continue;
 
             // skip if the previously found pages are better than the current one
             final pages =
@@ -660,8 +661,7 @@ class IndexedPackageHit {
 
 class IndexedApiDocPage {
   final int index;
-  final String package;
   final ApiDocPage page;
 
-  IndexedApiDocPage(this.index, this.package, this.page);
+  IndexedApiDocPage(this.index, this.page);
 }
