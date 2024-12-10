@@ -272,10 +272,12 @@ class InMemoryPackageIndex {
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
         packageScores.multiplyAllFromValues(_adjustedOverallScores);
-        indexedHits = _rankWithValues(packageScores);
+        indexedHits = _rankWithValues(packageScores,
+            requiredLengthThreshold: query.offset);
         break;
       case SearchOrder.text:
-        indexedHits = _rankWithValues(packageScores);
+        indexedHits = _rankWithValues(packageScores,
+            requiredLengthThreshold: query.offset);
         break;
       case SearchOrder.created:
         indexedHits = _createdOrderedHits.whereInScores(packageScores);
@@ -454,7 +456,11 @@ class InMemoryPackageIndex {
     return null;
   }
 
-  List<IndexedPackageHit> _rankWithValues(IndexedScore<String> score) {
+  List<IndexedPackageHit> _rankWithValues(
+    IndexedScore<String> score, {
+    // if the item count is fewer than this threshold, an empty list will be returned
+    int? requiredLengthThreshold,
+  }) {
     final list = <IndexedPackageHit>[];
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
@@ -462,13 +468,17 @@ class InMemoryPackageIndex {
       list.add(IndexedPackageHit(
           i, PackageHit(package: score.keys[i], score: value)));
     }
+    if ((requiredLengthThreshold ?? 0) > list.length) {
+      // There is no point to sort or even keep the results, as the search query offset ignores these anyway.
+      return [];
+    }
     list.sort((a, b) {
       final scoreCompare = -a.hit.score!.compareTo(b.hit.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
       return _compareUpdated(_documents[a.index], _documents[b.index]);
     });
-    return list.toList();
+    return list;
   }
 
   List<IndexedPackageHit> _rankWithComparator(
