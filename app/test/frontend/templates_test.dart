@@ -15,8 +15,8 @@ import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/handlers/package.dart'
-    show loadPackagePageData;
+// import 'package:pub_dev/frontend/handlers/package.dart'
+// show loadPackagePageData;
 import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
@@ -29,8 +29,8 @@ import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/report.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
-import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
+// import 'package:pub_dev/package/backend.dart';
+// import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -54,10 +54,10 @@ final _regenerateGoldens = false;
 
 void main() {
   group('templates', () {
-    Future<PackagePageData> loadPackagePageDataByName(
-            String name, String versionName, String? assetKind) async =>
-        loadPackagePageData((await packageBackend.lookupPackage(name))!,
-            versionName, assetKind);
+    // Future<PackagePageData> loadPackagePageDataByName(
+    //         String name, String versionName, String? assetKind) async =>
+    //     loadPackagePageData((await packageBackend.lookupPackage(name))!,
+    //         versionName, assetKind);
 
     void expectGoldenFile(
       String content,
