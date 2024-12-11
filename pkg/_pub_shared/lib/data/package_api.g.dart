@@ -180,6 +180,7 @@ VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
       grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
       maxPoints: (json['maxPoints'] as num?)?.toInt(),
       likeCount: (json['likeCount'] as num?)?.toInt(),
+      downloadCount30Days: (json['downloadCount30Days'] as num?)?.toInt(),
       popularityScore: (json['popularityScore'] as num?)?.toDouble(),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       lastUpdated: json['lastUpdated'] == null
@@ -192,6 +193,8 @@ Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) =>
       if (instance.grantedPoints case final value?) 'grantedPoints': value,
       if (instance.maxPoints case final value?) 'maxPoints': value,
       if (instance.likeCount case final value?) 'likeCount': value,
+      if (instance.downloadCount30Days case final value?)
+        'downloadCount30Days': value,
       if (instance.popularityScore case final value?) 'popularityScore': value,
       if (instance.tags case final value?) 'tags': value,
       if (instance.lastUpdated?.toIso8601String() case final value?)
