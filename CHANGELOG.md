@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20241211t095400-all`
+
 ## `20241210t143600-all`
  * Bump runtimeVersion to `2024.12.09`.
  * Upgraded stable Dart analysis SDK to `3.6.0`
