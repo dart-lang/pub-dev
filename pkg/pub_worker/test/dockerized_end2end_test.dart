@@ -75,9 +75,14 @@ void main() {
           final version = versions[i];
           final result = await server.waitForResult(package, version);
 
+          final logTxtBytes = result.lookup('log.txt');
+          final logTxt = logTxtBytes == null
+              ? '[no log.txt]'
+              : utf8.decode(gzip.decode(logTxtBytes));
+
           final docIndex = result.index.lookup('doc/index.html');
           expect(docIndex, isNotNull,
-              reason: '$package must have documentation');
+              reason: '$package must have documentation, see log:\n$logTxt');
 
           final panaSummaryBytes = result.lookup('summary.json');
           expect(panaSummaryBytes, isNotNull);

@@ -135,9 +135,6 @@ class PackageDocument {
 
   Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  late final Set<String> tagsForLookup = Set.of(tags);
-
   late final packageNameLowerCased = package.toLowerCase();
 }
 

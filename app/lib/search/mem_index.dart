@@ -28,6 +28,8 @@ class InMemoryPackageIndex {
   late final TokenIndex<String> _readmeIndex;
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
   late final _scorePool = ScorePool(_packageNameIndex._packageNames);
+  final _tagIds = <String, int>{};
+  final _documentTagIds = <List<int>>[];
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
@@ -57,6 +59,14 @@ class InMemoryPackageIndex {
     for (var i = 0; i < _documents.length; i++) {
       final doc = _documents[i];
       _documentsByName[doc.package] = doc;
+
+      // transform tags into numberical IDs
+      final tagIds = <int>[];
+      for (final tag in doc.tags) {
+        tagIds.add(_tagIds.putIfAbsent(tag, () => _tagIds.length));
+      }
+      tagIds.sort();
+      _documentTagIds.add(tagIds);
 
       final apiDocPages = doc.apiDocPages;
       if (apiDocPages != null) {
@@ -122,6 +132,14 @@ class InMemoryPackageIndex {
   }
 
   PackageSearchResult search(ServiceSearchQuery query) {
+    // prevent any work if offset is outside of the range
+    if ((query.offset ?? 0) > _documents.length) {
+      return PackageSearchResult(
+        timestamp: clock.now(),
+        totalCount: 0,
+        packageHits: [],
+      );
+    }
     return _scorePool.withScore(
       value: 1.0,
       fn: (score) {
@@ -144,8 +162,49 @@ class InMemoryPackageIndex {
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
-      packageScores.retainWhere(
-          (i, _) => combinedTagsPredicate.matches(_documents[i].tagsForLookup));
+      // The list of predicate tag entries, converted to tag IDs (or -1 if there is no indexed tag),
+      // sorted by their id.
+      final entriesToCheck = combinedTagsPredicate.entries
+          .map((e) => MapEntry(_tagIds[e.key] ?? -1, e.value))
+          .toList()
+        ..sort((a, b) => a.key.compareTo(b.key));
+
+      packageScores.retainWhere((docIndex, _) {
+        // keeping track of tag id iteration with the `nextTagIndex`
+        final tagIds = _documentTagIds[docIndex];
+        var nextTagIndex = 0;
+
+        for (final entry in entriesToCheck) {
+          if (entry.key == -1) {
+            // no tag id is present for this predicate
+            if (entry.value) {
+              // the predicate is required, no document will match it
+              return false;
+            } else {
+              // the predicate is prohibited, no document has it, always a match
+              continue;
+            }
+          }
+
+          // skipping the present tag ids until the currently matched predicate tag id
+          while (nextTagIndex < tagIds.length &&
+              tagIds[nextTagIndex] < entry.key) {
+            nextTagIndex++;
+          }
+
+          // checking presence
+          late bool present;
+          if (nextTagIndex == tagIds.length) {
+            present = false;
+          } else {
+            present = tagIds[nextTagIndex] == entry.key;
+          }
+
+          if (entry.value && !present) return false;
+          if (!entry.value && present) return false;
+        }
+        return true;
+      });
     }
 
     // filter on dependency
@@ -213,10 +272,12 @@ class InMemoryPackageIndex {
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
         packageScores.multiplyAllFromValues(_adjustedOverallScores);
-        indexedHits = _rankWithValues(packageScores);
+        indexedHits = _rankWithValues(packageScores,
+            requiredLengthThreshold: query.offset);
         break;
       case SearchOrder.text:
-        indexedHits = _rankWithValues(packageScores);
+        indexedHits = _rankWithValues(packageScores,
+            requiredLengthThreshold: query.offset);
         break;
       case SearchOrder.created:
         indexedHits = _createdOrderedHits.whereInScores(packageScores);
@@ -395,7 +456,11 @@ class InMemoryPackageIndex {
     return null;
   }
 
-  List<IndexedPackageHit> _rankWithValues(IndexedScore<String> score) {
+  List<IndexedPackageHit> _rankWithValues(
+    IndexedScore<String> score, {
+    // if the item count is fewer than this threshold, an empty list will be returned
+    int? requiredLengthThreshold,
+  }) {
     final list = <IndexedPackageHit>[];
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
@@ -403,13 +468,17 @@ class InMemoryPackageIndex {
       list.add(IndexedPackageHit(
           i, PackageHit(package: score.keys[i], score: value)));
     }
+    if ((requiredLengthThreshold ?? 0) > list.length) {
+      // There is no point to sort or even keep the results, as the search query offset ignores these anyway.
+      return [];
+    }
     list.sort((a, b) {
       final scoreCompare = -a.hit.score!.compareTo(b.hit.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
       return _compareUpdated(_documents[a.index], _documents[b.index]);
     });
-    return list.toList();
+    return list;
   }
 
   List<IndexedPackageHit> _rankWithComparator(
