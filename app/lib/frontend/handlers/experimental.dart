@@ -13,6 +13,10 @@ const _publicFlags = <PublicFlag>{
   (name: 'download-counts', description: 'Download count metrics'),
   (name: 'search-completion', description: 'Completions for the search bar'),
   (name: 'search-topics', description: 'Show matching topics when searching'),
+  (
+    name: 'download-counts-version-chart',
+    description: 'Show downloads counts version chart'
+  ),
 };
 
 final _allFlags = <String>{
