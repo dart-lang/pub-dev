@@ -219,6 +219,14 @@ class IndexedScore<K> {
     _values[index] = math.max(_values[index], value);
   }
 
+  /// Sets the positions greater than or equal to [start] and less than [end],
+  /// to [fillValue].
+  void fillRange(int start, int end, double fillValue) {
+    assert(start <= end);
+    if (start == end) return;
+    _values.fillRange(start, end, fillValue);
+  }
+
   void removeWhere(bool Function(int index, K key) fn) {
     for (var i = 0; i < length; i++) {
       if (isNotPositive(i)) continue;

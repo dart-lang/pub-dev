@@ -341,6 +341,12 @@ class PackageSearchResult {
         sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
         statusCode = statusCode;
 
+  factory PackageSearchResult.empty() => PackageSearchResult(
+        timestamp: clock.now(),
+        totalCount: 0,
+        packageHits: [],
+      );
+
   PackageSearchResult.error({
     required this.errorMessage,
     required this.statusCode,
