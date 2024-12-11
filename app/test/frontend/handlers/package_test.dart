@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// import 'package:pub_dev/tool/test_profile/models.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -121,39 +121,38 @@ void main() {
       },
     );
 
-// TODO(https://github.com/dart-lang/pub-dev/issues/8385): enable out commented test.
-    // testWithProfile(
-    //   'package pages without homepage',
-    //   testProfile: TestProfile(
-    //     packages: [
-    //       TestPackage(
-    //           name: 'pkg',
-    //           versions: [TestVersion(version: '1.0.0-nohomepage')]),
-    //     ],
-    //     defaultUser: 'admin@pub.dev',
-    //   ),
-    //   processJobsWithFakeRunners: true,
-    //   fn: () async {
-    //     final urls = [
-    //       '/packages/pkg',
-    //       '/packages/pkg/changelog',
-    //       '/packages/pkg/example',
-    //       '/packages/pkg/versions',
-    //       '/packages/pkg/pubspec',
-    //       '/packages/pkg/license',
-    //       '/packages/pkg/score',
-    //     ];
-    //     for (final url in urls) {
-    //       await expectHtmlResponse(
-    //         await issueGet(url),
-    //         present: [],
-    //         absent: [
-    //           'Homepage',
-    //         ],
-    //       );
-    //     }
-    //   },
-    // );
+    testWithProfile(
+      'package pages without homepage',
+      testProfile: TestProfile(
+        packages: [
+          TestPackage(
+              name: 'pkg',
+              versions: [TestVersion(version: '1.0.0-nohomepage')]),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final urls = [
+          '/packages/pkg',
+          '/packages/pkg/changelog',
+          '/packages/pkg/example',
+          '/packages/pkg/versions',
+          '/packages/pkg/pubspec',
+          '/packages/pkg/license',
+          '/packages/pkg/score',
+        ];
+        for (final url in urls) {
+          await expectHtmlResponse(
+            await issueGet(url),
+            present: [],
+            absent: [
+              'Homepage',
+            ],
+          );
+        }
+      },
+    );
 
     testWithProfile(
       'publisher redirect',

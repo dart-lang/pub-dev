@@ -85,7 +85,7 @@ d.Node packageInfoBoxNode({
     _publisher(package.publisherId),
     if (data.weeklyDownloadCounts != null &&
         requestContext.experimentalFlags.showDownloadCounts)
-      _block('Weekly Downloads', _downloadsChart(data.weeklyDownloadCounts!)),
+      _downloadsChart(data.weeklyDownloadCounts!),
     _metadata(
       description: version.pubspec!.description,
       metaLinks: metaLinks,
@@ -120,7 +120,11 @@ d.Node _downloadsChart(WeeklyDownloadCounts wdc) {
         'data-weekly-sparkline-points':
             _encodeForWeeklySparkline(wdc.weeklyDownloads, wdc.newestDate),
       });
-  return container;
+
+  return d.fragment([
+    d.h3(classes: ['title'], text: 'Weekly Downloads'),
+    container,
+  ]);
 }
 
 String _encodeForWeeklySparkline(List<int> downloads, DateTime newestDate) {
