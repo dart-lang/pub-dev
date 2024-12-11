@@ -48,6 +48,7 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
         runtimeVersion =
             _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned),
         updated = clock.now().toUtc() {
+    // Not in initializer list as id is declared in a super class.
     id = _compositeId(name, isRuntimeVersioned: isRuntimeVersioned);
   }
 }

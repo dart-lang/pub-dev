@@ -40,8 +40,8 @@ class TokenIndex<K> {
     List<K> ids,
     List<String?> values, {
     bool skipDocumentWeight = false,
-  })  : _ids = ids,
-        assert(ids.length == values.length) {
+  }) : _ids = ids {
+    assert(ids.length == values.length);
     final length = values.length;
     for (var i = 0; i < length; i++) {
       final text = values[i];

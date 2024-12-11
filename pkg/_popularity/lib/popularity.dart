@@ -70,9 +70,10 @@ class VoteData {
 
   int get score => _score(this);
 
-  VoteData(this.direct, this.dev, this.total)
-      : assert(direct >= 0 && direct <= total),
-        assert(dev >= 0 && dev <= total);
+  VoteData(this.direct, this.dev, this.total) {
+    assert(direct >= 0 && direct <= total);
+    assert(dev >= 0 && dev <= total);
+  }
 
   factory VoteData.fromJson(Map<String, dynamic> json) =>
       _$VoteDataFromJson(json);
