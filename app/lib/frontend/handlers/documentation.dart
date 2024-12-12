@@ -143,6 +143,13 @@ DocFilePath? parseRequestUri(Uri uri) {
   return DocFilePath(package, version, path);
 }
 
+const _nonExpandedExtensions = {
+  '.html',
+  '.json',
+  '.gz',
+  '.png',
+  '.svg',
+};
 // NOTE: This is a best-effort detection on the segments.
 //       Instead, we should rather check if the file (or the updated path)
 //       is in the generated output, and base the decision on the file list.
@@ -159,7 +166,7 @@ bool _expandToIndexHtml(List<String> segments) {
     return false;
   }
   final ext = p.extension(segments.last);
-  return ext != '.html';
+  return !_nonExpandedExtensions.contains(ext);
 }
 
 bool _isValidVersion(String version) {
