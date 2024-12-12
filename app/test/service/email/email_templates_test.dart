@@ -98,6 +98,10 @@ void main() {
       // verify that we have rejected emails
       expect(rejectedEmails, hasLength(215));
     });
+
+    test('reject multiple addresses', () {
+      expect(isValidEmail('abc@example.com,efg@example.com'), false);
+    });
   });
 
   group('EmailAddress format', () {
