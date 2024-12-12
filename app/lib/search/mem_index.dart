@@ -28,7 +28,10 @@ class InMemoryPackageIndex {
   late final TokenIndex<String> _readmeIndex;
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
   late final _scorePool = ScorePool(_packageNameIndex._packageNames);
-  final _tagDocumentIndexes = <String, List<int>>{};
+
+  /// Maps the tag strings to a list of document index values
+  /// (`PackageDocument doc.tags -> List<_documents.indexOf(doc)>`).
+  final _tagDocumentIndices = <String, List<int>>{};
   final _documentTagIds = <List<int>>[];
 
   /// Adjusted score takes the overall score and transforms
@@ -63,7 +66,7 @@ class InMemoryPackageIndex {
       // transform tags into numberical IDs
       final tagIds = <int>[];
       for (final tag in doc.tags) {
-        _tagDocumentIndexes.putIfAbsent(tag, () => []).add(i);
+        _tagDocumentIndices.putIfAbsent(tag, () => []).add(i);
       }
       tagIds.sort();
       _documentTagIds.add(tagIds);
@@ -159,7 +162,7 @@ class InMemoryPackageIndex {
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
       for (final entry in combinedTagsPredicate.entries) {
-        final docIndexes = _tagDocumentIndexes[entry.key];
+        final docIndexes = _tagDocumentIndices[entry.key];
 
         if (entry.value) {
           // predicate is required, zeroing the gaps between index values
