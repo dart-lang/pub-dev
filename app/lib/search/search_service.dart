@@ -340,6 +340,12 @@ class PackageSearchResult {
   })  : packageHits = packageHits ?? <PackageHit>[],
         sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[];
 
+  factory PackageSearchResult.empty() => PackageSearchResult(
+        timestamp: clock.now(),
+        totalCount: 0,
+        packageHits: [],
+      );
+
   PackageSearchResult.error({
     required this.errorMessage,
     required this.statusCode,
