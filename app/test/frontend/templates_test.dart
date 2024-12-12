@@ -99,8 +99,10 @@ void main() {
               'Pana <code>%%pana-version%%</code>,')
           .replaceAll('Dart <code>$toolStableDartSdkVersion</code>',
               'Dart <code>%%stable-dart-version%%</code>')
-          .replaceAll('/static/hash-${staticFileCache.etag}/',
-              '/static/hash-%%etag%%/');
+          .replaceAll(
+              '/static/hash-${staticFileCache.etag}/', '/static/hash-%%etag%%/')
+          .replaceAll(RegExp('data-weekly-sparkline-points=".*?"'),
+              'data-weekly-sparkline-points="%%sparkline-points%%"');
       final csrfToken = requestContext.sessionData?.csrfToken;
       if (csrfToken != null) {
         replacedContent =
