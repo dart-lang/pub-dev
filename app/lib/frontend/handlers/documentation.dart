@@ -124,7 +124,7 @@ DocFilePath? parseRequestUri(Uri uri) {
   final relativeSegments =
       uri.pathSegments.skip(3).where((s) => s.isNotEmpty).toList();
   var pathSegments = relativeSegments;
-  if (relativeSegments.isEmpty || !relativeSegments.last.contains('.')) {
+  if (_expandToIndexHtml(relativeSegments)) {
     pathSegments = [...relativeSegments, 'index.html'];
   }
   final path = p.normalize(p.joinAll(pathSegments));
@@ -141,6 +141,25 @@ DocFilePath? parseRequestUri(Uri uri) {
     return null;
   }
   return DocFilePath(package, version, path);
+}
+
+// NOTE: This is a best-effort detection on the segments.
+//       Instead, we should rather check if the file (or the updated path)
+//       is in the generated output, and base the decision on the file list.
+//       However, with the current serving code it is costly, we need to refactor it.
+// TODO: Use blob index to decide how the relative path should be handled
+bool _expandToIndexHtml(List<String> segments) {
+  if (segments.isEmpty) {
+    return true;
+  }
+  if (!segments.last.contains('.')) {
+    return true;
+  }
+  if (segments.first.contains('static-assets')) {
+    return false;
+  }
+  final ext = p.extension(segments.last);
+  return ext != '.html';
 }
 
 bool _isValidVersion(String version) {

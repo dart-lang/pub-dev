@@ -78,6 +78,18 @@ void main() {
       testUri(
           '/documentation/pkg/1.0.0/A%20_0.html', 'pkg', '1.0.0', 'A _0.html');
     });
+
+    test('library with dots are recognized', () {
+      testUri('/documentation/pkg/latest/a.b.c', 'pkg', 'latest',
+          'a.b.c/index.html');
+      testUri('/documentation/pkg/latest/a.b.c/', 'pkg', 'latest',
+          'a.b.c/index.html');
+    });
+
+    test('static assets are left as-is', () {
+      testUri('/documentation/pkg/latest/static-assets/search.svg', 'pkg',
+          'latest', 'static-assets/search.svg');
+    });
   });
 
   group('dartdoc handlers', () {
@@ -110,6 +122,9 @@ void main() {
       await expectRedirectResponse(
           await issueGet('/documentation/oxygen/1.0.0/abc'),
           '/documentation/oxygen/1.0.0/abc/');
+      await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/1.0.0/abc.def'),
+          '/documentation/oxygen/1.0.0/abc.def/');
       await expectRedirectResponse(
           await issueGet('/documentation/oxygen/latest/abc/def'),
           '/documentation/oxygen/latest/abc/def/');
