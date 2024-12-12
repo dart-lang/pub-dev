@@ -37,7 +37,7 @@ void main() {
       final tempDir = await Directory.systemTemp.createTemp();
       try {
         final dependentPackages = {
-          'lints': '4.0.0',
+          'lints': '5.0.0',
           'test': '1.99.0',
         };
         for (final d in dependentPackages.keys) {

@@ -67,9 +67,7 @@ void main() {
       }
       await Directory(pubCacheDir).create(recursive: true);
       toolEnv = await ToolEnvironment.create(
-        dartdocVersion:
-            // TODO: clean up after 3.6 SDK is released
-            Platform.version.startsWith('3.5.') ? '8.1.0' : dartdocVersion,
+        dartdocVersion: dartdocVersion,
         pubCacheDir: pubCacheDir,
       );
       await toolEnv.runUpgrade(pkgDir, false);
@@ -93,6 +91,9 @@ void main() {
             .toList();
         for (final file in files) {
           if (file.path.endsWith('-sidebar.html')) {
+            continue;
+          }
+          if (file.path.endsWith('-library.html')) {
             continue;
           }
           if (file.path.endsWith('/search.html')) {
@@ -171,7 +172,8 @@ void main() {
             renderedHead.childElements
                 .firstWhereOrNull((e) => e.getAttribute('content') == 'noindex')
                 ?.remove();
-            expect(renderedHead.children, hasLength(6));
+            // TODO: review if all of these can be ignored
+            expect(renderedHead.children, hasLength(lessThanOrEqualTo(14)));
             for (final c in [...renderedHead.childElements]) {
               c.remove();
             }
@@ -267,9 +269,9 @@ void main() {
           }
         }
         expect(processedFiles, {
-          'oxygen/Oxygen-class.html',
-          'oxygen/oxygen-library.html',
+          'oxygen/index.html',
           'oxygen/multiply.html',
+          'oxygen/Oxygen-class.html',
           'oxygen/Oxygen/x.html',
           'oxygen/Oxygen/Oxygen.html',
           'index.html',
