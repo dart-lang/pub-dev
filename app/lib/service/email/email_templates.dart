@@ -86,6 +86,9 @@ bool isValidEmail(String email) {
   // strict pattern check
   if (!_strictEmailRegExp.hasMatch(email)) return false;
 
+  // also reject commas
+  if (email.contains(',')) return false;
+
   // checking for IPv4 or IPv6 addresses
   var isInternetAddress = false;
   try {
