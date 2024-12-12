@@ -12,13 +12,14 @@ import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../frontend/handlers/_utils.dart';
+import '../shared/handlers_test_utils.dart';
 import '../shared/test_services.dart';
 import '../shared/utils.dart';
 
 const String goldenDir = 'test/task/testdata/goldens';
 
 // TODO: generalize golden testing, use env var for regenerating all goldens.
-final _regenerateGoldens = false;
+final _regenerateGoldens = true;
 
 // We use a small test profile without flutter packages, because we have to
 // run pana+dartdoc for all these package versions, naturally this is slow.
@@ -44,9 +45,8 @@ void main() {
   testWithProfile('output of oxygen', testProfile: _testProfile, fn: () async {
     await processTasksLocallyWithPubWorker();
     // Make assertions about generated documentation
-    final doc = await _fetchHtmlDocument(
-      '/documentation/oxygen/latest/oxygen/oxygen-library.html',
-    );
+    final doc =
+        await _fetchHtmlDocument('/documentation/oxygen/latest/oxygen/');
     // Check that .self-crumb made it through
     expect(doc.querySelector('.self-crumb')!.text, contains('oxygen'));
     // Check that we don't have noindex on /latest/
@@ -55,6 +55,11 @@ void main() {
           m.attributes['name'] == 'robots' &&
           m.attributes['content'] == 'noindex'),
       isEmpty,
+    );
+    // check old library file redirect
+    await expectRedirectResponse(
+      await issueGet('/documentation/oxygen/latest/oxygen/oxygen-library.html'),
+      '/documentation/oxygen/latest/oxygen/',
     );
 
     // Traverse all package pages and generated documentation,

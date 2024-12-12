@@ -99,11 +99,6 @@ Future<void> main(List<String> args) async {
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
-  // Fallback for CI tests.
-  // TODO: remove after runtime SDK is migrated to 3.6 SDK
-  final dartdocVersion =
-      Platform.version.startsWith('3.5.') ? '8.1.0' : _dartdocVersion;
-
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
       rootPath: detected.dartSdkPath,
@@ -114,7 +109,7 @@ Future<void> main(List<String> args) async {
       configHomePath: _configHomePath('flutter', detected.configKind),
     ),
     pubCacheDir: pubCache,
-    dartdocVersion: dartdocVersion,
+    dartdocVersion: _dartdocVersion,
   );
 
   //final dartdocOutputDir =
@@ -254,20 +249,6 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
             sdkVersion: flutterDartSdk,
             constraint: pubspec.dartSdkConstraint)) {
       return false;
-    }
-
-    // temporary exception for macros on 3.5 SDK
-    // TODO: remove after 3.6 SDK gets released
-    if (minMacrosVersion != null &&
-        minMacrosVersion.compareTo(Version.parse('0.1.3-main.0')) >= 0) {
-      if (dart != null && dart.major == 3 && dart.minor == 5) {
-        return false;
-      }
-      if (flutterDartSdk != null &&
-          flutterDartSdk.major == 3 &&
-          flutterDartSdk.minor == 5) {
-        return false;
-      }
     }
 
     // Otherwise accepting the analysis SDK bundle.
@@ -410,8 +391,6 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
 
   return [
     if (latestStableDartSdkVersion != null &&
-        // TODO: remove after 3.6 SDK is released
-        !latestStableDartSdkVersion.startsWith('3.5.') &&
         latestStableFlutterSdkVersion != null)
       _SdkBundle(
         channel: 'stable',
