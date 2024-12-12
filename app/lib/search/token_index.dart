@@ -250,15 +250,18 @@ class IndexedScore<K> {
     }
   }
 
-  Set<K> toKeySet() {
-    final set = <K>{};
+  /// Returns a list where each index describes whether the position in the
+  /// current [IndexedScore] is positive. The current instance changes are
+  /// not reflected in the returned list, it won't change after it was created.
+  List<bool> toIndexedPositiveList() {
+    final list = List.filled(_values.length, false);
     for (var i = 0; i < _values.length; i++) {
       final v = _values[i];
       if (v > 0.0) {
-        set.add(_keys[i]);
+        list[i] = true;
       }
     }
-    return set;
+    return list;
   }
 
   Map<K, double> top(int count, {double? minValue}) {
