@@ -333,8 +333,8 @@ class PackageVersionStateInfo {
 /// A [db.Property] encoding a Map from version to [PackageVersionStateInfo] as JSON.
 class PackageVersionStateMapProperty extends db.Property {
   const PackageVersionStateMapProperty(
-      {String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+      {super.propertyName, super.required = false})
+      : super(indexed: false);
 
   @override
   Object? encodeValue(
@@ -442,8 +442,8 @@ class AbortedTokenInfo {
 
 /// A [db.Property] encoding a List os [AbortedTokenInfo] as JSON.
 class AbortedTokenListProperty extends db.Property {
-  const AbortedTokenListProperty({String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+  const AbortedTokenListProperty({super.propertyName, super.required = false})
+      : super(indexed: false);
 
   @override
   Object? encodeValue(

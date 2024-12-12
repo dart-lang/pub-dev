@@ -24,14 +24,12 @@ abstract class ResponseException extends ApiResponseException {
     int status,
     String code,
     String message, {
-    Map<String, Object>? body,
-    Map<String, Object>? headers,
+    super.body,
+    super.headers,
   }) : super(
           status: status,
           code: code,
           message: message,
-          body: body,
-          headers: headers,
         );
 
   @override

@@ -336,10 +336,9 @@ class PackageSearchResult {
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageHit>? packageHits,
     this.errorMessage,
-    int? statusCode,
+    this.statusCode,
   })  : packageHits = packageHits ?? <PackageHit>[],
-        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
-        statusCode = statusCode;
+        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[];
 
   PackageSearchResult.error({
     required this.errorMessage,

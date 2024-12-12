@@ -49,8 +49,8 @@ class SecurityAdvisory extends db.Model<String> {
 }
 
 class OSVProperty extends db.Property {
-  const OSVProperty({String? propertyName, bool required = false})
-      : super(propertyName: propertyName, required: required, indexed: false);
+  const OSVProperty({super.propertyName, super.required = false})
+      : super(indexed: false);
 
   @override
   Object? decodePrimitiveValue(db.ModelDB db, Object? value) {
