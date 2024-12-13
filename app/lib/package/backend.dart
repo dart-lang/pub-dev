@@ -996,7 +996,7 @@ class PackageBackend {
       _logger.info('Removing temporary object $guid.');
 
       sw.reset();
-      await _incomingBucket.delete(tmpObjectName(guid));
+      await _incomingBucket.deleteWithRetry(tmpObjectName(guid));
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return version;
     });

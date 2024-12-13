@@ -15,6 +15,7 @@ import 'package:pub_dev/shared/cached_value.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:pub_dev/shared/storage.dart';
 
 /// Sets the download counts backend service.
 void registerDownloadCountsBackend(DownloadCountsBackend backend) =>
@@ -42,7 +43,7 @@ class DownloadCountsBackend {
     try {
       final info = await storageService
           .bucket(activeConfiguration.reportsBucketName!)
-          .info(downloadCounts30DaysTotalsFileName);
+          .infoWithRetry(downloadCounts30DaysTotalsFileName);
 
       if (_lastData.etag == info.etag) {
         return _lastData.data;

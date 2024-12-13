@@ -44,7 +44,7 @@ extension StorageExt on Storage {
   /// local environment.
   Future<void> verifyBucketExistenceAndAccess(String bucketName) async {
     // check bucket existence
-    if (!await bucketExists(bucketName)) {
+    if (!await bucketExistsWithRetry(bucketName)) {
       final message = 'Bucket "$bucketName" does not exists!';
       _logger.shout(message);
       if (envConfig.isRunningLocally) {
@@ -69,10 +69,29 @@ extension StorageExt on Storage {
       return;
     }
   }
+
+  /// Check whether a cloud storage bucket exists with the default retry.
+  Future<bool> bucketExistsWithRetry(String bucketName) async {
+    return await _retry(() => bucketExists(bucketName));
+  }
+
+  /// Copy an object with the default retry.
+  Future<void> copyObjectWithRetry(
+    String src,
+    String dest, {
+    ObjectMetadata? metadata,
+  }) async {
+    return await _retry(() async => await copyObject(src, dest));
+  }
 }
 
 /// Additional methods on buckets.
 extension BucketExt on Bucket {
+  /// Lookup object metadata with default retry.
+  Future<ObjectInfo> infoWithRetry(String name) async {
+    return await _retry(() => info(name));
+  }
+
   /// Returns an [ObjectInfo] if [name] exists, `null` otherwise.
   Future<ObjectInfo?> tryInfo(String name) async {
     return await retry(
@@ -87,6 +106,11 @@ extension BucketExt on Bucket {
       maxAttempts: 3,
       retryIf: _retryIf,
     );
+  }
+
+  /// Delete an object with default retry.
+  Future<void> deleteWithRetry(String name) async {
+    return await _retry(() => delete(name));
   }
 
   /// Deletes [name] if it exists, ignores 404 otherwise.
@@ -159,6 +183,35 @@ extension BucketExt on Bucket {
   String objectUrl(String objectName) {
     return '${activeConfiguration.storageBaseUrl}/$bucketName/$objectName';
   }
+
+  /// Update object metadata with default retry rules.
+  Future<void> updateMetadataWithRetry(
+      String objectName, ObjectMetadata metadata) async {
+    return await _retry(() async => await updateMetadata(objectName, metadata));
+  }
+
+  /// Start paging through objects in the bucket with the default retry.
+  Future<Page<BucketEntry>> pageWithRetry(
+      {String? prefix, String? delimiter, int pageSize = 50}) async {
+    return await _retry(
+      () async => await page(
+        prefix: prefix,
+        delimiter: delimiter,
+        pageSize: pageSize,
+      ),
+    );
+  }
+}
+
+extension PageExt<T> on Page<T> {
+  /// Move to the next page with default retry.
+  Future<Page<T>> nextWithRetry({int pageSize = 50}) async {
+    return await _retry(() => next(pageSize: pageSize));
+  }
+}
+
+Future<R> _retry<R>(Future<R> Function() fn) async {
+  return await retry(fn, maxAttempts: 3, retryIf: _retryIf);
 }
 
 bool _retryIf(Exception e) {
@@ -212,7 +265,7 @@ Future<void> updateContentDispositionToAttachment(
     ObjectInfo info, Bucket bucket) async {
   if (info.metadata.contentDisposition != 'attachment') {
     try {
-      await bucket.updateMetadata(
+      await bucket.updateMetadataWithRetry(
           info.name, info.metadata.replace(contentDisposition: 'attachment'));
     } on Exception catch (e, st) {
       _logger.warning(
