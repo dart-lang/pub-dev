@@ -15,6 +15,11 @@ void create(HTMLElement element, Map<String, String> options) {
   }
 
   final svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+
+  // Safari needs these to render the svg.
+  svg.setAttribute('height', '100%');
+  svg.setAttribute('width', '100%');
+
   element.append(svg);
 
   final toolTip = HTMLDivElement()
