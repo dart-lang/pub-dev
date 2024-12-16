@@ -4,7 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2024.12.12`.
  * Upgraded runtime Dart SDK to `3.6.0`.
- * Note: Started reporting unmapped fields and deleting `Package.isWithheld` and `Package.withheldReason`.
+ * Note: Started reporting unmapped fields 
+ * Started and deleting `Package.isWithheld` and `Package.withheldReason`.
 
 ## `20241212t111200-all`
  * Bump runtimeVersion to `2024.12.11`.
