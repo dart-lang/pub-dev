@@ -201,6 +201,27 @@ extension BucketExt on Bucket {
       ),
     );
   }
+
+  /// Create an new object in the bucket with specified content with the default retry.
+  Future<ObjectInfo> writeBytesWithRetry(
+    String name,
+    List<int> bytes, {
+    ObjectMetadata? metadata,
+    Acl? acl,
+    PredefinedAcl? predefinedAcl,
+    String? contentType,
+  }) async {
+    return await _retry(
+      () async => await writeBytes(
+        name,
+        bytes,
+        metadata: metadata,
+        acl: acl,
+        predefinedAcl: predefinedAcl,
+        contentType: contentType,
+      ),
+    );
+  }
 }
 
 extension PageExt<T> on Page<T> {

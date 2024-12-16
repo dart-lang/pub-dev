@@ -59,7 +59,6 @@ class RetryEnforcerStorage implements Storage {
   Future<bool> bucketExists(String bucketName) async {
     return await _verifyRetry(
       () => _storage.bucketExists(bucketName),
-      ignore: true,
     );
   }
 
@@ -67,7 +66,6 @@ class RetryEnforcerStorage implements Storage {
   Future<BucketInfo> bucketInfo(String bucketName) async {
     return await _verifyRetry(
       () async => await _storage.bucketInfo(bucketName),
-      ignore: true,
     );
   }
 
@@ -75,7 +73,6 @@ class RetryEnforcerStorage implements Storage {
   Future copyObject(String src, String dest, {ObjectMetadata? metadata}) async {
     return await _verifyRetry(
       () => _storage.copyObject(src, dest, metadata: metadata),
-      ignore: true,
     );
   }
 
@@ -91,7 +88,6 @@ class RetryEnforcerStorage implements Storage {
         predefinedAcl: predefinedAcl,
         acl: acl,
       ),
-      ignore: true,
     );
   }
 
@@ -99,7 +95,6 @@ class RetryEnforcerStorage implements Storage {
   Future deleteBucket(String bucketName) async {
     return await _verifyRetry(
       () => _storage.deleteBucket(bucketName),
-      ignore: true,
     );
   }
 
@@ -112,7 +107,6 @@ class RetryEnforcerStorage implements Storage {
   Future<Page<String>> pageBucketNames({int pageSize = 50}) async {
     return await _verifyRetry(
       () => _storage.pageBucketNames(pageSize: pageSize),
-      ignore: true,
     );
   }
 }
@@ -134,7 +128,6 @@ class _RetryEnforcerBucket implements Bucket {
   Future delete(String name) async {
     return await _verifyRetry(
       () async => await _bucket.delete(name),
-      ignore: true,
     );
   }
 
@@ -142,7 +135,6 @@ class _RetryEnforcerBucket implements Bucket {
   Future<ObjectInfo> info(String name) async {
     return await _verifyRetry(
       () async => await _bucket.info(name),
-      ignore: true,
     );
   }
 
@@ -167,7 +159,6 @@ class _RetryEnforcerBucket implements Bucket {
         delimiter: delimiter,
         pageSize: pageSize,
       )),
-      ignore: true,
     );
   }
 
@@ -222,7 +213,6 @@ class _RetryEnforcerBucket implements Bucket {
         predefinedAcl: predefinedAcl,
         contentType: contentType,
       ),
-      ignore: true,
     );
   }
 }
@@ -241,7 +231,6 @@ class _RetryEnforcerPage<T> implements Page<T> {
   Future<Page<T>> next({int pageSize = 50}) async {
     return await _verifyRetry(
       () async => _RetryEnforcerPage(await _page.next(pageSize: pageSize)),
-      ignore: true,
     );
   }
 }
