@@ -13,7 +13,6 @@ const _skippedFirstFrames = {
 };
 
 void _verifyRetryOnStack() {
-  final st = StackTrace.current.toString();
   final trace = Trace.current();
 
   // The first frame index outside of this file.
@@ -43,8 +42,8 @@ void _verifyRetryOnStack() {
     return;
   }
 
-  print('Missing retry detected:\n$st\n');
-  throw AssertionError('retry is not present in stacktrace: $st');
+  print('Missing retry detected:\n$trace\n');
+  throw AssertionError('retry is not present in stacktrace: $trace');
 }
 
 Future<R> _verifyRetry<R>(
