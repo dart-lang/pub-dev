@@ -147,7 +147,7 @@ class TarballStorage {
     required String package,
     required String version,
   }) async {
-    await _storage.copyObject(
+    await _storage.copyObjectWithRetry(
       sourceAbsoluteObjectName,
       _canonicalBucket.absoluteObjectName(tarballObjectName(package, version)),
     );
@@ -157,7 +157,7 @@ class TarballStorage {
   Future<void> copyArchiveFromCanonicalToPublicBucket(
       String package, String version) async {
     final objectName = tarballObjectName(package, version);
-    await _storage.copyObject(
+    await _storage.copyObjectWithRetry(
       _canonicalBucket.absoluteObjectName(objectName),
       _publicBucket.absoluteObjectName(objectName),
     );
@@ -186,7 +186,7 @@ class TarballStorage {
     final objectName = tarballObjectName(package, version);
     final info = await _canonicalBucket.tryInfo(objectName);
     if (info != null) {
-      await _canonicalBucket.delete(objectName);
+      await _canonicalBucket.deleteWithRetry(objectName);
     }
   }
 
@@ -232,11 +232,11 @@ class TarballStorage {
         _logger
             .warning('Updating missing object in public bucket: $objectName');
         try {
-          await _storage.copyObject(
+          await _storage.copyObjectWithRetry(
             _canonicalBucket.absoluteObjectName(objectName),
             _publicBucket.absoluteObjectName(objectName),
           );
-          final newInfo = await _publicBucket.info(objectName);
+          final newInfo = await _publicBucket.infoWithRetry(objectName);
           await updateContentDispositionToAttachment(newInfo, _publicBucket);
           updatedCount++;
         } on Exception catch (e, st) {
@@ -307,7 +307,7 @@ class TarballStorage {
 
     for (final objectName in deleteObjects) {
       _logger.shout('Deleting object from public bucket: "$objectName".');
-      await _publicBucket.delete(objectName);
+      await _publicBucket.deleteWithRetry(objectName);
     }
 
     return PublicBucketUpdateStat(

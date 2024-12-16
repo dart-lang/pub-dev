@@ -6,11 +6,12 @@ import 'package:gcloud/storage.dart';
 
 import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
+import '../../shared/storage.dart';
 import '../../shared/utils.dart';
 
 Future<void> generateFakeTopicValues() async {
   await storageService
       .bucket(activeConfiguration.reportsBucketName!)
-      .writeBytes(topicsJsonFileName,
+      .writeBytesWithRetry(topicsJsonFileName,
           jsonUtf8Encoder.convert({'ffi': 7, 'ui': 5, 'network': 6}));
 }
