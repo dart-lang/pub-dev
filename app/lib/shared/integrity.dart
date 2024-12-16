@@ -35,15 +35,19 @@ import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 final _logger = Logger('integrity.check');
 final _random = math.Random.secure();
 
+/// The unmapped/unused fields that we expect to be present on some entities.
+/// The presence of such fields won't be reported as integrity issue, only
+/// the absent ones will be reported.
+const _allowedUnmappedFields = {
+  'Package.isWithheld',
+  'Package.withheldReason',
+};
+
 /// Checks the integrity of the datastore.
 class IntegrityChecker {
   final DatastoreDB _db;
   final int _concurrency;
 
-  static const _knownUnmappedFields = {
-    'Package.isWithheld',
-    'Package.withheldReason',
-  };
   final _unmappedFields = <String>{};
   final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
@@ -101,7 +105,7 @@ class IntegrityChecker {
 
       if (_unmappedFields.isNotEmpty) {
         for (final field in _unmappedFields) {
-          if (_knownUnmappedFields.contains(field)) continue;
+          if (_allowedUnmappedFields.contains(field)) continue;
           yield 'Unmapped field found: $field.';
         }
       }
