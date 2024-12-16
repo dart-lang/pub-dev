@@ -229,7 +229,7 @@ final class ExportedApi {
     required String prefix,
     required String delimiter,
   }) async {
-    var p = await _pool.withResource(() async => await _bucket.page(
+    var p = await _pool.withResource(() async => await _bucket.pageWithRetry(
           prefix: prefix,
           delimiter: delimiter,
           pageSize: 1000,
@@ -240,7 +240,8 @@ final class ExportedApi {
       }));
 
       if (p.isLast) break;
-      p = await _pool.withResource(() async => await p.next(pageSize: 1000));
+      p = await _pool
+          .withResource(() async => await p.nextWithRetry(pageSize: 1000));
     }
   }
 }
@@ -632,7 +633,7 @@ final class ExportedBlob extends ExportedObject {
         final retouchDeadline = clock.agoBy(_updateValidatedAfter);
         if (destinationInfo.metadata.validated.isBefore(retouchDeadline)) {
           try {
-            await _owner._bucket.updateMetadata(dst, _metadata());
+            await _owner._bucket.updateMetadataWithRetry(dst, _metadata());
           } catch (e, st) {
             // This shouldn't happen, but if a metadata update does fail, it's
             // hardly the end of the world.
@@ -646,7 +647,7 @@ final class ExportedBlob extends ExportedObject {
 
     // If dst or source doesn't exist, then we shall attempt to make a copy.
     // (if source doesn't exist we'll consistently get an error from here!)
-    await _owner._storage.copyObject(
+    await _owner._storage.copyObjectWithRetry(
       source.absoluteObjectName,
       _owner._bucket.absoluteObjectName(dst),
       metadata: _metadata(),
@@ -667,7 +668,7 @@ extension on Bucket {
           if (info.metadata.validated
               .isBefore(clock.agoBy(_updateValidatedAfter))) {
             try {
-              await updateMetadata(name, metadata);
+              await updateMetadataWithRetry(name, metadata);
             } catch (e, st) {
               // This shouldn't happen, but if a metadata update does fail, it's
               // hardly the end of the world.

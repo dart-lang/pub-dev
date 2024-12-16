@@ -9,6 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
+import 'package:fake_gcloud/retry_enforcer_storage.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -148,7 +149,7 @@ Future<R> withFakeServices<R>({
   return await fork(() async {
     register(#appengine.context, FakeClientContext());
     registerDbService(DatastoreDB(datastore!));
-    registerStorageService(storage!);
+    registerStorageService(RetryEnforcerStorage(storage!));
     IOServer? frontendServer;
     IOServer? searchServer;
     if (configuration == null) {

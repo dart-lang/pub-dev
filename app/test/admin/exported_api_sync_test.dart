@@ -181,7 +181,7 @@ void main() {
         final oldData = oldRoot[path] as Map;
         final bucket =
             storageService.bucket(activeConfiguration.exportedApiBucketName!);
-        await bucket.updateMetadata(
+        await bucket.updateMetadataWithRetry(
           path,
           ObjectMetadata(
             contentType: 'text/plain',
