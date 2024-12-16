@@ -102,7 +102,7 @@ class IntegrityChecker {
       if (_unmappedFields.isNotEmpty) {
         for (final field in _unmappedFields) {
           if (_knownUnmappedFields.contains(field)) continue;
-        yield 'Unmapped field found: $field.';
+          yield 'Unmapped field found: $field.';
         }
       }
     } finally {
