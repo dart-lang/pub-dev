@@ -48,7 +48,9 @@ class IntegrityChecker {
   final DatastoreDB _db;
   final int _concurrency;
 
-  final _unmappedFields = <String>{};
+  /// Maps an unmapped field in the form of `<ClassName>.<fieldName>` to an
+  /// object identifier (usually the `id` value of the entity).
+  final _unmappedFieldsToObject = <String, String>{};
   final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
@@ -103,10 +105,10 @@ class IntegrityChecker {
       yield* _checkModerationCases();
       yield* _reportPubspecVersionIssues();
 
-      if (_unmappedFields.isNotEmpty) {
-        for (final field in _unmappedFields) {
-          if (_allowedUnmappedFields.contains(field)) continue;
-          yield 'Unmapped field found: $field.';
+      if (_unmappedFieldsToObject.isNotEmpty) {
+        for (final entry in _unmappedFieldsToObject.entries) {
+          if (_allowedUnmappedFields.contains(entry.key)) continue;
+          yield 'Unmapped field found: "${entry.key}" on entity "${entry.value}".';
         }
       }
     } finally {
@@ -927,8 +929,9 @@ class IntegrityChecker {
   void _updateUnmappedFields(Model m) {
     if (m is ExpandoModel && m.additionalProperties.isNotEmpty) {
       for (final key in m.additionalProperties.keys) {
-        final field = [m.runtimeType.toString(), key].join('.');
-        _unmappedFields.add(field);
+        final qualifiedField = [m.runtimeType.toString(), key].join('.');
+        if (_unmappedFieldsToObject.containsKey(qualifiedField)) continue;
+        _unmappedFieldsToObject[qualifiedField] = m.id.toString();
       }
     }
   }
