@@ -35,11 +35,22 @@ import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 final _logger = Logger('integrity.check');
 final _random = math.Random.secure();
 
+/// The unmapped/unused fields that we expect to be present on some entities.
+/// The presence of such fields won't be reported as integrity issue, only
+/// the absent ones will be reported.
+const _allowedUnmappedFields = {
+  'Package.isWithheld',
+  'Package.withheldReason',
+};
+
 /// Checks the integrity of the datastore.
 class IntegrityChecker {
   final DatastoreDB _db;
   final int _concurrency;
 
+  /// Maps an unmapped field in the form of `<ClassName>.<fieldName>` to an
+  /// object identifier (usually the `id` value of the entity).
+  final _unmappedFieldsToObject = <String, String>{};
   final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
@@ -93,7 +104,13 @@ class IntegrityChecker {
       yield* _checkAuditLogs();
       yield* _checkModerationCases();
       yield* _reportPubspecVersionIssues();
-      // TODO: report unmapped properties
+
+      if (_unmappedFieldsToObject.isNotEmpty) {
+        for (final entry in _unmappedFieldsToObject.entries) {
+          if (_allowedUnmappedFields.contains(entry.key)) continue;
+          yield 'Unmapped field found: "${entry.key}" on entity "${entry.value}".';
+        }
+      }
     } finally {
       _httpClient.close();
     }
@@ -448,6 +465,7 @@ class IntegrityChecker {
     }
 
     await for (final pvi in pviQuery.run()) {
+      _updateUnmappedFields(pvi);
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
       yield* checkPackageVersionKey('PackageVersionInfo', key);
@@ -475,6 +493,7 @@ class IntegrityChecker {
       ..filter('package =', p.name);
     final foundAssetIds = <String?>{};
     await for (final pva in pvaQuery.run()) {
+      _updateUnmappedFields(pva);
       final key = pva.qualifiedVersionKey;
       if (pva.id !=
           Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {
@@ -907,6 +926,16 @@ class IntegrityChecker {
     }
   }
 
+  void _updateUnmappedFields(Model m) {
+    if (m is ExpandoModel && m.additionalProperties.isNotEmpty) {
+      for (final key in m.additionalProperties.keys) {
+        final qualifiedField = [m.runtimeType.toString(), key].join('.');
+        if (_unmappedFieldsToObject.containsKey(qualifiedField)) continue;
+        _unmappedFieldsToObject[qualifiedField] = m.id.toString();
+      }
+    }
+  }
+
   Stream<String> _queryWithPool<R extends Model>(
       Stream<String> Function(R model) fn) async* {
     final query = _db.query<R>();
@@ -914,6 +943,7 @@ class IntegrityChecker {
     final futures = <Future<List<String>>>[];
     try {
       await for (final m in query.run()) {
+        _updateUnmappedFields(m);
         final f = pool.withResource(() => fn(m).toList());
         futures.add(f);
       }
