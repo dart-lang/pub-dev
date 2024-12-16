@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -20,9 +21,11 @@ final _logger = Logger('backfill_new_fields');
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
   await migrateIsBlocked();
+  await _removeKnownUnmappedFields();
 }
 
 /// Migrates entities from the `isBlocked` fields to the new `isModerated` instead.
+@visibleForTesting
 Future<void> migrateIsBlocked() async {
   _logger.info('Migrating isBlocked...');
   final pkgQuery = dbService.query<Package>()..filter('isBlocked =', true);
@@ -87,4 +90,19 @@ Future<void> migrateIsBlocked() async {
   }
 
   _logger.info('isBlocked migration completed.');
+}
+
+Future<void> _removeKnownUnmappedFields() async {
+  await for (final p in dbService.query<Package>().run()) {
+    if (p.additionalProperties.isEmpty) continue;
+    if (p.additionalProperties.containsKey('isWithheld') ||
+        p.additionalProperties.containsKey('withheldReason')) {
+      await withRetryTransaction(dbService, (tx) async {
+        final pkg = await tx.lookupValue<Package>(p.key);
+        pkg.additionalProperties.remove('isWithheld');
+        pkg.additionalProperties.remove('withheldReason');
+        tx.insert(pkg);
+      });
+    }
+  }
 }

@@ -40,6 +40,11 @@ class IntegrityChecker {
   final DatastoreDB _db;
   final int _concurrency;
 
+  static const _knownUnmappedFields = {
+    'Package.isWithheld',
+    'Package.withheldReason',
+  };
+  final _unmappedFields = <String>{};
   final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
@@ -93,7 +98,13 @@ class IntegrityChecker {
       yield* _checkAuditLogs();
       yield* _checkModerationCases();
       yield* _reportPubspecVersionIssues();
-      // TODO: report unmapped properties
+
+      if (_unmappedFields.isNotEmpty) {
+        for (final field in _unmappedFields) {
+          if (_knownUnmappedFields.contains(field)) continue;
+        yield 'Unmapped field found: $field.';
+        }
+      }
     } finally {
       _httpClient.close();
     }
@@ -448,6 +459,7 @@ class IntegrityChecker {
     }
 
     await for (final pvi in pviQuery.run()) {
+      _updateUnmappedFields(pvi);
       final key = pvi.qualifiedVersionKey;
       pviKeys.add(key);
       yield* checkPackageVersionKey('PackageVersionInfo', key);
@@ -475,6 +487,7 @@ class IntegrityChecker {
       ..filter('package =', p.name);
     final foundAssetIds = <String?>{};
     await for (final pva in pvaQuery.run()) {
+      _updateUnmappedFields(pva);
       final key = pva.qualifiedVersionKey;
       if (pva.id !=
           Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {
@@ -907,6 +920,15 @@ class IntegrityChecker {
     }
   }
 
+  void _updateUnmappedFields(Model m) {
+    if (m is ExpandoModel && m.additionalProperties.isNotEmpty) {
+      for (final key in m.additionalProperties.keys) {
+        final field = [m.runtimeType.toString(), key].join('.');
+        _unmappedFields.add(field);
+      }
+    }
+  }
+
   Stream<String> _queryWithPool<R extends Model>(
       Stream<String> Function(R model) fn) async* {
     final query = _db.query<R>();
@@ -914,6 +936,7 @@ class IntegrityChecker {
     final futures = <Future<List<String>>>[];
     try {
       await for (final m in query.run()) {
+        _updateUnmappedFields(m);
         final f = pool.withResource(() => fn(m).toList());
         futures.add(f);
       }
