@@ -5,10 +5,8 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/data/download_counts_data.dart';
-import 'package:_pub_shared/format/encoding.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 

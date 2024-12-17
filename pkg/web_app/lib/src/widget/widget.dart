@@ -10,9 +10,9 @@ import 'package:web/web.dart';
 
 import '../web_util.dart';
 import 'completion/widget.dart' deferred as completion;
+import 'downloads_chart/widget.dart' as downloads_chart;
 import 'switch/widget.dart' as switch_;
 import 'weekly_sparkline/widget.dart' as weekly_sparkline;
-import 'downloads_chart/widget.dart' as downloads_chart;
 
 /// Function to create an instance of the widget given an element and options.
 ///

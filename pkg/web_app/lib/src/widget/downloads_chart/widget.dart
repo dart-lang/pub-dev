@@ -18,4 +18,7 @@ void create(HTMLElement element, Map<String, String> options) {
   final data = WeeklyVersionDownloadCounts.fromJson((utf8.decoder
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
+  drawChart(svg, data);
 }
+
+void drawChart(Element svg, WeeklyVersionDownloadCounts data) {}
