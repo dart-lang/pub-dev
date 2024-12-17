@@ -120,18 +120,20 @@ class TarballStorage {
     final raf = await file.open();
     var remainingLength = info.length;
     try {
-      await for (final chunk in _canonicalBucket.read(objectName)) {
-        if (chunk.isEmpty) continue;
-        remainingLength -= chunk.length;
-        if (remainingLength < 0) {
-          return ContentMatchStatus.different;
+      await _canonicalBucket.readWithRetry(objectName, (input) async {
+        await for (final chunk in input) {
+          if (chunk.isEmpty) continue;
+          remainingLength -= chunk.length;
+          if (remainingLength < 0) {
+            return ContentMatchStatus.different;
+          }
+          // TODO: consider rewriting to fixed-length chunk comparison
+          final fileChunk = await raf.read(chunk.length);
+          if (!fileChunk.byteToByteEquals(chunk)) {
+            return ContentMatchStatus.different;
+          }
         }
-        // TODO: consider rewriting to fixed-length chunk comparison
-        final fileChunk = await raf.read(chunk.length);
-        if (!fileChunk.byteToByteEquals(chunk)) {
-          return ContentMatchStatus.different;
-        }
-      }
+      });
     } finally {
       await raf.close();
     }
