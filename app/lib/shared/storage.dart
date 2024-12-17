@@ -81,7 +81,8 @@ extension StorageExt on Storage {
     String dest, {
     ObjectMetadata? metadata,
   }) async {
-    return await _retry(() async => await copyObject(src, dest));
+    return await _retry(
+        () async => await copyObject(src, dest, metadata: metadata));
   }
 }
 
