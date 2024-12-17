@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';

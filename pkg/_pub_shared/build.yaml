@@ -10,6 +10,7 @@ targets:
       - 'lib/data/admin_api.dart'
       - 'lib/data/advisories_api.dart'
       - 'lib/data/completion.dart'
+      - 'lib/data/download_counts_data.dart'
       - 'lib/data/package_api.dart'
       - 'lib/data/page_data.dart'
       - 'lib/data/publisher_api.dart'

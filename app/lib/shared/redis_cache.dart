@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';

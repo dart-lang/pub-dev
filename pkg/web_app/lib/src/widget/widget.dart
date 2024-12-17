@@ -10,6 +10,7 @@ import 'package:web/web.dart';
 
 import '../web_util.dart';
 import 'completion/widget.dart' deferred as completion;
+import 'downloads_chart/widget.dart' as downloads_chart;
 import 'switch/widget.dart' as switch_;
 import 'weekly_sparkline/widget.dart' as weekly_sparkline;
 
@@ -35,6 +36,7 @@ final _widgets = <String, _WidgetLoaderFn>{
   'completion': () => completion.loadLibrary().then((_) => completion.create),
   'switch': () => switch_.create,
   'weekly-sparkline': () => weekly_sparkline.create,
+  'downloads-chart': () => downloads_chart.create,
 };
 
 Future<_WidgetFn> _noSuchWidget() async =>

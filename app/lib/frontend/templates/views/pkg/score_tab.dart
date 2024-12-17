@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_pub_shared/format/encoding.dart';
+import 'dart:convert';
+
+import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/shared/popularity_storage.dart';
+import 'package:pub_dev/shared/utils.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
@@ -184,29 +186,10 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
     id: '-downloads-chart',
     attributes: {
       'data-widget': 'downloads-chart',
-      'data-downloads-chart': _encodeForDownloadsChart(weeklyVersionDownloads)
+      'data-downloads-chart-points':
+          base64Encode(jsonUtf8Encoder.convert(weeklyVersionDownloads))
     },
   );
-}
-
-String _encodeForDownloadsChart(WeeklyVersionDownloadCounts wvcd) {
-  final date = wvcd.newestDate.toUtc().millisecondsSinceEpoch ~/ 1000;
-
-  final allCounts = <int>[];
-  final allRanges = <String>[];
-  wvcd.majorRangeWeeklyDownloads.forEach((e) => allCounts.addAll(e.counts));
-  wvcd.minorRangeWeeklyDownloads.forEach((e) => allCounts.addAll(e.counts));
-  wvcd.patchRangeWeeklyDownloads.forEach((e) => allCounts.addAll(e.counts));
-  allCounts.addAll(wvcd.totalWeeklyDownloads);
-
-  wvcd.majorRangeWeeklyDownloads.forEach((e) => allRanges.add(e.versionRange));
-  wvcd.minorRangeWeeklyDownloads.forEach((e) => allRanges.add(e.versionRange));
-  wvcd.patchRangeWeeklyDownloads.forEach((e) => allRanges.add(e.versionRange));
-
-  return [
-    encodeIntsAsLittleEndianBase64String([date, ...allCounts]),
-    allRanges
-  ].join(',');
 }
 
 final _statusIconUrls = {
