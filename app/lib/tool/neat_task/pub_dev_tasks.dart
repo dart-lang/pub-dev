@@ -180,13 +180,19 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     ),
 
     // Delete very old instances that have been abandoned
-    _daily(
-      name: 'garbage-collect-old-instances',
-      isRuntimeVersioned: false,
-      task: () async => await deleteAbandonedInstances(
-        project: activeConfiguration.taskWorkerProject!,
+    //
+    // NOTE: This task will use Google Cloud API to remove worker instances.
+    //       The client is not configured for fake environment, we should skip
+    //       this task in post-test verifications.
+    // TODO: Write fake cloud abstractions to improve code coverage here.
+    if (!isPostTestVerification)
+      _daily(
+        name: 'garbage-collect-old-instances',
+        isRuntimeVersioned: false,
+        task: () async => await deleteAbandonedInstances(
+          project: activeConfiguration.taskWorkerProject!,
+        ),
       ),
-    ),
 
     _daily(
       name: 'sync-download-counts',
