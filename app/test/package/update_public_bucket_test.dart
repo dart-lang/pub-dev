@@ -80,7 +80,11 @@ void main() {
       expect(changes3.archivesDeleted, 0);
     });
 
-    testWithProfile('extra file - without package filter', fn: () async {
+    testWithProfile('extra file - without package filter',
+        expectedLogMessages: [
+          'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-0.0.99.tar.gz".',
+        ], fn: () async {
       final bucket =
           storageService.bucket(activeConfiguration.publicPackagesBucketName!);
       await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
@@ -109,7 +113,11 @@ void main() {
       expect(changes3.isAllZero, isTrue);
     });
 
-    testWithProfile('extra file - with matching package filter', fn: () async {
+    testWithProfile('extra file - with matching package filter',
+        expectedLogMessages: [
+          'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-0.0.99.tar.gz".',
+        ], fn: () async {
       final bucket =
           storageService.bucket(activeConfiguration.publicPackagesBucketName!);
       await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
@@ -143,7 +151,10 @@ void main() {
       expect(changes4.isAllZero, isTrue);
     });
 
-    testWithProfile('extra file - with different package filter', fn: () async {
+    testWithProfile('extra file - with different package filter',
+        expectedLogMessages: [
+          'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
+        ], fn: () async {
       final bucket =
           storageService.bucket(activeConfiguration.publicPackagesBucketName!);
       await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);

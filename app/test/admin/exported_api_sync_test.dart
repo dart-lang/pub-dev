@@ -99,7 +99,10 @@ void main() {
       });
     });
 
-    testWithProfile('deleted files + full sync', fn: () async {
+    testWithProfile('deleted files + full sync', expectedLogMessages: [
+      // TODO: review why we have unhandled errors here
+      RegExp(r'^SEVERE Unhandled error in API handler \(incidentId: .*\)'),
+    ], fn: () async {
       await syncExportedApi();
       final oldRoot = await listExportedApi();
 

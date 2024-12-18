@@ -14,7 +14,11 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('Migrate isBlocked', () {
-    testWithProfile('package', fn: () async {
+    testWithProfile('package', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       final p1 = await packageBackend.lookupPackage('oxygen');
       await dbService.commit(inserts: [
         p1!

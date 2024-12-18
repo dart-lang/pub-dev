@@ -465,7 +465,11 @@ void main() {
   });
 
   testWithProfile('Sync download counts several data files - success & failure',
-      fn: () async {
+      expectedLogMessages: [
+        RegExp(r'SEVERE daily_download_counts/.*.jsonl is empty.$'),
+        RegExp(
+            r'SHOUT Download counts sync was partial. The following files failed:\n.*$'),
+      ], fn: () async {
     final today = clock.now();
 
     for (int i = defaultNumberOfSyncDays; i > 0; i--) {
@@ -531,7 +535,11 @@ void main() {
     );
   });
   testWithProfile('Sync download counts several data files - failure',
-      fn: () async {
+      expectedLogMessages: [
+        RegExp(r'SEVERE daily_download_counts/.*.jsonl is empty.$'),
+        RegExp(
+            r'SHOUT Download counts sync was partial. The following files failed:\n.*$'),
+      ], fn: () async {
     final today = clock.now();
 
     final goodDate = today.addCalendarDays(-2);

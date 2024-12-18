@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/dom/dom.dart' show isSelfClosing;
 import 'package:pub_dev/service/announcement/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -24,14 +25,40 @@ void scopedTest(
   Function() func, {
   Timeout? timeout,
   dynamic skip,
+  Iterable<Pattern>? expectedLogMessages,
 }) {
-  test(name, () {
-    return fork(() async {
-      // double fork to allow further override
-      registerActiveConfiguration(Configuration.test());
-      registerAnnouncementBackend(AnnouncementBackend());
-      return await fork(() async => func());
-    });
+  test(name, () async {
+    final logMessages = <String>{};
+    final logSubscription = Logger.root.onRecord
+        .where((r) => r.level.value >= Level.SEVERE.value)
+        .listen((r) => logMessages.add('${r.level} ${r.message}'));
+    try {
+      await fork(() async {
+        // double fork to allow further override
+        registerActiveConfiguration(Configuration.test());
+        registerAnnouncementBackend(AnnouncementBackend());
+        return await fork(() async => func());
+      });
+    } finally {
+      await logSubscription.cancel();
+    }
+    final allMatchedMessages = <String>{};
+    for (final p in expectedLogMessages ?? const <Pattern>[]) {
+      final matchedMessages =
+          logMessages.where((m) => p.matchAsPrefix(m) != null).toList();
+      if (matchedMessages.isEmpty) {
+        throw AssertionError(
+            'Expected log message pattern "$p", but was absent.');
+      }
+      allMatchedMessages.addAll(matchedMessages);
+    }
+    // remove known messages that can be ignored for now
+    logMessages.removeWhere((m) =>
+        allMatchedMessages.contains(m) ||
+        m.startsWith('SEVERE failed to delete task-worker ') ||
+        m.startsWith(
+            'SEVERE [pub-search-not-working] Search is temporarily impaired'));
+    expect(logMessages, isEmpty);
   }, timeout: timeout, skip: skip);
 }
 
