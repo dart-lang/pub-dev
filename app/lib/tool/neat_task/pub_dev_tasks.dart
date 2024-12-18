@@ -194,11 +194,16 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
         ),
       ),
 
-    _daily(
-      name: 'sync-download-counts',
-      isRuntimeVersioned: false,
-      task: syncDownloadCounts,
-    ),
+    // Syncs download counts from storage bucket.
+    //
+    // NOTE: This task reports missing files in the logs.
+    // TODO: Provide fake download data so that the task does not fail here.
+    if (!isPostTestVerification)
+      _daily(
+        name: 'sync-download-counts',
+        isRuntimeVersioned: false,
+        task: syncDownloadCounts,
+      ),
 
     _daily(
       name: 'compute-download-counts-30-days-totals',
