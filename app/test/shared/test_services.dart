@@ -142,7 +142,8 @@ Future<void> _postTestVerification({
   }
 
   // run all background tasks here
-  for (final scheduler in createPeriodicTaskSchedulers()) {
+  final schedulers = createPeriodicTaskSchedulers(isPostTestVerification: true);
+  for (final scheduler in schedulers) {
     await scheduler.trigger();
   }
 

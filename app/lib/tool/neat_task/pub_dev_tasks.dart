@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
 
@@ -43,7 +44,9 @@ void setupPeriodTaskSchedulers() {
 }
 
 /// List of periodic task schedulers.
-List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers() {
+List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
+  @visibleForTesting bool isPostTestVerification = false,
+}) {
   return [
     // Tries to send pending outgoing emails.
     _15mins(
@@ -203,11 +206,15 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers() {
       task: countTopics,
     ),
 
-    _daily(
-      name: 'sync-security-advisories',
-      isRuntimeVersioned: false,
-      task: syncSecurityAdvisories,
-    ),
+    // NOTE: This task will fetch the advisories from a public endpoint,
+    //       running it on every test is not worth it.
+    // TODO: Consider injecting a fake data source for unit test.
+    if (!isPostTestVerification)
+      _daily(
+        name: 'sync-security-advisories',
+        isRuntimeVersioned: false,
+        task: syncSecurityAdvisories,
+      ),
 
     // Checks the Datastore integrity of the model objects.
     _weekly(
