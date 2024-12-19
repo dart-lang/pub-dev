@@ -125,7 +125,11 @@ void main() {
       expect(text, contains('Total number of actions taken,0\r\n'));
     });
 
-    testWithProfile('moderated package', fn: () async {
+    testWithProfile('moderated package', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       final mc = await _report('oxygen');
       await _moderatePkg('oxygen', caseId: mc.caseId, state: true);
       await _resolve(
@@ -222,7 +226,11 @@ void main() {
           ]));
     });
 
-    testWithProfile('appeal', fn: () async {
+    testWithProfile('appeal', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       final mc = await _report('oxygen');
       await _moderatePkg('oxygen', caseId: mc.caseId, state: true);
       await _resolve(

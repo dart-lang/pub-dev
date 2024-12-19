@@ -164,6 +164,7 @@ void testWithProfile(
   Timeout? timeout,
   bool processJobsWithFakeRunners = false,
   Pattern? integrityProblem,
+  Iterable<Pattern>? expectedLogMessages,
   dynamic skip,
 }) {
   final env = FakeAppengineEnv();
@@ -180,6 +181,7 @@ void testWithProfile(
         integrityProblem: integrityProblem,
       );
     },
+    expectedLogMessages: expectedLogMessages,
     timeout: timeout,
     skip: skip,
   );
@@ -193,8 +195,9 @@ void testWithFakeTime(
   TestProfile? testProfile,
   ImportSource? importSource,
   Pattern? integrityProblem,
+  Iterable<Pattern>? expectedLogMessages,
 }) {
-  scopedTest(name, () async {
+  scopedTest(name, expectedLogMessages: expectedLogMessages, () async {
     await FakeTime.run((fakeTime) async {
       setupDebugEnvBasedLogging();
       await withFakeServices(

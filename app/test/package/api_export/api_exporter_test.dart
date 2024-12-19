@@ -43,8 +43,12 @@ final _testProfile = TestProfile(
 );
 
 void main() {
-  testWithFakeTime('synchronizeExportedApi()', testProfile: _testProfile,
-      (fakeTime) async {
+  testWithFakeTime('synchronizeExportedApi()',
+      testProfile: _testProfile,
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
+      ], (fakeTime) async {
     await storageService.createBucket('bucket');
     final bucket = storageService.bucket('bucket');
     final apiExporter =
@@ -59,6 +63,10 @@ void main() {
 
   testWithFakeTime(
     'apiExporter.start()',
+    expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
+    ],
     testProfile: _testProfile,
     (fakeTime) async {
       await storageService.createBucket('bucket');
