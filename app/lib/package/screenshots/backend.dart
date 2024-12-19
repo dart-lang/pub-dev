@@ -35,11 +35,18 @@ class ImageStorage {
   ];
 
   /// Uploads an image to image storage, at
-  /// '<package>/<version>/<path/to/image-file>'.
+  /// `<package>/<version>/<path/to/image-file>`.
   ///
   /// Throws an [ArgumentError] if the provided image file is not one of
-  /// the following supported MIME types : image/apng, image/avif, image/gif,
-  /// image/jpeg, image/png, image/svg+xml, image/webp.
+  /// the following supported MIME types:
+  ///
+  /// - `image/apng`
+  /// - `image/avif`
+  /// - `image/gif`
+  /// - `image/jpeg`
+  /// - `image/png`
+  /// - `image/svg+xml`
+  /// - `image/webp`
   Future<void> upload(
       String package,
       String version,

@@ -2,7 +2,7 @@ name: _pub_shared
 description: Shared data between the pub server and web_app client.
 publish_to: none
 environment:
-  sdk: '^3.5.0'
+  sdk: ^3.6.0
 resolution: workspace
 
 dependencies:

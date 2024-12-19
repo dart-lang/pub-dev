@@ -25,7 +25,8 @@ Future<OpenIdData> fetchGoogleCloudOpenIdData() async {
 
 /// Parsed payload values Google Cloud Service account sends with the token.
 class GcpServiceAccountJwtPayload {
-  /// email of the service account (i.e. <GCP_PROJECT_ID>@cloudbuild.gserviceaccount.com)
+  /// Email of the service account, in the format:
+  /// `<GCP_PROJECT_ID>@cloudbuild.gserviceaccount.com`.
   final String email;
 
   /// focus obfuscated gaia id for the service account (aka. `OAuthUserId`)

@@ -74,7 +74,7 @@ void _initGenericForm() {
   }
 }
 
-/// Active on /packages/<package>/admin page.
+/// Active on `/packages/<package>/admin` page.
 class _PkgAdminWidget {
   Element? _setPublisherInput;
   Element? _setPublisherButton;
@@ -426,7 +426,7 @@ class _CreatePublisherWidget {
   }
 }
 
-/// Active on the /publishers/<publisherId>/admin page.
+/// Active on the `/publishers/<publisherId>/admin` page.
 class _PublisherAdminWidget {
   Element? _updateButton;
   TextAreaElement? _descriptionTextArea;

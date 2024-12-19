@@ -54,14 +54,14 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   return htmlResponse(content);
 }
 
-/// Handles requests for GET /publishers/<publisherId>
+/// Handles requests for `GET /publishers/<publisherId>`.
 Future<shelf.Response> publisherPageHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
   return redirectResponse(urls.publisherPackagesUrl(publisherId));
 }
 
-/// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
+/// Handles requests for `GET /publishers/<publisherId>/packages [?q=...]`.
 Future<shelf.Response> publisherPackagesPageHandler(
   shelf.Request request,
   String publisherId, {
@@ -143,7 +143,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
   return htmlResponse(html);
 }
 
-/// Handles requests for GET /publishers/<publisherId>/admin
+/// Handles requests for `GET /publishers/<publisherId>/admin`.
 Future<shelf.Response> publisherAdminPageHandler(
     shelf.Request request, String publisherId) async {
   final publisher = await publisherBackend.getPublisher(publisherId);
@@ -171,7 +171,7 @@ Future<shelf.Response> publisherAdminPageHandler(
   ));
 }
 
-/// Handles requests for GET /publishers/<publisherId>/activity-log
+/// Handles requests for `GET /publishers/<publisherId>/activity-log`.
 Future<shelf.Response> publisherActivityLogPageHandler(
     shelf.Request request, String publisherId) async {
   final publisher = await publisherBackend.getPublisher(publisherId);

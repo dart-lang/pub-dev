@@ -1,6 +1,6 @@
 name: workspace
 environment:
-  sdk: '^3.5.0'
+  sdk: ^3.6.0
 
 workspace:
   - app/
@@ -17,5 +17,5 @@ workspace:
   - pkg/pub_package_reader
 
 dev_dependencies:
-  lints: ^5.0.0
-  mono_repo: ^6.6.1
+  lints: ^5.1.0
+  mono_repo: ^6.6.2

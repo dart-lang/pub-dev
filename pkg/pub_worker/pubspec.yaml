@@ -3,7 +3,7 @@ description: Worker for pana and dartdoc analysis for pub.dev
 publish_to: none
 
 environment:
-  sdk: '^3.5.0'
+  sdk: ^3.6.0
 resolution: workspace
 
 dependencies:

@@ -51,7 +51,7 @@ Map packageDebugStats() {
   };
 }
 
-/// Handles requests for /packages/<package> - JSON
+/// Handles requests for `/packages/<package>`, returning JSON.
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
   checkPackageVersionParams(packageName);
@@ -70,7 +70,7 @@ Future<shelf.Response> packageShowHandlerJson(
   return jsonResponse(json);
 }
 
-/// Handles requests for /packages/<package>/versions
+/// Handles requests for `/packages/<package>/versions`.
 Future<shelf.Response> packageVersionsListHandler(
     shelf.Request request, String packageName) async {
   return _handlePackagePage(
@@ -103,8 +103,10 @@ Future<shelf.Response> packageVersionsListHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/changelog
-/// Handles requests for /packages/<package>/versions/<version>/changelog
+/// Handles requests for:
+///
+/// - `/packages/<package>/changelog`
+/// - `/packages/<package>/versions/<version>/changelog`
 Future<shelf.Response> packageChangelogHandler(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -125,8 +127,10 @@ Future<shelf.Response> packageChangelogHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/example
-/// Handles requests for /packages/<package>/versions/<version>/example
+/// Handles requests for:
+///
+/// - `/packages/<package>/example`
+/// - `/packages/<package>/versions/<version>/example`
 Future<shelf.Response> packageExampleHandler(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -147,8 +151,10 @@ Future<shelf.Response> packageExampleHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/install
-/// Handles requests for /packages/<package>/versions/<version>/install
+/// Handles requests for:
+///
+/// - `/packages/<package>/install`
+/// - `/packages/<package>/versions/<version>/install`
 Future<shelf.Response> packageInstallHandler(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -163,8 +169,10 @@ Future<shelf.Response> packageInstallHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/license
-/// Handles requests for /packages/<package>/versions/<version>/license
+/// Handles requests for:
+///
+/// - `/packages/<package>/license`
+/// - `/packages/<package>/versions/<version>/license`
 Future<shelf.Response> packageLicenseHandler(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -179,8 +187,10 @@ Future<shelf.Response> packageLicenseHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/pubspec
-/// Handles requests for /packages/<package>/versions/<version>/pubspec
+/// Handles requests for:
+///
+/// - `/packages/<package>/pubspec`
+/// - `/packages/<package>/versions/<version>/pubspec`
 Future<shelf.Response> packagePubspecHandler(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -195,8 +205,10 @@ Future<shelf.Response> packagePubspecHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/score
-/// Handles requests for /packages/<package>/versions/<version>/score
+/// Handles requests for:
+///
+/// - `/packages/<package>/score`
+/// - `/packages/<package>/versions/<version>/score`
 Future<shelf.Response> packageScoreHandler(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -211,8 +223,10 @@ Future<shelf.Response> packageScoreHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/score/log.txt
-/// Handles requests for /packages/<package>/versions/<version>/score/log.txt
+/// Handles requests for:
+///
+/// - `/packages/<package>/score/log.txt`
+/// - `/packages/<package>/versions/<version>/score/log.txt`
 Future<shelf.Response> packageScoreLogTxtHandler(
   shelf.Request request,
   String package, {
@@ -239,8 +253,10 @@ Future<shelf.Response> packageScoreLogTxtHandler(
   );
 }
 
-/// Handles requests for /packages/<package>
-/// Handles requests for /packages/<package>/versions/<version>
+/// Handles requests for:
+///
+/// - `/packages/<package>`
+/// - `/packages/<package>/versions/<version>`
 Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName,
     {String? versionName}) async {
@@ -344,8 +360,10 @@ Future<String> _canonicalPackageName(String name) async {
   return name;
 }
 
-/// Handles requests for /packages/<package>/admin
-/// Handles requests for /packages/<package>/versions/<version>/admin
+/// Handles requests for:
+///
+/// - `/packages/<package>/admin`
+/// - `/packages/<package>/versions/<version>/admin`
 Future<shelf.Response> packageAdminHandler(
     shelf.Request request, String packageName) async {
   return _handlePackagePage(
@@ -381,7 +399,7 @@ Future<shelf.Response> packageAdminHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/activity-log
+/// Handles requests for `/packages/<package>/activity-log`
 Future<shelf.Response> packageActivityLogHandler(
     shelf.Request request, String packageName) async {
   return _handlePackagePage(
@@ -492,7 +510,7 @@ Future<PackagePageData> loadPackagePageData(
   );
 }
 
-/// Handles /api/packages/<package> requests.
+/// Handles requests for `/api/packages/<package>`.
 Future<shelf.Response> listVersionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
@@ -515,7 +533,7 @@ Future<shelf.Response> listVersionsHandler(
   );
 }
 
-/// Handles requests for /packages/<package>/publisher
+/// Handles requests for `/packages/<package>/publisher`.
 Future<shelf.Response> packagePublisherHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
@@ -527,7 +545,7 @@ Future<shelf.Response> packagePublisherHandler(
   return redirectResponse(redirectUrl);
 }
 
-/// Handles GET /api/packages/<package>/advisories
+/// Handles requests for `/api/packages/<package>/advisories`.
 Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
     shelf.Request request, String packageName) async {
   InvalidInputException.checkPackageName(packageName);

@@ -151,7 +151,7 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   );
 }
 
-/// Handles GET /consent?id=<consentId>
+/// Handles `GET /consent?id=<consentId>`.
 Future<shelf.Response> consentPageHandler(
     shelf.Request request, String? consentId) async {
   final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
@@ -184,7 +184,7 @@ Future<shelf.Response> consentPageHandler(
   );
 }
 
-/// Handles GET /api/account/options/packages/<package>
+/// Handles `GET /api/account/options/packages/<package>`.
 Future<AccountPkgOptions> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
@@ -210,7 +210,7 @@ Future<LikedPackagesResponse> listPackageLikesHandler(
   return LikedPackagesResponse(likedPackages: packageLikes);
 }
 
-/// Handles GET /api/account/likes/<package>
+/// Handles `GET /api/account/likes/<package>`.
 Future<PackageLikeResponse> getLikePackageHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
@@ -228,7 +228,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
   );
 }
 
-/// Handles PUT /api/account/likes/<package>
+/// Handles `PUT /api/account/likes/<package>`.
 Future<PackageLikeResponse> likePackageHandler(
     shelf.Request request, String package) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
@@ -237,7 +237,7 @@ Future<PackageLikeResponse> likePackageHandler(
   return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
 
-/// Handles DELETE /api/account/likes/<package>
+/// Handles `DELETE /api/account/likes/<package>`.
 Future<shelf.Response> unlikePackageHandler(
     shelf.Request request, String package) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
@@ -246,7 +246,7 @@ Future<shelf.Response> unlikePackageHandler(
   return shelf.Response(204);
 }
 
-/// Handles /api/account/options/publishers/<publisherId>
+/// Handles `/api/account/options/publishers/<publisherId>`.
 Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
