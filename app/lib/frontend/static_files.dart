@@ -384,9 +384,10 @@ Future<void> updateWebCssBuild() async {
 }
 
 /// Parses the static resource URL and returns the parsed hash values.
+///
 /// It can parse the following formats:
-/// - /static/<url-hash>/path/to/resource
-/// - /static/path/to/resource?hash=<url-hash>
+/// - `/static/<url-hash>/path/to/resource`
+/// - `/static/path/to/resource?hash=<url-hash>`
 ///
 /// TODO: remove after we no longer use url-hash
 class ParsedStaticUrl {

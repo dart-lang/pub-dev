@@ -305,20 +305,23 @@ abstract class ModerationViolation {
   ];
 }
 
-/// Describes the parsed structure of a [ModerationCase.subject] (or the same as URL parameter).
+/// Describes the parsed structure of a [ModerationCase.subject]
+/// (or the same as URL parameter).
 class ModerationSubject {
   /// The kind of moderation as described by [ModerationSubjectKind], one of:
-  /// - package,
-  /// - package-version,
-  /// - publisher,
-  /// - user.
+  ///
+  /// - package
+  /// - package-version
+  /// - publisher
+  /// - user
   final String kind;
 
   /// The local name part of the subject, may be a composite, one of:
-  /// - <package>,
-  /// - <package>/<version>,
-  /// - <publisherId>,
-  /// - <email>.
+  ///
+  /// - `<package>`
+  /// - `<package>/<version>`
+  /// - `<publisherId>`
+  /// - `<email>`
   final String localName;
 
   /// The package name of the subject (if not a publisher, or user).

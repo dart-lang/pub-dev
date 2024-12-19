@@ -36,13 +36,13 @@ const _minGarbageAge = Duration(hours: 3);
 ///  * Deletion of all files related to a package.
 ///  * Garbage collection of unknown package entries.
 ///  * Maintaining two prefixes with files in the bucket.
-///    * "latest" (that all runtimeVersions write to)
-///    * "<runtimeVersion>" (that only this runtimeVersion writes to)
+///    * `"latest"` (that all runtimeVersions write to)
+///    * `"<runtimeVersion>"` (that only this [runtimeVersion] writes to)
 ///  * Garbage collecting old prefixes.
 ///  * Limit concurrency of operations.
 ///
-/// All writes to the bucket containing the exported API should go through this
-/// interface.
+/// All writes to the bucket containing the exported API should
+/// go through this interface.
 final class ExportedApi {
   final Pool _pool = Pool(80);
   final Storage _storage;

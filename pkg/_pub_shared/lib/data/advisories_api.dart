@@ -35,8 +35,9 @@ class OSV {
 
   /// The unique identifier for this particular vulnerability.
   ///
-  /// It is a string of the format <DB>-<ENTRYID>, where DB names the database
-  /// and ENTRYID is in the format used by the database.
+  /// It is a string of the format `<DB>-<ENTRYID>`, where
+  /// `DB` names the database and
+  /// `ENTRYID` is in the format used by the database.
   /// For example: “OSV-2020-111”, “CVE-2021-3114”, or “GHSA-vp9c-fpxx-744v”.
   String id;
 

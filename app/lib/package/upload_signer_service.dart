@@ -42,7 +42,7 @@ Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
 /// Since the GCS bucket is not writable by third parties we will make a signed
 /// upload URL and give this to the client. The client can then for a given time
 /// period use the signed upload URL to upload the data directly to
-/// gs://<bucket>/<object>. The expiration date, acl, content-length-range are
+/// `gs://<bucket>/<object>`. The expiration date, acl, content-length-range are
 /// determined by the server.
 ///
 /// See here for a broader explanation:

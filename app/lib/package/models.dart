@@ -764,7 +764,7 @@ abstract class AssetKind {
 /// A derived entity that holds extracted asset of a [PackageVersion] archive.
 @db.Kind(name: 'PackageVersionAsset', idType: db.IdType.String)
 class PackageVersionAsset extends db.ExpandoModel {
-  /// ID format: an URI path with <package>/<version>/<kind>
+  /// ID format: an URI path with `<package>/<version>/<kind>`
   String get assetId => id as String;
 
   /// The name of the package.
