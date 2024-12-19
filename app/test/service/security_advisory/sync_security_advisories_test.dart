@@ -52,7 +52,9 @@ void main() {
     expect(adv, isNull);
   });
 
-  testWithProfile('Sync with partial success', fn: () async {
+  testWithProfile('Sync with partial success', expectedLogMessages: [
+    'SHOUT [advisory-malformed] ID: GHSA-5678-5678-5678: Invalid modified date, cannot be a future date.',
+  ], fn: () async {
     // This directory contains 4 json files. One is with invalid json.
     // One contains invalid osv. The final two are valid security advisories.
     final dataDir3 = Directory(path.join(Directory.current.path, 'test',
@@ -66,7 +68,10 @@ void main() {
     expect(list.length, 2);
   });
 
-  testWithProfile('LatestAdvisory field gets updated on sync', fn: () async {
+  testWithProfile('LatestAdvisory field gets updated on sync',
+      expectedLogMessages: [
+        'SHOUT [advisory-malformed] ID: GHSA-5678-5678-5678: Invalid modified date, cannot be a future date.',
+      ], fn: () async {
     var pkg = await packageBackend.lookupPackage('oxygen');
     expect(pkg!.latestAdvisory, isNull);
 
