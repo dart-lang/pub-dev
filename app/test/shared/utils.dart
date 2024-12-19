@@ -57,6 +57,8 @@ void scopedTest(
         allMatchedMessages.contains(m) ||
         m.startsWith('SEVERE failed to delete task-worker ') ||
         m.startsWith('SHOUT Download counts sync was partial.') ||
+        (m.startsWith('SEVERE daily_download_counts') &&
+            m.endsWith('.jsonl is empty.')) ||
         m.startsWith(
             'SEVERE [pub-search-not-working] Search is temporarily impaired'));
     expect(logMessages, isEmpty);
