@@ -164,7 +164,7 @@ class _RetryEnforcerBucket implements Bucket {
 
   @override
   Stream<List<int>> read(String objectName, {int? offset, int? length}) {
-    // TODO: verify retry wrapper here
+    _verifyRetryOnStack();
     return _bucket.read(objectName, offset: offset, length: length);
   }
 

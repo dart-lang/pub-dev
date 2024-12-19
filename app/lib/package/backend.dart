@@ -902,8 +902,8 @@ class PackageBackend {
         throw PackageRejectedException.archiveTooLarge(
             UploadSignerService.maxUploadSize);
       }
-      await _saveTarballToFS(
-          _incomingBucket.read(tmpObjectName(guid)), filename);
+      await _incomingBucket.readWithRetry(
+          tmpObjectName(guid), (input) => _saveTarballToFS(input, filename));
       _logger.info('Examining tarball content ($guid).');
       final sw = Stopwatch()..start();
       final file = File(filename);
@@ -1756,6 +1756,11 @@ class InviteStatus {
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   final sw = Stopwatch()..start();
   final targetFile = File(filename);
+
+  // cleanup the leftover if previous attempt failed
+  if (await targetFile.exists()) {
+    await targetFile.delete();
+  }
   try {
     int receivedBytes = 0;
     final stream = data.transform<List<int>>(

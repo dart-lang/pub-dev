@@ -180,6 +180,14 @@ extension BucketExt on Bucket {
     );
   }
 
+  /// Read object content as byte stream using the callback function to receive data chunks.
+  ///
+  /// When network error occurs, the entire stream is restarted and [fn] is called again.
+  Future<T> readWithRetry<T>(
+      String objectName, Future<T> Function(Stream<List<int>> input) fn) async {
+    return await _retry(() async => fn(read(objectName)));
+  }
+
   /// The HTTP URL of a publicly accessable GCS object.
   String objectUrl(String objectName) {
     return '${activeConfiguration.storageBaseUrl}/$bucketName/$objectName';
@@ -399,12 +407,14 @@ class VersionedJsonStorage {
     }
     final objectName = _objectName(version);
     _logger.info('Loading snapshot: $objectName');
-    final map = await _bucket
-        .read(objectName)
-        .transform(_gzip.decoder)
-        .transform(utf8.decoder)
-        .transform(json.decoder)
-        .single;
+    final map = await _bucket.readWithRetry(
+      objectName,
+      (input) => input
+          .transform(_gzip.decoder)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
+          .single,
+    );
     return map as Map<String, dynamic>;
   }
 
