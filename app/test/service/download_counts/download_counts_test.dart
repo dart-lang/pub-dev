@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  group('', () {
+  group('download counts', () {
     testWithProfile('Ingest download counts', fn: () async {
       final pkg = 'test';
       final downloadCounts =

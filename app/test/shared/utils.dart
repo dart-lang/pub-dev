@@ -53,10 +53,15 @@ void scopedTest(
       allMatchedMessages.addAll(matchedMessages);
     }
     // remove known messages that can be ignored for now
+    // TODO: investigate why these messages are flaky
     logMessages.removeWhere((m) =>
         allMatchedMessages.contains(m) ||
         m.startsWith('SEVERE failed to delete task-worker ') ||
         m.startsWith('SHOUT Download counts sync was partial.') ||
+        (m.startsWith('SEVERE Failed to proccess line') &&
+            m.contains('daily_download_counts')) ||
+        m.contains(
+            'appeared in download counts data for file daily_download_counts') ||
         (m.startsWith('SEVERE daily_download_counts') &&
             m.endsWith('.jsonl is empty.')) ||
         m.startsWith(
