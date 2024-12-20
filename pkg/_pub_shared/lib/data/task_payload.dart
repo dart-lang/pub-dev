@@ -24,7 +24,7 @@ final class Payload {
   ///  * `POST <callbackUrl>/api/tasks/<package>/<version>/finished`.
   ///
   /// The POST requests must be authenticated with:
-  ///         authorization: bearer <token>
+  ///         `authorization: bearer <token>`
   /// Using the `<token>` matching the `<version>` being reported.
   final String pubHostedUrl;
 

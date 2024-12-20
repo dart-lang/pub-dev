@@ -56,7 +56,8 @@ Future<void> main(List<String> args) async {
   print(pr.stderr);
 }
 
-/// Returns the map of <package>:<version> pairs from the pubspec.lock file.
+/// Returns the map of `<package>:<version>` pairs from the `pubspec.lock` file.
+///
 /// Only hosted dependencies are included in the result map.
 Map<String, String> _parsePubspecLockSync(File file) {
   final versions = <String, String>{};

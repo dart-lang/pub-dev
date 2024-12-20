@@ -1034,9 +1034,9 @@ class TaskBackend {
 
   /// Backfills the tracking state and then processes in all packages with
   /// calling [processPayload].
-  ///
-  /// TODO: rework the callback method into Future<TaskResult> Function(String package, String version);
-  ///       to handle the upload boilerplate inside this method.
+  // TODO: rework the callback method into
+  //   Future<TaskResult> Function(String package, String version);
+  //   to handle the upload boilerplate inside this method.
   Future<void> backfillAndProcessAllPackages(
     Future<void> Function(Payload payload) processPayload,
   ) async {
