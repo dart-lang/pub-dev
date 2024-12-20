@@ -64,7 +64,8 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
 
   final failedFiles = <String>{};
 
-  final bucketEntries = await bucket.list(prefix: fileNamePrefix).toList();
+  final bucketEntries =
+      await bucket.listAllItemsWithRetry(prefix: fileNamePrefix);
 
   if (bucketEntries.isEmpty) {
     _logger.info('Failed to read any files with prefix "$fileNamePrefix"./n');

@@ -516,10 +516,10 @@ class TaskBackend {
     // Objects in the bucket are stored under the following pattern:
     //   `<runtimeVersion>/<package>/<version>/...`
     // Thus, we list with `/` as delimiter and get a list of runtimeVersions
-    await for (final d in _bucket.list(prefix: '', delimiter: '/')) {
+    await _bucket.listWithRetry(prefix: '', delimiter: '/', (d) async {
       if (!d.isDirectory) {
         _log.warning('bucket should not contain any top-level object');
-        continue;
+        return;
       }
 
       // Remove trailing slash from object prefix, to get a runtimeVersion
@@ -529,7 +529,7 @@ class TaskBackend {
       // Check if the runtimeVersion should be GC'ed
       if (shouldGCVersion(rtVersion)) {
         // List all objects under the `<rtVersion>/`
-        await for (final obj in _bucket.list(prefix: d.name, delimiter: '')) {
+        await _bucket.listWithRetry(prefix: d.name, delimiter: '', (obj) async {
           // Limit concurrency
           final r = await pool.request();
 
@@ -545,9 +545,9 @@ class TaskBackend {
               r.release(); // always release to avoid deadlock
             }
           });
-        }
+        });
       }
-    }
+    });
 
     // Close the pool, and wait for all pending deletion request to complete.
     await pool.close();

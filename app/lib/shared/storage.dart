@@ -188,6 +188,36 @@ extension BucketExt on Bucket {
     return await _retry(() async => fn(read(objectName)));
   }
 
+  /// List objects in the bucket with default retry with pagination.
+  Future<void> listWithRetry(
+    FutureOr<void> Function(BucketEntry input) fn, {
+    String? prefix,
+    String? delimiter,
+  }) async {
+    for (;;) {
+      var p = await pageWithRetry(prefix: prefix, delimiter: delimiter);
+      for (final item in p.items) {
+        await fn(item);
+      }
+      if (p.isLast) break;
+      p = await p.nextWithRetry();
+    }
+  }
+
+  /// Lists all entries with default retry pagination, returns them as List.
+  Future<List<BucketEntry>> listAllItemsWithRetry({
+    String? prefix,
+    String? delimiter,
+  }) async {
+    final entries = <BucketEntry>[];
+    await listWithRetry(
+      prefix: prefix,
+      delimiter: delimiter,
+      entries.add,
+    );
+    return entries;
+  }
+
   /// The HTTP URL of a publicly accessable GCS object.
   String objectUrl(String objectName) {
     return '${activeConfiguration.storageBaseUrl}/$bucketName/$objectName';
@@ -324,8 +354,9 @@ Future<int> deleteBucketFolderRecursively(
     page = await retry(
       () async {
         return page == null
-            ? await bucket.page(prefix: folder, delimiter: '', pageSize: 100)
-            : await page.next(pageSize: 100);
+            ? await bucket.pageWithRetry(
+                prefix: folder, delimiter: '', pageSize: 100)
+            : await page.nextWithRetry(pageSize: 100);
       },
       delayFactor: Duration(seconds: 10),
       maxAttempts: 3,
@@ -430,8 +461,7 @@ class VersionedJsonStorage {
     }
     // fallback to earlier runtimes
     final currentPath = _objectName();
-    final list = await _bucket
-        .list(prefix: _prefix)
+    final list = (await _bucket.listAllItemsWithRetry(prefix: _prefix))
         .map((entry) => entry.name)
         .where((name) => name.endsWith(_extension))
         .where((name) => name.compareTo(currentPath) <= 0)
@@ -456,19 +486,19 @@ class VersionedJsonStorage {
   Future<DeleteCounts> deleteOldData({Duration? minAgeThreshold}) async {
     var found = 0;
     var deleted = 0;
-    await for (final entry in _bucket.list(prefix: _prefix)) {
+    await _bucket.listWithRetry(prefix: _prefix, (entry) async {
       if (entry.isDirectory) {
-        continue;
+        return;
       }
       final name = p.basename(entry.name);
       if (!name.endsWith(_extension)) {
-        continue;
+        return;
       }
       final version = name.substring(0, name.length - _extension.length);
       final matchesPattern = version.length == 10 &&
           versions.runtimeVersionPattern.hasMatch(version);
       if (!matchesPattern) {
-        continue;
+        return;
       }
       found++;
       if (versions.shouldGCVersion(version)) {
@@ -479,7 +509,7 @@ class VersionedJsonStorage {
           await deleteFromBucket(_bucket, entry.name);
         }
       }
-    }
+    });
     return DeleteCounts(found, deleted);
   }
 
