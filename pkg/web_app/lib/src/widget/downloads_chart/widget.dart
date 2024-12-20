@@ -21,9 +21,7 @@ void create(HTMLElement element, Map<String, String> options) {
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
 
-  final weeksToDisplay = data.totalWeeklyDownloads.length > 28
-      ? 28
-      : data.totalWeeklyDownloads.length;
+  final weeksToDisplay = math.min(28, data.totalWeeklyDownloads.length, 28);
 
   final majorDisplayLists = prepareWeekLists(
     data.totalWeeklyDownloads,
