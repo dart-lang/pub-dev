@@ -149,7 +149,8 @@ final class ExportedApi {
   Future<void> _gcOldPrefixes() async {
     // List all top-level prefixes, and delete the ones we don't need
     final topLevelprefixes = await _pool.withResource(
-      () async => await _bucket.list(prefix: '', delimiter: '/').toList(),
+      () async =>
+          await _bucket.listAllItemsWithRetry(prefix: '', delimiter: '/'),
     );
     await Future.wait(topLevelprefixes.map((entry) async {
       if (entry.isObject) {

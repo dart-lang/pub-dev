@@ -67,12 +67,10 @@ class TarballStorage {
     String package,
   ) async {
     final prefix = _tarballObjectNamePackagePrefix(package);
-    final items = await _canonicalBucket
-        .list(
-          prefix: prefix,
-          delimiter: '',
-        )
-        .toList();
+    final items = await _canonicalBucket.listAllItemsWithRetry(
+      prefix: prefix,
+      delimiter: '',
+    );
     return Map.fromEntries(items.whereType<BucketObjectEntry>().map((item) {
       final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
       return MapEntry(
@@ -255,24 +253,25 @@ class TarballStorage {
     final filterForNamePrefix = package == null
         ? 'packages/'
         : _tarballObjectNamePackagePrefix(package);
-    await for (final entry in _publicBucket.list(prefix: filterForNamePrefix)) {
+    await _publicBucket.listWithRetry(prefix: filterForNamePrefix,
+        (entry) async {
       // Skip non-objects.
       if (!entry.isObject) {
-        continue;
+        return;
       }
       // Skip objects that were matched in the previous step.
       if (objectNamesInPublicBucket.contains(entry.name)) {
-        continue;
+        return;
       }
       if (deleteObjects.contains(entry.name)) {
-        continue;
+        return;
       }
 
       final publicInfo = await _publicBucket.tryInfo(entry.name);
       if (publicInfo == null) {
         _logger.warning(
             'Failed to get info for public bucket object "${entry.name}".');
-        continue;
+        return;
       }
 
       await updateContentDispositionToAttachment(publicInfo, _publicBucket);
@@ -280,7 +279,7 @@ class TarballStorage {
       // Skip recently updated objects.
       if (publicInfo.age < ageCheckThreshold) {
         // Ignore recent files.
-        continue;
+        return;
       }
 
       final canonicalInfo = await _canonicalBucket.tryInfo(entry.name);
@@ -289,11 +288,11 @@ class TarballStorage {
         // but it wasn't matched through the [PackageVersion] query above.
         if (canonicalInfo.age < ageCheckThreshold) {
           // Ignore recent files.
-          continue;
+          return;
         }
         _logger.severe(
             'Object without matching PackageVersion in canonical and public buckets: "${entry.name}".');
-        continue;
+        return;
       } else {
         // The object in the public bucket has no matching file in the canonical bucket.
         // We can assume it is stale and can delete it.
@@ -305,7 +304,7 @@ class TarballStorage {
           deleteObjects.add(entry.name);
         }
       }
-    }
+    });
 
     for (final objectName in deleteObjects) {
       _logger.shout('Deleting object from public bucket: "$objectName".');
