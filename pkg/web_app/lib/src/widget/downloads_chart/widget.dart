@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:web/web.dart';
@@ -21,9 +22,7 @@ void create(HTMLElement element, Map<String, String> options) {
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
 
-  final weeksToDisplay = data.totalWeeklyDownloads.length > 28
-      ? 28
-      : data.totalWeeklyDownloads.length;
+  final weeksToDisplay = math.min(28, data.totalWeeklyDownloads.length);
 
   final majorDisplayLists = prepareWeekLists(
     data.totalWeeklyDownloads,
