@@ -126,16 +126,10 @@ class Package extends db.ExpandoModel<String> {
 
   /// Set to `true` if package should not be displayed anywhere, because of
   /// pending moderation or deletion.
-  @db.BoolProperty(required: true)
+  ///
+  /// TODO: remove after runtime version `2024.12.17` is no longer running.
+  @db.BoolProperty(required: false)
   bool isBlocked = false;
-
-  /// The reason why the package was blocked.
-  @db.StringProperty(indexed: false)
-  String? blockedReason;
-
-  /// The timestamp when the package was blocked.
-  @db.DateTimeProperty()
-  DateTime? blocked;
 
   /// `true` if package was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
