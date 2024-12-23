@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/format/number_format.dart';
-import 'package:pub_dev/frontend/request_context.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../../../dom/dom.dart' as d;
 
@@ -31,30 +29,20 @@ d.Node labeledScoresNode({
         classes: ['packages-score', 'packages-score-health'],
         child: _labeledScore('points', grantedPubPoints?.toString(), sign: ''),
       ),
-      requestContext.experimentalFlags.showDownloadCounts
-          ? d.div(
-              attributes: {
-                'title':
-                    'Number of downloads of this package during the past 30 days'
-              },
-              classes: ['packages-score', 'packages-score-downloads'],
-              child: _labeledScore(
-                'downloads',
-                thirtyDaysDownloads != null
-                    ? '${compactFormat(thirtyDaysDownloads).value}'
-                        '${compactFormat(thirtyDaysDownloads).suffix}'
-                    : null,
-                sign: '',
-              ),
-            )
-          : d.div(
-              classes: ['packages-score', 'packages-score-popularity'],
-              child: _labeledScore(
-                'popularity',
-                popularityStorage.isInvalid ? null : popularity.toString(),
-                sign: popularityStorage.isInvalid ? '' : '%',
-              ),
-            ),
+      d.div(
+        attributes: {
+          'title': 'Number of downloads of this package during the past 30 days'
+        },
+        classes: ['packages-score', 'packages-score-downloads'],
+        child: _labeledScore(
+          'downloads',
+          thirtyDaysDownloads != null
+              ? '${compactFormat(thirtyDaysDownloads).value}'
+                  '${compactFormat(thirtyDaysDownloads).suffix}'
+              : null,
+          sign: '',
+        ),
+      ),
     ],
   );
 }

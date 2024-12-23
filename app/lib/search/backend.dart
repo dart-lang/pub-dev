@@ -24,7 +24,6 @@ import 'package:retry/retry.dart';
 import '../../publisher/backend.dart';
 import '../../service/download_counts/backend.dart';
 import '../../service/topics/models.dart';
-import '../../shared/popularity_storage.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/utils.dart';
 import '../package/backend.dart';
@@ -354,7 +353,6 @@ class SearchBackend {
       readme: compactReadme(readmeAsset?.textContent),
       downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       likeCount: p.likes,
-      popularityScore: popularityStorage.lookup(packageName),
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),

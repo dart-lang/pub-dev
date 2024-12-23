@@ -280,7 +280,6 @@ class VersionScore {
   final int? maxPoints;
   final int? likeCount;
   final int? downloadCount30Days;
-  final double? popularityScore;
   final List<String>? tags;
   final DateTime? lastUpdated;
 
@@ -289,7 +288,6 @@ class VersionScore {
     required this.maxPoints,
     required this.likeCount,
     required this.downloadCount30Days,
-    required this.popularityScore,
     required this.tags,
     required this.lastUpdated,
   });

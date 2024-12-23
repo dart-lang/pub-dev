@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
@@ -15,7 +14,6 @@ import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../request_context.dart';
 import '../../../static_files.dart';
-import '../../package_misc.dart' show formatScore;
 
 /// Renders the score page content.
 d.Node scoreTabNode({
@@ -45,9 +43,7 @@ d.Node scoreTabNode({
       children: [
         _likeKeyFigureNode(likeCount),
         _pubPointsKeyFigureNode(report, showPending),
-        requestContext.experimentalFlags.showDownloadCounts
-            ? _downloadCountsKeyFigureNode(card.thirtyDaysDownloadCounts)
-            : _popularityKeyFigureNode(card.popularityScore),
+        _downloadCountsKeyFigureNode(card.thirtyDaysDownloadCounts),
       ],
     ),
     if (showPending)
@@ -278,21 +274,6 @@ d.Node _likeKeyFigureNode(int? likeCount) {
         '${compactFormat(likeCount).suffix}',
     supplemental: '',
     label: 'likes',
-  );
-}
-
-d.Node _popularityKeyFigureNode(double? popularity) {
-  if (popularityStorage.isInvalid) {
-    return _keyFigureNode(
-      value: '--',
-      supplemental: '',
-      label: 'popularity',
-    );
-  }
-  return _keyFigureNode(
-    value: formatScore(popularity),
-    supplemental: '%',
-    label: 'popularity',
   );
 }
 
