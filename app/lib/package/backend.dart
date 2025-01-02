@@ -882,8 +882,9 @@ class PackageBackend {
     );
   }
 
-  /// Finishes the upload of a package.
-  Future<PackageVersion> publishUploadedBlob(String guid) async {
+  /// Finishes the upload of a package and returns the list of messages
+  /// related to the publishing.
+  Future<List<String>> publishUploadedBlob(String guid) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
@@ -984,7 +985,7 @@ class PackageBackend {
       sw.reset();
       final entities = await _createUploadEntities(db, agent, archive,
           sha256Hash: sha256Hash);
-      final version = await _performTarballUpload(
+      final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
         agent: agent,
         archive: archive,
@@ -998,7 +999,13 @@ class PackageBackend {
       sw.reset();
       await _incomingBucket.deleteWithRetry(tmpObjectName(guid));
       _logger.info('Temporary object removed in ${sw.elapsed}.');
-      return version;
+      return [
+        'Successfully uploaded '
+            '${urls.pkgPageUrl(version.package, includeHost: true)} '
+            'version ${version.version}, '
+            'it may take up-to 10 minutes before the new version is available.',
+        ...uploadMessages,
+      ];
     });
   }
 
@@ -1057,7 +1064,7 @@ class PackageBackend {
     }
   }
 
-  Future<PackageVersion> _performTarballUpload({
+  Future<(PackageVersion, List<String>)> _performTarballUpload({
     required _UploadEntities entities,
     required AuthenticatedAgent agent,
     required PackageSummary archive,
@@ -1065,6 +1072,7 @@ class PackageBackend {
     required bool hasCanonicalArchiveObject,
   }) async {
     final sw = Stopwatch()..start();
+    final uploadMessages = <String>[];
     final newVersion = entities.packageVersion;
     final [currentDartSdk, currentFlutterSdk] = await Future.wait([
       getCachedDartSdkVersion(lastKnownStable: toolStableDartSdkVersion),
@@ -1100,14 +1108,6 @@ class PackageBackend {
       package: newVersion.package,
       isNew: isNew,
     );
-    final email = createPackageUploadedEmail(
-      packageName: newVersion.package,
-      packageVersion: newVersion.version!,
-      displayId: agent.displayId,
-      authorizedUploaders:
-          uploaderEmails.map((email) => EmailAddress(email)).toList(),
-    );
-    final outgoingEmail = emailBackend.prepareEntity(email);
     Package? package;
     final existingVersions = await db
         .query<PackageVersion>(ancestorKey: newVersion.packageKey!)
@@ -1116,7 +1116,7 @@ class PackageBackend {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    final pv = await withRetryTransaction(db, (tx) async {
+    final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
       final tuple = (await tx.lookup([
@@ -1156,9 +1156,19 @@ class PackageBackend {
 
       final maxVersionCount = maxVersionsPerPackageOverrides[package!.name] ??
           maxVersionsPerPackage;
-      if (package!.versionCount >= maxVersionCount) {
+      final remainingVersionCount = maxVersionCount - package!.versionCount;
+      if (remainingVersionCount <= 0) {
         throw PackageRejectedException.maxVersionCountReached(
             newVersion.package, maxVersionCount);
+      }
+      if (remainingVersionCount <= 100) {
+        // We need to decrease the remaining version count as the newly uploaded
+        // version is not yet in it.
+        final limitAfterUpload = remainingVersionCount - 1;
+        uploadMessages.add(
+            'The package "${package!.name!}" has $limitAfterUpload versions left '
+            'before reaching the limit of $maxVersionCount. '
+            'Please contact support@pub.dev');
       }
 
       if (package!.deletedVersions != null &&
@@ -1196,6 +1206,16 @@ class PackageBackend {
       await tarballStorage.copyArchiveFromCanonicalToPublicBucket(
           newVersion.package, newVersion.version!);
 
+      final email = createPackageUploadedEmail(
+        packageName: newVersion.package,
+        packageVersion: newVersion.version!,
+        displayId: agent.displayId,
+        authorizedUploaders:
+            uploaderEmails.map((email) => EmailAddress(email)).toList(),
+        uploadMessages: uploadMessages,
+      );
+      final outgoingEmail = emailBackend.prepareEntity(email);
+
       final inserts = <Model>[
         package!,
         newVersion,
@@ -1221,7 +1241,7 @@ class PackageBackend {
 
       _logger.info('Trying to commit datastore changes.');
       tx.queueMutations(inserts: inserts);
-      return newVersion;
+      return (newVersion, outgoingEmail);
     });
     _logger.info('Upload successful. [package-uploaded]');
     _logger.info('Upload transaction completed in ${sw.elapsed}.');
@@ -1237,7 +1257,7 @@ class PackageBackend {
         .addAsyncFn(() => _postUploadTasks(package, newVersion, outgoingEmail));
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
-    return pv;
+    return (pv, uploadMessages);
   }
 
   /// The post-upload tasks are not critical and could fail without any impact on

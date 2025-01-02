@@ -1238,7 +1238,30 @@ void main() {
         ],
       ),
       fn: () async {
-        packageBackend.maxVersionsPerPackage = 100;
+        packageBackend.maxVersionsPerPackage = 102;
+
+        final tarball101 = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('busy_pkg', '1.0.101'));
+        final rs101 = await createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball101);
+        expect(
+            rs101.success.message,
+            contains(
+                'The package "busy_pkg" has 1 versions left before reaching the limit of 102. '
+                'Please contact support@pub.dev'));
+
+        final tarball102 = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('busy_pkg', '1.0.102'));
+        final rs102 = await createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(tarball102);
+        expect(
+            rs102.success.message,
+            contains(
+                'The package "busy_pkg" has 0 versions left before reaching the limit of 102. '
+                'Please contact support@pub.dev'));
+        expect(fakeEmailSender.sentMessages.last.bodyText,
+            contains('has 0 versions left before reaching the limit'));
+
         final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('busy_pkg', '2.0.0'));
         final rs = createPubApiClient(authToken: adminClientToken)
