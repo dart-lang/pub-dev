@@ -2,13 +2,9 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
-   @use 'sass:meta';
-
 // Include third-party CSS into a single output file
 // to reduce the number of HTTP requests.
-@use '../../../third_party/css/github-markdown.css';
-
-@use '../../../third_party/site-shared/dash_design/lib/styles/variables.scss' as dash_variables;
+@use 'src/_third_party';
 
 // Local styles and rules.
 @use 'src/_variables';
@@ -27,11 +23,3 @@
 @use 'src/_staging_ribbon.scss';
 @use 'src/_tags';
 @use 'src/_topics';
-
-.light-theme {
-  @include meta.load-css('../../../third_party/highlight/github');
-}
-
-.dark-theme {
-  @include meta.load-css('../../../third_party/highlight/github-dark');
-}
