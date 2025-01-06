@@ -1165,8 +1165,9 @@ class PackageBackend {
         // We need to decrease the remaining version count as the newly uploaded
         // version is not yet in it.
         final limitAfterUpload = remainingVersionCount - 1;
+        final s = limitAfterUpload == 1 ? '' : 's';
         uploadMessages.add(
-            'The package "${package!.name!}" has $limitAfterUpload versions left '
+            'The package "${package!.name!}" has $limitAfterUpload version$s left '
             'before reaching the limit of $maxVersionCount. '
             'Please contact support@pub.dev');
       }
