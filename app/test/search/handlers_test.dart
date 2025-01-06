@@ -101,11 +101,11 @@ void main() {
           ['oxygen', 'neon', 'flutter_titanium'],
         );
         expect(
-          await queryPackageOrder('/packages?sort=popularity'),
-          ['flutter_titanium', 'neon', 'oxygen'],
+          await queryPackageOrder('/packages?sort=downloads'),
+          ['oxygen', 'flutter_titanium', 'neon'],
         );
         expect(
-          await queryPackageOrder('/packages?sort=popularity&q=sort:points'),
+          await queryPackageOrder('/packages?sort=downloads&q=sort:points'),
           ['oxygen', 'neon', 'flutter_titanium'],
         );
       },

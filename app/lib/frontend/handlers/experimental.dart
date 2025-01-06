@@ -10,7 +10,6 @@ typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
   (name: 'dark', description: 'Dark mode'),
-  (name: 'download-counts', description: 'Download count metrics'),
   (name: 'search-completion', description: 'Completions for the search bar'),
   (name: 'search-topics', description: 'Show matching topics when searching'),
   (
@@ -101,7 +100,6 @@ class ExperimentalFlags {
 
   bool get showDownloadCountsVersionChart =>
       isEnabled('download-counts-version-chart');
-  bool get showDownloadCounts => true;
 
   String encodedAsCookie() => _enabled.join(':');
 
