@@ -5,24 +5,45 @@
 import 'dart:async';
 
 import 'package:gcloud/storage.dart';
+import 'package:stack_trace/stack_trace.dart';
+
+const _skippedFirstFrames = {
+  'package:fake_gcloud/retry_enforcer_storage.dart',
+  'package:pub_dev/shared/storage.dart',
+};
 
 void _verifyRetryOnStack() {
-  final st = StackTrace.current.toString();
-  if (st.contains('package:retry/')) return;
-  if (st.contains('retryAsync')) return; // lib/shared/utils.dart
+  final trace = Trace.current();
 
-  // detect direct test calls
-  final linesWithoutThisFile = st
-      .split('\n')
-      .where((l) => !l.contains('retry_enforcer_storage.dart'))
-      .toList();
-  if (linesWithoutThisFile.isNotEmpty &&
-      linesWithoutThisFile.first.contains('_test.dart')) {
+  // The first frame index outside of this file.
+  var startFrameIndex = 0;
+  while (_skippedFirstFrames.any((skipped) =>
+      trace.frames[startFrameIndex].uri.toString().contains(skipped))) {
+    startFrameIndex++;
+  }
+
+  final firstRealFrame =
+      trace.frames.skip(startFrameIndex).firstOrNull?.toString();
+  if (firstRealFrame == null) {
     return;
   }
 
-  print('Missing retry detected:\n$st\n');
-  throw AssertionError('retry is not present in stacktrace: $st');
+  // detect direct test calls
+  if (firstRealFrame.contains('_test.dart')) {
+    return;
+  }
+
+  // detect retry library
+  if (firstRealFrame.contains('package:retry/')) {
+    return;
+  }
+  // detect lib/shared/utils.dart use
+  if (firstRealFrame.contains('retryAsync')) {
+    return;
+  }
+
+  print('Missing retry detected:\n$trace\n');
+  throw AssertionError('retry is not present in stacktrace: $trace');
 }
 
 Future<R> _verifyRetry<R>(
