@@ -76,3 +76,7 @@ topics:
   description: Packages that facilitate internationalization.
   aliases:
   - internationalization
+- topic: form
+  description: Packages that facilitate form display or processing.
+  aliases:
+  - forms
