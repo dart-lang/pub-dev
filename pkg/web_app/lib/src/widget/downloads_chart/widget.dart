@@ -31,20 +31,6 @@ void create(HTMLElement element, Map<String, String> options) {
   );
   final majorRanges = data.majorRangeWeeklyDownloads.map((e) => e.versionRange);
 
-  // final minorDisplayLists = prepareWeekLists(
-  //   data.totalWeeklyDownloads,
-  //   data.minorRangeWeeklyDownloads,
-  //   weeksToDisplay,
-  // );
-  // final minorRanges = data.minorRangeWeeklyDownloads.map((e) => e.versionRange);
-
-  // final patchDisplayLists = prepareWeekLists(
-  //   data.totalWeeklyDownloads,
-  //   data.patchRangeWeeklyDownloads,
-  //   weeksToDisplay,
-  // );
-  // final patchRanges = data.patchRangeWeeklyDownloads.map((e) => e.versionRange);
-
   drawChart(svg, majorRanges, majorDisplayLists, data.newestDate);
 }
 
