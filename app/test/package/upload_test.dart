@@ -1247,7 +1247,7 @@ void main() {
         expect(
             rs101.success.message,
             contains(
-                'The package "busy_pkg" has 1 versions left before reaching the limit of 102. '
+                'The package "busy_pkg" has 1 version left before reaching the limit of 102. '
                 'Please contact support@pub.dev'));
 
         final tarball102 = await packageArchiveBytes(
