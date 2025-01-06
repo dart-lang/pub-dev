@@ -65,10 +65,12 @@ Future<void> migrateIsBlocked() async {
 Future<void> _removeKnownUnmappedFields() async {
   await for (final p in dbService.query<Package>().run()) {
     if (p.additionalProperties.isEmpty) continue;
-    if (p.additionalProperties.containsKey('blocked') ||
+    if (p.additionalProperties.containsKey('automatedPublishingJson') ||
+        p.additionalProperties.containsKey('blocked') ||
         p.additionalProperties.containsKey('blockedReason')) {
       await withRetryTransaction(dbService, (tx) async {
         final pkg = await tx.lookupValue<Package>(p.key);
+        pkg.additionalProperties.remove('automatedPublishingJson');
         pkg.additionalProperties.remove('blocked');
         pkg.additionalProperties.remove('blockedReason');
         tx.insert(pkg);
