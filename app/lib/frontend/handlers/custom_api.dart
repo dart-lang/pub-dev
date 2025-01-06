@@ -247,7 +247,6 @@ Future<VersionScore> packageVersionScoreHandler(
       maxPoints: card.maxPubPoints,
       likeCount: pkg.likes,
       downloadCount30Days: card.thirtyDaysDownloadCounts,
-      popularityScore: card.popularityScore,
       tags: tags.toList(),
       lastUpdated: updated,
     );

@@ -12,7 +12,6 @@ import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/task/models.dart';
 
 import '../scorecard/backend.dart';
-import '../shared/popularity_storage.dart';
 import '../shared/utils.dart' show jsonUtf8Encoder, utf8JsonDecoder;
 
 part 'models.g.dart';
@@ -72,9 +71,7 @@ class ScoreCardData {
 
   List<String>? get tags => panaReport?.derivedTags;
 
-  // TODO: refactor code to use popularityStorage directly.
-  double get popularityScore => popularityStorage.lookup(packageName!);
-
+  // TODO: refactor code to use downloadCountsBackend directly.
   int? get thirtyDaysDownloadCounts =>
       downloadCountsBackend.lookup30DaysTotalCounts(packageName!);
 }

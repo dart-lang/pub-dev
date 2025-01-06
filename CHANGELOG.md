@@ -4,6 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2024.12.30`.
  * Upgraded dartdoc to `8.3.1`.
+ * Note: removed required flag from `isBlocked` fields. 
+ * Note: started deleting `Package.blocked` and `Package.blockedReason`.
 
 ## `20241217t132200-all`
  * Bump runtimeVersion to `2024.12.17`.

@@ -2,6 +2,8 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+@use 'variables';
+
 .packages-scores {
   display: flex;
   align-items: center;
@@ -15,7 +17,7 @@
   .packages-score {
     min-width: 45px;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       min-width: 55px;
     }
 
@@ -29,7 +31,7 @@
     margin-right: 4px;
     padding-right: 4px;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       margin-right: 8px;
       padding-right: 8px;
     }
@@ -52,7 +54,7 @@
   .packages-score-value-number {
     font-size: 18px;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       font-size: 22px;
     }
   }
@@ -61,7 +63,7 @@
     font-size: 10px;
     vertical-align: super;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       font-size: 12px;
     }
   }
@@ -74,7 +76,7 @@
     text-align: center;
     white-space: nowrap;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       font-size: 12px;
       letter-spacing: 0.2px;
     }

@@ -2,6 +2,8 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+@use 'variables';
+
 .listing-info {
   display: flex;
   padding: 16px 0px 20px 0px;
@@ -29,7 +31,7 @@
       text-transform: uppercase;
       white-space: nowrap;
 
-      @media (max-width: $device-mobile-max-width) {
+      @media (max-width: variables.$device-mobile-max-width) {
         display: none;
       }
     }
@@ -60,7 +62,7 @@
     position: absolute;
     right: 0px;
     white-space: nowrap;
-    z-index: $z-index-nav-mask;
+    z-index: variables.$z-index-nav-mask;
 
     .sort-control-option {
       display: block;
@@ -92,7 +94,7 @@
 
   &:hover {
     .sort-control-popup {
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         display: block;
       }
     }
@@ -303,7 +305,7 @@
       padding: 0;
       margin: 8px 0;
 
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         padding: 4px 8px;
         margin-left: -8px;
       }
@@ -376,7 +378,7 @@
 .search-form-container {
   display: flex;
 
-  @media (max-width: $device-mobile-max-width) {
+  @media (max-width: variables.$device-mobile-max-width) {
     display: block;
 
     .search-form {
@@ -395,7 +397,7 @@
     flex-shrink: 0;
     flex-basis: 200px;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       margin-right: 40px;
     }
   }

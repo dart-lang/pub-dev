@@ -52,7 +52,9 @@ class User extends db.ExpandoModel<String> {
   /// [isBlocked] is set when a user account is blocked (is on administrative hold).
   /// When this happens user-data is preserved, but the user should not be able
   /// to perform any action.
-  @db.BoolProperty(required: true)
+  ///
+  /// TODO: remove after runtime version `2024.12.17` is no longer running.
+  @db.BoolProperty(required: false)
   bool isBlocked = false;
 
   /// `true` if user was moderated (pending moderation or deletion).
