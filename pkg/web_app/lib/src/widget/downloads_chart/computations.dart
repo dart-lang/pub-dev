@@ -13,7 +13,7 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
 ///
 /// The 'i'th entry in the iterable is a list of the download values
 /// (y coordinates) for the 'i'th week (x coordinate).
-Iterable<List<int>> prepareWeekLists(
+List<List<int>> prepareWeekLists(
   List<int> totals,
   List<VersionRangeCount> rangeDownloads,
   int displayLength,
@@ -32,5 +32,5 @@ Iterable<List<int>> prepareWeekLists(
     rangeDownloads.forEach((d) => weekList.add(d.counts[week]));
     result.add(weekList);
   }
-  return result.reversed;
+  return result.reversed.toList();
 }

@@ -35,5 +35,5 @@ void create(HTMLElement element, Map<String, String> options) {
 }
 
 void drawChart(Element svg, Iterable<String> ranges, Iterable<List<int>> values,
-    DateTime newestData,
+    DateTime newestDate,
     {bool stacked = true}) {}
