@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:web/web.dart';
+
+import 'computations.dart';
 
 void create(HTMLElement element, Map<String, String> options) {
   final dataPoints = options['points'];
@@ -18,7 +21,19 @@ void create(HTMLElement element, Map<String, String> options) {
   final data = WeeklyVersionDownloadCounts.fromJson((utf8.decoder
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
-  drawChart(svg, data);
+
+  final weeksToDisplay = math.min(28, data.totalWeeklyDownloads.length);
+
+  final majorDisplayLists = prepareWeekLists(
+    data.totalWeeklyDownloads,
+    data.majorRangeWeeklyDownloads,
+    weeksToDisplay,
+  );
+  final majorRanges = data.majorRangeWeeklyDownloads.map((e) => e.versionRange);
+
+  drawChart(svg, majorRanges, majorDisplayLists, data.newestDate);
 }
 
-void drawChart(Element svg, WeeklyVersionDownloadCounts data) {}
+void drawChart(Element svg, Iterable<String> ranges, Iterable<List<int>> values,
+    DateTime newestDate,
+    {bool stacked = true}) {}
