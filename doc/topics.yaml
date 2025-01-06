@@ -77,6 +77,6 @@ topics:
   aliases:
   - internationalization
 - topic: form
-  description: Packages to extend form functionality in Flutter or create new form implementations.
+  description: Packages that facilitate form display or processing.
   aliases:
   - forms
