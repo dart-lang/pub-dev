@@ -8,9 +8,13 @@ import 'package:indexed_blob/indexed_blob.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/shared/utils.dart';
 
-// 27.826 index bytes/entry.
-// 0.0647 ms/(load+lookup)
-// 0.060964 ms/lookup
+/// Runs a synthetic benchmark by creating and index file, loading it and running
+/// lookup multiple times.
+///
+/// Note: these are some non-representative numbers from local benchmarking, for future reference:
+/// 27.826 index bytes/entry.
+/// 0.0647 ms/(load+lookup)
+/// 0.060964 ms/lookup
 Future<void> main() async {
   final index = await withTempDirectory((dir) async {
     final blobFile = File(p.join(dir.path, 'blob.data'));
