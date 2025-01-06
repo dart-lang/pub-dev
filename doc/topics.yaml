@@ -58,10 +58,14 @@
 # The editorial guidelines are intended to evolve as we gain more experience
 # merging/managing topics.
 topics:
-- topic: widget
-  description: Packages that contain Flutter widgets.
+- topic: form
+  description: Packages that facilitate form display or processing.
   aliases:
-  - widgets
+  - forms
+- topic: i18n
+  description: Packages that facilitate internationalization.
+  aliases:
+  - internationalization
 - topic: logging
   description: Packages for writing log messages.
   aliases:
@@ -72,11 +76,7 @@ topics:
   description: Packages that facilitate testing.
   aliases:
   - test
-- topic: i18n
-  description: Packages that facilitate internationalization.
+- topic: widget
+  description: Packages that contain Flutter widgets.
   aliases:
-  - internationalization
-- topic: form
-  description: Packages that facilitate form display or processing.
-  aliases:
-  - forms
+  - widgets
