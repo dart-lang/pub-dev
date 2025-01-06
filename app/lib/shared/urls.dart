@@ -219,7 +219,7 @@ String searchUrl({
 }
 
 String listingByPopularity() =>
-    SearchForm(order: SearchOrder.popularity).toSearchLink();
+    SearchForm(order: SearchOrder.downloads).toSearchLink();
 
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');

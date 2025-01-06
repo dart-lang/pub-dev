@@ -23,7 +23,8 @@ void main() {
           readme: 'Many useful string methods like substring.',
           grantedPoints: 110,
           maxPoints: 110,
-          popularityScore: 0.4,
+          downloadScore: 0.4,
+          downloadCount: 4,
         ),
       ],
     );
@@ -78,13 +79,13 @@ void main() {
 
     test('non-text ranking', () async {
       final results = combiner
-          .search(ServiceSearchQuery.parse(order: SearchOrder.popularity));
+          .search(ServiceSearchQuery.parse(order: SearchOrder.downloads));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'stringutils', 'score': 0.4},
+          {'package': 'stringutils', 'score': 4},
         ],
       });
     });
@@ -97,7 +98,7 @@ void main() {
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'stringutils', 'score': closeTo(1.0, 0.01)},
+          {'package': 'stringutils', 'score': closeTo(0.85, 0.01)},
         ],
       });
     });
@@ -124,7 +125,7 @@ void main() {
           },
         ],
         'packageHits': [
-          {'package': 'stringutils', 'score': closeTo(0.73, 0.01)}
+          {'package': 'stringutils', 'score': closeTo(0.67, 0.01)}
         ],
       });
     });
