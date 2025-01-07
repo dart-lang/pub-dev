@@ -79,7 +79,7 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
   final bytes = await cache.packageNamesDataJsonGz().get(() async {
     final packageNames = await nameTracker.getVisiblePackageNames();
     return gzip.encode(jsonUtf8Encoder.convert({
-      'packages': packageNames.where((p) => !isSoftRemoved(p)).toList(),
+      'packages': packageNames,
       // pagination is off for now
       'nextUrl': null,
     }));
