@@ -23,7 +23,6 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       downloadScore: (json['downloadScore'] as num?)?.toDouble(),
       likeCount: (json['likeCount'] as num?)?.toInt(),
       likeScore: (json['likeScore'] as num?)?.toDouble(),
-      popularityScore: (json['popularityScore'] as num?)?.toDouble(),
       grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
       maxPoints: (json['maxPoints'] as num?)?.toInt(),
       dependencies: (json['dependencies'] as Map<String, dynamic>?)?.map(
@@ -55,7 +54,6 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'downloadScore': instance.downloadScore,
       'likeCount': instance.likeCount,
       'likeScore': instance.likeScore,
-      'popularityScore': instance.popularityScore,
       'grantedPoints': instance.grantedPoints,
       'maxPoints': instance.maxPoints,
       'overallScore': instance.overallScore,
