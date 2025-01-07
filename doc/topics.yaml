@@ -58,6 +58,11 @@
 # The editorial guidelines are intended to evolve as we gain more experience
 # merging/managing topics.
 topics:
+- topic: env
+  description: Packages that facilitate environment configuration.
+  aliases:
+  - dotenv
+  - environment-variables
 - topic: form
   description: Packages that facilitate form display or processing.
   aliases:
