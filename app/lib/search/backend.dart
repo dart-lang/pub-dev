@@ -132,6 +132,9 @@ class SearchBackend {
       if (!claim.valid) {
         return;
       }
+      if (isSoftRemoved(package)) {
+        return;
+      }
       // Skip if the last document timestamp is before [updated].
       // 1-minute window is kept to reduce clock-skew.
       if (updated != null) {
@@ -469,9 +472,6 @@ class SearchBackend {
         return null;
       }
       final snapshot = SearchSnapshot.fromJson(map);
-      snapshot.documents!
-          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-
       final count = snapshot.documents!.length;
       _logger.info('Got $count packages from snapshot at ${snapshot.updated}');
       return snapshot.documents?.values.toList();
