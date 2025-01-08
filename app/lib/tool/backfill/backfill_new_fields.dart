@@ -7,7 +7,6 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
 final _logger = Logger('backfill_new_fields');
@@ -26,23 +25,6 @@ Future<void> backfillNewFields() async {
 @visibleForTesting
 Future<void> migrateIsBlocked() async {
   _logger.info('Migrating isBlocked...');
-  final publisherQuery = dbService.query<Publisher>()
-    ..filter('isBlocked =', true);
-  await for (final entity in publisherQuery.run()) {
-    await withRetryTransaction(dbService, (tx) async {
-      final publisher = await tx.lookupValue<Publisher>(entity.key);
-      // sanity check
-      if (!publisher.isBlocked) {
-        return;
-      }
-      publisher
-        ..isModerated = true
-        ..moderatedAt = publisher.moderatedAt ?? clock.now()
-        ..isBlocked = false;
-      tx.insert(publisher);
-    });
-  }
-
   final userQuery = dbService.query<User>()..filter('isBlocked =', true);
   await for (final entity in userQuery.run()) {
     await withRetryTransaction(dbService, (tx) async {
