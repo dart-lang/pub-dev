@@ -14,7 +14,7 @@ import '../../shared/test_services.dart';
 void main() {
   group('Migrate isBlocked', () {
     testWithProfile('publisher', fn: () async {
-      final p1 = await publisherBackend.getPublisher('example.com');
+      final p1 = await publisherBackend.lookupPublisher('example.com');
       await dbService.commit(inserts: [p1!..isBlocked = true]);
       final members =
           await publisherBackend.listPublisherMembers('example.com');
@@ -26,7 +26,7 @@ void main() {
 
       await migrateIsBlocked();
 
-      final p2 = await publisherBackend.getPublisher('example.com');
+      final p2 = await publisherBackend.lookupPublisher('example.com');
       expect(p2!.isModerated, true);
     });
 

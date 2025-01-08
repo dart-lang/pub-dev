@@ -105,7 +105,7 @@ The active web sessions of the user will be expired.
         final publishers =
             await publisherBackend.listPublishersForUser(user.userId);
         for (final e in publishers.publishers!) {
-          final p = await publisherBackend.getPublisher(e.publisherId);
+          final p = await publisherBackend.lookupPublisher(e.publisherId);
           if (p == null) {
             continue;
           }

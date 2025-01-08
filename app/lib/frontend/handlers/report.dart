@@ -105,7 +105,7 @@ Future<void> verifyModerationSubjectExists(ModerationSubject? subject) async {
 
   final publisherId = subject?.publisherId;
   if (publisherId != null) {
-    final p = await publisherBackend.getPublisher(publisherId);
+    final p = await publisherBackend.lookupPublisher(publisherId);
     if (p == null) {
       throw NotFoundException('Publisher "$publisherId" does not exist.');
     }
@@ -223,7 +223,7 @@ Future<Message> processReportPageHandler(
       final pkg = await packageBackend.lookupPackage(subject.package!);
       isSubjectOwner = await packageBackend.isPackageAdmin(pkg!, user.userId);
     } else if (subject.isPublisher) {
-      final p = await publisherBackend.getPublisher(subject.publisherId!);
+      final p = await publisherBackend.lookupPublisher(subject.publisherId!);
       isSubjectOwner = await publisherBackend.isMemberAdmin(p!, user.userId);
     }
   }
