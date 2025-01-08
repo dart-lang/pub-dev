@@ -37,10 +37,10 @@ void main() {
       );
     });
 
-    testWithProfile('publisher is blocked', fn: () async {
+    testWithProfile('publisher is moderated', fn: () async {
       final p = await dbService.lookupValue<Publisher>(
           dbService.emptyKey.append(Publisher, id: 'example.com'));
-      p.isBlocked = true;
+      p.updateIsModerated(isModerated: true);
       await dbService.commit(inserts: [p]);
       await expectHtmlResponse(
         await issueGet('/publishers/example.com/packages'),

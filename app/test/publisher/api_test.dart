@@ -799,10 +799,10 @@ void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 
-  testWithProfile('Publisher is blocked / not visible', fn: () async {
+  testWithProfile('Publisher is not visible', fn: () async {
     final p = await dbService.lookupValue<Publisher>(
         dbService.emptyKey.append(Publisher, id: 'example.com'));
-    p.isBlocked = true;
+    p.updateIsModerated(isModerated: true);
     await dbService.commit(inserts: [p]);
 
     final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);

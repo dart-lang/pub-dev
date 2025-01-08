@@ -117,7 +117,7 @@ class PublisherBackend {
       publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
         publishers: publishers
-            .where((p) => !p.isBlocked)
+            .where((p) => p.isVisible)
             .map((p) => PublisherSummary(
                   publisherId: p.publisherId,
                   created: p.created!,
@@ -137,7 +137,6 @@ class PublisherBackend {
 
   /// Whether the User [userId] has admin permissions on the publisher.
   Future<bool> isMemberAdmin(Publisher publisher, String? userId) async {
-    if (publisher.isBlocked) return false;
     if (publisher.isModerated) return false;
     if (userId == null) return false;
     final member = await getPublisherMember(publisher, userId);
