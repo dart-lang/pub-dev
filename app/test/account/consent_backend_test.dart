@@ -333,7 +333,7 @@ Future<void> _expireConsent(String? consentId) async {
 Future<void> _removeAdminRole(String publisherId, String email) async {
   await withFakeAuthRequestContext(email, () async {
     final agent = await requireAuthenticatedWebUser();
-    final publisher = await publisherBackend.getPublisher(publisherId);
+    final publisher = await publisherBackend.lookupPublisher(publisherId);
     final member =
         await publisherBackend.getPublisherMember(publisher!, agent.userId);
     member!.role = 'non-admin';

@@ -251,7 +251,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedWebUser();
-  final publisher = await publisherBackend.getPublisher(publisherId);
+  final publisher = await publisherBackend.getListedPublisher(publisherId);
   if (publisher == null) {
     throw NotFoundException.resource('publisher "$publisherId"');
   }

@@ -675,7 +675,7 @@ class PackageBackend {
       return p.containsUploader(userId);
     } else {
       final publisherId = p.publisherId!;
-      final publisher = await publisherBackend.getPublisher(publisherId);
+      final publisher = await publisherBackend.getListedPublisher(publisherId);
       if (publisher == null) {
         return false;
       }

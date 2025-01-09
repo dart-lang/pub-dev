@@ -35,7 +35,7 @@ void main() {
         'creating, listing members and deleting publisher with no packages',
         fn: () async {
       final client = createPubApiClient(authToken: siteAdminToken);
-      final p0 = await publisherBackend.getPublisher('other.com');
+      final p0 = await publisherBackend.lookupPublisher('other.com');
       expect(p0, isNull);
       final rs1 = await client.adminInvokeAction(
         'publisher-create',
@@ -65,7 +65,7 @@ void main() {
           {'email': 'user@pub.dev', 'role': 'admin', 'userId': isA<String>()}
         ]
       });
-      final p1 = await publisherBackend.getPublisher('other.com');
+      final p1 = await publisherBackend.lookupPublisher('other.com');
       expect(p1, isNotNull);
       final rs2 = await client.adminInvokeAction('publisher-delete',
           AdminInvokeActionArguments(arguments: {'publisher': 'other.com'}));
@@ -74,7 +74,7 @@ void main() {
         'publisherId': 'other.com',
         'members-count': 1,
       });
-      final p2 = await publisherBackend.getPublisher('other.com');
+      final p2 = await publisherBackend.lookupPublisher('other.com');
       expect(p2, isNull);
     });
 

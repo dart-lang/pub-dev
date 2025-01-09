@@ -89,7 +89,6 @@ class Publisher extends db.ExpandoModel<String> {
     description = '';
     websiteUrl = defaultPublisherWebsite(publisherId);
     isAbandoned = false;
-    isBlocked = false;
     isModerated = false;
   }
 
@@ -100,7 +99,7 @@ class Publisher extends db.ExpandoModel<String> {
   bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
 
   /// Whether we should not list the publisher page in sitemap or promote it in search engines.
-  bool get isUnlisted => isBlocked || isAbandoned || isModerated;
+  bool get isUnlisted => isAbandoned || isModerated;
   bool get isVisible => !isUnlisted;
 
   void updateIsModerated({required bool isModerated}) {
