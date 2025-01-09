@@ -71,12 +71,11 @@ class User extends db.ExpandoModel<String> {
 
   User();
   User.init() {
-    isBlocked = false;
     isDeleted = false;
     isModerated = false;
   }
 
-  late final isVisible = !isBlocked && !isModerated && !isDeleted;
+  late final isVisible = !isModerated && !isDeleted;
   bool get isNotVisible => !isVisible;
 
   void updateIsModerated({
