@@ -138,7 +138,7 @@ Future<AuthenticatedAgent> _requireAuthenticatedAgent() async {
   if (user == null) {
     throw AuthenticationException.failed();
   }
-  if (user.isBlocked || user.isModerated) {
+  if (user.isModerated) {
     throw AuthorizationException.blocked();
   }
   if (user.isDeleted) {
@@ -458,7 +458,7 @@ class AccountBackend {
     final info = await authProvider.callTokenInfoWithAccessToken(
         accessToken: profile.accessToken ?? '');
     final user = await _lookupOrCreateUserByOauthUserId(profile);
-    if (user == null || user.isBlocked || user.isModerated || user.isDeleted) {
+    if (user == null || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }
     final data = await withRetryTransaction(_db, (tx) async {
@@ -535,7 +535,7 @@ class AccountBackend {
     }
 
     final user = await lookupUserById(session.userId!);
-    if (user == null || user.isBlocked || user.isModerated || user.isDeleted) {
+    if (user == null || user.isModerated || user.isDeleted) {
       return null;
     }
     return AuthenticatedUser(user,
@@ -611,25 +611,6 @@ class AccountBackend {
     final query = _db.query<UserSession>()..filter('expires <', ts);
     final count = await _db.deleteWithQuery(query);
     _logger.info('Deleted ${count.deleted} UserSession entries.');
-  }
-
-  /// Updates the blocked status of a user.
-  Future<void> updateBlockedFlag(String userId, bool isBlocked) async {
-    var expireSessions = false;
-    await withRetryTransaction(_db, (tx) async {
-      final user =
-          await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
-      if (user == null) throw NotFoundException.resource('User:$userId');
-
-      if (user.isBlocked == isBlocked) return;
-      user.isBlocked = isBlocked;
-      tx.insert(user);
-      expireSessions = isBlocked;
-    });
-
-    if (expireSessions) {
-      await _expireAllSessions(userId);
-    }
   }
 
   /// Updates the moderated status of a user.

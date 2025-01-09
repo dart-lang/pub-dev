@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -17,34 +14,11 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
-  await migrateIsBlocked();
   await _removeKnownUnmappedFields();
 }
 
-/// Migrates entities from the `isBlocked` fields to the new `isModerated` instead.
-@visibleForTesting
-Future<void> migrateIsBlocked() async {
-  _logger.info('Migrating isBlocked...');
-  final userQuery = dbService.query<User>()..filter('isBlocked =', true);
-  await for (final entity in userQuery.run()) {
-    await withRetryTransaction(dbService, (tx) async {
-      final user = await tx.lookupValue<User>(entity.key);
-      // sanity check
-      if (!user.isBlocked) {
-        return;
-      }
-      user
-        ..isModerated = true
-        ..moderatedAt = user.moderatedAt ?? clock.now()
-        ..isBlocked = false;
-      tx.insert(user);
-    });
-  }
-
-  _logger.info('isBlocked migration completed.');
-}
-
 Future<void> _removeKnownUnmappedFields() async {
+  _logger.info('Removing unmapped fields...');
   await for (final p in dbService.query<Package>().run()) {
     if (p.additionalProperties.isEmpty) continue;
     if (p.additionalProperties.containsKey('automatedPublishingJson') ||
@@ -59,4 +33,5 @@ Future<void> _removeKnownUnmappedFields() async {
       });
     }
   }
+  _logger.info('Removing unmapped fields completed.');
 }
