@@ -98,7 +98,7 @@ class Pubspec {
   /// `>=<version>` pattern.
   MinSdkVersion? get minSdkVersion {
     _load();
-    return MinSdkVersion.tryParse(_inner.environment?['sdk']);
+    return MinSdkVersion.tryParse(_inner.environment['sdk']);
   }
 
   /// Returns the minimal SDK version for the Flutter SDK.
@@ -107,7 +107,7 @@ class Pubspec {
   /// `>=<version>` pattern.
   late final _minFlutterSdkVersion = () {
     _load();
-    return MinSdkVersion.tryParse(_inner.environment?['flutter']);
+    return MinSdkVersion.tryParse(_inner.environment['flutter']);
   }();
 
   /// True if the min SDK version constraint is higher than the current SDK.
@@ -131,7 +131,7 @@ class Pubspec {
     )) {
       return true;
     }
-    final v = MinSdkVersion.tryParse(_inner.environment?['flutter']);
+    final v = MinSdkVersion.tryParse(_inner.environment['flutter']);
     if (v != null &&
         v.value.compareTo(versions.semanticToolStableFlutterSdkVersion) > 0) {
       return true;
@@ -139,8 +139,8 @@ class Pubspec {
     return false;
   }
 
-  late final _dartSdkConstraint = _inner.environment?['sdk'];
-  late final _flutterSdkConstraint = _inner.environment?['flutter'];
+  late final _dartSdkConstraint = _inner.environment['sdk'];
+  late final _flutterSdkConstraint = _inner.environment['flutter'];
   late final _hasDartSdkConstraint = _dartSdkConstraint != null &&
       !_dartSdkConstraint.isAny &&
       !_dartSdkConstraint.isEmpty;

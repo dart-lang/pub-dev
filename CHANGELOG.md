@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2025.01.10`.
  * Upgraded stable Dart analysis SDK to `3.6.1`
+ * Upgraded pana to `0.22.18`.
 
 ## `20250107t105700-all`
  * Bump runtimeVersion to `2025.01.07`.
