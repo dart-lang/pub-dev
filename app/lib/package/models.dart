@@ -11,7 +11,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
-import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/model_properties.dart';
@@ -1071,11 +1070,7 @@ class PackageLinks {
   /// The link to `CONTRIBUTING.md` in the git repository (when the repository is verified).
   final String? contributingUrl;
 
-  /// The inferred base URL that can be used to link files from.
-  final String? _baseUrl;
-
-  PackageLinks._(
-    this._baseUrl, {
+  PackageLinks._({
     this.homepageUrl,
     String? documentationUrl,
     this.repositoryUrl,
@@ -1093,12 +1088,7 @@ class PackageLinks {
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
-    final baseUrl = urls.inferBaseUrl(
-      homepageUrl: homepageUrl,
-      repositoryUrl: repositoryUrl,
-    );
     return PackageLinks._(
-      baseUrl,
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,
@@ -1156,12 +1146,7 @@ class PackagePageData {
       return inferred;
     }
 
-    final baseUrl = urls.inferBaseUrl(
-      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
-      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
-    );
     return PackageLinks._(
-      baseUrl,
       homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
       repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
       issueTrackerUrl: result.issueTrackerUrl ?? inferred.issueTrackerUrl,
@@ -1170,10 +1155,16 @@ class PackagePageData {
     );
   }();
 
-  /// The verified repository (or homepage).
-  late final urlResolverFn =
-      scoreCard.panaReport?.result?.repository?.resolveUrl ??
-          fallbackUrlResolverFn(packageLinks._baseUrl);
+  /// The URL resolver using a verified repository
+  /// (unless the verification explicitly failed).
+  late final urlResolverFn = () {
+    final result = scoreCard.panaReport?.result;
+    final status = result?.repositoryStatus;
+    if (status == RepositoryStatus.failed) {
+      return null;
+    }
+    return result?.repository?.resolveUrl;
+  }();
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
