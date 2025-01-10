@@ -271,7 +271,7 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(checkFunding(pubspecContent));
   issues.addAll(checkTopics(pubspecContent));
   issues.addAll(checkHooks(
-    _minVersion(pubspec.environment?['sdk']),
+    _minVersion(pubspec.environment['sdk']),
     tar.fileNames,
   ));
 
@@ -431,7 +431,7 @@ Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
 
   final versions = [
     pubspec.version,
-    ...?pubspec.environment?.values.expand(expandConstraint),
+    ...pubspec.environment.values.expand(expandConstraint),
     ...pubspec.dependencies.values.expand(expandDependency),
     ...pubspec.devDependencies.values.expand(expandDependency),
     ...pubspec.dependencyOverrides.values.expand(expandDependency),
@@ -450,7 +450,7 @@ final _postDart3 = VersionConstraint.parse('>=3.0.0-0');
 
 /// Checks if the version range is acceptable by current SDKs.
 Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
-  final sdk = pubspec.environment?['sdk'];
+  final sdk = pubspec.environment['sdk'];
   if (sdk == null ||
       sdk.isAny ||
       sdk is! VersionRange ||
@@ -519,10 +519,7 @@ const _knownEnvironmentKeys = <String>{
 /// Validates that keys referenced in the `environment` section are
 /// known and valid, otherwise `pub` won't be able to use the package.
 Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
-  final keys = pubspec.environment?.keys;
-  if (keys == null) {
-    return;
-  }
+  final keys = pubspec.environment.keys;
   for (final key in keys) {
     if (_knownEnvironmentKeys.contains(key)) {
       continue;
@@ -646,9 +643,8 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
   }
 
   if (usesNewPluginFormat &&
-      (pubspec.environment == null ||
-          pubspec.environment!['flutter'] == null ||
-          pubspec.environment!['flutter']!.allowsAny(VersionRange(
+      (pubspec.environment['flutter'] == null ||
+          pubspec.environment['flutter']!.allowsAny(VersionRange(
             min: Version.parse('0.0.0'),
             max: Version.parse('1.10.0'),
             includeMin: true,
@@ -679,9 +675,8 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
   final usesNewPluginFormat = plugin['platforms'] != null;
 
   if (usesNewPluginFormat &&
-      (pubspec.environment == null ||
-          pubspec.environment!['flutter'] == null ||
-          pubspec.environment!['flutter']!.allowsAny(VersionRange(
+      (pubspec.environment['flutter'] == null ||
+          pubspec.environment['flutter']!.allowsAny(VersionRange(
             min: Version.parse('0.0.0'),
             max: Version.parse('1.20.0'),
             includeMin: true,
