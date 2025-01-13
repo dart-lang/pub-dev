@@ -29,7 +29,7 @@ dependencies:
   logging: '>=0.9.3 <2.0.0'
   markdown: ^7.2.2
   meta: ^1.1.2
-  mime: ^1.0.6
+  mime: ^2.0.0
   neat_cache: ^2.0.4
   neat_periodic_task: ^2.0.0
   path: '^1.8.0'
@@ -49,7 +49,7 @@ dependencies:
   # pana version to be pinned
   pana: '0.22.18'
   # 3rd-party packages with pinned versions
-  mailer: '6.2.0'
+  mailer: '6.3.0'
   ulid: '2.0.1'
   tar: '2.0.0'
   api_builder:
@@ -60,6 +60,6 @@ dev_dependencies:
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
   shelf_router_generator: ^1.0.0
-  source_gen: '^1.0.0'
+  source_gen: '^2.0.0'
   test: ^1.16.5
   xml: ^6.0.0
