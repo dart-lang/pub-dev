@@ -162,6 +162,7 @@ class _RetryEnforcerBucket implements Bucket {
   @override
   Stream<BucketEntry> list({String? prefix, String? delimiter}) {
     // TODO: verify retry wrapper here
+    _verifyRetryOnStack();
     return _bucket.list(
       prefix: prefix,
       delimiter: delimiter,
