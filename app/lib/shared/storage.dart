@@ -194,8 +194,8 @@ extension BucketExt on Bucket {
     String? prefix,
     String? delimiter,
   }) async {
+    var p = await pageWithRetry(prefix: prefix, delimiter: delimiter);
     for (;;) {
-      var p = await pageWithRetry(prefix: prefix, delimiter: delimiter);
       for (final item in p.items) {
         await fn(item);
       }
