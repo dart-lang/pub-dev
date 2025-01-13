@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.6.1`
  * Upgraded pana to `0.22.18`.
  * Upgraded dartdoc to `8.3.2`.
+ * Upgraded dependencies.
 
 ## `20250107t105700-all`
  * Bump runtimeVersion to `2025.01.07`.
