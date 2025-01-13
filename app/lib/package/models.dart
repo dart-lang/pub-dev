@@ -1131,27 +1131,32 @@ class PackagePageData {
   bool get isLatestStable => version.version == package.latestVersion;
 
   late final packageLinks = () {
-    // start with the URLs from pubspec.yaml
+    // If the repository failed the verification tests, we are not displaying
+    // any links.
+    final result = scoreCard.panaReport?.result;
+    final repositoryStatus = result?.repositoryStatus;
+    if (repositoryStatus == RepositoryStatus.failed) {
+      return PackageLinks._();
+    }
+
+    // If the analysis completed, return the URLs from it.
+    if (result != null) {
+      return PackageLinks._(
+        homepageUrl: result.homepageUrl,
+        repositoryUrl: result.repositoryUrl,
+        issueTrackerUrl: result.issueTrackerUrl,
+        documentationUrl: result.documentationUrl,
+        contributingUrl: result.contributingUrl,
+      );
+    }
+
+    // Fallback: if the analysis did not complete yet, display inferred URLs from pubspec.yaml
     final pubspec = version.pubspec!;
-    final inferred = PackageLinks.infer(
+    return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
       repositoryUrl: pubspec.repository,
       issueTrackerUrl: pubspec.issueTracker,
-    );
-
-    // Use verified URLs when they are available.
-    final result = scoreCard.panaReport?.result;
-    if (result == null) {
-      return inferred;
-    }
-
-    return PackageLinks._(
-      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
-      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
-      issueTrackerUrl: result.issueTrackerUrl ?? inferred.issueTrackerUrl,
-      documentationUrl: result.documentationUrl ?? inferred.documentationUrl,
-      contributingUrl: result.contributingUrl ?? inferred.contributingUrl,
     );
   }();
 
