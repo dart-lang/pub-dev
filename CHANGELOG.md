@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2025.01.15`.
+ * Note: started deleting `Package.isBlocked`, `Publisher.isBlocked`, `User.isBlocked`.
 
 ## `20250114t095800-all`
  * Bump runtimeVersion to `2025.01.14`.

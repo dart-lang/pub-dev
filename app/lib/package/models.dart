@@ -122,13 +122,6 @@ class Package extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isUnlisted = false;
 
-  /// Set to `true` if package should not be displayed anywhere, because of
-  /// pending moderation or deletion.
-  ///
-  /// TODO: remove after runtime version `2024.12.17` is no longer running.
-  @db.BoolProperty(required: false)
-  bool isBlocked = false;
-
   /// `true` if package was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
   bool isModerated = false;
@@ -186,7 +179,6 @@ class Package extends db.ExpandoModel<String> {
       ..likes = 0
       ..isDiscontinued = false
       ..isUnlisted = false
-      ..isBlocked = false
       ..isModerated = false
       ..assignedTags = []
       ..deletedVersions = [];
@@ -194,7 +186,7 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isBlocked && !isModerated;
+  bool get isVisible => !isModerated;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
