@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:logging/logging.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
 final _logger = Logger('backfill_new_fields');
@@ -19,19 +21,22 @@ Future<void> backfillNewFields() async {
 
 Future<void> _removeKnownUnmappedFields() async {
   _logger.info('Removing unmapped fields...');
-  await for (final p in dbService.query<Package>().run()) {
-    if (p.additionalProperties.isEmpty) continue;
-    if (p.additionalProperties.containsKey('automatedPublishingJson') ||
-        p.additionalProperties.containsKey('blocked') ||
-        p.additionalProperties.containsKey('blockedReason')) {
-      await withRetryTransaction(dbService, (tx) async {
-        final pkg = await tx.lookupValue<Package>(p.key);
-        pkg.additionalProperties.remove('automatedPublishingJson');
-        pkg.additionalProperties.remove('blocked');
-        pkg.additionalProperties.remove('blockedReason');
-        tx.insert(pkg);
-      });
+
+  Future<void> removeIsBlocked<T extends ExpandoModel>() async {
+    await for (final p in dbService.query<T>().run()) {
+      if (p.additionalProperties.isEmpty) continue;
+      if (p.additionalProperties.containsKey('isBlocked')) {
+        await withRetryTransaction(dbService, (tx) async {
+          final e = await tx.lookupValue<T>(p.key);
+          e.additionalProperties.remove('isBlocked');
+          tx.insert(e);
+        });
+      }
     }
   }
+
+  await removeIsBlocked<Package>();
+  await removeIsBlocked<Publisher>();
+  await removeIsBlocked<User>();
   _logger.info('Removing unmapped fields completed.');
 }

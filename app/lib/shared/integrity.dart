@@ -39,8 +39,9 @@ final _random = math.Random.secure();
 /// The presence of such fields won't be reported as integrity issue, only
 /// the absent ones will be reported.
 const _allowedUnmappedFields = {
-  'Package.isWithheld',
-  'Package.withheldReason',
+  'Package.isBlocked',
+  'Publisher.isBlocked',
+  'User.isBlocked',
 };
 
 /// Checks the integrity of the datastore.
@@ -441,7 +442,7 @@ class IntegrityChecker {
       isModerated: p.isModerated,
       moderatedAt: p.moderatedAt,
     );
-    if (p.isModerated || p.isBlocked) {
+    if (p.isModerated) {
       _packagesWithIsModeratedFlag.add(p.name!);
     }
 
