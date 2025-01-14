@@ -30,6 +30,11 @@ void main() {
       expect(form.toSearchLink(page: 3), '/packages?q=web+framework&page=3');
     });
 
+    test('query with extra whitespaces', () {
+      final form = SearchForm(query: '   aa     bbb      cc     ');
+      expect(form.query, 'aa bbb cc');
+    });
+
     test('query with sdk context', () {
       final form = SearchForm(query: 'sdk:flutter some framework');
       expect(form.toSearchLink(), '/packages?q=sdk%3Aflutter+some+framework');

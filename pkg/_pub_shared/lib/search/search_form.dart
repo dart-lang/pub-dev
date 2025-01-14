@@ -367,7 +367,7 @@ class SearchForm {
   }) {
     currentPage ??= 1;
     pageSize ??= resultsPerPage;
-    final q = _stringToNull(query?.trim());
+    final q = _stringToNull(query?.replaceAll(_whitespacesRegExp, ' ').trim());
     return SearchForm._(
       query: q,
       order: order,
