@@ -111,7 +111,6 @@ class FakeAppengineEnv {
             await processTasksWithFakePanaAndDartdoc();
           }
           await nameTracker.reloadFromDatastore();
-          await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
           await topPackages.start();
           await youtubeBackend.start();
@@ -213,7 +212,6 @@ void testWithFakeTime(
           );
           await nameTracker.reloadFromDatastore();
           await generateFakeDownloadCounts();
-          await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
           await asyncQueue.ongoingProcessing;
           fakeEmailSender.sentMessages.clear();

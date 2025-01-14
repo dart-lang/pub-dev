@@ -49,7 +49,6 @@ class FakePubServer {
           }
 
           await generateFakeDownloadCounts();
-          await generateFakePopularityValues();
           await generateFakeTopicValues();
           await nameTracker.startTracking();
 

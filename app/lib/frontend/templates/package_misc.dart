@@ -196,7 +196,6 @@ d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
     pkgScorePageUrl: urls.pkgScoreUrl(view.name, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
-    popularity: view.popularity,
     thirtyDaysDownloads: view.thirtyDaysDownloadCounts,
   );
 }
