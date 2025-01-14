@@ -4,7 +4,6 @@ environment:
   sdk: ^3.6.0
 resolution: workspace
 dependencies:
-  _popularity:
   _pub_shared:
   appengine: ^0.13.8
   args: '^2.0.0'
