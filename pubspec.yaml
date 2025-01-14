@@ -8,7 +8,6 @@ workspace:
   - pkg/_pub_shared
   - pkg/api_builder
   - pkg/web_css
-  - pkg/_popularity
   - pkg/code_coverage
   - pkg/pub_worker
   - pkg/web_app
