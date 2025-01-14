@@ -10,7 +10,6 @@ d.Node labeledScoresNode({
   required String pkgScorePageUrl,
   required int likeCount,
   required int? grantedPubPoints,
-  required int? popularity,
   required int? thirtyDaysDownloads,
 }) {
   return d.a(

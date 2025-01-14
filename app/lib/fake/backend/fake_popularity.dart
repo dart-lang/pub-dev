@@ -9,23 +9,6 @@ import 'package:clock/clock.dart';
 import '../../package/models.dart';
 import '../../service/download_counts/backend.dart';
 import '../../shared/datastore.dart';
-import '../../shared/popularity_storage.dart';
-
-/// Scans the datastore for packages and generates popularity values with a
-/// deterministic random seed.
-///
-/// TODO: generate similar values for download counts.
-Future<void> generateFakePopularityValues() async {
-  final values = <String, double>{};
-  final query = dbService.query<Package>();
-  await for (final p in query.run()) {
-    final r = math.Random(p.name.hashCode.abs());
-    final value = (math.min(p.likes * p.likes, 50) + r.nextInt(50)) / 100;
-    values[p.name!] = value;
-  }
-  // ignore: invalid_use_of_visible_for_testing_member
-  popularityStorage.updateValues(values, invalid: false);
-}
 
 /// Scans the datastore for packages and generates download count values with a
 /// deterministic random seed.

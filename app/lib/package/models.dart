@@ -19,7 +19,6 @@ import '../search/search_service.dart' show ApiPageRef;
 import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
-import '../shared/popularity_storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
@@ -946,7 +945,6 @@ class PackageView {
   final List<ProcessedScreenshot>? screenshots;
 
   final List<String>? topics;
-  final int popularity;
   final int? thirtyDaysDownloadCounts;
 
   PackageView({
@@ -965,7 +963,6 @@ class PackageView {
     this.spdxIdentifiers,
     this.apiPages,
     this.topics,
-    required this.popularity,
     required this.thirtyDaysDownloadCounts,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
@@ -979,7 +976,6 @@ class PackageView {
     PackageVersion? version,
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
-    required int popularity,
     required int? thirtyDaysDownloadCounts,
   }) {
     final tags = <String>{
@@ -1004,7 +1000,6 @@ class PackageView {
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.canonicalizedTopics,
-      popularity: popularity,
       thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
@@ -1026,7 +1021,6 @@ class PackageView {
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,
       topics: topics,
-      popularity: popularity,
       thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
@@ -1177,7 +1171,6 @@ class PackagePageData {
       releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
-      popularity: popularityStorage.lookupAsScore(package.name!),
       thirtyDaysDownloadCounts:
           downloadCountsBackend.lookup30DaysTotalCounts(package.name!),
     );

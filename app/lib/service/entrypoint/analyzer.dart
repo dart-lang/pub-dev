@@ -15,7 +15,6 @@ import '../../analyzer/handlers.dart';
 import '../../service/services.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
-import '../../shared/popularity_storage.dart';
 import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
@@ -63,7 +62,6 @@ class AnalyzerCommand extends Command {
 Future _workerMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
 
-  await popularityStorage.start();
   await downloadCountsBackend.start();
   await taskBackend.start();
   registerScopeExitCallback(() => taskBackend.stop());
@@ -76,14 +74,12 @@ Future _workerMain(EntryMessage message) async {
 
 Future _indexBuilderMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
-  await popularityStorage.start();
   await downloadCountsBackend.start();
   await searchBackend.updateSnapshotInForeverLoop();
 }
 
 Future _apiExporterMain(EntryMessage message) async {
   message.protocolSendPort.send(ReadyMessage());
-  await popularityStorage.start();
   await downloadCountsBackend.start();
   await apiExporter!.start();
   registerScopeExitCallback(() => apiExporter!.stop());

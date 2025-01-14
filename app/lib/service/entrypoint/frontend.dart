@@ -21,7 +21,6 @@ import '../../service/announcement/backend.dart';
 import '../../service/youtube/backend.dart';
 import '../../shared/env_config.dart';
 import '../../shared/handler_helpers.dart';
-import '../../shared/popularity_storage.dart';
 
 final Logger _logger = Logger('pub');
 
@@ -48,7 +47,6 @@ Future _main() async {
   if (envConfig.isRunningLocally) {
     await watchForResourceChanges();
   }
-  await popularityStorage.start();
   await nameTracker.startTracking();
   await announcementBackend.start();
   await topPackages.start();

@@ -55,7 +55,6 @@ class FakeSearchService {
           _logger.info('running on port $port');
 
           await generateFakeDownloadCounts();
-          await generateFakePopularityValues();
           // ignore: invalid_use_of_visible_for_testing_member
           await indexUpdater.updateAllPackages();
 
