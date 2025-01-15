@@ -240,9 +240,7 @@ class SearchBackend {
       ..filter('finished >=', updatedThreshold)
       ..order('-finished');
     await for (final s in q3.run()) {
-      if (s.finished != null) {
-        addResult(s.package, s.finished!);
-      }
+      addResult(s.package, s.finished);
     }
 
     return results;
