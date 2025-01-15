@@ -280,6 +280,104 @@
   }
 }
 
+  .downloads-chart {
+    display: flex;
+    height: 700px;
+    width: 775px;
+    flex-direction: column;
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .downloads-chart-frame {
+    fill:transparent;
+    stroke-width: 1;
+    stroke: lightgrey;
+  }
+
+  .downloads-chart-x-axis {
+    fill: none;
+    stroke-width: 1;
+    stroke: var(--pub-score_label-text-color);
+  }
+
+  .downloads-chart-tic-label {
+    fill: var(--pub-score_label-text-color);
+    font-size: small;
+  }
+
+  .downloads-chart-tic-label-x {
+    text-anchor: middle;
+  }
+
+  .downloads-chart-tic-label-y {
+    dominant-baseline: middle;
+  }
+
+  .downloads-chart-legend {
+    fill-opacity: 0.3;
+    stroke-width: 1;
+  }
+
+  .downloads-chart-legend-color-blue {
+    fill:var(--pub-downloads-chart-color-0);
+    stroke:var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-legend-color-red {
+    fill:var(--pub-downloads-chart-color-1);
+    stroke:var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-legend-color-green {
+    fill:var(--pub-downloads-chart-color-2);
+    stroke:var(--pub-downloads-chart-color-2);
+  }
+
+  .downloads-chart-legend-color-purple {
+    fill:var(--pub-downloads-chart-color-3);
+    stroke:var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-legend-color-orange {
+    fill:var(--pub-downloads-chart-color-4);
+    stroke:var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-legend-color-turquoise {
+    fill:var(--pub-downloads-chart-color-5);
+    stroke:var(--pub-downloads-chart-color-5);
+  }
+
+  .downloads-chart-line {
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .downloads-chart-line-color-blue {
+    stroke: var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-line-color-red {
+    stroke: var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-line-color-green {
+    stroke: var(--pub-downloads-chart-color-2);
+  }
+
+  .downloads-chart-line-color-purple {
+    stroke: var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-line-color-orange {
+    stroke: var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-line-color-turquoise {
+    stroke: var(--pub-downloads-chart-color-5);
+  }
+
 .pkg-page-title-copy {
   position: relative;
   display: inline-block;

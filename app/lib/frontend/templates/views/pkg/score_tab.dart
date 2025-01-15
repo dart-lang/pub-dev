@@ -12,6 +12,7 @@ import 'package:pub_dev/shared/utils.dart';
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
+
 import '../../../request_context.dart';
 import '../../../static_files.dart';
 
@@ -177,7 +178,7 @@ d.Node _section(ReportSection section) {
 }
 
 d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
-  return d.div(
+  final container = d.div(
     classes: ['downloads-chart'],
     id: '-downloads-chart',
     attributes: {
@@ -186,6 +187,13 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
           base64Encode(jsonUtf8Encoder.convert(weeklyVersionDownloads))
     },
   );
+
+  return d.fragment([
+    d.h1(
+        classes: ['hash-header'],
+        text: 'Weekly Downloads over the last 40 weeks'),
+    container,
+  ]);
 }
 
 final _statusIconUrls = {
