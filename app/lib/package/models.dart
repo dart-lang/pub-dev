@@ -1056,21 +1056,27 @@ class PackageLinks {
   /// The link to `CONTRIBUTING.md` in the git repository (when the repository is verified).
   final String? contributingUrl;
 
+  /// The `funding` URLs from `pubspec.yaml`.
+  final List<Uri> fundingUris;
+
   PackageLinks._({
     this.homepageUrl,
     String? documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
     this.contributingUrl,
-  }) : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
+    List<Uri>? fundingUris,
+  })  : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
             ? null
-            : documentationUrl;
+            : documentationUrl,
+        fundingUris = fundingUris ?? <Uri>[];
 
   factory PackageLinks.infer({
     String? homepageUrl,
     String? documentationUrl,
     String? repositoryUrl,
     String? issueTrackerUrl,
+    List<Uri>? fundingUris,
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
@@ -1079,6 +1085,7 @@ class PackageLinks {
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,
       issueTrackerUrl: issueTrackerUrl,
+      fundingUris: fundingUris,
     );
   }
 }
@@ -1133,6 +1140,7 @@ class PackagePageData {
         issueTrackerUrl: result.issueTrackerUrl,
         documentationUrl: result.documentationUrl,
         contributingUrl: result.contributingUrl,
+        fundingUris: result.fundingUrls?.map(Uri.parse).toList(),
       );
     }
 
@@ -1143,6 +1151,7 @@ class PackagePageData {
       documentationUrl: pubspec.documentation,
       repositoryUrl: pubspec.repository,
       issueTrackerUrl: pubspec.issueTracker,
+      fundingUris: pubspec.funding,
     );
   }();
 

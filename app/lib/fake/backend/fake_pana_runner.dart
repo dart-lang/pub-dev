@@ -85,8 +85,10 @@ Future<Summary> fakePanaSummary({
       issueTrackerUrl: issueTrackerUrl,
       documentationUrl: documentationUrl,
       repository: repository,
-      // TODO: add funding URLs
-      fundingUrls: null,
+      fundingUrls: pubspec.funding
+          .map((e) => e.toString())
+          .where((url) => fakeUrlCheck('funding', url) != null)
+          .toList(),
       contributingUrl: contributingUrl,
       licenses: [License(path: '', spdxIdentifier: licenseSpdx)]);
   return Summary(

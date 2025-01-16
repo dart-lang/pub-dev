@@ -85,10 +85,10 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
-  // TODO: display only verified links
-  final fundingLinks = data.version.pubspec!.funding.map((uri) {
+  final fundingLinks = packageLinks.fundingUris.map((uri) {
     return InfoBoxLink(uri.toString(), uri.host, rel: 'ugc');
   }).toList();
+
   return packageInfoBoxNode(
     data: data,
     metaLinks: metaLinks,
