@@ -182,16 +182,6 @@ class TestBrowserSession {
         await rq.continueRequest();
         return;
       }
-      // TODO: this file is missing, we may need to fix it in the dartdoc stylesheet
-      if (rq.url.endsWith('/css/search.svg')) {
-        await rq.respond(
-          status: 200,
-          body: '',
-          contentType: 'image/svg+xml',
-          headers: {'Cache-Control': 'public, max-age=604800'},
-        );
-        return;
-      }
 
       final uri = Uri.parse(rq.url);
       if (uri.path.contains('//')) {
