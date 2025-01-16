@@ -834,7 +834,7 @@ class TaskBackend {
         return await _loadTaskResultIndex(
           package: package,
           version: version,
-          runtimeVersion: status.runtimeVersion ?? runtimeVersion,
+          runtimeVersion: status.runtimeVersion,
         );
       },
     );
@@ -986,9 +986,6 @@ class TaskBackend {
     final data = await gzippedTaskResult(package, version, 'log.txt');
     if (data == null) {
       final status = await packageStatus(package);
-      if (status.runtimeVersion == null) {
-        return 'no log - no tracking information';
-      }
       final v = status.versions[version];
       if (v == null) {
         return 'no log - version is not tracked';

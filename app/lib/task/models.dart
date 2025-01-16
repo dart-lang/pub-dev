@@ -132,9 +132,8 @@ class PackageState extends db.ExpandoModel<String> {
   DateTime? lastDependencyChanged;
 
   /// The last time the a worker completed with a failure or success.
-  /// TODO: make it `required: true` after the acceptable runtimes are after 2023.08.18.
-  @db.DateTimeProperty(required: false, indexed: true)
-  DateTime? finished;
+  @db.DateTimeProperty(required: true, indexed: true)
+  DateTime finished = initialTimestamp;
 
   /// Derive [pendingAt] using [versions] and [lastDependencyChanged].
   ///
@@ -370,8 +369,7 @@ class PackageVersionStateMapProperty extends db.Property {
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
-  // TODO: make this non-nullable after we are past 2023.08.18 as accepted runtimeVersion.
-  final String? runtimeVersion;
+  final String runtimeVersion;
   final String package;
 
   /// Status for versions.
