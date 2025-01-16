@@ -122,23 +122,17 @@ class _PkgOfWeekVideoFetcher {
 
     try {
       final pageTokensVisited = <String>{};
-      String nextPageToken = '';
+      String? nextPageToken;
 
       final videos = <PkgOfWeekVideo>[];
       final videoIds = <String>{};
       while (videos.length < 50) {
-        // check visited status
-        if (pageTokensVisited.contains(nextPageToken)) {
-          break;
-        }
-        pageTokensVisited.add(nextPageToken);
-
         // get page from cache or from Youtube API
-        final rs = await cache.youtubePlaylistItems(nextPageToken).get(
+        final rs = await cache.youtubePlaylistItems(nextPageToken ?? '').get(
               () async => await youtube.playlistItems.list(
                 ['snippet', 'contentDetails'],
                 playlistId: powPlaylistId,
-                pageToken: nextPageToken.isEmpty ? null : nextPageToken,
+                pageToken: nextPageToken,
               ),
             );
 
@@ -177,8 +171,13 @@ class _PkgOfWeekVideoFetcher {
           }
         }
 
+        pageTokensVisited.add(nextPageToken ?? '');
         // advance to next page token
-        nextPageToken = rs.nextPageToken ?? '';
+        nextPageToken = rs.nextPageToken;
+        if (nextPageToken == null ||
+            pageTokensVisited.contains(nextPageToken)) {
+          break;
+        }
       }
       return videos;
     } finally {
