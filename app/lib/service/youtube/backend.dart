@@ -121,7 +121,6 @@ class _PkgOfWeekVideoFetcher {
     final youtube = YouTubeApi(apiClient);
 
     try {
-      final pageTokensVisited = <String>{};
       String? nextPageToken;
 
       final videos = <PkgOfWeekVideo>[];
@@ -171,11 +170,9 @@ class _PkgOfWeekVideoFetcher {
           }
         }
 
-        pageTokensVisited.add(nextPageToken ?? '');
         // advance to next page token
         nextPageToken = rs.nextPageToken;
-        if (nextPageToken == null ||
-            pageTokensVisited.contains(nextPageToken)) {
+        if (nextPageToken == null) {
           break;
         }
       }
