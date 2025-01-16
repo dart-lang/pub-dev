@@ -121,54 +121,64 @@ class _PkgOfWeekVideoFetcher {
     final youtube = YouTubeApi(apiClient);
 
     try {
+      final pageTokensVisited = <String>{};
+      String nextPageToken = '';
+
       final videos = <PkgOfWeekVideo>[];
-      String? nextPageToken;
-      for (var check = true; check && videos.length < 50;) {
-        final rs = await cache.youtubePlaylistItems().get(
+      final videoIds = <String>{};
+      while (videos.length < 50) {
+        // check visited status
+        if (pageTokensVisited.contains(nextPageToken)) {
+          break;
+        }
+        pageTokensVisited.add(nextPageToken);
+
+        // get page from cache or from Youtube API
+        final rs = await cache.youtubePlaylistItems(nextPageToken).get(
               () async => await youtube.playlistItems.list(
                 ['snippet', 'contentDetails'],
                 playlistId: powPlaylistId,
-                pageToken: nextPageToken,
+                pageToken: nextPageToken.isEmpty ? null : nextPageToken,
               ),
             );
-        videos.addAll(rs!.items!.map(
-          (i) {
-            try {
-              final videoId = i.contentDetails?.videoId;
-              if (videoId == null) {
-                return null;
-              }
-              final thumbnails = i.snippet?.thumbnails;
-              if (thumbnails == null) {
-                return null;
-              }
-              final thumbnail = thumbnails.high ??
-                  thumbnails.default_ ??
-                  thumbnails.maxres ??
-                  thumbnails.standard ??
-                  thumbnails.medium;
-              final thumbnailUrl = thumbnail?.url;
-              if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
-                return null;
-              }
-              return PkgOfWeekVideo(
-                videoId: videoId,
-                title: i.snippet?.title ?? '',
-                description:
-                    (i.snippet?.description ?? '').trim().split('\n').first,
-                thumbnailUrl: thumbnailUrl,
-              );
-            } catch (e, st) {
-              // this item will be skipped, the rest of the list may be displayed
-              _logger.pubNoticeShout(
-                  'youtube', 'Processing Youtube PlaylistItem failed.', e, st);
+
+        // process playlist items
+        for (final i in rs!.items!) {
+          try {
+            final videoId = i.contentDetails?.videoId;
+            if (videoId == null || videoIds.contains(videoId)) {
+              continue;
             }
-            return null;
-          },
-        ).nonNulls);
-        // next page
-        nextPageToken = rs.nextPageToken;
-        check = nextPageToken != null && nextPageToken.isNotEmpty;
+            final thumbnails = i.snippet?.thumbnails;
+            if (thumbnails == null) {
+              continue;
+            }
+            final thumbnail = thumbnails.high ??
+                thumbnails.default_ ??
+                thumbnails.maxres ??
+                thumbnails.standard ??
+                thumbnails.medium;
+            final thumbnailUrl = thumbnail?.url;
+            if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+              continue;
+            }
+            videoIds.add(videoId);
+            videos.add(PkgOfWeekVideo(
+              videoId: videoId,
+              title: i.snippet?.title ?? '',
+              description:
+                  (i.snippet?.description ?? '').trim().split('\n').first,
+              thumbnailUrl: thumbnailUrl,
+            ));
+          } catch (e, st) {
+            // this item will be skipped, the rest of the list may be displayed
+            _logger.pubNoticeShout(
+                'youtube', 'Processing Youtube PlaylistItem failed.', e, st);
+          }
+        }
+
+        // advance to next page token
+        nextPageToken = rs.nextPageToken ?? '';
       }
       return videos;
     } finally {
