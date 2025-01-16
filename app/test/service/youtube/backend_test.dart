@@ -40,12 +40,12 @@ void main() {
   });
 
   test('selectRandomVideos', () {
-    final random = Random(123);
     final items = <int>[0, 1, 2, 3, 4, 5, 6, 7, 9, 10];
 
     for (var i = 0; i < 1000; i++) {
-      final selected = selectRandomVideos(random, items, 4);
+      final selected = selectRandomVideos(Random(i), items, 4);
 
+      expect(selected, hasLength(4));
       expect(selected.first, 0);
       expect(selected[1], greaterThan(0));
       expect(selected[1], lessThan(4));
