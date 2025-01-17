@@ -115,7 +115,7 @@
 
     &:hover {
       background: var(--pub-neutral-hover-bgColor);
-      box-shadow: var(--pub-box-shadow-hover);
+      box-shadow: var(--pub-box-hover-shadow);
 
       @media (min-width: variables.$device-desktop-min-width) {
         .mini-list-item-body {
