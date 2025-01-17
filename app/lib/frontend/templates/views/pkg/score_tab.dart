@@ -12,7 +12,6 @@ import 'package:pub_dev/shared/utils.dart';
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
-
 import '../../../request_context.dart';
 import '../../../static_files.dart';
 
