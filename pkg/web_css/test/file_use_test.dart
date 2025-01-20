@@ -8,7 +8,8 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('scss files in lib/ are exactly those referenced by style.scss ', () async {
+  test('scss files in lib/ are exactly those referenced by style.scss ',
+      () async {
     final references = (await File('lib/style.scss').readAsLines())
         .where((l) => l.startsWith(r'@use'))
         .map((l) =>
@@ -20,7 +21,8 @@ void main() {
 
     final files = await Directory('lib')
         .list(recursive: true)
-        .whereType<File>().where((f) => f.path.endsWith('.scss'))
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.scss'))
         .map((f) => p.relative(f.path, from: 'lib'))
         .map((n) => n.substring(0, n.length - 5)) // without the .scss extension
         .toSet();
