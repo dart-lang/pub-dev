@@ -20,8 +20,7 @@ void main() {
 
     final files = await Directory('lib')
         .list(recursive: true)
-        .where((f) => f is File && f.path.endsWith('.scss'))
-        .cast<File>()
+        .whereType<File>().where((f) => f.path.endsWith('.scss'))
         .map((f) => p.relative(f.path, from: 'lib'))
         .map((n) => n.substring(0, n.length - 5)) // without the .scss extension
         .toSet();
