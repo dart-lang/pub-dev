@@ -127,7 +127,8 @@
     }
 
     .mini-list-item-title {
-      > h3 {
+      > .mini-list-item-title-text {
+        display: block;
         color: var(--pub-home_card_title-text-color);
         font-size: 20px;
         // Needs to be slightly more than 1.2, otherwise the bottom
