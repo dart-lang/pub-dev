@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('all scss files are used from style.scss', () async {
+  test('scss files in lib/ are exactly those referenced by style.scss ', () async {
     final references = (await File('lib/style.scss').readAsLines())
         .where((l) => l.startsWith(r'@use'))
         .map((l) =>
