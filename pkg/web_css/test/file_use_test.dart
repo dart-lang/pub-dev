@@ -19,8 +19,8 @@ void main() {
     expect(references, isNotEmpty);
     expect(references, contains('src/_tags'));
 
-    final files = await Directory('lib')
-        .list(recursive: true)
+    final files = Directory('lib')
+        .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.scss'))
         .map((f) => p.relative(f.path, from: 'lib'))
