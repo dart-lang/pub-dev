@@ -27,8 +27,17 @@ d.Node _title(String sectionTag, PackageView p) {
   return d.a(
     classes: ['mini-list-item-title'],
     href: urls.pkgPageUrl(p.name),
-    attributes: {'data-ga-click-event': 'landing-$sectionTag-card-title'},
-    child: d.h3(text: p.name),
+    attributes: {
+      'data-ga-click-event': 'landing-$sectionTag-card-title',
+    },
+    child: d.span(
+      classes: ['mini-list-item-title-text'],
+      text: p.name,
+      attributes: {
+        'role': 'heading',
+        'aria-level': '2',
+      },
+    ),
   );
 }
 
