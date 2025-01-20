@@ -10,4 +10,5 @@ dependencies:
 
 dev_dependencies:
   csslib: ^1.0.0
+  path: ^1.9.1
   test: ^1.16.5
