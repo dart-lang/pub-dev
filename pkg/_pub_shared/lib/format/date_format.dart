@@ -5,34 +5,20 @@
 // Formats a DateTime into abbriviated month and day
 
 String formatAbbrMonthDay(DateTime date) {
-  final String month;
-  switch (date.month) {
-    case 1:
-      month = 'Jan';
-    case 2:
-      month = 'Feb';
-    case 3:
-      month = 'Mar';
-    case 4:
-      month = 'Apr';
-    case 5:
-      month = 'May';
-    case 6:
-      month = 'Jun';
-    case 7:
-      month = 'Jul';
-    case 8:
-      month = 'Aug';
-    case 9:
-      month = 'Sep';
-    case 10:
-      month = 'Oct';
-    case 11:
-      month = 'Nov';
-    case 12:
-      month = 'Dec';
-    default:
-      month = '';
-  }
+  final month = switch (date.month) {
+    1 => 'Jan',
+    2 => 'Feb',
+    3 => 'Mar',
+    4 => 'Apr',
+    5 => 'May',
+    6 => 'Jun',
+    7 => 'Jul',
+    8 => 'Aug',
+    9 => 'Sep',
+    10 => 'Oct',
+    11 => 'Nov',
+    _ => 'Dec'
+  };
+
   return '$month ${date.day}';
 }

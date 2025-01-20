@@ -12,23 +12,17 @@ import 'package:web/web.dart';
 
 import 'computations.dart';
 
-const lineColorClasses = [
-  'downloads-chart-line-color-blue',
-  'downloads-chart-line-color-red',
-  'downloads-chart-line-color-green',
-  'downloads-chart-line-color-purple',
-  'downloads-chart-line-color-orange',
-  'downloads-chart-line-color-turquoise',
+const colors = [
+  'blue',
+  'red',
+  'green',
+  'purple',
+  'orange',
+  'turquoise',
 ];
 
-const legendColorClasses = [
-  'downloads-chart-legend-color-blue',
-  'downloads-chart-legend-color-red',
-  'downloads-chart-legend-color-green',
-  'downloads-chart-legend-color-purple',
-  'downloads-chart-legend-color-orange',
-  'downloads-chart-legend-color-turquoise',
-];
+String strokeColorClass(int i) => 'downloads-chart-stroke-${colors[i]}';
+String fillColorClass(int i) => 'downloads-chart-fill-${colors[i]}';
 
 void create(HTMLElement element, Map<String, String> options) {
   final dataPoints = options['points'];
@@ -61,11 +55,13 @@ void create(HTMLElement element, Map<String, String> options) {
 void drawChart(Element svg, List<String> ranges, List<List<int>> values,
     DateTime newestDate,
     {bool stacked = false}) {
-  final width = 775; // TODO(zarah): make this width dynamic
+  if (values.isEmpty) return;
+  final frameWidth =
+      775; // TODO(zarah): Investigate if this width can be dynamic
   final topPadding = 30;
   final leftPadding = 30;
   final rightPadding = 70; // make extra room for labels on y-axis
-  final drawingWidth = width - leftPadding - rightPadding;
+  final chartWidth = frameWidth - leftPadding - rightPadding;
   final chartheight = 420;
 
   DateTime computeDateForWeekNumber(
@@ -75,7 +71,7 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
   }
 
   // Computes max value on y-axis such that we get a nice division for the
-  // interval length between the numbers shown by the tics on the y axis.
+  // interval length between the numbers shown by the ticks on the y axis.
   (int maxY, int interval) computeMaxYAndInterval(List<List<int>> values) {
     final maxDownloads =
         values.fold<int>(1, (a, b) => math.max<int>(a, b.reduce(math.max)));
@@ -98,12 +94,14 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
 
   final (maxY, interval) = computeMaxYAndInterval(values);
   final firstDate = computeDateForWeekNumber(newestDate, values.length, 0);
+  final xAxisSpan = newestDate.difference(firstDate);
 
   (double, double) computeCoordinates(DateTime date, int downloads) {
-    final xAxisSpan = newestDate.difference(firstDate);
     final duration = date.difference(firstDate);
+    // We don't risk division by 0 here, since `xAxisSpan` is a non-zero duration.
     final x = leftPadding +
-        drawingWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
+        chartWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
+
     final y = topPadding + (chartheight - chartheight * (downloads / maxY));
     return (x, y);
   }
@@ -111,68 +109,70 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
   final chart = SVGGElement();
   svg.append(chart);
 
-  // Axis and tics
+  // Axis and ticks
 
   final (xZero, yZero) = computeCoordinates(firstDate, 0);
   final (xMax, yMax) = computeCoordinates(newestDate, maxY);
   final lineThickness = 1;
   final padding = 8;
-  final ticLength = 10;
-  final ticLabelYCoor = yZero + ticLength + 2 * padding;
+  final labelPadding = 16;
+  final tickLength = 10;
+  final tickLabelYCoordinate = yZero + tickLength + labelPadding;
 
   final xaxis = SVGPathElement();
   xaxis.setAttribute('class', 'downloads-chart-x-axis');
   // We add half of the line thickness at both ends of the x-axis so that it
-  // covers the vertical tics at the end.
+  // covers the vertical ticks at the end.
   xaxis.setAttribute('d',
       'M${xZero - (lineThickness / 2)} $yZero L${xMax + (lineThickness / 2)} $yZero');
   chart.append(xaxis);
 
-  var firstTicLabel = SVGTextElement();
+  late SVGTextElement firstTickLabel;
+  // place a tick every 4 weeks
   for (int week = 0; week < values.length; week += 4) {
     final date = computeDateForWeekNumber(newestDate, values.length, week);
     final (x, y) = computeCoordinates(date, 0);
 
-    final tic = SVGPathElement();
-    tic.setAttribute('class', 'downloads-chart-x-axis');
-    tic.setAttribute('d', 'M$x $y l0 $ticLength');
-    chart.append(tic);
+    final tick = SVGPathElement();
+    tick.setAttribute('class', 'downloads-chart-x-axis');
+    tick.setAttribute('d', 'M$x $y l0 $tickLength');
+    chart.append(tick);
 
-    final ticLabel = SVGTextElement();
-    chart.append(ticLabel);
-    ticLabel.setAttribute(
-        'class', 'downloads-chart-tic-label  downloads-chart-tic-label-x');
-    ticLabel.text = formatAbbrMonthDay(date);
-    ticLabel.setAttribute('y', '$ticLabelYCoor');
-    ticLabel.setAttribute('x', '$x');
+    final tickLabel = SVGTextElement();
+    chart.append(tickLabel);
+    tickLabel.setAttribute(
+        'class', 'downloads-chart-tick-label  downloads-chart-tick-label-x');
+    tickLabel.text = formatAbbrMonthDay(date);
+    tickLabel.setAttribute('y', '$tickLabelYCoordinate');
+    tickLabel.setAttribute('x', '$x');
 
     if (week == 0) {
-      firstTicLabel = ticLabel;
+      firstTickLabel = tickLabel;
     }
   }
 
   for (int i = 0; i <= maxY / interval; i++) {
     final (x, y) = computeCoordinates(firstDate, i * interval);
 
-    final ticLabel = SVGTextElement();
-    ticLabel.setAttribute(
-        'class', 'downloads-chart-tic-label  downloads-chart-tic-label-y');
-    ticLabel.text =
+    final tickLabel = SVGTextElement();
+    tickLabel.setAttribute(
+        'class', 'downloads-chart-tick-label  downloads-chart-tick-label-y');
+    tickLabel.text =
         '${compactFormat(i * interval).value}${compactFormat(i * interval).suffix}';
-    ticLabel.setAttribute('x', '${xMax + padding}');
-    ticLabel.setAttribute('y', '$y');
-    chart.append(ticLabel);
+    tickLabel.setAttribute('x', '${xMax + padding}');
+    tickLabel.setAttribute('y', '$y');
+    chart.append(tickLabel);
 
     if (i == 0) {
-      // No long tic in the bottom, we have the x-axis here.
+      // No long tick in the bottom, we have the x-axis here.
       continue;
     }
 
-    final longTic = SVGPathElement();
-    longTic.setAttribute('class', 'downloads-chart-frame');
-    longTic.setAttribute('d',
+    final longTick = SVGPathElement();
+    longTick.setAttribute('class', 'downloads-chart-frame');
+    longTick.setAttribute('d',
         'M${xZero - (lineThickness / 2)} $y L${xMax - (lineThickness / 2)} $y');
-    chart.append(longTic);
+    chart.append(longTick);
   }
 
   // We use the clipPath to cut the ends of the chart lines so that we don't
@@ -182,8 +182,8 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
   final clipRect = SVGRectElement();
   clipRect.setAttribute('y', '$yMax');
   clipRect.setAttribute('height', '${chartheight - (lineThickness / 2)}');
-  clipRect.setAttribute('x', '${xZero - (lineThickness / 2)}');
-  clipRect.setAttribute('width', '${drawingWidth + lineThickness}');
+  clipRect.setAttribute('x', '$xZero');
+  clipRect.setAttribute('width', '$chartWidth');
   clipPath.append(clipRect);
   chart.append(clipPath);
 
@@ -203,59 +203,63 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
     lines.add(line);
   }
 
-  double legendXCoor = xZero - firstTicLabel.getBBox().width / 2;
+  double legendXCoor = xZero;
   double legendYCoor =
-      ticLabelYCoor + firstTicLabel.getBBox().height + 2 * padding;
+      tickLabelYCoordinate + firstTickLabel.getBBox().height + labelPadding;
   final legendWidth = 20;
   final legendHeight = 8;
 
-  for (int j = 0; j < lines.length; j++) {
+  for (int i = 0; i < lines.length; i++) {
     final path = SVGPathElement();
-    path.setAttribute('class', '${lineColorClasses[j]} downloads-chart-line ');
-    // We assign colors in revers order so that main colors are chosen first for
+    path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
+    // We assign colors in reverse order so that main colors are chosen first for
     // the newest versions.
-    path.setAttribute('d', '${lines[lines.length - 1 - j]}');
+    path.setAttribute('d', '${lines[lines.length - 1 - i]}');
     path.setAttribute('clip-path', 'url(#clipRect)');
     chart.append(path);
 
     final legend = SVGRectElement();
     chart.append(legend);
-    legend.setAttribute(
-        'class', 'downloads-chart-legend ${legendColorClasses[j]}');
+    legend.setAttribute('class',
+        'downloads-chart-legend ${fillColorClass(i)} ${strokeColorClass(i)}');
     legend.setAttribute('height', '$legendHeight');
     legend.setAttribute('width', '$legendWidth');
 
     final legendLabel = SVGTextElement();
     chart.append(legendLabel);
-    legendLabel.setAttribute(
-        'class', 'downloads-chart-tic-label downloads-chart-tic-label-y');
-    legendLabel.text = ranges[j];
+    legendLabel.setAttribute('class', 'downloads-chart-tick-label');
+    if (i == 5) {
+      // We have an 'other' line
+      legendLabel.text = 'Other';
+    } else {
+      legendLabel.text = ranges[ranges.length - 1 - i];
+    }
 
     if (legendXCoor + padding + legendWidth + legendLabel.getBBox().width >
         xMax) {
       // There is no room for the legend and label.
       // Make a new line and update legendXCoor and legendYCoor accordingly.
 
-      legendXCoor = xZero - firstTicLabel.getBBox().width / 2;
+      legendXCoor = xZero;
       legendYCoor += 2 * padding + legendHeight;
     }
 
     legend.setAttribute('x', '$legendXCoor');
     legend.setAttribute('y', '$legendYCoor');
-    legendLabel.setAttribute('y', '${legendYCoor + legendHeight / 2}');
+    legendLabel.setAttribute('y', '${legendYCoor + legendHeight}');
     legendLabel.setAttribute('x', '${legendXCoor + padding + legendWidth}');
 
     // Update x coordinate for next legend
     legendXCoor +=
-        legendWidth + padding + legendLabel.getBBox().width + 2 * padding;
+        legendWidth + padding + legendLabel.getBBox().width + labelPadding;
   }
 
-  final height = legendYCoor + 3 * padding;
-  final frame = SVGRectElement();
+  final frameHeight = legendYCoor + padding + labelPadding;
+  final frame = SVGRectElement()
+    ..setAttribute('class', 'downloads-chart-frame')
+    ..setAttribute('height', '$frameHeight')
+    ..setAttribute('width', '$frameWidth')
+    ..setAttribute('rx', '15')
+    ..setAttribute('ry', '15');
   chart.append(frame);
-  frame.setAttribute('height', '$height');
-  frame.setAttribute('width', '$width');
-  frame.setAttribute('rx', '15');
-  frame.setAttribute('ry', '15');
-  frame.setAttribute('class', 'downloads-chart-frame');
 }

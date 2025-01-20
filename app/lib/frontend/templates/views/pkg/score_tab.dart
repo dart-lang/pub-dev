@@ -188,9 +188,7 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
   );
 
   return d.fragment([
-    d.h1(
-        classes: ['hash-header'],
-        text: 'Weekly Downloads over the last 40 weeks'),
+    d.h1(text: 'Weekly Downloads over the last 40 weeks'),
     container,
   ]);
 }

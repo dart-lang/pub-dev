@@ -301,16 +301,16 @@
     stroke: var(--pub-score_label-text-color);
   }
 
-  .downloads-chart-tic-label {
+  .downloads-chart-tick-label {
     fill: var(--pub-score_label-text-color);
     font-size: small;
   }
 
-  .downloads-chart-tic-label-x {
+  .downloads-chart-tick-label-x {
     text-anchor: middle;
   }
 
-  .downloads-chart-tic-label-y {
+  .downloads-chart-tick-label-y {
     dominant-baseline: middle;
   }
 
@@ -319,62 +319,57 @@
     stroke-width: 1;
   }
 
-  .downloads-chart-legend-color-blue {
+  .downloads-chart-fill-blue {
     fill:var(--pub-downloads-chart-color-0);
-    stroke:var(--pub-downloads-chart-color-0);
   }
 
-  .downloads-chart-legend-color-red {
+  .downloads-chart-fill-red {
     fill:var(--pub-downloads-chart-color-1);
-    stroke:var(--pub-downloads-chart-color-1);
   }
 
-  .downloads-chart-legend-color-green {
+  .downloads-chart-fill-green {
     fill:var(--pub-downloads-chart-color-2);
-    stroke:var(--pub-downloads-chart-color-2);
   }
 
-  .downloads-chart-legend-color-purple {
+  .downloads-chart-fill-purple {
     fill:var(--pub-downloads-chart-color-3);
-    stroke:var(--pub-downloads-chart-color-3);
   }
 
-  .downloads-chart-legend-color-orange {
+  .downloads-chart-fill-orange {
     fill:var(--pub-downloads-chart-color-4);
-    stroke:var(--pub-downloads-chart-color-4);
   }
 
-  .downloads-chart-legend-color-turquoise {
+  .downloads-chart-fill-turquoise {
     fill:var(--pub-downloads-chart-color-5);
-    stroke:var(--pub-downloads-chart-color-5);
   }
 
   .downloads-chart-line {
     fill: none;
-    stroke-width: 2;
+    stroke-width: 3;
+    stroke-linejoin: round;
   }
 
-  .downloads-chart-line-color-blue {
+  .downloads-chart-stroke-blue {
     stroke: var(--pub-downloads-chart-color-0);
   }
 
-  .downloads-chart-line-color-red {
+  .downloads-chart-stroke-red {
     stroke: var(--pub-downloads-chart-color-1);
   }
 
-  .downloads-chart-line-color-green {
+  .downloads-chart-stroke-green {
     stroke: var(--pub-downloads-chart-color-2);
   }
 
-  .downloads-chart-line-color-purple {
+  .downloads-chart-stroke-purple {
     stroke: var(--pub-downloads-chart-color-3);
   }
 
-  .downloads-chart-line-color-orange {
+  .downloads-chart-stroke-orange {
     stroke: var(--pub-downloads-chart-color-4);
   }
 
-  .downloads-chart-line-color-turquoise {
+  .downloads-chart-stroke-turquoise {
     stroke: var(--pub-downloads-chart-color-5);
   }
 
