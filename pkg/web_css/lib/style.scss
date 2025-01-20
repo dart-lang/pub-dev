@@ -9,6 +9,7 @@
 // Local styles and rules.
 @use 'src/_variables';
 @use 'src/_base';
+@use 'src/_alerts';
 @use 'src/_site_header';
 @use 'src/_activity_log';
 @use 'src/_detail_page';
@@ -20,6 +21,6 @@
 @use 'src/_report';
 @use 'src/_scores';
 @use 'src/_search';
-@use 'src/_staging_ribbon.scss';
+@use 'src/_staging_ribbon';
 @use 'src/_tags';
 @use 'src/_topics';
