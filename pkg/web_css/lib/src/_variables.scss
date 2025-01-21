@@ -134,6 +134,8 @@
   --pub-tag_simplebadge-text-color: #444444;
   --pub-tag_sdkbadge-separator-color: rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity;
   --pub-tag_sdkbadge-text-color: #1967d2;
+
+  --pub-downloads-chart-frame-color: #d3d3d3;
 }
 
 .light-theme {
@@ -189,6 +191,8 @@
   --pub-tag_simplebadge-text-color: var(--pub-neutral-textColor);
   --pub-tag_sdkbadge-separator-color: var(--pub-neutral-textColor);
   --pub-tag_sdkbadge-text-color: var(--pub-neutral-textColor);
+
+  --pub-downloads-chart-frame-color: #55585a;
 
   // Material Design theme customizations
   --mdc-theme-surface: var(--pub-neutral-bgColor);

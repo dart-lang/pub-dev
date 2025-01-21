@@ -290,9 +290,9 @@
   }
 
   .downloads-chart-frame {
-    fill:transparent;
+    fill:none;
     stroke-width: 1;
-    stroke: lightgrey;
+    stroke: var(--pub-downloads-chart-frame-color);
   }
 
   .downloads-chart-x-axis {
@@ -345,7 +345,7 @@
 
   .downloads-chart-line {
     fill: none;
-    stroke-width: 3;
+    stroke-width: 2;
     stroke-linejoin: round;
   }
 
