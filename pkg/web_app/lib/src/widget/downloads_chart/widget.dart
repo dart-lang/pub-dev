@@ -114,7 +114,7 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
   final (xZero, yZero) = computeCoordinates(firstDate, 0);
   final (xMax, yMax) = computeCoordinates(newestDate, maxY);
   final lineThickness = 1;
-  final padding = 8;
+  final marginPadding = 8;
   final labelPadding = 16;
   final tickLength = 10;
   final tickLabelYCoordinate = yZero + tickLength + labelPadding;
@@ -123,8 +123,9 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
   xaxis.setAttribute('class', 'downloads-chart-x-axis');
   // We add half of the line thickness at both ends of the x-axis so that it
   // covers the vertical ticks at the end.
-  xaxis.setAttribute('d',
-      'M${xZero - (lineThickness / 2)} $yZero L${xMax + (lineThickness / 2)} $yZero');
+  final xAxisStart = xZero - (lineThickness / 2);
+  final xAxisEnd = xMax + (lineThickness / 2);
+  xaxis.setAttribute('d', 'M$xAxisStart $yZero L$xAxisEnd $yZero');
   chart.append(xaxis);
 
   late SVGTextElement firstTickLabel;
@@ -159,7 +160,7 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
         'class', 'downloads-chart-tick-label  downloads-chart-tick-label-y');
     tickLabel.text =
         '${compactFormat(i * interval).value}${compactFormat(i * interval).suffix}';
-    tickLabel.setAttribute('x', '${xMax + padding}');
+    tickLabel.setAttribute('x', '${xMax + marginPadding}');
     tickLabel.setAttribute('y', '$y');
     chart.append(tickLabel);
 
@@ -170,8 +171,7 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
 
     final longTick = SVGPathElement();
     longTick.setAttribute('class', 'downloads-chart-frame');
-    longTick.setAttribute('d',
-        'M${xZero - (lineThickness / 2)} $y L${xMax - (lineThickness / 2)} $y');
+    longTick.setAttribute('d', 'M$xAxisStart} $y L$xAxisEnd $y');
     chart.append(longTick);
   }
 
@@ -235,26 +235,32 @@ void drawChart(Element svg, List<String> ranges, List<List<int>> values,
       legendLabel.text = ranges[ranges.length - 1 - i];
     }
 
-    if (legendXCoor + padding + legendWidth + legendLabel.getBBox().width >
+    if (legendXCoor +
+            marginPadding +
+            legendWidth +
+            legendLabel.getBBox().width >
         xMax) {
       // There is no room for the legend and label.
       // Make a new line and update legendXCoor and legendYCoor accordingly.
 
       legendXCoor = xZero;
-      legendYCoor += 2 * padding + legendHeight;
+      legendYCoor += 2 * marginPadding + legendHeight;
     }
 
     legend.setAttribute('x', '$legendXCoor');
     legend.setAttribute('y', '$legendYCoor');
     legendLabel.setAttribute('y', '${legendYCoor + legendHeight}');
-    legendLabel.setAttribute('x', '${legendXCoor + padding + legendWidth}');
+    legendLabel.setAttribute(
+        'x', '${legendXCoor + marginPadding + legendWidth}');
 
     // Update x coordinate for next legend
-    legendXCoor +=
-        legendWidth + padding + legendLabel.getBBox().width + labelPadding;
+    legendXCoor += legendWidth +
+        marginPadding +
+        legendLabel.getBBox().width +
+        labelPadding;
   }
 
-  final frameHeight = legendYCoor + padding + labelPadding;
+  final frameHeight = legendYCoor + marginPadding + labelPadding;
   final frame = SVGRectElement()
     ..setAttribute('class', 'downloads-chart-frame')
     ..setAttribute('height', '$frameHeight')
