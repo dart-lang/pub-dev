@@ -49,6 +49,8 @@ void main() {
           (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
       expressions.removeWhere((e) => e.startsWith('package-badge-'));
       expressions.removeWhere((e) => e.startsWith('pub-toc-node-'));
+      // downloads chart color classes
+      expressions.removeWhere((e) => e.startsWith('downloads-chart'));
       // shared CSS file (with dartdoc)
       expressions.removeAll([
         'cookie-notice-container',

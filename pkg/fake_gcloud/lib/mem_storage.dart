@@ -317,7 +317,7 @@ class _Bucket implements Bucket {
     final isDirPrefix =
         prefix.isEmpty || (delimiter.isNotEmpty && prefix.endsWith(delimiter));
     final segments = <String>{};
-    for (final name in _files.keys) {
+    for (final name in [..._files.keys]) {
       bool matchesPrefix() {
         // without prefix, return everything
         if (prefix!.isEmpty) return true;

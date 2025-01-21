@@ -45,3 +45,8 @@
 .light-theme .markdown-body pre {
   background-color: #f6f8fa;
 }
+
+/* Note: override for the image path, as the dartdoc.css is served from /static/hash-<hash>/css/ */
+input.typeahead {
+  background-image: url('../dartdoc/resources/search.svg');
+}

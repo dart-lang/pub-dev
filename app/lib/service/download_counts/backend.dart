@@ -50,10 +50,13 @@ class DownloadCountsBackend {
       }
       final data = (await storageService
               .bucket(activeConfiguration.reportsBucketName!)
-              .read(downloadCounts30DaysTotalsFileName)
-              .transform(utf8.decoder)
-              .transform(json.decoder)
-              .single as Map<String, dynamic>)
+              .readWithRetry(
+                downloadCounts30DaysTotalsFileName,
+                (input) async => await input
+                    .transform(utf8.decoder)
+                    .transform(json.decoder)
+                    .single as Map<String, dynamic>,
+              ))
           .cast<String, int>();
       _lastData = (data: data, etag: info.etag);
       return data;

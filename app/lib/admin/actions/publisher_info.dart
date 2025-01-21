@@ -22,7 +22,7 @@ Loads and displays the publisher information.
       '`publisher` must be given',
     );
 
-    final p = await publisherBackend.getPublisher(publisherId!);
+    final p = await publisherBackend.lookupPublisher(publisherId!);
     if (p == null) {
       throw NotFoundException.resource(publisherId);
     }

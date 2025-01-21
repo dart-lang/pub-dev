@@ -103,9 +103,6 @@ final class Configuration {
   /// safe, as services may be deployed independently.
   final String defaultServiceBaseUrl;
 
-  /// The name of the Cloud Storage bucket to use for popularity data dumps.
-  final String? popularityDumpBucketName;
-
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String? searchSnapshotBucketName;
 
@@ -256,7 +253,6 @@ final class Configuration {
     required this.imageBucketName,
     required this.reportsBucketName,
     required this.downloadCountsBucketName,
-    required this.popularityDumpBucketName,
     required this.searchSnapshotBucketName,
     required this.exportedApiBucketName,
     required this.maxTaskInstances,
@@ -321,7 +317,6 @@ final class Configuration {
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
       downloadCountsBucketName: 'fake-bucket-download-counts',
-      popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
       maxTaskInstances: 10,
@@ -372,7 +367,6 @@ final class Configuration {
       imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
       downloadCountsBucketName: 'fake-bucket-download-counts',
-      popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
       taskResultBucketName: 'fake-bucket-task-result',
@@ -419,7 +413,6 @@ final class Configuration {
     reportsBucketName!,
     downloadCountsBucketName!,
     incomingPackagesBucketName!,
-    popularityDumpBucketName!,
     publicPackagesBucketName!,
     searchSnapshotBucketName!,
     taskResultBucketName!,

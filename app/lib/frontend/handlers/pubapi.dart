@@ -154,14 +154,9 @@ class PubApi {
   @EndPoint.get('/api/packages/versions/newUploadFinish/<uploadId>')
   Future<SuccessMessage> finishPackageUpload(
       Request request, String uploadId) async {
-    final pv = await packageBackend.publishUploadedBlob(uploadId);
+    final messages = await packageBackend.publishUploadedBlob(uploadId);
     return SuccessMessage(
-      success: Message(
-        message: 'Successfully uploaded '
-            '${urls.pkgPageUrl(pv.package, includeHost: true)} '
-            'version ${pv.version}, '
-            'it may take up-to 10 minutes before the new version is available.',
-      ),
+      success: Message(message: messages.join('\n')),
     );
   }
 

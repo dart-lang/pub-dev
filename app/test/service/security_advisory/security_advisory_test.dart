@@ -71,7 +71,10 @@ void main() {
     }
   });
 
-  testWithProfile('Ingest invalid advisory', fn: () async {
+  testWithProfile('Ingest invalid advisory', expectedLogMessages: [
+    'SHOUT Package a not found, while ingesting advisory 123.',
+    'SHOUT [advisory-malformed] ID: 456: Invalid modified date, cannot be a future date.',
+  ], fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final futureTime = clock.now().add(Duration(days: 1)).toIso8601String();
     final affectedA = Affected(
@@ -107,7 +110,11 @@ void main() {
     expect(adv2, isNull);
   });
 
-  testWithProfile('List all advisories and delete advisory', fn: () async {
+  testWithProfile('List all advisories and delete advisory',
+      expectedLogMessages: [
+        'SHOUT Package a not found, while ingesting advisory 123.',
+        'SHOUT Package a not found, while ingesting advisory 456.',
+      ], fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
@@ -158,7 +165,11 @@ void main() {
     expect(advisory, isNull);
   });
 
-  testWithProfile('Insert, lookup and update advisory', fn: () async {
+  testWithProfile('Insert, lookup and update advisory', expectedLogMessages: [
+    'SHOUT Package a not found, while ingesting advisory 123.',
+    'SHOUT Package b not found, while ingesting advisory 123.',
+    'SHOUT Package c not found, while ingesting advisory 123.',
+  ], fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),
@@ -249,7 +260,9 @@ void main() {
 
   testWithProfile(
       'Only include affected packages with "Pub" as specified ecosystem.',
-      fn: () async {
+      expectedLogMessages: [
+        'SHOUT Package a not found, while ingesting advisory GHSA-0123-4567-8910.',
+      ], fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final id = 'GHSA-0123-4567-8910';
 
@@ -477,7 +490,13 @@ void main() {
     expect(neonRes.advisoriesUpdated, isNull);
   });
 
-  testWithProfile('display url', fn: () async {
+  testWithProfile('display url', expectedLogMessages: [
+    'SHOUT Package a not found, while ingesting advisory GHSA-0123-4567-8910.',
+    'SHOUT Package a not found, while ingesting advisory CVE-0123-4567-8910.',
+    'SHOUT Package a not found, while ingesting advisory ABCD-EFGH-IJKL-1234.',
+    'SHOUT Package a not found, while ingesting advisory ABCD-EFGH-IJKL-1235.',
+    'SHOUT Package a not found, while ingesting advisory ABCD-EFGH-IJKL-1236.',
+  ], fn: () async {
     final firstTime = DateTime(2022).toIso8601String();
     final affectedA = Affected(
       package: Package(ecosystem: 'pub', name: 'a'),

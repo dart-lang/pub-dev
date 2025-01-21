@@ -8,6 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../shared/datastore.dart';
@@ -51,7 +52,7 @@ class TrackedPackage {
         updated: p.updated!,
         latestVersion: p.latestVersion!,
         lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible,
+        isVisible: p.isVisible && !isSoftRemoved(p.name!),
       );
 
   @visibleForTesting
@@ -125,7 +126,7 @@ class NameTracker {
 
   /// Get the names of all visible packages.
   ///
-  /// Packages that are _withdrawn_ are not listed here.
+  /// Packages that are _moderated_ or _soft removed_ are NOT listed here.
   /// Packages that are _unlisted_ or _discontinued_ are **included in this list**.
   ///
   /// If it is called before the first scan was done, it will wait for

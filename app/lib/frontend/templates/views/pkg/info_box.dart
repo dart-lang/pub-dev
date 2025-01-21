@@ -4,7 +4,6 @@
 
 import 'package:_pub_shared/format/encoding.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
@@ -83,8 +82,7 @@ d.Node packageInfoBoxNode({
         collectionsIcon(),
       ]),
     _publisher(package.publisherId),
-    if (data.weeklyDownloadCounts != null &&
-        requestContext.experimentalFlags.showDownloadCounts)
+    if (data.weeklyDownloadCounts != null)
       _downloadsChart(data.weeklyDownloadCounts!),
     _metadata(
       description: version.pubspec!.description,

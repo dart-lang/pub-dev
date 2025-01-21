@@ -2,6 +2,27 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2025.01.15`.
+ * Note: started deleting `Package.isBlocked`, `Publisher.isBlocked`, `User.isBlocked`.
+ * Note: Updates search form normalization: whitespaces.
+
+## `20250114t095800-all`
+ * Bump runtimeVersion to `2025.01.14`.
+ * Upgraded stable Dart analysis SDK to `3.6.1`
+ * Upgraded stable Flutter analysis SDK to `3.27.2`.
+ * Upgraded pana to `0.22.18`.
+ * Upgraded dartdoc to `8.3.2`.
+ * Upgraded dependencies.
+
+## `20250107t105700-all`
+ * Bump runtimeVersion to `2025.01.07`.
+ * Upgraded stable Flutter analysis SDK to `3.27.1`.
+ * Upgraded dartdoc to `8.3.1`.
+ * Note: removed required flag from `isBlocked` fields. 
+ * Note: started deleting `Package.blocked` and `Package.blockedReason`.
+
+## `20241217t132200-all`
+ * Bump runtimeVersion to `2024.12.17`.
 
 ## `20241217t093900-all`
  * Bump runtimeVersion to `2024.12.12`.

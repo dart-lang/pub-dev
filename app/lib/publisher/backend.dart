@@ -58,15 +58,18 @@ class PublisherBackend {
     return visible!;
   }
 
-  /// Loads a publisher. Returns `null` if it does not exists, or is blocked (not visible).
-  Future<Publisher?> getPublisher(String publisherId) async {
+  /// Loads a [Publisher] entity or `null` if there is no such entity.
+  Future<Publisher?> lookupPublisher(String publisherId) async {
     checkPublisherIdParam(publisherId);
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
-    final p = await _db.lookupOrNull<Publisher>(pKey);
-    if (p != null && p.isBlocked) {
-      return null;
-    }
-    return p;
+    return await _db.lookupOrNull<Publisher>(pKey);
+  }
+
+  /// Loads a [Publisher] entity or `null` if there is no such entity,
+  /// or if the entity is not listed / visible.
+  Future<Publisher?> getListedPublisher(String publisherId) async {
+    final p = await lookupPublisher(publisherId);
+    return p == null || p.isUnlisted ? null : p;
   }
 
   /// List publishers (in no specific order, it will be listed by their
@@ -114,7 +117,7 @@ class PublisherBackend {
       publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
         publishers: publishers
-            .where((p) => !p.isBlocked)
+            .where((p) => p.isVisible)
             .map((p) => PublisherSummary(
                   publisherId: p.publisherId,
                   created: p.created!,
@@ -134,7 +137,6 @@ class PublisherBackend {
 
   /// Whether the User [userId] has admin permissions on the publisher.
   Future<bool> isMemberAdmin(Publisher publisher, String? userId) async {
-    if (publisher.isBlocked) return false;
     if (publisher.isModerated) return false;
     if (userId == null) return false;
     final member = await getPublisherMember(publisher, userId);
@@ -250,7 +252,7 @@ class PublisherBackend {
   /// Gets the publisher data
   Future<api.PublisherInfo> getPublisherInfo(String publisherId) async {
     checkPublisherIdParam(publisherId);
-    final p = await getPublisher(publisherId);
+    final p = await getListedPublisher(publisherId);
     if (p == null) {
       throw NotFoundException('Publisher $publisherId does not exists.');
     }
@@ -598,12 +600,12 @@ Future<Publisher> requirePublisherAdmin(
     String? publisherId, String userId) async {
   ArgumentError.checkNotNull(userId, 'userId');
   ArgumentError.checkNotNull(publisherId, 'publisherId');
-  final p = await publisherBackend.getPublisher(publisherId!);
-  if (p == null) {
-    throw NotFoundException('Publisher $publisherId does not exists.');
-  }
-  if (p.isModerated) {
+  final p = await publisherBackend.lookupPublisher(publisherId!);
+  if (p != null && p.isModerated) {
     throw ModeratedException.publisher(publisherId);
+  }
+  if (p == null || p.isUnlisted) {
+    throw NotFoundException('Publisher $publisherId does not exists.');
   }
 
   final member = await publisherBackend._db

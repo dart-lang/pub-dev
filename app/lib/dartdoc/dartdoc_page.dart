@@ -254,9 +254,6 @@ extension DartDocPageRender on DartDocPage {
             ],
           ),
           _left,
-          // TODO: remove this after all runtimes are rendered with dartdoc >=8.0.0
-          if (!left.contains('dartdoc-sidebar-left-content'))
-            d.div(id: 'dartdoc-sidebar-left-content', text: ''),
         ],
       );
 

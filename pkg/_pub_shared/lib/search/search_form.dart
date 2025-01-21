@@ -35,7 +35,7 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 
 /// How search results should be ordered.
 enum SearchOrder {
-  /// Search score should be a weighted value of [text], [popularity], [points]
+  /// Search score should be a weighted value of [text], [downloads], [points]
   /// and [like], ordered decreasing.
   top,
 
@@ -50,6 +50,10 @@ enum SearchOrder {
   updated,
 
   /// Search order should be in decreasing popularity score.
+  /// WARNING: The value shouldn't be used anymore.
+  ///
+  /// TODO: remove in a future release.
+  @Deprecated('Popularity is no longer used.')
   popularity,
 
   /// Search order should be in decreasing download counts.
@@ -363,7 +367,7 @@ class SearchForm {
   }) {
     currentPage ??= 1;
     pageSize ??= resultsPerPage;
-    final q = _stringToNull(query?.trim());
+    final q = _stringToNull(query?.replaceAll(_whitespacesRegExp, ' ').trim());
     return SearchForm._(
       query: q,
       order: order,

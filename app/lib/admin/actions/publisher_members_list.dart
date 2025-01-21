@@ -18,7 +18,7 @@ Get information about a publisher and list all its members.
     final publisherId = options['publisher'] ??
         (throw InvalidInputException('Missing --publisher argument.'));
 
-    final publisher = await publisherBackend.getPublisher(publisherId);
+    final publisher = await publisherBackend.lookupPublisher(publisherId);
     if (publisher == null) {
       throw NotFoundException.resource(publisherId);
     }

@@ -11,7 +11,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
-import 'package:pub_dev/shared/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../package/model_properties.dart';
@@ -20,7 +19,6 @@ import '../search/search_service.dart' show ApiPageRef;
 import '../shared/datastore.dart' as db;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
-import '../shared/popularity_storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
@@ -124,19 +122,6 @@ class Package extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isUnlisted = false;
 
-  /// Set to `true` if package should not be displayed anywhere, because of
-  /// pending moderation or deletion.
-  @db.BoolProperty(required: true)
-  bool isBlocked = false;
-
-  /// The reason why the package was blocked.
-  @db.StringProperty(indexed: false)
-  String? blockedReason;
-
-  /// The timestamp when the package was blocked.
-  @db.DateTimeProperty()
-  DateTime? blocked;
-
   /// `true` if package was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
   bool isModerated = false;
@@ -194,7 +179,6 @@ class Package extends db.ExpandoModel<String> {
       ..likes = 0
       ..isDiscontinued = false
       ..isUnlisted = false
-      ..isBlocked = false
       ..isModerated = false
       ..assignedTags = []
       ..deletedVersions = [];
@@ -202,7 +186,7 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isBlocked && !isModerated;
+  bool get isVisible => !isModerated;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
@@ -764,7 +748,7 @@ abstract class AssetKind {
 /// A derived entity that holds extracted asset of a [PackageVersion] archive.
 @db.Kind(name: 'PackageVersionAsset', idType: db.IdType.String)
 class PackageVersionAsset extends db.ExpandoModel {
-  /// ID format: an URI path with <package>/<version>/<kind>
+  /// ID format: an URI path with `<package>/<version>/<kind>`
   String get assetId => id as String;
 
   /// The name of the package.
@@ -953,7 +937,6 @@ class PackageView {
   final List<ProcessedScreenshot>? screenshots;
 
   final List<String>? topics;
-  final int popularity;
   final int? thirtyDaysDownloadCounts;
 
   PackageView({
@@ -972,7 +955,6 @@ class PackageView {
     this.spdxIdentifiers,
     this.apiPages,
     this.topics,
-    required this.popularity,
     required this.thirtyDaysDownloadCounts,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
@@ -986,7 +968,6 @@ class PackageView {
     PackageVersion? version,
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
-    required int popularity,
     required int? thirtyDaysDownloadCounts,
   }) {
     final tags = <String>{
@@ -1011,7 +992,6 @@ class PackageView {
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.canonicalizedTopics,
-      popularity: popularity,
       thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
@@ -1033,7 +1013,6 @@ class PackageView {
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,
       topics: topics,
-      popularity: popularity,
       thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
@@ -1077,38 +1056,36 @@ class PackageLinks {
   /// The link to `CONTRIBUTING.md` in the git repository (when the repository is verified).
   final String? contributingUrl;
 
-  /// The inferred base URL that can be used to link files from.
-  final String? _baseUrl;
+  /// The `funding` URLs from `pubspec.yaml`.
+  final List<Uri> fundingUris;
 
-  PackageLinks._(
-    this._baseUrl, {
+  PackageLinks._({
     this.homepageUrl,
     String? documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
     this.contributingUrl,
-  }) : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
+    List<Uri>? fundingUris,
+  })  : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
             ? null
-            : documentationUrl;
+            : documentationUrl,
+        fundingUris = fundingUris ?? <Uri>[];
 
   factory PackageLinks.infer({
     String? homepageUrl,
     String? documentationUrl,
     String? repositoryUrl,
     String? issueTrackerUrl,
+    List<Uri>? fundingUris,
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
-    final baseUrl = urls.inferBaseUrl(
-      homepageUrl: homepageUrl,
-      repositoryUrl: repositoryUrl,
-    );
     return PackageLinks._(
-      baseUrl,
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,
       issueTrackerUrl: issueTrackerUrl,
+      fundingUris: fundingUris,
     );
   }
 }
@@ -1147,39 +1124,47 @@ class PackagePageData {
   bool get isLatestStable => version.version == package.latestVersion;
 
   late final packageLinks = () {
-    // start with the URLs from pubspec.yaml
+    // If the repository failed the verification tests, we are not displaying
+    // any links.
+    final result = scoreCard.panaReport?.result;
+    final repositoryStatus = result?.repositoryStatus;
+    if (repositoryStatus == RepositoryStatus.failed) {
+      return PackageLinks._();
+    }
+
+    // If the analysis completed, return the URLs from it.
+    if (result != null) {
+      return PackageLinks._(
+        homepageUrl: result.homepageUrl,
+        repositoryUrl: result.repositoryUrl,
+        issueTrackerUrl: result.issueTrackerUrl,
+        documentationUrl: result.documentationUrl,
+        contributingUrl: result.contributingUrl,
+        fundingUris: result.fundingUrls?.map(Uri.parse).toList(),
+      );
+    }
+
+    // Fallback: if the analysis did not complete yet, display inferred URLs from pubspec.yaml
     final pubspec = version.pubspec!;
-    final inferred = PackageLinks.infer(
+    return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
       repositoryUrl: pubspec.repository,
       issueTrackerUrl: pubspec.issueTracker,
-    );
-
-    // Use verified URLs when they are available.
-    final result = scoreCard.panaReport?.result;
-    if (result == null) {
-      return inferred;
-    }
-
-    final baseUrl = urls.inferBaseUrl(
-      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
-      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
-    );
-    return PackageLinks._(
-      baseUrl,
-      homepageUrl: result.homepageUrl ?? inferred.homepageUrl,
-      repositoryUrl: result.repositoryUrl ?? inferred.repositoryUrl,
-      issueTrackerUrl: result.issueTrackerUrl ?? inferred.issueTrackerUrl,
-      documentationUrl: result.documentationUrl ?? inferred.documentationUrl,
-      contributingUrl: result.contributingUrl ?? inferred.contributingUrl,
+      fundingUris: pubspec.funding,
     );
   }();
 
-  /// The verified repository (or homepage).
-  late final urlResolverFn =
-      scoreCard.panaReport?.result?.repository?.resolveUrl ??
-          fallbackUrlResolverFn(packageLinks._baseUrl);
+  /// The URL resolver using a verified repository
+  /// (unless the verification explicitly failed).
+  late final urlResolverFn = () {
+    final result = scoreCard.panaReport?.result;
+    final status = result?.repositoryStatus;
+    if (status == RepositoryStatus.failed) {
+      return null;
+    }
+    return result?.repository?.resolveUrl;
+  }();
 
   PackageView toPackageView() {
     return _view ??= PackageView.fromModel(
@@ -1187,7 +1172,6 @@ class PackagePageData {
       releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
-      popularity: popularityStorage.lookupAsScore(package.name!),
       thirtyDaysDownloadCounts:
           downloadCountsBackend.lookup30DaysTotalCounts(package.name!),
     );

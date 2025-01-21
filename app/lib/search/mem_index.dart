@@ -40,7 +40,6 @@ class InMemoryPackageIndex {
   late final List<IndexedPackageHit> _overallOrderedHits;
   late final List<IndexedPackageHit> _createdOrderedHits;
   late final List<IndexedPackageHit> _updatedOrderedHits;
-  late final List<IndexedPackageHit> _popularityOrderedHits;
   late final List<IndexedPackageHit> _downloadsOrderedHits;
   late final List<IndexedPackageHit> _likesOrderedHits;
   late final List<IndexedPackageHit> _pointsOrderedHits;
@@ -116,8 +115,6 @@ class InMemoryPackageIndex {
         score: (doc) => doc.overallScore ?? 0.0);
     _createdOrderedHits = _rankWithComparator(_compareCreated);
     _updatedOrderedHits = _rankWithComparator(_compareUpdated);
-    _popularityOrderedHits = _rankWithComparator(_comparePopularity,
-        score: (doc) => doc.popularityScore ?? 0);
     _downloadsOrderedHits = _rankWithComparator(_compareDownloads,
         score: (doc) => doc.downloadCount.toDouble());
     _likesOrderedHits = _rankWithComparator(_compareLikes,
@@ -271,9 +268,8 @@ class InMemoryPackageIndex {
       case SearchOrder.updated:
         indexedHits = _updatedOrderedHits.whereInScores(packageScores);
         break;
+      // ignore: deprecated_member_use
       case SearchOrder.popularity:
-        indexedHits = _popularityOrderedHits.whereInScores(packageScores);
-        break;
       case SearchOrder.downloads:
         indexedHits = _downloadsOrderedHits.whereInScores(packageScores);
         break;
@@ -315,7 +311,7 @@ class InMemoryPackageIndex {
   /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
   void _updateOverallScores() {
     _adjustedOverallScores = _documents.map((doc) {
-      final downloadScore = doc.downloadScore ?? doc.popularityScore ?? 0.0;
+      final downloadScore = doc.downloadScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
       final popularity = (downloadScore + likeScore) / 2;
       final points = doc.grantedPoints / math.max(1, doc.maxPoints);
@@ -493,12 +489,6 @@ class InMemoryPackageIndex {
 
   int _compareOverall(PackageDocument a, PackageDocument b) {
     final x = -(a.overallScore ?? 0.0).compareTo(b.overallScore ?? 0.0);
-    if (x != 0) return x;
-    return _compareUpdated(a, b);
-  }
-
-  int _comparePopularity(PackageDocument a, PackageDocument b) {
-    final x = -(a.popularityScore ?? 0.0).compareTo(b.popularityScore ?? 0.0);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }

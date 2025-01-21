@@ -520,10 +520,10 @@ class AdminBackend {
     await taskBackend.trackPackage(packageName);
   }
 
-  /// Handles GET '/api/admin/packages/<package>/assigned-tags'
+  /// Handles `GET '/api/admin/packages/<package>/assigned-tags'`.
   ///
   /// Note, this API end-point is intentionally locked down even if it doesn't
-  /// return anything secret. This is because the /admin/ section is only
+  /// return anything secret. This is because the `/admin/` section is only
   /// intended to be exposed to administrators. Users can read the assigned-tags
   /// through API that returns list of package tags.
   Future<api.AssignedTags> handleGetAssignedTags(
@@ -541,7 +541,7 @@ class AdminBackend {
     );
   }
 
-  /// Handles POST '/api/admin/packages/<package>/assigned-tags'
+  /// Handles `POST '/api/admin/packages/<package>/assigned-tags'`.
   Future<api.AssignedTags> handlePostAssignedTags(
     String packageName,
     api.PatchAssignedTags body,
@@ -586,7 +586,7 @@ class AdminBackend {
     });
   }
 
-  /// Handles GET '/api/admin/packages/<package>/uploaders'
+  /// Handles `GET '/api/admin/packages/<package>/uploaders'`.
   ///
   /// Returns the list of uploaders for a package.
   Future<api.PackageUploaders> handleGetPackageUploaders(
@@ -620,7 +620,7 @@ class AdminBackend {
         .toList();
   }
 
-  /// Handles PUT '/api/admin/packages/<package>/uploaders/<email>'
+  /// Handles `PUT '/api/admin/packages/<package>/uploaders/<email>'`.
   ///
   /// Returns the list of uploaders for a package.
   Future<api.PackageUploaders> handleAddPackageUploader(
@@ -645,7 +645,7 @@ class AdminBackend {
     return await handleGetPackageUploaders(packageName);
   }
 
-  /// Handles DELETE '/api/admin/packages/<package>/uploaders/<email>'
+  /// Handles `DELETE '/api/admin/packages/<package>/uploaders/<email>'`.
   ///
   /// Returns the list of uploaders for a package.
   Future<api.PackageUploaders> handleRemovePackageUploader(

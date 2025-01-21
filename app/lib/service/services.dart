@@ -53,7 +53,6 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/env_config.dart';
 import '../shared/handler_helpers.dart';
-import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show setupCache;
 import '../shared/storage.dart';
 import '../shared/versions.dart';
@@ -260,10 +259,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerNameTracker(NameTracker(dbService));
     registerPackageIndexHolder(PackageIndexHolder());
     registerIndexUpdater(IndexUpdater(dbService));
-    registerPopularityStorage(
-      PopularityStorage(
-          storageService.bucket(activeConfiguration.popularityDumpBucketName!)),
-    );
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService,
@@ -297,7 +292,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerScopeExitCallback(announcementBackend.close);
     registerScopeExitCallback(searchBackend.close);
     registerScopeExitCallback(() async => nameTracker.stopTracking());
-    registerScopeExitCallback(popularityStorage.close);
     registerScopeExitCallback(scoreCardBackend.close);
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(topPackages.close);

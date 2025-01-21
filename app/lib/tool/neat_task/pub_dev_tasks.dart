@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
 
@@ -43,7 +44,9 @@ void setupPeriodTaskSchedulers() {
 }
 
 /// List of periodic task schedulers.
-List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers() {
+List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
+  @visibleForTesting bool isPostTestVerification = false,
+}) {
   return [
     // Tries to send pending outgoing emails.
     _15mins(
@@ -177,19 +180,30 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers() {
     ),
 
     // Delete very old instances that have been abandoned
-    _daily(
-      name: 'garbage-collect-old-instances',
-      isRuntimeVersioned: false,
-      task: () async => await deleteAbandonedInstances(
-        project: activeConfiguration.taskWorkerProject!,
+    //
+    // NOTE: This task will use Google Cloud API to remove worker instances.
+    //       The client is not configured for fake environment, we should skip
+    //       this task in post-test verifications.
+    // TODO: Write fake cloud abstractions to improve code coverage here.
+    if (!isPostTestVerification)
+      _daily(
+        name: 'garbage-collect-old-instances',
+        isRuntimeVersioned: false,
+        task: () async => await deleteAbandonedInstances(
+          project: activeConfiguration.taskWorkerProject!,
+        ),
       ),
-    ),
 
-    _daily(
-      name: 'sync-download-counts',
-      isRuntimeVersioned: false,
-      task: syncDownloadCounts,
-    ),
+    // Syncs download counts from storage bucket.
+    //
+    // NOTE: This task reports missing files in the logs.
+    // TODO: Provide fake download data so that the task does not fail here.
+    if (!isPostTestVerification)
+      _daily(
+        name: 'sync-download-counts',
+        isRuntimeVersioned: false,
+        task: syncDownloadCounts,
+      ),
 
     _daily(
       name: 'compute-download-counts-30-days-totals',
@@ -203,11 +217,15 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers() {
       task: countTopics,
     ),
 
-    _daily(
-      name: 'sync-security-advisories',
-      isRuntimeVersioned: false,
-      task: syncSecurityAdvisories,
-    ),
+    // NOTE: This task will fetch the advisories from a public endpoint,
+    //       running it on every test is not worth it.
+    // TODO: Consider injecting a fake data source for unit test.
+    if (!isPostTestVerification)
+      _daily(
+        name: 'sync-security-advisories',
+        isRuntimeVersioned: false,
+        task: syncSecurityAdvisories,
+      ),
 
     // Checks the Datastore integrity of the model objects.
     _weekly(

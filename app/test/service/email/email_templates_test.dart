@@ -169,6 +169,7 @@ void main() {
           EmailAddress(name: 'Joe', 'joe@example.com'),
           EmailAddress('uploader@example.com')
         ],
+        uploadMessages: [],
       );
       expect(message.from.toString(), contains('@pub.dev'));
       expect(message.recipients.map((e) => e.toString()).toList(), [

@@ -2,6 +2,8 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+@use 'variables';
+
 $info-box-width: 190px;
 $info-box-margin:        120px;
 $info-box-tablet-margin:  40px;
@@ -19,7 +21,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   .detail-header {
     // On desktop this will make the wide header block to be centered.
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       display: flex;
     }
   }
@@ -34,7 +36,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 
   .detail-info-box {
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       display: none;
     }
   }
@@ -51,7 +53,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   top: 0px;
   right: 0px;
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     width: $info-box-width + 10px;
   }
 
@@ -60,7 +62,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 
   .ff-banner-desktop {
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       display: inline-block;
       width: 75px;
       height: 109px;
@@ -68,7 +70,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 
   .ff-banner-mobile {
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       display: inline-block;
       width: 47px;
       height: 58px;
@@ -84,7 +86,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     margin: 0;
     font-size: 24px;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       font-size: 36px;
     }
   }
@@ -102,7 +104,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   display: none;
   margin-top: 16px;
 
-  @media (max-width: $device-mobile-max-width) {
+  @media (max-width: variables.$device-mobile-max-width) {
     display: block;
   }
 
@@ -139,7 +141,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     max-width: 200px;
     max-height: 200px;
 
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       max-width: 100px;
       max-height: 100px;
     }
@@ -153,7 +155,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     display: flex;
     align-items: center;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       display: inline-flex;
       margin-right: 16px;
     }
@@ -234,7 +236,6 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   filter: brightness(50%);
 }
 
-
 .weekly-downloads-sparkline {
   display: flex;
   height: 105px;
@@ -284,7 +285,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   stroke-width: 2;
 }
 
-@media (min-width: $device-desktop-min-width) {
+@media (min-width: variables.$device-desktop-min-width) {
   .detail-body {
 
     >.detail-tabs {
@@ -296,7 +297,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
       margin-left: $info-box-margin;
       width: $info-box-width;
 
-      @media (max-width: $device-tablet-max-width) {
+      @media (max-width: variables.$device-tablet-max-width) {
         margin-left: $info-box-tablet-margin;
       }
     }
@@ -308,7 +309,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
       display: inline-block;
       width: $detail-tabs-width;
 
-      @media (max-width: $device-tablet-max-width) {
+      @media (max-width: variables.$device-tablet-max-width) {
         width: $detail-tabs-tablet-width;
       }
     }

@@ -49,12 +49,6 @@ class User extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isDeleted = false;
 
-  /// [isBlocked] is set when a user account is blocked (is on administrative hold).
-  /// When this happens user-data is preserved, but the user should not be able
-  /// to perform any action.
-  @db.BoolProperty(required: true)
-  bool isBlocked = false;
-
   /// `true` if user was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
   bool isModerated = false;
@@ -69,12 +63,11 @@ class User extends db.ExpandoModel<String> {
 
   User();
   User.init() {
-    isBlocked = false;
     isDeleted = false;
     isModerated = false;
   }
 
-  late final isVisible = !isBlocked && !isModerated && !isDeleted;
+  late final isVisible = !isModerated && !isDeleted;
   bool get isNotVisible => !isVisible;
 
   void updateIsModerated({

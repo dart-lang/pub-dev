@@ -224,13 +224,6 @@ void main() {
               renderedFirstBreadcrumbs.remove();
             }
 
-            // removing unconditional placeholder
-            renderedXmlDoc.descendantElements
-                .firstWhereOrNull((e) =>
-                    e.localName == 'div' &&
-                    e.getAttribute('id') == 'dartdoc-sidebar-left-content')
-                ?.remove();
-
             // main content section -> div
             final fileMainContentDiv = fileXmlRoot.descendantElements
                 .firstWhere(

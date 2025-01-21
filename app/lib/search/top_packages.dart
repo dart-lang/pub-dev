@@ -29,7 +29,7 @@ class TopPackages {
     query: PackageTags.isFlutterFavorite,
   );
   final _mostPopular =
-      _cachedValue('top-packages-most-popular', order: SearchOrder.popularity);
+      _cachedValue('top-packages-most-popular', order: SearchOrder.downloads);
   final _topDart = _cachedValue('top-packages-top-dart', query: SdkTag.sdkDart);
   final _topFlutter =
       _cachedValue('top-packages-top-flutter', query: SdkTag.sdkFlutter);

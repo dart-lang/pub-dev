@@ -545,7 +545,8 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final searchForm = SearchForm();
-        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final publisher =
+            (await publisherBackend.lookupPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
@@ -577,7 +578,8 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final searchForm = SearchForm();
-        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final publisher =
+            (await publisherBackend.lookupPublisher('example.com'))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
         final titanium =
             (await scoreCardBackend.getPackageView('flutter_titanium'))!;
@@ -609,7 +611,8 @@ void main() {
       'publisher admin page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final publisher =
+            (await publisherBackend.lookupPublisher('example.com'))!;
         final members =
             await publisherBackend.listPublisherMembers('example.com');
         final html = renderPublisherAdminPage(
@@ -635,7 +638,8 @@ void main() {
       'publisher activity log page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final publisher = (await publisherBackend.getPublisher('example.com'))!;
+        final publisher =
+            (await publisherBackend.lookupPublisher('example.com'))!;
         final activities =
             await auditBackend.listRecordsForPublisher('example.com');
         expect(activities.records, isNotEmpty);

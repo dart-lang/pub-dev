@@ -2,7 +2,7 @@ name: _pub_shared
 description: Shared data between the pub server and web_app client.
 publish_to: none
 environment:
-  sdk: '^3.5.0'
+  sdk: ^3.6.0
 resolution: workspace
 
 dependencies:
@@ -21,5 +21,5 @@ dev_dependencies:
   build_verify: ^3.0.0
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
-  source_gen: '^1.0.0'
+  source_gen: '^2.0.0'
   test: '^1.16.5'

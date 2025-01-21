@@ -54,16 +54,6 @@ class Publisher extends db.ExpandoModel<String> {
   @db.BoolProperty(required: true)
   bool isAbandoned = false;
 
-  /// [isBlocked] is set when a [Publisher] is blocked by an administrative action.
-  /// When this happens:
-  /// - The publisher page should neither be visible nor listed anywhere.
-  /// - Administrator roles of the publisher must not be able to change any setting,
-  ///   membership information, or invite new members.
-  /// - Administrator roles of the publisher must not be able to publisher a new version
-  ///   for packages of the publisher, or change any of the existing package's properties.
-  @db.BoolProperty(required: true)
-  bool isBlocked = false;
-
   /// `true` if publisher was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
   bool isModerated = false;
@@ -87,7 +77,6 @@ class Publisher extends db.ExpandoModel<String> {
     description = '';
     websiteUrl = defaultPublisherWebsite(publisherId);
     isAbandoned = false;
-    isBlocked = false;
     isModerated = false;
   }
 
@@ -98,7 +87,7 @@ class Publisher extends db.ExpandoModel<String> {
   bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
 
   /// Whether we should not list the publisher page in sitemap or promote it in search engines.
-  bool get isUnlisted => isBlocked || isAbandoned || isModerated;
+  bool get isUnlisted => isAbandoned || isModerated;
   bool get isVisible => !isUnlisted;
 
   void updateIsModerated({required bool isModerated}) {

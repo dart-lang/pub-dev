@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pana/pana.dart';
 import 'package:pub_dev/shared/markdown.dart';
 import 'package:test/test.dart';
 
@@ -30,7 +31,7 @@ void main() {
 
   group('Valid custom base URL', () {
     final baseUrl = 'https://github.com/example/project';
-    final urlResolverFn = fallbackUrlResolverFn(baseUrl);
+    final urlResolverFn = Repository.parseUrl(baseUrl).resolveUrl;
 
     test('relative link within page', () {
       expect(markdownToHtml('[text](#relative)'),
@@ -109,7 +110,7 @@ void main() {
       expect(
           markdownToHtml('[text](/example/README.md)',
               urlResolverFn: urlResolverFn),
-          '<p><a href="https://github.com/example/README.md" rel="ugc">text</a></p>\n');
+          '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n');
     });
 
     test('root image within site', () {
@@ -117,7 +118,7 @@ void main() {
       expect(
           markdownToHtml('![text](/example/image.png)',
               urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/image.png" alt="text"></p>\n');
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
     });
 
     test('email', () {
@@ -130,22 +131,6 @@ void main() {
     });
   });
 
-  group('Bad custom base URL', () {
-    test('not http(s)', () {
-      expect(
-          markdownToHtml('[text](README.md)',
-              urlResolverFn: fallbackUrlResolverFn('ftp://example.com/blah')),
-          '<p>text</p>\n');
-    });
-
-    test('not valid host', () {
-      expect(
-          markdownToHtml('[text](README.md)',
-              urlResolverFn: fallbackUrlResolverFn('http://com/blah')),
-          '<p>text</p>\n');
-    });
-  });
-
   group('Unsafe markdown', () {
     test('javascript link', () {
       expect(markdownToHtml('[a](javascript:alert("x"))'), '<p><a>a</a></p>\n');
@@ -153,13 +138,6 @@ void main() {
   });
 
   group('Bad markdown', () {
-    test('bad link', () {
-      expect(
-          markdownToHtml('[a][b]',
-              urlResolverFn: fallbackUrlResolverFn('http://www.example.com/')),
-          '<p>[a][b]</p>\n');
-    });
-
     test('bad link, keeping link text', () {
       expect(markdownToHtml('[my illegal url](http://illegal@@thing)'),
           '<p>my illegal url</p>\n');
@@ -259,17 +237,22 @@ void main() {
     test('root path: /[..]/blob/master/[path].gif', () {
       expect(
           markdownToHtml(
-              '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
-              urlResolverFn: fallbackUrlResolverFn(
-                  'https://github.com/rcpassos/progress_hud')),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text"></p>\n');
+            '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
+            urlResolverFn:
+                Repository.parseUrl('https://github.com/rcpassos/progress_hud')
+                    .resolveUrl,
+          ),
+          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text"></p>\n');
     });
 
     test('relative path: [path].gif', () {
       expect(
-          markdownToHtml('![text](progress_hud.gif)',
-              urlResolverFn: fallbackUrlResolverFn(
-                  'https://github.com/rcpassos/progress_hud')),
+          markdownToHtml(
+            '![text](progress_hud.gif)',
+            urlResolverFn:
+                Repository.parseUrl('https://github.com/rcpassos/progress_hud')
+                    .resolveUrl,
+          ),
           '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text"></p>\n');
     });
   });

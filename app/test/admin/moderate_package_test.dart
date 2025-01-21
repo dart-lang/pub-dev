@@ -62,7 +62,11 @@ void main() {
       );
     }
 
-    testWithProfile('update state', fn: () async {
+    testWithProfile('update state', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       final mc = await _report('neon');
 
       await expectModerationActions(mc.caseId, actions: []);
@@ -104,7 +108,11 @@ void main() {
       );
     });
 
-    testWithProfile('clear moderation flag', fn: () async {
+    testWithProfile('clear moderation flag', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       final mc = await _report('oxygen');
       await expectModerationActions(mc.caseId, actions: []);
       final r1 = await _moderate('oxygen', caseId: mc.caseId);
@@ -189,7 +197,11 @@ void main() {
       });
     });
 
-    testWithProfile('API endpoints return not found', fn: () async {
+    testWithProfile('API endpoints return not found', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       final jsonUrls = [
         '/api/packages/oxygen',
         '/api/packages/oxygen/versions/1.0.0',
@@ -215,7 +227,11 @@ void main() {
     });
 
     testWithProfile('public pages are displaying moderation notice',
-        fn: () async {
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        ], fn: () async {
       final htmlUrls = [
         '/packages/oxygen',
         '/packages/oxygen/changelog',
@@ -256,7 +272,11 @@ void main() {
           actions: [ModerationAction.apply, ModerationAction.revert]);
     });
 
-    testWithProfile('not included in search', fn: () async {
+    testWithProfile('not included in search', expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+    ], fn: () async {
       await searchBackend.doCreateAndUpdateSnapshot(
         FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
         concurrency: 2,
@@ -295,7 +315,12 @@ void main() {
       expect(docs3!.where((d) => d.package == 'oxygen'), isNotEmpty);
     });
 
-    testWithProfile('archives are removed from public buckets', fn: () async {
+    testWithProfile('archives are removed from public buckets',
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        ], fn: () async {
       final publicUrls = [
         '${activeConfiguration.storageBaseUrl}'
             '/${activeConfiguration.publicPackagesBucketName}'
@@ -339,6 +364,11 @@ void main() {
     testWithProfile(
       'analysis results are cleared',
       processJobsWithFakeRunners: true,
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ],
       fn: () async {
         final score1 =
             await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
@@ -386,7 +416,10 @@ void main() {
 
     testWithProfile(
         'cleanup deletes datastore entities and canonical archive file',
-        fn: () async {
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        ], fn: () async {
       // delete old version
       await accountBackend.withBearerToken(siteAdminToken, () async {
         await adminBackend.removePackageVersion('oxygen', '1.0.0');

@@ -54,14 +54,14 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   return htmlResponse(content);
 }
 
-/// Handles requests for GET /publishers/<publisherId>
+/// Handles requests for `GET /publishers/<publisherId>`.
 Future<shelf.Response> publisherPageHandler(
     shelf.Request request, String publisherId) async {
   checkPublisherIdParam(publisherId);
   return redirectResponse(urls.publisherPackagesUrl(publisherId));
 }
 
-/// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
+/// Handles requests for `GET /publishers/<publisherId>/packages [?q=...]`.
 Future<shelf.Response> publisherPackagesPageHandler(
   shelf.Request request,
   String publisherId, {
@@ -82,7 +82,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     }
   }
 
-  final publisher = await publisherBackend.getPublisher(publisherId);
+  final publisher = await publisherBackend.lookupPublisher(publisherId);
   if (publisher == null) {
     // We may introduce search for publishers (e.g. somebody just mistyped a
     // domain name), but now we just have a formatted error page.
@@ -143,10 +143,10 @@ Future<shelf.Response> publisherPackagesPageHandler(
   return htmlResponse(html);
 }
 
-/// Handles requests for GET /publishers/<publisherId>/admin
+/// Handles requests for `GET /publishers/<publisherId>/admin`.
 Future<shelf.Response> publisherAdminPageHandler(
     shelf.Request request, String publisherId) async {
-  final publisher = await publisherBackend.getPublisher(publisherId);
+  final publisher = await publisherBackend.getListedPublisher(publisherId);
   if (publisher == null) {
     // We may introduce search for publishers (e.g. somebody just mistyped a
     // domain name), but now we just have a formatted error page.
@@ -171,10 +171,10 @@ Future<shelf.Response> publisherAdminPageHandler(
   ));
 }
 
-/// Handles requests for GET /publishers/<publisherId>/activity-log
+/// Handles requests for `GET /publishers/<publisherId>/activity-log`.
 Future<shelf.Response> publisherActivityLogPageHandler(
     shelf.Request request, String publisherId) async {
-  final publisher = await publisherBackend.getPublisher(publisherId);
+  final publisher = await publisherBackend.getListedPublisher(publisherId);
   if (publisher == null) {
     // We may introduce search for publishers (e.g. somebody just mistyped a
     // domain name), but now we just have a formatted error page.

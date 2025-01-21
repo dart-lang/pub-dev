@@ -77,6 +77,12 @@ void main() {
         fail('The alias "$alias" is listed in "aliases" for two topics!');
       }
     }
+
+    // Check if names are in alphabetical order
+    final orderedNames = topics.map((e) => e.topic).toList()..sort();
+    if (orderedNames.join(',') != topics.map((e) => e.topic).join(',')) {
+      fail('Topic entries are not in alpahbetical order.');
+    }
   });
 
   test('topics are canonicalized', () {

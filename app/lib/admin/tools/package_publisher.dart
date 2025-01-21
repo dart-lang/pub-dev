@@ -27,7 +27,7 @@ Future<String> executeSetPackagePublisher(List<String> args) async {
   }
 
   final package = (await packageBackend.lookupPackage(packageName))!;
-  final publisher = await publisherBackend.getPublisher(publisherId);
+  final publisher = await publisherBackend.lookupPublisher(publisherId);
   if (publisher == null) {
     return 'No such publisher.';
   }

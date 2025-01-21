@@ -68,7 +68,7 @@ void main() {
         'before': {'isModerated': false, 'moderatedAt': null},
         'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
       });
-      final p2 = await publisherBackend.getPublisher('example.com');
+      final p2 = await publisherBackend.lookupPublisher('example.com');
       expect(p2!.isModerated, isTrue);
 
       final r3 =
@@ -78,7 +78,7 @@ void main() {
         'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
         'after': {'isModerated': false, 'moderatedAt': isNull},
       });
-      final p3 = await publisherBackend.getPublisher('example.com');
+      final p3 = await publisherBackend.lookupPublisher('example.com');
       expect(p3!.isModerated, isFalse);
     });
 
@@ -214,7 +214,7 @@ void main() {
       await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
 
       // no publisher or member
-      expect(await publisherBackend.getPublisher('example.com'), isNull);
+      expect(await publisherBackend.lookupPublisher('example.com'), isNull);
       expect(
         await publisherBackend.listPublisherMembers('example.com'),
         isEmpty,

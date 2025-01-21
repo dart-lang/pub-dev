@@ -111,7 +111,6 @@ class FakeAppengineEnv {
             await processTasksWithFakePanaAndDartdoc();
           }
           await nameTracker.reloadFromDatastore();
-          await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
           await topPackages.start();
           await youtubeBackend.start();
@@ -142,7 +141,8 @@ Future<void> _postTestVerification({
   }
 
   // run all background tasks here
-  for (final scheduler in createPeriodicTaskSchedulers()) {
+  final schedulers = createPeriodicTaskSchedulers(isPostTestVerification: true);
+  for (final scheduler in schedulers) {
     await scheduler.trigger();
   }
 
@@ -163,6 +163,7 @@ void testWithProfile(
   Timeout? timeout,
   bool processJobsWithFakeRunners = false,
   Pattern? integrityProblem,
+  Iterable<Pattern>? expectedLogMessages,
   dynamic skip,
 }) {
   final env = FakeAppengineEnv();
@@ -179,6 +180,7 @@ void testWithProfile(
         integrityProblem: integrityProblem,
       );
     },
+    expectedLogMessages: expectedLogMessages,
     timeout: timeout,
     skip: skip,
   );
@@ -192,8 +194,9 @@ void testWithFakeTime(
   TestProfile? testProfile,
   ImportSource? importSource,
   Pattern? integrityProblem,
+  Iterable<Pattern>? expectedLogMessages,
 }) {
-  scopedTest(name, () async {
+  scopedTest(name, expectedLogMessages: expectedLogMessages, () async {
     await FakeTime.run((fakeTime) async {
       setupDebugEnvBasedLogging();
       await withFakeServices(
@@ -209,7 +212,6 @@ void testWithFakeTime(
           );
           await nameTracker.reloadFromDatastore();
           await generateFakeDownloadCounts();
-          await generateFakePopularityValues();
           await indexUpdater.updateAllPackages();
           await asyncQueue.ongoingProcessing;
           fakeEmailSender.sentMessages.clear();

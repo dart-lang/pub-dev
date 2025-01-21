@@ -2,6 +2,8 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
+@use 'variables';
+
 .package-badge {
   display: inline-block;
   background: var(--pub-neutral-bgColor);
@@ -57,7 +59,7 @@
     &.badge {
       width: 100px;
 
-      @media (max-width: $device-mobile-max-width) {
+      @media (max-width: variables.$device-mobile-max-width) {
         display: none;
       }
     }
@@ -97,7 +99,7 @@
       display: none;
     }
 
-    @media (max-width: $device-mobile-max-width) {
+    @media (max-width: variables.$device-mobile-max-width) {
       &.sdk > span.label,
       &.uploaded > span.label {
         display: none;
@@ -144,7 +146,7 @@
   justify-content: space-evenly;
   padding: 20px 0 30px 0;
 
-  @media (min-width: $device-desktop-min-width) {
+  @media (min-width: variables.$device-desktop-min-width) {
     padding: 40px 0 50px 0;
   }
 
@@ -158,7 +160,7 @@
     font-size: 32px;
     line-height: 1;
 
-    @media (min-width: $device-desktop-min-width) {
+    @media (min-width: variables.$device-desktop-min-width) {
       font-size: 64px;
     }
   }
@@ -249,7 +251,7 @@
 
     .markdown-body {
       table {
-        @media (min-width: $device-desktop-min-width) {
+        @media (min-width: variables.$device-desktop-min-width) {
           // Normally markdown-tables do use 100% width, but for
           // an unknown layout rule this is not doing it.
           // Forcing table to take the maximum available width,
@@ -277,6 +279,99 @@
     }
   }
 }
+
+  .downloads-chart {
+    display: flex;
+    height: 700px;
+    width: 775px;
+    flex-direction: column;
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .downloads-chart-frame {
+    fill:none;
+    stroke-width: 1;
+    stroke: var(--pub-downloads-chart-frame-color);
+  }
+
+  .downloads-chart-x-axis {
+    fill: none;
+    stroke-width: 1;
+    stroke: var(--pub-score_label-text-color);
+  }
+
+  .downloads-chart-tick-label {
+    fill: var(--pub-score_label-text-color);
+    font-size: small;
+  }
+
+  .downloads-chart-tick-label-x {
+    text-anchor: middle;
+  }
+
+  .downloads-chart-tick-label-y {
+    dominant-baseline: middle;
+  }
+
+  .downloads-chart-legend {
+    fill-opacity: 0.3;
+    stroke-width: 1;
+  }
+
+  .downloads-chart-fill-blue {
+    fill:var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-fill-red {
+    fill:var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-fill-green {
+    fill:var(--pub-downloads-chart-color-2);
+  }
+
+  .downloads-chart-fill-purple {
+    fill:var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-fill-orange {
+    fill:var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-fill-turquoise {
+    fill:var(--pub-downloads-chart-color-5);
+  }
+
+  .downloads-chart-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .downloads-chart-stroke-blue {
+    stroke: var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-stroke-red {
+    stroke: var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-stroke-green {
+    stroke: var(--pub-downloads-chart-color-2);
+  }
+
+  .downloads-chart-stroke-purple {
+    stroke: var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-stroke-orange {
+    stroke: var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-stroke-turquoise {
+    stroke: var(--pub-downloads-chart-color-5);
+  }
 
 .pkg-page-title-copy {
   position: relative;
@@ -311,7 +406,7 @@
 
     opacity: 1;
     display: none;
-    transition: opacity $copy-feedback-transition-opacity-delay;
+    transition: opacity variables.$copy-feedback-transition-opacity-delay;
 
     >.code {
       font-family: var(--pub-code-text-font_family);
@@ -340,7 +435,7 @@
       // to keep everything visible at the same time.
       font-size: 50%;
 
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         // On larger screens the above setting seems to be too small. The
         // vertical width scaling will roughly make the 80-character lines
         // fit the available width of the container.

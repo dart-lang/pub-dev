@@ -39,8 +39,9 @@ final _random = math.Random.secure();
 /// The presence of such fields won't be reported as integrity issue, only
 /// the absent ones will be reported.
 const _allowedUnmappedFields = {
-  'Package.isWithheld',
-  'Package.withheldReason',
+  'Package.isBlocked',
+  'Publisher.isBlocked',
+  'User.isBlocked',
 };
 
 /// Checks the integrity of the datastore.
@@ -262,7 +263,7 @@ class IntegrityChecker {
       publisherAttributes.increaseMemberCount(pm.publisherId);
       if (!publisherAttributes.publisherIds.contains(pm.publisherId)) {
         // double check actual status to prevent misreports on cache race conditions
-        final p = await publisherBackend.getPublisher(pm.publisherId);
+        final p = await publisherBackend.lookupPublisher(pm.publisherId);
         if (p == null) {
           yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
         }
@@ -441,7 +442,7 @@ class IntegrityChecker {
       isModerated: p.isModerated,
       moderatedAt: p.moderatedAt,
     );
-    if (p.isModerated || p.isBlocked) {
+    if (p.isModerated) {
       _packagesWithIsModeratedFlag.add(p.name!);
     }
 

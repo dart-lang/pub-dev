@@ -25,7 +25,7 @@ import 'backend_test_utils.dart';
 void main() {
   group('Get publisher info', () {
     _testNoPackage((client) => client.getPackagePublisher('no_package'));
-    _testPublisherBlocked((client) => client.publisherInfo('example.com'));
+    _testPublisherModerated((client) => client.publisherInfo('example.com'));
 
     testWithProfile('traditional package, not authenticated user',
         fn: () async {
@@ -46,7 +46,7 @@ void main() {
           PackagePublisherInfo(publisherId: 'no-domain.net'),
         ));
 
-    _testPublisherBlocked((client) => client.setPackagePublisher(
+    _testPublisherModerated((client) => client.setPackagePublisher(
           'oxygen',
           PackagePublisherInfo(publisherId: 'example.com'),
         ));
@@ -174,7 +174,7 @@ void main() {
       );
     });
 
-    _testPublisherBlocked(
+    _testPublisherModerated(
       (client) => client.setPackagePublisher(
         'one',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -183,7 +183,7 @@ void main() {
       publisherId: 'example.com',
     );
 
-    _testPublisherBlocked(
+    _testPublisherModerated(
       (client) => client.setPackagePublisher(
         'one',
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -316,7 +316,7 @@ void _testNoPublisher(Future Function(PubApiClient client) fn) {
   });
 }
 
-void _testPublisherBlocked(
+void _testPublisherModerated(
   Future Function(PubApiClient client) fn, {
   String publisherId = 'example.com',
   TestProfile? testProfile,
@@ -324,12 +324,12 @@ void _testPublisherBlocked(
   String code = 'NotFound',
 }) {
   testWithProfile(
-    'Publisher $publisherId is blocked',
+    'Publisher $publisherId is moderated',
     testProfile: testProfile,
     fn: () async {
       final p = await dbService.lookupValue<Publisher>(
           dbService.emptyKey.append(Publisher, id: publisherId));
-      p.isBlocked = true;
+      p.updateIsModerated(isModerated: true);
       await dbService.commit(inserts: [p]);
 
       final client =

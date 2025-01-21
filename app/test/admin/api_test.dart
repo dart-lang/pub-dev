@@ -349,7 +349,8 @@ void main() {
           expect(oxygen.uploaders, []);
           expect(oxygen.isDiscontinued, true);
 
-          final publisher = await publisherBackend.getPublisher('example.com');
+          final publisher =
+              await publisherBackend.lookupPublisher('example.com');
           expect(publisher!.contactEmail, isNull);
           expect(publisher.isAbandoned, isTrue);
 

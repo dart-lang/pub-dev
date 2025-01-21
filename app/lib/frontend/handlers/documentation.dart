@@ -20,7 +20,8 @@ import '../../shared/handlers.dart';
 import '../../shared/urls.dart';
 
 /// Handles requests for:
-///   - /documentation/<package>/<version>
+///
+/// - `/documentation/<package>/<version>`
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final docFilePath = parseRequestUri(request.requestedUri);
   if (docFilePath == null) {
@@ -93,7 +94,7 @@ class DocFilePath {
   DocFilePath(this.package, this.version, this.path);
 }
 
-/// Parses the /documentation/<package>/<version>/<path with many levels> URL
+/// Parses the `/documentation/<package>/<version>/<path with many levels>` URL
 /// and returns the parsed structure.
 DocFilePath? parseRequestUri(Uri uri) {
   final int segmentCount = uri.pathSegments.length;

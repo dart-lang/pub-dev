@@ -24,7 +24,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
             'searchServicePrefix',
             'fallbackSearchServicePrefix',
             'defaultServiceBaseUrl',
-            'popularityDumpBucketName',
             'searchSnapshotBucketName',
             'maxTaskInstances',
             'maxTaskRunHours',
@@ -63,8 +62,6 @@ Configuration _$ConfigurationFromJson(Map json) => $checkedCreate(
               $checkedConvert('reportsBucketName', (v) => v as String?),
           downloadCountsBucketName:
               $checkedConvert('downloadCountsBucketName', (v) => v as String?),
-          popularityDumpBucketName:
-              $checkedConvert('popularityDumpBucketName', (v) => v as String?),
           searchSnapshotBucketName:
               $checkedConvert('searchSnapshotBucketName', (v) => v as String?),
           exportedApiBucketName:
@@ -145,7 +142,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'searchServicePrefix': instance.searchServicePrefix,
       'fallbackSearchServicePrefix': instance.fallbackSearchServicePrefix,
       'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
-      'popularityDumpBucketName': instance.popularityDumpBucketName,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'maxTaskInstances': instance.maxTaskInstances,
       'maxTaskRunHours': instance.maxTaskRunHours,

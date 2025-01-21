@@ -33,7 +33,7 @@ import '../../task/backend.dart';
 import '../../task/models.dart';
 import 'cache_control.dart';
 
-/// Handles requests for /api/documentation/<package>
+/// Handles requests for `/api/documentation/<package>`.
 Future<shelf.Response> apiDocumentationHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
@@ -78,8 +78,6 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
 
   final bytes = await cache.packageNamesDataJsonGz().get(() async {
     final packageNames = await nameTracker.getVisiblePackageNames();
-    packageNames.removeWhere(isSoftRemoved);
-
     return gzip.encode(jsonUtf8Encoder.convert({
       'packages': packageNames,
       // pagination is off for now
@@ -113,7 +111,7 @@ Future<shelf.Response> apiPackageNameCompletionDataHandler(
   });
 }
 
-/// Handles request for /api/packages?page=<num>
+/// Handles request for `/api/packages?page=<num>`.
 Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   final int pageSize = 100;
   final int page =
@@ -194,8 +192,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   return jsonResponse(data!);
 }
 
-/// Handles requests for
-/// - /api/packages/<package>/metrics
+/// Handles requests for `/api/packages/<package>/metrics`.
 Future<shelf.Response> apiPackageMetricsHandler(
     shelf.Request request, String packageName) async {
   final packageVersion = request.requestedUri.queryParameters['version'];
@@ -211,9 +208,10 @@ Future<shelf.Response> apiPackageMetricsHandler(
   return jsonResponse(result);
 }
 
-/// Handles requests for
-//  - /api/packages/<package>/score
-/// - /api/packages/<package>/versions/<version>/score
+/// Handles requests for:
+///
+/// - `/api/packages/<package>/score`
+/// - `/api/packages/<package>/versions/<version>/score`
 Future<VersionScore> packageVersionScoreHandler(
     shelf.Request request, String package,
     {String? version}) async {
@@ -247,7 +245,6 @@ Future<VersionScore> packageVersionScoreHandler(
       maxPoints: card.maxPubPoints,
       likeCount: pkg.likes,
       downloadCount30Days: card.thirtyDaysDownloadCounts,
-      popularityScore: card.popularityScore,
       tags: tags.toList(),
       lastUpdated: updated,
     );
@@ -471,7 +468,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   return jsonResponse(result, indentJson: requestContext.indentJson);
 }
 
-/// Handles GET /api/packages/<package>/options
+/// Handles `GET /api/packages/<package>/options`.
 Future<PkgOptions> getPackageOptionsHandler(
   shelf.Request request,
   String package,
@@ -487,7 +484,7 @@ Future<PkgOptions> getPackageOptionsHandler(
   );
 }
 
-/// Handles PUT /api/packages/<package>/options
+/// Handles `PUT /api/packages/<package>/options`.
 Future<PkgOptions> putPackageOptionsHandler(
   shelf.Request request,
   String package,
@@ -497,7 +494,7 @@ Future<PkgOptions> putPackageOptionsHandler(
   return await getPackageOptionsHandler(request, package);
 }
 
-/// Handles GET /api/packages/<package>/versions/<version>/options
+/// Handles `GET /api/packages/<package>/versions/<version>/options`.
 Future<VersionOptions> getVersionOptionsHandler(
   shelf.Request request,
   String package,
@@ -513,7 +510,7 @@ Future<VersionOptions> getVersionOptionsHandler(
   );
 }
 
-/// Handles PUT /api/packages/<package>/versions/<version>/options
+/// Handles `PUT /api/packages/<package>/versions/<version>/options`.
 Future<VersionOptions> putVersionOptionsHandler(
   shelf.Request request,
   String package,

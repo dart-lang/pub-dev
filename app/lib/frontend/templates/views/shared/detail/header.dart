@@ -32,6 +32,7 @@ d.Node detailHeaderNode({
                   'https://flutter.dev/docs/development/packages-and-plugins/favorites',
               target: '_blank',
               rel: 'noopener',
+              title: 'Package is a Flutter Favorite',
               children: [
                 d.img(
                   classes: [
@@ -39,7 +40,6 @@ d.Node detailHeaderNode({
                     'ff-banner-desktop',
                     'displayed-in-light-theme',
                   ],
-                  title: 'Package is a Flutter Favorite',
                   image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
@@ -53,7 +53,6 @@ d.Node detailHeaderNode({
                     'ff-banner-desktop',
                     'displayed-in-dark-theme',
                   ],
-                  title: 'Package is a Flutter Favorite',
                   image: d.Image.decorative(
                     src: staticUrls.getAssetUrl(
                         '/static/img/ff-banner-desktop-dark-2x.png'),
@@ -67,7 +66,6 @@ d.Node detailHeaderNode({
                     'ff-banner-mobile',
                     'displayed-in-light-theme',
                   ],
-                  title: 'Package is a Flutter Favorite',
                   image: d.Image.decorative(
                     src: staticUrls
                         .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
@@ -81,7 +79,6 @@ d.Node detailHeaderNode({
                     'ff-banner-mobile',
                     'displayed-in-dark-theme',
                   ],
-                  title: 'Package is a Flutter Favorite',
                   image: d.Image.decorative(
                     src: staticUrls.getAssetUrl(
                         '/static/img/ff-banner-mobile-dark-2x.png'),

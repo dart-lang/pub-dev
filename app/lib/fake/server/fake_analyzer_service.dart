@@ -39,7 +39,6 @@ class FakeAnalyzerService {
         cloudCompute: _cloudCompute,
         fn: () async {
           await generateFakeDownloadCounts();
-          await generateFakePopularityValues();
 
           final handler = wrapHandler(_logger, analyzerServiceHandler);
           final server = await IOServer.bind('localhost', port);

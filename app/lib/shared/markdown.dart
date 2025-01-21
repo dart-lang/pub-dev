@@ -4,11 +4,10 @@
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
-import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
-import 'urls.dart' show getRepositoryUrl, UriExt;
+import 'urls.dart' show UriExt;
 
 /// Resolves [reference] relative to a repository URL.
 typedef UrlResolverFn = String Function(
@@ -313,67 +312,6 @@ class _TaskListRewriteNodeVisitor implements m.NodeVisitor {
   void visitText(m.Text text) {}
 }
 
-bool _isAbsolute(String url) => url.contains(':');
-
-String _rewriteAbsoluteUrl(String url) {
-  final uri = Uri.parse(url);
-  if (uri.host == 'github.com') {
-    final segments = uri.pathSegments;
-    if (segments.length > 3 && segments[2] == 'blob') {
-      final newSegments = List.of(segments);
-      newSegments[2] = 'raw';
-      return uri.replace(pathSegments: newSegments).toString();
-    }
-  }
-  return url;
-}
-
-String _rewriteRelativeUrl({
-  required String baseUrl,
-  required String url,
-  required String? baseDir,
-}) {
-  final uri = Uri.parse(url);
-  final linkPath = uri.path;
-  final linkFragment = uri.fragment;
-  if (linkPath.isEmpty) {
-    return url;
-  }
-  String newUrl;
-  if (linkPath.startsWith('/')) {
-    newUrl = Uri.parse(baseUrl).replace(path: linkPath).toString();
-  } else {
-    final adjustedLinkPath = p.normalize(p.join(baseDir ?? '.', linkPath));
-    final repoUrl = getRepositoryUrl(baseUrl, adjustedLinkPath);
-    if (repoUrl == null) {
-      return url;
-    }
-    newUrl = repoUrl;
-  }
-  if (linkFragment.isNotEmpty) {
-    newUrl = '$newUrl#$linkFragment';
-  }
-  return newUrl;
-}
-
-/// Returns null if the [url] looks invalid.
-String? _pruneBaseUrl(String? url) {
-  if (url == null) return null;
-  try {
-    final Uri uri = Uri.parse(url);
-    if (uri.scheme != 'http' && uri.scheme != 'https') {
-      return null;
-    }
-    if (uri.host.isEmpty || !uri.host.contains('.')) {
-      return null;
-    }
-    return uri.toString();
-  } catch (e) {
-    // url is user-provided, may be malicious, ignoring errors.
-  }
-  return null;
-}
-
 /// Group corresponding changelog nodes together, if it matches the following
 /// pattern:
 /// - version identifiers are the only content in a single line
@@ -446,30 +384,4 @@ Version? _extractVersion(String? text) {
   } on FormatException catch (_) {
     return null;
   }
-}
-
-// TODO: remove after repository verification is launched
-UrlResolverFn? fallbackUrlResolverFn(String? providedBaseUrl) {
-  final baseUrl = _pruneBaseUrl(providedBaseUrl);
-  if (baseUrl == null) {
-    return null;
-  }
-  return (
-    String url, {
-    bool? isEmbeddedObject,
-    String? relativeFrom,
-  }) {
-    String newUrl = url;
-    if (!_isAbsolute(newUrl)) {
-      newUrl = _rewriteRelativeUrl(
-        url: newUrl,
-        baseUrl: baseUrl,
-        baseDir: relativeFrom == null ? null : p.dirname(relativeFrom),
-      );
-    }
-    if ((isEmbeddedObject ?? false) && _isAbsolute(newUrl)) {
-      newUrl = _rewriteAbsoluteUrl(newUrl);
-    }
-    return newUrl;
-  };
 }

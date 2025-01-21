@@ -141,7 +141,7 @@ void main() {
 
   group('create and delete publisher', () {
     testWithProfile('publisher has packages', fn: () async {
-      final p1 = await publisherBackend.getPublisher('example.com');
+      final p1 = await publisherBackend.lookupPublisher('example.com');
       expect(p1, isNotNull);
 
       await expectLater(
@@ -161,7 +161,7 @@ void main() {
             },
           )));
 
-      final p2 = await publisherBackend.getPublisher('example.com');
+      final p2 = await publisherBackend.lookupPublisher('example.com');
       expect(p2, isNotNull);
     });
   });

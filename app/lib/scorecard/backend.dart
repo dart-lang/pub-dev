@@ -12,7 +12,6 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:pub_dev/shared/popularity_storage.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/models.dart';
 
@@ -98,7 +97,6 @@ class ScoreCardBackend {
         releases: releases,
         version: pv,
         scoreCard: card,
-        popularity: popularityStorage.lookupAsScore(package),
         thirtyDaysDownloadCounts:
             downloadCountsBackend.lookup30DaysTotalCounts(package),
       );

@@ -24,6 +24,9 @@ void main() {
 
     testWithProfile(
       'finds like without package',
+      expectedLogMessages: [
+        'SHOUT ### [FAILED] neat-periodic-task: "sync-public-bucket-from-canonical-bucket"',
+      ],
       fn: () async {
         final client =
             await createFakeAuthPubApiClient(email: userAtPubDevEmail);

@@ -5,6 +5,9 @@
 /******************************************************
   searchbar
 ******************************************************/
+
+@use 'variables';
+
 .search-bar {
   display: flex;
   align-items: center;
@@ -34,7 +37,7 @@
     }
 
     .home-banner & {
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         font-size: 24px;
         padding: 20px 35px 20px 65px;
         border-radius: 35px;
@@ -61,7 +64,7 @@
     transform: scale(0.72);
 
     .home-banner & {
-      @media (min-width: $device-desktop-min-width) {
+      @media (min-width: variables.$device-desktop-min-width) {
         left: 20px;
         transform: scale(1.0);
       }
@@ -72,7 +75,7 @@
 .search-filters-btn-wrapper {
   display: none;
 
-  @media (max-width: $device-mobile-max-width) {
+  @media (max-width: variables.$device-mobile-max-width) {
     display: block;
   }
 

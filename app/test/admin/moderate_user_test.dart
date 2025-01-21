@@ -301,7 +301,7 @@ void main() {
       expect(pkg.isDiscontinued, true);
 
       // publisher has no members
-      final publisher = await publisherBackend.getPublisher('example.com');
+      final publisher = await publisherBackend.lookupPublisher('example.com');
       expect(publisher!.isAbandoned, true);
       final members =
           await publisherBackend.listPublisherMembers('example.com');

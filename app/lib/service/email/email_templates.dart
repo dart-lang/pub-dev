@@ -204,21 +204,21 @@ EmailMessage createPackageUploadedEmail({
   required String packageVersion,
   required String displayId,
   required List<EmailAddress> authorizedUploaders,
+  required List<String> uploadMessages,
 }) {
   final url =
       pkgPageUrl(packageName, version: packageVersion, includeHost: true);
   final subject = 'Package uploaded: $packageName $packageVersion';
-  final bodyText = '''Dear package maintainer,  
+  final paragraphs = [
+    'Dear package maintainer,',
+    '$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).',
+    'For details, go to $url',
+    ...uploadMessages,
+    _footer('package'),
+  ];
 
-$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).
-
-For details, go to $url
-
-${_footer('package')}
-''';
-
-  return EmailMessage(
-      _notificationsFrom, authorizedUploaders, subject, bodyText);
+  return EmailMessage(_notificationsFrom, authorizedUploaders, subject,
+      paragraphs.join('\n\n'));
 }
 
 /// Creates the [EmailMessage] that will be sent to users about new invitations

@@ -178,7 +178,7 @@ void validateHtml(Node root) {
   }
 
   // "role"="<role>" attributes should be on interactive components
-  final allowedForRole = {'a', 'form'};
+  final allowedForRole = {'a', 'form', 'span'};
   for (final elem in querySelectorAll('[role]')) {
     final tag = elem.localName!;
     final role = elem.attributes['role'];

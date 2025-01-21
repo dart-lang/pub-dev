@@ -36,7 +36,7 @@ can't be updated, administrators must not be able to update publisher options.
       'publisherId must be given',
     );
 
-    final publisher = await publisherBackend.getPublisher(publisherId!);
+    final publisher = await publisherBackend.lookupPublisher(publisherId!);
     InvalidInputException.check(
         publisher != null, 'Unable to locate publisher.');
 

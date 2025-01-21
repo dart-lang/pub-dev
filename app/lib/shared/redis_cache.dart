@@ -457,16 +457,17 @@ class CachePatterns {
                 ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
           ))['$package-$version'];
 
-  Entry<PlaylistItemListResponse> youtubePlaylistItems() => _cache
-      .withPrefix('youtube/playlist-item-list-response/')
-      .withTTL(Duration(hours: 6))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PlaylistItemListResponse v) => v.toJson(),
-        decode: (v) =>
-            PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
-      ))[''];
+  Entry<PlaylistItemListResponse> youtubePlaylistItems(String pageToken) =>
+      _cache
+          .withPrefix('youtube/playlist-item-list-response/')
+          .withTTL(Duration(hours: 6))
+          .withCodec(utf8)
+          .withCodec(json)
+          .withCodec(wrapAsCodec(
+            encode: (PlaylistItemListResponse v) => v.toJson(),
+            decode: (v) =>
+                PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
+          ))[pageToken];
 }
 
 /// The active cache.

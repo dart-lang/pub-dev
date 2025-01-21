@@ -83,9 +83,6 @@ class PackageDocument {
   /// The normalized score between [0.0-1.0] (1.0 being the most liked package).
   double? likeScore;
 
-  /// The normalized score between [0.0-1.0] (1.0 being the most popular package).
-  double? popularityScore;
-
   final int grantedPoints;
   final int maxPoints;
 
@@ -114,7 +111,6 @@ class PackageDocument {
     this.downloadScore,
     int? likeCount,
     this.likeScore,
-    this.popularityScore,
     int? grantedPoints,
     int? maxPoints,
     this.dependencies = const {},

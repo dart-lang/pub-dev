@@ -24,7 +24,6 @@ import 'package:retry/retry.dart';
 import '../../publisher/backend.dart';
 import '../../service/download_counts/backend.dart';
 import '../../service/topics/models.dart';
-import '../../shared/popularity_storage.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/utils.dart';
 import '../package/backend.dart';
@@ -133,6 +132,9 @@ class SearchBackend {
       if (!claim.valid) {
         return;
       }
+      if (isSoftRemoved(package)) {
+        return;
+      }
       // Skip if the last document timestamp is before [updated].
       // 1-minute window is kept to reduce clock-skew.
       if (updated != null) {
@@ -238,9 +240,7 @@ class SearchBackend {
       ..filter('finished >=', updatedThreshold)
       ..order('-finished');
     await for (final s in q3.run()) {
-      if (s.finished != null) {
-        addResult(s.package, s.finished!);
-      }
+      addResult(s.package, s.finished);
     }
 
     return results;
@@ -354,7 +354,6 @@ class SearchBackend {
       readme: compactReadme(readmeAsset?.textContent),
       downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       likeCount: p.likes,
-      popularityScore: popularityStorage.lookup(packageName),
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
       dependencies: _buildDependencies(pv.pubspec!, scoreCard),
@@ -471,9 +470,6 @@ class SearchBackend {
         return null;
       }
       final snapshot = SearchSnapshot.fromJson(map);
-      snapshot.documents!
-          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
-
       final count = snapshot.documents!.length;
       _logger.info('Got $count packages from snapshot at ${snapshot.updated}');
       return snapshot.documents?.values.toList();
