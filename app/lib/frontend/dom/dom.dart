@@ -109,8 +109,11 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
     href: '',
     title: title,
     attributes: {
-      'aria-label': text,
-      'aria-role': 'button',
+      // Note: We change the `text` and the `title` when the user clicks this button.
+      //       We do not use `aria-label`, so that the screenreader will read the
+      //       appropriate change.
+      //       We do not use `aria-pressed`, so that the screenreader will not read
+      //       "toggle button pressed" as part of the text.
       'role': 'button',
       'data-timestamp': timestamp.millisecondsSinceEpoch.toString(),
     },
