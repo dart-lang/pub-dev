@@ -76,7 +76,7 @@
   --pub-spinner_frame-background-color: rgba(0, 0, 0, 0.2);
 
   // Material Design theme customizations
-  --mdc-theme-primary: #0175c2;
+  --mdc-theme-primary: #1967d2;
   --mdc-theme-secondary: #0066d9;
   --mdc-typography-font-family: var(--pub-default-text-font_family);
 }
@@ -104,7 +104,7 @@
   --pub-markdown-alert-caution:   #cf222e; // danger-emphasis from GitHub
 
   --pub-code-text-color: var(--pub-neutral-textColor);
-  --pub-link-text-color: #0175c2;
+  --pub-link-text-color: #1967d2;
   --pub-badge-default-color: var(--pub-link-text-color);
   --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-copy_feedback-background-color: #fafaff;
@@ -139,12 +139,12 @@
 .dark-theme {
   @include dash_variables.dark-theme;
 
-  --pub-color-darkGunmetal:    #1f262a; // close to #1d2026
+  --pub-color-eerieBlack:      #1b1b1b;
   --pub-color-shadowBlack:     #373737;
   --pub-color-anchorBlack:     #41424c;
   --pub-color-nipponUltraBlue: #23607f;
 
-  --pub-neutral-bgColor:       var(--pub-color-darkGunmetal);
+  --pub-neutral-bgColor:       var(--pub-color-eerieBlack);
   --pub-neutral-borderColor:   var(--pub-color-anchorBlack);
   --pub-neutral-textColor:     var(--dash-surface-fgColor);
   --pub-neutral-hover-bgColor: var(--pub-color-shadowBlack);
@@ -159,7 +159,7 @@
   --pub-markdown-alert-caution:   #cf222e; // danger-emphasis from GitHub
 
   --pub-code-text-color: var(--pub-neutral-textColor);
-  --pub-link-text-color: #40c4ff;
+  --pub-link-text-color: #47b0f8;
   --pub-badge-default-color: var(--pub-link-text-color);
   --pub-badge-red-color: var(--pub-color-dangerRed);
   --pub-copy_feedback-background-color: #404040;
