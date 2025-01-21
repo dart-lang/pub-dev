@@ -79,6 +79,13 @@
   --mdc-theme-primary: #0175c2;
   --mdc-theme-secondary: #0066d9;
   --mdc-typography-font-family: var(--pub-default-text-font_family);
+
+  --pub-downloads-chart-color-0: var(--pub-markdown-alert-note);
+  --pub-downloads-chart-color-1: var(--pub-markdown-alert-caution);
+  --pub-downloads-chart-color-2: var(--pub-markdown-alert-tip);
+  --pub-downloads-chart-color-3: var(--pub-markdown-alert-important);
+  --pub-downloads-chart-color-4: var(--pub-markdown-alert-warning);
+  --pub-downloads-chart-color-5: #12a4af;
 }
 
 /// Variables that are specific to the light theme.
@@ -127,6 +134,8 @@
   --pub-tag_simplebadge-text-color: #444444;
   --pub-tag_sdkbadge-separator-color: rgba(25, 103, 210, 0.5); // #1967d2 + 0.5 opacity;
   --pub-tag_sdkbadge-text-color: #1967d2;
+
+  --pub-downloads-chart-frame-color: #d3d3d3;
 }
 
 .light-theme {
@@ -182,6 +191,8 @@
   --pub-tag_simplebadge-text-color: var(--pub-neutral-textColor);
   --pub-tag_sdkbadge-separator-color: var(--pub-neutral-textColor);
   --pub-tag_sdkbadge-text-color: var(--pub-neutral-textColor);
+
+  --pub-downloads-chart-frame-color: #55585a;
 
   // Material Design theme customizations
   --mdc-theme-surface: var(--pub-neutral-bgColor);

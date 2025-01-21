@@ -280,6 +280,99 @@
   }
 }
 
+  .downloads-chart {
+    display: flex;
+    height: 700px;
+    width: 775px;
+    flex-direction: column;
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .downloads-chart-frame {
+    fill:none;
+    stroke-width: 1;
+    stroke: var(--pub-downloads-chart-frame-color);
+  }
+
+  .downloads-chart-x-axis {
+    fill: none;
+    stroke-width: 1;
+    stroke: var(--pub-score_label-text-color);
+  }
+
+  .downloads-chart-tick-label {
+    fill: var(--pub-score_label-text-color);
+    font-size: small;
+  }
+
+  .downloads-chart-tick-label-x {
+    text-anchor: middle;
+  }
+
+  .downloads-chart-tick-label-y {
+    dominant-baseline: middle;
+  }
+
+  .downloads-chart-legend {
+    fill-opacity: 0.3;
+    stroke-width: 1;
+  }
+
+  .downloads-chart-fill-blue {
+    fill:var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-fill-red {
+    fill:var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-fill-green {
+    fill:var(--pub-downloads-chart-color-2);
+  }
+
+  .downloads-chart-fill-purple {
+    fill:var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-fill-orange {
+    fill:var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-fill-turquoise {
+    fill:var(--pub-downloads-chart-color-5);
+  }
+
+  .downloads-chart-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .downloads-chart-stroke-blue {
+    stroke: var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-stroke-red {
+    stroke: var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-stroke-green {
+    stroke: var(--pub-downloads-chart-color-2);
+  }
+
+  .downloads-chart-stroke-purple {
+    stroke: var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-stroke-orange {
+    stroke: var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-stroke-turquoise {
+    stroke: var(--pub-downloads-chart-color-5);
+  }
+
 .pkg-page-title-copy {
   position: relative;
   display: inline-block;

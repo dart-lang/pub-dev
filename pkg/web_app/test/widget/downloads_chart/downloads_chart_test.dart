@@ -52,9 +52,9 @@ void main() {
       (counts: l3, versionRange: '>=6.0.0-0 <7.0.0')
     ];
 
-    final w1 = prepareWeekLists(totals, majorRangeDownloads, 52).toList();
-    final w2 = prepareWeekLists(totals, minorRangeDownloads, 52).toList();
-    final w3 = prepareWeekLists(totals, patchRangeDownloads, 52).toList();
+    final w1 = prepareWeekLists(totals, majorRangeDownloads, 52).weekLists;
+    final w2 = prepareWeekLists(totals, minorRangeDownloads, 52).weekLists;
+    final w3 = prepareWeekLists(totals, patchRangeDownloads, 52).weekLists;
 
     for (int i = 42; i < 52; i++) {
       expect(w1[i], [10, 10, 10, 10, 70]);

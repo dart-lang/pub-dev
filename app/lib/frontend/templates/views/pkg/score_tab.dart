@@ -177,7 +177,7 @@ d.Node _section(ReportSection section) {
 }
 
 d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
-  return d.div(
+  final container = d.div(
     classes: ['downloads-chart'],
     id: '-downloads-chart',
     attributes: {
@@ -186,6 +186,11 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
           base64Encode(jsonUtf8Encoder.convert(weeklyVersionDownloads))
     },
   );
+
+  return d.fragment([
+    d.h1(text: 'Weekly Downloads over the last 40 weeks'),
+    container,
+  ]);
 }
 
 final _statusIconUrls = {
