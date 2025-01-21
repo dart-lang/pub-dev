@@ -33,7 +33,7 @@ class SearchSnapshot {
   }
 
   /// Updates the [PackageDocument] instance's scores for each package in the snapshot.
-  /// Sets `downloadScore`, `likeScore` and `popularityScore` fields, normalized into the
+  /// Sets `downloadScore` and `likeScore` fields, normalized into the
   /// range of [0.0 - 1.0] using the ordered list of their specific counts.
   void updateAllScores() {
     /// Updates the PackageDocument.downloadScore for each package in the snapshot.

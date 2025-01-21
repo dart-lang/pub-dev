@@ -199,7 +199,7 @@ String searchUrl({
   return SearchForm(query: q).toSearchLink(page: page);
 }
 
-String listingByPopularity() =>
+String listingByDownloadCounts() =>
     SearchForm(order: SearchOrder.downloads).toSearchLink();
 
 String dartSdkMainUrl(String version) {

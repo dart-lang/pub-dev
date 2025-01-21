@@ -9,7 +9,7 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pub_dev/fake/backend/fake_popularity.dart';
+import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
@@ -54,7 +54,7 @@ class FakeSearchService {
           });
           _logger.info('running on port $port');
 
-          await generateFakeDownloadCounts();
+          await generateFakeDownloadCountsInDatastore();
           // ignore: invalid_use_of_visible_for_testing_member
           await indexUpdater.updateAllPackages();
 

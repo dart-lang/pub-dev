@@ -10,7 +10,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/analyzer/handlers.dart';
-import 'package:pub_dev/fake/backend/fake_popularity.dart';
+import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
@@ -38,7 +38,7 @@ class FakeAnalyzerService {
         storage: _storage,
         cloudCompute: _cloudCompute,
         fn: () async {
-          await generateFakeDownloadCounts();
+          await generateFakeDownloadCountsInDatastore();
 
           final handler = wrapHandler(_logger, analyzerServiceHandler);
           final server = await IOServer.bind('localhost', port);
