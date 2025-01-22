@@ -51,7 +51,7 @@ void main() {
       final date = DateTime.parse('2024-01-05');
       final downloadCountsJsonFileName =
           'daily_download_counts/2024-01-05T00:00:00Z/data-000000000000.jsonl';
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
           downloadCountsJsonFileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'));
@@ -72,7 +72,7 @@ void main() {
       final date = DateTime.parse('2024-01-05');
       final downloadCountsJsonFileNameJan5 =
           'daily_download_counts/2024-01-05T00:00:00Z/data-000000000000.jsonl';
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
           downloadCountsJsonFileNameJan5,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'));
@@ -81,7 +81,7 @@ void main() {
       final nextDate = DateTime.parse('2024-01-06');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
           downloadCountsJsonFileNameJan6,
           path.join(
               Directory.current.path,
@@ -113,7 +113,7 @@ void main() {
       final nextDate = DateTime.parse('2024-01-06');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
           downloadCountsJsonFileNameJan6,
           path.join(
               Directory.current.path,
@@ -150,7 +150,7 @@ void main() {
       final nextDate = DateTime.parse('2024-01-06');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
           downloadCountsJsonFileNameJan6,
           path.join(
               Directory.current.path,
@@ -202,7 +202,7 @@ void main() {
       final nextDate = DateTime.parse('2024-01-06');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
           downloadCountsJsonFileNameJan6,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data_empty.jsonl'));
@@ -234,7 +234,7 @@ void main() {
           formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
-        await generateFakeDownloadCounts(
+        await uploadFakeDownloadCountsToBucket(
           fileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'),
@@ -268,7 +268,7 @@ void main() {
           formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
-        await generateFakeDownloadCounts(
+        await uploadFakeDownloadCountsToBucket(
           fileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'),
@@ -302,7 +302,7 @@ void main() {
           formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
-        await generateFakeDownloadCounts(
+        await uploadFakeDownloadCountsToBucket(
           fileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'),
@@ -356,7 +356,7 @@ void main() {
           formatDateForFileName(date),
           'data-000000000000.jsonl',
         ].join('/');
-        await generateFakeDownloadCounts(
+        await uploadFakeDownloadCountsToBucket(
           fileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'),
@@ -422,13 +422,13 @@ void main() {
           'data-000000000001.jsonl',
         ].join('/');
 
-        await generateFakeDownloadCounts(
+        await uploadFakeDownloadCountsToBucket(
           fileName,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data.jsonl'),
         );
 
-        await generateFakeDownloadCounts(
+        await uploadFakeDownloadCountsToBucket(
           fileName1,
           path.join(Directory.current.path, 'test', 'service',
               'download_counts', 'fake_download_counts_data1.jsonl'),
@@ -486,13 +486,13 @@ void main() {
         'data-000000000001.jsonl',
       ].join('/');
 
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
         fileName,
         path.join(Directory.current.path, 'test', 'service', 'download_counts',
             'fake_download_counts_data.jsonl'),
       );
 
-      await generateFakeDownloadCounts(
+      await uploadFakeDownloadCountsToBucket(
         fileName1,
         path.join(Directory.current.path, 'test', 'service', 'download_counts',
             'fake_download_counts_data_empty.jsonl'),
@@ -555,13 +555,13 @@ void main() {
       'data-000000000001.jsonl',
     ].join('/');
 
-    await generateFakeDownloadCounts(
+    await uploadFakeDownloadCountsToBucket(
       fileName,
       path.join(Directory.current.path, 'test', 'service', 'download_counts',
           'fake_download_counts_data.jsonl'),
     );
 
-    await generateFakeDownloadCounts(
+    await uploadFakeDownloadCountsToBucket(
       fileName1,
       path.join(Directory.current.path, 'test', 'service', 'download_counts',
           'fake_download_counts_data1.jsonl'),
@@ -579,13 +579,13 @@ void main() {
       'data-000000000001.jsonl',
     ].join('/');
 
-    await generateFakeDownloadCounts(
+    await uploadFakeDownloadCountsToBucket(
       fileName2,
       path.join(Directory.current.path, 'test', 'service', 'download_counts',
           'fake_download_counts_data_empty.jsonl'),
     );
 
-    await generateFakeDownloadCounts(
+    await uploadFakeDownloadCountsToBucket(
       fileName3,
       path.join(Directory.current.path, 'test', 'service', 'download_counts',
           'fake_download_counts_data_empty.jsonl'),
