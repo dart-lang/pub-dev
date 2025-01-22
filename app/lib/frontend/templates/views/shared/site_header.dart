@@ -24,6 +24,9 @@ d.Node siteHeaderNode({
         d.a(
           classes: ['logo'],
           href: '/',
+          attributes: {
+            'aria-label': 'Go to the landing page of pub.dev',
+          },
           child: d.img(
             classes: ['site-logo'],
             image: d.Image.decorative(
