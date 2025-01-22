@@ -153,8 +153,11 @@ extension DartDocPageRender on DartDocPage {
           href: '/',
           classes: ['hidden-xs'],
           child: d.img(
-            // TODO: Move this into a class
-            attributes: {'style': 'height: 30px; margin-right: 1em;'},
+            attributes: {
+              'aria-label': 'Go to the landing page of pub.dev',
+              // TODO: Move this into a class
+              'style': 'height: 30px; margin-right: 1em;',
+            },
             image: d.Image.decorative(
               src: staticUrls.dartLogoSvg,
               height: 30,
