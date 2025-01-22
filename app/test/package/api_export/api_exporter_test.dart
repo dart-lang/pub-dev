@@ -293,17 +293,19 @@ Future<void> _testExportedApiSynchronization(
     // recently created files as a guard against race conditions.
     fakeTime.elapseSync(days: 1);
 
-    final adminApi = createPubApiClient(
-      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-    );
-    await adminApi.adminInvokeAction(
-      'moderate-package-version',
-      AdminInvokeActionArguments(arguments: {
-        'case': 'none',
-        'package': 'bar',
-        'version': '2.0.0',
-        'state': 'true',
-      }),
+    await withHttpPubApiClient(
+      bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+      fn: (adminApi) async {
+        await adminApi.adminInvokeAction(
+          'moderate-package-version',
+          AdminInvokeActionArguments(arguments: {
+            'case': 'none',
+            'package': 'bar',
+            'version': '2.0.0',
+            'state': 'true',
+          }),
+        );
+      },
     );
 
     // Synchronize again
@@ -330,18 +332,19 @@ Future<void> _testExportedApiSynchronization(
 
   _log.info('## Version reinstated');
   {
-    final adminApi = createPubApiClient(
-      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-    );
-    await adminApi.adminInvokeAction(
-      'moderate-package-version',
-      AdminInvokeActionArguments(arguments: {
-        'case': 'none',
-        'package': 'bar',
-        'version': '2.0.0',
-        'state': 'false',
-      }),
-    );
+    await withHttpPubApiClient(
+        bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+        fn: (adminApi) async {
+          await adminApi.adminInvokeAction(
+            'moderate-package-version',
+            AdminInvokeActionArguments(arguments: {
+              'case': 'none',
+              'package': 'bar',
+              'version': '2.0.0',
+              'state': 'false',
+            }),
+          );
+        });
 
     // Synchronize again
     await synchronize();
@@ -371,17 +374,18 @@ Future<void> _testExportedApiSynchronization(
     // recently created files as a guard against race conditions.
     fakeTime.elapseSync(days: 1);
 
-    final adminApi = createPubApiClient(
-      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-    );
-    await adminApi.adminInvokeAction(
-      'moderate-package',
-      AdminInvokeActionArguments(arguments: {
-        'case': 'none',
-        'package': 'bar',
-        'state': 'true',
-      }),
-    );
+    await withHttpPubApiClient(
+        bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+        fn: (adminApi) async {
+          await adminApi.adminInvokeAction(
+            'moderate-package',
+            AdminInvokeActionArguments(arguments: {
+              'case': 'none',
+              'package': 'bar',
+              'state': 'true',
+            }),
+          );
+        });
 
     // Synchronize again
     await synchronize();
@@ -402,17 +406,18 @@ Future<void> _testExportedApiSynchronization(
 
   _log.info('## Package reinstated');
   {
-    final adminApi = createPubApiClient(
-      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-    );
-    await adminApi.adminInvokeAction(
-      'moderate-package',
-      AdminInvokeActionArguments(arguments: {
-        'case': 'none',
-        'package': 'bar',
-        'state': 'false',
-      }),
-    );
+    await withHttpPubApiClient(
+        bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+        fn: (adminApi) async {
+          await adminApi.adminInvokeAction(
+            'moderate-package',
+            AdminInvokeActionArguments(arguments: {
+              'case': 'none',
+              'package': 'bar',
+              'state': 'false',
+            }),
+          );
+        });
 
     // Synchronize again
     await synchronize();
