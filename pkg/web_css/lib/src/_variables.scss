@@ -244,6 +244,24 @@
   }
 }
 
+@mixin elevated-content-border {
+  .light-theme & {
+    box-shadow: 0px 2px 7px 0px var(--pub-home_card-box_shadow-color);
+
+    &:hover {
+      box-shadow: 0px 4px 9px 0px var(--pub-home_card_hover-box_shadow-color);
+    }
+  }
+
+  .dark-theme & {
+    border: 1px solid var(--pub-home_card-box_shadow-color);
+
+    &:hover {
+      border-color: var(--pub-home_card_hover-box_shadow-color);
+    }
+  }
+}
+
 $device-desktop-min-width: 641px;
 $device-mobile-max-width: 640px;
 $device-tablet-max-width: 979px;
