@@ -19,13 +19,17 @@ void main() {
       List<String>? packages,
       bool forceWrite = false,
     }) async {
-      final api = createPubApiClient(authToken: siteAdminToken);
-      await api.adminInvokeAction(
-        'exported-api-sync',
-        AdminInvokeActionArguments(arguments: {
-          'packages': packages?.join(' ') ?? 'ALL',
-          if (forceWrite) 'force-write': 'true',
-        }),
+      await withHttpPubApiClient(
+        bearerToken: siteAdminToken,
+        fn: (api) async {
+          await api.adminInvokeAction(
+            'exported-api-sync',
+            AdminInvokeActionArguments(arguments: {
+              'packages': packages?.join(' ') ?? 'ALL',
+              if (forceWrite) 'force-write': 'true',
+            }),
+          );
+        },
       );
     }
 

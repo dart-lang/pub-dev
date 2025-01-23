@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/package_api.dart';
@@ -11,6 +13,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/frontend/handlers/experimental.dart';
+import 'package:retry/retry.dart';
 
 import '../../frontend/handlers/pubapi.client.dart';
 import '../../service/services.dart';
@@ -91,6 +94,7 @@ class _FakeTimeClient implements http.Client {
 
 /// Creates a pub.dev API client and executes [fn], making sure that the HTTP
 /// resources are freed after the callback finishes.
+/// The callback [fn] is retried on the transient network errors.
 ///
 /// If [bearerToken], [sessionId] or [csrfToken] is specified, the corresponding
 /// HTTP header will be sent alongside the request.
@@ -109,16 +113,40 @@ Future<R> withHttpPubApiClient<R>({
     cookieProvider: () async => {
       if (experimental != null) experimentalCookieName: experimental.join(':'),
     },
+    client: http.Client(),
   );
-  try {
-    final apiClient = PubApiClient(
-      pubHostedUrl ?? activeConfiguration.primaryApiUri!.toString(),
-      client: httpClient,
-    );
-    return await fn(apiClient);
-  } finally {
-    httpClient.close();
+  return await retry(
+    () async {
+      try {
+        final apiClient = PubApiClient(
+          pubHostedUrl ?? activeConfiguration.primaryApiUri!.toString(),
+          client: httpClient,
+        );
+        return await fn(apiClient);
+      } finally {
+        httpClient.close();
+      }
+    },
+    maxAttempts: 3,
+    retryIf: _retryIf,
+  );
+}
+
+bool _retryIf(Exception e) {
+  if (e is TimeoutException) {
+    return true; // Timeouts we can retry
   }
+  if (e is IOException) {
+    return true; // I/O issues are worth retrying
+  }
+  if (e is http.ClientException) {
+    return true; // HTTP issues are worth retrying
+  }
+  if (e is RequestException) {
+    final status = e.status;
+    return status >= 500; // 5xx errors are retried
+  }
+  return false;
 }
 
 extension PubApiClientExt on PubApiClient {
