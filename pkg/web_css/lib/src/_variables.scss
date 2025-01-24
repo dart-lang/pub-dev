@@ -242,6 +242,13 @@
   .displayed-in-light-theme {
     display: none !important;
   }
+
+  a {
+    &:hover {
+      opacity: 1.0;
+      filter: brightness(120%);
+    }
+  }
 }
 
 @mixin elevated-content-border {
