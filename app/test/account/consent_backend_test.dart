@@ -28,7 +28,7 @@ void main() {
       await withFakeAuthHttpPubApiClient(
         email: adminEmail,
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
-        fn: (client) async {
+        (client) async {
           await client.invitePackageUploader(
               'oxygen', InviteUploaderRequest(email: userAtPubDevEmail));
         },
@@ -309,15 +309,13 @@ void main() {
 
   group('Sanity check', () {
     testWithProfile('consent parameter length', fn: () async {
-      await withFakeAuthHttpPubApiClient(
-          email: adminAtPubDevEmail,
-          fn: (c) async {
-            await expectApiException(
-              c.consentInfo('abcd' * 500),
-              status: 400,
-              code: 'InvalidInput',
-            );
-          });
+      await withFakeAuthHttpPubApiClient(email: adminAtPubDevEmail, (c) async {
+        await expectApiException(
+          c.consentInfo('abcd' * 500),
+          status: 400,
+          code: 'InvalidInput',
+        );
+      });
     });
   });
 }

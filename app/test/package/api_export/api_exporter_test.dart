@@ -295,7 +295,7 @@ Future<void> _testExportedApiSynchronization(
 
     await withHttpPubApiClient(
       bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-      fn: (adminApi) async {
+      (adminApi) async {
         await adminApi.adminInvokeAction(
           'moderate-package-version',
           AdminInvokeActionArguments(arguments: {
@@ -334,17 +334,17 @@ Future<void> _testExportedApiSynchronization(
   {
     await withHttpPubApiClient(
         bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-        fn: (adminApi) async {
-          await adminApi.adminInvokeAction(
-            'moderate-package-version',
-            AdminInvokeActionArguments(arguments: {
-              'case': 'none',
-              'package': 'bar',
-              'version': '2.0.0',
-              'state': 'false',
-            }),
-          );
-        });
+        (adminApi) async {
+      await adminApi.adminInvokeAction(
+        'moderate-package-version',
+        AdminInvokeActionArguments(arguments: {
+          'case': 'none',
+          'package': 'bar',
+          'version': '2.0.0',
+          'state': 'false',
+        }),
+      );
+    });
 
     // Synchronize again
     await synchronize();
@@ -376,16 +376,16 @@ Future<void> _testExportedApiSynchronization(
 
     await withHttpPubApiClient(
         bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-        fn: (adminApi) async {
-          await adminApi.adminInvokeAction(
-            'moderate-package',
-            AdminInvokeActionArguments(arguments: {
-              'case': 'none',
-              'package': 'bar',
-              'state': 'true',
-            }),
-          );
-        });
+        (adminApi) async {
+      await adminApi.adminInvokeAction(
+        'moderate-package',
+        AdminInvokeActionArguments(arguments: {
+          'case': 'none',
+          'package': 'bar',
+          'state': 'true',
+        }),
+      );
+    });
 
     // Synchronize again
     await synchronize();
@@ -408,16 +408,16 @@ Future<void> _testExportedApiSynchronization(
   {
     await withHttpPubApiClient(
         bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-        fn: (adminApi) async {
-          await adminApi.adminInvokeAction(
-            'moderate-package',
-            AdminInvokeActionArguments(arguments: {
-              'case': 'none',
-              'package': 'bar',
-              'state': 'false',
-            }),
-          );
-        });
+        (adminApi) async {
+      await adminApi.adminInvokeAction(
+        'moderate-package',
+        AdminInvokeActionArguments(arguments: {
+          'case': 'none',
+          'package': 'bar',
+          'state': 'false',
+        }),
+      );
+    });
 
     // Synchronize again
     await synchronize();

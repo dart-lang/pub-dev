@@ -29,7 +29,7 @@ void main() {
   group('Moderate User', () {
     Future<ModerationCase> _report(String package) async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await client.postReport(account_api.ReportForm(
             email: 'user@pub.dev',
             subject: 'package:$package',
