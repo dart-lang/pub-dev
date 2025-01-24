@@ -33,7 +33,7 @@ import '../shared/test_services.dart';
 void main() {
   group('Moderate package version', () {
     Future<ModerationCase> _report(String package, String version) async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await client.postReport(ReportForm(
             email: 'user@pub.dev',

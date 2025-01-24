@@ -271,7 +271,7 @@ void main() {
       testWithProfile(
           'service account cannot upload because email not matching',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -303,7 +303,7 @@ void main() {
       testWithProfile(
           'service account cannot upload because id lock prevents it',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -344,7 +344,7 @@ void main() {
       });
 
       testWithProfile('successful upload with service account', fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -414,7 +414,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because repository not matching',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -449,7 +449,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because ref type not matching',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -484,7 +484,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because version pattern not matching',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -520,7 +520,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because workflow_dispatch is not enabled',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -555,7 +555,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because event is not allowed',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -591,7 +591,7 @@ void main() {
           'GitHub Actions cannot upload because id lock prevents it',
           fn: () async {
         Future<void> setupPublishingAndLock() async {
-          await withFakeAuthHttpPubApiClient(
+          await withFakeAuthRetryPubApiClient(
             email: adminAtPubDevEmail,
             (client) async {
               await client.setAutomatedPublishing(
@@ -657,7 +657,7 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (push, without environment)',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -686,7 +686,7 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (workflow_dispatch, without environment)',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -724,7 +724,7 @@ void main() {
             ],
             defaultUser: 'admin@pub.dev',
           ), fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -797,7 +797,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because environment is missing',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -835,7 +835,7 @@ void main() {
       testWithProfile(
           'GitHub Actions cannot upload because environment not matching',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(
@@ -874,7 +874,7 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (with environment)',
           fn: () async {
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: adminAtPubDevEmail,
           (client) async {
             await client.setAutomatedPublishing(

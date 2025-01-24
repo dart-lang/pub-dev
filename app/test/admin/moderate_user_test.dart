@@ -28,7 +28,7 @@ import '../shared/test_services.dart';
 void main() {
   group('Moderate User', () {
     Future<ModerationCase> _report(String package) async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await client.postReport(account_api.ReportForm(
             email: 'user@pub.dev',

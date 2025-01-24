@@ -24,7 +24,7 @@ import '../shared/test_services.dart';
 void main() {
   group('Moderate Publisher', () {
     Future<ModerationCase> _report(String publisherId) async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await client.postReport(ReportForm(
             email: 'user@pub.dev',

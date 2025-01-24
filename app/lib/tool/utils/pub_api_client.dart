@@ -96,22 +96,32 @@ class _FakeTimeClient implements http.Client {
 /// resources are freed after the callback finishes.
 /// The callback [fn] is retried on the transient network errors.
 ///
-/// If [bearerToken], [sessionId] or [csrfToken] is specified, the corresponding
+/// If [authToken], [sessionId] or [csrfToken] is specified, the corresponding
 /// HTTP header will be sent alongside the request.
-Future<R> withHttpPubApiClient<R>(
+Future<R> withRetryPubApiClient<R>(
+  /// The callback function that may be retried on transient errors.
   Future<R> Function(PubApiClient client) fn, {
-  String? bearerToken,
+  /// The token to use as the `Authorization` header in the format of `Bearer <token>`.
+  String? authToken,
+
+  /// The session id that will be part of the session cookie.
   String? sessionId,
+
+  /// The CSRF token that will be the value of the CSRF header (`x-pub-csrf-token`).
   String? csrfToken,
+
+  /// The base URL of the pub server.
   String? pubHostedUrl,
-  Set<String>? experimental,
+
+  /// The enabled experiments that will be part of the experimental cookie.
+  Set<String>? experiments,
 }) async {
   final httpClient = httpClientWithAuthorization(
-    tokenProvider: () async => bearerToken,
+    tokenProvider: () async => authToken,
     sessionIdProvider: () async => sessionId,
     csrfTokenProvider: () async => csrfToken,
     cookieProvider: () async => {
-      if (experimental != null) experimentalCookieName: experimental.join(':'),
+      if (experiments != null) experimentalCookieName: experiments.join(':'),
     },
     client: http.Client(),
   );

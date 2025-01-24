@@ -78,7 +78,7 @@ void main() {
 
   group('Report API test', () {
     testWithProfile('unauthenticated email missing', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -97,7 +97,7 @@ void main() {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
-        await withHttpPubApiClient(
+        await withRetryPubApiClient(
           sessionId: sessionId,
           csrfToken: csrfToken,
           (client) async {
@@ -117,7 +117,7 @@ void main() {
     });
 
     testWithProfile('subject missing', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -134,7 +134,7 @@ void main() {
     });
 
     testWithProfile('subject is invalid', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -152,7 +152,7 @@ void main() {
     });
 
     testWithProfile('package missing', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -170,7 +170,7 @@ void main() {
     });
 
     testWithProfile('version missing', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -188,7 +188,7 @@ void main() {
     });
 
     testWithProfile('publisher missing', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -209,7 +209,7 @@ void main() {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
-        await withHttpPubApiClient(
+        await withRetryPubApiClient(
           sessionId: sessionId,
           csrfToken: csrfToken,
           (client) async {
@@ -229,7 +229,7 @@ void main() {
     });
 
     testWithProfile('unauthenticated report success', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
@@ -256,7 +256,7 @@ void main() {
       await withFakeAuthRequestContext('user@pub.dev', () async {
         final sessionId = requestContext.sessionData?.sessionId;
         final csrfToken = requestContext.csrfToken;
-        await withHttpPubApiClient(
+        await withRetryPubApiClient(
           sessionId: sessionId,
           csrfToken: csrfToken,
           (client) async {
@@ -307,7 +307,7 @@ void main() {
     }
 
     testWithProfile('failure: case does not exists', fn: () async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -326,7 +326,7 @@ void main() {
 
     testWithProfile('failure: case is not closed', fn: () async {
       await _prepareApplied(status: ModerationStatus.pending);
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -345,7 +345,7 @@ void main() {
 
     testWithProfile('failure: subject is not on the case', fn: () async {
       await _prepareApplied();
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await expectApiException(
             client.postReport(ReportForm(
@@ -370,7 +370,7 @@ void main() {
       );
 
       // first report: success
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
@@ -400,7 +400,7 @@ void main() {
       );
 
       // second report: rejected
-      await withHttpPubApiClient((client) async {
+      await withRetryPubApiClient((client) async {
         await expectApiException(
           client.postReport(ReportForm(
             email: 'user2@pub.dev',
@@ -421,7 +421,7 @@ void main() {
         logSubject: 'package-version:oxygen/1.2.0',
       );
 
-      await withFakeAuthHttpPubApiClient(
+      await withFakeAuthRetryPubApiClient(
         email: 'admin@pub.dev',
         (client) async {
           final msg = await client.postReport(ReportForm(

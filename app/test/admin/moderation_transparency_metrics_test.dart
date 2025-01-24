@@ -21,7 +21,7 @@ void main() {
       String? email,
       String? caseId,
     }) async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await client.postReport(account_api.ReportForm(
             email: email ?? 'user@pub.dev',

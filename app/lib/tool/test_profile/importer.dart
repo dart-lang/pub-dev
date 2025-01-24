@@ -45,7 +45,7 @@ Future<void> importProfile({
   // create publishers
   for (final p in profile.publishers) {
     final firstMemberEmail = p.members.first.email;
-    await withFakeAuthHttpPubApiClient(
+    await withFakeAuthRetryPubApiClient(
       email: firstMemberEmail,
       scopes: [webmasterScope],
       pubHostedUrl: pubHostedUrl,
@@ -94,8 +94,8 @@ Future<void> importProfile({
           await source.getArchiveBytes(rv.package, rv.version);
       bytes = await _mayCleanupTarModeBits(bytes);
       try {
-        await withHttpPubApiClient(
-          bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
+        await withRetryPubApiClient(
+          authToken: createFakeAuthTokenForEmail(uploaderEmail,
               audience: activeConfiguration.pubClientAudience),
           pubHostedUrl: pubHostedUrl,
           (client) => client.uploadPackageBytes(bytes),
@@ -120,7 +120,7 @@ Future<void> importProfile({
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];
 
-    await withFakeAuthHttpPubApiClient(
+    await withFakeAuthRetryPubApiClient(
       email: activeEmail!,
       pubHostedUrl: pubHostedUrl,
       (client) async {
@@ -151,8 +151,8 @@ Future<void> importProfile({
     );
 
     if (testPackage.isFlutterFavorite ?? false) {
-      await withHttpPubApiClient(
-        bearerToken:
+      await withRetryPubApiClient(
+        authToken:
             createFakeServiceAccountToken(email: adminUserEmail ?? activeEmail),
         pubHostedUrl: pubHostedUrl,
         (client) async {
@@ -170,7 +170,7 @@ Future<void> importProfile({
   final createLikeCounts = <String, int>{};
   // create users
   for (final u in profile.users) {
-    await withFakeAuthHttpPubApiClient(
+    await withFakeAuthRetryPubApiClient(
       email: u.email,
       pubHostedUrl: pubHostedUrl,
       (client) async {
@@ -194,7 +194,7 @@ Future<void> importProfile({
 
       for (var i = 0; i < likesMissing; i++) {
         final userEmail = 'like-$i@pub.dev';
-        await withFakeAuthHttpPubApiClient(
+        await withFakeAuthRetryPubApiClient(
           email: userEmail,
           pubHostedUrl: pubHostedUrl,
           (client) async {
