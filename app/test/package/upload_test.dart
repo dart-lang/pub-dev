@@ -273,7 +273,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -305,7 +305,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -346,7 +346,7 @@ void main() {
       testWithProfile('successful upload with service account', fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -416,7 +416,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -451,7 +451,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -486,7 +486,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -522,7 +522,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -557,7 +557,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -593,7 +593,7 @@ void main() {
         Future<void> setupPublishingAndLock() async {
           await withFakeAuthHttpPubApiClient(
             email: adminAtPubDevEmail,
-            fn: (client) async {
+            (client) async {
               await client.setAutomatedPublishing(
                 'oxygen',
                 AutomatedPublishingConfig(
@@ -659,7 +659,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -688,7 +688,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -726,7 +726,7 @@ void main() {
           ), fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               '_dummy_pkg',
               AutomatedPublishingConfig(
@@ -799,7 +799,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -837,7 +837,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
@@ -876,7 +876,7 @@ void main() {
           fn: () async {
         await withFakeAuthHttpPubApiClient(
           email: adminAtPubDevEmail,
-          fn: (client) async {
+          (client) async {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(

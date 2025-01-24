@@ -79,7 +79,7 @@ void main() {
   group('Report API test', () {
     testWithProfile('unauthenticated email missing', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               message: 'Problem.',
@@ -100,7 +100,7 @@ void main() {
         await withHttpPubApiClient(
           sessionId: sessionId,
           csrfToken: csrfToken,
-          fn: (client) async {
+          (client) async {
             await expectApiException(
               client.postReport(ReportForm(
                 email: 'any@pub.dev',
@@ -118,7 +118,7 @@ void main() {
 
     testWithProfile('subject missing', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user@pub.dev',
@@ -135,7 +135,7 @@ void main() {
 
     testWithProfile('subject is invalid', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user@pub.dev',
@@ -153,7 +153,7 @@ void main() {
 
     testWithProfile('package missing', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user@pub.dev',
@@ -171,7 +171,7 @@ void main() {
 
     testWithProfile('version missing', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user@pub.dev',
@@ -189,7 +189,7 @@ void main() {
 
     testWithProfile('publisher missing', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user@pub.dev',
@@ -212,7 +212,7 @@ void main() {
         await withHttpPubApiClient(
           sessionId: sessionId,
           csrfToken: csrfToken,
-          fn: (client) async {
+          (client) async {
             await expectApiException(
               client.postReport(ReportForm(
                 subject: 'package:oxygen',
@@ -230,7 +230,7 @@ void main() {
 
     testWithProfile('unauthenticated report success', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
             subject: 'package:oxygen',
@@ -259,7 +259,7 @@ void main() {
         await withHttpPubApiClient(
           sessionId: sessionId,
           csrfToken: csrfToken,
-          fn: (client) async {
+          (client) async {
             final msg = await client.postReport(ReportForm(
               message: 'Huston, we have a problem.',
               subject: 'package:oxygen',
@@ -308,7 +308,7 @@ void main() {
 
     testWithProfile('failure: case does not exists', fn: () async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user2@pub.dev',
@@ -327,7 +327,7 @@ void main() {
     testWithProfile('failure: case is not closed', fn: () async {
       await _prepareApplied(status: ModerationStatus.pending);
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user2@pub.dev',
@@ -346,7 +346,7 @@ void main() {
     testWithProfile('failure: subject is not on the case', fn: () async {
       await _prepareApplied();
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await expectApiException(
             client.postReport(ReportForm(
               email: 'user2@pub.dev',
@@ -371,7 +371,7 @@ void main() {
 
       // first report: success
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           final msg = await client.postReport(ReportForm(
             email: 'user2@pub.dev',
             subject: 'package-version:oxygen/1.2.0',
@@ -400,7 +400,7 @@ void main() {
       );
 
       // second report: rejected
-      await withHttpPubApiClient(fn: (client) async {
+      await withHttpPubApiClient((client) async {
         await expectApiException(
           client.postReport(ReportForm(
             email: 'user2@pub.dev',
@@ -423,7 +423,7 @@ void main() {
 
       await withFakeAuthHttpPubApiClient(
         email: 'admin@pub.dev',
-        fn: (client) async {
+        (client) async {
           final msg = await client.postReport(ReportForm(
             subject: 'package-version:oxygen/1.2.0',
             caseId: 'case/1',

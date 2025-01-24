@@ -98,13 +98,13 @@ class _FakeTimeClient implements http.Client {
 ///
 /// If [bearerToken], [sessionId] or [csrfToken] is specified, the corresponding
 /// HTTP header will be sent alongside the request.
-Future<R> withHttpPubApiClient<R>({
+Future<R> withHttpPubApiClient<R>(
+  Future<R> Function(PubApiClient client) fn, {
   String? bearerToken,
   String? sessionId,
   String? csrfToken,
   String? pubHostedUrl,
   Set<String>? experimental,
-  required Future<R> Function(PubApiClient client) fn,
 }) async {
   final httpClient = httpClientWithAuthorization(
     tokenProvider: () async => bearerToken,

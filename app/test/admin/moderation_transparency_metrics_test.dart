@@ -22,7 +22,7 @@ void main() {
       String? caseId,
     }) async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await client.postReport(account_api.ReportForm(
             email: email ?? 'user@pub.dev',
             subject: 'package:$package',

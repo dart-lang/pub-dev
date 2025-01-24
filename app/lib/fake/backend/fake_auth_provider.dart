@@ -419,10 +419,10 @@ Future<String> _acquireCsrfToken({
 ///
 /// The [email] is used to create an HTTP session and the related CSRF token is
 /// extracted from the session, both are sent alongside the requests.
-Future<R> withFakeAuthHttpPubApiClient<R>({
+Future<R> withFakeAuthHttpPubApiClient<R>(
+  Future<R> Function(PubApiClient client) fn, {
   required String email,
   List<String>? scopes,
-  required Future<R> Function(PubApiClient client) fn,
   String? pubHostedUrl,
   Set<String>? experimental,
 }) async {
@@ -440,8 +440,8 @@ Future<R> withFakeAuthHttpPubApiClient<R>({
     sessionId: sessionId,
     csrfToken: csrfToken,
     pubHostedUrl: pubHostedUrl,
-    fn: fn,
     experimental: experimental,
+    fn,
   );
 }
 

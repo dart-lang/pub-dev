@@ -49,7 +49,7 @@ Future<void> importProfile({
       email: firstMemberEmail,
       scopes: [webmasterScope],
       pubHostedUrl: pubHostedUrl,
-      fn: (client) async {
+      (client) async {
         try {
           await client.createPublisher(p.name);
         } on RequestException catch (e) {
@@ -98,7 +98,7 @@ Future<void> importProfile({
           bearerToken: createFakeAuthTokenForEmail(uploaderEmail,
               audience: activeConfiguration.pubClientAudience),
           pubHostedUrl: pubHostedUrl,
-          fn: (client) => client.uploadPackageBytes(bytes),
+          (client) => client.uploadPackageBytes(bytes),
         );
         published = true;
       } catch (e, st) {
@@ -123,7 +123,7 @@ Future<void> importProfile({
     await withFakeAuthHttpPubApiClient(
       email: activeEmail!,
       pubHostedUrl: pubHostedUrl,
-      fn: (client) async {
+      (client) async {
         // update publisher
         if (testPackage.publisher != null) {
           await client.setPackagePublisher(
@@ -155,7 +155,7 @@ Future<void> importProfile({
         bearerToken:
             createFakeServiceAccountToken(email: adminUserEmail ?? activeEmail),
         pubHostedUrl: pubHostedUrl,
-        fn: (client) async {
+        (client) async {
           await client.adminPostAssignedTags(
             packageName,
             PatchAssignedTags(
@@ -173,7 +173,7 @@ Future<void> importProfile({
     await withFakeAuthHttpPubApiClient(
       email: u.email,
       pubHostedUrl: pubHostedUrl,
-      fn: (client) async {
+      (client) async {
         // creates user (regardless of likes being specified)
         await client.listPackageLikes();
 
@@ -197,7 +197,7 @@ Future<void> importProfile({
         await withFakeAuthHttpPubApiClient(
           email: userEmail,
           pubHostedUrl: pubHostedUrl,
-          fn: (client) async {
+          (client) async {
             await client.likePackage(p.name);
           },
         );

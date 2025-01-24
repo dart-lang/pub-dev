@@ -19,7 +19,7 @@ void main() {
       required bool? apply,
     }) async {
       await withHttpPubApiClient(
-        fn: (client) async {
+        (client) async {
           await client.postReport(ReportForm(
             email: 'user@pub.dev',
             caseId: appealCaseId,

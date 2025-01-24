@@ -21,7 +21,7 @@ void main() {
     }) async {
       await withHttpPubApiClient(
         bearerToken: siteAdminToken,
-        fn: (api) async {
+        (api) async {
           await api.adminInvokeAction(
             'exported-api-sync',
             AdminInvokeActionArguments(arguments: {
