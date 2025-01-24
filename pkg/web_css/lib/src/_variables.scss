@@ -117,7 +117,7 @@
   --pub-copy_feedback-background-color: #fafaff;
   --pub-detail_tab-text-color: var(--pub-neutral-textColor);
   --pub-detail_tab-underline-color: #dddddd;
-  --pub-detail_tab-active-color: #1967d2;
+  --pub-detail_tab-active-color: var(--pub-link-text-color);
   --pub-weekly-chart-main-color: var(--pub-link-text-color);
   --pub-weekly-chart-tooltip-text-color: var(--pub-color-white);
   --pub-detail_tab-admin-color: #990000;
@@ -174,7 +174,7 @@
   --pub-copy_feedback-background-color: #404040;
   --pub-detail_tab-text-color: var(--pub-neutral-textColor);
   --pub-detail_tab-underline-color: #888888;
-  --pub-detail_tab-active-color: color-mix(in srgb, var(--pub-link-text-color), var(--pub-inset-bgColor) 20%);
+  --pub-detail_tab-active-color: var(--pub-link-text-color);
   --pub-detail_tab-admin-color: #e03030;
   --pub-home_title-text-color: #31b0fc;
   --pub-weekly-chart-main-color: var(--pub-link-text-color);
