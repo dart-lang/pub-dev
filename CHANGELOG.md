@@ -2,7 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2025.01.23`.
+ * Bump runtimeVersion to `2025.01.24`.
+ * Upgraded stable Flutter analysis SDK to `3.27.3`.
  * Downgraded `puppeteer` to `3.12.0`.
 
 ## `20250123t090800-all`
