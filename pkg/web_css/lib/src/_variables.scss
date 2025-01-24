@@ -148,16 +148,16 @@
 .dark-theme {
   @include dash_variables.dark-theme;
 
-  --pub-color-eerieBlack:      #1b1b1b;
-  --pub-color-shadowBlack:     #373737;
-  --pub-color-anchorBlack:     #41424c;
+  --pub-color-darkBlack:       #121317;
+  --pub-color-darkGunmetal:    #242b32;
+  --pub-color-darkGray:        #2f3034; /* derived from dark black by making it lighter */
   --pub-color-nipponUltraBlue: #23607f;
 
-  --pub-neutral-bgColor:       var(--pub-color-eerieBlack);
-  --pub-neutral-borderColor:   var(--pub-color-anchorBlack);
+  --pub-neutral-bgColor:       var(--pub-color-darkBlack);
+  --pub-neutral-borderColor:   var(--pub-color-darkGunmetal);
   --pub-neutral-textColor:     var(--dash-surface-fgColor);
-  --pub-neutral-hover-bgColor: var(--pub-color-shadowBlack);
-  --pub-inset-bgColor:         var(--pub-color-anchorBlack);
+  --pub-neutral-hover-bgColor: var(--pub-color-darkGray);
+  --pub-inset-bgColor:         var(--pub-color-darkGunmetal);
   --pub-selected-bgColor:      var(--pub-color-nipponUltraBlue);
 
   // Note: these colors are copied from GitHub styles
@@ -178,7 +178,7 @@
   --pub-detail_tab-admin-color: #e03030;
   --pub-home_title-text-color: #31b0fc;
   --pub-weekly-chart-main-color: var(--pub-link-text-color);
-  --pub-weekly-chart-tooltip-text-color: var(--pub-color-anchorBlack);
+  --pub-weekly-chart-tooltip-text-color: var(--pub-color-darkGunmetal);
   --pub-home_card-box_shadow-color: rgba(255, 255, 255, 0.2);
   --pub-home_card_title-text-color: var(--pub-home_title-text-color);
   --pub-home_card_hover-box_shadow-color: rgba(255, 255, 255, 0.3);
