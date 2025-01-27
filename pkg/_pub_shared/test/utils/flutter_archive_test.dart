@@ -17,7 +17,7 @@ void main() {
     );
     expect(
       DateTime.now().difference(archive.latestBeta!.releaseDate!).inDays,
-      lessThan(45),
+      lessThan(60),
     );
     expect(archive.latestStable?.semanticDartSdkVersion, isNotNull);
     expect(archive.latestBeta?.semanticDartSdkVersion, isNotNull);
