@@ -416,15 +416,20 @@ Future<String> _acquireCsrfToken({
 
 /// Creates a pub.dev API client and executes [fn], making sure that the HTTP
 /// resources are freed after the callback finishes.
+/// The callback [fn] is retried on the transient network errors.
 ///
 /// The [email] is used to create an HTTP session and the related CSRF token is
 /// extracted from the session, both are sent alongside the requests.
-Future<R> withFakeAuthHttpPubApiClient<R>(
+Future<R> withFakeAuthRetryPubApiClient<R>(
   Future<R> Function(PubApiClient client) fn, {
   required String email,
   List<String>? scopes,
+
+  /// The base URL of the pub server.
   String? pubHostedUrl,
-  Set<String>? experimental,
+
+  /// The enabled experiments that will be part of the experimental cookie.
+  Set<String>? experiments,
 }) async {
   final sessionId = await _acquireFakeSessionId(
     email: email,
@@ -436,11 +441,11 @@ Future<R> withFakeAuthHttpPubApiClient<R>(
     pubHostedUrl: pubHostedUrl,
   );
 
-  return await withHttpPubApiClient(
+  return await withRetryPubApiClient(
     sessionId: sessionId,
     csrfToken: csrfToken,
     pubHostedUrl: pubHostedUrl,
-    experimental: experimental,
+    experiments: experiments,
     fn,
   );
 }

@@ -19,8 +19,8 @@ void main() {
       List<String>? packages,
       bool forceWrite = false,
     }) async {
-      await withHttpPubApiClient(
-        bearerToken: siteAdminToken,
+      await withRetryPubApiClient(
+        authToken: siteAdminToken,
         (api) async {
           await api.adminInvokeAction(
             'exported-api-sync',

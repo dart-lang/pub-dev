@@ -293,8 +293,8 @@ Future<void> _testExportedApiSynchronization(
     // recently created files as a guard against race conditions.
     fakeTime.elapseSync(days: 1);
 
-    await withHttpPubApiClient(
-      bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+    await withRetryPubApiClient(
+      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
       (adminApi) async {
         await adminApi.adminInvokeAction(
           'moderate-package-version',
@@ -332,8 +332,8 @@ Future<void> _testExportedApiSynchronization(
 
   _log.info('## Version reinstated');
   {
-    await withHttpPubApiClient(
-        bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+    await withRetryPubApiClient(
+        authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
         (adminApi) async {
       await adminApi.adminInvokeAction(
         'moderate-package-version',
@@ -374,8 +374,8 @@ Future<void> _testExportedApiSynchronization(
     // recently created files as a guard against race conditions.
     fakeTime.elapseSync(days: 1);
 
-    await withHttpPubApiClient(
-        bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+    await withRetryPubApiClient(
+        authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
         (adminApi) async {
       await adminApi.adminInvokeAction(
         'moderate-package',
@@ -406,8 +406,8 @@ Future<void> _testExportedApiSynchronization(
 
   _log.info('## Package reinstated');
   {
-    await withHttpPubApiClient(
-        bearerToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+    await withRetryPubApiClient(
+        authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
         (adminApi) async {
       await adminApi.adminInvokeAction(
         'moderate-package',

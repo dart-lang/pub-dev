@@ -25,7 +25,7 @@ void main() {
   group('Uploader invite', () {
     Future<String?> inviteUploader(
         {String adminEmail = 'admin@pub.dev'}) async {
-      await withFakeAuthHttpPubApiClient(
+      await withFakeAuthRetryPubApiClient(
         email: adminEmail,
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
         (client) async {
@@ -309,7 +309,7 @@ void main() {
 
   group('Sanity check', () {
     testWithProfile('consent parameter length', fn: () async {
-      await withFakeAuthHttpPubApiClient(email: adminAtPubDevEmail, (c) async {
+      await withFakeAuthRetryPubApiClient(email: adminAtPubDevEmail, (c) async {
         await expectApiException(
           c.consentInfo('abcd' * 500),
           status: 400,

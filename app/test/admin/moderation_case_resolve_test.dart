@@ -18,7 +18,7 @@ void main() {
       String? appealCaseId,
       required bool? apply,
     }) async {
-      await withHttpPubApiClient(
+      await withRetryPubApiClient(
         (client) async {
           await client.postReport(ReportForm(
             email: 'user@pub.dev',
