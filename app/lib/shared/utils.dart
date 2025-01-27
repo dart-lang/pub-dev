@@ -11,7 +11,6 @@ import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:intl/intl.dart';
-import 'package:logging/logging.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
@@ -28,7 +27,6 @@ final Duration twoYears = const Duration(days: 2 * 365);
 /// Appengine.
 const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
-final Logger _logger = Logger('pub.utils');
 final _random = Random.secure();
 
 final DateFormat shortDateFormat = DateFormat.yMMMd();
@@ -169,30 +167,6 @@ List<T> boundedList<T>(List<T> list, {int? offset, int? limit}) {
     iterable = iterable.take(limit);
   }
   return iterable.toList();
-}
-
-/// Executes [body] and returns with the same result.
-/// When it throws an exception, it will be re-run until [maxAttempt] is reached.
-Future<R> retryAsync<R>(
-  Future<R> Function() body, {
-  int maxAttempt = 3,
-  bool Function(Exception)? shouldRetryOnError,
-  String description = 'Async operation',
-  Duration sleep = const Duration(seconds: 1),
-}) async {
-  for (int i = 1;; i++) {
-    try {
-      return await body();
-    } on Exception catch (e, st) {
-      _logger.info('$description failed (attempt: $i of $maxAttempt).', e, st);
-      if (i < maxAttempt &&
-          (shouldRetryOnError == null || shouldRetryOnError(e))) {
-        await Future.delayed(sleep);
-        continue;
-      }
-      rethrow;
-    }
-  }
 }
 
 /// Returns a UUID in v4 format as a `String`.
