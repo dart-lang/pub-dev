@@ -54,7 +54,7 @@ d.Node packageInfoBoxNode({
     );
   }
   final dependencies = _dependencyListNode(version.pubspec?.dependencies);
-  final topics = _topicstNode(version.pubspec?.canonicalizedTopics);
+  final topics = _topicsNode(version.pubspec?.canonicalizedTopics);
 
   final screenshots = data.scoreCard.panaReport?.screenshots;
   String? thumbnailUrl;
@@ -206,7 +206,7 @@ d.Node? _licenseNode({
   ]);
 }
 
-d.Node? _topicstNode(List<String>? topics) {
+d.Node? _topicsNode(List<String>? topics) {
   if (topics == null || topics.isEmpty) return null;
 
   final nodes = <d.Node>[];
@@ -217,6 +217,7 @@ d.Node? _topicstNode(List<String>? topics) {
     final ct = canonicalTopics.asMap[topic];
     final description = ct?.description;
     final node = d.a(
+      classes: ['topics-tag'],
       href: urls.searchUrl(q: 'topic:$topic'),
       text: '#$topic',
       title: description,
