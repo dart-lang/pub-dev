@@ -176,8 +176,8 @@ class TarballStorage {
   Future<void> deleteArchiveFromAllBuckets(
       String package, String version) async {
     final objectName = tarballObjectName(package, version);
-    await deleteFromBucket(_canonicalBucket, objectName);
-    await deleteFromBucket(_publicBucket, objectName);
+    await _canonicalBucket.deleteWithRetry(objectName);
+    await _publicBucket.deleteWithRetry(objectName);
   }
 
   /// Deletes the package archive file from the canonical bucket.
