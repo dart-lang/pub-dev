@@ -149,7 +149,7 @@ class SearchBackend {
       // update or remove the document
       await retry(() async {
         try {
-          final doc = await loadDocument(package);
+          final doc = await loadDocument(package).timeout(Duration(minutes: 2));
           snapshot.add(doc);
         } on RemovedPackageException catch (_) {
           snapshot.remove(package);
@@ -158,29 +158,34 @@ class SearchBackend {
     }
 
     // initial scan of packages
-    final pool = Pool(concurrency);
-    final futures = <Future>[];
-    await for (final package in dbService.query<Package>().run()) {
-      if (package.isNotVisible) {
-        continue;
+    await withVmTerminationTimeout(timeout: Duration(hours: 12), () async {
+      final pool = Pool(concurrency);
+      final futures = <Future>[];
+      await for (final package in dbService.query<Package>().run()) {
+        if (package.isNotVisible) {
+          continue;
+        }
+        if (!claim.valid) {
+          break;
+        }
+        // This is the first scan, there isn't any existing document that we
+        // can compare to, ignoring the updated field.
+        final f = pool.withResource(() => updatePackage(package.name!, null));
+        futures.add(f);
       }
+      await Future.wait(futures);
+      await pool.close();
       if (!claim.valid) {
-        break;
+        return;
       }
-      // This is the first scan, there isn't any existing document that we
-      // can compare to, ignoring the updated field.
-      final f = pool.withResource(() => updatePackage(package.name!, null));
-      futures.add(f);
-    }
-    await Future.wait(futures);
-    futures.clear();
-    if (!claim.valid) {
-      return;
-    }
-    snapshot.updateAllScores();
+      snapshot.updateAllScores();
 
-    // first complete snapshot, uploading it
-    await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
+      // first complete snapshot, uploading it
+      await _snapshotStorage
+          .uploadDataAsJsonMap(snapshot.toJson())
+          .timeout(Duration(minutes: 10));
+    });
+
     var lastUploadedSnapshotTimestamp = snapshot.updated!;
 
     // start monitoring
@@ -193,29 +198,34 @@ class SearchBackend {
 
       lastQueryStarted = now;
 
-      // query updates
-      final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
-      for (final e in recentlyUpdated.entries) {
-        if (!claim.valid) {
-          break;
+      await withVmTerminationTimeout(timeout: Duration(hours: 1), () async {
+        final pool = Pool(concurrency);
+        final futures = <Future>[];
+        // query updates
+        final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
+        for (final e in recentlyUpdated.entries) {
+          if (!claim.valid) {
+            break;
+          }
+          final f = pool.withResource(() => updatePackage(e.key, e.value));
+          futures.add(f);
         }
-        final f = pool.withResource(() => updatePackage(e.key, e.value));
-        futures.add(f);
-      }
-      await Future.wait(futures);
-      futures.clear();
+        await Future.wait(futures);
+        await pool.close();
+      });
 
       if (claim.valid && lastUploadedSnapshotTimestamp != snapshot.updated) {
         // Updates the normalized scores across all the packages.
         snapshot.updateAllScores();
 
-        await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
+        await _snapshotStorage
+            .uploadDataAsJsonMap(snapshot.toJson())
+            .timeout(Duration(minutes: 10));
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
 
       await Future.delayed(sleepDuration);
     }
-    await pool.close();
   }
 
   Future<Map<String, DateTime>> _queryRecentlyUpdated(

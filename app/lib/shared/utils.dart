@@ -11,9 +11,11 @@ import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/shared/monitoring.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 
 export 'package:pana/pana.dart' show exampleFileCandidates;
@@ -28,6 +30,7 @@ final Duration twoYears = const Duration(days: 2 * 365);
 const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
 final _random = Random.secure();
+final _logger = Logger('pub.utils');
 
 final DateFormat shortDateFormat = DateFormat.yMMMd();
 
@@ -303,5 +306,33 @@ extension ByteFolderExt on Stream<List<int>> {
       buffer.add(chunk);
     }
     return buffer.toBytes();
+  }
+}
+
+/// Executes [fn] returning its results, but terminating the Dart VM if that
+/// execution takes longer than [timeout].
+Future<T> withVmTerminationTimeout<T>(
+  Future<T> Function() fn, {
+  required Duration timeout,
+}) async {
+  final trace = StackTrace.current;
+  final timer = Timer(timeout, () {
+    // Give the logging a short time to be stored outside of the machine.
+    Timer(Duration(seconds: 10), () async {
+      exit(-1);
+    });
+
+    stderr.writeln('Timeout triggering VM termination\n$trace');
+    _logger.pubNoticeShout(
+      'vm-termination',
+      'Timeout triggering VM termination',
+      Exception(),
+      trace,
+    );
+  });
+  try {
+    return await fn();
+  } finally {
+    timer.cancel();
   }
 }
