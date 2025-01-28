@@ -26,7 +26,10 @@ void main() {
     // TODO: consider refactor/redesign
     'lib/shared/redis_cache.dart',
 
-    // Uses timer to auto-kill worker isolates.
+    // Uses timer to kill long-running processing.
+    'lib/shared/utils.dart',
+
+    // Uses timer to prevent long GCs.
     'lib/service/entrypoint/_isolate.dart',
 
     // Uses timer to send stats periodically to the frontend isolate.
