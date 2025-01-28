@@ -21,18 +21,11 @@ import 'package:retry/retry.dart';
 
 import 'configuration.dart';
 import 'utils.dart'
-    show
-        contentType,
-        jsonUtf8Encoder,
-        retryAsync,
-        ByteArrayEqualsExt,
-        DeleteCounts;
+    show contentType, jsonUtf8Encoder, ByteArrayEqualsExt, DeleteCounts;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
 final _logger = Logger('shared.storage');
-
-const _retryStatusCodes = <int>{502, 503, 504};
 
 /// Additional methods on the storage service.
 extension StorageExt on Storage {
@@ -115,18 +108,19 @@ extension BucketExt on Bucket {
   }
 
   /// Deletes [name] if it exists, ignores 404 otherwise.
-  Future<void> tryDelete(String name) async {
-    return await retry(
+  Future<bool> tryDeleteWithRetry(String name) async {
+    return await _retry(
       () async {
         try {
-          return await delete(name);
+          await delete(name);
+          return true;
         } on DetailedApiRequestError catch (e) {
-          if (e.status == 404) return null;
+          if (e.status == 404) {
+            return false;
+          }
           rethrow;
         }
       },
-      maxAttempts: 3,
-      retryIf: _retryIf,
     );
   }
 
@@ -158,7 +152,7 @@ extension BucketExt on Bucket {
     if (maxSize != null && length != null && maxSize < length) {
       throw MaximumSizeExceeded(maxSize);
     }
-    return retry(
+    return _retry(
       () async {
         final timeout = Duration(seconds: 30);
         final deadline = clock.now().add(timeout);
@@ -175,8 +169,6 @@ extension BucketExt on Bucket {
         }
         return builder.toBytes();
       },
-      maxAttempts: 3,
-      retryIf: _retryIf,
     );
   }
 
@@ -270,8 +262,17 @@ extension PageExt<T> on Page<T> {
   }
 }
 
-Future<R> _retry<R>(Future<R> Function() fn) async {
-  return await retry(fn, maxAttempts: 3, retryIf: _retryIf);
+Future<R> _retry<R>(
+  Future<R> Function() fn, {
+  FutureOr<void> Function(Exception)? onRetry,
+}) async {
+  return await retry(
+    fn,
+    maxAttempts: 3,
+    delayFactor: Duration(seconds: 2),
+    retryIf: _retryIf,
+    onRetry: onRetry,
+  );
 }
 
 bool _retryIf(Exception e) {
@@ -294,32 +295,6 @@ bool _retryIf(Exception e) {
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
     'gs://${bucket.bucketName}/$path';
-
-/// Deletes a single object from the [bucket].
-///
-/// Returns `true` if the object was deleted by this operation, `false` if it
-/// didn't exist at the time of the operation.
-Future<bool> deleteFromBucket(Bucket bucket, String objectName) async {
-  Future<bool> delete() async {
-    try {
-      await bucket.delete(objectName);
-      return true;
-    } on DetailedApiRequestError catch (e) {
-      if (e.status != 404) {
-        rethrow;
-      }
-      return false;
-    }
-  }
-
-  return await retry(
-    delete,
-    delayFactor: Duration(seconds: 10),
-    maxAttempts: 3,
-    retryIf: (e) =>
-        e is DetailedApiRequestError && _retryStatusCodes.contains(e.status),
-  );
-}
 
 Future<void> updateContentDispositionToAttachment(
     ObjectInfo info, Bucket bucket) async {
@@ -351,23 +326,19 @@ Future<int> deleteBucketFolderRecursively(
   var count = 0;
   Page<BucketEntry>? page;
   while (page == null || !page.isLast) {
-    page = await retry(
+    page = await _retry(
       () async {
         return page == null
             ? await bucket.pageWithRetry(
                 prefix: folder, delimiter: '', pageSize: 100)
             : await page.nextWithRetry(pageSize: 100);
       },
-      delayFactor: Duration(seconds: 10),
-      maxAttempts: 3,
-      retryIf: (e) =>
-          e is DetailedApiRequestError && _retryStatusCodes.contains(e.status),
     );
     final futures = <Future>[];
     final pool = Pool(concurrency ?? 1);
     for (final entry in page!.items) {
       final f = pool.withResource(() async {
-        final deleted = await deleteFromBucket(bucket, entry.name);
+        final deleted = await bucket.tryDeleteWithRetry(entry.name);
         if (deleted) count++;
       });
       futures.add(f);
@@ -382,7 +353,7 @@ Future<int> deleteBucketFolderRecursively(
 Future uploadWithRetry(Bucket bucket, String objectName, int length,
     Stream<List<int>> Function() openStream,
     {ObjectMetadata? metadata}) async {
-  await retryAsync(
+  await _retry(
     () async {
       final sink = bucket.write(objectName,
           length: length,
@@ -391,9 +362,9 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
       await sink.addStream(openStream());
       await sink.close();
     },
-    description: 'Upload to $objectName',
-    shouldRetryOnError: _retryIf,
-    sleep: Duration(seconds: 10),
+    onRetry: (e) {
+      _logger.info('Upload to $objectName failed.', e, StackTrace.current);
+    },
   );
 }
 
@@ -506,7 +477,7 @@ class VersionedJsonStorage {
         final age = clock.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {
           deleted++;
-          await deleteFromBucket(_bucket, entry.name);
+          await _bucket.tryDeleteWithRetry(entry.name);
         }
       }
     });
