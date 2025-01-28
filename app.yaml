@@ -15,7 +15,7 @@ resources:
 #  instances: 1
 
 automatic_scaling:
-  min_num_instances: 32
+  min_num_instances: 24
   max_num_instances: 72
 
 skip_files:

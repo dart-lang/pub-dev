@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2025.01.24`.
  * Upgraded stable Flutter analysis SDK to `3.27.3`.
  * Downgraded `puppeteer` to `3.12.0`.
+ * Decreased minimum instance count of frontend to `24`.
 
 ## `20250123t090800-all`
  * Bump runtimeVersion to `2025.01.15`.
