@@ -93,11 +93,6 @@ a {
   text-decoration: none;
   color: var(--pub-link-text-color);
   cursor: pointer;
-  opacity: 1;
-
-  &:hover {
-    opacity: 0.8;
-  }
 
   // TODO: fix style to not use bgColor as text and text color as background
   &.link-button {
@@ -105,6 +100,20 @@ a {
     color: var(--pub-neutral-bgColor);
     display: inline-block;
     padding: 4px 12px;
+  }
+
+  .light-theme & {
+    opacity: 1;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  .dark-theme & {
+    &:hover {
+      filter: brightness(120%);
+    }
   }
 }
 
