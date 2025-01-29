@@ -373,6 +373,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
 
   > .tab-button,
   > .tab-link > a {
+    font-weight: 500;
     display: block;
     color: var(--pub-detail_tab-text-color);
     padding: 12px 0px;
@@ -387,8 +388,9 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 
   > .tab-button {
+    font-weight: 500;
     &.-active {
-      font-weight: 500;
+      font-weight: 600;
       color: var(--pub-detail_tab-active-color);
       border-bottom-color: var(--pub-detail_tab-active-color);
     }
