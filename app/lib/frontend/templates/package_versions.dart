@@ -61,11 +61,11 @@ String renderPkgVersionsPage(
   final blocks = <d.Node>[];
   if (stableVersionRows.isNotEmpty &&
       prereleaseVersionRows.isNotEmpty &&
-      data.latestReleases.showPrerelease) {
+      latestPrereleaseVersion != null) {
     blocks.add(d.p(
       children: [
         d.text('The latest prerelease was '),
-        d.a(href: '#prerelease', text: latestPrereleaseVersion!.version),
+        d.a(href: '#prerelease', text: latestPrereleaseVersion.version),
         d.text(' '),
         d.xAgoTimestamp(latestPrereleaseVersion.published!, datePrefix: 'on'),
         d.text('.'),
