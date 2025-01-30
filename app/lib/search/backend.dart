@@ -96,7 +96,7 @@ class SearchBackend {
   ///
   /// When other process has the claim, the loop waits a minute before
   /// attempting to get the claim.
-  Future<Never> updateSnapshotInForeverLoop() async {
+  Future<void> updateSnapshotInForeverLoop() async {
     final lock = GlobalLock.create(
       '$runtimeVersion/search/update-snapshot',
       expiration: Duration(minutes: 20),
