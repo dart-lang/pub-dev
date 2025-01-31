@@ -482,7 +482,6 @@ class TaskBackend {
             ),
         });
       state.derivePendingAt();
-      state.abortedTokens?.removeWhere((t) => t.expires.isAfter(clock.now()));
 
       _log.info('Update state tracking for $packageName');
       tx.insert(state);
