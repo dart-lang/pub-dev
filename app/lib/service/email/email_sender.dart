@@ -176,6 +176,7 @@ Message _toMessage(EmailMessage input) {
     'Message-ID': '<${input.localMessageId}@pub.dev>',
     if (inReplyToMessageId != null) 'In-Reply-To': inReplyToMessageId,
     if (inReplyToMessageId != null) 'References': inReplyToMessageId,
+    if (input.replyTos.isNotEmpty) 'Reply-To': input.replyTos.join(','),
   };
   return Message()
     ..headers = headers

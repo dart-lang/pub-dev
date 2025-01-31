@@ -120,6 +120,7 @@ class EmailMessage {
   final List<EmailAddress> ccRecipients;
   final String subject;
   final String bodyText;
+  final List<String> replyTos;
 
   EmailMessage(
     this.from,
@@ -129,6 +130,7 @@ class EmailMessage {
     this.inReplyToLocalMessageId,
     this.localMessageId,
     this.ccRecipients = const <EmailAddress>[],
+    this.replyTos = const <String>[],
   }) : bodyText = reflowBodyText(bodyText);
 
   /// Throws [ArgumentError] if the [localMessageId] or the
@@ -157,6 +159,7 @@ class EmailMessage {
       'ccRecipients': ccRecipients.map((e) => e.email).toList(),
       'subject': subject,
       'bodyText': bodyText,
+      if (replyTos.isNotEmpty) 'replyTos': replyTos,
     };
   }
 
