@@ -45,13 +45,27 @@ class TestBrowser {
     final binaries = [
       '/usr/bin/google-chrome',
     ];
-    for (final binary in binaries) {
-      if (File(binary).existsSync()) return binary;
-    }
 
-    // sanity check for CI
-    if (Platform.environment['CI'] == 'true') {
-      throw StateError('Could not detect chrome binary while running in CI.');
+    for (final binary in binaries) {
+      if (File(binary).existsSync()) {
+        // Get the local chrome's main version
+        final pr = await Process.run(binary, ['--version'])
+            .timeout(Duration(seconds: 5));
+        final output = pr.stdout.toString();
+        final mainVersion = output
+            .split(' ')
+            .expand((p) => p.split('.'))
+            .map(int.tryParse)
+            .whereType<int>()
+            .firstOrNull;
+        // No version string, better not running it.
+        if (mainVersion == null) continue;
+        // Main version is after the currently supported version, will fail.
+        // https://github.com/xvrh/puppeteer-dart/issues/364
+        if (mainVersion >= 132) continue;
+
+        return binary;
+      }
     }
 
     // Otherwise let puppeteer download a chrome in the local .dart_tool directory:
