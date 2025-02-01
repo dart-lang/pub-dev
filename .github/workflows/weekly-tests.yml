@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
+      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
       - name: Install dependencies
         run: dart pub get
         working-directory: app
