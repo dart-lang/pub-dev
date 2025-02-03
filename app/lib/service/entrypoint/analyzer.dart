@@ -19,7 +19,6 @@ import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '../download_counts/backend.dart';
-import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
 
@@ -34,56 +33,20 @@ class AnalyzerCommand extends Command {
   Future<void> run() async {
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      final worker =
-          await startWorkerIsolate(logger: logger, entryPoint: _workerMain);
-      registerScopeExitCallback(worker.close);
+      await downloadCountsBackend.start();
+      await taskBackend.start();
+      registerScopeExitCallback(() => taskBackend.stop());
 
-      final indexBuilder = await startWorkerIsolate(
-        logger: logger,
-        entryPoint: _indexBuilderMain,
-        kind: 'index-builder',
-      );
-      registerScopeExitCallback(indexBuilder.close);
+      setupPeriodTaskSchedulers();
+      // TODO: rewrite this loop to have a start/stop logic
+      scheduleMicrotask(searchBackend.updateSnapshotInForeverLoop);
 
       if (activeConfiguration.exportedApiBucketName != null) {
-        final apiExporterIsolate = await startWorkerIsolate(
-          logger: logger,
-          entryPoint: _apiExporterMain,
-          kind: 'api-exporter',
-        );
-        registerScopeExitCallback(apiExporterIsolate.close);
+        await apiExporter!.start();
+        registerScopeExitCallback(() => apiExporter!.stop());
       }
 
       await runHandler(logger, analyzerServiceHandler);
     });
   }
-}
-
-Future _workerMain(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-
-  await downloadCountsBackend.start();
-  await taskBackend.start();
-  registerScopeExitCallback(() => taskBackend.stop());
-
-  setupPeriodTaskSchedulers();
-
-  // wait indefinitely
-  await Completer().future;
-}
-
-Future _indexBuilderMain(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-  await downloadCountsBackend.start();
-  await searchBackend.updateSnapshotInForeverLoop();
-}
-
-Future _apiExporterMain(EntryMessage message) async {
-  message.protocolSendPort.send(ReadyMessage());
-  await downloadCountsBackend.start();
-  await apiExporter!.start();
-  registerScopeExitCallback(() => apiExporter!.stop());
-
-  // wait indefinitely
-  await Completer().future;
 }
