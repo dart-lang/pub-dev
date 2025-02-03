@@ -94,6 +94,8 @@ Future<void> main(List<String> args) async {
     environment: {
       'PUB_HOSTED_URL': pubHostedUrl,
     },
+    throwOnError: true,
+    retryOptions: RetryOptions(maxAttempts: 3),
   );
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
