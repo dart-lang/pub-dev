@@ -111,8 +111,6 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
           .toList(),
       topics:
           (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      thirtyDaysDownloadCounts:
-          (json['thirtyDaysDownloadCounts'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PackageViewToJson(PackageView instance) =>
@@ -134,6 +132,4 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) =>
       if (instance.apiPages case final value?) 'apiPages': value,
       if (instance.screenshots case final value?) 'screenshots': value,
       if (instance.topics case final value?) 'topics': value,
-      if (instance.thirtyDaysDownloadCounts case final value?)
-        'thirtyDaysDownloadCounts': value,
     };

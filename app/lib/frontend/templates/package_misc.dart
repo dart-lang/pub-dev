@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
@@ -196,7 +197,8 @@ d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
     pkgScorePageUrl: urls.pkgScoreUrl(view.name, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,
-    thirtyDaysDownloads: view.thirtyDaysDownloadCounts,
+    thirtyDaysDownloads:
+        downloadCountsBackend.lookup30DaysTotalCounts(view.name),
   );
 }
 
