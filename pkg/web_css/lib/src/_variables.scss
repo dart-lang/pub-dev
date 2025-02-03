@@ -151,14 +151,14 @@
   --pub-color-darkBlack:       #121317;
   --pub-color-darkGunmetal:    #242b32;
   --pub-color-darkGray:        #2f3034; /* derived from dark black by making it lighter */
-  --pub-color-nipponUltraBlue: #23607f;
+  --pub-color-darkSteelBlue:   #144466;
 
   --pub-neutral-bgColor:       var(--pub-color-darkBlack);
   --pub-neutral-borderColor:   var(--pub-color-darkGunmetal);
   --pub-neutral-textColor:     var(--dash-surface-fgColor);
   --pub-neutral-hover-bgColor: var(--pub-color-darkGray);
   --pub-inset-bgColor:         var(--pub-color-darkGunmetal);
-  --pub-selected-bgColor:      var(--pub-color-nipponUltraBlue);
+  --pub-selected-bgColor:      var(--pub-color-darkSteelBlue);
 
   // Note: these colors are copied from GitHub styles
   --pub-markdown-alert-note:      #0969da; // accent-emphasis from GitHub
@@ -189,7 +189,7 @@
   --pub-sort_control_hover-text-color: var(--pub-neutral-textColor);
   --pub-sort_control_selected-text-color: var(--pub-neutral-textColor);
   --pub-tag_simplebadge-text-color: var(--pub-neutral-textColor);
-  --pub-tag_sdkbadge-separator-color: var(--pub-neutral-textColor);
+  --pub-tag_sdkbadge-separator-color: #226699;
   --pub-tag_sdkbadge-text-color: var(--pub-neutral-textColor);
 
   --pub-downloads-chart-frame-color: #55585a;
