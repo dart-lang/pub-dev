@@ -21,6 +21,7 @@ import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
+import '../../service/download_counts/backend.dart';
 import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
@@ -244,7 +245,8 @@ Future<VersionScore> packageVersionScoreHandler(
       grantedPoints: card.grantedPubPoints,
       maxPoints: card.maxPubPoints,
       likeCount: pkg.likes,
-      downloadCount30Days: card.thirtyDaysDownloadCounts,
+      downloadCount30Days:
+          downloadCountsBackend.lookup30DaysTotalCounts(package),
       tags: tags.toList(),
       lastUpdated: updated,
     );

@@ -9,7 +9,6 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -937,7 +936,6 @@ class PackageView {
   final List<ProcessedScreenshot>? screenshots;
 
   final List<String>? topics;
-  final int? thirtyDaysDownloadCounts;
 
   PackageView({
     this.screenshots,
@@ -955,7 +953,6 @@ class PackageView {
     this.spdxIdentifiers,
     this.apiPages,
     this.topics,
-    required this.thirtyDaysDownloadCounts,
   })  : isPending = isPending ?? false,
         tags = tags ?? <String>[];
 
@@ -968,7 +965,6 @@ class PackageView {
     PackageVersion? version,
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
-    required int? thirtyDaysDownloadCounts,
   }) {
     final tags = <String>{
       ...package.getTags(),
@@ -992,7 +988,6 @@ class PackageView {
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.canonicalizedTopics,
-      thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
 
@@ -1013,7 +1008,6 @@ class PackageView {
       apiPages: apiPages ?? this.apiPages,
       screenshots: screenshots,
       topics: topics,
-      thirtyDaysDownloadCounts: thirtyDaysDownloadCounts,
     );
   }
 
@@ -1172,8 +1166,6 @@ class PackagePageData {
       releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
-      thirtyDaysDownloadCounts:
-          downloadCountsBackend.lookup30DaysTotalCounts(package.name!),
     );
   }
 }

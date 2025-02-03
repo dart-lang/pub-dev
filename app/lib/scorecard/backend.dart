@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
-import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -97,8 +96,6 @@ class ScoreCardBackend {
         releases: releases,
         version: pv,
         scoreCard: card,
-        thirtyDaysDownloadCounts:
-            downloadCountsBackend.lookup30DaysTotalCounts(package),
       );
     });
   }

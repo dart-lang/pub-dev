@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
@@ -43,7 +44,8 @@ d.Node scoreTabNode({
       children: [
         _likeKeyFigureNode(likeCount),
         _pubPointsKeyFigureNode(report, showPending),
-        _downloadCountsKeyFigureNode(card.thirtyDaysDownloadCounts),
+        _downloadCountsKeyFigureNode(
+            downloadCountsBackend.lookup30DaysTotalCounts(package)),
       ],
     ),
     if (showPending)
