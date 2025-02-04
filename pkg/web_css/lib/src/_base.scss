@@ -80,7 +80,7 @@ button {
   border: none;
 
   &.pub-button-danger {
-    --mdc-theme-primary: var(--pub-color-dangerRed);
+    --mdc-theme-primary: var(--pub-button-danger-background);
   }
 
   &.pub-button-cancel {
