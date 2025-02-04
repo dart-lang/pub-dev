@@ -439,8 +439,8 @@ d.Node option({
 
 d.Node radioButtons({
   required String name,
-  required List<({String id, String value})> idsAndValues,
-  String? checkedId,
+  required List<({String label, String value, String id})> radios,
+  String? initialValue,
   Iterable<String>? classes,
   String? leadingText,
 }) {
@@ -448,7 +448,7 @@ d.Node radioButtons({
   if (leadingText != null) {
     nodes.add(d.strong(text: leadingText));
   }
-  idsAndValues.forEach((e) {
+  radios.forEach((e) {
     nodes.add(d.input(
       id: e.id,
       type: 'radio',
@@ -457,9 +457,9 @@ d.Node radioButtons({
       classes: [
         ...?classes,
       ],
-      attributes: {if (e.id == checkedId) 'checked': ''},
+      attributes: {if (e.value == initialValue) 'checked': ''},
     ));
-    nodes.add(d.label(attributes: {'for': e.id}, child: d.text(e.value)));
+    nodes.add(d.label(attributes: {'for': e.id}, child: d.text(e.label)));
   });
 
   return d.div(classes: ['mdc-form-field'], children: nodes);

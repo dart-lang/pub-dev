@@ -186,13 +186,13 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
       radioButtons(
           leadingText: 'By versions: ',
           name: 'version-modes',
-          idsAndValues: [
-            (id: 'major', value: 'Major'),
-            (id: 'minor', value: 'Minor'),
-            (id: 'patch', value: 'Patch')
+          radios: [
+            (id: 'version-modes-major', value: 'major', label: 'Major'),
+            (id: 'version-modes-minor', value: 'minor', label: 'Minor'),
+            (id: 'version-modes-patch', value: 'patch', label: 'Patch')
           ],
           classes: ['downloads-chart-radio-button'],
-          checkedId: 'major')
+          initialValue: 'major')
     ],
   );
   final container = d.div(

@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/format/date_format.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:web/web.dart';
+import 'package:web_app/src/web_util.dart';
 
 import 'computations.dart';
 
@@ -64,20 +65,24 @@ void create(HTMLElement element, Map<String, String> options) {
   );
 
   final versionModesLists = {
-    'Major': majorDisplayLists,
-    'Minor': minorDisplayLists,
-    'Patch': patchDisplayLists
+    'major': majorDisplayLists,
+    'minor': minorDisplayLists,
+    'patch': patchDisplayLists
   };
 
-  final versionModes = document.getElementsByName(versionsRadio);
-  for (int i = 0; i < versionModes.length; i++) {
-    final radioButton = versionModes.item(i) as HTMLInputElement;
-    if (versionModesLists[radioButton.value] != null) {
-      radioButton.onClick.listen((e) {
-        drawChart(svg, versionModesLists[radioButton.value]!, data.newestDate);
-      });
+  final versionModes = document.getElementsByName(versionsRadio).toList();
+  versionModes.forEach((i) {
+    final radioButton = i as HTMLInputElement;
+    final value = radioButton.value;
+    final displayList = versionModesLists[value];
+
+    if (displayList == null) {
+      throw UnsupportedError('Unsupported versions-radio value: "$value"');
     }
-  }
+    radioButton.onClick.listen((e) {
+      drawChart(svg, displayList, data.newestDate);
+    });
+  });
 
   drawChart(svg, majorDisplayLists, data.newestDate);
 }
