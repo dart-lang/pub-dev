@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/frontend/dom/material.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/utils.dart';
 
@@ -179,18 +180,35 @@ d.Node _section(ReportSection section) {
 }
 
 d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
+  final versionModes = d.div(
+    classes: ['downloads-chart-version-modes'],
+    children: [
+      radioButtons(
+          leadingText: 'By versions: ',
+          name: 'version-modes',
+          idsAndValues: [
+            (id: 'major', value: 'Major'),
+            (id: 'minor', value: 'Minor'),
+            (id: 'patch', value: 'Patch')
+          ],
+          classes: ['downloads-chart-radio-button'],
+          checkedId: 'major')
+    ],
+  );
   final container = d.div(
     classes: ['downloads-chart'],
     id: '-downloads-chart',
     attributes: {
       'data-widget': 'downloads-chart',
       'data-downloads-chart-points':
-          base64Encode(jsonUtf8Encoder.convert(weeklyVersionDownloads))
+          base64Encode(jsonUtf8Encoder.convert(weeklyVersionDownloads)),
+      'data-downloads-chart-versions-radio': 'version-modes',
     },
   );
 
   return d.fragment([
     d.h1(text: 'Weekly Downloads over the last 40 weeks'),
+    versionModes,
     container,
   ]);
 }

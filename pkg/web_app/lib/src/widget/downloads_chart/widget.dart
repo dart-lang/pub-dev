@@ -30,15 +30,19 @@ void create(HTMLElement element, Map<String, String> options) {
     throw UnsupportedError('data-downloads-chart-points required');
   }
 
+  final versionsRadio = options['versions-radio'];
+  if (versionsRadio == null) {
+    throw UnsupportedError('data-downloads-chart-versions-radio required');
+  }
+
   final svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('height', '100%');
   svg.setAttribute('width', '100%');
-
   element.append(svg);
+
   final data = WeeklyVersionDownloadCounts.fromJson((utf8.decoder
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
-
   final weeksToDisplay = math.min(40, data.totalWeeklyDownloads.length);
 
   final majorDisplayLists = prepareWeekLists(
@@ -46,6 +50,34 @@ void create(HTMLElement element, Map<String, String> options) {
     data.majorRangeWeeklyDownloads,
     weeksToDisplay,
   );
+
+  final minorDisplayLists = prepareWeekLists(
+    data.totalWeeklyDownloads,
+    data.minorRangeWeeklyDownloads,
+    weeksToDisplay,
+  );
+
+  final patchDisplayLists = prepareWeekLists(
+    data.totalWeeklyDownloads,
+    data.patchRangeWeeklyDownloads,
+    weeksToDisplay,
+  );
+
+  final versionModesLists = {
+    'Major': majorDisplayLists,
+    'Minor': minorDisplayLists,
+    'Patch': patchDisplayLists
+  };
+
+  final versionModes = document.getElementsByName(versionsRadio);
+  for (int i = 0; i < versionModes.length; i++) {
+    final radioButton = versionModes.item(i) as HTMLInputElement;
+    if (versionModesLists[radioButton.value] != null) {
+      radioButton.onClick.listen((e) {
+        drawChart(svg, versionModesLists[radioButton.value]!, data.newestDate);
+      });
+    }
+  }
 
   drawChart(svg, majorDisplayLists, data.newestDate);
 }
@@ -111,7 +143,7 @@ void drawChart(
   }
 
   final chart = SVGGElement();
-  svg.append(chart);
+  svg.replaceChildren(chart);
 
   // Axis and ticks
 
