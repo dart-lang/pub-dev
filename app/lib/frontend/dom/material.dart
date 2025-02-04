@@ -436,3 +436,31 @@ d.Node option({
     ],
   );
 }
+
+d.Node radioButtons({
+  required String name,
+  required List<({String label, String value, String id})> radios,
+  String? initialValue,
+  Iterable<String>? classes,
+  String? leadingText,
+}) {
+  final nodes = <d.Node>[];
+  if (leadingText != null) {
+    nodes.add(d.strong(text: leadingText));
+  }
+  radios.forEach((e) {
+    nodes.add(d.input(
+      id: e.id,
+      type: 'radio',
+      name: name,
+      value: e.value,
+      classes: [
+        ...?classes,
+      ],
+      attributes: {if (e.value == initialValue) 'checked': ''},
+    ));
+    nodes.add(d.label(attributes: {'for': e.id}, child: d.text(e.label)));
+  });
+
+  return d.div(classes: ['mdc-form-field'], children: nodes);
+}
