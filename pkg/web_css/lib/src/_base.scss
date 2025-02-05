@@ -89,6 +89,22 @@ button {
   }
 }
 
+// The class annotates an image icon with either black or white pixels on
+// a transparent base layer.
+// The default display with the muted opacity will move the icon's color
+// towards the gray spectrum, and on hovering it will show high contrast.
+//
+// Note: The `filter: brightness()` used below with the `a` element does
+//       not work with monochrome images, as the linear transformation
+//       will keep the pixels with rgb(0,0,0) the same.
+.pub-monochrome-icon {
+  opacity: 0.6;
+
+  a:hover & {
+    opacity: 1;
+  }
+}
+
 a {
   text-decoration: none;
   color: var(--pub-link-text-color);
@@ -103,10 +119,8 @@ a {
   }
 
   .light-theme & {
-    opacity: 1;
-
     &:hover {
-      opacity: 0.8;
+      filter: brightness(80%);
     }
   }
 
