@@ -43,6 +43,7 @@ void main() {
           'to': 'package:oxygen',
           'subject': 'Test email',
           'body': 'Test body',
+          'reply-to': 'other1@pub.dev,other2@pub.dev',
         }),
       );
       expect(rs1.output, {
@@ -57,7 +58,8 @@ void main() {
         'recipients': ['admin@pub.dev'],
         'ccRecipients': [],
         'subject': 'Test email',
-        'bodyText': 'Test body'
+        'bodyText': 'Test body',
+        'replyTos': ['other1@pub.dev', 'other2@pub.dev'],
       });
     });
   });

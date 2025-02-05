@@ -38,6 +38,8 @@ The list of resolved emails will be deduplicated.
     'from': 'The email address to impersonate (`support@pub.dev` by default).',
     'subject': 'The subject of the email message.',
     'body': 'The text content of the email body.',
+    'reply-to':
+        '(optional) A comma separated list of email addresses to be used in the Reply-To header.',
     'in-reply-to':
         '(optional) The local message id of the email that this is a reply to '
             '(e.g. moderation case id). The email sender will the `In-Reply-To` and `References` '
@@ -65,6 +67,7 @@ The list of resolved emails will be deduplicated.
     );
     final cc = options['cc'];
     final inReplyTo = options['in-reply-to'];
+    final replyTo = options['reply-to'];
 
     final emailList = await _resolveEmails(to!);
     final ccEmailList = cc == null ? null : await _resolveEmails(cc);
@@ -79,6 +82,7 @@ The list of resolved emails will be deduplicated.
         ccRecipients:
             ccEmailList?.map((v) => EmailAddress(v)).toList() ?? const [],
         inReplyToLocalMessageId: inReplyTo,
+        replyTos: replyTo?.split(',') ?? const <String>[],
       ));
       return {
         'emails': emailList,
