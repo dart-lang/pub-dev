@@ -398,32 +398,9 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   > .tab-button.-private,
   > .tab-link.-private > a {
     color: var(--pub-detail_tab-admin-color);
-    position: relative;
-    padding-right: 9px;
 
     &:hover {
       border-bottom-color: var(--pub-detail_tab-admin-color);
-    }
-
-    /* The lock icon, positioned after the label. */
-    &:before {
-      content: " ";
-      display: block;
-      background: url("../img/admin-lock-icon.svg");
-      background-size: 12px 12px;
-      width: 12px;
-      height: 12px;
-      position: absolute;
-      top: 50%;
-      right: 4px;
-      margin-top: -8px;
-    }
-
-    /* Extra padding, width should be larger than or equal to the lock icon's width. */
-    &:after {
-      content: "";
-      display: inline-block;
-      width: 12px;
     }
   }
   > .tab-button.-private,
