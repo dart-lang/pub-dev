@@ -18,11 +18,15 @@
     // ignore errors e.g. when media query matching is not supported
   }
 
-  // Detects whether the dartdoc control was set to use dark theme
-  let dartdocDarkThemeIsSet = window.localStorage.getItem('colorTheme') == 'true';
+  // Detects whether the control widget was set to use a specific theme
+  let colorTheme = window.localStorage.getItem('colorTheme');
+  let lightThemeIsSet = colorTheme == 'false';
+  let darkThemeIsSet = colorTheme == 'true';
 
-  // Switch the top-level style marker to use dark theme instead of the light theme default.
-  if (mediaPrefersDarkScheme || dartdocDarkThemeIsSet) {
+  if (lightThemeIsSet) {
+    // nothing to do here, the default style is the light-theme
+  } else if (mediaPrefersDarkScheme || darkThemeIsSet) {
+    // switch to the dark theme
     document.body.classList.remove('light-theme');
     document.body.classList.add('dark-theme');
   }
