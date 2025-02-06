@@ -143,6 +143,7 @@
   --pub-tag_sdkbadge-text-color: #1967d2;
 
   --pub-downloads-chart-frame-color: #d3d3d3;
+  --pub-downloads-chart-tooltip-background: rgba(255, 255, 255, 0.9);
 }
 
 .light-theme {
@@ -201,6 +202,7 @@
   --pub-tag_sdkbadge-text-color: var(--pub-neutral-textColor);
 
   --pub-downloads-chart-frame-color: #55585a;
+  --pub-downloads-chart-tooltip-background: rgba(18, 19, 23, 0.9);
 
   // Material Design theme customizations
   --mdc-theme-surface: var(--pub-neutral-bgColor);

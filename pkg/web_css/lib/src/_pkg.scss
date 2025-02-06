@@ -304,8 +304,8 @@
     margin: 0px;
     padding: 2px 8px;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-    background-color:var(--pub-neutral-bgColor);
-    opacity: 0.9;
+    background-color:var(--pub-downloads-chart-tooltip-background);
+    // opacity: 0.9;
     z-index: 100000;
     position: absolute;
     border: 0.5px solid var(--pub-downloads-chart-frame-color);
