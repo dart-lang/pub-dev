@@ -24,6 +24,7 @@ const colors = [
 
 String strokeColorClass(int i) => 'downloads-chart-stroke-${colors[i]}';
 String fillColorClass(int i) => 'downloads-chart-fill-${colors[i]}';
+String squareColorClass(int i) => 'downloads-chart-square-${colors[i]}';
 
 void create(HTMLElement element, Map<String, String> options) {
   final dataPoints = options['points'];
@@ -35,11 +36,18 @@ void create(HTMLElement element, Map<String, String> options) {
   if (versionsRadio == null) {
     throw UnsupportedError('data-downloads-chart-versions-radio required');
   }
+  Element createNewSvg() {
+    return document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      ..setAttribute('height', '100%')
+      ..setAttribute('width', '100%');
+  }
 
-  final svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('height', '100%');
-  svg.setAttribute('width', '100%');
+  var svg = createNewSvg();
   element.append(svg);
+
+  final toolTip = HTMLDivElement()
+    ..setAttribute('class', 'downloads-chart-tooltip');
+  document.body!.appendChild(toolTip);
 
   final data = WeeklyVersionDownloadCounts.fromJson((utf8.decoder
       .fuse(json.decoder)
@@ -80,15 +88,19 @@ void create(HTMLElement element, Map<String, String> options) {
       throw UnsupportedError('Unsupported versions-radio value: "$value"');
     }
     radioButton.onClick.listen((e) {
-      drawChart(svg, displayList, data.newestDate);
+      element.removeChild(svg);
+      svg = createNewSvg();
+      element.append(svg);
+      drawChart(svg, toolTip, displayList, data.newestDate);
     });
   });
 
-  drawChart(svg, majorDisplayLists, data.newestDate);
+  drawChart(svg, toolTip, majorDisplayLists, data.newestDate);
 }
 
 void drawChart(
     Element svg,
+    HTMLDivElement toolTip,
     ({List<String> ranges, List<List<int>> weekLists}) displayLists,
     DateTime newestDate,
     {bool stacked = false}) {
@@ -103,12 +115,14 @@ void drawChart(
   final leftPadding = 30;
   final rightPadding = 70; // Make extra room for labels on y-axis
   final chartWidth = frameWidth - leftPadding - rightPadding;
-  final chartheight = 420;
+  final chartHeight = 420;
+
+  final toolTipOffsetFromMouse = 15;
 
   DateTime computeDateForWeekNumber(
-      DateTime newestDate, int totalWeeks, int weekNumber) {
+      DateTime newestDate, int totalWeeks, int weekIndex) {
     return newestDate.copyWith(
-        day: newestDate.day - 7 * (totalWeeks - weekNumber - 1));
+        day: newestDate.day - 7 * (totalWeeks - weekIndex - 1));
   }
 
   /// Computes max value on y-axis such that we get a nice division for the
@@ -143,7 +157,7 @@ void drawChart(
     final x = leftPadding +
         chartWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
 
-    final y = topPadding + (chartheight - chartheight * (downloads / maxY));
+    final y = topPadding + (chartHeight - chartHeight * (downloads / maxY));
     return (x, y);
   }
 
@@ -222,7 +236,7 @@ void drawChart(
   clipPath.setAttribute('id', 'clipRect');
   final clipRect = SVGRectElement();
   clipRect.setAttribute('y', '$yMax');
-  clipRect.setAttribute('height', '${chartheight - (lineThickness / 2)}');
+  clipRect.setAttribute('height', '${chartHeight - (lineThickness / 2)}');
   clipRect.setAttribute('x', '$xZero');
   clipRect.setAttribute('width', '$chartWidth');
   clipPath.append(clipRect);
@@ -291,4 +305,86 @@ void drawChart(
         legendLabel.getBBox().width +
         labelPadding;
   }
+
+  final cursor = SVGLineElement()
+    ..setAttribute('class', 'downloads-chart-cursor')
+    ..setAttribute('stroke-dasharray', '15,3')
+    ..setAttribute('x1', '0')
+    ..setAttribute('x2', '0')
+    ..setAttribute('y1', '$yZero')
+    ..setAttribute('y2', '$yMax');
+  chart.append(cursor);
+
+  // Setup mouse handling
+
+  DateTime? lastSelectedDay;
+  void hideCursor(_) {
+    cursor.setAttribute('style', 'opacity:0');
+    toolTip.setAttribute('style', 'opacity:0;position:absolute;');
+    lastSelectedDay = null;
+  }
+
+  hideCursor(1);
+
+  svg.onMouseMove.listen((e) {
+    final boundingRect = chart.getBoundingClientRect();
+    if (e.x < boundingRect.x + xZero ||
+        e.x > boundingRect.x + xMax ||
+        e.y < boundingRect.y + yMax ||
+        e.y > boundingRect.y + yZero) {
+      // We are outside the actual chart area
+      hideCursor(1);
+      return;
+    }
+
+    cursor.setAttribute('style', 'opacity:1');
+    toolTip.setAttribute(
+        'style',
+        'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
+            'left:${e.x}px;');
+
+    final pointPercentage =
+        (e.x - chart.getBoundingClientRect().x - xZero) / chartWidth;
+    final nearestIndex = ((values.length - 1) * pointPercentage).round();
+
+    final selectedDay =
+        computeDateForWeekNumber(newestDate, values.length, nearestIndex);
+    if (selectedDay == lastSelectedDay) return;
+
+    final coords = computeCoordinates(selectedDay, 0);
+    cursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
+
+    final startDay = selectedDay.subtract(Duration(days: 7));
+    toolTip.replaceChildren(HTMLDivElement()
+      ..setAttribute('class', 'downloads-chart-tooltip-date')
+      ..text =
+          '${formatAbbrMonthDay(startDay)} - ${formatAbbrMonthDay(selectedDay)}');
+
+    final downloads = values[nearestIndex];
+    for (int i = 0; i < downloads.length; i++) {
+      final index = ranges.length - 1 - i;
+      if (downloads[index] > 0) {
+        // We only show the exact download count in the tooltip if it is non-zero.
+        final square = HTMLDivElement()
+          ..setAttribute(
+              'class', 'downloads-chart-tooltip-square ${squareColorClass(i)}');
+        final rangeText = HTMLSpanElement()..text = '${ranges[index]}: ';
+        final tooltipRange = HTMLDivElement()
+          ..setAttribute('class', 'downloads-chart-tooltip-row')
+          ..append(square)
+          ..append(rangeText);
+        final downloadsText = HTMLSpanElement()
+          ..setAttribute('class', 'downloads-chart-tooltip-downloads')
+          ..text = '${formatWithThousandSeperators(downloads[index])}';
+        final tooltipRow = HTMLDivElement()
+          ..setAttribute('class', 'downloads-chart-tooltip-row')
+          ..append(tooltipRange)
+          ..append(downloadsText);
+        toolTip.append(tooltipRow);
+      }
+    }
+    lastSelectedDay = selectedDay;
+  });
+
+  svg.onMouseLeave.listen(hideCursor);
 }

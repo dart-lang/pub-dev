@@ -81,11 +81,17 @@
   --mdc-typography-font-family: var(--pub-default-text-font_family);
 
   --pub-downloads-chart-color-0: var(--pub-markdown-alert-note);
+  --pub-downloads-chart-color-bg-0: rgb(9, 105, 218, 0.3);
   --pub-downloads-chart-color-1: var(--pub-markdown-alert-caution);
+  --pub-downloads-chart-color-bg-1:rgb(207, 34, 46, 0.3);
   --pub-downloads-chart-color-2: var(--pub-markdown-alert-tip);
+  --pub-downloads-chart-color-bg-2: rgb(26, 127, 55, 0.3);
   --pub-downloads-chart-color-3: var(--pub-markdown-alert-important);
+  --pub-downloads-chart-color-bg-3: rgb(130, 80, 223, 0.3);
   --pub-downloads-chart-color-4: var(--pub-markdown-alert-warning);
+  --pub-downloads-chart-color-bg-4:rgb(154, 103, 0, 0.3);
   --pub-downloads-chart-color-5: #12a4af;
+  --pub-downloads-chart-color-bg-5: rgb(18, 164, 175, 0.3);
 }
 
 /// Variables that are specific to the light theme.
@@ -137,6 +143,7 @@
   --pub-tag_sdkbadge-text-color: #1967d2;
 
   --pub-downloads-chart-frame-color: #d3d3d3;
+  --pub-downloads-chart-tooltip-background: rgba(255, 255, 255, 0.9);
 }
 
 .light-theme {
@@ -195,6 +202,7 @@
   --pub-tag_sdkbadge-text-color: var(--pub-neutral-textColor);
 
   --pub-downloads-chart-frame-color: #55585a;
+  --pub-downloads-chart-tooltip-background: rgba(18, 19, 23, 0.9);
 
   // Material Design theme customizations
   --mdc-theme-surface: var(--pub-neutral-bgColor);

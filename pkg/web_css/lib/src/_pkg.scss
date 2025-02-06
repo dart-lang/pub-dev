@@ -299,6 +299,49 @@
     stroke: var(--pub-downloads-chart-frame-color);
   }
 
+  .downloads-chart-tooltip {
+    border-radius: 5px;
+    margin: 0px;
+    padding: 2px 8px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    background-color:var(--pub-downloads-chart-tooltip-background);
+    // opacity: 0.9;
+    z-index: 100000;
+    position: absolute;
+    border: 0.5px solid var(--pub-downloads-chart-frame-color);
+  }
+
+  .downloads-chart-tooltip-square {
+    display: flex;
+    height: 12px;
+    width: 12px;
+    border: 1px solid;
+    margin-right: 5px;
+    margin-left: 5px;
+  }
+  .downloads-chart-tooltip-date {
+    font-size: small;
+    color:  var(--pub-score_label-text-color);;
+  }
+  .downloads-chart-tooltip-downloads {
+    padding-right: 4px;
+    padding-left: 10px;
+  }
+
+  .downloads-chart-tooltip-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    font-size: small;
+    color: var(--pub-score_label-text-color);
+  }
+
+  .downloads-chart-cursor {
+    stroke: var(--pub-score_label-text-color);
+    stroke-width: 1;
+  }
+
   .downloads-chart-x-axis {
     fill: none;
     stroke-width: 1;
@@ -345,6 +388,36 @@
 
   .downloads-chart-fill-turquoise {
     fill:var(--pub-downloads-chart-color-5);
+  }
+
+  .downloads-chart-square-blue {
+    background-color:var(--pub-downloads-chart-color-bg-0);
+    color:var(--pub-downloads-chart-color-0);
+  }
+
+  .downloads-chart-square-red {
+    background-color:var(--pub-downloads-chart-color-bg-1);
+    color: var(--pub-downloads-chart-color-1);
+  }
+
+  .downloads-chart-square-green {
+    background-color:var(--pub-downloads-chart-color-bg-2);
+    color: var(--pub-downloads-chart-color-2)
+  }
+
+  .downloads-chart-square-purple {
+    background-color:var(--pub-downloads-chart-color-bg-3);
+    color:var(--pub-downloads-chart-color-3);
+  }
+
+  .downloads-chart-square-orange {
+    background-color:var(--pub-downloads-chart-color-bg-4);
+    color:var(--pub-downloads-chart-color-4);
+  }
+
+  .downloads-chart-square-turquoise {
+    background-color:var(--pub-downloads-chart-color-bg-5);
+    color:var(--pub-downloads-chart-color-5);
   }
 
   .downloads-chart-line {
