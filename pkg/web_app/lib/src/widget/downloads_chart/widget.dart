@@ -364,7 +364,7 @@ void drawChart(
     for (int i = 0; i < downloads.length; i++) {
       final index = ranges.length - 1 - i;
       if (downloads[index] > 0) {
-        // We only show the exact download count in the tooltip if it's non-zero.
+        // We only show the exact download count in the tooltip if it is non-zero.
         final square = HTMLDivElement()
           ..setAttribute(
               'class', 'downloads-chart-tooltip-square ${squareColorClass(i)}');
