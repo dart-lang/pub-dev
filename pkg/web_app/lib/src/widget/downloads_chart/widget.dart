@@ -211,7 +211,7 @@ void drawChart(
     }
 
     final longTick = SVGPathElement();
-    longTick.setAttribute('class', 'downloads-chart-frame');
+    longTick.setAttribute('class', 'downloads-chart-axis-line');
     longTick.setAttribute('d', 'M$xAxisStart $y L$xAxisEnd $y');
     chart.append(longTick);
   }
@@ -291,13 +291,4 @@ void drawChart(
         legendLabel.getBBox().width +
         labelPadding;
   }
-
-  final frameHeight = legendY + marginPadding + labelPadding;
-  final frame = SVGRectElement()
-    ..setAttribute('class', 'downloads-chart-frame')
-    ..setAttribute('height', '$frameHeight')
-    ..setAttribute('width', '$frameWidth')
-    ..setAttribute('rx', '15')
-    ..setAttribute('ry', '15');
-  chart.append(frame);
 }
