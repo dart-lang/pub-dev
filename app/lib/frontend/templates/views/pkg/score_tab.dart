@@ -80,9 +80,6 @@ d.Node scoreTabNode({
           ],
         ),
         _reportNode(report),
-        if (card.weeklyVersionDownloads != null &&
-            requestContext.experimentalFlags.showDownloadCountsVersionChart)
-          _downloadsChart(card.weeklyVersionDownloads!),
         if (toolEnvInfo != null) toolEnvInfo,
       ]),
     if (!showPending)
@@ -98,6 +95,9 @@ d.Node scoreTabNode({
           d.text(' for details.'),
         ],
       ),
+    if (card.weeklyVersionDownloads != null &&
+        requestContext.experimentalFlags.showDownloadCountsVersionChart)
+      _downloadsChart(card.weeklyVersionDownloads!),
   ]);
 }
 
@@ -207,7 +207,7 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
   );
 
   return d.fragment([
-    d.h1(text: 'Weekly Downloads over the last 40 weeks'),
+    d.h1(text: 'Weekly downloads'),
     versionModes,
     container,
   ]);
