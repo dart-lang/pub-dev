@@ -82,7 +82,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   padding: 30px 0 20px;
 
   .title {
-    font-family: var(--pub-default-headline-font_family);
+    font-family: var(--pub-font-family-headline);
     margin: 0;
     font-size: 24px;
 
@@ -176,7 +176,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   }
 
   .detail-like {
-    font-family: var(--pub-default-text-font_family);
+    font-family: var(--pub-font-family-body);
     font-size: 16px;
     font-weight: 500;
     text-transform: uppercase;
