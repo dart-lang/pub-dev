@@ -125,8 +125,16 @@ d.Node _section(ReportSection section) {
               child: d.img(
                 classes: ['pkg-report-icon'],
                 image: d.Image(
-                  src: _statusIconUrls[section.status]!,
-                  alt: _statusIconAlts[section.status]!,
+                  src: switch (section.status) {
+                    ReportStatus.passed => staticUrls.reportOKIconGreen,
+                    ReportStatus.partial => staticUrls.reportMissingIconYellow,
+                    ReportStatus.failed => staticUrls.reportMissingIconRed,
+                  },
+                  alt: switch (section.status) {
+                    ReportStatus.passed => 'Passed report section',
+                    ReportStatus.partial => 'Partially passed report section',
+                    ReportStatus.failed => 'Failed report section',
+                  },
                   width: 18,
                   height: 18,
                 ),
@@ -238,21 +246,6 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
   ]);
 }
 
-final _statusIconUrls = {
-  ReportStatus.passed:
-      staticUrls.getAssetUrl('/static/img/report-ok-icon-green.svg'),
-  ReportStatus.partial:
-      staticUrls.getAssetUrl('/static/img/report-missing-icon-yellow.svg'),
-  ReportStatus.failed:
-      staticUrls.getAssetUrl('/static/img/report-missing-icon-red.svg'),
-};
-
-final _statusIconAlts = {
-  ReportStatus.passed: 'OK',
-  ReportStatus.partial: 'partial',
-  ReportStatus.failed: 'failed',
-};
-
 String _updatedSummary(String summary) {
   return summary.split('\n').map((line) {
     if (!line.startsWith('### ')) return line;
@@ -260,14 +253,17 @@ String _updatedSummary(String summary) {
         .replaceFirst(
             '[*]',
             '<img class="report-summary-icon" '
+                'alt="Passed check" '
                 'src="${staticUrls.reportOKIconGreen}" />')
         .replaceFirst(
             '[x]',
             '<img class="report-summary-icon" '
+                'alt="Failed check" '
                 'src="${staticUrls.reportMissingIconRed}" />')
         .replaceFirst(
             '[~]',
             '<img class="report-summary-icon" '
+                'alt="Partially passed check" '
                 'src="${staticUrls.reportMissingIconYellow}" />');
   }).join('\n');
 }
