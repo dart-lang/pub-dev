@@ -289,6 +289,10 @@
     float: right;
   }
 
+  .downloads-chart-display-modes {
+    float: left;
+  }
+
   .downloads-chart-radio-button {
     margin-left: 10px;
   }
@@ -424,6 +428,10 @@
     fill: none;
     stroke-width: 2;
     stroke-linejoin: round;
+  }
+
+  .downloads-chart-area {
+    opacity: 0.3;
   }
 
   .downloads-chart-stroke-blue {

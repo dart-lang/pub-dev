@@ -195,6 +195,29 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
           initialValue: 'major')
     ],
   );
+
+  final displayModes = d.div(
+    classes: ['downloads-chart-display-modes'],
+    children: [
+      radioButtons(
+          leadingText: 'Display as: ',
+          name: 'display-modes',
+          radios: [
+            (
+              id: 'display-modes-unstacked',
+              value: 'unstacked',
+              label: 'Unstacked'
+            ),
+            (
+              id: 'version-modes-stacked',
+              value: 'stacked',
+              label: 'Stacked',
+            ),
+          ],
+          classes: ['downloads-chart-radio-button'],
+          initialValue: 'unstacked')
+    ],
+  );
   final container = d.div(
     classes: ['downloads-chart'],
     id: '-downloads-chart',
@@ -203,11 +226,13 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
       'data-downloads-chart-points':
           base64Encode(jsonUtf8Encoder.convert(weeklyVersionDownloads)),
       'data-downloads-chart-versions-radio': 'version-modes',
+      'data-downloads-chart-display-radio': 'display-modes',
     },
   );
 
   return d.fragment([
     d.h1(text: 'Weekly downloads'),
+    displayModes,
     versionModes,
     container,
   ]);
