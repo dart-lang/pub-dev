@@ -47,6 +47,12 @@
     &:focus {
       outline: none;
     }
+
+    // This is a non-standard feature, supported only by webkit browsers
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/::-webkit-search-cancel-button
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
   }
 
   >.icon {
