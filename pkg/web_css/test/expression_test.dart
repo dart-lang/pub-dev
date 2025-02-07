@@ -42,6 +42,7 @@ void main() {
         'keyframes',
         'last-child',
         'nth-child',
+        '-webkit-search-cancel-button',
       ]);
       // composite patterns
       expressions.removeWhere((e) => e.startsWith('home-block-'));
