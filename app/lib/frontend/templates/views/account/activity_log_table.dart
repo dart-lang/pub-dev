@@ -14,7 +14,7 @@ d.Node activityLogNode({
   return d.fragment([
     d.p(children: [
       d.text('List of activities relevant to $forCategory'),
-      if (forEntity != null) d.code(text: forEntity),
+      if (forEntity != null) ...[d.text(' '), d.code(text: forEntity)],
       d.text('. '),
       d.text('Events other than package publication expire after 2 months.'),
     ]),
