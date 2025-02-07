@@ -92,6 +92,10 @@
   --pub-downloads-chart-color-bg-4:rgb(154, 103, 0, 0.3);
   --pub-downloads-chart-color-5: #12a4af;
   --pub-downloads-chart-color-bg-5: rgb(18, 164, 175, 0.3);
+
+  // Opacity values used to display monochrome icons.
+  --pub-monochrome-opacity-initial: 0.6;
+  --pub-monochrome-opacity-hover: 1.0;
 }
 
 /// Variables that are specific to the light theme.
