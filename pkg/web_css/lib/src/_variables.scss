@@ -23,9 +23,9 @@
 
 /// Variables that are not specific to the light or dark theme.
 :root {
-  --pub-default-headline-font_family: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
-  --pub-default-text-font_family: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
-  --pub-code-text-font_family: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
+  --pub-font-family-headline: "Google Sans Display", "Google Sans", "Roboto", sans-serif;
+  --pub-font-family-body: "Google Sans Text", "Google Sans", "Roboto", sans-serif;
+  --pub-font-family-code: "Google Sans Mono", "Roboto Mono", "Source Code Pro", Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
 
   --pub-color-white:         #ffffff;
   --pub-color-dangerRed:     #ff4242;
@@ -78,7 +78,7 @@
   // Material Design theme customizations
   --mdc-theme-primary: #1967d2;
   --mdc-theme-secondary: #0066d9;
-  --mdc-typography-font-family: var(--pub-default-text-font_family);
+  --mdc-typography-font-family: var(--pub-font-family-body);
 
   --pub-downloads-chart-color-0: var(--pub-markdown-alert-note);
   --pub-downloads-chart-color-bg-0: rgb(9, 105, 218, 0.3);
