@@ -289,10 +289,9 @@ void drawChart(
   // Chart lines and legends
 
   final lastestDownloads = List.filled(values.length, 0);
-  final lines = <StringBuffer>[];
+  final lines = <List<(double, double)>>[];
   for (int versionRange = 0; versionRange < values[0].length; versionRange++) {
-    final line = StringBuffer();
-    var c = 'M';
+    final List<(double, double)> lineCoordinates = <(double, double)>[];
     for (int week = 0; week < values.length; week++) {
       if (displayMode == DisplayMode.stacked) {
         lastestDownloads[week] += values[week][versionRange];
@@ -302,10 +301,36 @@ void drawChart(
       final (x, y) = computeCoordinates(
           computeDateForWeekNumber(newestDate, values.length, week),
           lastestDownloads[week]);
-      line.write(' $c$x $y');
-      c = 'L';
+      lineCoordinates.add((x, y));
     }
-    lines.add(line);
+    lines.add(lineCoordinates);
+  }
+
+  StringBuffer computeLine(List<(double, double)> coordinates) {
+    final path = StringBuffer();
+    var command = 'M';
+    coordinates.forEach((c) {
+      path.write(' $command${c.$1} ${c.$2}');
+      command = 'L';
+    });
+    return path;
+  }
+
+  StringBuffer computeArea(List<(double, double)> topCoordinates,
+      List<(double, double)> bottomCoordinates) {
+    final path = StringBuffer();
+    var command = 'M';
+    topCoordinates.forEach((c) {
+      path.write(' $command${c.$1} ${c.$2}');
+      command = 'L';
+    });
+
+    bottomCoordinates.reversed.forEach((c) {
+      path.write(' $command${c.$1} ${c.$2}');
+      command = 'L';
+    });
+    path.write('Z');
+    return path;
   }
 
   double legendX = xZero;
@@ -315,10 +340,9 @@ void drawChart(
   final legendHeight = 8;
 
   for (int i = 0; i < lines.length; i++) {
-    // We assign colors in reverse order so that main colors are chosen first for
-    // the newest versions.
-    final line = lines[lines.length - 1 - i];
-
+    // We add the lines in reverse order so that the newest versions get the
+    // main color.
+    final line = computeLine(lines[lines.length - 1 - i]);
     final path = SVGPathElement();
     path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
     path.setAttribute('d', '$line');
@@ -326,18 +350,14 @@ void drawChart(
     chart.append(path);
 
     if (displayMode == DisplayMode.stacked) {
+      final prevLine = i == lines.length - 1
+          ? [(xZero, yZero), (xMax, yZero)]
+          : lines[lines.length - 1 - i - 1];
+      final areaPath = computeArea(lines[lines.length - 1 - i], prevLine);
       final area = SVGPathElement();
       area.setAttribute('class', '${fillColorClass(i)} downloads-chart-area ');
-      final prevLine = i == lines.length - 1
-          ? ' M $xZero $yZero L$xMax $yZero'
-          : lines[lines.length - 1 - i - 1];
-      final reversed = prevLine
-          .toString()
-          .replaceAll(' M', '')
-          .split('L')
-          .reversed
-          .join('L');
-      area.setAttribute('d', '$line  L$reversed Z');
+      area.setAttribute('d', '$areaPath');
+      area.setAttribute('clip-path', 'url(#clipRect)');
       chart.append(area);
     }
 
