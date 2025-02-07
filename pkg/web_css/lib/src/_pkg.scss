@@ -461,12 +461,13 @@
     width: 20px;
     height: 20px;
     cursor: pointer;
-    opacity: 0.1;
-    transition: opacity 0.3s;
 
-    &:focus,
+    // Lower contrast than the regular monochrome icon rules.
+    --pub-monochrome-opacity-initial: 0.3;
+    --pub-monochrome-opacity-hover: 0.7;
+
     h1.title:hover & {
-      opacity: 0.5;
+      opacity: var(--pub-monochrome-opacity-hover);
     }
   }
 

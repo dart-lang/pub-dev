@@ -98,10 +98,12 @@ button {
 //       not work with monochrome images, as the linear transformation
 //       will keep the pixels with rgb(0,0,0) the same.
 .pub-monochrome-icon {
-  opacity: 0.6;
+  opacity: var(--pub-monochrome-opacity-initial);
+  transition: opacity 0.3s;
 
+  &:focus,
   a:hover & {
-    opacity: 1;
+    opacity: var(--pub-monochrome-opacity-hover);
   }
 }
 

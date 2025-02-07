@@ -20,7 +20,11 @@ d.Node copyIcon({required String package, required String version}) {
     classes: ['pkg-page-title-copy'],
     children: [
       d.img(
-        classes: ['pkg-page-title-copy-icon', 'filter-invert-on-dark'],
+        classes: [
+          'pub-monochrome-icon',
+          'pkg-page-title-copy-icon',
+          'filter-invert-on-dark',
+        ],
         attributes: {
           'data-copy-content': '$package: ^$version',
           'data-ga-click-event': 'copy-package-version',
