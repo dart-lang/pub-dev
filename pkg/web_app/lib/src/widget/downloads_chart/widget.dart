@@ -26,6 +26,11 @@ String strokeColorClass(int i) => 'downloads-chart-stroke-${colors[i]}';
 String fillColorClass(int i) => 'downloads-chart-fill-${colors[i]}';
 String squareColorClass(int i) => 'downloads-chart-square-${colors[i]}';
 
+enum DisplayMode {
+  stacked,
+  unstacked,
+}
+
 void create(HTMLElement element, Map<String, String> options) {
   final dataPoints = options['points'];
   if (dataPoints == null) {
@@ -36,6 +41,12 @@ void create(HTMLElement element, Map<String, String> options) {
   if (versionsRadio == null) {
     throw UnsupportedError('data-downloads-chart-versions-radio required');
   }
+
+  final displayRadio = options['display-radio'];
+  if (displayRadio == null) {
+    throw UnsupportedError('data-downloads-chart-display-radio required');
+  }
+
   Element createNewSvg() {
     return document.createElementNS('http://www.w3.org/2000/svg', 'svg')
       ..setAttribute('height', '100%')
@@ -72,6 +83,9 @@ void create(HTMLElement element, Map<String, String> options) {
     weeksToDisplay,
   );
 
+  var currentDisplayList = majorDisplayLists;
+  var currentDisplayMode = DisplayMode.unstacked;
+
   final versionModesLists = {
     'major': majorDisplayLists,
     'minor': minorDisplayLists,
@@ -91,7 +105,34 @@ void create(HTMLElement element, Map<String, String> options) {
       element.removeChild(svg);
       svg = createNewSvg();
       element.append(svg);
-      drawChart(svg, toolTip, displayList, data.newestDate);
+      currentDisplayList = displayList;
+      drawChart(svg, toolTip, displayList, data.newestDate,
+          displayMode: currentDisplayMode);
+    });
+  });
+
+  final displayModesMap = <String, DisplayMode>{
+    'stacked': DisplayMode.stacked,
+    'unstacked': DisplayMode.unstacked
+  };
+
+  final displayModes = document.getElementsByName(displayRadio).toList();
+  displayModes.forEach((i) {
+    final radioButton = i as HTMLInputElement;
+    final value = radioButton.value;
+    final displayMode = displayModesMap[value];
+
+    if (displayMode == null) {
+      throw UnsupportedError('Unsupported display-radio value: "$value"');
+    }
+
+    radioButton.onClick.listen((e) {
+      element.removeChild(svg);
+      svg = createNewSvg();
+      element.append(svg);
+      currentDisplayMode = displayMode;
+      drawChart(svg, toolTip, currentDisplayList, data.newestDate,
+          displayMode: displayMode);
     });
   });
 
@@ -103,7 +144,7 @@ void drawChart(
     HTMLDivElement toolTip,
     ({List<String> ranges, List<List<int>> weekLists}) displayLists,
     DateTime newestDate,
-    {bool stacked = false}) {
+    {DisplayMode displayMode = DisplayMode.unstacked}) {
   final ranges = displayLists.ranges;
   final values = displayLists.weekLists;
 
@@ -128,8 +169,11 @@ void drawChart(
   /// Computes max value on y-axis such that we get a nice division for the
   /// interval length between the numbers shown by the ticks on the y axis.
   (int maxY, int interval) computeMaxYAndInterval(List<List<int>> values) {
-    final maxDownloads =
-        values.fold<int>(1, (a, b) => math.max<int>(a, b.reduce(math.max)));
+    final maxDownloads = displayMode == DisplayMode.unstacked
+        ? values.fold<int>(1, (a, b) => math.max<int>(a, b.reduce(math.max)))
+        : values.fold<int>(
+            1, (a, b) => math.max<int>(a, b.reduce((x, y) => x + y)));
+
     final digits = maxDownloads.toString().length;
     final buffer = StringBuffer()..write('1');
     if (digits > 2) {
@@ -244,18 +288,49 @@ void drawChart(
 
   // Chart lines and legends
 
-  final lines = <StringBuffer>[];
+  final lastestDownloads = List.filled(values.length, 0);
+  final lines = <List<(double, double)>>[];
   for (int versionRange = 0; versionRange < values[0].length; versionRange++) {
-    final line = StringBuffer();
-    var c = 'M';
+    final List<(double, double)> lineCoordinates = <(double, double)>[];
     for (int week = 0; week < values.length; week++) {
+      if (displayMode == DisplayMode.stacked) {
+        lastestDownloads[week] += values[week][versionRange];
+      } else {
+        lastestDownloads[week] = values[week][versionRange];
+      }
       final (x, y) = computeCoordinates(
           computeDateForWeekNumber(newestDate, values.length, week),
-          values[week][versionRange]);
-      line.write(' $c$x $y');
-      c = 'L';
+          lastestDownloads[week]);
+      lineCoordinates.add((x, y));
     }
-    lines.add(line);
+    lines.add(lineCoordinates);
+  }
+
+  StringBuffer computeLinePath(List<(double, double)> coordinates) {
+    final path = StringBuffer();
+    var command = 'M';
+    coordinates.forEach((c) {
+      path.write(' $command${c.$1} ${c.$2}');
+      command = 'L';
+    });
+    return path;
+  }
+
+  StringBuffer computeAreaPath(List<(double, double)> topCoordinates,
+      List<(double, double)> bottomCoordinates) {
+    final path = StringBuffer();
+    var command = 'M';
+    topCoordinates.forEach((c) {
+      path.write(' $command${c.$1} ${c.$2}');
+      command = 'L';
+    });
+
+    bottomCoordinates.reversed.forEach((c) {
+      path.write(' $command${c.$1} ${c.$2}');
+      command = 'L';
+    });
+    path.write('Z');
+    return path;
   }
 
   double legendX = xZero;
@@ -265,13 +340,26 @@ void drawChart(
   final legendHeight = 8;
 
   for (int i = 0; i < lines.length; i++) {
+    // We add the lines in reverse order so that the newest versions get the
+    // main colors.
+    final line = computeLinePath(lines[lines.length - 1 - i]);
     final path = SVGPathElement();
     path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
-    // We assign colors in reverse order so that main colors are chosen first for
-    // the newest versions.
-    path.setAttribute('d', '${lines[lines.length - 1 - i]}');
+    path.setAttribute('d', '$line');
     path.setAttribute('clip-path', 'url(#clipRect)');
     chart.append(path);
+
+    if (displayMode == DisplayMode.stacked) {
+      final prevLine = i == lines.length - 1
+          ? [(xZero, yZero), (xMax, yZero)]
+          : lines[lines.length - 1 - i - 1];
+      final areaPath = computeAreaPath(lines[lines.length - 1 - i], prevLine);
+      final area = SVGPathElement();
+      area.setAttribute('class', '${fillColorClass(i)} downloads-chart-area ');
+      area.setAttribute('d', '$areaPath');
+      area.setAttribute('clip-path', 'url(#clipRect)');
+      chart.append(area);
+    }
 
     final legend = SVGRectElement();
     chart.append(legend);
