@@ -306,7 +306,7 @@ void drawChart(
     lines.add(lineCoordinates);
   }
 
-  StringBuffer computeLine(List<(double, double)> coordinates) {
+  StringBuffer computeLinePath(List<(double, double)> coordinates) {
     final path = StringBuffer();
     var command = 'M';
     coordinates.forEach((c) {
@@ -316,7 +316,7 @@ void drawChart(
     return path;
   }
 
-  StringBuffer computeArea(List<(double, double)> topCoordinates,
+  StringBuffer computeAreaPath(List<(double, double)> topCoordinates,
       List<(double, double)> bottomCoordinates) {
     final path = StringBuffer();
     var command = 'M';
@@ -341,8 +341,8 @@ void drawChart(
 
   for (int i = 0; i < lines.length; i++) {
     // We add the lines in reverse order so that the newest versions get the
-    // main color.
-    final line = computeLine(lines[lines.length - 1 - i]);
+    // main colors.
+    final line = computeLinePath(lines[lines.length - 1 - i]);
     final path = SVGPathElement();
     path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
     path.setAttribute('d', '$line');
@@ -353,7 +353,7 @@ void drawChart(
       final prevLine = i == lines.length - 1
           ? [(xZero, yZero), (xMax, yZero)]
           : lines[lines.length - 1 - i - 1];
-      final areaPath = computeArea(lines[lines.length - 1 - i], prevLine);
+      final areaPath = computeAreaPath(lines[lines.length - 1 - i], prevLine);
       final area = SVGPathElement();
       area.setAttribute('class', '${fillColorClass(i)} downloads-chart-area ');
       area.setAttribute('d', '$areaPath');
