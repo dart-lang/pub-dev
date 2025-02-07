@@ -19,6 +19,9 @@ d.Node detailTabsNode({
           children: tabs.map(
             (t) => d.li(
               classes: t.titleClasses,
+              attributes: {
+                if (t.isPrivate) 'title': 'For authorized users only.',
+              },
               child: t.titleNode,
             ),
           ),
