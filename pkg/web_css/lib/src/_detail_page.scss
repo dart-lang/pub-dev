@@ -380,6 +380,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
     border-bottom: 2px solid;
     border-bottom-color: transparent;
     cursor: pointer;
+    text-decoration: none;
 
     &:hover {
       border-bottom-color: var(--pub-detail_tab-underline-color);
