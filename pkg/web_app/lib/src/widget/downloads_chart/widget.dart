@@ -308,7 +308,7 @@ void drawChart(
 
   final cursor = SVGLineElement()
     ..setAttribute('class', 'downloads-chart-cursor')
-    ..setAttribute('stroke-dasharray', '15,3')
+    ..setAttribute('stroke-dasharray', '3,3')
     ..setAttribute('x1', '0')
     ..setAttribute('x2', '0')
     ..setAttribute('y1', '$yZero')
