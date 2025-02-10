@@ -401,6 +401,10 @@ pre {
 }
 
 .foldable {
+  .foldable-button {
+    cursor: pointer;
+  }
+
   .foldable-content {
     display: none;
   }
