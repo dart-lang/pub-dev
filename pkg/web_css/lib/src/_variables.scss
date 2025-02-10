@@ -30,6 +30,13 @@
   --pub-color-white:         #ffffff;
   --pub-color-dangerRed:     #ff4242;
 
+  // These colors are a combination of middle-gray (#808080) and a transparency
+  // (alpha) channel, specifying an opaque color that mutes whatever the original
+  // color was behind it.
+  --pub-overlay-gray-08: #80808008;
+  --pub-overlay-gray-30: #80808030;
+  --pub-overlay-gray-80: #80808080;
+
   --pub-hash_link-text-color: #ccc;
   --pub-footer-background-color: #27323a;
   --pub-footer-text-color: #f8f9fa;
