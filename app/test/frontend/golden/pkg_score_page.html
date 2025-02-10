@@ -106,6 +106,7 @@
           </div>
         </div>
       </nav>
+      <button class="-pub-theme-toggle" aria-label="light/dark theme toggle"></button>
     </div>
     <div id="banner-container"></div>
     <main class="container">
@@ -305,6 +306,28 @@
                     <a href="/packages/oxygen/score/log.txt">analysis log</a>
                     for details.
                   </p>
+                  <h1>Weekly downloads</h1>
+                  <div class="downloads-chart-display-modes">
+                    <div class="mdc-form-field">
+                      <strong>Display as:</strong>
+                      <input id="display-modes-unstacked" class="downloads-chart-radio-button" type="radio" name="display-modes" value="unstacked" checked=""/>
+                      <label for="display-modes-unstacked">Unstacked</label>
+                      <input id="version-modes-stacked" class="downloads-chart-radio-button" type="radio" name="display-modes" value="stacked"/>
+                      <label for="version-modes-stacked">Stacked</label>
+                    </div>
+                  </div>
+                  <div class="downloads-chart-version-modes">
+                    <div class="mdc-form-field">
+                      <strong>By versions:</strong>
+                      <input id="version-modes-major" class="downloads-chart-radio-button" type="radio" name="version-modes" value="major" checked=""/>
+                      <label for="version-modes-major">Major</label>
+                      <input id="version-modes-minor" class="downloads-chart-radio-button" type="radio" name="version-modes" value="minor"/>
+                      <label for="version-modes-minor">Minor</label>
+                      <input id="version-modes-patch" class="downloads-chart-radio-button" type="radio" name="version-modes" value="patch"/>
+                      <label for="version-modes-patch">Patch</label>
+                    </div>
+                  </div>
+                  <div id="-downloads-chart" class="downloads-chart" data-widget="downloads-chart" data-downloads-chart-points="%%downloads-chart-points%%" data-downloads-chart-versions-radio="version-modes" data-downloads-chart-display-radio="display-modes"></div>
                 </section>
               </div>
             </div>

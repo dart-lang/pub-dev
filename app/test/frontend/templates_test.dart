@@ -101,6 +101,8 @@ void main() {
               'Dart <code>%%stable-dart-version%%</code>')
           .replaceAll(
               '/static/hash-${staticFileCache.etag}/', '/static/hash-%%etag%%/')
+          .replaceAll(RegExp('data-downloads-chart-points=".*?"'),
+              'data-downloads-chart-points="%%downloads-chart-points%%"')
           .replaceAll(RegExp('data-weekly-sparkline-points=".*?"'),
               'data-weekly-sparkline-points="%%sparkline-points%%"');
       final csrfToken = requestContext.sessionData?.csrfToken;

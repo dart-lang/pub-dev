@@ -161,8 +161,6 @@ d.Node pageLayoutNode({
           'body',
           classes: [
             ...?bodyClasses,
-            if (requestContext.experimentalFlags.isDarkModeEnabled)
-              '-experimental-dark-mode',
             requestContext.experimentalFlags.isDarkModeDefault
                 ? 'dark-theme'
                 : 'light-theme',
