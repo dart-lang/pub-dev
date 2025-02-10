@@ -101,7 +101,7 @@ d.Node siteHeaderNode({
                 child: d.div(
                   classes: ['nav-table-columns'],
                   children: [
-                    _desktopLinksColumn('Pub.dev', _pubDevLinks),
+                    _desktopLinksColumn('pub.dev', _pubDevLinks),
                     _desktopLinksColumn('Flutter', _flutterLinks),
                     _desktopLinksColumn('Dart', _dartLinks),
                   ],
@@ -109,7 +109,7 @@ d.Node siteHeaderNode({
               ),
             ],
           ),
-          _foldableMobileLinks('Pub.dev', _pubDevLinks),
+          _foldableMobileLinks('pub.dev', _pubDevLinks),
           _foldableMobileLinks('Flutter', _flutterLinks),
           _foldableMobileLinks('Dart', _dartLinks),
           if (userSession != null && userSession.isAuthenticated)
