@@ -92,14 +92,13 @@ class ExperimentalFlags {
     return params;
   }
 
-  bool get isSearchCompletionEnabled => isEnabled('search-completion');
+  bool get isSearchCompletionEnabled => true;
   bool get isSearchTopicsEnabled => isEnabled('search-topics');
 
-  bool get isDarkModeEnabled => isEnabled('dark');
+  bool get isDarkModeEnabled => true;
   bool get isDarkModeDefault => isEnabled('dark-as-default');
 
-  bool get showDownloadCountsVersionChart =>
-      isEnabled('download-counts-version-chart');
+  bool get showDownloadCountsVersionChart => true;
 
   String encodedAsCookie() => _enabled.join(':');
 

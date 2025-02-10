@@ -5,10 +5,6 @@
 // This script is run blocking at the beginning of the page load to ensure that
 // we don't have flashing white background before switching to dark mode.
 (function () {
-  if (!document.body.classList.contains('-experimental-dark-mode')) {
-    return;
-  }
-
   // Detects OS or browser-level theme preference by using media queries.
   let mediaPrefersDarkScheme = false;
   try {
