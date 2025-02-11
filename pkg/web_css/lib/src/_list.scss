@@ -228,14 +228,8 @@
     min-width: 102px;
     margin-top: 10px;
     cursor: pointer;
-  }
 
-  .packages-screenshot-thumbnail {
-    transition: 200ms filter;
-  }
-
-  .packages-screenshot-thumbnail:hover {
-    filter: brightness(50%);
+    @include variables.brightness-on-hover;
   }
 
   .packages-title {

@@ -125,17 +125,7 @@ a {
     text-decoration: underline;
   }
 
-  .light-theme & {
-    &:hover {
-      filter: brightness(80%);
-    }
-  }
-
-  .dark-theme & {
-    &:hover {
-      filter: brightness(120%);
-    }
-  }
+  @include variables.brightness-on-hover;
 }
 
 main {
