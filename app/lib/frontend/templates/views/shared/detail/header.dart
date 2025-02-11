@@ -111,7 +111,10 @@ d.Node detailHeaderNode({
             d.div(
               classes: ['detail-header-content-block'],
               children: [
-                d.h1(classes: ['title'], child: titleNode),
+                d.h1(
+                  classes: ['title', 'pub-monochrome-icon-hoverable'],
+                  child: titleNode,
+                ),
                 d.div(classes: ['metadata'], child: metadataNode),
                 if (tagsNode != null || likeCount != null)
                   d.div(

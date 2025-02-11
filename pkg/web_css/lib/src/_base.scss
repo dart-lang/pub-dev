@@ -101,6 +101,7 @@ button {
   opacity: var(--pub-monochrome-opacity-initial);
   transition: opacity 0.3s;
 
+  .pub-monochrome-icon-hoverable:hover &,
   &:focus,
   a:hover & {
     opacity: var(--pub-monochrome-opacity-hover);

@@ -225,7 +225,8 @@ d.Node _item({
         classes: ['packages-header'],
         children: [
           d.h3(classes: [
-            'packages-title'
+            'packages-title',
+            'pub-monochrome-icon-hoverable',
           ], children: [
             d.a(href: url, text: name),
             if (copyIcon != null) copyIcon,
