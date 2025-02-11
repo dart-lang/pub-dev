@@ -116,17 +116,18 @@ Future<R> withRetryPubApiClient<R>(
   /// The enabled experiments that will be part of the experimental cookie.
   Set<String>? experiments,
 }) async {
-  final httpClient = httpClientWithAuthorization(
-    tokenProvider: () async => authToken,
-    sessionIdProvider: () async => sessionId,
-    csrfTokenProvider: () async => csrfToken,
-    cookieProvider: () async => {
-      if (experiments != null) experimentalCookieName: experiments.join(':'),
-    },
-    client: http.Client(),
-  );
   return await retry(
     () async {
+      final httpClient = httpClientWithAuthorization(
+        tokenProvider: () async => authToken,
+        sessionIdProvider: () async => sessionId,
+        csrfTokenProvider: () async => csrfToken,
+        cookieProvider: () async => {
+          if (experiments != null)
+            experimentalCookieName: experiments.join(':'),
+        },
+        client: http.Client(),
+      );
       try {
         final apiClient = PubApiClient(
           pubHostedUrl ?? activeConfiguration.primaryApiUri!.toString(),
