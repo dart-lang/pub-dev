@@ -44,8 +44,6 @@ void main() {
       final user = await fakeTestScenario.createAnonymousTestUser();
 
       await user.withBrowserPage((page) async {
-        await page.gotoOrigin('/experimental?search-completion=1');
-
         await page.gotoOrigin('/');
         await page.keyboard.type('is:un');
         await Future.delayed(Duration(milliseconds: 200));
@@ -59,8 +57,6 @@ void main() {
       });
 
       await user.withBrowserPage((page) async {
-        await page.gotoOrigin('/experimental?search-completion=1');
-
         await page.gotoOrigin('/packages?q=abc');
         await page.focus('input[name="q"]');
         // go to the end of the input field and start typing
