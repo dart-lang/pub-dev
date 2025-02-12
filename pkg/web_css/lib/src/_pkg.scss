@@ -473,10 +473,6 @@
     // Lower contrast than the regular monochrome icon rules.
     --pub-monochrome-opacity-initial: 0.3;
     --pub-monochrome-opacity-hover: 0.7;
-
-    h1.title:hover & {
-      opacity: var(--pub-monochrome-opacity-hover);
-    }
   }
 
   .pkg-page-title-copy-feedback {
