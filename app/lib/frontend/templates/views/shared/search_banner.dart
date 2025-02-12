@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/data/completion.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
@@ -36,8 +35,7 @@ d.Node searchBannerNode({
         value: queryText,
         attributes: {
           'title': 'Search',
-          if (requestContext.experimentalFlags.isSearchCompletionEnabled)
-            'data-widget': 'completion',
+          'data-widget': 'completion',
           'data-completion-src': '/api/search-input-completion-data',
           'data-completion-class': 'search-completion',
         },

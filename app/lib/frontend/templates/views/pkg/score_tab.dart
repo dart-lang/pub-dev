@@ -14,7 +14,6 @@ import 'package:pub_dev/shared/utils.dart';
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
-import '../../../request_context.dart';
 import '../../../static_files.dart';
 
 /// Renders the score page content.
@@ -95,8 +94,7 @@ d.Node scoreTabNode({
           d.text(' for details.'),
         ],
       ),
-    if (card.weeklyVersionDownloads != null &&
-        requestContext.experimentalFlags.showDownloadCountsVersionChart)
+    if (card.weeklyVersionDownloads != null)
       _downloadsChart(card.weeklyVersionDownloads!),
   ]);
 }

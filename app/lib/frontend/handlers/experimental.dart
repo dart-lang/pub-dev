@@ -9,13 +9,7 @@ import '../../shared/cookie_utils.dart';
 typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
-  (name: 'dark', description: 'Dark mode'),
-  (name: 'search-completion', description: 'Completions for the search bar'),
   (name: 'search-topics', description: 'Show matching topics when searching'),
-  (
-    name: 'download-counts-version-chart',
-    description: 'Show downloads counts version chart'
-  ),
 };
 
 final _allFlags = <String>{
@@ -92,13 +86,9 @@ class ExperimentalFlags {
     return params;
   }
 
-  bool get isSearchCompletionEnabled => true;
   bool get isSearchTopicsEnabled => isEnabled('search-topics');
 
-  bool get isDarkModeEnabled => true;
   bool get isDarkModeDefault => isEnabled('dark-as-default');
-
-  bool get showDownloadCountsVersionChart => true;
 
   String encodedAsCookie() => _enabled.join(':');
 

@@ -41,8 +41,6 @@ void main() {
 
       // test keyboard navigation
       await user.withBrowserPage((page) async {
-        await page.gotoOrigin('/experimental?dark=1');
-
         Future<void> expectDarkTheme() async {
           expect(await page.$OrNull('body.light-theme'), isNull);
           expect(await page.$OrNull('body.dark-theme'), isNotNull);
