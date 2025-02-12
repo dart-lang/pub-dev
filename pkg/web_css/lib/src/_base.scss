@@ -120,6 +120,10 @@ a {
     padding: 4px 12px;
   }
 
+  &:hover {
+    text-decoration: underline;
+  }
+
   .light-theme & {
     &:hover {
       filter: brightness(80%);
