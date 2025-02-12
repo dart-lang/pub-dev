@@ -294,6 +294,9 @@
     text-align: center;
     position: relative;
 
+    // compensate default link hover effects
+    a { filter: none; }
+
     &:hover,
     &:focus-within {
       .pow-video-overlay-img-active { display: inline-block; }
