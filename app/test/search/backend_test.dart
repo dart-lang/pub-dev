@@ -17,7 +17,7 @@ void main() {
       final descr = await searchBackend.fetchSdkLibraryDescriptions(
         baseUri: index.baseUri,
         libraryRelativeUrls: {
-          'dart:async': 'dart-async/dart-async-library.html',
+          'dart:async': 'dart-async/index.html',
         },
       );
       expect(descr, {
