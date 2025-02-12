@@ -281,6 +281,22 @@
   }
 }
 
+@mixin brightness-on-hover {
+  transition: 0.3s filter;
+
+  .light-theme & {
+    &:hover {
+      filter: brightness(80%);
+    }
+  }
+
+  .dark-theme & {
+    &:hover {
+      filter: brightness(120%);
+    }
+  }
+}
+
 $device-desktop-min-width: 641px;
 $device-mobile-max-width: 640px;
 $device-tablet-max-width: 979px;
