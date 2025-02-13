@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:tar/tar.dart';
 
@@ -84,6 +85,11 @@ Future<void> importProfile({
     final nextPending = <ResolvedVersion>[];
 
     for (final rv in pending) {
+      final testPackage =
+          profile.packages.firstWhereOrNull((p) => p.name == rv.package);
+      final testVersion = testPackage?.versions
+          ?.firstWhereOrNull((v) => v.version == rv.version);
+
       // figure out the active user
       final uploaderEmails = _potentialActiveEmails(profile, rv.package);
       final uploaderEmail =
@@ -91,7 +97,14 @@ Future<void> importProfile({
       lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
       var bytes = pendingBytes['${rv.package}/${rv.version}'] ??
-          await source.getArchiveBytes(rv.package, rv.version);
+          await source.getArchiveBytes(
+            rv.package,
+            rv.version,
+            {
+              ...?testPackage?.metadata,
+              ...?testVersion?.metadata,
+            },
+          );
       bytes = await _mayCleanupTarModeBits(bytes);
       try {
         await withRetryPubApiClient(
