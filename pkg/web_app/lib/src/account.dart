@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+// TODO: migrate to package:web
+// ignore: deprecated_member_use
 import 'dart:html';
 
 import 'admin_pages.dart' deferred as admin_pages;

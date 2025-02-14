@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+// TODO: migrate to package:web
+// ignore: deprecated_member_use
 import 'dart:html';
 
 import 'package:_pub_shared/format/x_ago_format.dart';

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+// TODO: migrate to package:web
+// ignore: deprecated_member_use
 import 'dart:html';
 
 import '_dom_helper.dart';
