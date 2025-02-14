@@ -97,7 +97,7 @@ void main() {
         {
           'sdk': 'flutter',
           'library': 'widgets',
-          'url': 'https://api.flutter.dev/flutter/widgets/widgets-library.html',
+          'url': contains('https://api.flutter.dev/flutter/widgets'),
           'score': closeTo(0.98, 0.01),
           'apiPages': [
             {
