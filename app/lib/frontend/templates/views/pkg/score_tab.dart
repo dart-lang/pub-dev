@@ -219,6 +219,11 @@ d.Node _downloadsChart(WeeklyVersionDownloadCounts weeklyVersionDownloads) {
               value: 'stacked',
               label: 'Stacked',
             ),
+            (
+              id: 'version-modes-percentage',
+              value: 'percentage',
+              label: 'Percentage',
+            ),
           ],
           classes: ['downloads-chart-radio-button'],
           initialValue: 'unstacked')

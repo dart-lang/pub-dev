@@ -29,6 +29,7 @@ String squareColorClass(int i) => 'downloads-chart-square-${colors[i]}';
 enum DisplayMode {
   stacked,
   unstacked,
+  percentage,
 }
 
 void create(HTMLElement element, Map<String, String> options) {
@@ -64,6 +65,8 @@ void create(HTMLElement element, Map<String, String> options) {
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
   final weeksToDisplay = math.min(40, data.totalWeeklyDownloads.length);
+  final totals =
+      data.totalWeeklyDownloads.sublist(0, weeksToDisplay).reversed.toList();
 
   final majorDisplayLists = prepareWeekLists(
     data.totalWeeklyDownloads,
@@ -106,14 +109,21 @@ void create(HTMLElement element, Map<String, String> options) {
       svg = createNewSvg();
       element.append(svg);
       currentDisplayList = displayList;
-      drawChart(svg, toolTip, displayList, data.newestDate,
-          displayMode: currentDisplayMode);
+      drawChart(
+        svg,
+        toolTip,
+        displayList,
+        data.newestDate,
+        totals,
+        displayMode: currentDisplayMode,
+      );
     });
   });
 
   final displayModesMap = <String, DisplayMode>{
     'stacked': DisplayMode.stacked,
-    'unstacked': DisplayMode.unstacked
+    'unstacked': DisplayMode.unstacked,
+    'percentage': DisplayMode.percentage,
   };
 
   final displayModes = document.getElementsByName(displayRadio).toList();
@@ -131,12 +141,24 @@ void create(HTMLElement element, Map<String, String> options) {
       svg = createNewSvg();
       element.append(svg);
       currentDisplayMode = displayMode;
-      drawChart(svg, toolTip, currentDisplayList, data.newestDate,
-          displayMode: displayMode);
+      drawChart(
+        svg,
+        toolTip,
+        currentDisplayList,
+        data.newestDate,
+        totals,
+        displayMode: displayMode,
+      );
     });
   });
 
-  drawChart(svg, toolTip, majorDisplayLists, data.newestDate);
+  drawChart(
+    svg,
+    toolTip,
+    majorDisplayLists,
+    data.newestDate,
+    totals,
+  );
 }
 
 void drawChart(
@@ -144,6 +166,7 @@ void drawChart(
     HTMLDivElement toolTip,
     ({List<String> ranges, List<List<int>> weekLists}) displayLists,
     DateTime newestDate,
+    List<int> totals,
     {DisplayMode displayMode = DisplayMode.unstacked}) {
   final ranges = displayLists.ranges;
   final values = displayLists.weekLists;
@@ -169,10 +192,13 @@ void drawChart(
   /// Computes max value on y-axis such that we get a nice division for the
   /// interval length between the numbers shown by the ticks on the y axis.
   (int maxY, int interval) computeMaxYAndInterval(List<List<int>> values) {
-    final maxDownloads = displayMode == DisplayMode.unstacked
-        ? values.fold<int>(1, (a, b) => math.max<int>(a, b.reduce(math.max)))
-        : values.fold<int>(
-            1, (a, b) => math.max<int>(a, b.reduce((x, y) => x + y)));
+    final maxDownloads = switch (displayMode) {
+      DisplayMode.unstacked =>
+        values.fold<int>(1, (a, b) => math.max<int>(a, b.reduce(math.max))),
+      DisplayMode.stacked => values.fold<int>(
+          1, (a, b) => math.max<int>(a, b.reduce((x, y) => x + y))),
+      _ => 100 // percentage
+    };
 
     final digits = maxDownloads.toString().length;
     final buffer = StringBuffer()..write('1');
@@ -195,7 +221,7 @@ void drawChart(
   final firstDate = computeDateForWeekNumber(newestDate, values.length, 0);
   final xAxisSpan = newestDate.difference(firstDate);
 
-  (double, double) computeCoordinates(DateTime date, int downloads) {
+  (double, double) computeCoordinates(DateTime date, num downloads) {
     final duration = date.difference(firstDate);
     // We don't risk division by 0 here, since `xAxisSpan` is a non-zero duration.
     final x = leftPadding +
@@ -257,8 +283,10 @@ void drawChart(
     final tickLabel = SVGTextElement();
     tickLabel.setAttribute(
         'class', 'downloads-chart-tick-label  downloads-chart-tick-label-y');
-    tickLabel.text =
-        '${compactFormat(i * interval).value}${compactFormat(i * interval).suffix}';
+    final suffix = displayMode == DisplayMode.percentage
+        ? '%'
+        : compactFormat(i * interval).suffix;
+    tickLabel.text = '${compactFormat(i * interval).value}$suffix';
     tickLabel.setAttribute('x', '${xMax + marginPadding}');
     tickLabel.setAttribute('y', '$y');
     chart.append(tickLabel);
@@ -288,19 +316,24 @@ void drawChart(
 
   // Chart lines and legends
 
-  final lastestDownloads = List.filled(values.length, 0);
+  final latestDownloads = List<num>.filled(values.length, 0);
   final lines = <List<(double, double)>>[];
   for (int versionRange = 0; versionRange < values[0].length; versionRange++) {
     final List<(double, double)> lineCoordinates = <(double, double)>[];
     for (int week = 0; week < values.length; week++) {
-      if (displayMode == DisplayMode.stacked) {
-        lastestDownloads[week] += values[week][versionRange];
+      final value = displayMode == DisplayMode.percentage
+          ? values[week][versionRange] * 100 / totals[week]
+          : values[week][versionRange];
+
+      if (displayMode == DisplayMode.unstacked) {
+        latestDownloads[week] = value;
       } else {
-        lastestDownloads[week] = values[week][versionRange];
+        latestDownloads[week] += value;
       }
+
       final (x, y) = computeCoordinates(
           computeDateForWeekNumber(newestDate, values.length, week),
-          lastestDownloads[week]);
+          latestDownloads[week]);
       lineCoordinates.add((x, y));
     }
     lines.add(lineCoordinates);
@@ -349,7 +382,8 @@ void drawChart(
     path.setAttribute('clip-path', 'url(#clipRect)');
     chart.append(path);
 
-    if (displayMode == DisplayMode.stacked) {
+    if (displayMode == DisplayMode.stacked ||
+        displayMode == DisplayMode.percentage) {
       final prevLine = i == lines.length - 1
           ? [(xZero, yZero), (xMax, yZero)]
           : lines[lines.length - 1 - i - 1];
@@ -450,20 +484,26 @@ void drawChart(
 
     final downloads = values[nearestIndex];
     for (int i = 0; i < downloads.length; i++) {
-      final index = ranges.length - 1 - i;
-      if (downloads[index] > 0) {
+      final rangeIndex = ranges.length - 1 - i;
+      if (downloads[rangeIndex] > 0) {
         // We only show the exact download count in the tooltip if it is non-zero.
         final square = HTMLDivElement()
           ..setAttribute(
               'class', 'downloads-chart-tooltip-square ${squareColorClass(i)}');
-        final rangeText = HTMLSpanElement()..text = '${ranges[index]}: ';
+        final rangeText = HTMLSpanElement()..text = '${ranges[rangeIndex]}: ';
         final tooltipRange = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')
           ..append(square)
           ..append(rangeText);
+
+        final suffix = (displayMode == DisplayMode.percentage)
+            ? '(${(downloads[rangeIndex] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
+            : '';
+        final text =
+            '${formatWithThousandSeperators(downloads[rangeIndex])}$suffix';
         final downloadsText = HTMLSpanElement()
           ..setAttribute('class', 'downloads-chart-tooltip-downloads')
-          ..text = '${formatWithThousandSeperators(downloads[index])}';
+          ..text = text;
         final tooltipRow = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')
           ..append(tooltipRange)
