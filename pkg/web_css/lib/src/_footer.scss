@@ -15,6 +15,7 @@
   color: var(--pub-footer-text-color);
 
   > a.link {
+    display: inline-block;
     color: var(--pub-footer-text-color);
     padding-right: 12px;
     text-wrap: nowrap;
