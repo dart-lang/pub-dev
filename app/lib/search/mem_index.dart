@@ -314,8 +314,13 @@ class InMemoryPackageIndex {
       final downloadScore = doc.downloadScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
       final popularityScore = (downloadScore + likeScore) / 2;
-      final pointScore =
-          math.sqrt(doc.grantedPoints / math.max(1, doc.maxPoints));
+
+      // prevent division by zero in case maxPoints is zero
+      final pointRatio = doc.grantedPoints / math.max(1, doc.maxPoints);
+      // force value between 0.0 and 1.0 in case we have bad points
+      // using square root to lower the differences between higher values
+      final pointScore = math.sqrt(math.max(0.0, math.min(1.0, pointRatio)));
+
       final overall = popularityScore * 0.5 + pointScore * 0.5;
       doc.overallScore = overall;
       // adding a base score prevents later multiplication with zero
