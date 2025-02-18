@@ -117,7 +117,9 @@ class SearchBackend {
       } catch (e, st) {
         _logger.pubNoticeShout(
             'snapshot-building', 'Snapshot update failed.', e, st);
-        // Force waiting at least an hour before we rethrow the exception
+        // Force waiting at least an hour before we rethrow the exception,
+        // otherwise we could get into a reboot loop that doesn't get much
+        // real work done on the other tasks.
         final elapsed = clock.now().difference(started);
         if (elapsed < Duration(hours: 1)) {
           _logger.warning('Waiting before rethrowing exception.', e, st);
