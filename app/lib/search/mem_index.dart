@@ -313,9 +313,10 @@ class InMemoryPackageIndex {
     _adjustedOverallScores = _documents.map((doc) {
       final downloadScore = doc.downloadScore ?? 0.0;
       final likeScore = doc.likeScore ?? 0.0;
-      final combinedScore = (downloadScore + likeScore) / 2;
-      final points = doc.grantedPoints / math.max(1, doc.maxPoints);
-      final overall = combinedScore * 0.5 + points * 0.5;
+      final popularityScore = (downloadScore + likeScore) / 2;
+      final pointScore =
+          math.sqrt(doc.grantedPoints / math.max(1, doc.maxPoints));
+      final overall = popularityScore * 0.5 + pointScore * 0.5;
       doc.overallScore = overall;
       // adding a base score prevents later multiplication with zero
       return 0.4 + 0.6 * overall;
