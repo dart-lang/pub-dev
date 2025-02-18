@@ -98,7 +98,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'nameMatches': ['async'],
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+          {'package': 'async', 'score': closeTo(0.71, 0.01)},
         ],
       });
     });
@@ -143,8 +143,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
+          {'package': 'async', 'score': closeTo(0.71, 0.01)},
           {'package': 'http', 'score': closeTo(0.69, 0.01)},
-          {'package': 'async', 'score': closeTo(0.65, 0.01)},
         ],
       });
     });
@@ -157,7 +157,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.34, 0.01)},
+          {'package': 'async', 'score': closeTo(0.37, 0.01)},
         ],
       });
     });
@@ -183,7 +183,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.24, 0.01)},
+          {'package': 'async', 'score': closeTo(0.26, 0.01)},
         ],
       });
     });
@@ -335,7 +335,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http', 'score': closeTo(0.92, 0.01)},
-          {'package': 'async', 'score': closeTo(0.41, 0.01)},
+          {'package': 'async', 'score': closeTo(0.52, 0.01)},
         ],
       });
 
@@ -422,7 +422,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.41, 0.01)},
+          {'package': 'async', 'score': closeTo(0.52, 0.01)},
         ],
       });
 
