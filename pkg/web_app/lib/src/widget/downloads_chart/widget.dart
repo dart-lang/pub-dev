@@ -232,7 +232,7 @@ void drawChart(
   }
 
   final chart = SVGGElement();
-  svg.replaceChildren(chart);
+  svg.append(chart);
 
   // Axis and ticks
 
@@ -449,7 +449,7 @@ void drawChart(
   hideCursor(1);
 
   svg.onMouseMove.listen((e) {
-    final boundingRect = chart.getBoundingClientRect();
+    final boundingRect = svg.getBoundingClientRect();
     if (e.x < boundingRect.x + xZero ||
         e.x > boundingRect.x + xMax ||
         e.y < boundingRect.y + yMax ||
@@ -465,10 +465,8 @@ void drawChart(
         'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
             'left:${e.x}px;');
 
-    final pointPercentage =
-        (e.x - chart.getBoundingClientRect().x - xZero) / chartWidth;
+    final pointPercentage = (e.x - boundingRect.x - xZero) / chartWidth;
     final nearestIndex = ((values.length - 1) * pointPercentage).round();
-
     final selectedDay =
         computeDateForWeekNumber(newestDate, values.length, nearestIndex);
     if (selectedDay == lastSelectedDay) return;
@@ -497,7 +495,7 @@ void drawChart(
           ..append(rangeText);
 
         final suffix = (displayMode == DisplayMode.percentage)
-            ? '(${(downloads[rangeIndex] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
+            ? ' (${(downloads[rangeIndex] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
             : '';
         final text =
             '${formatWithThousandSeperators(downloads[rangeIndex])}$suffix';
