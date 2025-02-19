@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
-import 'dart:io';
 
 import 'package:puppeteer/puppeteer.dart';
 
+import 'screenshot_utils.dart';
 import 'test_browser.dart';
 
 const webmastersReadonlyScope =
@@ -46,10 +46,6 @@ Future<ListingPageInfo> listingPageInfo(Page page) async {
 }
 
 extension PubPageExt on Page {
-  Future<void> saveScreenshot(String path) async {
-    await File(path).writeAsBytes(await screenshot());
-  }
-
   Future<void> waitFocusAndType(String selector, String text) async {
     await waitForSelector(selector, timeout: Duration(seconds: 5));
     await focus(selector);
@@ -221,7 +217,7 @@ extension PubPageExt on Page {
         return;
       }
     }
-    await saveScreenshot('layout-timeout.png');
+    await writeScreenshotToFile('layout-timeout.png');
     throw TimeoutException('Did not have a stable layout in $timeout.');
   }
 

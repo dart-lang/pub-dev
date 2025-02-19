@@ -8,6 +8,7 @@ import 'package:_pub_shared/data/admin_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
@@ -58,6 +59,9 @@ void main() {
         (page) async {
           await page.gotoOrigin('/report?subject=package:oxygen');
           await page.waitAndClick('.report-page-direct-report');
+          await page.takeScreenshots(
+              prefix: 'report-page/direct-report',
+              selector: '#report-page-form');
           await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
           await page.waitFocusAndType(
               '#report-message', 'Huston, we have a problem.');
