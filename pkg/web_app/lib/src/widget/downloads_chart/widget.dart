@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:js_interop';
 import 'dart:math' as math;
 
 import 'package:_pub_shared/data/download_counts_data.dart';
@@ -111,6 +112,7 @@ void create(HTMLElement element, Map<String, String> options) {
       currentDisplayList = displayList;
       drawChart(
         svg,
+        svg.getBoundingClientRect().width,
         toolTip,
         displayList,
         data.newestDate,
@@ -143,6 +145,7 @@ void create(HTMLElement element, Map<String, String> options) {
       currentDisplayMode = displayMode;
       drawChart(
         svg,
+        svg.getBoundingClientRect().width,
         toolTip,
         currentDisplayList,
         data.newestDate,
@@ -152,17 +155,41 @@ void create(HTMLElement element, Map<String, String> options) {
     });
   });
 
+  void resize(double width) {
+    element.removeChild(svg);
+    svg = createNewSvg();
+    element.append(svg);
+
+    drawChart(
+      svg,
+      width,
+      toolTip,
+      currentDisplayList,
+      data.newestDate,
+      totals,
+    );
+  }
+
+  final resizeObserver = ResizeObserver(
+      (JSArray<ResizeObserverEntry> a, ResizeObserverBoxOptions b) {
+    resize(a.toDart[0].contentRect.width);
+  }.toJS);
+
   drawChart(
     svg,
+    svg.getBoundingClientRect().width,
     toolTip,
-    majorDisplayLists,
+    currentDisplayList,
     data.newestDate,
     totals,
   );
+
+  resizeObserver.observe(element);
 }
 
 void drawChart(
     Element svg,
+    double width,
     HTMLDivElement toolTip,
     ({List<String> ranges, List<List<int>> weekLists}) displayLists,
     DateTime newestDate,
@@ -173,8 +200,7 @@ void drawChart(
 
   if (values.isEmpty) return;
 
-  final frameWidth =
-      775; // TODO(zarah): Investigate if this width can be dynamic
+  final frameWidth = width;
   final topPadding = 30;
   final leftPadding = 30;
   final rightPadding = 70; // Make extra room for labels on y-axis
@@ -266,8 +292,15 @@ void drawChart(
 
     final tickLabel = SVGTextElement();
     chart.append(tickLabel);
-    tickLabel.setAttribute(
-        'class', 'downloads-chart-tick-label  downloads-chart-tick-label-x');
+
+    if (week % 8 == 0) {
+      // We skip every other label on small screens.
+      tickLabel.setAttribute('class',
+          'downloads-chart-tick-label  downloads-chart-anchored-tick-label-x');
+    } else {
+      tickLabel.setAttribute(
+          'class', 'downloads-chart-tick-label  downloads-chart-tick-label-x');
+    }
     tickLabel.text = formatAbbrMonthDay(date);
     tickLabel.setAttribute('y', '$tickLabelYCoordinate');
     tickLabel.setAttribute('x', '$x');
@@ -460,12 +493,15 @@ void drawChart(
     }
 
     cursor.setAttribute('style', 'opacity:1');
-    toolTip.setAttribute(
-        'style',
-        'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
-            'left:${e.x}px;');
 
     final pointPercentage = (e.x - boundingRect.x - xZero) / chartWidth;
+    final horizontalPosition =
+        e.x + toolTip.getBoundingClientRect().width > width
+            ? 'left:${e.x - toolTip.getBoundingClientRect().width}px;'
+            : 'left:${e.x}px;';
+    toolTip.setAttribute('style',
+        'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;$horizontalPosition');
+
     final nearestIndex = ((values.length - 1) * pointPercentage).round();
     final selectedDay =
         computeDateForWeekNumber(newestDate, values.length, nearestIndex);

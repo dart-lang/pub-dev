@@ -279,13 +279,17 @@
   .downloads-chart {
     display: flex;
     height: 700px;
-    width: 775px;
+    width: 100%;
     flex-direction: column;
     margin-top: 16px;
   }
 
   .downloads-chart-version-modes {
     float: right;
+
+    @media (max-width: variables.$downloads-chart-display-max-width) {
+      float: left;
+    }
   }
 
   .downloads-chart-display-modes {
@@ -293,7 +297,14 @@
   }
 
   .downloads-chart-radio-button {
+    display: flex;
+    flex-direction: row;
     margin-left: 10px;
+
+    @media (max-width: variables.$downloads-chart-radio-max-width) {
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   .downloads-chart-axis-line {
@@ -357,6 +368,14 @@
   }
 
   .downloads-chart-tick-label-x {
+    text-anchor: middle;
+    @media (max-width: variables.$downloads-chart-label-max-width) {
+      display: none;
+    }
+  }
+
+  // These labels are not removed even if the screen gets smaller.
+  .downloads-chart-anchored-tick-label-x {
     text-anchor: middle;
   }
 

@@ -449,18 +449,17 @@ d.Node radioButtons({
     nodes.add(d.strong(text: leadingText));
   }
   radios.forEach((e) {
-    nodes.add(d.input(
+    final button = (d.input(
       id: e.id,
       type: 'radio',
       name: name,
       value: e.value,
-      classes: [
-        ...?classes,
-      ],
       attributes: {if (e.value == initialValue) 'checked': ''},
     ));
-    nodes.add(d.label(attributes: {'for': e.id}, child: d.text(e.label)));
+    final label = d.label(attributes: {'for': e.id}, child: d.text(e.label));
+    final div = d.div(children: [button, label]);
+    nodes.add(div);
   });
 
-  return d.div(classes: ['mdc-form-field'], children: nodes);
+  return d.div(classes: ['mdc-form-field', ...?classes], children: nodes);
 }
