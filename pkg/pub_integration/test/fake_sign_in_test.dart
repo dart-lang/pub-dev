@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
+import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
@@ -50,6 +51,13 @@ void main() {
       String? firstSessionId;
       // sign-in page
       await browserSession.withBrowserPage((page) async {
+        await page.gotoOrigin('/');
+        await page.takeScreenshots(
+            selector: '.site-header',
+            prefix: 'landing-page/site-header-public');
+        await page.takeScreenshots(
+            selector: '.site-footer', prefix: 'landing-page/site-footer');
+
         {
           final rs = await page.gotoOrigin('/sign-in?fake-email=user@pub.dev');
           final cookies = await page.cookies();
@@ -63,6 +71,9 @@ void main() {
           firstSessionId =
               cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value;
         }
+        await page.takeScreenshots(
+            selector: '.site-header',
+            prefix: 'landing-page/site-header-authenticated');
 
         // same user sign-in with redirect
         {

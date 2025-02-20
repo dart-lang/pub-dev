@@ -9,6 +9,8 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
 
+import 'screenshot_utils.dart';
+
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
 class TestBrowser {
@@ -90,6 +92,7 @@ class TestBrowser {
       userDataDir: userDataDir.path,
       headless: !_displayBrowser,
       devTools: false,
+      defaultViewport: desktopDeviceViewport,
     );
 
     // Update the default permissions like clipboard access.

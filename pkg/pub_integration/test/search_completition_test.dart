@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
+import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
@@ -47,6 +48,8 @@ void main() {
         await page.gotoOrigin('/');
         await page.keyboard.type('is:un');
         await Future.delayed(Duration(milliseconds: 200));
+        await page.takeScreenshots(
+            selector: 'body', prefix: 'landing-page/search-completion');
         await page.keyboard.press(Key.enter);
         await Future.delayed(Duration(milliseconds: 200));
         await page.keyboard.press(Key.enter);
@@ -62,6 +65,8 @@ void main() {
         // go to the end of the input field and start typing
         await page.keyboard.press(Key.arrowDown);
         await page.keyboard.type(' -sdk:fl');
+        await page.takeScreenshots(
+            selector: 'body', prefix: 'listing-page/search-completion');
         await Future.delayed(Duration(milliseconds: 200));
         await page.keyboard.press(Key.enter);
         await Future.delayed(Duration(milliseconds: 200));

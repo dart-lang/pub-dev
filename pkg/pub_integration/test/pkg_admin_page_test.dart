@@ -9,6 +9,7 @@ import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
@@ -52,6 +53,8 @@ void main() {
         // github publishing
         await user.withBrowserPage((page) async {
           await page.gotoOrigin('/packages/test_pkg/admin');
+          await page.takeScreenshots(
+              prefix: 'package-page/admin-page', selector: 'body');
 
           await page.waitAndClick('#-pkg-admin-automated-github-enabled');
           await page.waitForLayout([

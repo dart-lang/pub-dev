@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
+import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
@@ -69,6 +70,8 @@ void main() {
       await user.withBrowserPage(
         (page) async {
           await page.gotoOrigin('/packages/retry');
+          await page.takeScreenshots(
+              prefix: 'package-page/readme-page', selector: 'body');
 
           // check pub score
           final pubScoreElem = await page
@@ -94,6 +97,14 @@ void main() {
 
           await page.gotoOrigin('/packages/retry/license');
           await checkHeaderTitle();
+
+          await page.gotoOrigin('/packages/retry/versions');
+          await page.takeScreenshots(
+              prefix: 'package-page/versions-page', selector: 'body');
+
+          await page.gotoOrigin('/packages/retry/score');
+          await page.takeScreenshots(
+              prefix: 'package-page/score-page', selector: 'body');
         },
       );
     });
