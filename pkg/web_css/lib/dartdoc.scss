@@ -14,6 +14,9 @@
 
 @use 'src/_staging_ribbon.scss';
 
+// Included after dartdoc/resources in order to make sure we will be able to migrate to it.
+@use 'src/base_dash';
+
 // This is meant for a temporary override for highlight.js. We need to
 // figure out a better way to customize the syntax highlights for dark
 // mode, both in dartdoc and on pub.dev pages.
