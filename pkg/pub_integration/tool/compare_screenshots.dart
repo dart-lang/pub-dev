@@ -10,7 +10,7 @@ import 'package:path/path.dart' as p;
 /// Compares the screenshots from the previous and current test runs.
 /// Uses imagemagick for image processing.
 ///
-/// dart `<script.dart>` `<before-dir>` `<after-dir>` `<report-dir>`.
+/// `dart <script.dart> <before-dir> <after-dir> <report-dir>`
 Future<void> main(List<String> args) async {
   final beforeFiles = await _list(args[0]);
   final afterFiles = await _list(args[1]);
