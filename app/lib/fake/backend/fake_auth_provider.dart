@@ -7,7 +7,6 @@
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
@@ -20,6 +19,7 @@ import '../../account/auth_provider.dart';
 import '../../account/default_auth_provider.dart';
 import '../../account/session_cookie.dart';
 import '../../frontend/handlers/pubapi.client.dart';
+import '../../frontend/static_files.dart';
 import '../../service/openid/gcp_openid.dart';
 import '../../service/openid/github_openid.dart';
 import '../../service/openid/jwt.dart';
@@ -144,13 +144,9 @@ class FakeAuthProvider extends BaseAuthProvider {
     final name =
         email.split('@').first.replaceAll('-', ' ').replaceAll('.', ' ');
 
-    // gravatar image with retro face
-    final emailMd5 = md5.convert(utf8.encode(email.trim())).toString();
-    final imageUrl = 'https://www.gravatar.com/avatar/$emailMd5?d=retro&s=200';
-
     return AccountProfile(
       name: name,
-      imageUrl: imageUrl,
+      imageUrl: staticUrls.defaultProfilePng,
     );
   }
 
@@ -201,16 +197,12 @@ class FakeAuthProvider extends BaseAuthProvider {
     final name =
         email.split('@').first.replaceAll('-', ' ').replaceAll('.', ' ');
 
-    // gravatar image with retro face
-    final emailMd5 = md5.convert(utf8.encode(email.trim())).toString();
-    final imageUrl = 'https://www.gravatar.com/avatar/$emailMd5?d=retro&s=200';
-
     return AuthResult(
       oauthUserId: token.payload['sub'] as String,
       email: email,
       audience: token.payload['aud'] as String,
       name: name,
-      imageUrl: imageUrl,
+      imageUrl: staticUrls.defaultProfilePng,
       accessToken: _createGcpToken(
         email: email,
         audience: activeConfiguration.pubServerAudience!,
