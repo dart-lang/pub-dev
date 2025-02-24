@@ -19,6 +19,7 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/monitoring.dart';
 import 'package:retry/retry.dart';
 
 import '../../publisher/backend.dart';
@@ -54,6 +55,10 @@ final Logger _logger = Logger('pub.search.backend');
 /// The number of concurrent datastore/bucket fetch operations while
 /// building or updating the snapshot.
 const _defaultSnapshotBuildConcurrency = 8;
+
+/// The (approximate) amount of time while the process holds the lock
+/// and works on index building and updates.
+const _maxLockHoldPeriod = Duration(days: 1);
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -101,15 +106,30 @@ class SearchBackend {
       '$runtimeVersion/search/update-snapshot',
       expiration: Duration(minutes: 20),
     );
+    final started = clock.now();
     while (true) {
       try {
         await lock.withClaim((claim) async {
-          await doCreateAndUpdateSnapshot(claim);
+          // Force timeout exception if the process does not release the lock.
+          final lockHoldTimeout = _maxLockHoldPeriod + Duration(hours: 1);
+          await doCreateAndUpdateSnapshot(claim).timeout(lockHoldTimeout);
         });
       } catch (e, st) {
-        _logger.warning('Snapshot update failed.', e, st);
+        _logger.pubNoticeShout(
+            'snapshot-building', 'Snapshot update failed.', e, st);
+        // Force waiting at least an hour before we rethrow the exception,
+        // otherwise we could get into a reboot loop that doesn't get much
+        // real work done on the other tasks.
+        final elapsed = clock.now().difference(started);
+        if (elapsed < Duration(hours: 1)) {
+          _logger.warning('Waiting before rethrowing exception.', e, st);
+          await Future.delayed(Duration(hours: 1) - elapsed);
+        }
+        // Throwing here will crash the VM and force the instance to restart.
+        rethrow;
       }
-      // Wait for 1 minutes for sanity, before trying again.
+
+      // Allow another instance to get the lock and build the index.
       await Future.delayed(Duration(minutes: 1));
     }
   }
@@ -124,7 +144,7 @@ class SearchBackend {
 
     // The claim will be released after a day, another process may
     // start to build the snapshot from scratch again.
-    final workUntil = clock.now().add(Duration(days: 1));
+    final workUntil = clock.now().add(_maxLockHoldPeriod);
 
     // creating snapshot from scratch
     final snapshot = SearchSnapshot();
