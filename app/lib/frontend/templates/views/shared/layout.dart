@@ -31,6 +31,9 @@ d.Node pageLayoutNode({
   required String? moderationUrl,
   required ModerationSubject? moderationSubject,
 }) {
+  final appleTouchIconUrl = faviconUrl.endsWith('.png')
+      ? faviconUrl
+      : staticUrls.getAssetUrl('/static/img/apple-touch-icon.png');
   return d.fragment([
     d.unsafeRawHtml('<!DOCTYPE html>\n'),
     d.element(
@@ -85,7 +88,14 @@ d.Node pageLayoutNode({
               href:
                   'https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400&family=Google+Sans+Text:wght@400;500;700&family=Google+Sans+Mono:wght@400;700&display=swap',
             ),
+            // default favicon
             d.link(rel: 'shortcut icon', href: faviconUrl),
+            // WebClip icon(s) for Apple devices
+            // https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html
+            d.meta(rel: 'apple-touch-icon', href: appleTouchIconUrl),
+            d.meta(
+                rel: 'apple-touch-icon-precomposed', href: appleTouchIconUrl),
+
             d.link(
                 rel: 'stylesheet',
                 href: 'https://www.gstatic.com/glue/v25_0/ccb.min.css'),
