@@ -10,6 +10,7 @@ import 'dart:isolate' show Isolate;
 
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/pubapi.dart';
+import 'package:api_builder/api_builder.dart';
 import 'package:clock/clock.dart' show clock;
 import 'package:http/http.dart' show Client, ClientException;
 import 'package:indexed_blob/indexed_blob.dart';
@@ -67,6 +68,18 @@ Future<void> analyze(Payload payload) async {
         client: client.withAuthorization(() => p.token),
       );
 
+      void warnTaskAborted(Exception e, StackTrace st) {
+        _log.warning(
+            'Task was aborted when uploading ${payload.package} / ${p.version}',
+            e,
+            st);
+      }
+
+      void shoutTaskError(Object e, StackTrace st) {
+        _log.shout(
+            'failed to process ${payload.package} / ${p.version}', e, st);
+      }
+
       try {
         // Skip analysis, if we're past the worker deadline
         if (clock.now().isBefore(workerDeadline)) {
@@ -93,13 +106,15 @@ Future<void> analyze(Payload payload) async {
           );
         }
       } on TaskAbortedException catch (e, st) {
-        _log.warning(
-            'Task was aborted when uploading ${payload.package} / ${p.version}',
-            e,
-            st);
+        warnTaskAborted(e, st);
+      } on ApiResponseException catch (e, st) {
+        if (e.status == 400 && e.code == 'TaskAborted') {
+          warnTaskAborted(e, st);
+        } else {
+          shoutTaskError(e, st);
+        }
       } catch (e, st) {
-        _log.shout(
-            'failed to process ${payload.package} / ${p.version}', e, st);
+        shoutTaskError(e, st);
       }
     }
   } finally {
