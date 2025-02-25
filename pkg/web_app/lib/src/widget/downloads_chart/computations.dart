@@ -42,12 +42,14 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
   return (ranges: ranges, weekLists: result.reversed.toList());
 }
 
-/// Calculates closest point from [point] to line defined by [startPoint] and
-/// [endPoint].
+/// Calculates the closest point on the line segment between [startPoint]
+/// and [endPoint] to a given [point].
 ///
-/// This assumes that the closest point is on the line, that is within the
-/// two endpoints. Returns `(double.maxFinite, double.maxFinite)` if this is
-/// not the case.
+/// If [startPoint] and [endPoint] are the same, [startPoint] is returned.
+///
+/// If [point] is outside the line segment, that is the closest point would not
+/// be within the thwo endpoints, `(double.maxFinite, double.maxFinite)`
+/// is returned.
 (num, num) closestPointOnLine(
     (num, num) startPoint, (num, num) endPoint, (num, num) point) {
   final directionVector =
@@ -57,16 +59,15 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
     return startPoint;
   }
 
-  final vector = (point.$1 - startPoint.$1, point.$2 - startPoint.$2);
+  final v = (point.$1 - startPoint.$1, point.$2 - startPoint.$2);
 
-  // The dot product ((v · d) / (d · d)) where v = vector and d = directionVector
-  final t = ((vector.$1 * directionVector.$1 + vector.$2 * directionVector.$2) /
+  // The dot product ((v · d) / (d · d))
+  final t = ((v.$1 * directionVector.$1 + v.$2 * directionVector.$2) /
       (directionVector.$1 * directionVector.$1 +
           directionVector.$2 * directionVector.$2));
 
   if (t < 0 || t > 1) {
-    // Closest point is before or after the line. This should not happen in
-    // our use case.
+    // Closest point is before or after the line.
     return (double.maxFinite, double.maxFinite);
   }
 
