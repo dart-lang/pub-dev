@@ -78,4 +78,78 @@ void main() {
       expect(w3[i], [0, 0, 0, 0, 0, 0]);
     }
   });
+
+  group('closestPointOnLine tests', () {
+    test('point on the line', () {
+      final lineStart = (0, 0);
+      final lineEnd = (10, 10);
+      final point = (5, 5);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (5.0, 5.0));
+    });
+
+    test('point before the line', () {
+      final lineStart = (0, 0);
+      final lineEnd = (10, 10);
+      final point = (-2, -5);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (double.maxFinite, double.maxFinite));
+    });
+
+    test('point after the line', () {
+      final lineStart = (0, 0);
+      final lineEnd = (10, 10);
+      final point = (15, 15);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (double.maxFinite, double.maxFinite));
+    });
+
+    test('point off the line', () {
+      final lineStart = (0, 0);
+      final lineEnd = (10, 10);
+      final point = (5, 3);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (4.0, 4.0));
+    });
+
+    test('vertical line', () {
+      final lineStart = (1, 2);
+      final lineEnd = (1, 10);
+      final point = (5, 5);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (1.0, 5.0));
+    });
+
+    test('horizontal line', () {
+      final lineStart = (2, 1);
+      final lineEnd = (10, 1);
+      final point = (5, 5);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (5.0, 1.0));
+    });
+
+    test('same start and end points', () {
+      final lineStart = (5, 5);
+      final lineEnd = (5, 5);
+      final point = (10, 10);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (5.0, 5.0));
+    });
+
+    test('line with negative coordinates', () {
+      final lineStart = (-5, -5);
+      final lineEnd = (5, 5);
+      final point = (0, 10);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (5.0, 5.0));
+    });
+
+    test('line with negative and positive coordinates', () {
+      final lineStart = (-5, 5);
+      final lineEnd = (5, -5);
+      final point = (0, 0);
+      final closest = closestPointOnLine(lineStart, lineEnd, point);
+      expect(closest, (0.0, 0.0));
+    });
+  });
 }
