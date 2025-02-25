@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
-
 import 'package:mdc_web/mdc_web.dart' as mdc show autoInit;
+import 'package:web/web.dart';
 
 import 'src/account.dart';
 import 'src/foldable.dart';
@@ -27,7 +24,7 @@ void main() {
   // event triggered after a page is displayed:
   // - after the initial load or,
   // - from cache via back button.
-  window.onPageShow.listen((_) {
+  EventStreamProviders.pageShowEvent.forTarget(window).listen((_) {
     adjustQueryTextAfterPageShow();
   });
   _setupDarkThemeButton();
@@ -49,7 +46,7 @@ void _setupDarkThemeButton() {
   final button = document.querySelector('button.-pub-theme-toggle');
   if (button != null) {
     button.onClick.listen((_) {
-      final classes = document.body!.classes;
+      final classes = document.body!.classList;
       final isCurrentlyDark = classes.contains('dark-theme');
       window.localStorage['colorTheme'] = isCurrentlyDark ? 'false' : 'true';
       classes.toggle('dark-theme');

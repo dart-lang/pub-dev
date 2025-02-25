@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'dart:js_interop';
 import 'dart:math' show max, min;
+
+import 'package:web/web.dart';
+import 'web_util.dart';
 
 void setupFoldable() {
   _setEventForFoldable();
@@ -17,16 +18,20 @@ void setupFoldable() {
 ///   - when the `foldable-button` is clicked, the `-active` class on `foldable` is toggled
 ///   - when the `foldable` is active, the `foldable-content` element is displayed.
 void _setEventForFoldable() {
-  for (final h in document.querySelectorAll('.foldable-button')) {
+  final buttons = document
+      .querySelectorAll('.foldable-button')
+      .toElementList<HTMLElement>();
+  for (final h in buttons) {
     final foldable = _parentWithClass(h, 'foldable');
     if (foldable == null) continue;
 
     final content = foldable.querySelector('.foldable-content');
-    final scrollContainer = _parentWithClass(h, 'scroll-container');
+    final scrollContainer =
+        _parentWithClass(h, 'scroll-container') as HTMLElement?;
     if (content == null) continue;
 
     Future<void> toggle() async {
-      final isActive = foldable.classes.toggle('-active');
+      final isActive = foldable.classList.toggle('-active');
       if (!isActive) {
         return;
       }
@@ -56,7 +61,7 @@ void _setEventForFoldable() {
         /// Do not scroll if the difference is small.
         if (scrollDiff > 8) {
           final originalScrollTop = scrollContainer.scrollTop;
-          scrollContainer.scrollTo(0, originalScrollTop + scrollDiff);
+          scrollContainer.scrollTo(0.toJS, originalScrollTop + scrollDiff);
         }
       }
     }
@@ -80,8 +85,8 @@ void _setEventForFoldable() {
 
 Element? _parentWithClass(Element? elem, String className) {
   while (elem != null) {
-    if (elem.classes.contains(className)) return elem;
-    elem = elem.parent;
+    if (elem.classList.contains(className)) return elem;
+    elem = elem.parentElement;
   }
   return elem;
 }
@@ -89,14 +94,15 @@ Element? _parentWithClass(Element? elem, String className) {
 /// Setup events for forms where a checkbox shows/hides the next block based on its state.
 void _setEventForCheckboxToggle() {
   final toggleRoots = document.body!
-      .querySelectorAll('.-pub-form-checkbox-toggle-next-sibling');
+      .querySelectorAll('.-pub-form-checkbox-toggle-next-sibling')
+      .toElementList<HTMLElement>();
   for (final elem in toggleRoots) {
-    final input = elem.querySelector('input') as InputElement?;
+    final input = elem.querySelector('input') as HTMLInputElement?;
     if (input == null) continue;
     final sibling = elem.nextElementSibling;
     if (sibling == null) continue;
     input.onChange.listen((event) {
-      sibling.classes.toggle('-pub-form-block-hidden');
+      sibling.classList.toggle('-pub-form-block-hidden');
     });
   }
 }

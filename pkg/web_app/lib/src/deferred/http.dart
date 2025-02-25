@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
-
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
+import 'package:web/web.dart' show document;
+
+import '../web_util.dart';
 
 export 'package:http/http.dart';
 
@@ -17,6 +16,7 @@ Client createClientWithCsrf() => _AuthenticatedClient();
 
 String? get _csrfMetaContent => document.head
     ?.querySelectorAll('meta[name="csrf-token"]')
+    .toElementList()
     .map((e) => e.getAttribute('content'))
     .firstWhereOrNull((tokenContent) => tokenContent != null)
     ?.trim();
