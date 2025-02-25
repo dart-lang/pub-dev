@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:html/dom.dart' as html;
+import 'package:html/dom_parsing.dart' as html_parsing;
+import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pub_semver/pub_semver.dart';
@@ -95,11 +98,6 @@ String _renderSafeHtml(
   List<m.Node> nodes, {
   required bool disableHashIds,
 }) {
-  // Filter unsafe urls on some of the elements.
-  nodes.forEach((node) => node.accept(_UnsafeUrlFilter()));
-  // Transform GitHub task lists.
-  nodes.forEach((node) => node.accept(_TaskListRewriteNodeVisitor()));
-
   if (!disableHashIds) {
     // add hash link HTML to header blocks
     final hashLink = _HashLink();
@@ -107,10 +105,11 @@ String _renderSafeHtml(
   }
 
   final rawHtml = m.renderToHtml(nodes);
+  final processedHtml = _postProcessHtml(rawHtml);
 
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
-    rawHtml,
+    processedHtml,
     allowElementId: (String id) =>
         !disableHashIds, // TODO: Use a denylist for ids used by pub site
     allowClassName: (String cn) {
@@ -127,6 +126,18 @@ String _renderSafeHtml(
     },
   );
   return '$html\n';
+}
+
+String _postProcessHtml(String rawHtml) {
+  final root = html_parser.parseFragment(rawHtml);
+
+  // Filter unsafe urls on some of the elements.
+  _UnsafeUrlFilter().visit(root);
+
+  // Transform GitHub task lists.
+  _TaskListRewriteTreeVisitor().visit(root);
+
+  return root.outerHtml;
 }
 
 /// Adds an extra <a href="#hash">#</a> element to h1, h2 and h3 elements.
@@ -159,24 +170,20 @@ class _HashLink implements m.NodeVisitor {
 }
 
 /// Filters unsafe URLs from the generated HTML.
-class _UnsafeUrlFilter implements m.NodeVisitor {
+class _UnsafeUrlFilter extends html_parsing.TreeVisitor {
   @override
-  void visitText(m.Text text) {}
+  void visitElement(html.Element element) {
+    super.visitElement(element);
 
-  @override
-  bool visitElementBefore(m.Element element) {
     final isUnsafe =
         _isUnsafe(element, 'a', 'href') || _isUnsafe(element, 'img', 'src');
-    return !isUnsafe;
+    if (isUnsafe) {
+      element.replaceWith(html.Text(element.text));
+    }
   }
 
-  @override
-  void visitElementAfter(m.Element element) {
-    // no-op
-  }
-
-  bool _isUnsafe(m.Element element, String tag, String attr) {
-    if (element.tag != tag) {
+  bool _isUnsafe(html.Element element, String tag, String attr) {
+    if (element.localName != tag) {
       return false;
     }
     final url = element.attributes[attr];
@@ -282,34 +289,30 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
 
 /// HTML sanitization will remove the rendered `<input type="checkbox">` elements,
 /// we are replacing them with icons.
-class _TaskListRewriteNodeVisitor implements m.NodeVisitor {
+class _TaskListRewriteTreeVisitor extends html_parsing.TreeVisitor {
   @override
-  void visitElementAfter(m.Element element) {
-    if (element.tag != 'li') {
+  void visitElement(html.Element element) {
+    super.visitElement(element);
+
+    if (element.localName != 'li') {
       return;
     }
     if (!(element.attributes['class']?.contains('task-list-item') ?? false)) {
       return;
     }
-    final children = element.children;
-    if (children == null || children.isEmpty) {
+    final children = element.nodes;
+    if (children.isEmpty) {
       return;
     }
     final first = children.first;
-    if (first is m.Element &&
-        first.tag == 'input' &&
+    if (first is html.Element &&
+        first.localName == 'input' &&
         first.attributes['type'] == 'checkbox') {
       final checked = first.attributes['checked'] == 'true';
       children.removeAt(0);
-      children.insert(0, m.Text(checked ? '✅ ' : '❌ '));
+      children.insert(0, html.Text(checked ? '✅ ' : '❌ '));
     }
   }
-
-  @override
-  bool visitElementBefore(m.Element element) => true;
-
-  @override
-  void visitText(m.Text text) {}
 }
 
 /// Group corresponding changelog nodes together, if it matches the following

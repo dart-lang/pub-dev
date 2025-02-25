@@ -105,6 +105,26 @@ void main() {
           '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
     });
 
+    test('relative image using html tag', () {
+      expect(
+        markdownToHtml(
+          '[<img src="../../../assets/flutter-favorite-badge.png" width="100" />]'
+          '(https://flutter.dev/docs/development/packages-and-plugins/favorites)',
+        ),
+        '<p><a href="https://flutter.dev/docs/development/packages-and-plugins/favorites">'
+        '<img src="../../../assets/flutter-favorite-badge.png" width="100"></a></p>\n',
+      );
+      expect(
+        markdownToHtml(
+          '[<img src="../../../assets/flutter-favorite-badge.png" width="100" />]'
+          '(https://flutter.dev/docs/development/packages-and-plugins/favorites)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><a href="https://flutter.dev/docs/development/packages-and-plugins/favorites">'
+        '<img src="../../../assets/flutter-favorite-badge.png" width="100"></a></p>\n',
+      );
+    });
+
     test('root link within site', () {
       expect(markdownToHtml('[text](/README.md)'), '<p>text</p>\n');
       expect(
@@ -133,7 +153,7 @@ void main() {
 
   group('Unsafe markdown', () {
     test('javascript link', () {
-      expect(markdownToHtml('[a](javascript:alert("x"))'), '<p><a>a</a></p>\n');
+      expect(markdownToHtml('[a](javascript:alert("x"))'), '<p>a</p>\n');
     });
   });
 
