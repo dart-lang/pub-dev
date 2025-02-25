@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'dart:js_interop';
 
 import 'package:http/http.dart' deferred as http show get;
+import 'package:web/web.dart';
 
 typedef PopStateFn = void Function();
 
@@ -22,14 +21,15 @@ void setupPageUpdater(PopStateFn popStateFn) {
 
   // initialize history with the current state
   window.history.replaceState(
-    {'html': document.documentElement?.outerHtml},
+    {'html': document.documentElement?.outerHTML}.jsify(),
     document.title,
     window.location.href,
   );
 
   // handle back button updates
   window.onPopState.listen((event) {
-    if (event.state case {'html': final String htmlState?}) {
+    final state = event.state.dartify();
+    if (state case {'html': final String htmlState?}) {
       _update(
         htmlState,
         pushState: false,
@@ -49,13 +49,13 @@ Document _update(
   // attributes. We could re-run the initialization, but storing the current
   // values and replacing the provided ones is simpler.
   final oldClasses = document.body!.className;
-  final doc = DomParser().parseFromString(html, 'text/html');
+  final doc = DOMParser().parseFromString(html.jsify()!, 'text/html');
   document.querySelector('body')!.replaceWith(doc.querySelector('body')!);
   document.body!.className = oldClasses;
   _popStateFn!();
   if (pushState) {
-    final title = doc.querySelector('title')?.text;
-    window.history.pushState({'html': html}, title ?? '', url);
+    final title = doc.querySelector('title')?.textContent;
+    window.history.pushState({'html': html}.jsify(), title ?? '', url);
   }
   return doc;
 }
@@ -81,7 +81,7 @@ Future<void> updateBodyWithHttpGet({
       return;
     }
   } catch (e, st) {
-    window.console.error(['Page replace failed.', e, st]);
+    console.error(['Page replace failed.', e, st].jsify());
   }
   // fallback: reload the new URL
   window.location.href = navigationUrl ?? requestUri.toString();
