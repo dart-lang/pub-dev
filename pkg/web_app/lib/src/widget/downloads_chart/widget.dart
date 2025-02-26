@@ -167,6 +167,7 @@ void create(HTMLElement element, Map<String, String> options) {
       currentDisplayList,
       data.newestDate,
       totals,
+      displayMode: currentDisplayMode,
     );
   }
 
