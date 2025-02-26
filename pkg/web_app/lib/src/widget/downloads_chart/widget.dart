@@ -355,7 +355,9 @@ void drawChart(
     final List<(double, double)> lineCoordinates = <(double, double)>[];
     for (int week = 0; week < values.length; week++) {
       final value = displayMode == DisplayMode.percentage
-          ? values[week][versionRange] * 100 / totals[week]
+          ? (totals[week] == 0
+              ? 0 //Avoid division by zero, and return zero
+              : values[week][versionRange] * 100 / totals[week])
           : values[week][versionRange];
 
       if (displayMode == DisplayMode.unstacked) {
