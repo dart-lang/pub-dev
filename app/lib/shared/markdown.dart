@@ -98,14 +98,11 @@ String _renderSafeHtml(
   List<m.Node> nodes, {
   required bool disableHashIds,
 }) {
-  if (!disableHashIds) {
-    // add hash link HTML to header blocks
-    final hashLink = _HashLink();
-    nodes.forEach((node) => node.accept(hashLink));
-  }
-
   final rawHtml = m.renderToHtml(nodes);
-  final processedHtml = _postProcessHtml(rawHtml);
+  final processedHtml = _postProcessHtml(
+    rawHtml,
+    disableHashIds: disableHashIds,
+  );
 
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
@@ -128,7 +125,10 @@ String _renderSafeHtml(
   return '$html\n';
 }
 
-String _postProcessHtml(String rawHtml) {
+String _postProcessHtml(
+  String rawHtml, {
+  required bool disableHashIds,
+}) {
   final root = html_parser.parseFragment(rawHtml);
 
   // Filter unsafe urls on some of the elements.
@@ -137,35 +137,38 @@ String _postProcessHtml(String rawHtml) {
   // Transform GitHub task lists.
   _TaskListRewriteTreeVisitor().visit(root);
 
+  if (!disableHashIds) {
+    // add hash link HTML to header blocks
+    _HashLink().visit(root);
+  }
+
   return root.outerHtml;
 }
 
 /// Adds an extra <a href="#hash">#</a> element to h1, h2 and h3 elements.
-class _HashLink implements m.NodeVisitor {
+class _HashLink extends html_parsing.TreeVisitor {
   @override
-  void visitText(m.Text text) {}
+  void visitElement(html.Element element) {
+    super.visitElement(element);
 
-  @override
-  bool visitElementBefore(m.Element element) => true;
+    final isHeaderWithHash = element.attributes.containsKey('id') &&
+        _structuralHeaderTags.contains(element.localName!);
 
-  @override
-  void visitElementAfter(m.Element element) {
-    final isHeaderWithHash = element.generatedId != null &&
-        _structuralHeaderTags.contains(element.tag);
     if (isHeaderWithHash) {
-      _addHashLink(element, element.generatedId!);
+      _addHashLink(element, element.attributes['id']!);
     }
   }
 
-  void _addHashLink(m.Element element, String id) {
+  void _addHashLink(html.Element element, String id) {
     final currentClasses = element.attributes['class'] ?? '';
     element.attributes['class'] = '$currentClasses hash-header'.trim();
-    element.children!.addAll([
-      m.Text(' '),
-      m.Element('a', [m.Text('#')])
+    element.append(html.Text(' '));
+    element.append(
+      html.Element.tag('a')
+        ..text = '#'
         ..attributes['href'] = '#$id'
         ..attributes['class'] = 'hash-link',
-    ]);
+    );
   }
 }
 

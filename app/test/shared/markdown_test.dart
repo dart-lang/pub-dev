@@ -14,7 +14,7 @@ void main() {
 
     test('render link id and class', () {
       expect(markdownToHtml('# ABC def'),
-          '<h1 class="hash-header" id="abc-def">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n');
+          '<h1 id="abc-def" class="hash-header">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n');
     });
 
     test('task list', () {
@@ -298,7 +298,7 @@ void main() {
               '\n'
               '- change1',
               isChangelog: true),
-          '<h1 class="hash-header" id="changelog">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
+          '<h1 id="changelog" class="hash-header">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
           '<div class="changelog-entry">\n'
           '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>\n'
           '<div class="changelog-content">\n'
@@ -316,7 +316,7 @@ void main() {
               '## 1.0.0\n\n- change1\n\n- change2\n\n'
               '## 0.9.0\n\nMostly refactoring',
               isChangelog: true),
-          '<h1 class="hash-header" id="changelog">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
+          '<h1 id="changelog" class="hash-header">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
           '<div class="changelog-entry">\n'
           '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>\n'
           '<div class="changelog-content">\n'
@@ -362,7 +362,7 @@ void main() {
       expect(lines.where((l) => l.contains('changelog-version')), [
         '<h2 class="changelog-version hash-header" id="210">2.1.0 <a href="#210" class="hash-link">#</a></h2>',
         '<h2 class="changelog-version hash-header" id="200">2.0.0 <a href="#200" class="hash-link">#</a></h2>',
-        '<h2 class="changelog-version hash-header" id="100-2">1.0.0 <a href="#100" class="hash-link">#</a></h2>',
+        '<h2 class="changelog-version hash-header" id="100-2">1.0.0 <a href="#100-2" class="hash-link">#</a></h2>',
       ]);
     });
 
