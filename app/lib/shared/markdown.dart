@@ -52,10 +52,11 @@ String markdownToHtml(
       urlResolverFn: urlResolverFn,
       relativeFrom: relativeFrom,
     );
-    if (isChangelog) {
-      nodes = _groupChangelogNodes(nodes).toList();
-    }
-    return _renderSafeHtml(nodes, disableHashIds: disableHashIds);
+    return _renderSafeHtml(
+      nodes,
+      isChangelog: isChangelog,
+      disableHashIds: disableHashIds,
+    );
   } catch (e, st) {
     _logger.shout('Error rendering markdown.', e, st);
     // safe content inside the <pre> element
@@ -96,11 +97,13 @@ List<m.Node> _rewriteRelativeUrls(
 /// Adds hash link HTML to header blocks.
 String _renderSafeHtml(
   List<m.Node> nodes, {
+  required bool isChangelog,
   required bool disableHashIds,
 }) {
   final rawHtml = m.renderToHtml(nodes);
   final processedHtml = _postProcessHtml(
     rawHtml,
+    isChangelog: isChangelog,
     disableHashIds: disableHashIds,
   );
 
@@ -127,9 +130,16 @@ String _renderSafeHtml(
 
 String _postProcessHtml(
   String rawHtml, {
+  required bool isChangelog,
   required bool disableHashIds,
 }) {
-  final root = html_parser.parseFragment(rawHtml);
+  var root = html_parser.parseFragment(rawHtml);
+
+  if (isChangelog) {
+    final oldNodes = [...root.nodes];
+    root = html.DocumentFragment();
+    _groupChangelogNodes(oldNodes).forEach(root.append);
+  }
 
   // Filter unsafe urls on some of the elements.
   _UnsafeUrlFilter().visit(root);
@@ -333,39 +343,44 @@ class _TaskListRewriteTreeVisitor extends html_parsing.TreeVisitor {
 ///     {{log entries in their original HTML format}}
 ///   </div>
 /// </div>
-Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
-  m.Element? lastContentDiv;
+Iterable<html.Node> _groupChangelogNodes(List<html.Node> nodes) sync* {
+  html.Element? lastContentDiv;
   String? firstHeaderTag;
   for (final node in nodes) {
-    final nodeTag = node is m.Element ? node.tag : null;
+    final nodeTag = node is html.Element ? node.localName : null;
     final isNewHeaderTag = firstHeaderTag == null &&
         nodeTag != null &&
         _structuralHeaderTags.contains(nodeTag);
     final matchesFirstHeaderTag =
         firstHeaderTag != null && nodeTag == firstHeaderTag;
-    final mayBeVersion = node is m.Element &&
+    final mayBeVersion = node is html.Element &&
         (isNewHeaderTag || matchesFirstHeaderTag) &&
-        node.children!.isNotEmpty &&
-        node.children!.first is m.Text;
-    final versionText =
-        mayBeVersion ? node.children!.first.textContent.trim() : null;
+        node.nodes.isNotEmpty &&
+        node.nodes.first is html.Text;
+    final versionText = mayBeVersion ? node.nodes.first.text?.trim() : null;
     final version = mayBeVersion ? _extractVersion(versionText) : null;
     if (version != null) {
       firstHeaderTag ??= nodeTag;
-      final titleElem = m.Element('h2', [m.Text(versionText!)])
+      final titleElem = html.Element.tag('h2')
         ..attributes['class'] = 'changelog-version'
-        ..generatedId = (node as m.Element).generatedId;
+        ..attributes['id'] = node.attributes['id']!
+        ..append(html.Text(versionText!));
 
-      lastContentDiv = m.Element('div', [])
+      lastContentDiv = html.Element.tag('div')
         ..attributes['class'] = 'changelog-content';
 
-      yield m.Element('div', [
-        titleElem,
-        lastContentDiv,
-      ])
-        ..attributes['class'] = 'changelog-entry';
+      yield html.Element.tag('div')
+        ..attributes['class'] = 'changelog-entry'
+        ..append(html.Text('\n'))
+        ..append(titleElem)
+        ..append(html.Text('\n'))
+        ..append(lastContentDiv);
     } else if (lastContentDiv != null) {
-      lastContentDiv.children!.add(node);
+      final lastChild = lastContentDiv.nodes.lastOrNull;
+      if (lastChild is html.Element && lastChild.localName == 'div') {
+        lastContentDiv.append(html.Text('\n'));
+      }
+      lastContentDiv.append(node);
     } else {
       yield node;
     }
