@@ -5,7 +5,6 @@
 import 'package:pub_dev/package/backend.dart';
 
 import '../../account/backend.dart';
-import '../../account/models.dart';
 import 'actions.dart';
 
 final packageInfo = AdminAction(
