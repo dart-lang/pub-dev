@@ -4,6 +4,8 @@
 
 import 'package:pub_dev/package/backend.dart';
 
+import '../../account/backend.dart';
+import '../../account/models.dart';
 import 'actions.dart';
 
 final packageInfo = AdminAction(
@@ -27,11 +29,18 @@ Loads and displays the package information.
       throw NotFoundException.resource(package);
     }
 
+    final uploaderIds = p.uploaders;
+    List<User>? uploaders;
+    if (uploaderIds != null) {
+      uploaders =
+          (await accountBackend.lookupUsersById(uploaderIds)).nonNulls.toList();
+    }
     return {
       'package': {
         'name': p.name,
         'created': p.created?.toIso8601String(),
         'publisherId': p.publisherId,
+        'uploaders': uploaders?.map((u) => u.email).toList(),
         'latestVersion': p.latestVersion,
         'isModerated': p.isModerated,
         if (p.moderatedAt != null)

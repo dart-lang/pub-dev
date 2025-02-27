@@ -23,6 +23,7 @@ void main() {
           'name': 'oxygen',
           'created': isNotEmpty,
           'publisherId': null,
+          'uploaders': ['admin@pub.dev'],
           'latestVersion': '1.2.0',
           'isModerated': false,
         }
