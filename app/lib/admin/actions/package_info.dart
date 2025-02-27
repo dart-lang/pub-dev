@@ -30,17 +30,19 @@ Loads and displays the package information.
     }
 
     final uploaderIds = p.uploaders;
-    List<User>? uploaders;
+    List<String>? uploaderEmails;
     if (uploaderIds != null) {
-      uploaders =
-          (await accountBackend.lookupUsersById(uploaderIds)).nonNulls.toList();
+      uploaderEmails = (await accountBackend.getEmailsOfUserIds(uploaderIds))
+          .nonNulls
+          .toList();
     }
+
     return {
       'package': {
         'name': p.name,
         'created': p.created?.toIso8601String(),
         'publisherId': p.publisherId,
-        'uploaders': uploaders?.map((u) => u.email).toList(),
+        'uploaders': uploaderEmails,
         'latestVersion': p.latestVersion,
         'isModerated': p.isModerated,
         if (p.moderatedAt != null)
