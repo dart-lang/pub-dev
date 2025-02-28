@@ -408,6 +408,7 @@ void drawChart(
   final legendWidth = 20;
   final legendHeight = 8;
 
+  final linePaths = <SVGPathElement>[];
   for (int i = 0; i < lines.length; i++) {
     // We add the lines in reverse order so that the newest versions get the
     // main colors.
@@ -416,6 +417,7 @@ void drawChart(
     path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
     path.setAttribute('d', '$line');
     path.setAttribute('clip-path', 'url(#clipRect)');
+    linePaths.add(path);
     chart.append(path);
 
     if (displayMode == DisplayMode.stacked ||
@@ -475,11 +477,17 @@ void drawChart(
 
   // Setup mouse handling
 
-  DateTime? lastSelectedDay;
   void hideCursor(_) {
     cursor.setAttribute('style', 'opacity:0');
     toolTip.setAttribute('style', 'opacity:0;position:absolute;');
-    lastSelectedDay = null;
+  }
+
+  void resetHighlights() {
+    for (int i = 0; i < linePaths.length; i++) {
+      final l = linePaths[i];
+      l.removeAttribute('class');
+      l.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line');
+    }
   }
 
   hideCursor(1);
@@ -491,13 +499,16 @@ void drawChart(
         e.y < boundingRect.y + yMax ||
         e.y > boundingRect.y + yZero) {
       // We are outside the actual chart area
+      resetHighlights();
       hideCursor(1);
       return;
     }
 
     cursor.setAttribute('style', 'opacity:1');
+    final yPosition = e.y - boundingRect.y;
+    final xPosition = e.x - boundingRect.x;
+    final pointPercentage = (xPosition - xZero) / chartWidth;
 
-    final pointPercentage = (e.x - boundingRect.x - xZero) / chartWidth;
     final horizontalPosition =
         e.x + toolTip.getBoundingClientRect().width > width
             ? 'left:${e.x - toolTip.getBoundingClientRect().width}px;'
@@ -508,7 +519,14 @@ void drawChart(
     final nearestIndex = ((values.length - 1) * pointPercentage).round();
     final selectedDay =
         computeDateForWeekNumber(newestDate, values.length, nearestIndex);
-    if (selectedDay == lastSelectedDay) return;
+
+    // Determine if we are close enough to highlight one or more version ranges
+    final highlightRangeIndices = <int>{};
+    for (int i = 0; i < lines.length; i++) {
+      if (isPointOnPathWithTolerance(lines[i], (xPosition, yPosition), 5)) {
+        highlightRangeIndices.add(i);
+      }
+    }
 
     final coords = computeCoordinates(selectedDay, 0);
     cursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
@@ -528,10 +546,6 @@ void drawChart(
           ..setAttribute(
               'class', 'downloads-chart-tooltip-square ${squareColorClass(i)}');
         final rangeText = HTMLSpanElement()..text = '${ranges[rangeIndex]}: ';
-        final tooltipRange = HTMLDivElement()
-          ..setAttribute('class', 'downloads-chart-tooltip-row')
-          ..append(square)
-          ..append(rangeText);
 
         final suffix = (displayMode == DisplayMode.percentage)
             ? ' (${(downloads[rangeIndex] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
@@ -541,6 +555,27 @@ void drawChart(
         final downloadsText = HTMLSpanElement()
           ..setAttribute('class', 'downloads-chart-tooltip-downloads')
           ..text = text;
+
+        linePaths[i].removeAttribute('class');
+
+        if (highlightRangeIndices.contains(rangeIndex)) {
+          rangeText.setAttribute('class', 'downloads-chart-tooltip-highlight');
+          downloadsText.setAttribute(
+              'class', 'downloads-chart-tooltip-highlight');
+          linePaths[i].setAttribute(
+              'class', '${strokeColorClass(i)} downloads-chart-line');
+        } else if (highlightRangeIndices.isNotEmpty) {
+          linePaths[i].setAttribute(
+              'class', '${strokeColorClass(i)} downloads-chart-line-faded');
+        } else {
+          linePaths[i].setAttribute(
+              'class', '${strokeColorClass(i)} downloads-chart-line');
+        }
+        final tooltipRange = HTMLDivElement()
+          ..setAttribute('class', 'downloads-chart-tooltip-row')
+          ..append(square)
+          ..append(rangeText);
+
         final tooltipRow = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')
           ..append(tooltipRange)
@@ -548,8 +583,10 @@ void drawChart(
         toolTip.append(tooltipRow);
       }
     }
-    lastSelectedDay = selectedDay;
   });
 
-  svg.onMouseLeave.listen(hideCursor);
+  svg.onMouseLeave.listen((e) {
+    resetHighlights();
+    hideCursor(1);
+  });
 }

@@ -342,6 +342,12 @@
     padding-left: 10px;
   }
 
+  .downloads-chart-tooltip-highlight {
+    font-weight: bold;
+    color:var(--pub-neutral-textColor);
+  }
+
+
   .downloads-chart-tooltip-row {
     display: flex;
     flex-direction: row;
@@ -349,6 +355,7 @@
     justify-content: space-between;
     font-size: small;
     color: var(--pub-score_label-text-color);
+    padding-right: 4px;
   }
 
   .downloads-chart-cursor {
@@ -446,6 +453,13 @@
     fill: none;
     stroke-width: 2;
     stroke-linejoin: round;
+  }
+
+  .downloads-chart-line-faded {
+    fill: none;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    opacity: 0.3;
   }
 
   .downloads-chart-area {
