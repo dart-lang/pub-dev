@@ -125,3 +125,46 @@ bool isPointOnPathWithTolerance(
   }
   return false;
 }
+
+/// Determines if a point is inside a polygon.
+///
+/// Uses the ray casting algorithm to determine if a given point lies inside
+/// a polygon defined by a list of vertices. The polygon is assumed to be
+/// closed and non-self-intersecting.
+///
+/// Returns `true` if the point is inside the polygon or exactly on a vertex and
+/// `false` otherwise.
+bool isPointInPolygon(List<(double, double)> polygon, (double, double) point) {
+  if (polygon.length < 3) {
+    return false;
+  }
+
+  int intersections = 0;
+  final (px, py) = point;
+
+  for (int i = 0; i < polygon.length; i++) {
+    final (x1, y1) = polygon[i];
+    final (x2, y2) = polygon[(i + 1) % polygon.length];
+
+    // Check if the point is on a vertex
+    if ((px == x1 && py == y1) || (px == x2 && py == y2)) {
+      return true;
+    }
+
+    if (py > min(y1, y2) && py <= max(y1, y2)) {
+      double intersectX;
+      // vertical edge
+      if (x1 == x2) {
+        intersectX = x1;
+      } else {
+        intersectX = x1 + (py - y1) * (x2 - x1) / (y2 - y1);
+      }
+
+      if (px < intersectX) {
+        intersections++;
+      }
+    }
+  }
+
+  return intersections % 2 == 1;
+}
