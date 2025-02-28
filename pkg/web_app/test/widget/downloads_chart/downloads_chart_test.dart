@@ -152,4 +152,34 @@ void main() {
       expect(closest, (0.0, 0.0));
     });
   });
+
+  group('isPointOnPathWithTolerance', () {
+    test('Points on and off the line segment', () {
+      final path = [(0.0, 0.0), (2.0, 2.0), (4.0, 0.0)];
+
+      final pointOnLine = (1.0, 1.0);
+      expect(isPointOnPathWithTolerance(path, pointOnLine, 0.001), isTrue);
+
+      final pointCloseToLine = (1.0, 1.1);
+      expect(isPointOnPathWithTolerance(path, pointCloseToLine, 0.2), isTrue);
+      expect(
+          isPointOnPathWithTolerance(path, pointCloseToLine, 0.001), isFalse);
+
+      final pointFurtherFromLine = (1.0, 1.5);
+      expect(
+          isPointOnPathWithTolerance(path, pointFurtherFromLine, 0.1), isFalse);
+    });
+
+    test('Path with fewer than 2 points', () {
+      final path = [(1.0, 1.0)];
+      final point = (1.0, 1.0);
+      expect(isPointOnPathWithTolerance(path, point, 0.001), isFalse);
+    });
+
+    test('Point on zero length segment', () {
+      final chart = [(1.0, 1.0), (1.0, 1.0), (5.0, 1.0)];
+      final point = (1.0, 1.0);
+      expect(isPointOnPathWithTolerance(chart, point, 0.001), isTrue);
+    });
+  });
 }

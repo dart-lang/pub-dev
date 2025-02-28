@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:_pub_shared/data/download_counts_data.dart';
 
 Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
@@ -78,4 +80,48 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
     startPoint.$2 + projectionVOntoD.$2
   );
   return (closestPoint.$1, closestPoint.$2);
+}
+
+/// Calculates the Euclidean distance between two points.
+double distance((num, num) point, (double, double) point2) {
+  final dx = point.$1 - point2.$1;
+  final dy = point.$2 - point2.$2;
+  return sqrt(dx * dx + dy * dy);
+}
+
+/// Finds the closest point on [path] (a series of points defining the line
+/// segments) to a given [point].
+(num, num) closestPointOnPath(
+    List<(double, double)> path, (double, double) point) {
+  if (path.length < 2) {
+    return (double.maxFinite, double.maxFinite);
+  }
+  (num, num) closestPoint = (double.maxFinite, double.maxFinite);
+  var minDistance = double.infinity;
+  for (int i = 0; i < path.length - 1; i++) {
+    final p = closestPointOnLine(path[i], path[i + 1], point);
+    final dist = distance(p, point);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestPoint = p;
+    }
+  }
+  return closestPoint;
+}
+
+/// Determines if a given [point] is within a specified [tolerance] distance of
+/// a [path] defined by a series of points.
+bool isPointOnPathWithTolerance(
+    List<(double, double)> path, (double, double) point, double tolerance) {
+  if (path.length < 2) {
+    // Not enough points to define a line segment.
+    return false;
+  }
+
+  final closestPoint = closestPointOnPath(path, point);
+  final dist = distance(closestPoint, point);
+  if (dist < tolerance) {
+    return true;
+  }
+  return false;
 }
