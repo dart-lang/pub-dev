@@ -304,8 +304,8 @@ void main() {
           '<div class="changelog-content">\n'
           '<ul>\n'
           '<li>change1</li>\n'
-          '</ul>\n'
-          '</div>\n'
+          '</ul>'
+          '</div>'
           '</div>\n');
     });
 
@@ -324,13 +324,13 @@ void main() {
           '<li>\n<p>change1</p>\n</li>\n'
           '<li>\n<p>change2</p>\n</li>\n'
           '</ul>\n'
-          '</div>\n'
-          '</div>\n'
+          '</div>'
+          '</div>'
           '<div class="changelog-entry">\n'
           '<h2 class="changelog-version hash-header" id="090">0.9.0 <a href="#090" class="hash-link">#</a></h2>\n'
           '<div class="changelog-content">\n'
-          '<p>Mostly refactoring</p>\n'
-          '</div>\n'
+          '<p>Mostly refactoring</p>'
+          '</div>'
           '</div>\n');
     });
 
