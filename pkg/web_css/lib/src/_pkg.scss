@@ -466,6 +466,10 @@
     opacity: 0.3;
   }
 
+  .downloads-chart-area-faded {
+        opacity: 0.1;
+  }
+
   .downloads-chart-stroke-blue {
     stroke: var(--pub-downloads-chart-color-0);
   }
