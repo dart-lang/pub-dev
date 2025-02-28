@@ -493,3 +493,13 @@ a.-x-ago {
     margin-left: 36px;
   }
 }
+
+.-pub-ongoing-screenshot {
+  // Disables flashing caret (cursor) in input fields by making it invisible.
+  caret-color: transparent;
+
+  // Instantaneous transitions - no ambiguous delay in the end state.
+  * {
+    transition-duration: 0s !important;
+  }
+}
