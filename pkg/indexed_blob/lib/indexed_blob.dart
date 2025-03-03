@@ -75,7 +75,7 @@ final class IndexedBlobBuilder {
   ///
   /// This cannot be called concurrently, callers must await this operation
   /// being completed.
-  /// 
+  ///
   /// When [skipAfterSize] is set, the blob file may contain the streamed content
   /// up to the specified number of bytes, but will skip updating the index file
   /// after the threshold is reached.
