@@ -182,4 +182,46 @@ void main() {
       expect(isPointOnPathWithTolerance(chart, point, 0.001), isTrue);
     });
   });
+
+  group('isPointInPolygon', () {
+    test('Basic inside/outside, vertex, edge, and invalid input', () {
+      final square = [(0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0)];
+      final invalidPolygon = [(0.0, 0.0)];
+
+      final insidePoint = (1.0, 1.0);
+      final outsidePoint = (3.0, 1.0);
+      final vertexPoint = (0.0, 0.0);
+      final edgePoint = (1.0, 0.0);
+
+      expect(isPointInPolygon(square, insidePoint), isTrue);
+      expect(isPointInPolygon(square, outsidePoint), isFalse);
+      expect(isPointInPolygon(square, vertexPoint), isTrue);
+      expect(isPointInPolygon(square, edgePoint), isFalse);
+      expect(isPointInPolygon(invalidPolygon, insidePoint), isFalse);
+    });
+
+    test('Complex polygon', () {
+      final complexPolygon = [
+        (0.0, 0.0),
+        (0.0, 4.0),
+        (2.0, 2.0),
+        (4.0, 4.0),
+        (4.0, 0.0)
+      ];
+      final insidePoint = (1.0, 1.0);
+      final outsidePoint = (2.0, 3.0);
+      final vertexPoint = (1.0, 1.0);
+      final edgePoint = (1.0, 3.0);
+      final edgePoint2 = (3.0, 3.0);
+      final outsidePointOnEdgeExtension = (3.0, 4.0);
+
+      expect(isPointInPolygon(complexPolygon, insidePoint), isTrue);
+      expect(isPointInPolygon(complexPolygon, outsidePoint), isFalse);
+      expect(isPointInPolygon(complexPolygon, vertexPoint), isTrue);
+      expect(isPointInPolygon(complexPolygon, edgePoint), isTrue);
+      expect(isPointInPolygon(complexPolygon, edgePoint2), isTrue);
+      expect(isPointInPolygon(complexPolygon, outsidePointOnEdgeExtension),
+          isFalse);
+    });
+  });
 }
