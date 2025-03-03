@@ -133,7 +133,7 @@ bool isPointOnPathWithTolerance(
 /// closed and non-self-intersecting.
 ///
 /// Returns `true` if the point is inside the polygon or exactly on a vertex or
-/// on edge, and `false` otherwise.
+/// an edge, and `false` otherwise.
 bool isPointInPolygon(List<(double, double)> polygon, (double, double) point) {
   if (polygon.length < 3) {
     return false;
