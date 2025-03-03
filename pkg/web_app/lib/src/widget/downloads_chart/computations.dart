@@ -158,9 +158,9 @@ bool isPointInPolygon(List<(double, double)> polygon, (double, double) point) {
 
     if (py > min(y1, y2) && py <= max(y1, y2)) {
       double intersectX;
-      // vertical edge
-      if (x1 == x2) {
-        intersectX = x1;
+      if (y1 == y2) {
+        // horizontal edge
+        continue;
       } else {
         intersectX = x1 + (py - y1) * (x2 - x1) / (y2 - y1);
       }
