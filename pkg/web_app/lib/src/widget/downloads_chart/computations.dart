@@ -132,8 +132,8 @@ bool isPointOnPathWithTolerance(
 /// a polygon defined by a list of vertices. The polygon is assumed to be
 /// closed and non-self-intersecting.
 ///
-/// Returns `true` if the point is inside the polygon or exactly on a vertex and
-/// `false` otherwise.
+/// Returns `true` if the point is inside the polygon or exactly on a vertex or
+/// on edge, and `false` otherwise.
 bool isPointInPolygon(List<(double, double)> polygon, (double, double) point) {
   if (polygon.length < 3) {
     return false;
@@ -141,6 +141,11 @@ bool isPointInPolygon(List<(double, double)> polygon, (double, double) point) {
 
   int intersections = 0;
   final (px, py) = point;
+
+  // Check if the point is on an edge
+  if (isPointOnPathWithTolerance(polygon, point, 0.001)) {
+    return true;
+  }
 
   for (int i = 0; i < polygon.length; i++) {
     final (x1, y1) = polygon[i];

@@ -212,12 +212,14 @@ void main() {
       final outsidePoint = (2.0, 3.0);
       final vertexPoint = (1.0, 1.0);
       final edgePoint = (1.0, 3.0);
+      final edgePoint2 = (3.0, 3.0);
       final outsidePointOnEdgeExtension = (3.0, 4.0);
 
       expect(isPointInPolygon(complexPolygon, insidePoint), isTrue);
       expect(isPointInPolygon(complexPolygon, outsidePoint), isFalse);
       expect(isPointInPolygon(complexPolygon, vertexPoint), isTrue);
-      expect(isPointInPolygon(complexPolygon, edgePoint), isFalse);
+      expect(isPointInPolygon(complexPolygon, edgePoint), isTrue);
+      expect(isPointInPolygon(complexPolygon, edgePoint2), isTrue);
       expect(isPointInPolygon(complexPolygon, outsidePointOnEdgeExtension),
           isFalse);
     });
