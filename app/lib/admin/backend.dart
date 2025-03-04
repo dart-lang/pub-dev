@@ -38,7 +38,6 @@ import 'tools/delete_all_staging.dart';
 import 'tools/list_tools.dart';
 import 'tools/notify_service.dart';
 import 'tools/package_publisher.dart';
-import 'tools/publisher_member.dart';
 import 'tools/recent_uploaders.dart';
 import 'tools/user_merger.dart';
 
@@ -59,8 +58,6 @@ final Map<String, Tool> availableTools = {
   'notify-service': executeNotifyService,
   'package-publisher': executeSetPackagePublisher,
   'recent-uploaders': executeRecentUploaders,
-  'publisher-member': executePublisherMember,
-  'publisher-invite-member': executePublisherInviteMember,
   'user-merger': executeUserMergerTool,
   'list-tools': executeListTools,
 };

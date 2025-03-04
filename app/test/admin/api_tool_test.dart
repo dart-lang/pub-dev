@@ -75,19 +75,27 @@ void main() {
     });
 
     group('publisher member invite', () {
-      setupTestsWithAdminTokenIssues((client) =>
-          client.adminExecuteTool('publisher-invite-member', 'example.com'));
+      setupTestsWithAdminTokenIssues((client) => client.adminInvokeAction(
+          'publisher-invite-member',
+          AdminInvokeActionArguments(arguments: {
+            'publisher': 'example.com',
+            'email': 'member@example.com'
+          })));
 
       testWithProfile('invite + accept', fn: () async {
         final adminClient = createPubApiClient(authToken: siteAdminToken);
-        final adminOutput = await adminClient.adminExecuteTool(
-          'publisher-invite-member',
-          Uri(pathSegments: [
-            'example.com',
-            'newmember@pub.dev',
-          ]).toString(),
-        );
-        expect(utf8.decode(adminOutput), 'newmember@pub.dev has been invited.');
+        final adminOutput = await adminClient.adminInvokeAction(
+            'publisher-invite-member',
+            AdminInvokeActionArguments(arguments: {
+              'publisher': 'example.com',
+              'email': 'newmember@pub.dev'
+            }));
+
+        expect(adminOutput.output, {
+          'message': 'Sent invitation',
+          'publisher': 'example.com',
+          'email': 'newmember@pub.dev'
+        });
 
         final email = fakeEmailSender.sentMessages.first;
         expect(

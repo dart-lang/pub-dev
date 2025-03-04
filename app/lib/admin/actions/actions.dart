@@ -30,6 +30,7 @@ import 'package_version_retraction.dart';
 import 'publisher_create.dart';
 import 'publisher_delete.dart';
 import 'publisher_info.dart';
+import 'publisher_invite_member.dart';
 import 'publisher_members_list.dart';
 import 'publisher_package_remove.dart';
 import 'task_bump_priority.dart';
@@ -116,6 +117,7 @@ final class AdminAction {
     publisherCreate,
     publisherDelete,
     publisherInfo,
+    publisherInviteMember,
     publisherMembersList,
     publisherPackageRemove,
     taskBumpPriority,
