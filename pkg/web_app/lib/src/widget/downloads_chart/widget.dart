@@ -198,6 +198,7 @@ void drawChart(
     {DisplayMode displayMode = DisplayMode.unstacked}) {
   final ranges = displayLists.ranges;
   final values = displayLists.weekLists;
+  final displayAreas = displayMode != DisplayMode.unstacked;
 
   if (values.isEmpty) return;
 
@@ -375,6 +376,18 @@ void drawChart(
     lines.add(lineCoordinates);
   }
 
+  final areas = <List<(double, double)>>[];
+  if (displayAreas) {
+    for (int i = 0; i < ranges.length; i++) {
+      final prevLine = i == 0 ? [(xZero, yZero), (xMax, yZero)] : lines[i - 1];
+      final areaLine = [...lines[i], ...prevLine.reversed, lines[i].first];
+      areas.add(areaLine);
+    }
+  }
+
+  final linePaths = <SVGPathElement>[];
+  final areaPaths = <SVGPathElement>[];
+
   StringBuffer computeLinePath(List<(double, double)> coordinates) {
     final path = StringBuffer();
     var command = 'M';
@@ -385,34 +398,16 @@ void drawChart(
     return path;
   }
 
-  StringBuffer computeAreaPath(List<(double, double)> topCoordinates,
-      List<(double, double)> bottomCoordinates) {
-    final path = StringBuffer();
-    var command = 'M';
-    topCoordinates.forEach((c) {
-      path.write(' $command${c.$1} ${c.$2}');
-      command = 'L';
-    });
-
-    bottomCoordinates.reversed.forEach((c) {
-      path.write(' $command${c.$1} ${c.$2}');
-      command = 'L';
-    });
-    path.write('Z');
-    return path;
-  }
-
   double legendX = xZero;
   double legendY =
       tickLabelYCoordinate + firstTickLabel.getBBox().height + labelPadding;
   final legendWidth = 20;
   final legendHeight = 8;
 
-  final linePaths = <SVGPathElement>[];
   for (int i = 0; i < lines.length; i++) {
-    // We add the lines in reverse order so that the newest versions get the
-    // main colors.
-    final line = computeLinePath(lines[lines.length - 1 - i]);
+    // We add the lines and areas in reverse order so that the newest versions
+    // get the main colors.
+    final line = computeLinePath(lines[ranges.length - 1 - i]);
     final path = SVGPathElement();
     path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
     path.setAttribute('d', '$line');
@@ -420,16 +415,13 @@ void drawChart(
     linePaths.add(path);
     chart.append(path);
 
-    if (displayMode == DisplayMode.stacked ||
-        displayMode == DisplayMode.percentage) {
-      final prevLine = i == lines.length - 1
-          ? [(xZero, yZero), (xMax, yZero)]
-          : lines[lines.length - 1 - i - 1];
-      final areaPath = computeAreaPath(lines[lines.length - 1 - i], prevLine);
+    if (displayAreas) {
+      final areaPath = computeLinePath(areas[ranges.length - 1 - i]);
       final area = SVGPathElement();
       area.setAttribute('class', '${fillColorClass(i)} downloads-chart-area ');
       area.setAttribute('d', '$areaPath');
       area.setAttribute('clip-path', 'url(#clipRect)');
+      areaPaths.add(area);
       chart.append(area);
     }
 
@@ -487,6 +479,12 @@ void drawChart(
       final l = linePaths[i];
       l.removeAttribute('class');
       l.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line');
+
+      if (displayAreas) {
+        areaPaths[i].removeAttribute('class');
+        areaPaths[i]
+            .setAttribute('class', '${fillColorClass(i)} downloads-chart-area');
+      }
     }
   }
 
@@ -527,6 +525,14 @@ void drawChart(
         highlightRangeIndices.add(i);
       }
     }
+    if (displayAreas) {
+      for (int i = 0; i < areas.length; i++) {
+        final a = areas[i];
+        if (isPointInPolygon(a, (xPosition, yPosition))) {
+          highlightRangeIndices.add(i);
+        }
+      }
+    }
 
     final coords = computeCoordinates(selectedDay, 0);
     cursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
@@ -557,6 +563,9 @@ void drawChart(
           ..text = text;
 
         linePaths[i].removeAttribute('class');
+        if (displayAreas) {
+          areaPaths[i].removeAttribute('class');
+        }
 
         if (highlightRangeIndices.contains(rangeIndex)) {
           rangeText.setAttribute('class', 'downloads-chart-tooltip-highlight');
@@ -564,12 +573,24 @@ void drawChart(
               'class', 'downloads-chart-tooltip-highlight');
           linePaths[i].setAttribute(
               'class', '${strokeColorClass(i)} downloads-chart-line');
+          if (displayAreas) {
+            areaPaths[i].setAttribute(
+                'class', '${fillColorClass(i)} downloads-chart-area');
+          }
         } else if (highlightRangeIndices.isNotEmpty) {
           linePaths[i].setAttribute(
               'class', '${strokeColorClass(i)} downloads-chart-line-faded');
+          if (displayAreas) {
+            areaPaths[i].setAttribute(
+                'class', '${fillColorClass(i)} downloads-chart-area-faded');
+          }
         } else {
           linePaths[i].setAttribute(
               'class', '${strokeColorClass(i)} downloads-chart-line');
+          if (displayAreas) {
+            areaPaths[i].setAttribute(
+                'class', '${fillColorClass(i)} downloads-chart-area ');
+          }
         }
         final tooltipRange = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')
