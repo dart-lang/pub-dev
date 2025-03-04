@@ -524,19 +524,6 @@ class PubApi {
     return jsonResponse({'status': 'OK'});
   }
 
-  @EndPoint.delete('/api/admin/packages/<package>')
-  Future<Response> adminRemovePackage(Request request, String package) async {
-    await adminBackend.removePackage(package);
-    return jsonResponse({'status': 'OK'});
-  }
-
-  @EndPoint.delete('/api/admin/packages/<package>/versions/<version>')
-  Future<Response> adminRemovePackageVersion(
-      Request request, String package, String version) async {
-    await adminBackend.removePackageVersion(package, version);
-    return jsonResponse({'status': 'OK'});
-  }
-
   @EndPoint.put('/api/admin/packages/<package>/versions/<version>/options')
   Future<VersionOptions> adminUpdateVersionOptions(Request request,
       String package, String version, VersionOptions options) async {

@@ -525,23 +525,6 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> adminRemovePackage(String package) async {
-    return await _client.requestBytes(
-      verb: 'delete',
-      path: '/api/admin/packages/$package',
-    );
-  }
-
-  Future<List<int>> adminRemovePackageVersion(
-    String package,
-    String version,
-  ) async {
-    return await _client.requestBytes(
-      verb: 'delete',
-      path: '/api/admin/packages/$package/versions/$version',
-    );
-  }
-
   Future<_i3.VersionOptions> adminUpdateVersionOptions(
     String package,
     String version,
