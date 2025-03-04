@@ -121,7 +121,7 @@ final class ExportedApi {
         // Only delete the item if it's older than _minGarbageAge
         // This avoids any races where we delete files we've just created
         // TODO: Conditionally deletion API from package:gcloud would be better!
-        await _bucket.tryDeleteWithRetry(item.name);
+        await _bucket.deleteWithRetry(item.name);
       }
     });
 
@@ -137,7 +137,7 @@ final class ExportedApi {
           item.updated.isBefore(gcFilesBefore)) {
         // Only delete the item if it's older than _minGarbageAge
         // This avoids any races where we delete files we've just created
-        await _bucket.tryDeleteWithRetry(item.name);
+        await _bucket.deleteWithRetry(item.name);
       }
     });
   }
@@ -184,7 +184,7 @@ final class ExportedApi {
         await _listBucket(
           prefix: entry.name,
           delimiter: '',
-          (entry) async => await _bucket.tryDeleteWithRetry(entry.name),
+          (entry) async => await _bucket.deleteWithRetry(entry.name),
         );
       }
     }));
@@ -336,7 +336,7 @@ final class ExportedPackage {
               item.updated.isBefore(clock.agoBy(_minGarbageAge))) {
             // Only delete if the item if it's older than _minGarbageAge
             // This avoids any races where we delete files we've just created
-            await _owner._bucket.tryDeleteWithRetry(item.name);
+            await _owner._bucket.deleteWithRetry(item.name);
           }
         });
 
@@ -380,7 +380,7 @@ final class ExportedPackage {
             if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
               // Only delete if the item if it's older than _minGarbageAge
               // This avoids any races where we delete files we've just created
-              await _owner._bucket.tryDeleteWithRetry(item.name);
+              await _owner._bucket.deleteWithRetry(item.name);
             }
           }
           // Ignore cases where tryInfo fails, assuming the object has been
@@ -399,7 +399,7 @@ final class ExportedPackage {
         await _owner._listBucket(
           prefix: prefix + '/api/archives/$_package-',
           delimiter: '',
-          (item) async => await _owner._bucket.tryDeleteWithRetry(item.name),
+          (item) async => await _owner._bucket.deleteWithRetry(item.name),
         );
       }),
     ]);
@@ -442,7 +442,7 @@ sealed class ExportedObject {
   Future<void> delete() async {
     await Future.wait(_owner._prefixes.map((prefix) async {
       await _owner._pool.withResource(() async {
-        await _owner._bucket.tryDeleteWithRetry(prefix + _objectName);
+        await _owner._bucket.deleteWithRetry(prefix + _objectName);
       });
     }));
   }
