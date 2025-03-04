@@ -103,20 +103,17 @@ extension BucketExt on Bucket {
   }
 
   /// Delete an object with default retry.
+  ///
+  /// Ignores 404 responses, as it may happen if the first request completes
+  /// on the server while unsuccessful on the client.
   Future<void> deleteWithRetry(String name) async {
-    return await _retry(() => delete(name));
-  }
-
-  /// Deletes [name] if it exists, ignores 404 otherwise.
-  Future<bool> tryDeleteWithRetry(String name) async {
     return await _retry(
       () async {
         try {
           await delete(name);
-          return true;
         } on DetailedApiRequestError catch (e) {
           if (e.status == 404) {
-            return false;
+            return;
           }
           rethrow;
         }
@@ -338,8 +335,8 @@ Future<int> deleteBucketFolderRecursively(
     final pool = Pool(concurrency ?? 1);
     for (final entry in page!.items) {
       final f = pool.withResource(() async {
-        final deleted = await bucket.tryDeleteWithRetry(entry.name);
-        if (deleted) count++;
+        await bucket.deleteWithRetry(entry.name);
+        count++;
       });
       futures.add(f);
     }
@@ -477,7 +474,7 @@ class VersionedJsonStorage {
         final age = clock.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {
           deleted++;
-          await _bucket.tryDeleteWithRetry(entry.name);
+          await _bucket.deleteWithRetry(entry.name);
         }
       }
     });
