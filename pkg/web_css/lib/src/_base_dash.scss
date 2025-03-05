@@ -42,16 +42,6 @@ button, input, textarea, select {
   font-size: inherit;
 }
 
-// Shorter line heights on headings and interactive elements.
-h1, h2, h3, h4, h5, h6, button, input, label {
-  line-height: 1.1;
-}
-
-// Balance text wrapping on headings.
-h1, h2, h3, h4, h5, h6 {
-  text-wrap: balance;
-}
-
 // Links are underlined when hovered.
 a {
   cursor: pointer;
