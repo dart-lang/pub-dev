@@ -395,6 +395,12 @@ void drawChart(
     return path;
   }
 
+  int colorIndex(int i) {
+    // We assign colors in reverse order so that the newest versions
+    // get the main colors.
+    return ranges.length - i - 1;
+  }
+
   double legendX = xZero;
   double legendY =
       tickLabelYCoordinate + firstTickLabel.getBBox().height + labelPadding;
@@ -403,22 +409,22 @@ void drawChart(
 
   final linePaths = <SVGPathElement>[];
   final areaPaths = <SVGPathElement>[];
+  final legends = <(SVGRectElement, SVGTextElement)>[];
   for (int i = 0; i < ranges.length; i++) {
-    // We add the lines and areas in reverse order so that the newest versions
-    // get the main colors.
-    final rangeIndex = ranges.length - 1 - i;
-    final line = computeLinePath(lines[rangeIndex]);
+    final line = computeLinePath(lines[i]);
     final path = SVGPathElement();
-    path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
+    path.setAttribute(
+        'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
     path.setAttribute('d', '$line');
     path.setAttribute('clip-path', 'url(#clipRect)');
     linePaths.add(path);
     chart.append(path);
 
     if (displayAreas) {
-      final areaPath = computeLinePath(areas[rangeIndex]);
+      final areaPath = computeLinePath(areas[i]);
       final area = SVGPathElement();
-      area.setAttribute('class', '${fillColorClass(i)} downloads-chart-area ');
+      area.setAttribute(
+          'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
       area.setAttribute('d', '$areaPath');
       area.setAttribute('clip-path', 'url(#clipRect)');
       areaPaths.add(area);
@@ -428,20 +434,26 @@ void drawChart(
     final legend = SVGRectElement();
     chart.append(legend);
     legend.setAttribute('class',
-        'downloads-chart-legend ${fillColorClass(i)} ${strokeColorClass(i)}');
+        'downloads-chart-legend ${fillColorClass(colorIndex(i))} ${strokeColorClass(colorIndex(i))}');
     legend.setAttribute('height', '$legendHeight');
     legend.setAttribute('width', '$legendWidth');
 
     final legendLabel = SVGTextElement();
-    chart.append(legendLabel);
     legendLabel.setAttribute('class', 'downloads-chart-tick-label');
-    legendLabel.text = ranges[ranges.length - 1 - i];
+    legendLabel.text = ranges[i];
+    chart.append(legendLabel);
+    legends.add((legend, legendLabel));
+  }
+
+  for (var i = legends.length - 1; i >= 0; i--) {
+    // We traverse the legends in reverse order so that the legend of the newest
+    // version is placed first.
+    final (legend, legendLabel) = legends[i];
 
     if (legendX + marginPadding + legendWidth + legendLabel.getBBox().width >
         xMax) {
       // There is no room for the legend and label.
-      // Make a new line and update legendXCoor and legendYCoor accordingly.
-
+      // Make a new line and update legendX and legendY accordingly.
       legendX = xZero;
       legendY += 2 * marginPadding + legendHeight;
     }
@@ -476,67 +488,72 @@ void drawChart(
 
   hideCursor(1);
 
+  void resetHighlights() {
+    for (int i = 0; i < linePaths.length; i++) {
+      final l = linePaths[i];
+      l.removeAttribute('class');
+      l.setAttribute(
+          'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+
+      if (displayAreas) {
+        areaPaths[i].removeAttribute('class');
+        areaPaths[i].setAttribute(
+            'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
+      }
+    }
+  }
+
   void setHighlights(Set<int> highlightRangeIndices) {
+    if (highlightRangeIndices.isEmpty) {
+      resetHighlights();
+    }
+
     for (int i = 0; i < ranges.length; i++) {
-      final rangeIndex = ranges.length - 1 - i;
       linePaths[i].removeAttribute('class');
       if (displayAreas) {
         areaPaths[i].removeAttribute('class');
       }
 
-      if (highlightRangeIndices.contains(rangeIndex)) {
+      if (highlightRangeIndices.contains(i)) {
         linePaths[i].setAttribute(
-            'class', '${strokeColorClass(i)} downloads-chart-line');
+            'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
         if (displayAreas) {
           areaPaths[i].setAttribute(
-              'class', '${fillColorClass(i)} downloads-chart-area');
+              'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
         }
       } else if (highlightRangeIndices.isNotEmpty) {
-        linePaths[i].setAttribute(
-            'class', '${strokeColorClass(i)} downloads-chart-line-faded');
+        linePaths[i].setAttribute('class',
+            '${strokeColorClass(colorIndex(i))} downloads-chart-line-faded');
         if (displayAreas) {
-          areaPaths[i].setAttribute(
-              'class', '${fillColorClass(i)} downloads-chart-area-faded');
+          areaPaths[i].setAttribute('class',
+              '${fillColorClass(colorIndex(i))} downloads-chart-area-faded');
         }
       } else {
         linePaths[i].setAttribute(
-            'class', '${strokeColorClass(i)} downloads-chart-line');
+            'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
         if (displayAreas) {
-          areaPaths[i].setAttribute(
-              'class', '${fillColorClass(i)} downloads-chart-area ');
+          areaPaths[i].setAttribute('class',
+              '${fillColorClass(colorIndex(i))} downloads-chart-area ');
         }
-      }
-    }
-  }
-
-  void resetHighlights() {
-    for (int i = 0; i < linePaths.length; i++) {
-      final l = linePaths[i];
-      l.removeAttribute('class');
-      l.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line');
-
-      if (displayAreas) {
-        areaPaths[i].removeAttribute('class');
-        areaPaths[i]
-            .setAttribute('class', '${fillColorClass(i)} downloads-chart-area');
       }
     }
   }
 
   svg.onMouseMove.listen((e) {
     final boundingRect = svg.getBoundingClientRect();
-    if (e.x < boundingRect.x + xZero ||
-        e.x > boundingRect.x + xMax ||
-        e.y < boundingRect.y + yMax ||
-        e.y > boundingRect.y + yZero) {
+    final yPosition = e.y - boundingRect.y;
+    final xPosition = e.x - boundingRect.x;
+
+    if (xPosition < xZero ||
+        xPosition > xMax ||
+        yPosition < yMax ||
+        yPosition > yZero) {
       // We are outside the actual chart area
       resetHighlights();
       hideCursor(1);
       return;
     }
 
-    final yPosition = e.y - boundingRect.y;
-    final xPosition = e.x - boundingRect.x;
     final pointPercentage = (xPosition - xZero) / chartWidth;
     final nearestIndex = ((values.length - 1) * pointPercentage).round();
     final selectedDay =
@@ -584,19 +601,19 @@ void drawChart(
           '${formatAbbrMonthDay(startDay)} - ${formatAbbrMonthDay(selectedDay)}');
 
     final downloads = values[nearestIndex];
-    for (int i = 0; i < downloads.length; i++) {
-      final rangeIndex = ranges.length - 1 - i;
-      if (downloads[rangeIndex] > 0) {
+    for (int i = ranges.length - 1; i >= 0; i--) {
+      // We traverse in reverse order so that the downloads of the newest
+      // version is placed highest up in the tooltip.
+      if (downloads[i] > 0) {
         // We only show the exact download count in the tooltip if it is non-zero.
         final square = HTMLDivElement()
-          ..setAttribute(
-              'class', 'downloads-chart-tooltip-square ${squareColorClass(i)}');
-        final rangeText = HTMLSpanElement()..text = '${ranges[rangeIndex]}: ';
+          ..setAttribute('class',
+              'downloads-chart-tooltip-square ${squareColorClass(colorIndex(i))}');
+        final rangeText = HTMLSpanElement()..text = '${ranges[i]}: ';
         final suffix = (displayMode == DisplayMode.percentage)
-            ? ' (${(downloads[rangeIndex] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
+            ? ' (${(downloads[i] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
             : '';
-        final text =
-            '${formatWithThousandSeperators(downloads[rangeIndex])}$suffix';
+        final text = '${formatWithThousandSeperators(downloads[i])}$suffix';
         final downloadsText = HTMLSpanElement()
           ..setAttribute('class', 'downloads-chart-tooltip-downloads')
           ..text = text;
@@ -611,7 +628,7 @@ void drawChart(
           ..append(tooltipRange)
           ..append(downloadsText);
 
-        if (highlightRangeIndices.contains(rangeIndex)) {
+        if (highlightRangeIndices.contains(i)) {
           rangeText.setAttribute('class', 'downloads-chart-tooltip-highlight');
           downloadsText.setAttribute(
               'class', 'downloads-chart-tooltip-highlight');
