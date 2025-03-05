@@ -432,7 +432,6 @@ void drawChart(
     }
 
     final legend = SVGRectElement();
-    chart.append(legend);
     legend.setAttribute('class',
         'downloads-chart-legend ${fillColorClass(colorIndex(i))} ${strokeColorClass(colorIndex(i))}');
     legend.setAttribute('height', '$legendHeight');
@@ -442,33 +441,11 @@ void drawChart(
     legendLabel.setAttribute('class', 'downloads-chart-tick-label');
     legendLabel.text = ranges[i];
     chart.append(legendLabel);
+    chart.append(legend);
     legends.add((legend, legendLabel));
   }
 
-  for (var i = legends.length - 1; i >= 0; i--) {
-    // We traverse the legends in reverse order so that the legend of the newest
-    // version is placed first.
-    final (legend, legendLabel) = legends[i];
-
-    if (legendX + marginPadding + legendWidth + legendLabel.getBBox().width >
-        xMax) {
-      // There is no room for the legend and label.
-      // Make a new line and update legendX and legendY accordingly.
-      legendX = xZero;
-      legendY += 2 * marginPadding + legendHeight;
-    }
-
-    legend.setAttribute('x', '$legendX');
-    legend.setAttribute('y', '$legendY');
-    legendLabel.setAttribute('y', '${legendY + legendHeight}');
-    legendLabel.setAttribute('x', '${legendX + marginPadding + legendWidth}');
-
-    // Update x coordinate for next legend
-    legendX += legendWidth +
-        marginPadding +
-        legendLabel.getBBox().width +
-        labelPadding;
-  }
+  // Setup cursor
 
   final cursor = SVGLineElement()
     ..setAttribute('class', 'downloads-chart-cursor')
@@ -478,8 +455,6 @@ void drawChart(
     ..setAttribute('y1', '$yZero')
     ..setAttribute('y2', '$yMax');
   chart.append(cursor);
-
-  // Setup mouse handling
 
   void hideCursor(_) {
     cursor.setAttribute('style', 'opacity:0');
@@ -500,6 +475,8 @@ void drawChart(
         areaPaths[i].setAttribute(
             'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
       }
+      legends[i].$2.removeAttribute('class');
+      legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
     }
   }
 
@@ -513,6 +490,7 @@ void drawChart(
       if (displayAreas) {
         areaPaths[i].removeAttribute('class');
       }
+      legends[i].$2.removeAttribute('class');
 
       if (highlightRangeIndices.contains(i)) {
         linePaths[i].setAttribute(
@@ -521,6 +499,9 @@ void drawChart(
           areaPaths[i].setAttribute(
               'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
         }
+        legends[i]
+            .$2
+            .setAttribute('class', 'downloads-chart-legend-label-highlight');
       } else if (highlightRangeIndices.isNotEmpty) {
         linePaths[i].setAttribute('class',
             '${strokeColorClass(colorIndex(i))} downloads-chart-line-faded');
@@ -528,6 +509,8 @@ void drawChart(
           areaPaths[i].setAttribute('class',
               '${fillColorClass(colorIndex(i))} downloads-chart-area-faded');
         }
+
+        legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
       } else {
         linePaths[i].setAttribute(
             'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
@@ -535,9 +518,58 @@ void drawChart(
           areaPaths[i].setAttribute('class',
               '${fillColorClass(colorIndex(i))} downloads-chart-area ');
         }
+        legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
       }
     }
   }
+
+  // Place legends and set highlight on hover
+
+  for (var i = legends.length - 1; i >= 0; i--) {
+    // We traverse the legends in reverse order so that the legend of the newest
+    // version is placed first.
+    final (legend, legendLabel) = legends[i];
+
+    if (legendX + marginPadding + legendWidth + legendLabel.getBBox().width >
+        xMax) {
+      // There is no room for the legend and label.
+      // Make a new line and update legendX and legendY accordingly.
+      legendX = xZero;
+      legendY += 2 * marginPadding + legendHeight;
+    }
+
+    legend.setAttribute('x', '$legendX');
+    legend.setAttribute('y', '$legendY');
+
+    legendLabel.setAttribute('y', '${legendY + legendHeight}');
+    legendLabel.setAttribute('x', '${legendX + marginPadding + legendWidth}');
+
+    // Update x coordinate for next legend
+    legendX += legendWidth +
+        marginPadding +
+        legendLabel.getBBox().width +
+        labelPadding;
+
+    legend.onMouseMove.listen((e) {
+      setHighlights({i});
+      e.stopImmediatePropagation();
+    });
+    legendLabel.onMouseMove.listen((e) {
+      setHighlights({i});
+      e.stopImmediatePropagation();
+    });
+
+    legend.onMouseLeave.listen((e) {
+      resetHighlights();
+      e.stopImmediatePropagation();
+    });
+    legendLabel.onMouseLeave.listen((e) {
+      resetHighlights();
+      e.stopImmediatePropagation();
+    });
+  }
+
+  // Setup mouse handling on chart: show cursor, tooltip and highlights
 
   svg.onMouseMove.listen((e) {
     final boundingRect = svg.getBoundingClientRect();

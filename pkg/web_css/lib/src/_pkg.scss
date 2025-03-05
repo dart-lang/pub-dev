@@ -395,6 +395,12 @@
     stroke-width: 1;
   }
 
+  .downloads-chart-legend-label-highlight {
+    fill:var(--pub-neutral-textColor);
+    font-size: small;
+    font-weight: bold;
+  }
+
   .downloads-chart-fill-blue {
     fill:var(--pub-downloads-chart-color-0);
   }
