@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -100,5 +101,45 @@ void main() {
 
     final files = index.files.toList();
     expect(files, hasLength(5));
+  });
+
+  test('size limit', () async {
+    final controller = StreamController<List<int>>();
+    final result = controller.stream.toList();
+    final b = IndexedBlobBuilder(controller);
+    await b.addFile(
+      'a',
+      Stream.value([0, 1]),
+      skipAfterSize: 3,
+    );
+    await b.addFile(
+      'b',
+      Stream.fromIterable([
+        [0],
+        [1, 2, 3], // will be removed,
+      ]),
+      skipAfterSize: 3,
+    );
+    await b.addFile(
+      'c',
+      Stream.value([8, 9]),
+      skipAfterSize: 3,
+    );
+    final index = await b.buildIndex('1');
+    final files = index.files.toList();
+    expect(files, hasLength(2));
+    await controller.close();
+    expect(await result, [
+      [0, 1],
+      [0],
+      [],
+      [8, 9],
+    ]);
+
+    expect(index.lookup('b'), isNull);
+
+    final c = index.lookup('c')!;
+    expect(c.start, 3);
+    expect(c.end, 5);
   });
 }

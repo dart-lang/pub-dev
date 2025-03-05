@@ -10,6 +10,7 @@ import 'dart:isolate' show Isolate;
 
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/pubapi.dart';
+import 'package:_pub_shared/worker/limits.dart';
 import 'package:api_builder/api_builder.dart';
 import 'package:clock/clock.dart' show clock;
 import 'package:http/http.dart' show Client, ClientException;
@@ -201,7 +202,11 @@ Future<void> _analyzePackage(
           continue; // We'll add this at the very end!
         }
         try {
-          await builder.addFile(path, f.openRead().transform(gzip.encoder));
+          await builder.addFile(
+            path,
+            f.openRead().transform(gzip.encoder),
+            skipAfterSize: blobContentSizeLimit,
+          );
         } on IOException {
           log.writeln('ERROR: Failed to read output file at "$path"');
         }

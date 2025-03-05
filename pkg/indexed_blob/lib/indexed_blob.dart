@@ -76,16 +76,35 @@ final class IndexedBlobBuilder {
   /// This cannot be called concurrently, callers must await this operation
   /// being completed.
   ///
+  /// When [skipAfterSize] is set, the blob file may contain the streamed content
+  /// up to the specified number of bytes, but will skip updating the index file
+  /// after the threshold is reached.
+  ///
   /// If an exception is thrown generated blob is not valid.
-  Future<void> addFile(String path, Stream<List<int>> content) async {
+  Future<void> addFile(
+    String path,
+    Stream<List<int>> content, {
+    int skipAfterSize = 0,
+  }) async {
     _checkState();
     try {
       _isAdding = true;
       final start = _offset;
+      var totalSize = 0;
       await _blob.addStream(content.map((chunk) {
+        totalSize += chunk.length;
+        if (skipAfterSize > 0 && totalSize > skipAfterSize) {
+          // Do not store the remaining chunks, we will not store the entry.
+          return const [];
+        }
+
         _offset += chunk.length;
         return chunk;
       }));
+
+      if (skipAfterSize > 0 && totalSize > skipAfterSize) {
+        return;
+      }
 
       var target = _index;
       final segments = path.split('/');
