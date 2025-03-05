@@ -112,7 +112,7 @@ void main() {
           '(https://flutter.dev/docs/development/packages-and-plugins/favorites)',
         ),
         '<p><a href="https://flutter.dev/docs/development/packages-and-plugins/favorites">'
-        '<img src="../../../assets/flutter-favorite-badge.png" width="100"></a></p>\n',
+        '[../../../assets/flutter-favorite-badge.png]</a></p>\n',
       );
       expect(
         markdownToHtml(
@@ -121,7 +121,7 @@ void main() {
           urlResolverFn: urlResolverFn,
         ),
         '<p><a href="https://flutter.dev/docs/development/packages-and-plugins/favorites">'
-        '<img src="../../../assets/flutter-favorite-badge.png" width="100"></a></p>\n',
+        '<img src="https://github.com/example/project/raw/master/assets/flutter-favorite-badge.png" width="100"></a></p>\n',
       );
     });
 
