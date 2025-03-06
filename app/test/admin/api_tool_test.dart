@@ -76,7 +76,7 @@ void main() {
 
     group('publisher member invite', () {
       setupTestsWithAdminTokenIssues((client) => client.adminInvokeAction(
-          'publisher-invite-member',
+          'publisher-member-invite',
           AdminInvokeActionArguments(arguments: {
             'publisher': 'example.com',
             'email': 'member@example.com'
@@ -85,7 +85,7 @@ void main() {
       testWithProfile('invite + accept', fn: () async {
         final adminClient = createPubApiClient(authToken: siteAdminToken);
         final adminOutput = await adminClient.adminInvokeAction(
-            'publisher-invite-member',
+            'publisher-member-invite',
             AdminInvokeActionArguments(arguments: {
               'publisher': 'example.com',
               'email': 'newmember@pub.dev'

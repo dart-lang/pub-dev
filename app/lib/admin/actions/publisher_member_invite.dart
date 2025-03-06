@@ -10,8 +10,8 @@ import '../../publisher/backend.dart';
 import '../../shared/configuration.dart';
 import 'actions.dart';
 
-final publisherInviteMember = AdminAction(
-  name: 'publisher-invite-member',
+final publisherMemberInvite = AdminAction(
+  name: 'publisher-member-invite',
   summary: 'Invite a new member to a publisher',
   description: '''
 Sends an invite to <email> to become a member of <publisher>.
