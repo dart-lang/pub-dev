@@ -1,0 +1,53 @@
+/* Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+// NOTE: These styles are to be shared in
+//       https://github.com/dart-lang/site-shared/tree/main/pkgs/dash_design
+
+// *** Layout ****
+
+*, *::before, *::after {
+  // Need to set borders around elements explicitly.
+  border-width: 0;
+
+  // Sets the percived size of the element in the DOM to include its border.
+  box-sizing: border-box;
+}
+
+body {
+  // The body should take up all the vertical space.
+  min-height: 100vh;
+}
+
+// **** Typography ****
+
+// TODO: consider standardizing line-height in body
+
+html {
+  // Prevents the text inflation algorithm used on some smartphones and tablets.
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/text-size-adjust
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+// Inherit fonts for inputs and buttons.
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+// Links are underlined when hovered.
+a {
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
