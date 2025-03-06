@@ -157,7 +157,11 @@ void main() {
 
     group('Delete package', () {
       setupTestsWithAdminTokenIssues(
-          (client) => client.adminRemovePackage('oxygen'));
+        (client) => client.adminInvokeAction(
+          'package-delete',
+          AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
+        ),
+      );
 
       testWithProfile('OK', fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
@@ -192,9 +196,23 @@ void main() {
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = clock.now().toUtc();
-        final rs = await client.adminRemovePackage('oxygen');
+        final rs = await client.adminInvokeAction(
+          'package-delete',
+          AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
+        );
 
-        expect(utf8.decode(rs), '{"status":"OK"}');
+        expect(rs.output, {
+          'message':
+              contains('Package and all associated resources deleted.\n'),
+          'package': 'oxygen',
+          'deletedPackages': 1,
+          'deletedPackageVersions': 3,
+          'deletedPackageVersionInfos': 3,
+          'deletedPackageVersionAssets': 15,
+          'deletedLikes': 1,
+          'deletedAuditLogs': 4,
+          'replacedByFixes': 0
+        });
 
         final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
         expect(pkgAfterRemoval, isNull);
@@ -217,8 +235,10 @@ void main() {
     });
 
     group('Delete package version', () {
-      setupTestsWithAdminTokenIssues(
-          (client) => client.adminRemovePackageVersion('oxygen', '1.2.0'));
+      setupTestsWithAdminTokenIssues((client) => client.adminInvokeAction(
+          'package-version-delete',
+          AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'version': '1.2.0'})));
 
       testWithProfile('OK', processJobsWithFakeRunners: true, fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
@@ -260,10 +280,19 @@ void main() {
         expect(moderatedPkg, isNull);
 
         final timeBeforeRemoval = clock.now().toUtc();
-        final rs =
-            await client.adminRemovePackageVersion('oxygen', removeVersion);
+        final rs = await client.adminInvokeAction(
+            'package-version-delete',
+            AdminInvokeActionArguments(
+                arguments: {'package': 'oxygen', 'version': removeVersion}));
 
-        expect(utf8.decode(rs), '{"status":"OK"}');
+        expect(rs.output, {
+          'message': 'Package version and all associated resources deleted.',
+          'package': 'oxygen',
+          'version': '1.2.0',
+          'deletedPackageVersions': 1,
+          'deletedPackageVersionInfos': 1,
+          'deletedPackageVersionAssets': 5
+        });
 
         final pkgAfter1stRemoval =
             await dbService.lookupOrNull<Package>(pkgKey);
@@ -291,9 +320,18 @@ void main() {
         expect(moderatedPkg, isNull);
 
         // calling remove second time must not affect updated or version count
-        final rs2 =
-            await client.adminRemovePackageVersion('oxygen', removeVersion);
-        expect(utf8.decode(rs2), '{"status":"OK"}');
+        final rs2 = await client.adminInvokeAction(
+            'package-version-delete',
+            AdminInvokeActionArguments(
+                arguments: {'package': 'oxygen', 'version': removeVersion}));
+        expect(rs2.output, {
+          'message': 'Package version and all associated resources deleted.',
+          'package': 'oxygen',
+          'version': '1.2.0',
+          'deletedPackageVersions': 0,
+          'deletedPackageVersionInfos': 0,
+          'deletedPackageVersionAssets': 0,
+        });
         final pkgAfter2ndRemoval =
             await dbService.lookupOrNull<Package>(pkgKey);
         expect(pkgAfter2ndRemoval, isNotNull);

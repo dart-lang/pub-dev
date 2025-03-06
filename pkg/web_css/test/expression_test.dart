@@ -57,6 +57,8 @@ void main() {
         'cookie-notice-container',
         'cookie-notice-button',
       ]);
+      // test-only style
+      expressions.remove('-pub-ongoing-screenshot');
       // markdown alert classes
       expressions.removeAll([
         'markdown-alert-note',

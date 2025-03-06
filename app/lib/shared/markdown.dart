@@ -7,6 +7,7 @@ import 'package:html/dom_parsing.dart' as html_parsing;
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
@@ -46,16 +47,20 @@ String markdownToHtml(
   final sw = Stopwatch()..start();
   try {
     text = text.replaceAll('\r\n', '\n');
-    var nodes = _parseMarkdownSource(text);
-    nodes = _rewriteRelativeUrls(
-      nodes,
+    final nodes = _parseMarkdownSource(text);
+    final rawHtml = m.renderToHtml(nodes);
+    final processedHtml = _postProcessHtml(
+      rawHtml,
       urlResolverFn: urlResolverFn,
       relativeFrom: relativeFrom,
+      isChangelog: isChangelog,
+      disableHashIds: disableHashIds,
     );
-    if (isChangelog) {
-      nodes = _groupChangelogNodes(nodes).toList();
-    }
-    return _renderSafeHtml(nodes, disableHashIds: disableHashIds);
+    return _renderSafeHtml(
+      processedHtml,
+      isChangelog: isChangelog,
+      disableHashIds: disableHashIds,
+    );
   } catch (e, st) {
     _logger.shout('Error rendering markdown.', e, st);
     // safe content inside the <pre> element
@@ -81,29 +86,13 @@ List<m.Node> _parseMarkdownSource(String source) {
   return document.parseLines(lines);
 }
 
-/// Rewrites relative URLs, re-basing them on [relativeFrom].
-List<m.Node> _rewriteRelativeUrls(
-  List<m.Node> nodes, {
-  required UrlResolverFn? urlResolverFn,
-  required String? relativeFrom,
-}) {
-  final urlRewriter = _RelativeUrlRewriter(urlResolverFn, relativeFrom);
-  nodes.forEach((node) => node.accept(urlRewriter));
-  return nodes;
-}
-
 /// Renders sanitized, safe HTML from markdown nodes.
 /// Adds hash link HTML to header blocks.
 String _renderSafeHtml(
-  List<m.Node> nodes, {
+  String processedHtml, {
+  required bool isChangelog,
   required bool disableHashIds,
 }) {
-  final rawHtml = m.renderToHtml(nodes);
-  final processedHtml = _postProcessHtml(
-    rawHtml,
-    disableHashIds: disableHashIds,
-  );
-
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
     processedHtml,
@@ -127,9 +116,20 @@ String _renderSafeHtml(
 
 String _postProcessHtml(
   String rawHtml, {
+  required UrlResolverFn? urlResolverFn,
+  required String? relativeFrom,
+  required bool isChangelog,
   required bool disableHashIds,
 }) {
-  final root = html_parser.parseFragment(rawHtml);
+  var root = html_parser.parseFragment(rawHtml);
+
+  _RelativeUrlRewriter(urlResolverFn, relativeFrom).visit(root);
+
+  if (isChangelog) {
+    final oldNodes = [...root.nodes];
+    root = html.DocumentFragment();
+    _groupChangelogNodes(oldNodes).forEach(root.append);
+  }
 
   // Filter unsafe urls on some of the elements.
   _UnsafeUrlFilter().visit(root);
@@ -203,52 +203,63 @@ class _UnsafeUrlFilter extends html_parsing.TreeVisitor {
 }
 
 /// Rewrites relative URLs with the provided [urlResolverFn].
-class _RelativeUrlRewriter implements m.NodeVisitor {
+class _RelativeUrlRewriter extends html_parsing.TreeVisitor {
   final UrlResolverFn? urlResolverFn;
   final String? relativeFrom;
-  final _elementsToRemove = <m.Element>{};
+  final _elementsToRemove = <html.Element>[];
   _RelativeUrlRewriter(this.urlResolverFn, this.relativeFrom);
 
   @override
-  void visitText(m.Text text) {}
+  void visitDocumentFragment(html.DocumentFragment root) {
+    super.visitDocumentFragment(root);
+    _removeChildren(root);
+  }
 
   @override
-  bool visitElementBefore(m.Element element) => true;
+  void visitElement(html.Element element) {
+    super.visitElement(element);
 
-  @override
-  void visitElementAfter(m.Element element) {
     // check current element
-    if (element.tag == 'a') {
+    if (element.localName == 'a') {
       _updateUrlAttributes(element, 'href');
-    } else if (element.tag == 'img') {
+    } else if (element.localName == 'img') {
       _updateUrlAttributes(element, 'src', raw: true);
     }
-    // remove children that are marked to be removed
-    if (element.children != null &&
-        element.children!.isNotEmpty &&
-        _elementsToRemove.isNotEmpty) {
-      for (final r in _elementsToRemove.toList()) {
-        final index = element.children!.indexOf(r);
-        if (index == -1) continue;
+    _removeChildren(element);
+  }
 
-        if (r.children != null && r.children!.isNotEmpty) {
-          element.children!.insertAll(index, r.children!);
-        } else if (r.tag == 'img' && r.attributes.containsKey('alt')) {
-          element.children!.insert(index, m.Text('[${r.attributes['alt']}]'));
-        }
-        element.children!.remove(r);
-        _elementsToRemove.remove(r);
+  void _removeChildren(html.Node parent) {
+    for (var i = _elementsToRemove.length - 1; i >= 0; i--) {
+      final r = _elementsToRemove[i];
+      if (r.parentNode != parent) continue;
+      _elementsToRemove.removeAt(i);
+
+      if (r.localName == 'img') {
+        final alt = r.attributes['alt']?.trim();
+        final src = r.attributes['src']?.trim();
+        final text = alt ?? src ?? r.text.trim();
+        r.replaceWith(html.Text('[$text]'));
+        continue;
+      }
+
+      final index = parent.nodes.indexOf(r);
+      parent.nodes.removeAt(index);
+
+      for (var j = r.nodes.length - 1; j >= 0; j--) {
+        final c = r.nodes.removeLast();
+        parent.nodes.insert(index, c);
       }
     }
   }
 
-  void _updateUrlAttributes(m.Element element, String attrName,
+  void _updateUrlAttributes(html.Element element, String attrName,
       {bool raw = false}) {
-    final newUrl = _rewriteUrl(element.attributes[attrName], raw: raw);
-    if (newUrl != null) {
-      element.attributes[attrName] = newUrl;
-    } else {
+    final oldUrl = element.attributes[attrName];
+    final newUrl = _rewriteUrl(oldUrl, raw: raw);
+    if (newUrl == null) {
       _elementsToRemove.add(element);
+    } else if (newUrl != oldUrl) {
+      element.attributes[attrName] = newUrl;
     }
   }
 
@@ -261,6 +272,15 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     if (url == null || url.startsWith('#')) {
       return url;
     }
+
+    // pass-through for score tab
+    // TODO: consider alternative template generation for score tab
+    if (url == staticUrls.reportOKIconGreen ||
+        url == staticUrls.reportMissingIconYellow ||
+        url == staticUrls.reportMissingIconRed) {
+      return url;
+    }
+
     // reject unparseable URLs
     final uri = Uri.tryParse(url);
     if (uri == null) {
@@ -333,39 +353,44 @@ class _TaskListRewriteTreeVisitor extends html_parsing.TreeVisitor {
 ///     {{log entries in their original HTML format}}
 ///   </div>
 /// </div>
-Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
-  m.Element? lastContentDiv;
+Iterable<html.Node> _groupChangelogNodes(List<html.Node> nodes) sync* {
+  html.Element? lastContentDiv;
   String? firstHeaderTag;
   for (final node in nodes) {
-    final nodeTag = node is m.Element ? node.tag : null;
+    final nodeTag = node is html.Element ? node.localName : null;
     final isNewHeaderTag = firstHeaderTag == null &&
         nodeTag != null &&
         _structuralHeaderTags.contains(nodeTag);
     final matchesFirstHeaderTag =
         firstHeaderTag != null && nodeTag == firstHeaderTag;
-    final mayBeVersion = node is m.Element &&
+    final mayBeVersion = node is html.Element &&
         (isNewHeaderTag || matchesFirstHeaderTag) &&
-        node.children!.isNotEmpty &&
-        node.children!.first is m.Text;
-    final versionText =
-        mayBeVersion ? node.children!.first.textContent.trim() : null;
+        node.nodes.isNotEmpty &&
+        node.nodes.first is html.Text;
+    final versionText = mayBeVersion ? node.nodes.first.text?.trim() : null;
     final version = mayBeVersion ? _extractVersion(versionText) : null;
     if (version != null) {
       firstHeaderTag ??= nodeTag;
-      final titleElem = m.Element('h2', [m.Text(versionText!)])
+      final titleElem = html.Element.tag('h2')
         ..attributes['class'] = 'changelog-version'
-        ..generatedId = (node as m.Element).generatedId;
+        ..attributes['id'] = node.attributes['id']!
+        ..append(html.Text(versionText!));
 
-      lastContentDiv = m.Element('div', [])
+      lastContentDiv = html.Element.tag('div')
         ..attributes['class'] = 'changelog-content';
 
-      yield m.Element('div', [
-        titleElem,
-        lastContentDiv,
-      ])
-        ..attributes['class'] = 'changelog-entry';
+      yield html.Element.tag('div')
+        ..attributes['class'] = 'changelog-entry'
+        ..append(html.Text('\n'))
+        ..append(titleElem)
+        ..append(html.Text('\n'))
+        ..append(lastContentDiv);
     } else if (lastContentDiv != null) {
-      lastContentDiv.children!.add(node);
+      final lastChild = lastContentDiv.nodes.lastOrNull;
+      if (lastChild is html.Element && lastChild.localName == 'div') {
+        lastContentDiv.append(html.Text('\n'));
+      }
+      lastContentDiv.append(node);
     } else {
       yield node;
     }

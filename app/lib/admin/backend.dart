@@ -291,24 +291,16 @@ class AdminBackend {
   /// Creates a [ModeratedPackage] instance (if not already present) in
   /// Datastore representing the removed package. No new package with the same
   /// name can be published.
-  ///
-  /// Verifies the current authenticated user for admin permissions.
-  Future<void> removePackage(String packageName) async {
-    final caller =
-        await requireAuthenticatedAdmin(AdminPermission.removePackage);
-    _logger.info('${caller.displayId}) initiated the delete '
-        'of package $packageName');
-    await _removePackage(packageName);
-  }
-
-  /// Removes the package from the Datastore and updates other related
-  /// entities. It is safe to call [removePackage] on an already removed
-  /// package, as the call is idempotent.
-  ///
-  /// Creates a [ModeratedPackage] instance (if not already present) in
-  /// Datastore representing the removed package. No new package with the same
-  /// name can be published.
-  Future<void> _removePackage(
+  Future<
+      ({
+        int deletedPackages,
+        int deletedPackageVersions,
+        int deletedPackageVersionInfos,
+        int deletedPackageVersionAssets,
+        int deletedLikes,
+        int deletedAuditLogs,
+        int replacedByFixes,
+      })> removePackage(
     String packageName, {
     DateTime? moderated,
   }) async {
@@ -333,6 +325,7 @@ class AdminBackend {
     _logger.info('Removing package from Package.replacedBy...');
     final replacedByQuery = _db.query<Package>()
       ..filter('replacedBy =', packageName);
+    var replacedByFixes = 0;
     await for (final pkg in replacedByQuery.run()) {
       await withRetryTransaction(_db, (tx) async {
         final p = await tx.lookupOrNull<Package>(pkg.key);
@@ -343,26 +336,28 @@ class AdminBackend {
           p.replacedBy = null;
           tx.insert(p);
         }
+        replacedByFixes++;
       });
     }
 
     _logger.info('Removing package from PackageVersionInfo ...');
-    await _db.deleteWithQuery(
+    final deletedPackageVersionInfos = await _db.deleteWithQuery(
         _db.query<PackageVersionInfo>()..filter('package =', packageName));
 
     _logger.info('Removing package from PackageVersionAsset ...');
-    await _db.deleteWithQuery(
+    final deletedPackageVersionAssets = await _db.deleteWithQuery(
         _db.query<PackageVersionAsset>()..filter('package =', packageName));
 
     _logger.info('Removing package from Like ...');
-    await _db.deleteWithQuery(
+    final deletedLikes = await _db.deleteWithQuery(
         _db.query<Like>()..filter('packageName =', packageName));
 
     _logger.info('Removing package from AuditLogRecord...');
-    await _db.deleteWithQuery(
+    final deletedAuditLogRecords = await _db.deleteWithQuery(
         _db.query<AuditLogRecord>()..filter('packages =', packageName));
 
     _logger.info('Removing Package from Datastore...');
+    var deletedPackages = 0;
     await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -373,7 +368,7 @@ class AdminBackend {
         return;
       }
       tx.delete(packageKey);
-
+      deletedPackages = 1;
       final moderatedPkgKey =
           _db.emptyKey.append(ModeratedPackage, id: packageName);
       final moderatedPkg =
@@ -406,8 +401,15 @@ class AdminBackend {
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
 
     _logger.info('Package "$packageName" got successfully removed.');
-    _logger.info(
-        'NOTICE: Redis caches referencing the package will expire given time.');
+    return (
+      deletedPackages: deletedPackages,
+      deletedPackageVersions: versions.length,
+      deletedPackageVersionInfos: deletedPackageVersionInfos.deleted,
+      deletedPackageVersionAssets: deletedPackageVersionAssets.deleted,
+      deletedLikes: deletedLikes.deleted,
+      deletedAuditLogs: deletedAuditLogRecords.deleted,
+      replacedByFixes: replacedByFixes
+    );
   }
 
   /// Updates the options (e.g. retraction) of the specific package version and
@@ -451,13 +453,13 @@ class AdminBackend {
   /// Removes the specific package version from the Datastore and updates other
   /// related entities. It is safe to call [removePackageVersion] on an already
   /// removed version, as the call is idempotent.
-  Future<void> removePackageVersion(String packageName, String version) async {
-    final caller =
-        await requireAuthenticatedAdmin(AdminPermission.removePackage);
-
-    _logger.info('${caller.displayId}) initiated the delete '
-        'of package $packageName $version');
-
+  Future<
+      ({
+        int deletedPackageVersions,
+        int deletedPackageVersionInfos,
+        int deletedPackageVersionAssets,
+      })> removePackageVersion(String packageName, String version) async {
+    var deletedPackageVersions = 0;
     final currentDartSdk = await getCachedDartSdkVersion(
         lastKnownStable: toolStableDartSdkVersion);
     final currentFlutterSdk = await getCachedFlutterSdkVersion(
@@ -466,8 +468,7 @@ class AdminBackend {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
-        throw Exception(
-            'Package "$packageName" does not exists. Use full package removal without the version qualifier.');
+        throw Exception('Package "$packageName" does not exists.');
       }
 
       final versionsQuery = tx.query<PackageVersion>(packageKey);
@@ -476,8 +477,9 @@ class AdminBackend {
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
         package.updated = clock.now().toUtc();
+        deletedPackageVersions = 1;
       } else {
-        print('Package $packageName does not have a version $version.');
+        _logger.info('Package $packageName does not have a version $version.');
       }
 
       if (versionNames.length == 1 && versionNames.single == version) {
@@ -498,15 +500,15 @@ class AdminBackend {
       tx.insert(package);
     });
 
-    print('Removing GCS objects ...');
+    _logger.info('Removing GCS objects ...');
     await packageBackend.removePackageTarball(packageName, version);
 
-    await _db.deleteWithQuery(
+    final deletedPackageVersionInfos = await _db.deleteWithQuery(
       _db.query<PackageVersionInfo>()..filter('package =', packageName),
       where: (PackageVersionInfo info) => info.version == version,
     );
 
-    await _db.deleteWithQuery(
+    final deletedPackageVersionAssets = await _db.deleteWithQuery(
       _db.query<PackageVersionAsset>()..filter('package =', packageName),
       where: (PackageVersionAsset asset) => asset.version == version,
     );
@@ -515,6 +517,11 @@ class AdminBackend {
     await purgeScorecardData(packageName, version, isLatest: true);
     // trigger (eventual) re-analysis
     await taskBackend.trackPackage(packageName);
+    return (
+      deletedPackageVersions: deletedPackageVersions,
+      deletedPackageVersionInfos: deletedPackageVersionInfos.deleted,
+      deletedPackageVersionAssets: deletedPackageVersionAssets.deleted,
+    );
   }
 
   /// Handles `GET '/api/admin/packages/<package>/assigned-tags'`.
@@ -790,7 +797,7 @@ class AdminBackend {
       }
 
       _logger.info('Deleting moderated package: ${package.name}');
-      await _removePackage(
+      await removePackage(
         package.name!,
         moderated: package.moderatedAt,
       );

@@ -541,15 +541,13 @@ class PackageNameIndex {
 
   PackageNameIndex(this._packageNames) {
     _data = _packageNames.map((package) {
-      final collapsed = _collapseName(package);
-      return _PkgNameData(collapsed, trigrams(collapsed).toSet());
+      final lowercased = package.toLowerCase();
+      final collapsed = _removeUnderscores(lowercased);
+      return _PkgNameData(lowercased, collapsed, trigrams(collapsed).toSet());
     }).toList();
   }
 
-  /// Maps package name to a reduced form of the name:
-  /// the same character parts, but without `-`.
-  String _collapseName(String package) =>
-      package.replaceAll('_', '').toLowerCase();
+  String _removeUnderscores(String text) => text.replaceAll('_', '');
 
   /// Search [text] and return the matching packages with scores.
   @visibleForTesting
@@ -581,7 +579,8 @@ class PackageNameIndex {
     final singularWord = word.length <= 3 || !word.endsWith('s')
         ? word
         : word.substring(0, word.length - 1);
-    final collapsedWord = _collapseName(singularWord);
+    final lowercasedWord = singularWord.toLowerCase();
+    final collapsedWord = _removeUnderscores(lowercasedWord);
     final parts =
         collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
     for (var i = 0; i < _data.length; i++) {
@@ -590,8 +589,16 @@ class PackageNameIndex {
       }
 
       final entry = _data[i];
-      if (entry.collapsed.contains(collapsedWord)) {
-        score.setValue(i, 1.0);
+      if (entry.collapsed.length >= collapsedWord.length &&
+          entry.collapsed.contains(collapsedWord)) {
+        // also check for non-collapsed match
+        if (entry.lowercased.length >= lowercasedWord.length &&
+            entry.lowercased.contains(lowercasedWord)) {
+          score.setValue(i, 1.0);
+          continue;
+        }
+
+        score.setValue(i, 0.99);
         continue;
       }
       var matched = 0;
@@ -622,10 +629,11 @@ class PackageNameIndex {
 }
 
 class _PkgNameData {
+  final String lowercased;
   final String collapsed;
   final Set<String> trigrams;
 
-  _PkgNameData(this.collapsed, this.trigrams);
+  _PkgNameData(this.lowercased, this.collapsed, this.trigrams);
 }
 
 extension on List<IndexedPackageHit> {

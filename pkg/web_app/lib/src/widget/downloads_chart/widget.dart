@@ -198,6 +198,7 @@ void drawChart(
     {DisplayMode displayMode = DisplayMode.unstacked}) {
   final ranges = displayLists.ranges;
   final values = displayLists.weekLists;
+  final displayAreas = displayMode != DisplayMode.unstacked;
 
   if (values.isEmpty) return;
 
@@ -348,11 +349,11 @@ void drawChart(
   clipPath.append(clipRect);
   chart.append(clipPath);
 
-  // Chart lines and legends
+  // Chart lines, areas, and legends
 
   final latestDownloads = List<num>.filled(values.length, 0);
   final lines = <List<(double, double)>>[];
-  for (int versionRange = 0; versionRange < values[0].length; versionRange++) {
+  for (int versionRange = 0; versionRange < ranges.length; versionRange++) {
     final List<(double, double)> lineCoordinates = <(double, double)>[];
     for (int week = 0; week < values.length; week++) {
       final value = displayMode == DisplayMode.percentage
@@ -375,6 +376,15 @@ void drawChart(
     lines.add(lineCoordinates);
   }
 
+  final areas = <List<(double, double)>>[];
+  if (displayAreas) {
+    for (int i = 0; i < ranges.length; i++) {
+      final prevLine = i == 0 ? [(xZero, yZero), (xMax, yZero)] : lines[i - 1];
+      final areaLine = [...lines[i], ...prevLine.reversed, lines[i].first];
+      areas.add(areaLine);
+    }
+  }
+
   StringBuffer computeLinePath(List<(double, double)> coordinates) {
     final path = StringBuffer();
     var command = 'M';
@@ -385,21 +395,10 @@ void drawChart(
     return path;
   }
 
-  StringBuffer computeAreaPath(List<(double, double)> topCoordinates,
-      List<(double, double)> bottomCoordinates) {
-    final path = StringBuffer();
-    var command = 'M';
-    topCoordinates.forEach((c) {
-      path.write(' $command${c.$1} ${c.$2}');
-      command = 'L';
-    });
-
-    bottomCoordinates.reversed.forEach((c) {
-      path.write(' $command${c.$1} ${c.$2}');
-      command = 'L';
-    });
-    path.write('Z');
-    return path;
+  int colorIndex(int i) {
+    // We assign colors in reverse order so that the newest versions
+    // get the main colors.
+    return ranges.length - i - 1;
   }
 
   double legendX = xZero;
@@ -408,61 +407,45 @@ void drawChart(
   final legendWidth = 20;
   final legendHeight = 8;
 
-  for (int i = 0; i < lines.length; i++) {
-    // We add the lines in reverse order so that the newest versions get the
-    // main colors.
-    final line = computeLinePath(lines[lines.length - 1 - i]);
+  final linePaths = <SVGPathElement>[];
+  final areaPaths = <SVGPathElement>[];
+  final legends = <(SVGRectElement, SVGTextElement)>[];
+  for (int i = 0; i < ranges.length; i++) {
+    final line = computeLinePath(lines[i]);
     final path = SVGPathElement();
-    path.setAttribute('class', '${strokeColorClass(i)} downloads-chart-line ');
+    path.setAttribute(
+        'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
     path.setAttribute('d', '$line');
     path.setAttribute('clip-path', 'url(#clipRect)');
+    linePaths.add(path);
     chart.append(path);
 
-    if (displayMode == DisplayMode.stacked ||
-        displayMode == DisplayMode.percentage) {
-      final prevLine = i == lines.length - 1
-          ? [(xZero, yZero), (xMax, yZero)]
-          : lines[lines.length - 1 - i - 1];
-      final areaPath = computeAreaPath(lines[lines.length - 1 - i], prevLine);
+    if (displayAreas) {
+      final areaPath = computeLinePath(areas[i]);
       final area = SVGPathElement();
-      area.setAttribute('class', '${fillColorClass(i)} downloads-chart-area ');
+      area.setAttribute(
+          'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
       area.setAttribute('d', '$areaPath');
       area.setAttribute('clip-path', 'url(#clipRect)');
+      areaPaths.add(area);
       chart.append(area);
     }
 
     final legend = SVGRectElement();
-    chart.append(legend);
     legend.setAttribute('class',
-        'downloads-chart-legend ${fillColorClass(i)} ${strokeColorClass(i)}');
+        'downloads-chart-legend ${fillColorClass(colorIndex(i))} ${strokeColorClass(colorIndex(i))}');
     legend.setAttribute('height', '$legendHeight');
     legend.setAttribute('width', '$legendWidth');
 
     final legendLabel = SVGTextElement();
-    chart.append(legendLabel);
     legendLabel.setAttribute('class', 'downloads-chart-tick-label');
-    legendLabel.text = ranges[ranges.length - 1 - i];
-
-    if (legendX + marginPadding + legendWidth + legendLabel.getBBox().width >
-        xMax) {
-      // There is no room for the legend and label.
-      // Make a new line and update legendXCoor and legendYCoor accordingly.
-
-      legendX = xZero;
-      legendY += 2 * marginPadding + legendHeight;
-    }
-
-    legend.setAttribute('x', '$legendX');
-    legend.setAttribute('y', '$legendY');
-    legendLabel.setAttribute('y', '${legendY + legendHeight}');
-    legendLabel.setAttribute('x', '${legendX + marginPadding + legendWidth}');
-
-    // Update x coordinate for next legend
-    legendX += legendWidth +
-        marginPadding +
-        legendLabel.getBBox().width +
-        labelPadding;
+    legendLabel.text = ranges[i];
+    chart.append(legendLabel);
+    chart.append(legend);
+    legends.add((legend, legendLabel));
   }
+
+  // Setup cursor
 
   final cursor = SVGLineElement()
     ..setAttribute('class', 'downloads-chart-cursor')
@@ -473,83 +456,222 @@ void drawChart(
     ..setAttribute('y2', '$yMax');
   chart.append(cursor);
 
-  // Setup mouse handling
-
-  DateTime? lastSelectedDay;
   void hideCursor(_) {
     cursor.setAttribute('style', 'opacity:0');
     toolTip.setAttribute('style', 'opacity:0;position:absolute;');
-    lastSelectedDay = null;
   }
 
   hideCursor(1);
 
+  void resetHighlights() {
+    for (int i = 0; i < linePaths.length; i++) {
+      final l = linePaths[i];
+      l.removeAttribute('class');
+      l.setAttribute(
+          'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+
+      if (displayAreas) {
+        areaPaths[i].removeAttribute('class');
+        areaPaths[i].setAttribute(
+            'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
+      }
+      legends[i].$2.removeAttribute('class');
+      legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
+    }
+  }
+
+  void setHighlights(Set<int> highlightRangeIndices) {
+    if (highlightRangeIndices.isEmpty) {
+      resetHighlights();
+    }
+
+    for (int i = 0; i < ranges.length; i++) {
+      linePaths[i].removeAttribute('class');
+      if (displayAreas) {
+        areaPaths[i].removeAttribute('class');
+      }
+      legends[i].$2.removeAttribute('class');
+
+      if (highlightRangeIndices.contains(i)) {
+        linePaths[i].setAttribute(
+            'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+        if (displayAreas) {
+          areaPaths[i].setAttribute(
+              'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
+        }
+        legends[i]
+            .$2
+            .setAttribute('class', 'downloads-chart-legend-label-highlight');
+      } else if (highlightRangeIndices.isNotEmpty) {
+        linePaths[i].setAttribute('class',
+            '${strokeColorClass(colorIndex(i))} downloads-chart-line-faded');
+        if (displayAreas) {
+          areaPaths[i].setAttribute('class',
+              '${fillColorClass(colorIndex(i))} downloads-chart-area-faded');
+        }
+
+        legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
+      } else {
+        linePaths[i].setAttribute(
+            'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+        if (displayAreas) {
+          areaPaths[i].setAttribute('class',
+              '${fillColorClass(colorIndex(i))} downloads-chart-area ');
+        }
+        legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
+      }
+    }
+  }
+
+  // Place legends and set highlight on hover
+
+  for (var i = legends.length - 1; i >= 0; i--) {
+    // We traverse the legends in reverse order so that the legend of the newest
+    // version is placed first.
+    final (legend, legendLabel) = legends[i];
+
+    if (legendX + marginPadding + legendWidth + legendLabel.getBBox().width >
+        xMax) {
+      // There is no room for the legend and label.
+      // Make a new line and update legendX and legendY accordingly.
+      legendX = xZero;
+      legendY += 2 * marginPadding + legendHeight;
+    }
+
+    legend.setAttribute('x', '$legendX');
+    legend.setAttribute('y', '$legendY');
+
+    legendLabel.setAttribute('y', '${legendY + legendHeight}');
+    legendLabel.setAttribute('x', '${legendX + marginPadding + legendWidth}');
+
+    // Update x coordinate for next legend
+    legendX += legendWidth +
+        marginPadding +
+        legendLabel.getBBox().width +
+        labelPadding;
+
+    legend.onMouseMove.listen((e) {
+      setHighlights({i});
+      e.stopImmediatePropagation();
+    });
+    legendLabel.onMouseMove.listen((e) {
+      setHighlights({i});
+      e.stopImmediatePropagation();
+    });
+
+    legend.onMouseLeave.listen((e) {
+      resetHighlights();
+      e.stopImmediatePropagation();
+    });
+    legendLabel.onMouseLeave.listen((e) {
+      resetHighlights();
+      e.stopImmediatePropagation();
+    });
+  }
+
+  // Setup mouse handling on chart: show cursor, tooltip and highlights
+
   svg.onMouseMove.listen((e) {
     final boundingRect = svg.getBoundingClientRect();
-    if (e.x < boundingRect.x + xZero ||
-        e.x > boundingRect.x + xMax ||
-        e.y < boundingRect.y + yMax ||
-        e.y > boundingRect.y + yZero) {
+    final yPosition = e.y - boundingRect.y;
+    final xPosition = e.x - boundingRect.x;
+
+    if (xPosition < xZero ||
+        xPosition > xMax ||
+        yPosition < yMax ||
+        yPosition > yZero) {
       // We are outside the actual chart area
+      resetHighlights();
       hideCursor(1);
       return;
     }
 
-    cursor.setAttribute('style', 'opacity:1');
+    final pointPercentage = (xPosition - xZero) / chartWidth;
+    final nearestIndex = ((values.length - 1) * pointPercentage).round();
+    final selectedDay =
+        computeDateForWeekNumber(newestDate, values.length, nearestIndex);
 
-    final pointPercentage = (e.x - boundingRect.x - xZero) / chartWidth;
+    // Show cursor
+
+    cursor.setAttribute('style', 'opacity:1');
+    final cursorPosition = computeCoordinates(selectedDay, 0);
+    cursor.setAttribute('transform', 'translate(${cursorPosition.$1}, 0)');
+
+    // Highlight version ranges where the mouse position is close to the line or
+    // in the area below the line in the case of `stacked` or `percentage`
+    // display mode.
+
+    final highlightRangeIndices = <int>{};
+    for (int i = 0; i < lines.length; i++) {
+      if (isPointOnPathWithTolerance(lines[i], (xPosition, yPosition), 5)) {
+        highlightRangeIndices.add(i);
+      }
+    }
+    if (displayAreas) {
+      for (int i = 0; i < areas.length; i++) {
+        final a = areas[i];
+        if (isPointInPolygon(a, (xPosition, yPosition))) {
+          highlightRangeIndices.add(i);
+        }
+      }
+    }
+
+    setHighlights(highlightRangeIndices);
+
+    // Setup tooltip
+
+    final startDay = selectedDay.subtract(Duration(days: 7));
     final horizontalPosition =
         e.x + toolTip.getBoundingClientRect().width > width
             ? 'left:${e.x - toolTip.getBoundingClientRect().width}px;'
             : 'left:${e.x}px;';
     toolTip.setAttribute('style',
         'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;$horizontalPosition');
-
-    final nearestIndex = ((values.length - 1) * pointPercentage).round();
-    final selectedDay =
-        computeDateForWeekNumber(newestDate, values.length, nearestIndex);
-    if (selectedDay == lastSelectedDay) return;
-
-    final coords = computeCoordinates(selectedDay, 0);
-    cursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
-
-    final startDay = selectedDay.subtract(Duration(days: 7));
     toolTip.replaceChildren(HTMLDivElement()
       ..setAttribute('class', 'downloads-chart-tooltip-date')
       ..text =
           '${formatAbbrMonthDay(startDay)} - ${formatAbbrMonthDay(selectedDay)}');
 
     final downloads = values[nearestIndex];
-    for (int i = 0; i < downloads.length; i++) {
-      final rangeIndex = ranges.length - 1 - i;
-      if (downloads[rangeIndex] > 0) {
+    for (int i = ranges.length - 1; i >= 0; i--) {
+      // We traverse in reverse order so that the downloads of the newest
+      // version is placed highest up in the tooltip.
+      if (downloads[i] > 0) {
         // We only show the exact download count in the tooltip if it is non-zero.
         final square = HTMLDivElement()
-          ..setAttribute(
-              'class', 'downloads-chart-tooltip-square ${squareColorClass(i)}');
-        final rangeText = HTMLSpanElement()..text = '${ranges[rangeIndex]}: ';
+          ..setAttribute('class',
+              'downloads-chart-tooltip-square ${squareColorClass(colorIndex(i))}');
+        final rangeText = HTMLSpanElement()..text = '${ranges[i]}: ';
+        final suffix = (displayMode == DisplayMode.percentage)
+            ? ' (${(downloads[i] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
+            : '';
+        final text = '${formatWithThousandSeperators(downloads[i])}$suffix';
+        final downloadsText = HTMLSpanElement()
+          ..setAttribute('class', 'downloads-chart-tooltip-downloads')
+          ..text = text;
+
         final tooltipRange = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')
           ..append(square)
           ..append(rangeText);
 
-        final suffix = (displayMode == DisplayMode.percentage)
-            ? ' (${(downloads[rangeIndex] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
-            : '';
-        final text =
-            '${formatWithThousandSeperators(downloads[rangeIndex])}$suffix';
-        final downloadsText = HTMLSpanElement()
-          ..setAttribute('class', 'downloads-chart-tooltip-downloads')
-          ..text = text;
         final tooltipRow = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')
           ..append(tooltipRange)
           ..append(downloadsText);
+
+        if (highlightRangeIndices.contains(i)) {
+          rangeText.setAttribute('class', 'downloads-chart-tooltip-highlight');
+          downloadsText.setAttribute(
+              'class', 'downloads-chart-tooltip-highlight');
+        }
         toolTip.append(tooltipRow);
       }
     }
-    lastSelectedDay = selectedDay;
   });
 
-  svg.onMouseLeave.listen(hideCursor);
+  svg.onMouseLeave.listen((e) {
+    resetHighlights();
+    hideCursor(1);
+  });
 }

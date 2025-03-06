@@ -119,5 +119,12 @@ void main() {
         {},
       );
     });
+
+    test('substring: entu', () {
+      expect(index.search('entu'), {
+        'fluent': 0.5,
+        'fluent_ui': 0.99, // not 1.0
+      });
+    });
   });
 }

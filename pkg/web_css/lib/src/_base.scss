@@ -8,10 +8,6 @@
 
 @use 'variables';
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   background-color: var(--pub-neutral-bgColor);
   color: var(--pub-neutral-textColor);
@@ -20,11 +16,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-wrap: anywhere;
-}
 
-body, input, button, select {
   font-family: var(--pub-font-family-body);
-  -webkit-font-smoothing: antialiased;
   // we don't use font ligatures, and Google Sans fonts would otherwise change text in surprising ways
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0;
@@ -109,9 +102,7 @@ button {
 }
 
 a {
-  text-decoration: none;
   color: var(--pub-link-text-color);
-  cursor: pointer;
 
   // TODO: fix style to not use bgColor as text and text color as background
   &.link-button {
@@ -119,10 +110,6 @@ a {
     color: var(--pub-neutral-bgColor);
     display: inline-block;
     padding: 4px 12px;
-  }
-
-  &:hover {
-    text-decoration: underline;
   }
 
   @include variables.brightness-on-hover;
@@ -491,5 +478,15 @@ a.-x-ago {
   }
   .pub-toc-node-3 {
     margin-left: 36px;
+  }
+}
+
+.-pub-ongoing-screenshot {
+  // Disables flashing caret (cursor) in input fields by making it invisible.
+  caret-color: transparent;
+
+  // Instantaneous transitions - no ambiguous delay in the end state.
+  * {
+    transition-duration: 0s !important;
   }
 }

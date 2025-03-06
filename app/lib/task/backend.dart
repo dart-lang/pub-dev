@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:_pub_shared/data/task_api.dart' as api;
 import 'package:_pub_shared/data/task_payload.dart';
+import 'package:_pub_shared/worker/limits.dart';
 import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -788,7 +789,7 @@ class TaskBackend {
     try {
       return await _bucket.readAsBytes(
         path, offset: offset, length: length,
-        maxSize: 10 * 1024 * 1024, // sanity limit
+        maxSize: blobContentSizeLimit, // sanity limit
       );
     } on DetailedApiRequestError catch (e) {
       if (e.status == 404) {

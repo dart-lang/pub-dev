@@ -68,7 +68,10 @@ extension ScreenshotElementHandleExt on ElementHandle {
     final body = await page.$('body');
     final bodyClassAttr =
         (await body.evaluate('el => el.getAttribute("class")')) as String;
-    final bodyClasses = bodyClassAttr.split(' ');
+    final bodyClasses = [
+      ...bodyClassAttr.split(' '),
+      '-pub-ongoing-screenshot',
+    ];
 
     for (final vp in _viewports.entries) {
       await page.setViewport(vp.value);
@@ -84,10 +87,17 @@ extension ScreenshotElementHandleExt on ElementHandle {
         // The presence of the element is verified, continue only if screenshots are enabled.
         if (!_isScreenshotDirSet) continue;
 
+        // Arbitrary delay in the hope that potential ongoing updates complete.
+        await Future.delayed(Duration(milliseconds: 500));
+
         final path = p.join(_screenshotDir!, '$prefix-${vp.key}-$theme.png');
         await _writeScreenshotToFile(path);
       }
     }
+
+    // restore the original body class attributes
+    await body.evaluate('(el, v) => el.setAttribute("class", v)',
+        args: [bodyClassAttr]);
   }
 
   Future<void> _writeScreenshotToFile(String path) async {

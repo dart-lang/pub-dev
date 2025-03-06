@@ -19,12 +19,14 @@ import 'moderation_case_list.dart';
 import 'moderation_case_resolve.dart';
 import 'moderation_case_update.dart';
 import 'moderation_transparency_metrics.dart';
+import 'package_delete.dart';
 import 'package_discontinue.dart';
 import 'package_info.dart';
 import 'package_latest_update.dart';
 import 'package_reservation_create.dart';
 import 'package_reservation_delete.dart';
 import 'package_reservation_list.dart';
+import 'package_version_delete.dart';
 import 'package_version_info.dart';
 import 'package_version_retraction.dart';
 import 'publisher_create.dart';
@@ -106,12 +108,14 @@ final class AdminAction {
     moderationCaseResolve,
     moderationCaseUpdate,
     moderationTransparencyMetrics,
+    packageDelete,
     packageDiscontinue,
     packageInfo,
     packageLatestUpdate,
     packageReservationCreate,
     packageReservationDelete,
     packageReservationList,
+    packageVersionDelete,
     packageVersionInfo,
     packageVersionRetraction,
     publisherCreate,

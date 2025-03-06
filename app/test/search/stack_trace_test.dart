@@ -36,7 +36,7 @@ void main() {
         'packageHits': [
           {
             'package': 'stack_trace',
-            'score': 1.0,
+            'score': 0.99,
           },
         ],
       });
