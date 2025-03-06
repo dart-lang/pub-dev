@@ -128,7 +128,7 @@ void main() {
           TestPackage(name: 'pkg', versions: [
             TestVersion(
               version: '1.0.0',
-              metadata: {'homepage': '0'},
+              parameters: {'homepage': '0'},
             )
           ]),
         ],

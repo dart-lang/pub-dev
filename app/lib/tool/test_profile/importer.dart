@@ -101,8 +101,8 @@ Future<void> importProfile({
             rv.package,
             rv.version,
             {
-              ...?testPackage?.metadata,
-              ...?testVersion?.metadata,
+              ...?testPackage?.parameters,
+              ...?testVersion?.parameters,
             },
           );
       bytes = await _mayCleanupTarModeBits(bytes);

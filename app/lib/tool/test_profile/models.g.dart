@@ -44,7 +44,7 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
           ?.map((e) => e as String)
           .toList(),
       likeCount: (json['likeCount'] as num?)?.toInt(),
-      metadata: (json['metadata'] as Map<String, dynamic>?)?.map(
+      parameters: (json['parameters'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
     );
@@ -64,7 +64,7 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) =>
       if (instance.retractedVersions case final value?)
         'retractedVersions': value,
       if (instance.likeCount case final value?) 'likeCount': value,
-      if (instance.metadata case final value?) 'metadata': value,
+      if (instance.parameters case final value?) 'parameters': value,
     };
 
 TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
@@ -72,7 +72,7 @@ TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
       created: json['created'] == null
           ? null
           : DateTime.parse(json['created'] as String),
-      metadata: (json['metadata'] as Map<String, dynamic>?)?.map(
+      parameters: (json['parameters'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
     );
@@ -82,7 +82,7 @@ Map<String, dynamic> _$TestVersionToJson(TestVersion instance) =>
       'version': instance.version,
       if (instance.created?.toIso8601String() case final value?)
         'created': value,
-      if (instance.metadata case final value?) 'metadata': value,
+      if (instance.parameters case final value?) 'parameters': value,
     };
 
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) =>
