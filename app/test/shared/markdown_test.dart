@@ -405,6 +405,21 @@ void main() {
         '</h2>',
       );
     });
+
+    test('custom html', () {
+      final input = '''<h1>1.0.0</h1><hr><ul><li>a</li></ul>
+<h1>0.2.9</h1><hr><ul><li>b</li></ul>
+''';
+      final output = markdownToHtml(input, isChangelog: true);
+      expect(
+        output,
+        allOf([
+          contains('<h2 class="changelog-version hash-header" id="100">'
+              '1.0.0 <a href="#100" class="hash-link">#</a></h2>'),
+          contains('<div class="changelog-content"><hr><ul><li>a</li></ul>'),
+        ]),
+      );
+    });
   });
 
   group('alert blocks', () {
