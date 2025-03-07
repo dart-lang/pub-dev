@@ -371,9 +371,16 @@ Iterable<html.Node> _groupChangelogNodes(List<html.Node> nodes) sync* {
     final version = mayBeVersion ? _extractVersion(versionText) : null;
     if (version != null) {
       firstHeaderTag ??= nodeTag;
+      var id = node.attributes['id'];
+      if (id == null || id.isEmpty) {
+        // `package:markdown` generates ids without dots (`.`), using similar
+        // normalization here.
+        // TODO: consider replacing all uses with `<a>.<b>.<c>` id attributes
+        id = version.toString().replaceAll('.', '');
+      }
       final titleElem = html.Element.tag('h2')
         ..attributes['class'] = 'changelog-version'
-        ..attributes['id'] = node.attributes['id']!
+        ..attributes['id'] = id
         ..append(html.Text(versionText!));
 
       lastContentDiv = html.Element.tag('div')
