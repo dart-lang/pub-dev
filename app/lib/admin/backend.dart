@@ -749,7 +749,7 @@ class AdminBackend {
         dbService.emptyKey.append(ModerationCase, id: caseId));
   }
 
-  /// Returns a valid [ModerationCase] if it exists and [status] is matching.
+  /// Returns a valid [ModerationCase] if it exists.
   /// Returns `null` if [caseId] is `none`.
   ///
   /// Throws exceptions otherwise.
