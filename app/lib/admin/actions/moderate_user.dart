@@ -49,10 +49,7 @@ The active web sessions of the user will be expired.
     final note = options['note'];
 
     final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
-      caseId,
-      status: null,
-    );
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
     User? user;
     if (looksLikeUserId(userIdOrEmail!)) {

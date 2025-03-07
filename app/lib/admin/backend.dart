@@ -754,9 +754,8 @@ class AdminBackend {
   ///
   /// Throws exceptions otherwise.
   Future<ModerationCase?> loadAndVerifyModerationCaseForAdminAction(
-    String? caseId, {
-    required String? status,
-  }) async {
+    String? caseId,
+  ) async {
     InvalidInputException.check(
       caseId != null && caseId.isNotEmpty,
       'case must be given',
@@ -768,10 +767,6 @@ class AdminBackend {
     final refCase = await adminBackend.lookupModerationCase(caseId!);
     if (refCase == null) {
       throw NotFoundException.resource(caseId);
-    }
-    if (status != null && refCase.status != status) {
-      throw InvalidInputException(
-          'ModerationCase.status ("${refCase.status}") != "$status".');
     }
     return refCase;
   }
