@@ -17,17 +17,27 @@ Future<void> main(List<String> args) async {
 
   final reportDir = Directory(args[2]);
   await reportDir.create(recursive: true);
-  await _CompareTool(beforeFiles, afterFiles, reportDir)._compare();
+  await _CompareTool(
+    args[0],
+    beforeFiles,
+    args[1],
+    afterFiles,
+    reportDir,
+  )._compare();
 }
 
 class _CompareTool {
+  final String _beforeDir;
+  final String _afterDir;
   final Directory _reportDir;
   final Map<String, File> _beforeFiles;
   final Map<String, File> _afterFiles;
   final _report = StringBuffer();
 
   _CompareTool(
+    this._beforeDir,
     this._beforeFiles,
+    this._afterDir,
     this._afterFiles,
     this._reportDir,
   );
@@ -77,10 +87,19 @@ class _CompareTool {
           p.join(_reportDir.path, relativeDir, '$basename-diff.png');
       await File(diffPath).parent.create(recursive: true);
 
-      final pr = await Process.run('compare', [
-        before.path,
-        after.path,
-        diffPath,
+      final pr = await Process.run('docker', [
+        'run',
+        '--rm',
+        '-v',
+        '$_beforeDir:/root/before',
+        '-v',
+        '$_afterDir:/root/after',
+        '-v',
+        '${_reportDir.path}:/root/diff',
+        'odiff',
+        p.join('/root/before', relativeDir, '$basename.png'),
+        p.join('/root/after', relativeDir, '$basename.png'),
+        p.join('/root/diff', relativeDir, '$basename-diff.png'),
       ]);
       if (pr.exitCode == 0) continue;
 
