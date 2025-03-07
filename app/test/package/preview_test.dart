@@ -239,7 +239,11 @@ class _ImportSource implements ImportSource {
   }
 
   @override
-  Future<List<int>> getArchiveBytes(String package, String version) async {
+  Future<List<int>> getArchiveBytes(
+    String package,
+    String version,
+    Map<String, dynamic> metadata,
+  ) async {
     final archive = ArchiveBuilder();
 
     final minSdk =
