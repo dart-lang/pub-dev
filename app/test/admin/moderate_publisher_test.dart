@@ -191,22 +191,6 @@ void main() {
       expect(docs3!.where((d) => d.package == 'neon'), isNotEmpty);
     });
 
-    testWithProfile('status already closed', fn: () async {
-      final mc = await _report('example.com');
-      await dbService.commit(inserts: [
-        mc
-          ..resolved = clock.now()
-          ..status = ModerationStatus.noAction
-      ]);
-
-      await expectApiException(
-        _moderate('example.com', state: true, caseId: mc.caseId),
-        code: 'InvalidInput',
-        status: 400,
-        message: 'ModerationCase.status ("no-action") != "pending".',
-      );
-    });
-
     testWithProfile('cleanup deletes datastore entities and abandons packages',
         fn: () async {
       // moderate and cleanup

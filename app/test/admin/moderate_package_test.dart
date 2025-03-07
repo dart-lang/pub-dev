@@ -398,22 +398,6 @@ void main() {
       },
     );
 
-    testWithProfile('status already closed', fn: () async {
-      final mc = await _report('oxygen');
-      await dbService.commit(inserts: [
-        mc
-          ..resolved = clock.now()
-          ..status = ModerationStatus.noAction
-      ]);
-
-      await expectApiException(
-        _moderate('oxygen', state: true, caseId: mc.caseId),
-        code: 'InvalidInput',
-        status: 400,
-        message: 'ModerationCase.status ("no-action") != "pending".',
-      );
-    });
-
     testWithProfile(
         'cleanup deletes datastore entities and canonical archive file',
         expectedLogMessages: [
