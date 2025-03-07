@@ -13,7 +13,6 @@ import '../../publisher/backend.dart';
 import '../../shared/datastore.dart';
 
 import '../backend.dart';
-import '../models.dart';
 
 import 'actions.dart';
 
@@ -49,10 +48,7 @@ The active web sessions of the user will be expired.
     final note = options['note'];
 
     final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
-      caseId,
-      status: ModerationStatus.pending,
-    );
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
     User? user;
     if (looksLikeUserId(userIdOrEmail!)) {

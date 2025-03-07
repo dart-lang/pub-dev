@@ -62,10 +62,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
     final note = options['note'];
 
     final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
-      caseId,
-      status: ModerationStatus.pending,
-    );
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
