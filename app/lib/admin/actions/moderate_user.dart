@@ -51,7 +51,7 @@ The active web sessions of the user will be expired.
     final refCase =
         await adminBackend.loadAndVerifyModerationCaseForAdminAction(
       caseId,
-      status: ModerationStatus.pending,
+      status: null,
     );
 
     User? user;
