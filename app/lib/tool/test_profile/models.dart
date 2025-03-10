@@ -61,6 +61,7 @@ class TestPackage {
   final bool? isFlutterFavorite;
   final List<String>? retractedVersions;
   final int? likeCount;
+  final Map<String, String>? parameters;
 
   TestPackage({
     required this.name,
@@ -73,6 +74,7 @@ class TestPackage {
     this.isFlutterFavorite,
     this.retractedVersions,
     this.likeCount,
+    this.parameters,
   });
 
   factory TestPackage.fromJson(Map<String, dynamic> json) {
@@ -103,6 +105,7 @@ class TestPackage {
       isFlutterFavorite: isFlutterFavorite,
       retractedVersions: retractedVersions,
       likeCount: likeCount,
+      parameters: parameters,
     );
   }
 }
@@ -111,10 +114,12 @@ class TestPackage {
 class TestVersion {
   final String version;
   final DateTime? created;
+  final Map<String, String>? parameters;
 
   TestVersion({
     required this.version,
     this.created,
+    this.parameters,
   });
 
   factory TestVersion.fromJson(Map<String, dynamic> json) =>
