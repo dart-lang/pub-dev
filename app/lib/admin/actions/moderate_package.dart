@@ -52,10 +52,7 @@ Note: the action may take a longer time to complete as the public archive bucket
     final note = options['note'];
 
     final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
-      caseId,
-      status: ModerationStatus.pending,
-    );
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
     final p = await packageBackend.lookupPackage(package!);
     if (p == null) {
