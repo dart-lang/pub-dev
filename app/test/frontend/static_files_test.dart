@@ -144,6 +144,11 @@ void main() {
           '/static/material/bundle/script.min.js.LICENSE.txt',
           '/static/material/bundle/styles.min.js',
         ])
+        // Images that we are not currently using but keep alongside of the used version.
+        ..removeAll([
+          '/static/img/ff-banner-desktop-dark-2x.svg',
+          '/static/img/ff-banner-mobile-dark-2x.svg',
+        ])
         // script parts are served, but not referenced
         ..removeWhere(
           (e) =>
