@@ -54,10 +54,7 @@ can't be updated, administrators must not be able to update publisher options.
     final note = options['note'];
 
     final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(
-      caseId,
-      status: ModerationStatus.pending,
-    );
+        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
     Publisher? publisher2;
     if (valueToSet != null) {
