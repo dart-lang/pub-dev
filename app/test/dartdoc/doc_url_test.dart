@@ -15,7 +15,7 @@ void main() {
   group('doc url resolution', () {
     final _testProfile = TestProfile(
       defaultUser: 'admin@pub.dev',
-      packages: [
+      generatedPackages: [
         TestPackage(
           name: 'oxygen',
           versions: [

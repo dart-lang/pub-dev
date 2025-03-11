@@ -30,7 +30,7 @@ void main() {
           {
             'testProfile': {
               'defaultUser': 'admin@pub.dev',
-              'packages': [
+              'generatedPackages': [
                 {
                   'name': 'admin_pkg',
                 },

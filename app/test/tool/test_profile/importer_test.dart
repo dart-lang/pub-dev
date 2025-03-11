@@ -20,7 +20,7 @@ void main() {
       'retry',
       testProfile: TestProfile(
         defaultUser: 'dev@example.com',
-        packages: [
+        importedPackages: [
           TestPackage(
             name: 'retry',
             versions: [TestVersion(version: '3.1.0')],
@@ -55,7 +55,7 @@ void main() {
     testWithProfile(
       'http',
       testProfile: TestProfile(
-        packages: [
+        importedPackages: [
           TestPackage(name: 'http', uploaders: ['dev@example.com']),
         ],
       ),
@@ -85,7 +85,7 @@ void main() {
       'sample',
       testProfile: TestProfile(
         defaultUser: 'dev@example.com',
-        packages: [TestPackage(name: 'sample')],
+        generatedPackages: [TestPackage(name: 'sample')],
       ),
       fn: () async {
         final users = await dbService.query<User>().run().toList();
@@ -112,7 +112,7 @@ void main() {
     testWithProfile(
       'fill in likes',
       testProfile: TestProfile(
-        packages: [
+        generatedPackages: [
           TestPackage(
             name: 'sample',
             likeCount: 10,

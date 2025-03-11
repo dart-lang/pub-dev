@@ -7,7 +7,10 @@ part of 'models.dart';
 // **************************************************************************
 
 TestProfile _$TestProfileFromJson(Map<String, dynamic> json) => TestProfile(
-      packages: (json['packages'] as List<dynamic>?)
+      importedPackages: (json['importedPackages'] as List<dynamic>?)
+          ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      generatedPackages: (json['generatedPackages'] as List<dynamic>?)
           ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
           .toList(),
       publishers: (json['publishers'] as List<dynamic>?)
@@ -21,7 +24,10 @@ TestProfile _$TestProfileFromJson(Map<String, dynamic> json) => TestProfile(
 
 Map<String, dynamic> _$TestProfileToJson(TestProfile instance) =>
     <String, dynamic>{
-      'packages': instance.packages.map((e) => e.toJson()).toList(),
+      'importedPackages':
+          instance.importedPackages.map((e) => e.toJson()).toList(),
+      'generatedPackages':
+          instance.generatedPackages.map((e) => e.toJson()).toList(),
       'publishers': instance.publishers.map((e) => e.toJson()).toList(),
       'users': instance.users.map((e) => e.toJson()).toList(),
       if (instance.defaultUser case final value?) 'defaultUser': value,

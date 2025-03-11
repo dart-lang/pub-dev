@@ -65,7 +65,7 @@ environment:
 
     testWithProfile(
       'new versions 1 per minute',
-      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      testProfile: TestProfile(defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
           [
@@ -96,7 +96,7 @@ environment:
 
     testWithProfile(
       'new versions 12 per hour',
-      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      testProfile: TestProfile(defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
           [
@@ -132,7 +132,7 @@ environment:
 
     testWithProfile(
       'new versions 24 per day',
-      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      testProfile: TestProfile(defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
           [
@@ -168,7 +168,7 @@ environment:
 
     testWithProfile(
       'retried failures report the correct window',
-      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      testProfile: TestProfile(defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
           [
@@ -209,7 +209,7 @@ environment:
 
     testWithProfile(
       'new packages 1 per minute',
-      testProfile: TestProfile(packages: [], defaultUser: adminAtPubDevEmail),
+      testProfile: TestProfile(defaultUser: adminAtPubDevEmail),
       fn: () async {
         await _withRateLimits(
           [

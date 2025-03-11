@@ -718,7 +718,7 @@ void main() {
       testWithProfile(
           'successful upload with GitHub Actions (exempted package)',
           testProfile: TestProfile(
-            packages: [
+            generatedPackages: [
               TestPackage(name: '_dummy_pkg'),
               TestPackage(name: 'oxygen'),
             ],
@@ -1229,7 +1229,7 @@ void main() {
       'max version count',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
-        packages: <TestPackage>[
+        generatedPackages: <TestPackage>[
           TestPackage(name: 'oxygen'),
           TestPackage(
               name: 'busy_pkg',

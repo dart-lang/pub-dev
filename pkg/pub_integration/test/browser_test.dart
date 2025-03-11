@@ -33,7 +33,7 @@ void main() {
           body: json.encode({
             'testProfile': {
               'defaultUser': 'admin@pub.dev',
-              'packages': [
+              'generatedPackages': [
                 {
                   'name': 'retry',
                   'versions': ['3.1.0'],

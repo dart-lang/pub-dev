@@ -269,7 +269,7 @@ void main() {
 
     testWithProfile('package show page with discontinued version',
         testProfile: TestProfile(
-          packages: [
+          generatedPackages: [
             TestPackage(name: 'other'),
             TestPackage(
               name: 'pkg',
@@ -292,7 +292,7 @@ void main() {
 
     testWithProfile('package show page with retracted version',
         testProfile: TestProfile(
-          packages: [
+          generatedPackages: [
             TestPackage(
               name: 'pkg',
               versions: [
@@ -326,7 +326,7 @@ void main() {
 
     testWithProfile('package show page with non-retracted version',
         testProfile: TestProfile(
-          packages: [
+          generatedPackages: [
             TestPackage(
               name: 'pkg',
               versions: [

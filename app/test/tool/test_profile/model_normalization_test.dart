@@ -14,14 +14,15 @@ void main() {
         normalize(TestProfile.fromYaml(
           '''
 defaultUser: user@domain.com
-packages:
+generatedPackages:
   - name: foo
     publisher: example.com
     versions: ['1.0.0', '2.0.0']
 ''',
         )).toJson(),
         {
-          'packages': [
+          'importedPackages': [],
+          'generatedPackages': [
             {
               'name': 'foo',
               'publisher': 'example.com',
@@ -58,13 +59,14 @@ packages:
         normalize(TestProfile.fromYaml(
           '''
 defaultUser: user@domain.com
-packages:
+generatedPackages:
   - name: foo
     versions: ['1.0.0', '2.0.0']
 ''',
         )).toJson(),
         {
-          'packages': [
+          'importedPackages': [],
+          'generatedPackages': [
             {
               'name': 'foo',
               'uploaders': ['user@domain.com'],
@@ -91,7 +93,7 @@ packages:
         normalize(
           TestProfile.fromYaml('''
 defaultUser: user@domain.com
-packages:
+generatedPackages:
   - name: foo
 '''),
           resolvedVersions: [
@@ -103,7 +105,8 @@ packages:
           ],
         ).toJson(),
         {
-          'packages': [
+          'importedPackages': [],
+          'generatedPackages': [
             {
               'name': 'foo',
               'uploaders': ['user@domain.com'],
