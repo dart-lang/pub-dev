@@ -13,6 +13,7 @@ dependencies:
   path: ^1.8.0
   pub_semver: ^2.0.0
   puppeteer: 3.16.0
+  retry: ^3.1.2
   oauth2: ^2.0.0
 
 dev_dependencies:
