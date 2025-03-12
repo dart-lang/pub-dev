@@ -124,7 +124,7 @@ void main() {
     testWithProfile(
       'package pages without homepage',
       testProfile: TestProfile(
-        packages: [
+        generatedPackages: [
           TestPackage(
               name: 'pkg',
               versions: [TestVersion(version: '1.0.0-nohomepage')]),

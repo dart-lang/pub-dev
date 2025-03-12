@@ -9,11 +9,19 @@ import 'package:yaml/yaml.dart' as yaml;
 
 part 'models.g.dart';
 
-/// The configuration to use when creating a local (partial) mirror of pub.dev
-/// in order to us it in tests.
+/// The configuration to use when creating a local database for testing and
+/// development, containing a partial mirror of pub.dev and also synthetic
+/// generated package contents.
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestProfile {
-  final List<TestPackage> packages;
+  /// Packages that will be imported from pub.dev.
+  ///
+  /// The archive of the package will be used without modification.
+  /// The package options may be updated as provided by the [TestPackage].
+  final List<TestPackage> importedPackages;
+
+  /// Packages that will be generated locally using the provided parameters and semi-random templates.
+  final List<TestPackage> generatedPackages;
   final List<TestPublisher> publishers;
   final List<TestUser> users;
 
@@ -21,11 +29,13 @@ class TestProfile {
   final String? defaultUser;
 
   TestProfile({
-    required List<TestPackage>? packages,
+    List<TestPackage>? importedPackages,
+    List<TestPackage>? generatedPackages,
     List<TestPublisher>? publishers,
     List<TestUser>? users,
     this.defaultUser,
-  })  : packages = packages ?? <TestPackage>[],
+  })  : importedPackages = importedPackages ?? <TestPackage>[],
+        generatedPackages = generatedPackages ?? <TestPackage>[],
         publishers = publishers ?? <TestPublisher>[],
         users = users ?? <TestUser>[];
 
@@ -41,7 +51,8 @@ class TestProfile {
 
   TestProfile changeDefaultUser(String email) {
     return TestProfile(
-      packages: packages,
+      importedPackages: importedPackages,
+      generatedPackages: generatedPackages,
       publishers: publishers,
       users: users,
       defaultUser: email,

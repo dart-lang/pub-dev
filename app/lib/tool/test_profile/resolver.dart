@@ -24,6 +24,9 @@ import 'models.dart';
 /// than the profile originally specified).
 Future<List<ResolvedVersion>> resolveVersions(
     http.Client client, TestProfile profile) async {
+  if (profile.importedPackages.isEmpty) {
+    return [];
+  }
   return await withTempDirectory((temp) async {
     final pubCacheDir = Directory(p.join(temp.path, 'pub-cache'));
     await pubCacheDir.create();
@@ -40,7 +43,7 @@ Future<List<ResolvedVersion>> resolveVersions(
       pubCacheDir: pubCacheDir.path,
     );
 
-    for (final package in profile.packages) {
+    for (final package in profile.importedPackages) {
       final versions = package.versions == null || package.versions!.isEmpty
           ? <TestVersion>[TestVersion(version: 'any', created: null)]
           : package.versions;

@@ -40,7 +40,7 @@ void main() {
       'preview becomes stable',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
-        packages: [
+        generatedPackages: [
           TestPackage(name: 'pkg', versions: [
             TestVersion(version: '1.0.0'),
             TestVersion(version: '1.2.0'),
@@ -116,7 +116,7 @@ void main() {
       'backfill preview version',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
-        packages: [
+        generatedPackages: [
           TestPackage(name: 'pkg', versions: [
             TestVersion(version: '1.0.0'),
             TestVersion(version: '1.2.0'),
@@ -152,7 +152,7 @@ void main() {
       'only future prerelease versions',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
-        packages: [
+        generatedPackages: [
           TestPackage(name: 'pkg', versions: [
             TestVersion(version: '0.1.0-nullsafety.0'),
             TestVersion(version: '0.1.0-nullsafety.1'),
@@ -189,7 +189,7 @@ void main() {
       'allow latest stable to go back',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
-        packages: [
+        generatedPackages: [
           TestPackage(name: 'pkg', versions: [
             TestVersion(version: '1.0.0'),
             TestVersion(version: '1.2.0'),

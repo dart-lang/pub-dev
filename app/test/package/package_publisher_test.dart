@@ -153,7 +153,7 @@ void main() {
 
   group('Move between publishers', () {
     TestProfile _profile() => TestProfile(
-          packages: [
+          generatedPackages: [
             TestPackage(name: 'one', publisher: 'verified.com'),
             TestPackage(name: 'two', publisher: 'example.com'),
           ],

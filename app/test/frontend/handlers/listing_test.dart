@@ -86,7 +86,7 @@ void main() {
     testWithProfile('/packages?page=2',
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
-          packages: List<TestPackage>.generate(
+          generatedPackages: List<TestPackage>.generate(
               15,
               (i) => TestPackage(
                   name: 'pkg$i', versions: [TestVersion(version: '1.0.0')])),
@@ -103,7 +103,8 @@ void main() {
     testWithProfile(
       '/flutter/packages',
       testProfile: TestProfile(
-        packages: List.generate(3, (i) => TestPackage(name: 'package_$i')),
+        generatedPackages:
+            List.generate(3, (i) => TestPackage(name: 'package_$i')),
         defaultUser: 'admin@pub.dev',
       ),
       fn: () async {
@@ -124,7 +125,7 @@ void main() {
     testWithProfile(
       'Flutter listings',
       testProfile: TestProfile(
-        packages: List<TestPackage>.generate(
+        generatedPackages: List<TestPackage>.generate(
           15,
           (i) => TestPackage(
             name: 'flutter_pkg$i',

@@ -10,12 +10,11 @@ import 'package:pub_dev/tool/test_profile/models.dart';
 
 final emptyTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
-  packages: [],
 );
 
 final defaultTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
-  packages: [
+  generatedPackages: [
     TestPackage(
       name: 'oxygen',
       versions: [

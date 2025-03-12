@@ -20,7 +20,7 @@ void main() {
       final env = FakeAppengineEnv();
       await env.run(
         testProfile: TestProfile(
-          packages: [
+          generatedPackages: [
             TestPackage(
               name: 'oxygen',
               versions: [
@@ -97,7 +97,7 @@ void main() {
         expect(await taskBackend.latestFinishedVersion('oxygen'), '1.2.0');
         await importProfile(
           profile: TestProfile(
-            packages: [
+            generatedPackages: [
               TestPackage(name: 'oxygen', versions: [
                 TestVersion(version: '9.0.0'),
               ]),

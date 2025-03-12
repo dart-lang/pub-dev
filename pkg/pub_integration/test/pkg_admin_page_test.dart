@@ -36,7 +36,7 @@ void main() {
             body: json.encode({
               'testProfile': {
                 'defaultUser': 'admin@pub.dev',
-                'packages': [
+                'generatedPackages': [
                   {
                     'name': 'test_pkg',
                   },

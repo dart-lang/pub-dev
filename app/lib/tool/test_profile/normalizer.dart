@@ -12,7 +12,8 @@ TestProfile normalize(
 }) {
   final users = <String, TestUser>{};
   final publishers = <String, TestPublisher>{};
-  final packages = <String, TestPackage>{};
+  final importedPackages = <String, TestPackage>{};
+  final generatedPackages = <String, TestPackage>{};
 
   profile.users.forEach((user) {
     users[user.email] = user;
@@ -28,8 +29,14 @@ TestProfile normalize(
     });
   });
 
-  profile.packages.forEach((package) {
-    packages[package.name] = package;
+  profile.importedPackages.forEach((package) {
+    importedPackages[package.name] = package;
+    package.uploaders?.forEach((uploader) {
+      _createUserIfNeeded(users, uploader);
+    });
+  });
+  profile.generatedPackages.forEach((package) {
+    generatedPackages[package.name] = package;
     package.uploaders?.forEach((uploader) {
       _createUserIfNeeded(users, uploader);
     });
@@ -40,7 +47,10 @@ TestProfile normalize(
   // add missing packages from resolved versions
   if (resolvedVersions != null) {
     resolvedVersions.forEach((rv) {
-      packages.putIfAbsent(
+      if (generatedPackages.containsKey(rv.package)) {
+        return;
+      }
+      importedPackages.putIfAbsent(
           rv.package,
           () => TestPackage(
                 name: rv.package,
@@ -51,8 +61,8 @@ TestProfile normalize(
               ));
     });
     // update versions from resolved versions
-    packages.values.toList().forEach((p) {
-      final versions = resolvedVersions
+    List<TestVersion> getUpdateVersions(TestPackage p) {
+      return resolvedVersions
           .where((rv) => rv.package == p.name)
           .map((rv) => rv.version)
           .toSet()
@@ -61,27 +71,49 @@ TestProfile normalize(
               created:
                   resolvedVersions.firstWhere((x) => x.version == v).created))
           .toList();
-      packages[p.name] = p.change(versions: versions);
+    }
+
+    importedPackages.values.toList().forEach((p) {
+      importedPackages[p.name] = p.change(versions: getUpdateVersions(p));
+    });
+    generatedPackages.values.toList().forEach((p) {
+      generatedPackages[p.name] = p.change(versions: getUpdateVersions(p));
     });
   }
 
-  packages.values.toList().forEach((package) {
-    if (package.publisher != null) {
-      _createPublisherIfNeeded(
-        publishers,
-        package.publisher!,
-        memberEmail: defaultUser,
-      );
-    } else if (package.uploaders == null || package.uploaders!.isEmpty) {
-      packages[package.name] = package.change(uploaders: [defaultUser]);
+  final publishersToCreate = {
+    ...importedPackages.values.map((p) => p.publisher).nonNulls,
+    ...generatedPackages.values.map((p) => p.publisher).nonNulls,
+  };
+  for (final publisher in publishersToCreate) {
+    _createPublisherIfNeeded(
+      publishers,
+      publisher,
+      memberEmail: defaultUser,
+    );
+  }
+
+  for (final package in importedPackages.values.toList()) {
+    if (package.publisher == null &&
+        (package.uploaders == null || package.uploaders!.isEmpty)) {
+      importedPackages[package.name] = package.change(uploaders: [defaultUser]);
     }
-  });
+  }
+
+  for (final package in generatedPackages.values.toList()) {
+    if (package.publisher == null &&
+        (package.uploaders == null || package.uploaders!.isEmpty)) {
+      generatedPackages[package.name] =
+          package.change(uploaders: [defaultUser]);
+    }
+  }
 
   return TestProfile(
     defaultUser: defaultUser,
     users: users.values.toList(),
     publishers: publishers.values.toList(),
-    packages: packages.values.toList(),
+    importedPackages: importedPackages.values.toList(),
+    generatedPackages: generatedPackages.values.toList(),
   );
 }
 

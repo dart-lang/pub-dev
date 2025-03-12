@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:tar/tar.dart';
 
@@ -37,7 +38,11 @@ Future<void> importProfile({
   // expand profile with resolved version information
   profile = normalize(profile, resolvedVersions: resolvedVersions);
 
-  if (profile.packages
+  if (profile.importedPackages
+      .any((p) => p.uploaders != null && p.uploaders!.length > 1)) {
+    throw UnimplementedError('More than one uploader is not implemented.');
+  }
+  if (profile.generatedPackages
       .any((p) => p.uploaders != null && p.uploaders!.length > 1)) {
     throw UnimplementedError('More than one uploader is not implemented.');
   }
@@ -116,7 +121,7 @@ Future<void> importProfile({
         '\n$lastException\n$lastStackTrace');
   }
 
-  for (final testPackage in profile.packages) {
+  Future<void> updatePackage(TestPackage testPackage) async {
     final packageName = testPackage.name;
     final activeEmail = lastActiveUploaderEmails[packageName];
 
@@ -167,6 +172,13 @@ Future<void> importProfile({
     }
   }
 
+  for (final p in profile.importedPackages) {
+    await updatePackage(p);
+  }
+  for (final p in profile.generatedPackages) {
+    await updatePackage(p);
+  }
+
   final createLikeCounts = <String, int>{};
   // create users
   for (final u in profile.users) {
@@ -187,10 +199,10 @@ Future<void> importProfile({
     );
   }
   // fill in missing likes
-  for (final p in profile.packages) {
+  Future<void> createMissingLike(TestPackage p) async {
     if (p.likeCount != null) {
       final likesMissing = p.likeCount! - (createLikeCounts[p.name] ?? 0);
-      if (likesMissing <= 0) continue;
+      if (likesMissing <= 0) return;
 
       for (var i = 0; i < likesMissing; i++) {
         final userEmail = 'like-$i@pub.dev';
@@ -205,12 +217,21 @@ Future<void> importProfile({
     }
   }
 
+  for (final p in profile.importedPackages) {
+    await createMissingLike(p);
+  }
+  for (final p in profile.generatedPackages) {
+    await createMissingLike(p);
+  }
+
   await source.close();
   await asyncQueue.ongoingProcessing;
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
-  final testPackage = profile.packages.firstWhere((p) => p.name == packageName);
+  final testPackage =
+      profile.importedPackages.firstWhereOrNull((p) => p.name == packageName) ??
+          profile.generatedPackages.firstWhere((p) => p.name == packageName);
 
   // uploaders
   if (testPackage.publisher == null) return testPackage.uploaders!;

@@ -42,7 +42,7 @@ void main() {
           body: json.encode({
             'testProfile': {
               'defaultUser': 'admin@pub.dev',
-              'packages': List.generate(
+              'generatedPackages': List.generate(
                 100,
                 (i) => {
                   'name': i % 3 == 0 ? 'flutter_pkg_$i' : 'pkg_$i',

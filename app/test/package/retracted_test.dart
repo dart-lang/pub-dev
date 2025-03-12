@@ -187,7 +187,7 @@ void main() {
     testWithProfile('Updates latest version references',
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
-          packages: [
+          generatedPackages: [
             TestPackage(name: 'oxygen', versions: [
               TestVersion(version: '1.0.0'),
               TestVersion(version: '1.2.0'),
@@ -309,7 +309,7 @@ void main() {
 
   group('different combinations', () {
     final _testProfile = TestProfile(
-      packages: [
+      generatedPackages: [
         TestPackage(
           name: 'pkg',
           versions: [

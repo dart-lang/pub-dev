@@ -127,7 +127,6 @@ void main() {
 
   testWithProfile('publisher membership',
       testProfile: TestProfile(
-        packages: [],
         publishers: [
           TestPublisher(
               name: 'example.com',

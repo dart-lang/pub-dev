@@ -97,7 +97,7 @@ void main() {
     testWithProfile(
       'unlisted packages',
       testProfile: TestProfile(
-        packages: [
+        generatedPackages: [
           TestPackage(name: 'pkg_a', publisher: 'example.com'),
           TestPackage(
             name: 'pkg_b',

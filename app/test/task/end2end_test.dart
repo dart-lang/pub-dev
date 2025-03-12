@@ -29,7 +29,7 @@ final _regenerateGoldens = false;
 // depends on, so that would be huge set and that want to avoid.
 final _testProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
-  packages: [
+  generatedPackages: [
     TestPackage(
       name: 'oxygen',
       versions: [

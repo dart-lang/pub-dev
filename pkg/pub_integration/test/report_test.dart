@@ -35,7 +35,7 @@ void main() {
           body: json.encode({
             'testProfile': {
               'defaultUser': 'user@pub.dev',
-              'packages': [
+              'generatedPackages': [
                 {
                   'name': 'oxygen',
                   'versions': ['1.0.0', '1.2.0'],

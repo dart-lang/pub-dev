@@ -191,7 +191,7 @@ void main() {
     testWithProfile(
       'many versions',
       testProfile: TestProfile(
-        packages: [
+        generatedPackages: [
           TestPackage(
             name: 'pkg',
             versions: List.generate(

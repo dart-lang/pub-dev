@@ -16,7 +16,7 @@ void main() {
     final client = Client();
     final profile = normalize(TestProfile(
       publishers: [],
-      packages: packages,
+      importedPackages: packages,
       users: [],
       defaultUser: 'dev@example.com',
     ));

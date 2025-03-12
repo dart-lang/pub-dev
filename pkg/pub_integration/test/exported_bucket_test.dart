@@ -88,7 +88,7 @@ void main() {
             {
               'testProfile': {
                 'defaultUser': 'admin@pub.dev',
-                'packages': [
+                'generatedPackages': [
                   {
                     'name': 'exported_api_pkg',
                     'versions': [
