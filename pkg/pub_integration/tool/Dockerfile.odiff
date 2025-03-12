@@ -1,0 +1,13 @@
+FROM debian:trixie-slim
+
+RUN apt -y update
+RUN apt -y install npm
+
+WORKDIR /root
+RUN npm install odiff-bin@3.2.1
+
+RUN mkdir -p /root/before
+RUN mkdir -p /root/after
+RUN mkdir -p /root/diff
+
+ENTRYPOINT [ "/root/node_modules/odiff-bin/bin/odiff.exe" ]
