@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
+import 'package:retry/retry.dart';
 
 import 'screenshot_utils.dart';
 
@@ -49,10 +51,19 @@ class TestBrowser {
     ];
 
     for (final binary in binaries) {
-      if (File(binary).existsSync()) {
+      if (!File(binary).existsSync()) {
+        continue;
+      }
+      try {
         // Get the local chrome's main version
-        final pr = await Process.run(binary, ['--version'])
-            .timeout(Duration(seconds: 5));
+        final pr = await retry(
+          maxAttempts: 2,
+          retryIf: (e) => e is TimeoutException,
+          () async {
+            return await Process.run(binary, ['--version'])
+                .timeout(Duration(seconds: 5));
+          },
+        );
         final output = pr.stdout.toString();
         final mainVersion = output
             .split(' ')
@@ -67,6 +78,9 @@ class TestBrowser {
         if (mainVersion >= 132) continue;
 
         return binary;
+      } on TimeoutException catch (_) {
+        print('Unable to detect chrome version with $binary');
+        continue;
       }
     }
 
