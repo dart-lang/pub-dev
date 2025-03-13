@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -57,6 +58,13 @@ class TestProfile {
       users: users,
       defaultUser: email,
     );
+  }
+
+  /// Returns whether the [package]/[version] is part of the generated packages list.
+  bool isGenerated(String package, String version) {
+    final p = generatedPackages.firstWhereOrNull((p) => p.name == package);
+    final v = p?.versions?.firstWhereOrNull((v) => v.version == version);
+    return v != null;
   }
 }
 

@@ -8,7 +8,6 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
-import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -28,7 +27,6 @@ void main() {
           )
         ],
       ),
-      importSource: ImportSource.fromPubDev(),
       fn: () async {
         final users = await dbService.query<User>().run().toList();
         expect(users.single.userId, hasLength(36));
@@ -59,7 +57,6 @@ void main() {
           TestPackage(name: 'http', uploaders: ['dev@example.com']),
         ],
       ),
-      importSource: ImportSource.fromPubDev(),
       fn: () async {
         final users = await dbService.query<User>().run().toList();
         expect(users.single.userId, hasLength(36));

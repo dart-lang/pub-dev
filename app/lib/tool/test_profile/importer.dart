@@ -28,10 +28,11 @@ import 'normalizer.dart';
 @visibleForTesting
 Future<void> importProfile({
   required TestProfile profile,
-  required ImportSource source,
+  ImportSource? source,
   String? pubHostedUrl,
   String? adminUserEmail,
 }) async {
+  source ??= ImportSource();
   final resolvedVersions = await source.resolveVersions(profile);
   resolvedVersions.sort();
 
@@ -96,7 +97,9 @@ Future<void> importProfile({
       lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
       var bytes = pendingBytes['${rv.package}/${rv.version}'] ??
-          await source.getArchiveBytes(rv.package, rv.version);
+          (profile.isGenerated(rv.package, rv.version)
+              ? await source.getGeneratedArchiveBytes(rv.package, rv.version)
+              : await source.getPubDevArchiveBytes(rv.package, rv.version));
       bytes = await _mayCleanupTarModeBits(bytes);
       try {
         await withRetryPubApiClient(
