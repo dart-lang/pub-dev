@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:path/path.dart' as p;
+import 'package:retry/retry.dart';
 
 final _random = Random.secure();
 
@@ -100,12 +101,22 @@ class FakePubServerProcess {
 
     await lockFile.create();
     try {
-      final pr1 =
-          await Process.run('dart', ['pub', 'get'], workingDirectory: appDir);
-      if (pr1.exitCode != 0) {
-        throw Exception(
-            'dart pub get failed in app\n${pr1.stdout}\n${pr1.stderr}');
-      }
+      await retry(
+        maxAttempts: 2,
+        retryIf: (e) => e is TimeoutException,
+        () async {
+          final pr1 = await Process.run(
+            'dart',
+            ['pub', 'get'],
+            workingDirectory: appDir,
+          ).timeout(Duration(seconds: 15));
+
+          if (pr1.exitCode != 0) {
+            throw Exception(
+                'dart pub get failed in app\n${pr1.stdout}\n${pr1.stderr}');
+          }
+        },
+      );
     } finally {
       await lockFile.delete();
     }
