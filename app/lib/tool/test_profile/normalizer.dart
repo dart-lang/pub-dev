@@ -42,8 +42,6 @@ TestProfile normalize(
     });
   });
 
-  final defaultUser = profile.defaultUser ?? users.keys.first;
-
   // add missing packages from resolved versions
   if (resolvedVersions != null) {
     resolvedVersions.forEach((rv) {
@@ -57,7 +55,7 @@ TestProfile normalize(
                 versions: [
                   TestVersion(version: rv.version, created: rv.created),
                 ],
-                uploaders: [defaultUser],
+                uploaders: [profile.resolvedDefaultUser],
               ));
     });
     // update versions from resolved versions
@@ -89,27 +87,12 @@ TestProfile normalize(
     _createPublisherIfNeeded(
       publishers,
       publisher,
-      memberEmail: defaultUser,
+      memberEmail: profile.resolvedDefaultUser,
     );
   }
 
-  for (final package in importedPackages.values.toList()) {
-    if (package.publisher == null &&
-        (package.uploaders == null || package.uploaders!.isEmpty)) {
-      importedPackages[package.name] = package.change(uploaders: [defaultUser]);
-    }
-  }
-
-  for (final package in generatedPackages.values.toList()) {
-    if (package.publisher == null &&
-        (package.uploaders == null || package.uploaders!.isEmpty)) {
-      generatedPackages[package.name] =
-          package.change(uploaders: [defaultUser]);
-    }
-  }
-
   return TestProfile(
-    defaultUser: defaultUser,
+    defaultUser: profile.resolvedDefaultUser,
     users: users.values.toList(),
     publishers: publishers.values.toList(),
     importedPackages: importedPackages.values.toList(),
