@@ -52,7 +52,7 @@ void main() {
 
       // extract and parse token
       final map = json.decode(rs.body) as Map<String, dynamic>;
-      expect(map.keys.toSet(), {'count', 'value'});
+      expect(map.keys.toSet(), {'value'});
       final tokenValue = map['value'] as String;
       final token = JsonWebToken.parse(tokenValue);
 
