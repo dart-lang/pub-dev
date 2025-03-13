@@ -79,7 +79,7 @@ class User extends db.ExpandoModel<String> {
       InvalidInputException.checkAnyOf(
         moderatedReason,
         'reason',
-        UserModeratedReason._values,
+        UserModeratedReason.values,
       );
     } else {
       InvalidInputException.checkNull(moderatedReason, 'reason');
@@ -416,13 +416,15 @@ abstract class UserModeratedReason {
   static const bot = 'bot';
   static const illegalContent = 'illegal-content';
   static const policyViolation = 'policy-violation';
+  static const spam = 'spam';
   static const unfoundedNotifications = 'unfounded-notifications';
   static const unfoundedAppeals = 'unfounded-appeals';
 
-  static const _values = {
+  static const values = {
     bot,
     illegalContent,
     policyViolation,
+    spam,
     unfoundedNotifications,
     unfoundedAppeals,
   };

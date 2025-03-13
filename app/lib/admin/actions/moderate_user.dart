@@ -30,7 +30,8 @@ The active web sessions of the user will be expired.
     'case':
         'The ModerationCase.caseId that this action is part of (or `none`).',
     'user': 'The user-id or the email of the user to be moderated',
-    'reason': 'The reason for user moderation.',
+    'reason':
+        'The reason for user moderation. One of ${UserModeratedReason.values.join(', ')}.',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
     'note': 'Optional note to store (internal).'
