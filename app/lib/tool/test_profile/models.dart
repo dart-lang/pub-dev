@@ -66,6 +66,16 @@ class TestProfile {
     final v = p?.versions?.firstWhereOrNull((v) => v.version == version);
     return v != null;
   }
+
+  /// The [defaultUser] if specified, otherwise:
+  /// - the first entry in the [users] list,
+  /// - the first specified member in the [publishers] list,
+  /// - the first specfied uploader in the [importedPackages] or the [generatedPackages] list.
+  late final resolvedDefaultUser = defaultUser ??
+      users.firstOrNull?.email ??
+      publishers.expand((p) => p.members).map((m) => m.email).firstOrNull ??
+      importedPackages.expand((p) => p.uploaders ?? <String>[]).firstOrNull ??
+      generatedPackages.expand((p) => p.uploaders ?? <String>[]).first;
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
@@ -108,12 +118,11 @@ class TestPackage {
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
 
   TestPackage change({
-    List<String>? uploaders,
     List<TestVersion>? versions,
   }) {
     return TestPackage(
       name: name,
-      uploaders: uploaders ?? this.uploaders,
+      uploaders: uploaders,
       publisher: publisher,
       versions: versions ?? this.versions,
       replacedBy: replacedBy,

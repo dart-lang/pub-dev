@@ -237,7 +237,9 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
           profile.generatedPackages.firstWhere((p) => p.name == packageName);
 
   // uploaders
-  if (testPackage.publisher == null) return testPackage.uploaders!;
+  if (testPackage.publisher == null) {
+    return testPackage.uploaders ?? [profile.resolvedDefaultUser];
+  }
 
   // publisher
   final members = profile.publishers
