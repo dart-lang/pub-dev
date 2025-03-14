@@ -15,24 +15,24 @@ final emptyTestProfile = TestProfile(
 final defaultTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
   generatedPackages: [
-    TestPackage(
+    GeneratedTestPackage(
       name: 'oxygen',
       versions: [
-        TestVersion(version: '1.0.0'),
-        TestVersion(version: '1.2.0'),
-        TestVersion(version: '2.0.0-dev'),
+        GeneratedTestVersion(version: '1.0.0'),
+        GeneratedTestVersion(version: '1.2.0'),
+        GeneratedTestVersion(version: '2.0.0-dev'),
       ],
     ),
-    TestPackage(
+    GeneratedTestPackage(
       name: 'neon',
-      versions: [TestVersion(version: '1.0.0')],
+      versions: [GeneratedTestVersion(version: '1.0.0')],
       publisher: 'example.com',
     ),
-    TestPackage(
+    GeneratedTestPackage(
       name: 'flutter_titanium',
       versions: [
-        TestVersion(version: '1.9.0'),
-        TestVersion(version: '1.10.0'),
+        GeneratedTestVersion(version: '1.9.0'),
+        GeneratedTestVersion(version: '1.10.0'),
       ],
     ),
   ],

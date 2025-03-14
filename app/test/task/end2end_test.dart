@@ -30,11 +30,11 @@ final _regenerateGoldens = false;
 final _testProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
   generatedPackages: [
-    TestPackage(
+    GeneratedTestPackage(
       name: 'oxygen',
       versions: [
-        TestVersion(version: '1.0.0'),
-        TestVersion(version: '2.0.0'),
+        GeneratedTestVersion(version: '1.0.0'),
+        GeneratedTestVersion(version: '2.0.0'),
       ],
     ),
   ],

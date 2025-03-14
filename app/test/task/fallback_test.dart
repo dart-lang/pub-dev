@@ -20,10 +20,10 @@ void main() {
       await env.run(
         testProfile: TestProfile(
           generatedPackages: [
-            TestPackage(
+            GeneratedTestPackage(
               name: 'oxygen',
               versions: [
-                TestVersion(version: '1.0.0'),
+                GeneratedTestVersion(version: '1.0.0'),
               ],
             ),
           ],
@@ -97,8 +97,8 @@ void main() {
         await importProfile(
           profile: TestProfile(
             generatedPackages: [
-              TestPackage(name: 'oxygen', versions: [
-                TestVersion(version: '9.0.0'),
+              GeneratedTestPackage(name: 'oxygen', versions: [
+                GeneratedTestVersion(version: '9.0.0'),
               ]),
             ],
             defaultUser: adminAtPubDevEmail,

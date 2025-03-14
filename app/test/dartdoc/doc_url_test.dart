@@ -16,15 +16,15 @@ void main() {
     final _testProfile = TestProfile(
       defaultUser: 'admin@pub.dev',
       generatedPackages: [
-        TestPackage(
+        GeneratedTestPackage(
           name: 'oxygen',
           versions: [
-            TestVersion(version: '1.0.0'), // won't get analyzed
-            TestVersion(version: '1.0.1'), // won't get analyzed
-            TestVersion(version: '1.1.0'), // will get analyzed
-            TestVersion(version: '2.0.0'), // won't get analyzed
-            TestVersion(version: '2.0.1'), // will get analyzed
-            TestVersion(version: '2.1.0'), // will get analyzed
+            GeneratedTestVersion(version: '1.0.0'), // won't get analyzed
+            GeneratedTestVersion(version: '1.0.1'), // won't get analyzed
+            GeneratedTestVersion(version: '1.1.0'), // will get analyzed
+            GeneratedTestVersion(version: '2.0.0'), // won't get analyzed
+            GeneratedTestVersion(version: '2.0.1'), // will get analyzed
+            GeneratedTestVersion(version: '2.1.0'), // will get analyzed
           ],
         ),
       ],

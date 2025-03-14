@@ -29,10 +29,10 @@ final _log = Logger('api_export.test');
 final _testProfile = TestProfile(
   defaultUser: userAtPubDevEmail,
   generatedPackages: [
-    TestPackage(
+    GeneratedTestPackage(
       name: 'foo',
       versions: [
-        TestVersion(version: '1.0.0'),
+        GeneratedTestVersion(version: '1.0.0'),
       ],
     ),
   ],
@@ -139,9 +139,9 @@ Future<void> _testExportedApiSynchronization(
       profile: TestProfile(
         defaultUser: userAtPubDevEmail,
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'bar',
-            versions: [TestVersion(version: '2.0.0')],
+            versions: [GeneratedTestVersion(version: '2.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -184,9 +184,9 @@ Future<void> _testExportedApiSynchronization(
       profile: TestProfile(
         defaultUser: userAtPubDevEmail,
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'bar',
-            versions: [TestVersion(version: '3.0.0')],
+            versions: [GeneratedTestVersion(version: '3.0.0')],
             publisher: 'example.com',
           ),
         ],

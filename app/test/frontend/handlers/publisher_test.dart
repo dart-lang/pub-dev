@@ -98,8 +98,8 @@ void main() {
       'unlisted packages',
       testProfile: TestProfile(
         generatedPackages: [
-          TestPackage(name: 'pkg_a', publisher: 'example.com'),
-          TestPackage(
+          GeneratedTestPackage(name: 'pkg_a', publisher: 'example.com'),
+          GeneratedTestPackage(
             name: 'pkg_b',
             publisher: 'example.com',
             isUnlisted: true,

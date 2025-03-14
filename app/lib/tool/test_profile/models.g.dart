@@ -11,7 +11,7 @@ TestProfile _$TestProfileFromJson(Map<String, dynamic> json) => TestProfile(
           ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
           .toList(),
       generatedPackages: (json['generatedPackages'] as List<dynamic>?)
-          ?.map((e) => TestPackage.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => GeneratedTestPackage.fromJson(e as Map<String, dynamic>))
           .toList(),
       publishers: (json['publishers'] as List<dynamic>?)
           ?.map((e) => TestPublisher.fromJson(e as Map<String, dynamic>))
@@ -81,6 +81,83 @@ Map<String, dynamic> _$TestVersionToJson(TestVersion instance) =>
       'version': instance.version,
       if (instance.created?.toIso8601String() case final value?)
         'created': value,
+    };
+
+GeneratedTestPackage _$GeneratedTestPackageFromJson(
+        Map<String, dynamic> json) =>
+    GeneratedTestPackage(
+      name: json['name'] as String,
+      uploaders: (json['uploaders'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      publisher: json['publisher'] as String?,
+      versions: (json['versions'] as List<dynamic>?)
+          ?.map((e) => GeneratedTestVersion.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      isDiscontinued: json['isDiscontinued'] as bool?,
+      replacedBy: json['replacedBy'] as String?,
+      isUnlisted: json['isUnlisted'] as bool?,
+      isFlutterFavorite: json['isFlutterFavorite'] as bool?,
+      retractedVersions: (json['retractedVersions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      likeCount: (json['likeCount'] as num?)?.toInt(),
+      template: json['template'] == null
+          ? null
+          : TestArchiveTemplate.fromJson(
+              json['template'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$GeneratedTestPackageToJson(
+        GeneratedTestPackage instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      if (instance.uploaders case final value?) 'uploaders': value,
+      if (instance.publisher case final value?) 'publisher': value,
+      if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
+      if (instance.replacedBy case final value?) 'replacedBy': value,
+      if (instance.isUnlisted case final value?) 'isUnlisted': value,
+      if (instance.isFlutterFavorite case final value?)
+        'isFlutterFavorite': value,
+      if (instance.retractedVersions case final value?)
+        'retractedVersions': value,
+      if (instance.likeCount case final value?) 'likeCount': value,
+      if (instance.versions?.map((e) => e.toJson()).toList() case final value?)
+        'versions': value,
+      if (instance.template?.toJson() case final value?) 'template': value,
+    };
+
+GeneratedTestVersion _$GeneratedTestVersionFromJson(
+        Map<String, dynamic> json) =>
+    GeneratedTestVersion(
+      version: json['version'] as String,
+      created: json['created'] == null
+          ? null
+          : DateTime.parse(json['created'] as String),
+      template: json['template'] == null
+          ? null
+          : TestArchiveTemplate.fromJson(
+              json['template'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$GeneratedTestVersionToJson(
+        GeneratedTestVersion instance) =>
+    <String, dynamic>{
+      'version': instance.version,
+      if (instance.created?.toIso8601String() case final value?)
+        'created': value,
+      if (instance.template?.toJson() case final value?) 'template': value,
+    };
+
+TestArchiveTemplate _$TestArchiveTemplateFromJson(Map<String, dynamic> json) =>
+    TestArchiveTemplate(
+      sdkConstraint: json['sdkConstraint'] as String?,
+    );
+
+Map<String, dynamic> _$TestArchiveTemplateToJson(
+        TestArchiveTemplate instance) =>
+    <String, dynamic>{
+      if (instance.sdkConstraint case final value?) 'sdkConstraint': value,
     };
 
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) =>

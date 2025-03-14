@@ -97,10 +97,22 @@ Future<void> importProfile({
           uploaderEmails[rv.version.hashCode.abs() % uploaderEmails.length];
       lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
-      var bytes = pendingBytes['${rv.package}/${rv.version}'] ??
-          (importedVersions.contains(rv)
-              ? await source.getPubDevArchiveBytes(rv.package, rv.version)
-              : await source.getGeneratedArchiveBytes(rv.package, rv.version));
+      var bytes = pendingBytes['${rv.package}/${rv.version}'];
+      if (bytes == null) {
+        if (importedVersions.contains(rv)) {
+          bytes = await source.getPubDevArchiveBytes(rv.package, rv.version);
+        } else {
+          final gp = profile.generatedPackages
+              .firstWhereOrNull((p) => p.name == rv.package);
+          final gv =
+              gp?.versions?.firstWhereOrNull((v) => v.version == rv.version);
+          var template = gp?.template;
+          template =
+              template?.overrideWith(gv?.template) ?? gv?.template ?? template;
+          bytes = await source.getGeneratedArchiveBytes(
+              rv.package, rv.version, template);
+        }
+      }
       bytes = await _mayCleanupTarModeBits(bytes);
       try {
         // TODO: use the created field with fake clock header to set the published timestamp
@@ -108,7 +120,7 @@ Future<void> importProfile({
           authToken: createFakeAuthTokenForEmail(uploaderEmail,
               audience: activeConfiguration.pubClientAudience),
           pubHostedUrl: pubHostedUrl,
-          (client) => client.uploadPackageBytes(bytes),
+          (client) => client.uploadPackageBytes(bytes!),
         );
         published = true;
       } catch (e, st) {
