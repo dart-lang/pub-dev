@@ -42,14 +42,12 @@ class ImportSource {
   }
 
   /// Resolve all the package-version required for the [profile].
-  Future<List<ResolvedVersion>> resolveVersions(TestProfile profile) async {
-    return <ResolvedVersion>[
-      ...await resolver.resolveVersions(_client, profile),
-      ...await _resolveGeneratedVersions(profile),
-    ];
+  Future<List<ResolvedVersion>> resolveImportedVersions(
+      TestProfile profile) async {
+    return await resolver.resolveVersions(_client, profile);
   }
 
-  Future<List<ResolvedVersion>> _resolveGeneratedVersions(
+  Future<List<ResolvedVersion>> resolveGeneratedVersions(
       TestProfile profile) async {
     final versions = <ResolvedVersion>[];
     profile.generatedPackages.forEach((p) {

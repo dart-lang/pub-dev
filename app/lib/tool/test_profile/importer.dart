@@ -33,11 +33,12 @@ Future<void> importProfile({
   String? adminUserEmail,
 }) async {
   source ??= ImportSource();
-  final resolvedVersions = await source.resolveVersions(profile);
-  resolvedVersions.sort();
+  final importedVersions = await source.resolveImportedVersions(profile);
+  final generatedVersions = await source.resolveGeneratedVersions(profile);
+  final resolvedVersions = [...importedVersions, ...generatedVersions]..sort();
 
   // expand profile with resolved version information
-  profile = normalize(profile, resolvedVersions: resolvedVersions);
+  profile = normalize(profile);
 
   if (profile.importedPackages
       .any((p) => p.uploaders != null && p.uploaders!.length > 1)) {
@@ -97,11 +98,12 @@ Future<void> importProfile({
       lastActiveUploaderEmails[rv.package] = uploaderEmail;
 
       var bytes = pendingBytes['${rv.package}/${rv.version}'] ??
-          (profile.isGenerated(rv.package, rv.version)
-              ? await source.getGeneratedArchiveBytes(rv.package, rv.version)
-              : await source.getPubDevArchiveBytes(rv.package, rv.version));
+          (importedVersions.contains(rv)
+              ? await source.getPubDevArchiveBytes(rv.package, rv.version)
+              : await source.getGeneratedArchiveBytes(rv.package, rv.version));
       bytes = await _mayCleanupTarModeBits(bytes);
       try {
+        // TODO: use the created field with fake clock header to set the published timestamp
         await withRetryPubApiClient(
           authToken: createFakeAuthTokenForEmail(uploaderEmail,
               audience: activeConfiguration.pubClientAudience),
@@ -232,9 +234,13 @@ Future<void> importProfile({
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
-  final testPackage =
-      profile.importedPackages.firstWhereOrNull((p) => p.name == packageName) ??
-          profile.generatedPackages.firstWhere((p) => p.name == packageName);
+  final testPackage = profile.importedPackages
+          .firstWhereOrNull((p) => p.name == packageName) ??
+      profile.generatedPackages.firstWhereOrNull((p) => p.name == packageName);
+
+  if (testPackage == null) {
+    return [profile.resolvedDefaultUser];
+  }
 
   // uploaders
   if (testPackage.publisher == null) {
