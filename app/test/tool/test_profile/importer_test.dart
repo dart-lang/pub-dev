@@ -82,7 +82,7 @@ void main() {
       'sample',
       testProfile: TestProfile(
         defaultUser: 'dev@example.com',
-        generatedPackages: [TestPackage(name: 'sample')],
+        generatedPackages: [GeneratedTestPackage(name: 'sample')],
       ),
       fn: () async {
         final users = await dbService.query<User>().run().toList();
@@ -110,7 +110,7 @@ void main() {
       'fill in likes',
       testProfile: TestProfile(
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'sample',
             likeCount: 10,
           ),

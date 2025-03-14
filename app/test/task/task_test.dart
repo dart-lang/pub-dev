@@ -53,17 +53,17 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'oxygen',
             versions: [
-              TestVersion(version: '1.0.0'),
-              TestVersion(version: '1.1.0'),
-              TestVersion(version: '1.2.0'),
-              TestVersion(version: '2.0.0-dev'),
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(version: '1.1.0'),
+              GeneratedTestVersion(version: '1.2.0'),
+              GeneratedTestVersion(version: '2.0.0-dev'),
             ],
           ),
-          TestPackage(name: 'neon'),
-          TestPackage(name: 'flutter_titanium'),
+          GeneratedTestPackage(name: 'neon'),
+          GeneratedTestPackage(name: 'flutter_titanium'),
         ],
         users: [
           TestUser(email: 'admin@pub.dev', likes: []),
@@ -239,9 +239,9 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '1.0.0')],
+            versions: [GeneratedTestVersion(version: '1.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -282,18 +282,18 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
             versions: [
-              TestVersion(version: '6.0.0'),
-              TestVersion(version: '5.1.0'),
-              TestVersion(version: '5.0.0'),
-              TestVersion(version: '4.0.0'),
-              TestVersion(version: '3.2.0'),
-              TestVersion(version: '3.1.0'),
-              TestVersion(version: '3.0.0'),
-              TestVersion(version: '2.0.0'),
-              TestVersion(version: '1.0.0'),
+              GeneratedTestVersion(version: '6.0.0'),
+              GeneratedTestVersion(version: '5.1.0'),
+              GeneratedTestVersion(version: '5.0.0'),
+              GeneratedTestVersion(version: '4.0.0'),
+              GeneratedTestVersion(version: '3.2.0'),
+              GeneratedTestVersion(version: '3.1.0'),
+              GeneratedTestVersion(version: '3.0.0'),
+              GeneratedTestVersion(version: '2.0.0'),
+              GeneratedTestVersion(version: '1.0.0'),
             ],
             publisher: 'example.com',
             isDiscontinued: true,
@@ -316,9 +316,9 @@ void main() {
       profile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '1.0.0')],
+            versions: [GeneratedTestVersion(version: '1.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -417,9 +417,9 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '1.0.0')],
+            versions: [GeneratedTestVersion(version: '1.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -502,9 +502,9 @@ void main() {
       profile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '2.0.0')],
+            versions: [GeneratedTestVersion(version: '2.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -540,9 +540,9 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '1.0.0')],
+            versions: [GeneratedTestVersion(version: '1.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -638,9 +638,9 @@ void main() {
       profile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '2.0.0')],
+            versions: [GeneratedTestVersion(version: '2.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -677,14 +677,14 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'neon',
-            versions: [TestVersion(version: '1.0.0')],
+            versions: [GeneratedTestVersion(version: '1.0.0')],
             publisher: 'example.com',
           ),
-          TestPackage(
+          GeneratedTestPackage(
             name: 'oxygen',
-            versions: [TestVersion(version: '1.0.0')],
+            versions: [GeneratedTestVersion(version: '1.0.0')],
             publisher: 'example.com',
           ),
         ],
@@ -698,9 +698,9 @@ void main() {
     testProfile: TestProfile(
       defaultUser: 'admin@pub.dev',
       generatedPackages: [
-        TestPackage(
+        GeneratedTestPackage(
           name: 'neon',
-          versions: [TestVersion(version: '1.0.0')],
+          versions: [GeneratedTestVersion(version: '1.0.0')],
         ),
       ],
       users: [
@@ -728,15 +728,15 @@ void main() {
           profile: TestProfile(
             defaultUser: 'admin@pub.dev',
             generatedPackages: [
-              TestPackage(
+              GeneratedTestPackage(
                 name: 'neon',
                 versions: [
-                  TestVersion(version: '1.1.0'),
-                  TestVersion(version: '1.2.0'),
-                  TestVersion(version: '2.0.0'),
-                  TestVersion(version: '3.0.0'),
-                  TestVersion(version: '4.0.0'),
-                  TestVersion(version: '5.0.0'),
+                  GeneratedTestVersion(version: '1.1.0'),
+                  GeneratedTestVersion(version: '1.2.0'),
+                  GeneratedTestVersion(version: '2.0.0'),
+                  GeneratedTestVersion(version: '3.0.0'),
+                  GeneratedTestVersion(version: '4.0.0'),
+                  GeneratedTestVersion(version: '5.0.0'),
                 ],
               ),
             ],

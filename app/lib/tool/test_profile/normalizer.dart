@@ -10,7 +10,7 @@ TestProfile normalize(TestProfile profile) {
   final users = <String, TestUser>{};
   final publishers = <String, TestPublisher>{};
   final importedPackages = <String, TestPackage>{};
-  final generatedPackages = <String, TestPackage>{};
+  final generatedPackages = <String, GeneratedTestPackage>{};
 
   profile.users.forEach((user) {
     users[user.email] = user;

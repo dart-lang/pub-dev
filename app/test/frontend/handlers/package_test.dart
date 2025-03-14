@@ -125,9 +125,9 @@ void main() {
       'package pages without homepage',
       testProfile: TestProfile(
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
               name: 'pkg',
-              versions: [TestVersion(version: '1.0.0-nohomepage')]),
+              versions: [GeneratedTestVersion(version: '1.0.0-nohomepage')]),
         ],
         defaultUser: 'admin@pub.dev',
       ),

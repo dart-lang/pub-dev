@@ -192,11 +192,11 @@ void main() {
       'many versions',
       testProfile: TestProfile(
         generatedPackages: [
-          TestPackage(
+          GeneratedTestPackage(
             name: 'pkg',
             versions: List.generate(
               99,
-              (index) => TestVersion(version: '1.$index.0'),
+              (index) => GeneratedTestVersion(version: '1.$index.0'),
             ),
           ),
         ],

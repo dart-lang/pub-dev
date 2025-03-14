@@ -98,7 +98,10 @@ class ImportSource {
   }
 
   Future<List<int>> getGeneratedArchiveBytes(
-      String package, String version) async {
+    String package,
+    String version,
+    TestArchiveTemplate? template,
+  ) async {
     final key = '$package/$version';
     final hasher = createHasher(key);
     if (_archives.containsKey(key)) {
@@ -109,7 +112,8 @@ class ImportSource {
     final hasRepository = hasher('hasRepository', max: 20) > 0;
     final isLegacy = version.contains('legacy');
 
-    final sdkConstraint = isLegacy ? '>=1.12.0 <2.0.0' : '^3.0.0';
+    final sdkConstraint =
+        template?.sdkConstraint ?? (isLegacy ? '>=1.12.0 <2.0.0' : '^3.0.0');
 
     final isFlutter = package.startsWith('flutter_');
     final screenshot = TestScreenshot.success();

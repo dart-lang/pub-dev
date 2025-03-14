@@ -22,7 +22,7 @@ class TestProfile {
   final List<TestPackage> importedPackages;
 
   /// Packages that will be generated locally using the provided parameters and semi-random templates.
-  final List<TestPackage> generatedPackages;
+  final List<GeneratedTestPackage> generatedPackages;
   final List<TestPublisher> publishers;
   final List<TestUser> users;
 
@@ -31,12 +31,12 @@ class TestProfile {
 
   TestProfile({
     List<TestPackage>? importedPackages,
-    List<TestPackage>? generatedPackages,
+    List<GeneratedTestPackage>? generatedPackages,
     List<TestPublisher>? publishers,
     List<TestUser>? users,
     this.defaultUser,
   })  : importedPackages = importedPackages ?? <TestPackage>[],
-        generatedPackages = generatedPackages ?? <TestPackage>[],
+        generatedPackages = generatedPackages ?? <GeneratedTestPackage>[],
         publishers = publishers ?? <TestPublisher>[],
         users = users ?? <TestUser>[];
 
@@ -98,14 +98,7 @@ class TestPackage {
   });
 
   factory TestPackage.fromJson(Map<String, dynamic> json) {
-    // convert simple String versions to objects
-    final versions = json['versions'] as List?;
-    json = {
-      ...json,
-      'versions':
-          versions?.map((v) => v is String ? {'version': v} : v).toList(),
-    };
-    return _$TestPackageFromJson(json);
+    return _$TestPackageFromJson(_expandPackageJson(json));
   }
 
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
@@ -128,6 +121,86 @@ class TestVersion {
 
   @override
   String toString() => '$version';
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class GeneratedTestPackage extends TestPackage {
+  @override
+  // ignore: overridden_fields
+  final List<GeneratedTestVersion>? versions;
+
+  final TestArchiveTemplate? template;
+
+  GeneratedTestPackage({
+    required super.name,
+    super.uploaders,
+    super.publisher,
+    this.versions,
+    super.isDiscontinued,
+    super.replacedBy,
+    super.isUnlisted,
+    super.isFlutterFavorite,
+    super.retractedVersions,
+    super.likeCount,
+    this.template,
+  });
+
+  factory GeneratedTestPackage.fromJson(Map<String, dynamic> json) {
+    return _$GeneratedTestPackageFromJson(_expandPackageJson(json));
+  }
+
+  @override
+  Map<String, dynamic> toJson() => _$GeneratedTestPackageToJson(this);
+}
+
+Map<String, dynamic> _expandPackageJson(Map<String, dynamic> json) {
+  // convert simple String versions to objects
+  final versions = json['versions'] as List?;
+  return {
+    ...json,
+    'versions': versions?.map((v) => v is String ? {'version': v} : v).toList(),
+  };
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class GeneratedTestVersion extends TestVersion {
+  final TestArchiveTemplate? template;
+
+  GeneratedTestVersion({
+    required super.version,
+    super.created,
+    this.template,
+  });
+
+  factory GeneratedTestVersion.fromJson(Map<String, dynamic> json) =>
+      _$GeneratedTestVersionFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$GeneratedTestVersionToJson(this);
+
+  @override
+  String toString() => '$version';
+}
+
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class TestArchiveTemplate {
+  final String? sdkConstraint;
+
+  TestArchiveTemplate({
+    this.sdkConstraint,
+  });
+
+  factory TestArchiveTemplate.fromJson(Map<String, dynamic> json) =>
+      _$TestArchiveTemplateFromJson(json);
+
+  TestArchiveTemplate overrideWith(TestArchiveTemplate? other) {
+    if (other == null) return this;
+    return TestArchiveTemplate(
+      sdkConstraint: other.sdkConstraint ?? sdkConstraint,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _$TestArchiveTemplateToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
