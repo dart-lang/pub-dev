@@ -1,0 +1,13 @@
+.image ul {
+  display: flex;
+  flex-direction: column;
+  list-style-type: none;
+}
+
+.image ul li {
+  margin: 1px;
+}
+
+.image.row ul {
+  flex-direction: row;
+}

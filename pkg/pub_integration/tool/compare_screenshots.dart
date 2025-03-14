@@ -110,13 +110,15 @@ class _CompareTool {
           File(p.join(_reportDir.path, relativeDir, '$basename-after.png'));
       await afterFile.writeAsBytes(afterBytes);
 
-      _report.writeln('`$path`\n');
+      _report.writeln('\n<div class="image">');
+      _report.writeln('\n### `$path`\n\n');
       _report.writeln(
-          '![before](${p.join(relativeDir, '$basename-before.png')})\n');
+          '- ![before](${p.join(relativeDir, '$basename-before.png')})\n');
+      _report.writeln(
+          '- ![after](${p.join(relativeDir, '$basename-after.png')})\n');
       _report
-          .writeln('![after](${p.join(relativeDir, '$basename-after.png')})\n');
-      _report
-          .writeln('![diff](${p.join(relativeDir, '$basename-diff.png')})\n');
+          .writeln('- ![diff](${p.join(relativeDir, '$basename-diff.png')})\n');
+      _report.writeln('\n</div>');
       _report.writeln();
     }
 
@@ -124,9 +126,16 @@ class _CompareTool {
   }
 
   Future<void> _writeIndexHtml() async {
+    final script = await File('tool/comparison_web.js').readAsString();
+    final styles = await File('tool/comparison_web.css').readAsString();
     await File(p.join(_reportDir.path, 'index.html')).writeAsString([
-      '<html><body>',
+      '<html>',
+      '<head>',
+      '<style>\n$styles\n</style>',
+      '</head>',
+      '<body>',
       markdownToHtml(_report.toString()),
+      '<script>\n$script\n</script>\n',
       '</body></html>',
     ].join('\n'));
   }
