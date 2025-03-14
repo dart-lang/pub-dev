@@ -60,13 +60,6 @@ class TestProfile {
     );
   }
 
-  /// Returns whether the [package]/[version] is part of the generated packages list.
-  bool isGenerated(String package, String version) {
-    final p = generatedPackages.firstWhereOrNull((p) => p.name == package);
-    final v = p?.versions?.firstWhereOrNull((v) => v.version == version);
-    return v != null;
-  }
-
   /// The [defaultUser] if specified, otherwise:
   /// - the first entry in the [users] list,
   /// - the first specified member in the [publishers] list,
@@ -116,23 +109,6 @@ class TestPackage {
   }
 
   Map<String, dynamic> toJson() => _$TestPackageToJson(this);
-
-  TestPackage change({
-    List<TestVersion>? versions,
-  }) {
-    return TestPackage(
-      name: name,
-      uploaders: uploaders,
-      publisher: publisher,
-      versions: versions ?? this.versions,
-      replacedBy: replacedBy,
-      isDiscontinued: isDiscontinued,
-      isUnlisted: isUnlisted,
-      isFlutterFavorite: isFlutterFavorite,
-      retractedVersions: retractedVersions,
-      likeCount: likeCount,
-    );
-  }
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

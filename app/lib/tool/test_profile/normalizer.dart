@@ -6,10 +6,7 @@ import 'models.dart';
 
 /// Creates a new TestProfile with the missing entities (e.g. users or publishers)
 /// created.
-TestProfile normalize(
-  TestProfile profile, {
-  List<ResolvedVersion>? resolvedVersions,
-}) {
+TestProfile normalize(TestProfile profile) {
   final users = <String, TestUser>{};
   final publishers = <String, TestPublisher>{};
   final importedPackages = <String, TestPackage>{};
@@ -41,43 +38,6 @@ TestProfile normalize(
       _createUserIfNeeded(users, uploader);
     });
   });
-
-  // add missing packages from resolved versions
-  if (resolvedVersions != null) {
-    resolvedVersions.forEach((rv) {
-      if (generatedPackages.containsKey(rv.package)) {
-        return;
-      }
-      importedPackages.putIfAbsent(
-          rv.package,
-          () => TestPackage(
-                name: rv.package,
-                versions: [
-                  TestVersion(version: rv.version, created: rv.created),
-                ],
-                uploaders: [profile.resolvedDefaultUser],
-              ));
-    });
-    // update versions from resolved versions
-    List<TestVersion> getUpdateVersions(TestPackage p) {
-      return resolvedVersions
-          .where((rv) => rv.package == p.name)
-          .map((rv) => rv.version)
-          .toSet()
-          .map((v) => TestVersion(
-              version: v,
-              created:
-                  resolvedVersions.firstWhere((x) => x.version == v).created))
-          .toList();
-    }
-
-    importedPackages.values.toList().forEach((p) {
-      importedPackages[p.name] = p.change(versions: getUpdateVersions(p));
-    });
-    generatedPackages.values.toList().forEach((p) {
-      generatedPackages[p.name] = p.change(versions: getUpdateVersions(p));
-    });
-  }
 
   final publishersToCreate = {
     ...importedPackages.values.map((p) => p.publisher).nonNulls,
