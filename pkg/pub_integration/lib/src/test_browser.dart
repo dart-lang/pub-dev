@@ -250,11 +250,13 @@ class TestBrowserSession {
         }
       }
 
-      if (!rs.url.startsWith('data:')) {
+      if (!rs.url.startsWith('data:') &&
+          // exempt the image URL from markdown_samples.md
+          rs.url != 'https://pub.dev/static/img/pub-dev-logo.svg') {
         final uri = Uri.parse(rs.url);
         if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
           if (!uri.pathSegments[1].startsWith('hash-')) {
-            serverErrors.add('Static ${rs.url} is without hash URL.');
+            serverErrors.add('Static URL ${rs.url} is without hash segment.');
           }
 
           final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];

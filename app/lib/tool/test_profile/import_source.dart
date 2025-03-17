@@ -14,11 +14,14 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
 
-import '../../fake/backend/fake_pana_runner.dart';
 import '../../shared/urls.dart' as urls;
 
 import 'models.dart';
 import 'resolver.dart' as resolver;
+
+final _markdownSamples =
+    File(p.join('lib', 'tool', 'test_profile', 'markdown_samples.md'))
+        .readAsStringSync();
 
 /// Utility class for resolving and getting data for profiles.
 class ImportSource {
@@ -103,17 +106,15 @@ class ImportSource {
     TestArchiveTemplate? template,
   ) async {
     final key = '$package/$version';
-    final hasher = createHasher(key);
     if (_archives.containsKey(key)) {
       return _archives[key]!;
     }
     final archive = ArchiveBuilder();
-    final hasHomepage = !version.contains('nohomepage');
-    final hasRepository = hasher('hasRepository', max: 20) > 0;
-    final isLegacy = version.contains('legacy');
 
-    final sdkConstraint =
-        template?.sdkConstraint ?? (isLegacy ? '>=1.12.0 <2.0.0' : '^3.0.0');
+    final homepage = template?.homepage ?? 'https://$package.example.com/';
+    final repository =
+        template?.repository ?? 'https://github.com/example/$package';
+    final sdkConstraint = template?.sdkConstraint ?? '^3.0.0';
 
     final isFlutter = package.startsWith('flutter_');
     final screenshot = TestScreenshot.success();
@@ -121,8 +122,8 @@ class ImportSource {
       'name': package,
       'version': version,
       'description': '$package is awesome',
-      if (hasHomepage) 'homepage': 'https://$package.example.com/',
-      if (hasRepository) 'repository': 'https://github.com/example/$package',
+      if (homepage.isNotEmpty) 'homepage': homepage,
+      if (repository.isNotEmpty) 'repository': repository,
       'environment': {
         'sdk': '$sdkConstraint',
       },
@@ -141,8 +142,13 @@ class ImportSource {
       'topics': ['chemical-element'],
     });
 
+    final readmeContent = [
+      '# $package\n\nAwesome package.',
+      if (template?.markdownSamples ?? false) _markdownSamples,
+    ].join('\n\n');
+
     archive.addFile('pubspec.yaml', pubspec);
-    archive.addFile('README.md', '# $package\n\nAwesome package.');
+    archive.addFile('README.md', readmeContent);
     archive.addFile('CHANGELOG.md', '## $version\n\n- updated');
     archive.addFile('lib/$package.dart', '''library;
 

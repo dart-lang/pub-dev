@@ -142,8 +142,24 @@ void main() {
     );
 
     testWithProfile(
-      'package show page',
+      'package readme page with markdown',
       processJobsWithFakeRunners: true,
+      testProfile: TestProfile(
+        defaultUser: 'admin@pub.dev',
+        generatedPackages: [
+          GeneratedTestPackage(
+            name: 'oxygen',
+            versions: [
+              GeneratedTestVersion(
+                version: '1.2.0',
+                template: TestArchiveTemplate(
+                  markdownSamples: true,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       fn: () async {
         final data = await withFakeAuthRequestContext(
           adminAtPubDevEmail,

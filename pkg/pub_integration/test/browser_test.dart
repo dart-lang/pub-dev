@@ -37,6 +37,9 @@ void main() {
                 {
                   'name': 'retry',
                   'versions': ['3.1.0'],
+                  'template': {
+                    'markdownSamples': true,
+                  },
                 },
                 {'name': '_dummy_pkg'},
               ],
