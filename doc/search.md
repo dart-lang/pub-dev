@@ -11,7 +11,7 @@ adjusted with the text query match score of the search query.
 The base composite score sorts packages according to::
 
   - 50% from pub score (calculated from `pana`)
-  - 50% from usage metrics from likes and popularity
+  - 50% from usage metrics from likes and download counts
 
 The usage metrics use a non-linear scoring model, where the package above the N-th
 percentile gets N/100 points (e.g. if a package has more likes than the 90% of the
@@ -21,7 +21,7 @@ packages, it will get 0.90 points for likes).
 
 Numerical ordering is used on search requests that do not specify a text query,
 but would like to order the results by `updated`, or `created` time, and also by
-`likes`, `popularity`, or `pub score`. 
+`likes`, `download counts`, or `pub score`. 
 
 These work on the raw values, without any weights or transformation.
 

@@ -14,8 +14,8 @@ The three dimensions are:
   - **Pub Points**: A new measure of quality. This includes several dimensions
     of quality such as code style, platform support, and maintainability. More
     about this below.
-  - **Popularity**: A measure of how many developers use a package, providing
-    insight into what other developers are using.
+  - **Download count**: A measure of how often a package is downloaded,
+    providing insight into what other developers are using.
 
 ## Likes
 
@@ -37,18 +37,6 @@ The download count is not a direct measure of how many users a package has. A pa
 On the other hand, for some packages the download count may be relatively high. For instance, the number can be high if the package is used as a dependency by other popular packages. The download counts can also be highly affected if the package is used by CI systems running tests, since these systems typically don't retain the `PUB_CACHE` between test runs.
 
 The download count is not a perfect metric, and should only be regarded as an indicator of popularity.
-
-## Popularity
-
-Popularity measures the number of apps that depend on a package over the past 60
-days. We show this as a percentile from 100% (among the top 1% most used
-packages) to 0% (the least used package). We are investigating if we can provide
-absolute usage counts in a future version See
-[this](https://github.com/dart-lang/pub-dev/issues/2714) issue.
-
-Although this score is based on actual download counts, it compensates for
-automated tools such as continuous builds that fetch the package on each change
-request.
 
 ## Pub Points
 

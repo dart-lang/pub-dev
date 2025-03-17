@@ -71,7 +71,7 @@ combination of the following parameters, listed in order of relative importance:
   - README
   - Documentation comments and identifiers
 
-- Package popularity and like count
+- Package download count and like count
 
 - [Pub points](/help/scoring#pub-points), which are based on factors such as these:
   - Adherence to Dart file conventions
