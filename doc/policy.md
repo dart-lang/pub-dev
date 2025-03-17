@@ -188,15 +188,14 @@ For information about other Google brand features, visit
 
 We display *Top packages* on the pub.dev landing page to help you find packages
 for building your applications.
-Top packages are selected [based on popularity][4] (including number of
-downloads).
+Top packages are selected [based on download counts][4] .
 Search rankings are based on: relevance, engagement and quality.
 These elements are given different importance depending on the search parameters
 (such as ordering).
 To estimate relevance we look into many factors, such as how well the title,
 tags, description and package contents match your search query.
-We estimate engagement by incorporating signals such as popularity
-(based on download counts) and likes given by users.
+We estimate engagement by incorporating signals such as download counts and
+likes given by users.
 Finally, quality is assessed through package analysis (see scoring).
 These recommendations and rankings are not personalized to our users.
 
