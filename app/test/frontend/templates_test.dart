@@ -270,10 +270,10 @@ void main() {
     testWithProfile('package show page with discontinued version',
         testProfile: TestProfile(
           generatedPackages: [
-            TestPackage(name: 'other'),
-            TestPackage(
+            GeneratedTestPackage(name: 'other'),
+            GeneratedTestPackage(
               name: 'pkg',
-              versions: [TestVersion(version: '1.0.0')],
+              versions: [GeneratedTestVersion(version: '1.0.0')],
               isDiscontinued: true,
               replacedBy: 'other',
             ),
@@ -293,11 +293,11 @@ void main() {
     testWithProfile('package show page with retracted version',
         testProfile: TestProfile(
           generatedPackages: [
-            TestPackage(
+            GeneratedTestPackage(
               name: 'pkg',
               versions: [
-                TestVersion(version: '1.0.0'),
-                TestVersion(version: '2.0.0'),
+                GeneratedTestVersion(version: '1.0.0'),
+                GeneratedTestVersion(version: '2.0.0'),
               ],
               retractedVersions: ['1.0.0'],
             ),
@@ -327,11 +327,11 @@ void main() {
     testWithProfile('package show page with non-retracted version',
         testProfile: TestProfile(
           generatedPackages: [
-            TestPackage(
+            GeneratedTestPackage(
               name: 'pkg',
               versions: [
-                TestVersion(version: '1.0.0'),
-                TestVersion(version: '2.0.0'),
+                GeneratedTestVersion(version: '1.0.0'),
+                GeneratedTestVersion(version: '2.0.0'),
               ],
               retractedVersions: ['1.0.0'],
             ),

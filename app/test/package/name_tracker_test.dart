@@ -151,7 +151,7 @@ void main() {
     testWithProfile(
       'aaa_bbb deleted, aaa_bbbs plural',
       testProfile: TestProfile(
-        generatedPackages: [TestPackage(name: 'aaa_bbb')],
+        generatedPackages: [GeneratedTestPackage(name: 'aaa_bbb')],
         defaultUser: 'user@pub.dev',
       ),
       fn: () async {

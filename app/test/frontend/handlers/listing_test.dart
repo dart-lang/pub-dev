@@ -86,10 +86,11 @@ void main() {
     testWithProfile('/packages?page=2',
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
-          generatedPackages: List<TestPackage>.generate(
+          generatedPackages: List.generate(
               15,
-              (i) => TestPackage(
-                  name: 'pkg$i', versions: [TestVersion(version: '1.0.0')])),
+              (i) => GeneratedTestPackage(
+                  name: 'pkg$i',
+                  versions: [GeneratedTestVersion(version: '1.0.0')])),
         ), fn: () async {
       final present = ['pkg1', 'pkg4', 'pkg5', 'pkg12'];
       final absent = ['pkg0', 'pkg3', 'pkg6', 'pkg9', 'pkg10'];
@@ -104,7 +105,7 @@ void main() {
       '/flutter/packages',
       testProfile: TestProfile(
         generatedPackages:
-            List.generate(3, (i) => TestPackage(name: 'package_$i')),
+            List.generate(3, (i) => GeneratedTestPackage(name: 'package_$i')),
         defaultUser: 'admin@pub.dev',
       ),
       fn: () async {
@@ -125,9 +126,9 @@ void main() {
     testWithProfile(
       'Flutter listings',
       testProfile: TestProfile(
-        generatedPackages: List<TestPackage>.generate(
+        generatedPackages: List.generate(
           15,
-          (i) => TestPackage(
+          (i) => GeneratedTestPackage(
             name: 'flutter_pkg$i',
             isFlutterFavorite: true,
           ),

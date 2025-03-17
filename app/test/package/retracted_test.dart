@@ -188,11 +188,11 @@ void main() {
         testProfile: TestProfile(
           defaultUser: 'admin@pub.dev',
           generatedPackages: [
-            TestPackage(name: 'oxygen', versions: [
-              TestVersion(version: '1.0.0'),
-              TestVersion(version: '1.2.0'),
-              TestVersion(version: '2.0.0-dev'),
-              TestVersion(version: '2.1.0-dev'),
+            GeneratedTestPackage(name: 'oxygen', versions: [
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(version: '1.2.0'),
+              GeneratedTestVersion(version: '2.0.0-dev'),
+              GeneratedTestVersion(version: '2.1.0-dev'),
             ]),
           ],
         ), fn: () async {
@@ -310,15 +310,15 @@ void main() {
   group('different combinations', () {
     final _testProfile = TestProfile(
       generatedPackages: [
-        TestPackage(
+        GeneratedTestPackage(
           name: 'pkg',
           versions: [
-            TestVersion(version: '1.2.0'),
-            TestVersion(version: '1.3.0-dev'),
-            TestVersion(version: '2.0.0-dev'),
+            GeneratedTestVersion(version: '1.2.0'),
+            GeneratedTestVersion(version: '1.3.0-dev'),
+            GeneratedTestVersion(version: '2.0.0-dev'),
           ],
         ),
-        TestPackage(name: 'oxygen'),
+        GeneratedTestPackage(name: 'oxygen'),
       ],
       defaultUser: adminAtPubDevEmail,
     );

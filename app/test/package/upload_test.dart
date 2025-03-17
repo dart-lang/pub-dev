@@ -719,8 +719,8 @@ void main() {
           'successful upload with GitHub Actions (exempted package)',
           testProfile: TestProfile(
             generatedPackages: [
-              TestPackage(name: '_dummy_pkg'),
-              TestPackage(name: 'oxygen'),
+              GeneratedTestPackage(name: '_dummy_pkg'),
+              GeneratedTestPackage(name: 'oxygen'),
             ],
             defaultUser: 'admin@pub.dev',
           ), fn: () async {
@@ -1229,12 +1229,12 @@ void main() {
       'max version count',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
-        generatedPackages: <TestPackage>[
-          TestPackage(name: 'oxygen'),
-          TestPackage(
+        generatedPackages: [
+          GeneratedTestPackage(name: 'oxygen'),
+          GeneratedTestPackage(
               name: 'busy_pkg',
-              versions:
-                  List.generate(100, (i) => TestVersion(version: '1.0.$i'))),
+              versions: List.generate(
+                  100, (i) => GeneratedTestVersion(version: '1.0.$i'))),
         ],
       ),
       fn: () async {
