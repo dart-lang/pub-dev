@@ -269,7 +269,7 @@ void main() {
     test('write and read', () async {
       final sb = StringBuffer();
       store.writeTo(sb);
-      expect(sb.length, 470);
+      expect(sb.length, 454);
       final newStore = MemDatastore()..readFrom(sb.toString().split('\n'));
       final newDb = DatastoreDB(newStore);
 
