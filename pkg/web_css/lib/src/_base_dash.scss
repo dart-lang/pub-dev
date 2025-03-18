@@ -42,6 +42,11 @@ button, input, textarea, select {
   font-size: inherit;
 }
 
+// Balance text wrapping on headings.
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
 // Links are underlined when hovered.
 a {
   cursor: pointer;
