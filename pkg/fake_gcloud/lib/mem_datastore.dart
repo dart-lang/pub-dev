@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:gcloud/common.dart';
@@ -15,20 +14,11 @@ final _maxPropertyLength = 1024 * 1024;
 /// or read.
 class MemDatastore implements Datastore {
   final _entities = <Key, Entity>{};
-  int _unusedId = 0;
 
   @override
   Future<List<Key>> allocateIds(List<Key> keys) async {
-    return keys.map((k) {
-      if (k.elements.last.id == null) {
-        final elements = List.of(k.elements);
-        final last = elements.removeLast();
-        elements.add(KeyElement(last.kind, _unusedId++));
-        return Key(elements, partition: k.partition);
-      } else {
-        return k;
-      }
-    }).toList();
+    throw UnimplementedError(
+        'fake_gcloud.Datastore.allocateIds is not implemented.');
   }
 
   @override
@@ -286,7 +276,6 @@ class MemDatastore implements Datastore {
     _entities.forEach((_, entity) {
       sink.writeln(json.encode({'entity': _encodeEntity(entity)}));
     });
-    sink.writeln(json.encode({'_unusedId': _unusedId}));
   }
 
   /// Reads content as a line-by-line JSON-encoded data format.
@@ -296,9 +285,6 @@ class MemDatastore implements Datastore {
       final map = json.decode(line) as Map<String, dynamic>;
       final key = map.keys.single;
       switch (key) {
-        case '_unusedId':
-          _unusedId = math.max(_unusedId, map[key] as int);
-          break;
         case 'entity':
           final entity = _decodeEntity(map[key] as Map<String, dynamic>);
           _entities[entity.key] = entity;
