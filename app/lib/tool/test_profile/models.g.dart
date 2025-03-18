@@ -151,13 +151,19 @@ Map<String, dynamic> _$GeneratedTestVersionToJson(
 
 TestArchiveTemplate _$TestArchiveTemplateFromJson(Map<String, dynamic> json) =>
     TestArchiveTemplate(
+      homepage: json['homepage'] as String?,
+      repository: json['repository'] as String?,
       sdkConstraint: json['sdkConstraint'] as String?,
+      markdownSamples: json['markdownSamples'] as bool?,
     );
 
 Map<String, dynamic> _$TestArchiveTemplateToJson(
         TestArchiveTemplate instance) =>
     <String, dynamic>{
+      if (instance.homepage case final value?) 'homepage': value,
+      if (instance.repository case final value?) 'repository': value,
       if (instance.sdkConstraint case final value?) 'sdkConstraint': value,
+      if (instance.markdownSamples case final value?) 'markdownSamples': value,
     };
 
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) =>

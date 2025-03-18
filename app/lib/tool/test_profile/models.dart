@@ -184,10 +184,16 @@ class GeneratedTestVersion extends TestVersion {
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class TestArchiveTemplate {
+  final String? homepage;
+  final String? repository;
   final String? sdkConstraint;
+  final bool? markdownSamples;
 
   TestArchiveTemplate({
+    this.homepage,
+    this.repository,
     this.sdkConstraint,
+    this.markdownSamples,
   });
 
   factory TestArchiveTemplate.fromJson(Map<String, dynamic> json) =>
@@ -196,7 +202,10 @@ class TestArchiveTemplate {
   TestArchiveTemplate overrideWith(TestArchiveTemplate? other) {
     if (other == null) return this;
     return TestArchiveTemplate(
+      homepage: other.homepage ?? homepage,
+      repository: other.repository ?? repository,
       sdkConstraint: other.sdkConstraint ?? sdkConstraint,
+      markdownSamples: other.markdownSamples ?? markdownSamples,
     );
   }
 
