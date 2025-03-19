@@ -71,6 +71,13 @@ void main() {
               '#-pkg-admin-automated-github-repository', 'value');
           expect(value, githubRepository);
         });
+
+        // visit activity log page
+        await user.withBrowserPage((page) async {
+          await page.gotoOrigin('/packages/test_pkg/activity-log');
+          await page.takeScreenshots(
+              prefix: 'package-page/activity-log-page', selector: 'body');
+        });
       });
     },
     timeout: Timeout.factor(testTimeoutFactor),

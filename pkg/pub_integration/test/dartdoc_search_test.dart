@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
+import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
@@ -60,6 +61,11 @@ void main() {
             startsWith('$origin/documentation/oxygen/latest/oxygen/'));
         expect(page.url, endsWith('.html'));
         expect(await page.content, contains('TypeEnum'));
+
+        await page.takeScreenshots(
+          prefix: 'dartdoc-page/enum-page',
+          selector: 'body',
+        );
       });
 
       // test library page redirect
