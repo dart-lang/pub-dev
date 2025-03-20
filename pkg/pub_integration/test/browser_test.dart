@@ -105,6 +105,10 @@ void main() {
           await page.takeScreenshots(
               prefix: 'package-page/versions-page', selector: 'body');
 
+          await page.gotoOrigin('/packages/retry/changelog');
+          await page.takeScreenshots(
+              prefix: 'package-page/changelog-page', selector: 'body');
+
           await page.gotoOrigin('/packages/retry/score');
           await page.takeScreenshots(
               prefix: 'package-page/score-page', selector: 'body');
