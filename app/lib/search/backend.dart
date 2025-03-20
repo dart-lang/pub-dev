@@ -180,7 +180,7 @@ class SearchBackend {
     // initial scan of packages
     final pool = Pool(concurrency);
     final futures = <Future>[];
-    await for (final package in dbService.query<Package>().run()) {
+    await for (final package in packageBackend.allPackages()) {
       if (package.isNotVisible) {
         continue;
       }

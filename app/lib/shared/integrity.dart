@@ -907,8 +907,8 @@ class IntegrityChecker {
     // TODO: verify fields once the other PR lands
 
     if (mc.appealedCaseId != null) {
-      final appealed = await dbService.lookupOrNull<ModerationCase>(
-          dbService.emptyKey.append(ModerationCase, id: mc.appealedCaseId!));
+      final appealed = await _db.lookupOrNull<ModerationCase>(
+          _db.emptyKey.append(ModerationCase, id: mc.appealedCaseId!));
       if (appealed == null) {
         yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';
       }

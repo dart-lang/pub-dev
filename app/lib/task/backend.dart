@@ -1005,7 +1005,7 @@ class TaskBackend {
     final status = await cache.taskPackageStatus(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
-        final state = await dbService.lookupOrNull<PackageState>(key);
+        final state = await _db.lookupOrNull<PackageState>(key);
         // skip states where the entry was created, but no analysis has not finished yet
         if (state == null || state.hasNeverFinished) {
           continue;
@@ -1038,11 +1038,11 @@ class TaskBackend {
     Future<void> Function(Payload payload) processPayload,
   ) async {
     await backfillTrackingState();
-    await for (final state in dbService.query<PackageState>().run()) {
+    await for (final state in _db.query<PackageState>().run()) {
       final zone = taskWorkerCloudCompute.zones.first;
       // ignore: invalid_use_of_visible_for_testing_member
       final payload = await updatePackageStateWithPendingVersions(
-        dbService,
+        _db,
         state,
         zone,
         taskWorkerCloudCompute.generateInstanceName(),
@@ -1077,7 +1077,7 @@ class TaskBackend {
         await cache.latestFinishedVersion(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
-        final state = await dbService.lookupOrNull<PackageState>(key);
+        final state = await _db.lookupOrNull<PackageState>(key);
         // skip states where the entry was created, but no analysis has not finished yet
         if (state == null || state.hasNeverFinished) {
           continue;
@@ -1119,7 +1119,7 @@ class TaskBackend {
       final semanticVersion = Version.parse(version);
       for (final rt in acceptedRuntimeVersions) {
         final key = PackageState.createKey(_db, rt, package);
-        final state = await dbService.lookupOrNull<PackageState>(key);
+        final state = await _db.lookupOrNull<PackageState>(key);
         // Skip states where the entry was created, but the analysis has not finished yet.
         if (state == null || state.hasNeverFinished) {
           continue;
