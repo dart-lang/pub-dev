@@ -1025,11 +1025,10 @@ class PackageBackend {
     bool isAllowedUser = false;
     if (agent is AuthenticatedUser) {
       final email = agent.user.email;
-      if (reservedPackage != null) {
-        final reservedEmails = reservedPackage.emails;
-        isAllowedUser = email != null && reservedEmails.contains(email);
-      } else {
-        isAllowedUser = email != null && email.endsWith('@google.com');
+      if (email != null) {
+        final reservedEmails = reservedPackage?.emails ?? const <String>[];
+        isAllowedUser =
+            reservedEmails.contains(email) || email.endsWith('@google.com');
       }
     }
 
