@@ -18,17 +18,6 @@ export 'package:gcloud/db.dart';
 
 final Logger _logger = Logger('pub.datastore_helper');
 
-/// Returns the raw Datastore Key using segments.
-ds.Key rawDatastoreKey(List segments) {
-  if (segments.length % 2 != 0) throw ArgumentError();
-
-  final elements = <ds.KeyElement>[];
-  for (var i = 0; i < segments.length; i += 2) {
-    elements.add(ds.KeyElement(segments[i] as String, segments[i + 1]));
-  }
-  return ds.Key(elements);
-}
-
 /// Wrap [Transaction] to avoid exposing [Transaction.commit] and
 /// [Transaction.rollback].
 class TransactionWrapper {
