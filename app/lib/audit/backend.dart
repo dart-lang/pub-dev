@@ -179,7 +179,7 @@ class AuditBackend {
       window = Duration(minutes: 2);
     }
 
-    final query = dbService.query<AuditLogRecord>()
+    final query = _db.query<AuditLogRecord>()
       ..filter('created >', now.subtract(window));
     final current = await query.run().toList();
 

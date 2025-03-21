@@ -117,8 +117,10 @@ class PackageBackend {
     }))!;
   }
 
+  Stream<Package> allPackages() => db.query<Package>().run();
+
   Stream<String> allPackageNames() {
-    return db.query<Package>().run().map((p) => p.name!);
+    return allPackages().map((p) => p.name!);
   }
 
   /// Retrieves the packages that need to be included in sitemap.txt.

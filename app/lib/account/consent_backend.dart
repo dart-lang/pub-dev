@@ -46,10 +46,10 @@ abstract class ConsentKind {
 /// Represents the backend for the consent handling and authentication.
 class ConsentBackend {
   final DatastoreDB _db;
-  final _actions = <String, ConsentAction>{
-    ConsentKind.packageUploader: _PackageUploaderAction(),
-    ConsentKind.publisherContact: _PublisherContactAction(),
-    ConsentKind.publisherMember: _PublisherMemberAction(),
+  late final _actions = <String, ConsentAction>{
+    ConsentKind.packageUploader: _PackageUploaderAction(_db),
+    ConsentKind.publisherContact: _PublisherContactAction(_db),
+    ConsentKind.publisherMember: _PublisherMemberAction(_db),
   };
 
   ConsentBackend(this._db);
@@ -316,6 +316,9 @@ abstract class ConsentAction {
 
 /// Callbacks for package uploader consents.
 class _PackageUploaderAction extends ConsentAction {
+  final DatastoreDB _db;
+  _PackageUploaderAction(this._db);
+
   @override
   Future<void> onAccept(Consent consent) async {
     final packageName = consent.args![0];
@@ -335,7 +338,7 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onReject(Consent consent, User? user) async {
     final packageName = consent.args![0];
-    await withRetryTransaction(dbService, (tx) async {
+    await withRetryTransaction(_db, (tx) async {
       tx.insert(await AuditLogRecord.uploaderInviteRejected(
         fromAgent: consent.fromAgent,
         package: packageName,
@@ -348,7 +351,7 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onExpire(Consent consent) async {
     final packageName = consent.args![0];
-    await withRetryTransaction(dbService, (tx) async {
+    await withRetryTransaction(_db, (tx) async {
       tx.insert(await AuditLogRecord.uploaderInviteExpired(
         fromAgent: consent.fromAgent,
         package: packageName,
@@ -386,6 +389,9 @@ class _PackageUploaderAction extends ConsentAction {
 
 /// Callbacks for requesting permission to use e-mail as publisher contact.
 class _PublisherContactAction extends ConsentAction {
+  final DatastoreDB _db;
+  _PublisherContactAction(this._db);
+
   @override
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args![0];
@@ -400,7 +406,7 @@ class _PublisherContactAction extends ConsentAction {
   @override
   Future<void> onReject(Consent consent, User? user) async {
     final publisherId = consent.args![0];
-    await withRetryTransaction(dbService, (tx) async {
+    await withRetryTransaction(_db, (tx) async {
       tx.insert(await AuditLogRecord.publisherContactInviteRejected(
         fromAgent: consent.fromAgent,
         publisherId: publisherId,
@@ -414,7 +420,7 @@ class _PublisherContactAction extends ConsentAction {
   @override
   Future<void> onExpire(Consent consent) async {
     final publisherId = consent.args![0];
-    await withRetryTransaction(dbService, (tx) async {
+    await withRetryTransaction(_db, (tx) async {
       tx.insert(await AuditLogRecord.publisherContactInviteExpired(
         fromAgent: consent.fromAgent,
         publisherId: publisherId,
@@ -462,6 +468,9 @@ class _PublisherContactAction extends ConsentAction {
 
 /// Callbacks for publisher member consents.
 class _PublisherMemberAction extends ConsentAction {
+  final DatastoreDB _db;
+  _PublisherMemberAction(this._db);
+
   @override
   Future<void> onAccept(Consent consent) async {
     final publisherId = consent.args![0];
@@ -479,7 +488,7 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onReject(Consent consent, User? user) async {
     final publisherId = consent.args![0];
-    await withRetryTransaction(dbService, (tx) async {
+    await withRetryTransaction(_db, (tx) async {
       tx.insert(await AuditLogRecord.publisherMemberInviteRejected(
         fromAgent: consent.fromAgent,
         publisherId: publisherId,
@@ -492,7 +501,7 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onExpire(Consent consent) async {
     final publisherId = consent.args![0];
-    await withRetryTransaction(dbService, (tx) async {
+    await withRetryTransaction(_db, (tx) async {
       tx.insert(await AuditLogRecord.publisherMemberInviteExpired(
         fromAgent: consent.fromAgent,
         publisherId: publisherId,
