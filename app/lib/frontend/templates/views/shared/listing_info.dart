@@ -7,7 +7,7 @@ import '../../../dom/dom.dart' as d;
 d.Node listingInfoNode({
   required int totalCount,
   required String? ownedBy,
-  required d.Node sortControlNode,
+  required d.Node? sortControlNode,
   required String? messageMarkdown,
 }) {
   final packageOrPackages = totalCount == 1 ? 'package' : 'packages';
@@ -27,7 +27,7 @@ d.Node listingInfoNode({
           if (messageMarkdown != null) d.markdown(messageMarkdown),
         ],
       ),
-      sortControlNode,
+      if (sortControlNode != null) sortControlNode,
     ],
   );
 }

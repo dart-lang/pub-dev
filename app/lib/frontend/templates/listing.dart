@@ -90,7 +90,7 @@ d.Node listingInfo({
   return listingInfoNode(
     totalCount: totalCount,
     ownedBy: ownedBy,
-    sortControlNode: _renderSortControl(searchForm),
+    sortControlNode: totalCount > 0 ? _renderSortControl(searchForm) : null,
     messageMarkdown: messageFromBackend,
   );
 }
