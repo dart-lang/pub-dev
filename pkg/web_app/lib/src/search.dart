@@ -66,10 +66,10 @@ void _setEventsForSearchForm() {
   // checking the checkbox will trigger a click on the link.
   document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
     final checkbox = e.querySelector('input');
-    final link = e.querySelector('a');
-    if (checkbox != null && link != null) {
-      final tag = link.dataset['tag'];
-      final action = link.dataset['action'];
+    final linkOrLabel = e.querySelector('[data-tag]');
+    if (checkbox != null && linkOrLabel != null) {
+      final tag = linkOrLabel.dataset['tag'];
+      final action = linkOrLabel.dataset['action'];
       if (tag == null) return;
 
       Future<void> handleClick(Event event) async {
@@ -84,7 +84,7 @@ void _setEventsForSearchForm() {
       }
 
       checkbox.onChange.listen(handleClick);
-      link.onClick.listen(handleClick);
+      linkOrLabel.onClick.listen(handleClick);
       e.onClick.listen(handleClick);
     }
   });
