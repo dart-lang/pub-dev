@@ -35,8 +35,10 @@ class SearchAdapter {
   ///
   /// When the `search` service fails, it falls back to use the name tracker to
   /// provide package names and perform search in that set.
-  Future<SearchResultPage> search(SearchForm form,
-      {required String? rateLimitKey}) async {
+  Future<SearchResultPage> search(
+    SearchForm form, {
+    required String? rateLimitKey,
+  }) async {
     final result = (await _searchOrFallback(form, rateLimitKey, true))!;
     final views = await _getPackageViewsFromHits([...result.packageHits]);
     return SearchResultPage(

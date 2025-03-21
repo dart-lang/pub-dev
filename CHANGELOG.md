@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: search queries with multiple components are not cached.
 
 ## `20250320t094500-all`
  * Bump runtimeVersion to `2025.03.18`.

@@ -60,6 +60,15 @@ class SearchClient {
 
     final serviceUrlParams = Uri(queryParameters: query.toUriQueryParameters());
 
+    // Don't use cache in cases where there is a high chance of cache miss.
+    // This is a rough heuristic, counting the distinct components in the
+    // user-provided query. Such components are:
+    // - free form text (counts as 1 regardless of word count)
+    // - `sdk:...`, `platform:...` and other tags (counts as 1 each)
+    if (query.parsedQuery.componentCount > 2) {
+      skipCache = true;
+    }
+
     // returns null on timeout (after 5 seconds)
     Future<http.Response?> doCallHttpServiceEndpoint({String? prefix}) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;

@@ -324,6 +324,13 @@ class ParsedQueryText {
       !hasAnyDependency &&
       tagsPredicate.isEmpty;
 
+  int get componentCount =>
+      (text == null || text!.isEmpty ? 0 : 1) +
+      (packagePrefix == null ? 0 : 1) +
+      refDependencies.length +
+      allDependencies.length +
+      tagsPredicate._values.length;
+
   @override
   String toString() {
     if (hasOnlyFreeText) return text!;
