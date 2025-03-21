@@ -18,6 +18,13 @@ d.Node packageListingNode({
   required d.Node packageList,
   required d.Node? pagination,
   required Set<String>? openSections,
+
+  /// Whether the search form input fields (on the left side) that would create
+  /// a more restrictive search expression (by adding extra filtering conditions),
+  /// should have a HTML link displayed. As such links are crawled by both human and
+  /// bot traffic, we may not want to expose them when their usefulness is zero.
+  /// We still keep the checkbox and the clickability of the label for human users.
+  required bool mayDisplayRestrictiveHtmlLink,
 }) {
   final matchHighlights = [
     if (nameMatches != null) nameMatches,
@@ -40,6 +47,7 @@ d.Node packageListingNode({
     searchForm: searchForm,
     innerContent: innerContent,
     openSections: openSections ?? const <String>{},
+    mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
   );
 }
 
@@ -47,6 +55,7 @@ d.Node _searchFormContainer({
   required SearchForm searchForm,
   required d.Node innerContent,
   required Set<String> openSections,
+  required bool mayDisplayRestrictiveHtmlLink,
 }) {
   return d.div(
     classes: [
@@ -67,31 +76,37 @@ d.Node _searchFormContainer({
                 platform: PlatformTagValue.android,
                 label: 'Android',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _platformCheckbox(
                 platform: PlatformTagValue.ios,
                 label: 'iOS',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _platformCheckbox(
                 platform: PlatformTagValue.linux,
                 label: 'Linux',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _platformCheckbox(
                 platform: PlatformTagValue.macos,
                 label: 'macOS',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _platformCheckbox(
                 platform: PlatformTagValue.web,
                 label: 'Web',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _platformCheckbox(
                 platform: PlatformTagValue.windows,
                 label: 'Windows',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
             ],
           ),
@@ -105,11 +120,13 @@ d.Node _searchFormContainer({
                 sdk: SdkTagValue.dart,
                 label: 'Dart',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _sdkCheckbox(
                 sdk: SdkTagValue.flutter,
                 label: 'Flutter',
                 searchForm: searchForm,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
             ],
           ),
@@ -125,6 +142,7 @@ d.Node _searchFormContainer({
                 label: 'OSI approved',
                 searchForm: searchForm,
                 title: 'Show only packages with OSI approved license.',
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
             ],
           ),
@@ -140,6 +158,7 @@ d.Node _searchFormContainer({
                 label: 'Flutter Favorite',
                 searchForm: searchForm,
                 title: 'Show only Flutter Favorite packages.',
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'show',
@@ -148,6 +167,8 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title:
                     'Show unlisted, discontinued and legacy Dart 1.x packages.',
+                isPermissiveWhenChecked: true,
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'has',
@@ -155,6 +176,7 @@ d.Node _searchFormContainer({
                 label: 'Has screenshot',
                 searchForm: searchForm,
                 title: 'Show only packages with screenshots.',
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
@@ -162,6 +184,7 @@ d.Node _searchFormContainer({
                 label: 'Dart 3 compatible',
                 searchForm: searchForm,
                 title: 'Show only packages compatible with Dart 3.',
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
@@ -169,6 +192,7 @@ d.Node _searchFormContainer({
                 label: 'Flutter plugin',
                 searchForm: searchForm,
                 title: 'Show only Flutter plugins.',
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
@@ -176,6 +200,7 @@ d.Node _searchFormContainer({
                 label: 'WASM ready',
                 searchForm: searchForm,
                 title: 'Show only WASM ready packages.',
+                mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
               ),
             ],
           ),
@@ -193,6 +218,7 @@ d.Node _platformCheckbox({
   required String platform,
   required String label,
   required SearchForm searchForm,
+  required bool mayDisplayRestrictiveHtmlLink,
 }) {
   return _tagBasedCheckbox(
     tagPrefix: 'platform',
@@ -200,6 +226,7 @@ d.Node _platformCheckbox({
     label: label,
     searchForm: searchForm,
     title: 'Show only packages that support the $label platform.',
+    mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
   );
 }
 
@@ -207,6 +234,7 @@ d.Node _sdkCheckbox({
   required String sdk,
   required String label,
   required SearchForm searchForm,
+  required bool mayDisplayRestrictiveHtmlLink,
 }) {
   return _tagBasedCheckbox(
     tagPrefix: 'sdk',
@@ -214,6 +242,7 @@ d.Node _sdkCheckbox({
     label: label,
     searchForm: searchForm,
     title: 'Show only packages that support the $label SDK.',
+    mayDisplayRestrictiveHtmlLink: mayDisplayRestrictiveHtmlLink,
   );
 }
 
@@ -223,9 +252,13 @@ d.Node _tagBasedCheckbox({
   required String label,
   required SearchForm searchForm,
   required String title,
+  bool isPermissiveWhenChecked = false,
+  required bool mayDisplayRestrictiveHtmlLink,
 }) {
   final tag = '$tagPrefix:$tagValue';
   final toggledSearchForm = searchForm.toggleRequiredTag(tag);
+  final isChecked = searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag);
+  final isRestrictiveOnAction = (!isPermissiveWhenChecked) ^ isChecked;
   return _formLinkedCheckbox(
     id: 'search-form-checkbox-$tagPrefix-$tagValue',
     label: label,
@@ -235,6 +268,7 @@ d.Node _tagBasedCheckbox({
     tag: tag,
     action: 'filter-$tagPrefix-$tagValue',
     title: title,
+    displayLabelAsLink: !isRestrictiveOnAction || mayDisplayRestrictiveHtmlLink,
   );
 }
 
@@ -247,7 +281,12 @@ d.Node _formLinkedCheckbox({
   String? tag,
   required String? action,
   String? title,
+  required bool displayLabelAsLink,
 }) {
+  final dataAttributes = {
+    if (action != null) 'data-action': action,
+    if (tag != null) 'data-tag': tag,
+  };
   return d.div(
     classes: ['search-form-linked-checkbox'],
     attributes: {
@@ -256,15 +295,17 @@ d.Node _formLinkedCheckbox({
     child: material.checkbox(
       id: id,
       label: label,
-      labelNodeContent: (label) => d.a(
-        href: toggledSearchForm.toSearchLink(),
-        text: label,
-        attributes: {
-          if (action != null) 'data-action': action,
-          if (tag != null) 'data-tag': tag,
-        },
-        rel: 'nofollow',
-      ),
+      labelNodeContent: (label) => displayLabelAsLink
+          ? d.a(
+              href: toggledSearchForm.toSearchLink(),
+              text: label,
+              attributes: dataAttributes,
+              rel: 'nofollow',
+            )
+          : d.span(
+              text: label,
+              attributes: dataAttributes,
+            ),
       checked: isChecked,
       indeterminate: isIndeterminate,
     ),

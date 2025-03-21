@@ -58,6 +58,7 @@ String renderPkgIndexPage(
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
     openSections: openSections,
+    mayDisplayRestrictiveHtmlLink: searchResultPage.totalCount > 0,
   );
 
   String pageTitle = topPackages;
