@@ -112,6 +112,7 @@ String completionDataJson({
             'dependency:',
             'dependency*:',
             'publisher:',
+            'updated:',
           ],
         ),
         // TODO: Consider completion support for dependency:, dependency*: and publisher:
@@ -178,6 +179,13 @@ String completionDataJson({
           match: {'topic:', '-topic:'},
           options: [
             ...topics,
+          ],
+        ),
+        CompletionRule(
+          match: {'updated:'},
+          options: [
+            '3m',
+            '1y',
           ],
         ),
       ],
