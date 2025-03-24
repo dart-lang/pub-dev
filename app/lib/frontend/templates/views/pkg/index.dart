@@ -225,11 +225,9 @@ d.Node _tagBasedCheckbox({
   required String title,
 }) {
   final tag = '$tagPrefix:$tagValue';
-  final toggledSearchForm = searchForm.toggleRequiredTag(tag);
   return _formLinkedCheckbox(
     id: 'search-form-checkbox-$tagPrefix-$tagValue',
     label: label,
-    toggledSearchForm: toggledSearchForm,
     isChecked: searchForm.parsedQuery.tagsPredicate.isRequiredTag(tag),
     isIndeterminate: searchForm.parsedQuery.tagsPredicate.isProhibitedTag(tag),
     tag: tag,
@@ -241,7 +239,6 @@ d.Node _tagBasedCheckbox({
 d.Node _formLinkedCheckbox({
   required String id,
   required String label,
-  required SearchForm toggledSearchForm,
   required bool isChecked,
   bool isIndeterminate = false,
   String? tag,
@@ -256,14 +253,12 @@ d.Node _formLinkedCheckbox({
     child: material.checkbox(
       id: id,
       label: label,
-      labelNodeContent: (label) => d.a(
-        href: toggledSearchForm.toSearchLink(),
+      labelNodeContent: (label) => d.span(
         text: label,
         attributes: {
           if (action != null) 'data-action': action,
           if (tag != null) 'data-tag': tag,
         },
-        rel: 'nofollow',
       ),
       checked: isChecked,
       indeterminate: isIndeterminate,
