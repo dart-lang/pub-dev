@@ -897,9 +897,6 @@ class IntegrityChecker {
       if (entry.timestamp.isBefore(mc.opened)) {
         yield 'ModerationCase "${mc.caseId}" has action logged before it was opened.';
       }
-      if (mc.resolved != null && entry.timestamp.isAfter(mc.resolved!)) {
-        yield 'ModerationCase "${mc.caseId}" has action logged after it was resolved.';
-      }
       if (ModerationSubject.tryParse(entry.subject) == null) {
         yield 'ModerationCase "${mc.caseId}" has action logged with invalid `subject`.';
       }
