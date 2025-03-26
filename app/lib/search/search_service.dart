@@ -165,6 +165,9 @@ class ServiceSearchQuery {
   final int? offset;
   final int? limit;
 
+  /// The scope/depth of text matching.
+  final int? textMatchExtent;
+
   ServiceSearchQuery._({
     this.query,
     TagsPredicate? tagsPredicate,
@@ -173,6 +176,7 @@ class ServiceSearchQuery {
     this.order,
     this.offset,
     this.limit,
+    this.textMatchExtent,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
         publisherId = publisherId?.trimToNull();
@@ -185,6 +189,7 @@ class ServiceSearchQuery {
     int? minPoints,
     int offset = 0,
     int? limit = 10,
+    int? textMatchExtent,
   }) {
     final q = query?.trimToNull();
     return ServiceSearchQuery._(
@@ -195,6 +200,7 @@ class ServiceSearchQuery {
       order: order,
       offset: offset,
       limit: limit,
+      textMatchExtent: textMatchExtent,
     );
   }
 
@@ -210,6 +216,8 @@ class ServiceSearchQuery {
         int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
+    final textMatchExtent =
+        int.tryParse(uri.queryParameters['textMatchExtent'] ?? '');
 
     return ServiceSearchQuery.parse(
       query: q,
@@ -219,6 +227,7 @@ class ServiceSearchQuery {
       minPoints: minPoints,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
+      textMatchExtent: textMatchExtent,
     );
   }
 
@@ -229,6 +238,7 @@ class ServiceSearchQuery {
     SearchOrder? order,
     int? offset,
     int? limit,
+    int? textMatchExtent,
   }) {
     return ServiceSearchQuery._(
       query: query ?? this.query,
@@ -238,6 +248,7 @@ class ServiceSearchQuery {
       minPoints: minPoints,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
+      textMatchExtent: textMatchExtent ?? this.textMatchExtent,
     );
   }
 
@@ -251,6 +262,8 @@ class ServiceSearchQuery {
         'minPoints': minPoints.toString(),
       'limit': limit?.toString(),
       'order': order?.name,
+      if (textMatchExtent != null)
+        'textMatchExtent': textMatchExtent.toString(),
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -277,7 +290,8 @@ class ServiceSearchQuery {
       _hasOnlyFreeText &&
       _isNaturalOrder &&
       _hasNoOwnershipScope &&
-      !_isFlutterFavorite;
+      !_isFlutterFavorite &&
+      TextMatchExtent.shouldMatchApi(textMatchExtent);
 
   bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
   bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
@@ -293,6 +307,41 @@ class ServiceSearchQuery {
 
     return QueryValidity.accept();
   }
+}
+
+/// The scope (depth) of the text matching.
+abstract class TextMatchExtent {
+  /// No text search is done.
+  /// Requests with text queries will return a failure message.
+  static final int none = 10;
+
+  /// Text search is on package names.
+  static final int name = 20;
+
+  /// Text search is on package names, descriptions and topic tags.
+  static final int description = 30;
+
+  /// Text search is on names, descriptions, topic tags and readme content.
+  static final int readme = 40;
+
+  /// Text search is on names, descriptions, topic tags, readme content and API symbols.
+  static final int api = 50;
+
+  /// No value was given, assuming default behavior of including everything.
+  static final int unspecified = 99;
+
+  /// Text search is on package names.
+  static bool shouldMatchName(int? value) => (value ?? unspecified) >= name;
+
+  /// Text search is on package names, descriptions and topic tags.
+  static bool souldMatchDescription(int? value) =>
+      (value ?? unspecified) >= description;
+
+  /// Text search is on names, descriptions, topic tags and readme content.
+  static bool shouldMatchReadme(int? value) => (value ?? unspecified) >= readme;
+
+  /// Text search is on names, descriptions, topic tags, readme content and API symbols.
+  static bool shouldMatchApi(int? value) => (value ?? unspecified) >= api;
 }
 
 class QueryValidity {

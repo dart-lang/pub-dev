@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -76,6 +77,24 @@ void main() {
       expect(compare('2.0.0', '1.9.0-dev'), -1);
       expect(compare('2.0.0-dev', '1.9.0-dev'), -1);
       expect(compare('2.0.0-dev', '1.9.0'), 1);
+    });
+  });
+
+  group('DecayingMaxLatencyTracker', () {
+    late final DateTime now;
+
+    DateTime _nowPlus(int seconds) => now.add(Duration(seconds: seconds));
+
+    test('decays', () {
+      final tracker =
+          DecayingMaxLatencyTracker(halfLifePeriod: Duration(seconds: 10));
+      now = clock.now();
+      tracker.observe(Duration(seconds: 40), now: now);
+      expect(tracker.getLatency(now: now).inMilliseconds, 40000);
+      expect(tracker.getLatency(now: _nowPlus(10)).inMilliseconds, 20000);
+      expect(tracker.getLatency(now: _nowPlus(20)).inMilliseconds, 10000);
+      tracker.observe(Duration(seconds: 20), now: _nowPlus(25));
+      expect(tracker.getLatency().inMilliseconds, greaterThan(15000));
     });
   });
 }
