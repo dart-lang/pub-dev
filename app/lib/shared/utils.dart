@@ -320,10 +320,9 @@ class DecayingMaxLatencyTracker {
   }) : _halfLifePeriod = halfLifePeriod ?? Duration(minutes: 1);
 
   void _decay({
-    required DateTime? now,
+    required DateTime now,
     Duration? updateDelay,
   }) {
-    now ??= clock.now();
     updateDelay ??= Duration.zero;
     final diff = now.difference(_lastUpdated);
     if (diff <= updateDelay) {
@@ -339,7 +338,10 @@ class DecayingMaxLatencyTracker {
     DateTime? now,
     Duration? updateDelay,
   }) {
-    _decay(now: now, updateDelay: updateDelay ?? const Duration(seconds: 1));
+    _decay(
+      now: now ?? clock.now(),
+      updateDelay: updateDelay ?? const Duration(seconds: 1),
+    );
     return Duration(microseconds: _value);
   }
 
