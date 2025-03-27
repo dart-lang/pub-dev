@@ -14,16 +14,15 @@ void main() {
   group('search backend', () {
     testWithProfile('fetch SDK library description', fn: () async {
       final index = await SdkMemIndex.dart();
-      final descr = await searchBackend.fetchSdkLibraryDescriptions(
+      final content = await searchBackend.fetchSdkIndexContentAsString(
         baseUri: index.baseUri,
-        libraryRelativeUrls: {
-          'dart:async': 'dart-async/index.html',
-        },
+        relativePath: 'index.json',
       );
-      expect(descr, {
-        'dart:async':
-            'Support for asynchronous programming, with classes such as Future and Stream.',
-      });
+      await index.addDartdocIndex(DartdocIndex.parseJsonText(content));
+      expect(
+        index.getLibraryDescription('dart:async'),
+        'Support for asynchronous programming, with classes such as Future and Stream.',
+      );
     });
 
     testWithProfile('updates snapshot storage', fn: () async {

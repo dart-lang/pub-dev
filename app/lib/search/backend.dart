@@ -13,7 +13,6 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
-import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: implementation_imports
@@ -439,47 +438,6 @@ class SearchBackend {
       throw Exception('Unexpected status code for $uri: ${rs.statusCode}');
     }
     return rs.body;
-  }
-
-  /// Downloads the remote SDK page and tries to extract the first paragraph of the content.
-  Future<String?> _fetchSdkLibraryDescription({
-    required Uri baseUri,
-    required String relativePath,
-  }) async {
-    try {
-      final content = await fetchSdkIndexContentAsString(
-          baseUri: baseUri, relativePath: relativePath);
-      final parsed = html_parser.parse(content);
-      final descr = parsed.body
-          ?.querySelector('section.desc.markdown')
-          ?.querySelector('p')
-          ?.text
-          .trim();
-      return descr == null ? null : compactDescription(descr);
-    } catch (e) {
-      _logger.info(
-          'Unable to fetch SDK library description $baseUri $relativePath', e);
-      return null;
-    }
-  }
-
-  /// Downloads the remote SDK page and tries to extract the first paragraph of the content
-  /// for each library in [libraryRelativeUrls].
-  Future<Map<String, String>> fetchSdkLibraryDescriptions({
-    required Uri baseUri,
-    required Map<String, String> libraryRelativeUrls,
-  }) async {
-    final values = <String, String>{};
-    for (final library in libraryRelativeUrls.keys) {
-      final descr = await _fetchSdkLibraryDescription(
-        baseUri: baseUri,
-        relativePath: libraryRelativeUrls[library]!,
-      );
-      if (descr != null) {
-        values[library] = descr;
-      }
-    }
-    return values;
   }
 
   Future<List<PackageDocument>?> fetchSnapshotDocuments() async {
