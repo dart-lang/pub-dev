@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:_pub_shared/utils/http.dart';
+import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
@@ -94,6 +95,11 @@ class SdkMemIndex {
       }
       if (f.isLibrary) {
         _baseUriPerLibrary[library] = _baseUri.resolve(f.href!).toString();
+
+        final desc = f.desc?.replaceAll(RegExp(r'\s+'), ' ').trim();
+        if (desc != null && desc.isNotEmpty) {
+          _descriptionPerLibrary[library] = desc;
+        }
       }
 
       final text = f.qualifiedName?.replaceAll('.', ' ').replaceAll(':', ' ');
@@ -105,11 +111,6 @@ class SdkMemIndex {
     for (final e in textsPerLibrary.entries) {
       _tokensPerLibrary[e.key] = TokenIndex.fromMap(e.value);
     }
-  }
-
-  /// Adds the descriptions for each library.
-  void addLibraryDescriptions(Map<String, String> descriptions) {
-    _descriptionPerLibrary.addAll(descriptions);
   }
 
   /// Updates the non-default weight for libraries.
@@ -183,6 +184,10 @@ class SdkMemIndex {
             ))
         .toList();
   }
+
+  @visibleForTesting
+  String? getLibraryDescription(String library) =>
+      _descriptionPerLibrary[library];
 }
 
 class _Hit {
