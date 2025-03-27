@@ -180,7 +180,7 @@ class LatencyAwareSearchIndex implements SearchIndex {
   /// Note: the latency here may be a residue of a large spike that happened
   ///       more than a few minute ago, therefore we are deciding on latency
   ///       range over the default 5 seconds timeout window.
-  int _selectTextMatchExtent() {
+  TextMatchExtent _selectTextMatchExtent() {
     final latency = _latencyTracker.getLatency();
     if (latency < const Duration(seconds: 1)) {
       _logger.info('[text-match-normal]');

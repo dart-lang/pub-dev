@@ -8,6 +8,7 @@ import 'dart:math' show max;
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/shared/utils.dart';
 
@@ -166,7 +167,7 @@ class ServiceSearchQuery {
   final int? limit;
 
   /// The scope/depth of text matching.
-  final int? textMatchExtent;
+  final TextMatchExtent? textMatchExtent;
 
   ServiceSearchQuery._({
     this.query,
@@ -189,7 +190,7 @@ class ServiceSearchQuery {
     int? minPoints,
     int offset = 0,
     int? limit = 10,
-    int? textMatchExtent,
+    TextMatchExtent? textMatchExtent,
   }) {
     final q = query?.trimToNull();
     return ServiceSearchQuery._(
@@ -216,8 +217,10 @@ class ServiceSearchQuery {
         int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
-    final textMatchExtent =
-        int.tryParse(uri.queryParameters['textMatchExtent'] ?? '');
+    final textMatchExtentValue =
+        uri.queryParameters['textMatchExtent']?.trim() ?? '';
+    final textMatchExtent = TextMatchExtent.values
+        .firstWhereOrNull((e) => e.name == textMatchExtentValue);
 
     return ServiceSearchQuery.parse(
       query: q,
@@ -238,7 +241,7 @@ class ServiceSearchQuery {
     SearchOrder? order,
     int? offset,
     int? limit,
-    int? textMatchExtent,
+    TextMatchExtent? textMatchExtent,
   }) {
     return ServiceSearchQuery._(
       query: query ?? this.query,
@@ -262,8 +265,7 @@ class ServiceSearchQuery {
         'minPoints': minPoints.toString(),
       'limit': limit?.toString(),
       'order': order?.name,
-      if (textMatchExtent != null)
-        'textMatchExtent': textMatchExtent.toString(),
+      if (textMatchExtent != null) 'textMatchExtent': textMatchExtent!.name,
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -291,7 +293,7 @@ class ServiceSearchQuery {
       _isNaturalOrder &&
       _hasNoOwnershipScope &&
       !_isFlutterFavorite &&
-      TextMatchExtent.shouldMatchApi(textMatchExtent);
+      (textMatchExtent ?? TextMatchExtent.api).shouldMatchApi();
 
   bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
   bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
@@ -310,38 +312,35 @@ class ServiceSearchQuery {
 }
 
 /// The scope (depth) of the text matching.
-abstract class TextMatchExtent {
+enum TextMatchExtent {
   /// No text search is done.
   /// Requests with text queries will return a failure message.
-  static final int none = 10;
+  none,
 
   /// Text search is on package names.
-  static final int name = 20;
+  name,
 
   /// Text search is on package names, descriptions and topic tags.
-  static final int description = 30;
+  description,
 
   /// Text search is on names, descriptions, topic tags and readme content.
-  static final int readme = 40;
+  readme,
 
   /// Text search is on names, descriptions, topic tags, readme content and API symbols.
-  static final int api = 50;
-
-  /// No value was given, assuming default behavior of including everything.
-  static final int unspecified = 99;
+  api,
+  ;
 
   /// Text search is on package names.
-  static bool shouldMatchName(int? value) => (value ?? unspecified) >= name;
+  bool shouldMatchName() => index >= name.index;
 
   /// Text search is on package names, descriptions and topic tags.
-  static bool shouldMatchDescription(int? value) =>
-      (value ?? unspecified) >= description;
+  bool shouldMatchDescription() => index >= description.index;
 
   /// Text search is on names, descriptions, topic tags and readme content.
-  static bool shouldMatchReadme(int? value) => (value ?? unspecified) >= readme;
+  bool shouldMatchReadme() => index >= readme.index;
 
   /// Text search is on names, descriptions, topic tags, readme content and API symbols.
-  static bool shouldMatchApi(int? value) => (value ?? unspecified) >= api;
+  bool shouldMatchApi() => index >= api.index;
 }
 
 class QueryValidity {

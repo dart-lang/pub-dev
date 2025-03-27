@@ -226,7 +226,7 @@ class InMemoryPackageIndex {
       packageScores,
       parsedQueryText,
       includeNameMatches: (query.offset ?? 0) == 0,
-      textMatchExtent: query.textMatchExtent,
+      textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
     );
 
     final nameMatches = textResults?.nameMatches;
@@ -288,7 +288,7 @@ class InMemoryPackageIndex {
         boundedList(indexedHits, offset: query.offset, limit: query.limit);
 
     late List<PackageHit> packageHits;
-    if (TextMatchExtent.shouldMatchApi(query.textMatchExtent) &&
+    if ((query.textMatchExtent ?? TextMatchExtent.api).shouldMatchApi() &&
         textResults != null &&
         (textResults.topApiPages?.isNotEmpty ?? false)) {
       packageHits = indexedHits.map((ps) {
@@ -336,7 +336,7 @@ class InMemoryPackageIndex {
     IndexedScore<String> packageScores,
     String? text, {
     required bool includeNameMatches,
-    required int? textMatchExtent,
+    required TextMatchExtent textMatchExtent,
   }) {
     if (text == null || text.isEmpty) {
       return null;
@@ -349,7 +349,7 @@ class InMemoryPackageIndex {
       return _TextResults.empty();
     }
 
-    final matchName = TextMatchExtent.shouldMatchName(textMatchExtent);
+    final matchName = textMatchExtent.shouldMatchName();
     if (!matchName) {
       packageScores.fillRange(0, packageScores.length, 0);
       return _TextResults.empty(
@@ -379,10 +379,9 @@ class InMemoryPackageIndex {
     /// However, API docs search should be filtered on the original list.
     final indexedPositiveList = packageScores.toIndexedPositiveList();
 
-    final matchDescription =
-        TextMatchExtent.shouldMatchDescription(textMatchExtent);
-    final matchReadme = TextMatchExtent.shouldMatchReadme(textMatchExtent);
-    final matchApi = TextMatchExtent.shouldMatchApi(textMatchExtent);
+    final matchDescription = textMatchExtent.shouldMatchDescription();
+    final matchReadme = textMatchExtent.shouldMatchReadme();
+    final matchApi = textMatchExtent.shouldMatchApi();
 
     for (final word in words) {
       if (includeNameMatches && _documentsByName.containsKey(word)) {
