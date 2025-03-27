@@ -183,17 +183,25 @@ class LatencyAwareSearchIndex implements SearchIndex {
   int _selectTextMatchExtent() {
     final latency = _latencyTracker.getLatency();
     if (latency < const Duration(seconds: 1)) {
+      _logger.info('[text-match-normal]');
       return TextMatchExtent.api;
     }
     if (latency < const Duration(seconds: 2)) {
+      _logger.info('[text-match-readme]');
       return TextMatchExtent.readme;
     }
     if (latency < const Duration(seconds: 4)) {
-      return TextMatchExtent.description;
+      _logger.info('[text-match-description]');
+      // TODO: use `TextMatchExtent.description` after we are confident about this change.
+      return TextMatchExtent.readme;
     }
     if (latency < const Duration(seconds: 10)) {
-      return TextMatchExtent.name;
+      _logger.info('[text-match-name]');
+      // TODO: use `TextMatchExtent.name` after we are confident about this change.
+      return TextMatchExtent.readme;
     }
-    return TextMatchExtent.none;
+    // TODO: use `TextMatchExtent.none` after we are confident about this change.
+    _logger.info('[text-match-none]');
+    return TextMatchExtent.readme;
   }
 }
