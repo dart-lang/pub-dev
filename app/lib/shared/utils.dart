@@ -320,7 +320,7 @@ class DecayingMaxLatencyTracker {
   }) : _halfLifePeriod = halfLifePeriod ?? Duration(minutes: 1);
 
   void _decay({
-    DateTime? now,
+    required DateTime? now,
     Duration? updateDelay,
   }) {
     now ??= clock.now();
