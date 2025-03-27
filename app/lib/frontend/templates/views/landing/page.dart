@@ -44,7 +44,7 @@ d.Node landingPageNode({
         ),
         title: 'Most popular packages',
         info: d
-            .text('Some of the most downloaded packages over the past 60 days'),
+            .text('Some of the most downloaded packages over the past 30 days'),
         content: miniListNode('most-popular', mostPopularPackages!),
         viewAllUrl: urls.listingByDownloadCounts(),
         viewAllEvent: 'landing-most-popular-view-all',
