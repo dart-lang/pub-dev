@@ -380,7 +380,7 @@ class InMemoryPackageIndex {
     final indexedPositiveList = packageScores.toIndexedPositiveList();
 
     final matchDescription =
-        TextMatchExtent.souldMatchDescription(textMatchExtent);
+        TextMatchExtent.shouldMatchDescription(textMatchExtent);
     final matchReadme = TextMatchExtent.shouldMatchReadme(textMatchExtent);
     final matchApi = TextMatchExtent.shouldMatchApi(textMatchExtent);
 

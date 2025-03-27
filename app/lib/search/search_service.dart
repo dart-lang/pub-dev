@@ -334,7 +334,7 @@ abstract class TextMatchExtent {
   static bool shouldMatchName(int? value) => (value ?? unspecified) >= name;
 
   /// Text search is on package names, descriptions and topic tags.
-  static bool souldMatchDescription(int? value) =>
+  static bool shouldMatchDescription(int? value) =>
       (value ?? unspecified) >= description;
 
   /// Text search is on names, descriptions, topic tags and readme content.
