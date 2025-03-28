@@ -226,6 +226,7 @@ class InMemoryPackageIndex {
       packageScores,
       parsedQueryText,
       includeNameMatches: (query.offset ?? 0) == 0,
+      textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
     );
 
     final nameMatches = textResults?.nameMatches;
@@ -287,7 +288,9 @@ class InMemoryPackageIndex {
         boundedList(indexedHits, offset: query.offset, limit: query.limit);
 
     late List<PackageHit> packageHits;
-    if (textResults != null && (textResults.topApiPages?.isNotEmpty ?? false)) {
+    if ((query.textMatchExtent ?? TextMatchExtent.api).shouldMatchApi() &&
+        textResults != null &&
+        (textResults.topApiPages?.isNotEmpty ?? false)) {
       packageHits = indexedHits.map((ps) {
         final apiPages = textResults.topApiPages?[ps.index]
             // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
@@ -305,6 +308,7 @@ class InMemoryPackageIndex {
       nameMatches: nameMatches,
       topicMatches: topicMatches,
       packageHits: packageHits,
+      errorMessage: textResults?.errorMessage,
     );
   }
 
@@ -332,61 +336,81 @@ class InMemoryPackageIndex {
     IndexedScore<String> packageScores,
     String? text, {
     required bool includeNameMatches,
+    required TextMatchExtent textMatchExtent,
   }) {
+    if (text == null || text.isEmpty) {
+      return null;
+    }
+
     final sw = Stopwatch()..start();
-    if (text != null && text.isNotEmpty) {
-      final words = splitForQuery(text);
-      if (words.isEmpty) {
-        for (var i = 0; i < packageScores.length; i++) {
-          packageScores.setValue(i, 0);
-        }
-        return _TextResults.empty();
+    final words = splitForQuery(text);
+    if (words.isEmpty) {
+      packageScores.fillRange(0, packageScores.length, 0);
+      return _TextResults.empty();
+    }
+
+    final matchName = textMatchExtent.shouldMatchName();
+    if (!matchName) {
+      packageScores.fillRange(0, packageScores.length, 0);
+      return _TextResults.empty(
+          errorMessage:
+              'Search index in reduced mode: unable to match query text.');
+    }
+
+    bool aborted = false;
+    bool checkAborted() {
+      if (!aborted && sw.elapsed > _textSearchTimeout) {
+        aborted = true;
+        _logger.info(
+            '[pub-aborted-search-query] Aborted text search after ${sw.elapsedMilliseconds} ms.');
       }
+      return aborted;
+    }
 
-      bool aborted = false;
+    Set<String>? nameMatches;
+    if (includeNameMatches && _documentsByName.containsKey(text)) {
+      nameMatches ??= <String>{};
+      nameMatches.add(text);
+    }
 
-      bool checkAborted() {
-        if (!aborted && sw.elapsed > _textSearchTimeout) {
-          aborted = true;
-          _logger.info(
-              '[pub-aborted-search-query] Aborted text search after ${sw.elapsedMilliseconds} ms.');
-        }
-        return aborted;
-      }
+    // Multiple words are scored separately, and then the individual scores
+    // are multiplied. We can use a package filter that is applied after each
+    // word to reduce the scope of the later words based on the previous results.
+    /// However, API docs search should be filtered on the original list.
+    final indexedPositiveList = packageScores.toIndexedPositiveList();
 
-      Set<String>? nameMatches;
-      if (includeNameMatches && _documentsByName.containsKey(text)) {
+    final matchDescription = textMatchExtent.shouldMatchDescription();
+    final matchReadme = textMatchExtent.shouldMatchReadme();
+    final matchApi = textMatchExtent.shouldMatchApi();
+
+    for (final word in words) {
+      if (includeNameMatches && _documentsByName.containsKey(word)) {
         nameMatches ??= <String>{};
-        nameMatches.add(text);
+        nameMatches.add(word);
       }
 
-      // Multiple words are scored separately, and then the individual scores
-      // are multiplied. We can use a package filter that is applied after each
-      // word to reduce the scope of the later words based on the previous results.
-      /// However, API docs search should be filtered on the original list.
-      final indexedPositiveList = packageScores.toIndexedPositiveList();
+      _scorePool.withScore(
+        value: 0.0,
+        fn: (wordScore) {
+          _packageNameIndex.searchWord(word,
+              score: wordScore, filterOnNonZeros: packageScores);
 
-      for (final word in words) {
-        if (includeNameMatches && _documentsByName.containsKey(word)) {
-          nameMatches ??= <String>{};
-          nameMatches.add(word);
-        }
-
-        _scorePool.withScore(
-          value: 0.0,
-          fn: (wordScore) {
-            _packageNameIndex.searchWord(word,
-                score: wordScore, filterOnNonZeros: packageScores);
+          if (matchDescription) {
             _descrIndex.searchAndAccumulate(word, score: wordScore);
+          }
+          if (matchReadme) {
             _readmeIndex.searchAndAccumulate(word,
                 weight: 0.75, score: wordScore);
-            packageScores.multiplyAllFrom(wordScore);
-          },
-        );
-      }
+          }
+          packageScores.multiplyAllFrom(wordScore);
+        },
+      );
+    }
 
-      final topApiPages =
-          List<List<MapEntry<String, double>>?>.filled(_documents.length, null);
+    final topApiPages =
+        List<List<MapEntry<String, double>>?>.filled(_documents.length, null);
+
+    if (matchApi) {
       const maxApiPageCount = 2;
       if (!checkAborted()) {
         _apiSymbolIndex.withSearchWords(words, weight: 0.70, (symbolPages) {
@@ -420,29 +444,28 @@ class InMemoryPackageIndex {
           }
         });
       }
+    }
 
-      // filter results based on exact phrases
-      final phrases = extractExactPhrases(text);
-      if (!aborted && phrases.isNotEmpty) {
-        for (var i = 0; i < packageScores.length; i++) {
-          if (packageScores.isNotPositive(i)) continue;
-          final doc = _documents[i];
-          final matchedAllPhrases = phrases.every((phrase) =>
-              doc.package.contains(phrase) ||
-              doc.description!.contains(phrase) ||
-              doc.readme!.contains(phrase));
-          if (!matchedAllPhrases) {
-            packageScores.setValue(i, 0);
-          }
+    // filter results based on exact phrases
+    final phrases = extractExactPhrases(text);
+    if (!aborted && phrases.isNotEmpty) {
+      for (var i = 0; i < packageScores.length; i++) {
+        if (packageScores.isNotPositive(i)) continue;
+        final doc = _documents[i];
+        final matchedAllPhrases = phrases.every((phrase) =>
+            (matchName && doc.package.contains(phrase)) ||
+            (matchDescription && doc.description!.contains(phrase)) ||
+            (matchReadme && doc.readme!.contains(phrase)));
+        if (!matchedAllPhrases) {
+          packageScores.setValue(i, 0);
         }
       }
-
-      return _TextResults(
-        topApiPages,
-        nameMatches: nameMatches?.toList(),
-      );
     }
-    return null;
+
+    return _TextResults(
+      topApiPages,
+      nameMatches: nameMatches?.toList(),
+    );
   }
 
   List<IndexedPackageHit> _rankWithValues(
@@ -521,15 +544,20 @@ class InMemoryPackageIndex {
 class _TextResults {
   final List<List<MapEntry<String, double>>?>? topApiPages;
   final List<String>? nameMatches;
+  final String? errorMessage;
 
-  factory _TextResults.empty() => _TextResults(
-        null,
-        nameMatches: null,
-      );
+  factory _TextResults.empty({String? errorMessage}) {
+    return _TextResults(
+      null,
+      nameMatches: null,
+      errorMessage: errorMessage,
+    );
+  }
 
   _TextResults(
     this.topApiPages, {
     required this.nameMatches,
+    this.errorMessage,
   });
 }
 

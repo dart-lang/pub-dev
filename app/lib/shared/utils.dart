@@ -10,6 +10,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
+import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
@@ -303,5 +304,57 @@ extension ByteFolderExt on Stream<List<int>> {
       buffer.add(chunk);
     }
     return buffer.toBytes();
+  }
+}
+
+/// Tracks the maximum latency by observing each latency value and keeping the maximum.
+/// The tracked maximum value decays, halving its value in every minute.
+class DecayingMaxLatencyTracker {
+  final Duration _halfLifePeriod;
+
+  int _value = 0;
+  DateTime _lastUpdated = clock.now();
+
+  DecayingMaxLatencyTracker({
+    Duration? halfLifePeriod,
+  }) : _halfLifePeriod = halfLifePeriod ?? Duration(minutes: 1);
+
+  void _decay({
+    required DateTime now,
+    Duration? updateDelay,
+  }) {
+    updateDelay ??= Duration.zero;
+    final diff = now.difference(_lastUpdated);
+    if (diff <= updateDelay) {
+      return;
+    }
+    final multiplier =
+        pow(0.5, diff.inMicroseconds / _halfLifePeriod.inMicroseconds);
+    _value = (_value * multiplier).round();
+    _lastUpdated = now;
+  }
+
+  Duration getLatency({
+    DateTime? now,
+    Duration? updateDelay,
+  }) {
+    _decay(
+      now: now ?? clock.now(),
+      updateDelay: updateDelay ?? const Duration(seconds: 1),
+    );
+    return Duration(microseconds: _value);
+  }
+
+  void observe(
+    Duration duration, {
+    DateTime? now,
+  }) {
+    now ??= clock.now();
+    _decay(now: now);
+    final value = duration.inMicroseconds;
+    if (_value < value) {
+      _value = value;
+      _lastUpdated = now;
+    }
   }
 }

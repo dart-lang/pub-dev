@@ -43,7 +43,7 @@ class SearchCommand extends Command {
       );
       registerScopeExitCallback(index.close);
 
-      registerSearchIndex(IsolateSearchIndex(index));
+      registerSearchIndex(LatencyAwareSearchIndex(IsolateSearchIndex(index)));
 
       void scheduleRenew() {
         scheduleMicrotask(() async {

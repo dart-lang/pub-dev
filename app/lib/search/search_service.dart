@@ -8,6 +8,7 @@ import 'dart:math' show max;
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/shared/utils.dart';
 
@@ -165,6 +166,9 @@ class ServiceSearchQuery {
   final int? offset;
   final int? limit;
 
+  /// The scope/depth of text matching.
+  final TextMatchExtent? textMatchExtent;
+
   ServiceSearchQuery._({
     this.query,
     TagsPredicate? tagsPredicate,
@@ -173,6 +177,7 @@ class ServiceSearchQuery {
     this.order,
     this.offset,
     this.limit,
+    this.textMatchExtent,
   })  : parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
         publisherId = publisherId?.trimToNull();
@@ -185,6 +190,7 @@ class ServiceSearchQuery {
     int? minPoints,
     int offset = 0,
     int? limit = 10,
+    TextMatchExtent? textMatchExtent,
   }) {
     final q = query?.trimToNull();
     return ServiceSearchQuery._(
@@ -195,6 +201,7 @@ class ServiceSearchQuery {
       order: order,
       offset: offset,
       limit: limit,
+      textMatchExtent: textMatchExtent,
     );
   }
 
@@ -210,6 +217,10 @@ class ServiceSearchQuery {
         int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
+    final textMatchExtentValue =
+        uri.queryParameters['textMatchExtent']?.trim() ?? '';
+    final textMatchExtent = TextMatchExtent.values
+        .firstWhereOrNull((e) => e.name == textMatchExtentValue);
 
     return ServiceSearchQuery.parse(
       query: q,
@@ -219,6 +230,7 @@ class ServiceSearchQuery {
       minPoints: minPoints,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
+      textMatchExtent: textMatchExtent,
     );
   }
 
@@ -229,6 +241,7 @@ class ServiceSearchQuery {
     SearchOrder? order,
     int? offset,
     int? limit,
+    TextMatchExtent? textMatchExtent,
   }) {
     return ServiceSearchQuery._(
       query: query ?? this.query,
@@ -238,6 +251,7 @@ class ServiceSearchQuery {
       minPoints: minPoints,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
+      textMatchExtent: textMatchExtent ?? this.textMatchExtent,
     );
   }
 
@@ -251,6 +265,7 @@ class ServiceSearchQuery {
         'minPoints': minPoints.toString(),
       'limit': limit?.toString(),
       'order': order?.name,
+      if (textMatchExtent != null) 'textMatchExtent': textMatchExtent!.name,
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -277,7 +292,8 @@ class ServiceSearchQuery {
       _hasOnlyFreeText &&
       _isNaturalOrder &&
       _hasNoOwnershipScope &&
-      !_isFlutterFavorite;
+      !_isFlutterFavorite &&
+      (textMatchExtent ?? TextMatchExtent.api).shouldMatchApi();
 
   bool get considerHighlightedHit => _hasOnlyFreeText && _hasNoOwnershipScope;
   bool get includeHighlightedHit => considerHighlightedHit && offset == 0;
@@ -293,6 +309,38 @@ class ServiceSearchQuery {
 
     return QueryValidity.accept();
   }
+}
+
+/// The scope (depth) of the text matching.
+enum TextMatchExtent {
+  /// No text search is done.
+  /// Requests with text queries will return a failure message.
+  none,
+
+  /// Text search is on package names.
+  name,
+
+  /// Text search is on package names, descriptions and topic tags.
+  description,
+
+  /// Text search is on names, descriptions, topic tags and readme content.
+  readme,
+
+  /// Text search is on names, descriptions, topic tags, readme content and API symbols.
+  api,
+  ;
+
+  /// Text search is on package names.
+  bool shouldMatchName() => index >= name.index;
+
+  /// Text search is on package names, descriptions and topic tags.
+  bool shouldMatchDescription() => index >= description.index;
+
+  /// Text search is on names, descriptions, topic tags and readme content.
+  bool shouldMatchReadme() => index >= readme.index;
+
+  /// Text search is on names, descriptions, topic tags, readme content and API symbols.
+  bool shouldMatchApi() => index >= api.index;
 }
 
 class QueryValidity {
