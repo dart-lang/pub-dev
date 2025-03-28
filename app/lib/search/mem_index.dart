@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:bit_array/bit_array.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -29,10 +30,9 @@ class InMemoryPackageIndex {
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
   late final _scorePool = ScorePool(_packageNameIndex._packageNames);
 
-  /// Maps the tag strings to a list of document index values
-  /// (`PackageDocument doc.tags -> List<_documents.indexOf(doc)>`).
-  final _tagDocumentIndices = <String, List<int>>{};
-  final _documentTagIds = <List<int>>[];
+  /// Maps the tag strings to a list of document index values using bit arrays.
+  /// - (`PackageDocument doc.tags -> BitArray(List<_documents.indexOf(doc)>)`).
+  final _tagBitArrays = <String, BitArray>{};
 
   /// Adjusted score takes the overall score and transforms
   /// it linearly into the [0.4-1.0] range.
@@ -63,12 +63,11 @@ class InMemoryPackageIndex {
       _documentsByName[doc.package] = doc;
 
       // transform tags into numberical IDs
-      final tagIds = <int>[];
       for (final tag in doc.tags) {
-        _tagDocumentIndices.putIfAbsent(tag, () => []).add(i);
+        _tagBitArrays
+            .putIfAbsent(tag, () => BitArray(_documents.length))
+            .setBit(i);
       }
-      tagIds.sort();
-      _documentTagIds.add(tagIds);
 
       final apiDocPages = doc.apiDocPages;
       if (apiDocPages != null) {
@@ -133,11 +132,11 @@ class InMemoryPackageIndex {
 
   PackageSearchResult search(ServiceSearchQuery query) {
     // prevent any work if offset is outside of the range
-    if ((query.offset ?? 0) > _documents.length) {
+    if ((query.offset ?? 0) >= _documents.length) {
       return PackageSearchResult.empty();
     }
     return _scorePool.withScore(
-      value: 1.0,
+      value: 0.0,
       fn: (score) {
         return _search(query, score);
       },
@@ -145,54 +144,46 @@ class InMemoryPackageIndex {
   }
 
   PackageSearchResult _search(
-      ServiceSearchQuery query, IndexedScore<String> packageScores) {
-    // filter on package prefix
-    if (query.parsedQuery.packagePrefix != null) {
-      final String prefix = query.parsedQuery.packagePrefix!.toLowerCase();
-      packageScores.retainWhere(
-        (i, _) => _documents[i].packageNameLowerCased.startsWith(prefix),
-      );
-    }
+    ServiceSearchQuery query,
+    IndexedScore<String> packageScores,
+  ) {
+    // TODO: implement pooling of this object similarly to [ScorePool].
+    final packages = BitArray(_documents.length)
+      ..setRange(0, _documents.length);
 
     // filter on tags
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
       for (final entry in combinedTagsPredicate.entries) {
-        final docIndexes = _tagDocumentIndices[entry.key];
-
+        final tagBits = _tagBitArrays[entry.key];
         if (entry.value) {
-          // predicate is required, zeroing the gaps between index values
-          if (docIndexes == null) {
-            // the predicate is required, no document will match it
+          if (tagBits == null) {
+            // the predicate is not matched by any document
             return PackageSearchResult.empty();
           }
-
-          for (var i = 0; i < docIndexes.length; i++) {
-            if (i == 0) {
-              packageScores.fillRange(0, docIndexes[i], 0.0);
-              continue;
-            }
-            packageScores.fillRange(docIndexes[i - 1] + 1, docIndexes[i], 0.0);
-          }
-          packageScores.fillRange(docIndexes.last + 1, _documents.length, 0.0);
+          packages.and(tagBits);
         } else {
-          // predicate is prohibited, zeroing the values
-
-          if (docIndexes == null) {
-            // the predicate is prohibited, no document has it, always a match
+          if (tagBits == null) {
+            // negative predicate without index means all document is matched
             continue;
           }
-          for (final i in docIndexes) {
-            packageScores.setValue(i, 0.0);
-          }
+          packages.andNot(tagBits);
         }
       }
     }
 
+    // filter on package prefix
+    if (query.parsedQuery.packagePrefix != null) {
+      final prefix = query.parsedQuery.packagePrefix!.toLowerCase();
+      packages.clearWhere(
+        (i) => !_documents[i].packageNameLowerCased.startsWith(prefix),
+      );
+    }
+
     // filter on dependency
     if (query.parsedQuery.hasAnyDependency) {
-      packageScores.removeWhere((i, _) {
+      packages.clearWhere((i) {
         final doc = _documents[i];
         if (doc.dependencies.isEmpty) return true;
         for (final dependency in query.parsedQuery.allDependencies) {
@@ -208,22 +199,29 @@ class InMemoryPackageIndex {
 
     // filter on points
     if (query.minPoints != null && query.minPoints! > 0) {
-      packageScores.removeWhere(
-          (i, _) => _documents[i].grantedPoints < query.minPoints!);
+      packages
+          .clearWhere((i) => _documents[i].grantedPoints < query.minPoints!);
     }
 
     // filter on updatedDuration
     final updatedDuration = query.parsedQuery.updatedDuration;
     if (updatedDuration != null && updatedDuration > Duration.zero) {
       final now = clock.now();
-      packageScores.removeWhere(
-          (i, _) => now.difference(_documents[i].updated) > updatedDuration);
+      packages.clearWhere(
+          (i) => now.difference(_documents[i].updated) > updatedDuration);
+    }
+
+    // TODO: find a better way to handle predicate-only filtering and scoring
+    for (final index in packages.asIntIterable()) {
+      if (index >= _documents.length) break;
+      packageScores.setValue(index, 1.0);
     }
 
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
     final textResults = _searchText(
       packageScores,
+      packages,
       parsedQueryText,
       includeNameMatches: (query.offset ?? 0) == 0,
       textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
@@ -334,6 +332,7 @@ class InMemoryPackageIndex {
 
   _TextResults? _searchText(
     IndexedScore<String> packageScores,
+    BitArray packages,
     String? text, {
     required bool includeNameMatches,
     required TextMatchExtent textMatchExtent,
@@ -345,12 +344,14 @@ class InMemoryPackageIndex {
     final sw = Stopwatch()..start();
     final words = splitForQuery(text);
     if (words.isEmpty) {
+      // packages.clearAll();
       packageScores.fillRange(0, packageScores.length, 0);
       return _TextResults.empty();
     }
 
     final matchName = textMatchExtent.shouldMatchName();
     if (!matchName) {
+      // packages.clearAll();
       packageScores.fillRange(0, packageScores.length, 0);
       return _TextResults.empty(
           errorMessage:
@@ -375,12 +376,6 @@ class InMemoryPackageIndex {
         nameMatches.addAll(matches);
       }
     }
-
-    // Multiple words are scored separately, and then the individual scores
-    // are multiplied. We can use a package filter that is applied after each
-    // word to reduce the scope of the later words based on the previous results.
-    /// However, API docs search should be filtered on the original list.
-    final indexedPositiveList = packageScores.toIndexedPositiveList();
 
     final matchDescription = textMatchExtent.shouldMatchDescription();
     final matchReadme = textMatchExtent.shouldMatchReadme();
@@ -425,7 +420,7 @@ class InMemoryPackageIndex {
             if (value < 0.01) continue;
 
             final doc = symbolPages.keys[i];
-            if (!indexedPositiveList[doc.index]) continue;
+            if (!packages[doc.index]) continue;
 
             // skip if the previously found pages are better than the current one
             final pages =

@@ -227,24 +227,6 @@ class IndexedScore<K> {
     _values.fillRange(start, end, fillValue);
   }
 
-  void removeWhere(bool Function(int index, K key) fn) {
-    for (var i = 0; i < length; i++) {
-      if (isNotPositive(i)) continue;
-      if (fn(i, _keys[i])) {
-        _values[i] = 0.0;
-      }
-    }
-  }
-
-  void retainWhere(bool Function(int index, K key) fn) {
-    for (var i = 0; i < length; i++) {
-      if (isNotPositive(i)) continue;
-      if (!fn(i, _keys[i])) {
-        _values[i] = 0.0;
-      }
-    }
-  }
-
   void multiplyAllFrom(IndexedScore other) {
     multiplyAllFromValues(other._values);
   }

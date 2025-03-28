@@ -70,6 +70,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.0"
+  bit_array:
+    dependency: transitive
+    description:
+      name: bit_array
+      sha256: "1d7a488b29446431a586681c157db901434b5de7dbbe14db271b91ea3eabfbac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -1015,4 +1023,4 @@ packages:
     source: hosted
     version: "2.2.2"
 sdks:
-  dart: ">=3.6.0 <4.0.0"
+  dart: ">=3.7.0 <4.0.0"
