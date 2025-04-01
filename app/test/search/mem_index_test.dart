@@ -91,7 +91,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package name match: async', () async {
       final PackageSearchResult result =
-          index.search(ServiceSearchQuery.parse(query: 'async'));
+          index.search(ServiceSearchQuery.parse(query: 'AsynC'));
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
