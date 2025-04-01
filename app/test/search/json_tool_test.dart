@@ -27,6 +27,7 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
+        'nameMatches': ['jsontool'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'jsontool', 'score': 1.0},
@@ -66,6 +67,7 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
+        'nameMatches': ['jsontool'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'json2entity', 'score': 1.0},
