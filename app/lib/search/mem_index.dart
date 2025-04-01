@@ -368,9 +368,12 @@ class InMemoryPackageIndex {
     }
 
     Set<String>? nameMatches;
-    if (includeNameMatches && _documentsByName.containsKey(text)) {
-      nameMatches ??= <String>{};
-      nameMatches.add(text);
+    if (includeNameMatches) {
+      final matches = _packageNameIndex.lookupMatchingNames(text);
+      if (matches != null) {
+        nameMatches ??= <String>{};
+        nameMatches.addAll(matches);
+      }
     }
 
     // Multiple words are scored separately, and then the individual scores
@@ -384,9 +387,12 @@ class InMemoryPackageIndex {
     final matchApi = textMatchExtent.shouldMatchApi();
 
     for (final word in words) {
-      if (includeNameMatches && _documentsByName.containsKey(word)) {
-        nameMatches ??= <String>{};
-        nameMatches.add(word);
+      if (includeNameMatches) {
+        final matches = _packageNameIndex.lookupMatchingNames(word);
+        if (matches != null) {
+          nameMatches ??= <String>{};
+          nameMatches.addAll(matches);
+        }
       }
 
       _scorePool.withScore(
@@ -567,12 +573,21 @@ class PackageNameIndex {
   final List<String> _packageNames;
   late final List<_PkgNameData> _data;
 
+  /// Maps the collapsed name to all the original names (e.g. `asyncmap`=> [`async_map`, `as_y_n_cmaP`]).
+  late final Map<String, List<String>> _collapsedNameResolvesToMap;
+
   PackageNameIndex(this._packageNames) {
     _data = _packageNames.map((package) {
       final lowercased = package.toLowerCase();
       final collapsed = _removeUnderscores(lowercased);
       return _PkgNameData(lowercased, collapsed, trigrams(collapsed).toSet());
     }).toList();
+    _collapsedNameResolvesToMap = {};
+    for (var i = 0; i < _data.length; i++) {
+      _collapsedNameResolvesToMap
+          .putIfAbsent(_data[i].collapsed, () => [])
+          .add(_packageNames[i]);
+    }
   }
 
   String _removeUnderscores(String text) => text.replaceAll('_', '');
@@ -653,6 +668,11 @@ class PackageNameIndex {
         }
       }
     }
+  }
+
+  /// Returns the list of package names where the collapsed name matches.
+  List<String>? lookupMatchingNames(String text) {
+    return _collapsedNameResolvesToMap[_removeUnderscores(text.toLowerCase())];
   }
 }
 
