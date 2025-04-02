@@ -619,11 +619,20 @@ class PackageNameIndex {
     IndexedScore<String>? filterOnNonZeros,
   }) {
     assert(score.keys.length == _packageNames.length);
-    final singularWord = word.length <= 3 || !word.endsWith('s')
-        ? word
-        : word.substring(0, word.length - 1);
-    final lowercasedWord = singularWord.toLowerCase();
+    final lowercasedWord = word.toLowerCase();
     final collapsedWord = _removeUnderscores(lowercasedWord);
+
+    // Note: This is a very simple plurality check, which may not work wor many
+    //       cases, but provided a simple approximation.
+    //       The check should be done on the lowercased input value.
+    final lowercaseDepluralized =
+        lowercasedWord.length <= 3 || !lowercasedWord.endsWith('s')
+            ? null
+            : lowercasedWord.substring(0, lowercasedWord.length - 1);
+    final collapsedDepluralized = lowercaseDepluralized == null
+        ? null
+        : _removeUnderscores(lowercaseDepluralized);
+
     final parts =
         collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
     for (var i = 0; i < _data.length; i++) {
@@ -632,18 +641,24 @@ class PackageNameIndex {
       }
 
       final entry = _data[i];
-      if (entry.collapsed.length >= collapsedWord.length &&
-          entry.collapsed.contains(collapsedWord)) {
-        // also check for non-collapsed match
-        if (entry.lowercased.length >= lowercasedWord.length &&
-            entry.lowercased.contains(lowercasedWord)) {
+      // Check for direct substring match.
+      // TODO: Consider using trie or other substring index here.
+      if (entry._containsCollapsed(collapsedDepluralized ?? collapsedWord)) {
+        // most score for original non-collapsed match
+        if (entry._containsLowercased(lowercasedWord)) {
           score.setValue(i, 1.0);
           continue;
         }
 
+        // otherwise a slightly lower score for:
+        // - collapsed-only original match
+        // - non-collapsed depluralized match
+        // - collapsed depluralized match
         score.setValue(i, 0.99);
+
         continue;
       }
+
       var matched = 0;
       var unmatched = 0;
       final acceptThreshold = parts.length ~/ 2;
@@ -682,6 +697,14 @@ class _PkgNameData {
   final Set<String> trigrams;
 
   _PkgNameData(this.lowercased, this.collapsed, this.trigrams);
+
+  bool _containsLowercased(String value) {
+    return lowercased.length >= value.length && lowercased.contains(value);
+  }
+
+  bool _containsCollapsed(String value) {
+    return collapsed.length >= value.length && collapsed.contains(value);
+  }
 }
 
 extension on List<IndexedPackageHit> {

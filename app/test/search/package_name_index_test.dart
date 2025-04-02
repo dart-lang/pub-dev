@@ -127,4 +127,20 @@ void main() {
       });
     });
   });
+
+  group('redis', () {
+    final index = PackageNameIndex([
+      'redis',
+      'x_redis_client',
+      'credit_union',
+    ]);
+
+    test('redis', () {
+      expect(index.search('redis'), {
+        'redis': 1.0,
+        'x_redis_client': 1.0,
+        'credit_union': 0.99,
+      });
+    });
+  });
 }

@@ -562,8 +562,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final match2 = index.search(
           ServiceSearchQuery.parse(query: 'apps', order: SearchOrder.text));
       expect(match2.packageHits.map((e) => e.toJson()), [
-        {'package': 'app', 'score': 1.0},
         {'package': 'apps', 'score': 1.0},
+        {'package': 'app', 'score': 0.99},
       ]);
     });
 
