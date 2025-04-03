@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20250403t085600-all`
  * Bump runtimeVersion to `2025.04.01`.
  * Note: search latency influences text match scope. This is limited to the local index, and thresholds apply only API matching - the other levels are log-only for now.
 
