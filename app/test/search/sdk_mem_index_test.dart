@@ -32,6 +32,7 @@ void main() {
           'kind': 8,
           'overriddenDepth': 0,
           'packageName': 'Dart',
+          'desc': 'async description',
         },
         {
           'name': 'AsyncError',
@@ -61,6 +62,15 @@ void main() {
           'enclosedBy': {'name': 'AsyncError', 'kind': 3},
         },
         {
+          'name': 'dart:html',
+          'qualifiedName': 'dart:html',
+          'href': 'dart-html',
+          'kind': 8,
+          'overriddenDepth': 0,
+          'packageName': 'HTML',
+          'desc': 'html description',
+        },
+        {
           'name': 'Window',
           'qualifiedName': 'dart:html.Window',
           'href': 'dart-html/Window-class.html',
@@ -79,8 +89,6 @@ void main() {
           'enclosedBy': {'name': 'dart:html.FakeIcons', 'kind': 3},
         },
       ]));
-      index.addLibraryDescriptions({'dart:async': 'async description'});
-      index.addLibraryDescriptions({'dart:html': 'html description'});
     });
 
     test('AsyncError', () async {

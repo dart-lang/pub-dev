@@ -38,19 +38,11 @@ SdkMemIndex? get dartSdkMemIndex =>
 Future<SdkMemIndex?> createDartSdkMemIndex() async {
   try {
     final index = await SdkMemIndex.dart();
-    final content = DartdocIndex.parseJsonText(
-      await searchBackend.fetchSdkIndexContentAsString(
-        baseUri: index.baseUri,
-        relativePath: 'index.json',
-      ),
+    final content = await searchBackend.fetchSdkIndexContentAsString(
+      baseUri: index.baseUri,
+      relativePath: 'index.json',
     );
-    await index.addDartdocIndex(content);
-    index.addLibraryDescriptions(
-      await searchBackend.fetchSdkLibraryDescriptions(
-        baseUri: index.baseUri,
-        libraryRelativeUrls: content.libraryRelativeUrls,
-      ),
-    );
+    await index.addDartdocIndex(DartdocIndex.parseJsonText(content));
     index.updateWeights(
       libraryWeights: dartSdkLibraryWeights,
       apiPageDirWeights: {},
