@@ -470,4 +470,67 @@ void main() {
       });
     });
   });
+
+  group('GitHub tagPattern', () {
+    test('verifyTagPattern: valid inputs', () {
+      final values = [
+        '{{version}}',
+        'v{{version}}',
+        '{{version}}v',
+        'package-{{version}}',
+        'package-v{{version}}',
+        'package-v{{version}}-postfix',
+      ];
+      for (final value in values) {
+        verifyTagPattern(tagPattern: value);
+      }
+    });
+
+    test('verifyTagPattern: invalid inputs', () {
+      final values = [
+        '', // empty pattern is not allowed
+        '{{version}}{{version}}', // two {{version}} is not allowed
+        '%-{{version}}', // % is not allowed
+        'abc/def-{{version}}', // / is not allowed
+        '{{version}}-abc/def', // / is not allowed
+      ];
+      for (final value in values) {
+        expect(
+          () => verifyTagPattern(tagPattern: value),
+          throwsA(isA<InvalidInputException>()),
+        );
+      }
+    });
+
+    test('verifyTagPatternWithRef: valid inputs', () {
+      final values = [
+        ('{{version}}', 'refs/tags/1.0.0'),
+        ('pkg-v{{version}}', 'refs/tags/pkg-v1.0.0'),
+      ];
+      for (final value in values) {
+        verifyTagPatternWithRef(
+          tagPattern: value.$1,
+          ref: value.$2,
+          newVersion: '1.0.0',
+        );
+      }
+    });
+
+    test('verifyTagPatternWithRef: invalid inputs', () {
+      final values = [
+        ('v{{version}}', 'refs/tags/1.0.0'), // does not match `v` prefix
+        ('v{{version}}', 'refs/x/v1.0.0'), // missing refs/tags
+      ];
+      for (final value in values) {
+        expect(
+          () => verifyTagPatternWithRef(
+            tagPattern: value.$1,
+            ref: value.$2,
+            newVersion: '1.0.0',
+          ),
+          throwsA(isA<AuthorizationException>()),
+        );
+      }
+    });
+  });
 }

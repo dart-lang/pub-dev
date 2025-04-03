@@ -527,6 +527,7 @@ class PackageBackend {
         final repository = githubConfig.repository?.trim() ?? '';
         githubConfig.repository = repository.isEmpty ? null : repository;
         final tagPattern = githubConfig.tagPattern?.trim() ?? '';
+        verifyTagPattern(tagPattern: tagPattern);
         githubConfig.tagPattern = tagPattern.isEmpty ? null : tagPattern;
         final environment = githubConfig.environment?.trim() ?? '';
         githubConfig.environment = environment.isEmpty ? null : environment;
@@ -543,15 +544,6 @@ class PackageBackend {
                   _validGitHubUserOrRepoRegExp.hasMatch(parts[1]),
               'The `repository` field has invalid characters.');
         }
-
-        final tagPatternParts = tagPattern.split('{{version}}');
-        InvalidInputException.check(tagPatternParts.length == 2,
-            'The `tagPattern` field must contain a single `{{version}}` part.');
-        InvalidInputException.check(
-            tagPatternParts
-                .where((e) => e.isNotEmpty)
-                .every(_validGitHubVersionPattern.hasMatch),
-            'The `tagPattern` field has invalid characters.');
 
         InvalidInputException.check(
             !githubConfig.requireEnvironment || environment.isNotEmpty,
@@ -1339,11 +1331,6 @@ class PackageBackend {
     if (repository == null || repository.isEmpty) {
       throw AssertionError('Missing or empty repository.');
     }
-    final tagPattern = githubConfig.tagPattern ?? '';
-    if (!tagPattern.contains('{{version}}')) {
-      throw AssertionError(
-          'Configured tag pattern does not include `{{version}}`');
-    }
     final requireEnvironment = githubConfig.requireEnvironment;
     final environment = githubConfig.environment;
     if (requireEnvironment && (environment == null || environment.isEmpty)) {
@@ -1375,25 +1362,11 @@ class PackageBackend {
       throw AuthorizationException.githubActionIssue(
           'publishing is only allowed from "tag" refType, this token has "${agent.payload.refType}" refType');
     }
-    final expectedRefStart = 'refs/tags/';
-    if (!agent.payload.ref.startsWith(expectedRefStart)) {
-      throw AuthorizationException.githubActionIssue(
-          'publishing is only allowed from "refs/tags/*" ref, this token has "${agent.payload.ref}" ref');
-    }
-    final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
-    if (agent.payload.ref != 'refs/tags/$expectedTagValue') {
-      // At this point we have concluded that the agent has push rights to the repository,
-      // however, the tag pattern they have used is not the one we expect.
-      //
-      // By revealing the expected tag pattern, we are serving the users with better
-      // error message, while not exposing much information to an assumed attacker.
-      // With the current access level, an attacker would have access to past tags, and
-      // figuring out the tag pattern from those should be straightforward anyway.
-      throw AuthorizationException.githubActionIssue(
-          'publishing is configured to only be allowed from actions with specific ref pattern, '
-          'this token has "${agent.payload.ref}" ref for which publishing is not allowed. '
-          'Expected tag "$expectedTagValue". Check that the version in the tag matches the version in "pubspec.yaml"');
-    }
+    verifyTagPatternWithRef(
+      tagPattern: githubConfig.tagPattern ?? '',
+      ref: agent.payload.ref,
+      newVersion: newVersion,
+    );
 
     // When environment is configured, it must match the action's environment.
     if (requireEnvironment && environment != agent.payload.environment) {
@@ -1757,6 +1730,54 @@ Future<void> purgePackageCache(String package) async {
     cache.uiPackageVersions(package).purge(),
     cache.uiIndexPage().purge(),
   ]);
+}
+
+/// Verifies the [tagPattern] before storing it on the automated publishing
+/// settings object.
+@visibleForTesting
+void verifyTagPattern({required String tagPattern}) {
+  final tagPatternParts = tagPattern.split('{{version}}');
+  InvalidInputException.check(tagPatternParts.length == 2,
+      'The `tagPattern` field must contain a single `{{version}}` part.');
+  InvalidInputException.check(
+      tagPatternParts
+          .where((e) => e.isNotEmpty)
+          .every(_validGitHubVersionPattern.hasMatch),
+      'The `tagPattern` field has invalid characters.');
+}
+
+/// Verifies the user-settings [tagPattern] with the authentication-provided
+/// [ref] value, and throws if the ref is not allowed or not recognized as
+/// valid pattern.
+@visibleForTesting
+void verifyTagPatternWithRef({
+  required String tagPattern,
+  required String ref,
+  required String newVersion,
+}) {
+  if (!tagPattern.contains('{{version}}')) {
+    throw AssertionError(
+        'Configured tag pattern does not include `{{version}}`');
+  }
+  final expectedRefStart = 'refs/tags/';
+  if (!ref.startsWith(expectedRefStart)) {
+    throw AuthorizationException.githubActionIssue(
+        'publishing is only allowed from "refs/tags/*" ref, this token has "$ref" ref');
+  }
+  final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
+  if (ref != 'refs/tags/$expectedTagValue') {
+    // At this point we have concluded that the agent has push rights to the repository,
+    // however, the tag pattern they have used is not the one we expect.
+    //
+    // By revealing the expected tag pattern, we are serving the users with better
+    // error message, while not exposing much information to an assumed attacker.
+    // With the current access level, an attacker would have access to past tags, and
+    // figuring out the tag pattern from those should be straightforward anyway.
+    throw AuthorizationException.githubActionIssue(
+        'publishing is configured to only be allowed from actions with specific ref pattern, '
+        'this token has "$ref" ref for which publishing is not allowed. '
+        'Expected tag "$expectedTagValue". Check that the version in the tag matches the version in "pubspec.yaml"');
+  }
 }
 
 /// The status of an invite after being created or updated.
