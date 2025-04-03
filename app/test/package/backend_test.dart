@@ -480,6 +480,8 @@ void main() {
         'package-{{version}}',
         'package-v{{version}}',
         'package-v{{version}}-postfix',
+        'abc/def-{{version}}',
+        '{{version}}-abc/def',
       ];
       for (final value in values) {
         verifyTagPattern(tagPattern: value);
@@ -491,8 +493,6 @@ void main() {
         '', // empty pattern is not allowed
         '{{version}}{{version}}', // two {{version}} is not allowed
         '%-{{version}}', // % is not allowed
-        'abc/def-{{version}}', // / is not allowed
-        '{{version}}-abc/def', // / is not allowed
       ];
       for (final value in values) {
         expect(
@@ -506,6 +506,7 @@ void main() {
       final values = [
         ('{{version}}', 'refs/tags/1.0.0'),
         ('pkg-v{{version}}', 'refs/tags/pkg-v1.0.0'),
+        ('dir/pkg-v{{version}}', 'refs/tags/dir/pkg-v1.0.0'),
       ];
       for (final value in values) {
         verifyTagPatternWithRef(
@@ -520,6 +521,7 @@ void main() {
       final values = [
         ('v{{version}}', 'refs/tags/1.0.0'), // does not match `v` prefix
         ('v{{version}}', 'refs/x/v1.0.0'), // missing refs/tags
+        ('dir/{{version}}', 'refs/tags/v1.0.0'), // missing dir/ prefix
       ];
       for (final value in values) {
         expect(
