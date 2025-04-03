@@ -282,13 +282,17 @@ pre {
 
 ._banner-bg {
   background: var(--pub-searchbar-background-color);
-  background-image: url("../img/hero-bg-static.svg");
   background-size: cover;
   color: var(--pub-searchbar-text-color);
   padding: 10px 0px;
 
   a {
     color: var(--pub-link-text-color);
+  }
+
+  // Display background image only on the landing page.
+  body.page-landing & {
+    background-image: url("../img/hero-bg-static.svg");
   }
 }
 
