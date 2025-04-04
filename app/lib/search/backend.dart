@@ -17,6 +17,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
+import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/monitoring.dart';
 import 'package:retry/retry.dart';
@@ -427,17 +428,40 @@ class SearchBackend {
     }
   }
 
-  /// Downloads the remote SDK content relative to the base URI.
-  Future<String> fetchSdkIndexContentAsString({
-    required Uri baseUri,
-    required String relativePath,
+  /// Downloads the remote SDK content from [uri] and creates a cached file in the
+  /// `.dart_tool/pub-search-data/` directory.
+  ///
+  /// When a local file in `app/.dart_tool/pub-search-data/<reduced-uri>` exists,
+  /// its content will be loaded instead. URL reduction replaces slashes and other
+  /// non-characters with a single dash `-`, like:
+  /// - `https-api.dart.dev-stable-latest-index.json`
+  Future<String> loadOrFetchSdkIndexJsonAsString(
+    Uri uri, {
+    @visibleForTesting Duration? ttl,
   }) async {
-    final uri = baseUri.resolve(relativePath);
+    final fileName = uri.toString().replaceAll(RegExp(r'[^a-z0-9\.]+'), '-');
+    final file = File(p.join('.dart_tool', 'pub-search-data', fileName));
+    if (await file.exists()) {
+      var canUseCached = true;
+      if (ttl != null) {
+        final age = clock.now().difference(await file.lastModified());
+        if (age > ttl) {
+          canUseCached = false;
+        }
+      }
+      if (canUseCached) {
+        return await file.readAsString();
+      }
+    }
+
     final rs = await _http.get(uri);
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code for $uri: ${rs.statusCode}');
     }
-    return rs.body;
+    final content = rs.body;
+    await file.parent.create(recursive: true);
+    await file.writeAsString(content);
+    return content;
   }
 
   Future<List<PackageDocument>?> fetchSnapshotDocuments() async {
