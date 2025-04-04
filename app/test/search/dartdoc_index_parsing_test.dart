@@ -3,46 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:clock/clock.dart';
-import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
+import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
-import 'package:pub_dev/shared/versions.dart';
-import 'package:retry/retry.dart';
 import 'package:test/test.dart';
+
+import '../shared/test_services.dart';
 
 void main() {
   group('dartdoc index.json parsing', () {
-    /// Downloads [url and creates a cached file in the .dart_tool/pub-search-data directory.
-    ///
-    /// Reuses the same file up to a week.
-    Future<File> getCachedFile(String name, String url) async {
-      final file = File(p.join('.dart_tool', 'pub-search-data', name));
-      if (await file.exists()) {
-        final lastModified = await file.lastModified();
-        final age = clock.now().difference(lastModified);
-        if (age.inDays < 7) {
-          return file;
-        }
-      }
-      await file.parent.create(recursive: true);
-      return retry(() async {
-        final rs = await http.get(Uri.parse(url));
-        if (rs.statusCode != 200) {
-          throw Exception('Unexpected status code for $url: ${rs.statusCode}');
-        }
-        await file.writeAsBytes(rs.bodyBytes);
-        return file;
-      });
-    }
-
-    test('parse Dart SDK index.json', () async {
-      final file = await getCachedFile('dart-sdk-$runtimeSdkVersion.json',
-          'https://api.dart.dev/stable/$runtimeSdkVersion/index.json');
-      final textContent = await file.readAsString();
-      final index = DartdocIndex.parseJsonText(await file.readAsString());
+    testWithProfile('parse Dart SDK index.json', fn: () async {
+      final textContent = await searchBackend.loadOrFetchSdkIndexJsonAsString(
+        Uri.parse('https://api.dart.dev/stable/latest/index.json'),
+        ttl: Duration(days: 1),
+      );
+      final index = DartdocIndex.parseJsonText(textContent);
       expect(index.entries, hasLength(greaterThan(10000)));
 
       final libraries =
@@ -59,11 +34,12 @@ void main() {
       expect(json.decode(index.toJsonText()), json.decode(textContent));
     });
 
-    test('parse Flutter SDK index.json', () async {
-      final file = await getCachedFile(
-          'flutter-sdk.json', 'https://api.flutter.dev/flutter/index.json');
-      final textContent = await file.readAsString();
-      final index = DartdocIndex.parseJsonText(await file.readAsString());
+    testWithProfile('parse Flutter SDK index.json', fn: () async {
+      final textContent = await searchBackend.loadOrFetchSdkIndexJsonAsString(
+        Uri.parse('https://api.flutter.dev/flutter/index.json'),
+        ttl: Duration(days: 1),
+      );
+      final index = DartdocIndex.parseJsonText(textContent);
       expect(index.entries, hasLength(greaterThan(10000)));
 
       final libraries =
