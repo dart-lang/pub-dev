@@ -59,8 +59,11 @@ final _defaultMaxVersionsPerPackage = 1000;
 final Logger _logger = Logger('pub.cloud_repository');
 final _validGitHubUserOrRepoRegExp =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
+// NOTE: The `/` character is allowed inside the tag pattern because we are
+//       not splitting the `refs/tags/` prefix. A change of that parsing
+//       should specifically test the presence of `/`.
 final _validGitHubVersionPattern =
-    RegExp(r'^[a-z0-9\-._]+$', caseSensitive: false);
+    RegExp(r'^[a-z0-9\-._/]+$', caseSensitive: false);
 final _validGitHubEnvironment =
     RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
 
@@ -1759,6 +1762,9 @@ void verifyTagPatternWithRef({
     throw AssertionError(
         'Configured tag pattern does not include `{{version}}`');
   }
+// NOTE: The `/` character is allowed inside the tag pattern because we are
+//       not splitting the `refs/tags/` prefix. A change of this parsing
+//       should specifically test the presence of `/`.
   final expectedRefStart = 'refs/tags/';
   if (!ref.startsWith(expectedRefStart)) {
     throw AuthorizationException.githubActionIssue(
