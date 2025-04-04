@@ -12,6 +12,7 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -23,8 +24,7 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Uploader invite', () {
-    Future<String?> inviteUploader(
-        {String adminEmail = 'admin@pub.dev'}) async {
+    Future<void> sendUploadInvite({String adminEmail = 'admin@pub.dev'}) async {
       await withFakeAuthRetryPubApiClient(
         email: adminEmail,
         pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
@@ -33,6 +33,11 @@ void main() {
               'oxygen', InviteUploaderRequest(email: userAtPubDevEmail));
         },
       );
+    }
+
+    Future<String?> inviteUploader(
+        {String adminEmail = 'admin@pub.dev'}) async {
+      await sendUploadInvite(adminEmail: adminEmail);
 
       String? consentId;
       await withFakeAuthRequestContext(userAtPubDevEmail, () async {
@@ -100,6 +105,18 @@ void main() {
           'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.');
     });
 
+    testWithProfile('Duplicate uploader invite', fn: () async {
+      expect(fakeEmailSender.sentMessages, hasLength(0));
+
+      await sendUploadInvite();
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+
+      await sendUploadInvite();
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+    });
+
     testWithProfile(
       'Uploader invite denied - original user is no longer admin',
       fn: () async {
@@ -124,12 +141,17 @@ void main() {
   });
 
   group('Publisher contact', () {
-    Future<String?> inviteContact({
-      String adminEmail = 'admin@pub.dev',
-    }) async {
+    Future<void> sendContactInvite(
+        {String adminEmail = 'admin@pub.dev'}) async {
       final adminClient = await createFakeAuthPubApiClient(email: adminEmail);
       await adminClient.updatePublisher('example.com',
           UpdatePublisherRequest(contactEmail: 'info@example.com'));
+    }
+
+    Future<String?> inviteContact({
+      String adminEmail = 'admin@pub.dev',
+    }) async {
+      await sendContactInvite(adminEmail: adminEmail);
 
       String? consentId;
       await withFakeAuthRequestContext(userAtPubDevEmail, () async {
@@ -198,6 +220,18 @@ void main() {
           'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.');
     });
 
+    testWithProfile('Duplicate contact invite', fn: () async {
+      expect(fakeEmailSender.sentMessages, hasLength(0));
+
+      await sendContactInvite();
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+
+      await sendContactInvite();
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+    });
+
     testWithProfile(
       'Publisher contact denied - original user is no longer admin',
       fn: () async {
@@ -215,12 +249,16 @@ void main() {
   });
 
   group('Publisher member', () {
-    Future<String?> inviteMember({
-      String adminEmail = 'admin@pub.dev',
-    }) async {
+    Future<void> sendMemberInvite({String adminEmail = 'admin@pub.dev'}) async {
       final adminClient = await createFakeAuthPubApiClient(email: adminEmail);
       await adminClient.invitePublisherMember(
           'example.com', InviteMemberRequest(email: 'user@pub.dev'));
+    }
+
+    Future<String?> inviteMember({
+      String adminEmail = 'admin@pub.dev',
+    }) async {
+      await sendMemberInvite(adminEmail: adminEmail);
 
       String? consentId;
       await withFakeAuthRequestContext(userAtPubDevEmail, () async {
@@ -289,6 +327,18 @@ void main() {
           (e) => e.kind == AuditLogRecordKind.publisherMemberInviteExpired);
       expect(r.summary,
           'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.');
+    });
+
+    testWithProfile('Duplicate member invite', fn: () async {
+      expect(fakeEmailSender.sentMessages, hasLength(0));
+
+      await sendMemberInvite();
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+
+      await sendMemberInvite();
+      expect(fakeEmailSender.sentMessages, hasLength(1));
+      expect(await dbService.query<Consent>().run().toList(), hasLength(1));
     });
 
     testWithProfile(
