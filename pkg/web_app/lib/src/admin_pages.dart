@@ -421,7 +421,7 @@ class _CreatePublisherWidget {
         await api_client.client.createPublisher(publisherId);
       },
       successMessage: text(
-          'Publisher created. You may transfer packages to this publisher. '
+          'Publisher created. You can now transfer packages to this publisher. '
           'The page will reload.'),
       onSuccess: (_) {
         window.location.pathname = '/publishers/$publisherId/admin';
