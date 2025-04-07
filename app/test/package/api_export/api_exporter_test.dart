@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -131,6 +132,10 @@ Future<void> _testExportedApiSynchronization(
       await bucket.readBytes('$runtimeVersion/api/archives/foo-1.0.0.tar.gz'),
       isNotNull,
     );
+    expect(
+      await bucket.readString('$runtimeVersion/feed.atom'),
+      contains('v1.0.0 of foo'),
+    );
   }
 
   _log.info('## New package');
@@ -160,6 +165,10 @@ Future<void> _testExportedApiSynchronization(
       await bucket.readBytes('latest/api/archives/foo-1.0.0.tar.gz'),
       isNotNull,
     );
+    expect(
+      await bucket.readString('latest/feed.atom'),
+      contains('v1.0.0 of foo'),
+    );
     // Note. that name completion data won't be updated until search caches
     //       are purged, so we won't test that it is updated.
 
@@ -175,6 +184,10 @@ Future<void> _testExportedApiSynchronization(
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
       isNotNull,
+    );
+    expect(
+      await bucket.readString('latest/feed.atom'),
+      contains('v2.0.0 of bar'),
     );
   }
 
@@ -213,6 +226,10 @@ Future<void> _testExportedApiSynchronization(
     expect(
       await bucket.readBytes('latest/api/archives/bar-3.0.0.tar.gz'),
       isNotNull,
+    );
+    expect(
+      await bucket.readString('$runtimeVersion/feed.atom'),
+      contains('v3.0.0 of bar'),
     );
   }
 
@@ -439,7 +456,7 @@ Future<void> _testExportedApiSynchronization(
 }
 
 extension on Bucket {
-  /// Read bytes from bucket, retur null if missing
+  /// Read bytes from bucket, return null if missing
   Future<Uint8List?> readBytes(String path) async {
     try {
       return await readAsBytes(path);
@@ -456,5 +473,11 @@ extension on Bucket {
       return null;
     }
     return utf8JsonDecoder.convert(gzip.decode(bytes));
+  }
+
+  /// Read bytes from bucket and decode as UTF-8 text.
+  Future<String> readString(String path) async {
+    final bytes = await readBytes(path);
+    return utf8.decode(gzip.decode(bytes!));
   }
 }

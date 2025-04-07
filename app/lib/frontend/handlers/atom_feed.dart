@@ -19,11 +19,7 @@ import '../dom/dom.dart' as d;
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final feedContent = await cache.atomFeedXml().get(() async {
-    final versions = await packageBackend.latestPackageVersions(limit: 100);
-    final feed = _feedFromPackageVersions(request.requestedUri, versions);
-    return feed.toXmlDocument();
-  });
+  final feedContent = await cache.atomFeedXml().get();
   return shelf.Response.ok(
     feedContent,
     headers: {
@@ -31,6 +27,13 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
       'x-content-type-options': 'nosniff',
     },
   );
+}
+
+/// Builds the content of the /feed.atom endpoint.
+Future<String> buildAllPackagesAtomFeedContent() async {
+  final versions = await packageBackend.latestPackageVersions(limit: 100);
+  final feed = _feedFromPackageVersions(versions);
+  return feed.toXmlDocument();
 }
 
 class FeedEntry {
@@ -126,10 +129,7 @@ class Feed {
   }
 }
 
-Feed _feedFromPackageVersions(
-  Uri requestedUri,
-  List<PackageVersion> versions,
-) {
+Feed _feedFromPackageVersions(List<PackageVersion> versions) {
   final entries = <FeedEntry>[];
   for (var i = 0; i < versions.length; i++) {
     final version = versions[i];

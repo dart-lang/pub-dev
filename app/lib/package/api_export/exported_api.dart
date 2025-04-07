@@ -66,6 +66,10 @@ final class ExportedApi {
         Duration(hours: 8),
       );
 
+  /// Interface for writing `/feed.atom`
+  ExportedAtomFeedFile get allPackagesFeedAtomFile =>
+      ExportedAtomFeedFile._(this, '/feed.atom', Duration(hours: 12));
+
   /// Interface for writing `/api/not-found.json` which is what the bucket will
   /// use as 404 response when serving a website.
   ExportedJsonFile<Map<String, Object?>> get notFound =>
@@ -502,10 +506,57 @@ final class ExportedJsonFile<T> extends ExportedObject {
 
   /// Write [data] as gzipped JSON in UTF-8 format.
   ///
-  /// This will only write of `Content-Length` and `md5Hash` doesn't match the
+  /// This will only write if `Content-Length` and `md5Hash` doesn't match the
   /// existing file, or if [forceWrite] is given.
   Future<void> write(T data, {bool forceWrite = false}) async {
     final gzipped = _jsonGzip.encode(data);
+    final metadata = _metadata();
+
+    await Future.wait(_owner._prefixes.map((prefix) async {
+      await _owner._pool.withResource(() async {
+        await _owner._bucket.writeBytesIfDifferent(
+          prefix + _objectName,
+          gzipped,
+          metadata,
+          forceWrite: forceWrite,
+        );
+      });
+    }));
+  }
+}
+
+/// Interface for an exported atom feed file.
+///
+/// This will write an atom feed as gzipped UTF-8, adding headers for
+///  * `Content-Type`,
+///  * `Content-Encoding`, and,
+///  * `Cache-Control`.
+final class ExportedAtomFeedFile<T> extends ExportedObject {
+  final Duration _maxAge;
+
+  ExportedAtomFeedFile._(
+    super._owner,
+    super._objectName,
+    this._maxAge,
+  ) : super._();
+
+  ObjectMetadata _metadata() {
+    return ObjectMetadata(
+      contentType: 'application/atom+xml; charset="utf-8"',
+      contentEncoding: 'gzip',
+      cacheControl: 'public, max-age=${_maxAge.inSeconds}',
+      custom: {
+        _validatedCustomHeader: clock.now().toIso8601String(),
+      },
+    );
+  }
+
+  /// Write [content] as gzipped text in UTF-8 format.
+  ///
+  /// This will only write if `Content-Length` and `md5Hash` doesn't match the
+  /// existing file, or if [forceWrite] is given.
+  Future<void> write(String content, {bool forceWrite = false}) async {
+    final gzipped = gzip.encode(utf8.encode(content));
     final metadata = _metadata();
 
     await Future.wait(_owner._prefixes.map((prefix) async {
