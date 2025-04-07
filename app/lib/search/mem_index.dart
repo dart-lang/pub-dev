@@ -619,10 +619,7 @@ class PackageNameIndex {
     IndexedScore<String>? filterOnNonZeros,
   }) {
     assert(score.keys.length == _packageNames.length);
-    final singularWord = word.length <= 3 || !word.endsWith('s')
-        ? word
-        : word.substring(0, word.length - 1);
-    final lowercasedWord = singularWord.toLowerCase();
+    final lowercasedWord = word.toLowerCase();
     final collapsedWord = _removeUnderscores(lowercasedWord);
     final parts =
         collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
