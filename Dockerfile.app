@@ -33,6 +33,7 @@ WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
 RUN /project/tool/setup-webp.sh /usr/local/bin
+RUN /project/tool/download-sdk-index-jsons.sh
 
 # Clear out any arguments the base images might have set
 CMD []
