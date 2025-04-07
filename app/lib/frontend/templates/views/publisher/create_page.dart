@@ -63,6 +63,20 @@ d.Node createPublisherPageNode({
       d.i(text: 'public contact email'),
       d.text(' of the publisher (you can change this later).'),
     ]),
+    d.p(
+      children: [
+        d.text(
+            'Note: packages are not transferred automatically to the publisher. '
+            'After you create a verified publisher, you can transfer your '
+            'packages to the publisher following '),
+        d.a(
+          href:
+              'https://dart.dev/tools/pub/publishing#transferring-a-package-to-a-verified-publisher',
+          text: 'this guide',
+        ),
+        d.text('.'),
+      ],
+    ),
     d.p(text: 'As a member of the publisher you can:'),
     d.ul(children: [
       d.li(children: [
