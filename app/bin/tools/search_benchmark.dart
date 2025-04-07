@@ -25,6 +25,9 @@ Future<void> main(List<String> args) async {
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [
+    'sdk:dart',
+    'sdk:flutter platform:android',
+    'is:flutter-favorite',
     'chart',
     'json',
     'camera',

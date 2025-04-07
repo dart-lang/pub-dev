@@ -89,6 +89,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       index = InMemoryPackageIndex(documents: docs);
     });
 
+    test('empty index search', () {
+      final index = InMemoryPackageIndex(documents: []);
+      final rs = index.search(ServiceSearchQuery.parse(query: 'text'));
+      expect(rs.packageHits, isEmpty);
+    });
+
     test('package name match: async', () async {
       final PackageSearchResult result =
           index.search(ServiceSearchQuery.parse(query: 'AsynC'));
