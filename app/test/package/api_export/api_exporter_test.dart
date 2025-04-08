@@ -73,10 +73,10 @@ void main() {
     ],
     testProfile: _testProfile,
     (fakeTime) async {
-    // Since we want to verify post-upload tasks triggering API exporter,
-    // we cannot use an isolated instance, we need to use the same setup.
-    // However, for better control and consistency, we can remove all the
-    // existing files from the bucket at the start of this test:
+      // Since we want to verify post-upload tasks triggering API exporter,
+      // we cannot use an isolated instance, we need to use the same setup.
+      // However, for better control and consistency, we can remove all the
+      // existing files from the bucket at the start of this test:
       await apiExporter!.stop();
       final bucket =
           storageService.bucket(activeConfiguration.exportedApiBucketName!);
