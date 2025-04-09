@@ -19,7 +19,8 @@ import '../dom/dom.dart' as d;
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final feedContent = await cache.atomFeedXml().get();
+  final feedContent =
+      await cache.atomFeedXml().get(buildAllPackagesAtomFeedContent);
   return shelf.Response.ok(
     feedContent,
     headers: {
