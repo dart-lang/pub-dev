@@ -1273,7 +1273,7 @@ class PackageBackend {
         taskBackend.trackPackage(newVersion.package, updateDependents: true),
         if (apiExporter != null) ...[
           apiExporter!.synchronizePackage(newVersion.package),
-          apiExporter!.synchornizeAllPackagesAtomFeed(),
+          apiExporter!.synchronizeAllPackagesAtomFeed(),
         ],
       ]);
       await tarballStorage.updateContentDispositionOnPublicBucket(

@@ -158,7 +158,7 @@ final class ApiExporter {
     });
 
     await synchronizePackageNameCompletionData(forceWrite: forceWrite);
-    await synchornizeAllPackagesAtomFeed(forceWrite: forceWrite);
+    await synchronizeAllPackagesAtomFeed(forceWrite: forceWrite);
 
     await _api.notFound.write({
       'error': {
@@ -309,7 +309,7 @@ final class ApiExporter {
   }
 
   /// Synchronize the `/feed.atom` file into [ExportedApi].
-  Future<void> synchornizeAllPackagesAtomFeed({
+  Future<void> synchronizeAllPackagesAtomFeed({
     bool forceWrite = false,
   }) async {
     await _api.allPackagesFeedAtomFile.write(
