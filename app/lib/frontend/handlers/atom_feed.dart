@@ -19,11 +19,8 @@ import '../dom/dom.dart' as d;
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final feedContent = await cache.atomFeedXml().get(() async {
-    final versions = await packageBackend.latestPackageVersions(limit: 100);
-    final feed = _feedFromPackageVersions(request.requestedUri, versions);
-    return feed.toXmlDocument();
-  });
+  final feedContent =
+      await cache.atomFeedXml().get(buildAllPackagesAtomFeedContent);
   return shelf.Response.ok(
     feedContent,
     headers: {
@@ -31,6 +28,13 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
       'x-content-type-options': 'nosniff',
     },
   );
+}
+
+/// Builds the content of the /feed.atom endpoint.
+Future<String> buildAllPackagesAtomFeedContent() async {
+  final versions = await packageBackend.latestPackageVersions(limit: 100);
+  final feed = _feedFromPackageVersions(versions);
+  return feed.toXmlDocument();
 }
 
 class FeedEntry {
@@ -126,10 +130,7 @@ class Feed {
   }
 }
 
-Feed _feedFromPackageVersions(
-  Uri requestedUri,
-  List<PackageVersion> versions,
-) {
+Feed _feedFromPackageVersions(List<PackageVersion> versions) {
   final entries = <FeedEntry>[];
   for (var i = 0; i < versions.length; i++) {
     final version = versions[i];
@@ -157,7 +158,11 @@ Feed _feedFromPackageVersions(
   final alternateUrl =
       activeConfiguration.primarySiteUri.resolve('/').toString();
   final author = 'Dart Team';
-  final updated = clock.now().toUtc();
+  // Set the updated timestamp to the latest version timestamp. This prevents
+  // unnecessary updates in the exported API bucket and makes tests consistent.
+  final updated = versions.isNotEmpty
+      ? versions.map((v) => v.created!).reduce((a, b) => a.isAfter(b) ? a : b)
+      : clock.now().toUtc();
 
   return Feed(id, title, subTitle, updated, author, alternateUrl, selfUrl,
       'Pub Feed Generator', '0.1.0', entries);

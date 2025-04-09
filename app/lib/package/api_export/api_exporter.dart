@@ -9,6 +9,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/frontend/handlers/atom_feed.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
@@ -157,6 +158,7 @@ final class ApiExporter {
     });
 
     await synchronizePackageNameCompletionData(forceWrite: forceWrite);
+    await synchronizeAllPackagesAtomFeed(forceWrite: forceWrite);
 
     await _api.notFound.write({
       'error': {
@@ -304,5 +306,15 @@ final class ApiExporter {
       // Wait until aborted or 10 minutes before scanning again!
       await abort.future.timeout(Duration(minutes: 10), onTimeout: () => null);
     }
+  }
+
+  /// Synchronize the `/feed.atom` file into [ExportedApi].
+  Future<void> synchronizeAllPackagesAtomFeed({
+    bool forceWrite = false,
+  }) async {
+    await _api.allPackagesFeedAtomFile.write(
+      await buildAllPackagesAtomFeedContent(),
+      forceWrite: forceWrite,
+    );
   }
 }
