@@ -158,7 +158,11 @@ Feed _feedFromPackageVersions(List<PackageVersion> versions) {
   final alternateUrl =
       activeConfiguration.primarySiteUri.resolve('/').toString();
   final author = 'Dart Team';
-  final updated = clock.now().toUtc();
+  // Set the updated timestamp to the latest version timestamp. This prevents
+  // unnecessary updates in the exported API bucket and makes tests consistent.
+  final updated = versions.isNotEmpty
+      ? versions.map((v) => v.created!).reduce((a, b) => a.isAfter(b) ? a : b)
+      : clock.now().toUtc();
 
   return Feed(id, title, subTitle, updated, author, alternateUrl, selfUrl,
       'Pub Feed Generator', '0.1.0', entries);
