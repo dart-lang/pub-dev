@@ -324,10 +324,15 @@ class CachePatterns {
         decode: (d) => d as bool,
       ))[publisherId];
 
-  Entry<String> atomFeedXml() => _cache
+  Entry<String> allPackagesAtomFeedXml() => _cache
       .withPrefix('atom-feed-xml/')
       .withTTL(Duration(minutes: 3))
       .withCodec(utf8)['/'];
+
+  Entry<String> packageAtomFeedXml(String package) => _cache
+      .withPrefix('package-atom-feed-xml/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)[package];
 
   Entry<List<int>> topicNameCompletionDataJsonGz() => _cache
       .withPrefix('topic-name-completion-data-json-gz/')

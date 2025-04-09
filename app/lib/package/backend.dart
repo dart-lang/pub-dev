@@ -295,9 +295,19 @@ class PackageBackend {
   }
 
   /// Looks up all versions of a package and return them as a [Stream].
-  Stream<PackageVersion> streamVersionsOfPackage(String packageName) {
+  Stream<PackageVersion> streamVersionsOfPackage(
+    String packageName, {
+    String? order,
+    int? limit,
+  }) {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     final query = db.query<PackageVersion>(ancestorKey: packageKey);
+    if (order != null) {
+      query.order(order);
+    }
+    if (limit != null && limit > 0) {
+      query.limit(limit);
+    }
     return query.run();
   }
 
@@ -1727,6 +1737,7 @@ Future<void> purgePackageCache(String package) async {
     cache.packageDataGz(package).purge(),
     cache.packageLatestVersion(package).purge(),
     cache.packageView(package).purge(),
+    cache.packageAtomFeedXml(package).purge(),
     cache.uiPackagePage(package, null).purge(),
     cache.uiPackageChangelog(package, null).purge(),
     cache.uiPackageExample(package, null).purge(),
@@ -1734,6 +1745,7 @@ Future<void> purgePackageCache(String package) async {
     cache.uiPackageScore(package, null).purge(),
     cache.uiPackageVersions(package).purge(),
     cache.uiIndexPage().purge(),
+    cache.allPackagesAtomFeedXml().purge(),
   ]);
 }
 

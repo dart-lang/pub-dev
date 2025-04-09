@@ -160,6 +160,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/packages/<package>/feed.atom',
+    service.packageAtomFeed,
+  );
+  router.add(
+    'GET',
     r'/packages/<package>',
     service.package,
   );
@@ -231,7 +236,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add(
     'GET',
     r'/feed.atom',
-    service.atomFeed,
+    service.allPackagesAtomFeed,
   );
   router.add(
     'GET',
