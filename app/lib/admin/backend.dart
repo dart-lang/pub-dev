@@ -400,6 +400,8 @@ class AdminBackend {
     await _db
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
 
+    await purgePackageCache(packageName);
+
     _logger.info('Package "$packageName" got successfully removed.');
     return (
       deletedPackages: deletedPackages,
