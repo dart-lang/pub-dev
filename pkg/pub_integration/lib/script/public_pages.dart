@@ -68,8 +68,14 @@ class PublicPagesScript {
   }
 
   Future<void> _atomFeed() async {
-    final content = await _pubClient.getContent('/feed.atom');
-    _contains(content, 'Pub Feed Generator');
+    _contains(
+      await _pubClient.getContent('/feed.atom'),
+      'Pub Feed Generator',
+    );
+    _contains(
+      await _pubClient.getContent('/packages/retry/feed.atom'),
+      '/packages/retry/feed.atom',
+    );
   }
 
   Future<void> _searchPage() async {

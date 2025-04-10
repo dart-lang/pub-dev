@@ -80,4 +80,53 @@ void main() {
       );
     });
   });
+
+  testWithProfile('/packages/<package>/feed.atom', fn: () async {
+    final content = await expectAtomXmlResponse(
+        await issueGet('/packages/oxygen/feed.atom'));
+    // check if content is valid XML
+    final root = XmlDocument.parse(content);
+    final feed = root.rootElement;
+
+    final entries = feed.findElements('entry').toList();
+    expect(entries.length, 3);
+    expect(
+        entries.map((e) => e.findElements('title').first.innerText).toList(), [
+      'v2.0.0-dev of oxygen',
+      'v1.2.0 of oxygen',
+      'v1.0.0 of oxygen',
+    ]);
+
+    final oxygenExpr = RegExp('<entry>\n'
+        '  <id>urn:uuid:3f5765a8-8fb3-4b6c-83fe-774a73dce135</id>\n'
+        '  <title>v2.0.0-dev of oxygen</title>\n'
+        '  <updated>(.*)</updated>\n'
+        '  <content>2.0.0-dev was published on (.*)</content>\n'
+        '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen/versions/2.0.0-dev" rel="alternate" title="2.0.0-dev"/>\n'
+        '</entry>');
+    expect(
+      oxygenExpr
+          .hasMatch(entries.first.toXmlString(pretty: true, indent: '  ')),
+      isTrue,
+      reason: entries.first.toXmlString(),
+    );
+
+    entries.forEach((e) => e.parent!.children.remove(e));
+
+    final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
+        '  <id>${activeConfiguration.primarySiteUri}/packages/oxygen/feed.atom</id>\n'
+        '  <title>Most recently published versions for package oxygen</title>\n'
+        '  <updated>(.*)</updated>\n'
+        '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen" rel="alternate"/>\n'
+        '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen/feed.atom" rel="self"/>\n'
+        '  <generator version="0.1.0">Pub Feed Generator</generator>\n'
+        '  <subtitle>oxygen is awesome</subtitle>\n'
+        '(\\s*)'
+        '</feed>');
+    expect(
+      restExp.hasMatch(feed.toXmlString(pretty: true, indent: '  ')),
+      isTrue,
+      reason: feed.toXmlString(),
+    );
+  });
 }
