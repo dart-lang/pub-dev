@@ -9,8 +9,10 @@ import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../admin/actions/actions.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
+import '../../package/overrides.dart';
 import '../../shared/configuration.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
@@ -35,6 +37,7 @@ Future<shelf.Response> packageAtomFeedhandler(
   shelf.Request request,
   String package,
 ) async {
+  checkPackageVersionParams(package);
   final feedContent = await cache
       .packageAtomFeedXml(package)
       .get(() => buildPackageAtomFeedContent(package));
@@ -50,12 +53,17 @@ Future<shelf.Response> packageAtomFeedhandler(
 /// Builds the content of the /feed.atom endpoint.
 Future<String> buildAllPackagesAtomFeedContent() async {
   final versions = await packageBackend.latestPackageVersions(limit: 100);
+  versions.removeWhere((pv) => pv.isModerated || pv.isRetracted);
   final feed = _allPackagesFeed(versions);
   return feed.toXmlDocument();
 }
 
 /// Builds the content of the `/packages/<package>/feed.atom` endpoint.
 Future<String> buildPackageAtomFeedContent(String package) async {
+  if (isSoftRemoved(package) ||
+      !await packageBackend.isPackageVisible(package)) {
+    throw NotFoundException.resource(package);
+  }
   final versions = await packageBackend
       .streamVersionsOfPackage(
         package,
@@ -63,6 +71,7 @@ Future<String> buildPackageAtomFeedContent(String package) async {
         limit: 10,
       )
       .toList();
+  versions.removeWhere((pv) => pv.isModerated || pv.isRetracted);
   final feed = _packageFeed(package, versions);
   return feed.toXmlDocument();
 }
