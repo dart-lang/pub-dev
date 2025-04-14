@@ -210,9 +210,7 @@ Feed _allPackagesFeed(List<PackageVersion> versions) {
   }
 
   return Feed(
-    title: 'Pub Packages for Dart',
-    subTitle: 'Last Updated Packages',
-    author: 'Dart Team',
+    title: 'Recently published packages on pub.dev',
     alternateUrl: activeConfiguration.primarySiteUri.resolve('/').toString(),
     selfUrl:
         activeConfiguration.primarySiteUri.resolve('/feed.atom').toString(),
@@ -222,7 +220,7 @@ Feed _allPackagesFeed(List<PackageVersion> versions) {
 
 Feed _packageFeed(String package, List<PackageVersion> versions) {
   return Feed(
-    title: 'Most recently published versions for package $package',
+    title: 'Recently published versions of package $package on pub.dev',
     alternateUrl: activeConfiguration.primarySiteUri
         .resolve(urls.pkgPageUrl(package))
         .toString(),
