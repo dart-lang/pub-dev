@@ -176,6 +176,11 @@ class PubSiteService {
   Future<Response> packageVersions(Request request, String package) =>
       packageVersionsListHandler(request, package);
 
+  /// Renders the Atom XML feed for the package.
+  @Route.get('/packages/<package>/feed.atom')
+  Future<Response> packageAtomFeed(Request request, String package) =>
+      packageAtomFeedhandler(request, package);
+
   @Route.get('/packages/<package>')
   Future<Response> package(Request request, String package) =>
       packageVersionHandlerHtml(request, package);
@@ -261,7 +266,8 @@ class PubSiteService {
 
   /// Renders the Atom XML feed
   @Route.get('/feed.atom')
-  Future<Response> atomFeed(Request request) => atomFeedHandler(request);
+  Future<Response> allPackagesAtomFeed(Request request) =>
+      allPackagesAtomFeedhandler(request);
 
   /// Renders the main help page
   @Route.get('/help')

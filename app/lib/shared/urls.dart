@@ -134,6 +134,10 @@ String pkgArchiveDownloadUrl(String package, String version, {Uri? baseUri}) {
   }
 }
 
+String pkgFeedUrl(String package) {
+  return '/packages/$package/feed.atom';
+}
+
 String pkgDocUrl(
   String package, {
   String? version,

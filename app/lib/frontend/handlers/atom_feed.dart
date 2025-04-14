@@ -9,18 +9,38 @@ import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../admin/actions/actions.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
+import '../../package/overrides.dart';
 import '../../shared/configuration.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 import '../dom/dom.dart' as d;
 
-/// Handles requests for /feed.atom
-Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
+/// Handles requests for `/feed.atom`
+Future<shelf.Response> allPackagesAtomFeedhandler(shelf.Request request) async {
   final feedContent =
-      await cache.atomFeedXml().get(buildAllPackagesAtomFeedContent);
+      await cache.allPackagesAtomFeedXml().get(buildAllPackagesAtomFeedContent);
+  return shelf.Response.ok(
+    feedContent,
+    headers: {
+      'content-type': 'application/atom+xml; charset="utf-8"',
+      'x-content-type-options': 'nosniff',
+    },
+  );
+}
+
+/// Handles requests for `/packages/<package>/feed.atom`
+Future<shelf.Response> packageAtomFeedhandler(
+  shelf.Request request,
+  String package,
+) async {
+  checkPackageVersionParams(package);
+  final feedContent = await cache
+      .packageAtomFeedXml(package)
+      .get(() => buildPackageAtomFeedContent(package));
   return shelf.Response.ok(
     feedContent,
     headers: {
@@ -33,7 +53,26 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
 /// Builds the content of the /feed.atom endpoint.
 Future<String> buildAllPackagesAtomFeedContent() async {
   final versions = await packageBackend.latestPackageVersions(limit: 100);
-  final feed = _feedFromPackageVersions(versions);
+  versions.removeWhere((pv) => pv.isModerated || pv.isRetracted);
+  final feed = _allPackagesFeed(versions);
+  return feed.toXmlDocument();
+}
+
+/// Builds the content of the `/packages/<package>/feed.atom` endpoint.
+Future<String> buildPackageAtomFeedContent(String package) async {
+  if (isSoftRemoved(package) ||
+      !await packageBackend.isPackageVisible(package)) {
+    throw NotFoundException.resource(package);
+  }
+  final versions = await packageBackend
+      .streamVersionsOfPackage(
+        package,
+        order: '-created',
+        limit: 10,
+      )
+      .toList();
+  versions.removeWhere((pv) => pv.isModerated || pv.isRetracted);
+  final feed = _packageFeed(package, versions);
   return feed.toXmlDocument();
 }
 
@@ -46,8 +85,15 @@ class FeedEntry {
   final String alternateUrl;
   final String? alternateTitle;
 
-  FeedEntry(this.id, this.title, this.updated, this.publisherId, this.content,
-      this.alternateUrl, this.alternateTitle);
+  FeedEntry({
+    required this.id,
+    required this.title,
+    required this.updated,
+    this.publisherId,
+    required this.content,
+    required this.alternateUrl,
+    required this.alternateTitle,
+  });
 
   d.Node toNode() {
     return d.element(
@@ -75,9 +121,9 @@ class FeedEntry {
 class Feed {
   final String id;
   final String title;
-  final String subTitle;
+  final String? subTitle;
   final DateTime updated;
-  final String author;
+  final String? author;
   final String alternateUrl;
   final String selfUrl;
   final String generator;
@@ -85,17 +131,23 @@ class Feed {
 
   final List<FeedEntry> entries;
 
-  Feed(
-      this.id,
-      this.title,
-      this.subTitle,
-      this.updated,
-      this.author,
-      this.alternateUrl,
-      this.selfUrl,
-      this.generator,
-      this.generatorVersion,
-      this.entries);
+  Feed({
+    required this.title,
+    this.subTitle,
+    this.author,
+    required this.alternateUrl,
+    required this.selfUrl,
+    this.generator = 'Pub Feed Generator',
+    this.generatorVersion = '0.1.0',
+    required this.entries,
+  })  : id = selfUrl,
+        // Set the updated timestamp to the latest version timestamp. This prevents
+        // unnecessary updates in the exported API bucket and makes tests consistent.
+        updated = entries.isNotEmpty
+            ? entries
+                .map((v) => v.updated)
+                .reduce((a, b) => a.isAfter(b) ? a : b)
+            : clock.now().toUtc();
 
   String toXmlDocument() {
     final buffer = StringBuffer();
@@ -112,7 +164,8 @@ class Feed {
         d.element('id', text: id),
         d.element('title', text: title),
         d.element('updated', text: updated.toIso8601String()),
-        d.element('author', child: d.element('name', text: author)),
+        if (author != null)
+          d.element('author', child: d.element('name', text: author)),
         d.element(
           'link',
           attributes: {'href': alternateUrl, 'rel': 'alternate'},
@@ -123,14 +176,14 @@ class Feed {
           attributes: {'version': generatorVersion},
           text: generator,
         ),
-        d.element('subtitle', text: subTitle),
+        if (subTitle != null) d.element('subtitle', text: subTitle),
         ...entries.map((e) => e.toNode()),
       ],
     );
   }
 }
 
-Feed _feedFromPackageVersions(List<PackageVersion> versions) {
+Feed _allPackagesFeed(List<PackageVersion> versions) {
   final entries = <FeedEntry>[];
   for (var i = 0; i < versions.length; i++) {
     final version = versions[i];
@@ -145,25 +198,59 @@ Feed _feedFromPackageVersions(List<PackageVersion> versions) {
     final id = createUuid(hash.bytes.sublist(0, 16));
     final title = 'v${version.version} of ${version.package}';
     final content = version.ellipsizedDescription ?? '[no description]';
-    entries.add(FeedEntry(id, title, version.created!, version.publisherId,
-        content, alternateUrl, alternateTitle));
+    entries.add(FeedEntry(
+      id: id,
+      title: title,
+      updated: version.created!,
+      publisherId: version.publisherId,
+      content: content,
+      alternateUrl: alternateUrl,
+      alternateTitle: alternateTitle,
+    ));
   }
 
-  final id =
-      activeConfiguration.primarySiteUri.resolve('/feed.atom').toString();
-  final selfUrl = id;
+  return Feed(
+    title: 'Pub Packages for Dart',
+    subTitle: 'Last Updated Packages',
+    author: 'Dart Team',
+    alternateUrl: activeConfiguration.primarySiteUri.resolve('/').toString(),
+    selfUrl:
+        activeConfiguration.primarySiteUri.resolve('/feed.atom').toString(),
+    entries: entries,
+  );
+}
 
-  final title = 'Pub Packages for Dart';
-  final subTitle = 'Last Updated Packages';
-  final alternateUrl =
-      activeConfiguration.primarySiteUri.resolve('/').toString();
-  final author = 'Dart Team';
-  // Set the updated timestamp to the latest version timestamp. This prevents
-  // unnecessary updates in the exported API bucket and makes tests consistent.
-  final updated = versions.isNotEmpty
-      ? versions.map((v) => v.created!).reduce((a, b) => a.isAfter(b) ? a : b)
-      : clock.now().toUtc();
-
-  return Feed(id, title, subTitle, updated, author, alternateUrl, selfUrl,
-      'Pub Feed Generator', '0.1.0', entries);
+Feed _packageFeed(String package, List<PackageVersion> versions) {
+  return Feed(
+    title: 'Most recently published versions for package $package',
+    alternateUrl: activeConfiguration.primarySiteUri
+        .resolve(urls.pkgPageUrl(package))
+        .toString(),
+    subTitle: versions.firstOrNull?.ellipsizedDescription,
+    selfUrl: activeConfiguration.primarySiteUri
+        .resolve(urls.pkgFeedUrl(package))
+        .toString(),
+    author: versions.firstOrNull?.publisherId,
+    entries: versions.map((v) {
+      final hash =
+          sha512.convert(utf8.encode('package-feed/$package/${v.version}'));
+      final id = createUuid(hash.bytes.sublist(0, 16));
+      final alternateUrl = activeConfiguration.primarySiteUri
+          .replace(
+              path: urls.pkgPageUrl(
+            package,
+            version: v.version,
+          ))
+          .toString();
+      return FeedEntry(
+        id: id,
+        title: 'v${v.version} of $package',
+        alternateUrl: alternateUrl,
+        alternateTitle: v.version,
+        content:
+            '${v.version} was published on ${shortDateFormat.format(v.created!)}.',
+        updated: v.created!,
+      );
+    }).toList(),
+  );
 }
