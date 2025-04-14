@@ -62,15 +62,11 @@ void main() {
 
       final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
           '  <id>${activeConfiguration.primarySiteUri}/feed.atom</id>\n'
-          '  <title>Pub Packages for Dart</title>\n'
+          '  <title>Recently published packages on pub.dev</title>\n'
           '  <updated>(.*)</updated>\n'
-          '  <author>\n'
-          '    <name>Dart Team</name>\n'
-          '  </author>\n'
           '  <link href="${activeConfiguration.primarySiteUri}/" rel="alternate"/>\n'
           '  <link href="${activeConfiguration.primarySiteUri}/feed.atom" rel="self"/>\n'
           '  <generator version="0.1.0">Pub Feed Generator</generator>\n'
-          '  <subtitle>Last Updated Packages</subtitle>\n'
           '(\\s*)'
           '</feed>');
       expect(
@@ -115,7 +111,7 @@ void main() {
 
     final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
         '  <id>${activeConfiguration.primarySiteUri}/packages/oxygen/feed.atom</id>\n'
-        '  <title>Most recently published versions for package oxygen</title>\n'
+        '  <title>Recently published versions of package oxygen on pub.dev</title>\n'
         '  <updated>(.*)</updated>\n'
         '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen" rel="alternate"/>\n'
         '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen/feed.atom" rel="self"/>\n'
