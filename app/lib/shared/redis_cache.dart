@@ -21,7 +21,7 @@ import '../../../service/rate_limit/models.dart';
 import '../../../service/security_advisories/models.dart';
 import '../../dartdoc/models.dart';
 import '../../shared/env_config.dart';
-import '../account/models.dart' show LikeData, SessionData;
+import '../account/models.dart' show Consent, LikeData, SessionData;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
@@ -57,6 +57,12 @@ class CachePatterns {
         encode: (SessionData data) => data.toJson(),
         decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
       ))[sessionId];
+
+  /// Cache for [Consent] mapping the `dedupId` to the `consentId`.
+  Entry<String> consentDedupLookup(String dedupId) => _cache
+      .withPrefix('consent-dedup-lookup/')
+      .withTTL(Duration(minutes: 5))
+      .withCodec(utf8)[dedupId];
 
   Entry<String> uiPackagePage(String package, String? version) => _cache
       .withPrefix('ui-packagepage/')

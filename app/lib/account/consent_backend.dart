@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/account_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:retry/retry.dart';
 
 import '../account/agent.dart';
@@ -118,19 +119,31 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      final query = _db.query<Consent>()..filter('dedupId =', dedupId);
-      final list = await query.run().toList();
-      if (list.isNotEmpty) {
-        final old = list.first;
-        if (old.isExpired()) {
+      Consent? existing;
+
+      final dedupCacheEntry = cache.consentDedupLookup(dedupId);
+      final cachedConsentId = await dedupCacheEntry.get();
+      if (cachedConsentId != null) {
+        final key = _db.emptyKey.append(Consent, id: cachedConsentId);
+        existing = await _db.lookupOrNull<Consent>(key);
+      }
+      if (existing == null) {
+        final query = _db.query<Consent>()
+          ..filter('dedupId =', dedupId)
+          ..limit(1);
+        final list = await query.run().toList();
+        existing = list.singleOrNull;
+      }
+      if (existing != null) {
+        if (existing.isExpired()) {
           // expired entries should be deleted
-          await _delete(old, (a) => a.onExpire(old));
-        } else if (old.shouldNotify()) {
+          await _delete(existing, (a) => a.onExpire(existing!));
+        } else if (existing.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(activeAgent.displayId, old);
+          return await _sendNotification(activeAgent.displayId, existing);
         } else {
           return api.InviteStatus(
-              emailSent: false, nextNotification: old.nextNotification);
+              emailSent: false, nextNotification: existing.nextNotification);
         }
       }
       // Create a new entry.
@@ -144,6 +157,7 @@ class ConsentBackend {
         consent,
         auditLogRecord,
       ]);
+      await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent);
     });
   }
