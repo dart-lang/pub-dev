@@ -112,6 +112,9 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         return v;
       });
 
+      // make sure visibility cache is updated immediately
+      await purgePackageCache(package);
+
       // sync exported API(s)
       await apiExporter?.synchronizePackage(package, forceDelete: true);
 

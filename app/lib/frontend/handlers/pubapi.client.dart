@@ -132,6 +132,13 @@ class PubApiClient {
     ));
   }
 
+  Future<List<int>> packageAtomFeed(String package) async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/packages/$package/feed.atom',
+    );
+  }
+
   Future<_i5.PublisherInfo> createPublisher(String publisherId) async {
     return _i5.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'post',

@@ -244,6 +244,10 @@ final class ApiExporter {
           versionListing,
           forceWrite: forceWrite,
         );
+    await _api.package(package).feedAtomFile.write(
+          await buildPackageAtomFeedContent(package),
+          forceWrite: forceWrite,
+        );
   }
 
   /// Scan for updates from packages until [abort] is resolved, or [claim]

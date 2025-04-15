@@ -32,7 +32,7 @@ Future<shelf.Response> allPackagesAtomFeedhandler(shelf.Request request) async {
   );
 }
 
-/// Handles requests for `/packages/<package>/feed.atom`
+/// Handles requests for `/api/packages/<package>/feed.atom`
 Future<shelf.Response> packageAtomFeedhandler(
   shelf.Request request,
   String package,

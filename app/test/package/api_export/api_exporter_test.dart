@@ -132,6 +132,10 @@ Future<void> _testExportedApiSynchronization(
       isNotNull,
     );
     expect(
+      await bucket.readBytes('$runtimeVersion/api/packages/foo/feed.atom'),
+      isNotNull,
+    );
+    expect(
       await bucket.readGzippedJson('$runtimeVersion/api/packages/foo'),
       {
         'name': 'foo',
@@ -150,6 +154,10 @@ Future<void> _testExportedApiSynchronization(
     );
     expect(
       await bucket.readString('$runtimeVersion/feed.atom'),
+      contains('v1.0.0 of foo'),
+    );
+    expect(
+      await bucket.readString('$runtimeVersion/api/packages/foo/feed.atom'),
       contains('v1.0.0 of foo'),
     );
   }
@@ -185,6 +193,10 @@ Future<void> _testExportedApiSynchronization(
       await bucket.readString('latest/feed.atom'),
       contains('v1.0.0 of foo'),
     );
+    expect(
+      await bucket.readString('latest/api/packages/foo/feed.atom'),
+      contains('v1.0.0 of foo'),
+    );
     // Note. that name completion data won't be updated until search caches
     //       are purged, so we won't test that it is updated.
 
@@ -203,6 +215,10 @@ Future<void> _testExportedApiSynchronization(
     );
     expect(
       await bucket.readString('latest/feed.atom'),
+      contains('v2.0.0 of bar'),
+    );
+    expect(
+      await bucket.readString('latest/api/packages/bar/feed.atom'),
       contains('v2.0.0 of bar'),
     );
   }
@@ -245,6 +261,10 @@ Future<void> _testExportedApiSynchronization(
     );
     expect(
       await bucket.readString('$runtimeVersion/feed.atom'),
+      contains('v3.0.0 of bar'),
+    );
+    expect(
+      await bucket.readString('latest/api/packages/bar/feed.atom'),
       contains('v3.0.0 of bar'),
     );
   }
@@ -422,6 +442,10 @@ Future<void> _testExportedApiSynchronization(
 
     expect(
       await bucket.readGzippedJson('latest/api/packages/bar'),
+      isNull,
+    );
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/feed.atom'),
       isNull,
     );
     expect(

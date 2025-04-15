@@ -79,6 +79,9 @@ Note: the action may take a longer time to complete as the public archive bucket
         return pkg;
       });
 
+      // make sure visibility cache is updated immediately
+      await purgePackageCache(package);
+
       // sync exported API(s)
       await apiExporter?.synchronizePackage(package, forceDelete: true);
 

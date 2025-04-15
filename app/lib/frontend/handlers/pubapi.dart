@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
 import 'package:api_builder/api_builder.dart';
+import 'package:pub_dev/frontend/handlers/atom_feed.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -214,6 +215,11 @@ class PubApi {
     InviteUploaderRequest invite,
   ) async =>
       await packageBackend.inviteUploader(package, invite);
+
+  /// Renders the Atom XML feed for the package.
+  @EndPoint.get('/api/packages/<package>/feed.atom')
+  Future<Response> packageAtomFeed(Request request, String package) =>
+      packageAtomFeedhandler(request, package);
 
   // ****
   // **** Publisher API
