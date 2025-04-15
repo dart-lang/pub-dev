@@ -2,7 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Note: after the release we should update the load balancer rules to also include the `/api/packages/<package>/feed.atom` URLs. 
+ * Note: after the release we should update the load balancer rules to also include the `/api/packages/<package>/feed.atom` URLs.
 
 ## `20250403t085600-all`
  * Bump runtimeVersion to `2025.04.01`.
