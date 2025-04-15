@@ -58,7 +58,11 @@ String renderPkgVersionsPage(
     }
   }
 
-  final blocks = <d.Node>[];
+  final blocks = <d.Node>[
+    d.markdown(
+        'Looking to receive notifications when a new version is published? '
+        'Subscribe to the package\'s [versions feed](${urls.pkgFeedUrl(data.package.name!)}) with your feed reader.'),
+  ];
   if (stableVersionRows.isNotEmpty &&
       prereleaseVersionRows.isNotEmpty &&
       latestPrereleaseVersion != null) {
