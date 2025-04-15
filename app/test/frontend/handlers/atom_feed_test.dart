@@ -77,9 +77,9 @@ void main() {
     });
   });
 
-  testWithProfile('/packages/<package>/feed.atom', fn: () async {
+  testWithProfile('/api/packages/<package>/feed.atom', fn: () async {
     final content = await expectAtomXmlResponse(
-        await issueGet('/packages/oxygen/feed.atom'));
+        await issueGet('/api/packages/oxygen/feed.atom'));
     // check if content is valid XML
     final root = XmlDocument.parse(content);
     final feed = root.rootElement;
@@ -110,11 +110,11 @@ void main() {
     entries.forEach((e) => e.parent!.children.remove(e));
 
     final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
-        '  <id>${activeConfiguration.primarySiteUri}/packages/oxygen/feed.atom</id>\n'
+        '  <id>${activeConfiguration.primarySiteUri}/api/packages/oxygen/feed.atom</id>\n'
         '  <title>Recently published versions of package oxygen on pub.dev</title>\n'
         '  <updated>(.*)</updated>\n'
         '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen" rel="alternate"/>\n'
-        '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen/feed.atom" rel="self"/>\n'
+        '  <link href="${activeConfiguration.primarySiteUri}/api/packages/oxygen/feed.atom" rel="self"/>\n'
         '  <generator version="0.1.0">Pub Feed Generator</generator>\n'
         '  <subtitle>oxygen is awesome</subtitle>\n'
         '(\\s*)'

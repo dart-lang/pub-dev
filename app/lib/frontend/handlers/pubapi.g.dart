@@ -255,6 +255,26 @@ Router _$PubApiRouter(PubApi service) {
     },
   );
   router.add(
+    'GET',
+    r'/api/packages/<package>/feed.atom',
+    (
+      Request request,
+      String package,
+    ) async {
+      try {
+        final _$result = await service.packageAtomFeed(
+          request,
+          package,
+        );
+        return _$result;
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
+  router.add(
     'POST',
     r'/api/publishers/<publisherId>',
     (

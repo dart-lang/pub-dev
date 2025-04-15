@@ -82,11 +82,13 @@ void main() {
         '$runtimeVersion/api/archives/oxygen-2.0.0-dev.tar.gz',
         '$runtimeVersion/api/packages/oxygen',
         '$runtimeVersion/api/packages/oxygen/advisories',
+        '$runtimeVersion/api/packages/oxygen/feed.atom',
         'latest/api/archives/oxygen-1.0.0.tar.gz',
         'latest/api/archives/oxygen-1.2.0.tar.gz',
         'latest/api/archives/oxygen-2.0.0-dev.tar.gz',
         'latest/api/packages/oxygen',
         'latest/api/packages/oxygen/advisories',
+        'latest/api/packages/oxygen/feed.atom',
       });
 
       final oxygenDataJson = data['latest/api/packages/oxygen'];

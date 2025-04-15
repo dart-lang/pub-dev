@@ -273,6 +273,13 @@ final class ExportedPackage {
   ExportedJsonFile<ListAdvisoriesResponse> get advisories =>
       _suffix<ListAdvisoriesResponse>('/advisories');
 
+  /// Interface for writing `/api/packages/<package>/feed.atom`
+  ExportedAtomFeedFile get feedAtomFile => ExportedAtomFeedFile._(
+        _owner,
+        '/api/packages/$_package/feed.atom',
+        Duration(hours: 12),
+      );
+
   /// Interace for writing `/api/archives/<package>-<version>.tar.gz`.
   ExportedBlob tarball(String version) => ExportedBlob._(
         _owner,
@@ -399,6 +406,7 @@ final class ExportedPackage {
     await Future.wait([
       _owner._pool.withResource(() async => await versions.delete()),
       _owner._pool.withResource(() async => await advisories.delete()),
+      _owner._pool.withResource(() async => await feedAtomFile.delete()),
       ..._owner._prefixes.map((prefix) async {
         await _owner._listBucket(
           prefix: prefix + '/api/archives/$_package-',
