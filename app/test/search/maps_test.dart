@@ -30,7 +30,7 @@ void main() {
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'maps', 'score': 1.0},
-          {'package': 'map', 'score': 1.0},
+          {'package': 'map', 'score': 0.5},
         ],
       });
     });
