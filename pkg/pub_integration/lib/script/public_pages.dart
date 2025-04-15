@@ -73,8 +73,8 @@ class PublicPagesScript {
       'Pub Feed Generator',
     );
     _contains(
-      await _pubClient.getContent('/packages/retry/feed.atom'),
-      '/packages/retry/feed.atom',
+      await _pubClient.getContent('/api/packages/retry/feed.atom'),
+      '/api/packages/retry/feed.atom',
     );
   }
 
