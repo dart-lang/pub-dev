@@ -4,7 +4,6 @@
 
 import 'dart:math';
 
-import 'package:_pub_shared/utils/http.dart';
 import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
@@ -36,37 +35,11 @@ class SdkMemIndex {
         _baseUri = baseUri;
 
   static Future<SdkMemIndex> dart() async {
-    final versions = <String>{
-      toolStableDartSdkVersion,
-      runtimeSdkVersion,
-    };
-    final client = httpRetryClient();
-    try {
-      for (final version in versions) {
-        final uri = _dartSdkBaseUri(version);
-        final rs = await client.head(uri);
-        if (rs.statusCode < 400) {
-          return SdkMemIndex(sdk: 'dart', version: version, baseUri: uri);
-        }
-      }
-    } finally {
-      client.close();
-    }
     return SdkMemIndex(
       sdk: 'dart',
       version: runtimeSdkVersion,
-      baseUri: _dartSdkBaseUri(runtimeSdkVersion),
+      baseUri: Uri.parse('https://api.dart.dev/stable/latest/'),
     );
-  }
-
-  static Uri _dartSdkBaseUri(String version) {
-    var branch = 'stable';
-    if (version.contains('beta')) {
-      branch = 'beta';
-    } else if (version.contains('dev')) {
-      branch = 'dev';
-    }
-    return Uri.parse('https://api.dart.dev/$branch/$version/');
   }
 
   factory SdkMemIndex.flutter() {
@@ -77,7 +50,7 @@ class SdkMemIndex {
     );
   }
 
-  Uri get baseUri => _baseUri;
+  late final indexJsonUri = _baseUri.resolve('index.json');
 
   Future<void> addDartdocIndex(
     DartdocIndex index, {

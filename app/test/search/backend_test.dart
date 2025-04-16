@@ -14,10 +14,8 @@ void main() {
   group('search backend', () {
     testWithProfile('fetch SDK library description', fn: () async {
       final index = await SdkMemIndex.dart();
-      final content = await searchBackend.fetchSdkIndexContentAsString(
-        baseUri: index.baseUri,
-        relativePath: 'index.json',
-      );
+      final content = await searchBackend
+          .loadOrFetchSdkIndexJsonAsString(index.indexJsonUri);
       await index.addDartdocIndex(DartdocIndex.parseJsonText(content));
       expect(
         index.getLibraryDescription('dart:async'),
