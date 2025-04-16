@@ -48,7 +48,6 @@ dependencies:
   # pana version to be pinned
   pana: '0.22.21'
   # 3rd-party packages with pinned versions
-  bit_array: 2.3.0
   mailer: '6.3.0'
   ulid: '2.0.1'
   tar: '2.0.0'

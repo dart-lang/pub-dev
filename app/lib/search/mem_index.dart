@@ -5,12 +5,12 @@
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:bit_array/bit_array.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/service/topics/models.dart';
+import 'package:pub_dev/third_party/bit_array/bit_array.dart';
 
 import '../shared/utils.dart' show boundedList;
 import 'models.dart';
