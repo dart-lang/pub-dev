@@ -47,6 +47,20 @@
   margin-right: 3px;
 }
 
+.versions-rss-wrapper {
+  display: flex;
+
+  .versions-rss-image {
+    display: inline-block;
+    margin-right: 12px;
+  }
+
+  .versions-rss-text {
+    display: inline-block;
+    text-wrap-style: balance;
+  }
+}
+
 .version-table {
   width: 100%;
   border-spacing: 0;
