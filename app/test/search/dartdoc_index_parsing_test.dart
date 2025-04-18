@@ -13,7 +13,7 @@ import '../shared/test_services.dart';
 void main() {
   group('dartdoc index.json parsing', () {
     testWithProfile('parse Dart SDK index.json', fn: () async {
-      final textContent = await searchBackend.loadOrFetchSdkIndexJsonAsString(
+      final textContent = await loadOrFetchSdkIndexJsonAsString(
         Uri.parse('https://api.dart.dev/stable/latest/index.json'),
         ttl: Duration(days: 1),
       );
@@ -35,7 +35,7 @@ void main() {
     });
 
     testWithProfile('parse Flutter SDK index.json', fn: () async {
-      final textContent = await searchBackend.loadOrFetchSdkIndexJsonAsString(
+      final textContent = await loadOrFetchSdkIndexJsonAsString(
         Uri.parse('https://api.flutter.dev/flutter/index.json'),
         ttl: Duration(days: 1),
       );

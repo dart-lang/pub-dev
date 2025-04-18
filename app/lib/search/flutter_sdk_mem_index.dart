@@ -55,8 +55,7 @@ SdkMemIndex? get flutterSdkMemIndex =>
 Future<SdkMemIndex?> createFlutterSdkMemIndex() async {
   try {
     final index = SdkMemIndex.flutter();
-    final content =
-        await searchBackend.loadOrFetchSdkIndexJsonAsString(index.indexJsonUri);
+    final content = await loadOrFetchSdkIndexJsonAsString(index.indexJsonUri);
     await index.addDartdocIndex(DartdocIndex.parseJsonText(content),
         allowedLibraries: _allowedLibraries);
     index.updateWeights(
