@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:pana/pana.dart' show runConstrained;
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/shared/monitoring.dart';
 
 final _logger = Logger('pub.static_files');
 
@@ -344,6 +345,25 @@ Future updateLocalBuiltFilesIfNeeded() async {
     _logger.info('Building pkg/web_css');
     await updateWebCssBuild();
   }
+
+  await assertLocalBuiltFilesArePresent();
+}
+
+/// Checks whether the local built files are present, throws
+/// [AssertionError] if anything is missing.
+Future assertLocalBuiltFilesArePresent() async {
+  Future<void> assertExists(String path) async {
+    final file = File(path);
+    if (!file.existsSync()) {
+      _logger.pubNoticeShout(
+          'missing-built-file', 'The local built file is missing: $path');
+    }
+  }
+
+  final staticDirPath = resolveStaticDirPath();
+  await assertExists(path.join(staticDirPath, 'js', 'script.dart.js'));
+  await assertExists(path.join(staticDirPath, 'css', 'style.css'));
+  await assertExists(path.join(staticDirPath, 'css', 'dartdoc.css'));
 }
 
 /// Runs build.sh in pkg/web_app

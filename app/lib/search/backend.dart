@@ -19,6 +19,7 @@ import 'package:meta/meta.dart';
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/monitoring.dart';
 import 'package:retry/retry.dart';
 
@@ -451,6 +452,9 @@ class SearchBackend {
       }
       if (canUseCached) {
         return await file.readAsString();
+      } else if (envConfig.isInProductionEnvironment) {
+        _logger.pubNoticeShout('missing-sdk-index-json',
+            'The SDK index.json file is missing: fileName');
       }
     }
 
