@@ -344,6 +344,24 @@ Future updateLocalBuiltFilesIfNeeded() async {
     _logger.info('Building pkg/web_css');
     await updateWebCssBuild();
   }
+
+  await assertLocalBuiltFilesArePresent();
+}
+
+/// Checks whether the local built files are present, throws
+/// [AssertionError] if anything is missing.
+Future assertLocalBuiltFilesArePresent() async {
+  Future<void> assertExists(String path) async {
+    final file = File(path);
+    if (!file.existsSync()) {
+      throw AssertionError('`$path`` is missing.');
+    }
+  }
+
+  final staticDirPath = resolveStaticDirPath();
+  await assertExists(path.join(staticDirPath, 'js', 'script.dart.js'));
+  await assertExists(path.join(staticDirPath, 'css', 'style.css'));
+  await assertExists(path.join(staticDirPath, 'css', 'dartdoc.css'));
 }
 
 /// Runs build.sh in pkg/web_app

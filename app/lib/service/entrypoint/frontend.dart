@@ -41,7 +41,11 @@ class DefaultCommand extends Command {
 }
 
 Future _main() async {
-  await updateLocalBuiltFilesIfNeeded();
+  if (envConfig.isInContainer) {
+    await assertLocalBuiltFilesArePresent();
+  } else {
+    await updateLocalBuiltFilesIfNeeded();
+  }
   final appHandler = createAppHandler();
 
   if (envConfig.isRunningLocally) {
