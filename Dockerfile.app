@@ -12,7 +12,7 @@ ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 ENV PUB_CACHE="/project/.pub-cache"
 # Let the pub server know that it is running inside a container.
 # It will not rebuild web-app assets, only assert their presence.
-ENV PUB_DEV_IN_CONTAINER="1"
+ENV PUB_DEV_ENVIRONMENT="production"
 
 COPY app /project/app
 COPY pkg /project/pkg

@@ -41,7 +41,7 @@ class DefaultCommand extends Command {
 }
 
 Future _main() async {
-  if (envConfig.isInContainer) {
+  if (envConfig.isInProductionEnvironment) {
     await assertLocalBuiltFilesArePresent();
   } else {
     await updateLocalBuiltFilesIfNeeded();

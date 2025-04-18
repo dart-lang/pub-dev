@@ -54,8 +54,8 @@ class _EnvConfig {
   bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
 
   /// True, if the application is running inside a container environment.
-  late final isInContainer =
-      Platform.environment['PUB_DEV_IN_CONTAINER'] == '1';
+  late final isInProductionEnvironment =
+      Platform.environment['PUB_DEV_ENVIRONMENT'] == 'production';
 
   /// True, if running locally and not inside AppEngine.
   bool get isRunningLocally => !isRunningInAppengine;
