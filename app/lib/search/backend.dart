@@ -87,7 +87,6 @@ void registerSearchIndex(SearchIndex index) =>
 class SearchBackend {
   final DatastoreDB _db;
   final VersionedJsonStorage _snapshotStorage;
-  final _http = httpRetryClient();
 
   SearchBackend(this._db, Bucket snapshotBucket)
       : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
@@ -454,11 +453,7 @@ class SearchBackend {
       }
     }
 
-    final rs = await _http.get(uri);
-    if (rs.statusCode != 200) {
-      throw Exception('Unexpected status code for $uri: ${rs.statusCode}');
-    }
-    final content = rs.body;
+    final content = await httpGetWithRetry(uri, responseFn: (rs) => rs.body);
     await file.parent.create(recursive: true);
     await file.writeAsString(content);
     return content;
@@ -519,7 +514,6 @@ class SearchBackend {
 
   Future<void> close() async {
     _snapshotStorage.close();
-    _http.close();
   }
 }
 
