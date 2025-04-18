@@ -10,6 +10,8 @@ RUN apt-get update && \
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 ENV PUB_CACHE="/project/.pub-cache"
+# Let the pub server know that it is running inside a container.
+# It will not rebuild web-app assets, only assert their presence.
 ENV PUB_DEV_IN_CONTAINER="1"
 
 COPY app /project/app
