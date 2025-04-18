@@ -21,10 +21,13 @@ final Logger _logger = Logger('pub.datastore_helper');
 /// Wrap [Transaction] to avoid exposing [Transaction.commit] and
 /// [Transaction.rollback].
 class TransactionWrapper {
+  final DatastoreDB _db;
   final Transaction _tx;
   bool _mutated = false;
 
-  TransactionWrapper._(this._tx);
+  TransactionWrapper._(this._db, this._tx);
+
+  Key get emptyKey => _db.emptyKey;
 
   /// See [Transaction.lookup].
   Future<List<T?>> lookup<T extends Model>(List<Key> keys) =>
@@ -111,7 +114,7 @@ Future<T> _withTransaction<T>(
     return await db.withTransaction<T>((tx) async {
       bool commitAttempted = false;
       try {
-        final wrapper = TransactionWrapper._(tx);
+        final wrapper = TransactionWrapper._(db, tx);
         final retval = await fn(wrapper);
         if (wrapper._mutated) {
           commitAttempted = true;
