@@ -65,7 +65,7 @@ void create(HTMLElement element, Map<String, String> options) {
   final data = WeeklyVersionDownloadCounts.fromJson((utf8.decoder
       .fuse(json.decoder)
       .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
-  final weeksToDisplay = math.min(40, data.totalWeeklyDownloads.length);
+  final weeksToDisplay = math.min(47, data.totalWeeklyDownloads.length);
   final totals =
       data.totalWeeklyDownloads.sublist(0, weeksToDisplay).reversed.toList();
 
