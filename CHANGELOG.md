@@ -2,7 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2025.04.15`.
+ * Bump runtimeVersion to `2025.04.24`.
  * Upgraded stable Flutter analysis SDK to `3.29.3`.
  * Upgraded pana to `0.22.21`.
  * Note: after the release we should update the load balancer rules to also include the `/api/packages/<package>/feed.atom` URLs.
