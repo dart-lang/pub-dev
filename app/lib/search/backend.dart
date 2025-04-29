@@ -87,7 +87,6 @@ void registerSearchIndex(SearchIndex index) =>
 class SearchBackend {
   final DatastoreDB _db;
   final VersionedJsonStorage _snapshotStorage;
-  final _http = httpRetryClient();
 
   SearchBackend(this._db, Bucket snapshotBucket)
       : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
@@ -428,42 +427,6 @@ class SearchBackend {
     }
   }
 
-  /// Downloads the remote SDK content from [uri] and creates a cached file in the
-  /// `.dart_tool/pub-search-data/` directory.
-  ///
-  /// When a local file in `app/.dart_tool/pub-search-data/<reduced-uri>` exists,
-  /// its content will be loaded instead. URL reduction replaces slashes and other
-  /// non-characters with a single dash `-`, like:
-  /// - `https-api.dart.dev-stable-latest-index.json`
-  Future<String> loadOrFetchSdkIndexJsonAsString(
-    Uri uri, {
-    @visibleForTesting Duration? ttl,
-  }) async {
-    final fileName = uri.toString().replaceAll(RegExp(r'[^a-z0-9\.]+'), '-');
-    final file = File(p.join('.dart_tool', 'pub-search-data', fileName));
-    if (await file.exists()) {
-      var canUseCached = true;
-      if (ttl != null) {
-        final age = clock.now().difference(await file.lastModified());
-        if (age > ttl) {
-          canUseCached = false;
-        }
-      }
-      if (canUseCached) {
-        return await file.readAsString();
-      }
-    }
-
-    final rs = await _http.get(uri);
-    if (rs.statusCode != 200) {
-      throw Exception('Unexpected status code for $uri: ${rs.statusCode}');
-    }
-    final content = rs.body;
-    await file.parent.create(recursive: true);
-    await file.writeAsString(content);
-    return content;
-  }
-
   Future<List<PackageDocument>?> fetchSnapshotDocuments() async {
     try {
       final map = await _snapshotStorage.getContentAsJsonMap();
@@ -519,7 +482,6 @@ class SearchBackend {
 
   Future<void> close() async {
     _snapshotStorage.close();
-    _http.close();
   }
 }
 
@@ -613,6 +575,38 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   }).toList();
   results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
   return results;
+}
+
+/// Downloads the remote SDK content from [uri] and creates a cached file in the
+/// `.dart_tool/pub-search-data/` directory.
+///
+/// When a local file in `app/.dart_tool/pub-search-data/<reduced-uri>` exists,
+/// its content will be loaded instead. URL reduction replaces slashes and other
+/// non-characters with a single dash `-`, like:
+/// - `https-api.dart.dev-stable-latest-index.json`
+Future<String> loadOrFetchSdkIndexJsonAsString(
+  Uri uri, {
+  @visibleForTesting Duration? ttl,
+}) async {
+  final fileName = uri.toString().replaceAll(RegExp(r'[^a-z0-9\.]+'), '-');
+  final file = File(p.join('.dart_tool', 'pub-search-data', fileName));
+  if (await file.exists()) {
+    var canUseCached = true;
+    if (ttl != null) {
+      final age = clock.now().difference(await file.lastModified());
+      if (age > ttl) {
+        canUseCached = false;
+      }
+    }
+    if (canUseCached) {
+      return await file.readAsString();
+    }
+  }
+
+  final content = await httpGetWithRetry(uri, responseFn: (rs) => rs.body);
+  await file.parent.create(recursive: true);
+  await file.writeAsString(content);
+  return content;
 }
 
 class _CombinedSearchIndex implements SearchIndex {
