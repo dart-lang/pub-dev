@@ -17,8 +17,6 @@ import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/search/handlers.dart';
-import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/search/top_packages.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
@@ -35,7 +33,6 @@ import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
 import 'package:pub_dev/tool/test_profile/import_source.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
-import 'package:pub_dev/tool/utils/http_client_to_shelf_handler.dart';
 import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
@@ -96,9 +93,6 @@ class FakeAppengineEnv {
         cloudCompute: _cloudCompute,
         fn: () async {
           registerStaticFileCacheForTest(_staticFileCacheForTesting);
-          registerSearchClient(SearchClient(
-              httpClientToShelfHandler(handler: searchServiceHandler)));
-          registerScopeExitCallback(searchClient.close);
 
           if (testProfile != null) {
             await importProfile(
@@ -201,10 +195,7 @@ void testWithFakeTime(
       setupDebugEnvBasedLogging();
       await withFakeServices(
         fn: () async {
-          registerStaticFileCacheForTest(StaticFileCache.forTests());
-          registerSearchClient(SearchClient(
-              httpClientToShelfHandler(handler: searchServiceHandler)));
-          registerScopeExitCallback(searchClient.close);
+          registerStaticFileCacheForTest(_staticFileCacheForTesting);
 
           await importProfile(
             profile: testProfile ?? defaultTestProfile,
