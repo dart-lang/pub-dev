@@ -27,6 +27,7 @@ import 'package_reservation_create.dart';
 import 'package_reservation_delete.dart';
 import 'package_reservation_list.dart';
 import 'package_version_delete.dart';
+import 'package_version_fix_sha256.dart';
 import 'package_version_info.dart';
 import 'package_version_retraction.dart';
 import 'publisher_create.dart';
@@ -116,6 +117,7 @@ final class AdminAction {
     packageReservationDelete,
     packageReservationList,
     packageVersionDelete,
+    packageVersionFixSha256,
     packageVersionInfo,
     packageVersionRetraction,
     publisherCreate,

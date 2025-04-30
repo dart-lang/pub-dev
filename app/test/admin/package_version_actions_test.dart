@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/admin_api.dart';
+import 'package:gcloud/db.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
@@ -58,6 +59,34 @@ void main() {
 
       final newLatest = await packageBackend.getLatestVersion('oxygen');
       expect(newLatest != latest, isTrue);
+    });
+
+    testWithProfile('package-version-fix-sha256', fn: () async {
+      final latest = await packageBackend.getLatestVersion('oxygen');
+      final oldPv =
+          await packageBackend.lookupPackageVersion('oxygen', latest!);
+      oldPv!.sha256 = [0, 1, 2];
+      await dbService.commit(inserts: [oldPv]);
+
+      final api = createPubApiClient(authToken: siteAdminToken);
+      final result = await api.adminInvokeAction(
+        'package-version-fix-sha256',
+        AdminInvokeActionArguments(arguments: {
+          'package': 'oxygen',
+          'version': latest,
+        }),
+      );
+
+      expect(result.output, {
+        'package': 'oxygen',
+        'version': latest,
+        'before': {
+          'sha256': '000102',
+        },
+        'after': {
+          'sha256': hasLength(64),
+        },
+      });
     });
   });
 }

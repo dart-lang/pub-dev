@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/package/api_export/exported_api.dart';
 import '../shared/datastore.dart';
 import '../shared/storage.dart';
@@ -316,6 +318,17 @@ class TarballStorage {
       archivesToBeDeleted: toBeDeletedCount,
       archivesDeleted: deleteObjects.length,
     );
+  }
+
+  /// Loads the bytes from the canonical archive for [package] [version].
+  Future<Uint8List> getCanonicalArchiveBytes(
+      String package, String version) async {
+    final objectName = tarballObjectName(package, version);
+    final info = await _canonicalBucket.tryInfo(objectName);
+    if (info == null) {
+      throw NotFoundException('Canonical archive not found.');
+    }
+    return await _canonicalBucket.readAsBytes(objectName);
   }
 }
 
