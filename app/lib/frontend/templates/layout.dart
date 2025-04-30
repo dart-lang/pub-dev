@@ -51,6 +51,10 @@ String renderLayoutPage(
   /// The canonical content link that will be put in the header.
   /// https://support.google.com/webmasters/answer/139066?hl=en
   String? canonicalUrl,
+
+  /// The URL for the package versions feed.
+  String? versionsFeedUrl,
+  String? versionsFeedTitle,
   SearchForm? searchForm,
   bool noIndex = false,
   PageData? pageData,
@@ -120,6 +124,8 @@ String renderLayoutPage(
     schemaOrgSearchActionJson: isRoot ? _schemaOrgSearchAction : null,
     moderationUrl: moderationUrl,
     moderationSubject: moderationSubject,
+    versionsFeedUrl: versionsFeedUrl,
+    versionsFeedTitle: versionsFeedTitle,
   ).toString();
 }
 

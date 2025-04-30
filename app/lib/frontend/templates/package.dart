@@ -290,6 +290,9 @@ String _renderPkgPage({
       data.version,
       editable: pkgPageTab == urls.PkgPageTab.admin,
     ),
+    versionsFeedUrl: urls.pkgFeedUrl(data.package.name!),
+    versionsFeedTitle:
+        'Recently published versions of package ${data.package.name!} on pub.dev',
   );
 }
 
