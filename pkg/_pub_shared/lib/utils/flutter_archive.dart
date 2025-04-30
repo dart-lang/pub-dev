@@ -21,19 +21,15 @@ final _logger = Logger('flutter_archive');
 ///
 /// Returns `null` if the archive cannot be fetched.
 Future<FlutterArchive?> fetchFlutterArchive() async {
-  for (var i = 0; i < 3; i++) {
-    final client = httpRetryClient();
-    try {
-      final rs = await client.get(Uri.parse(
-          'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'));
-      return FlutterArchive.fromJson(
-          json.decode(rs.body) as Map<String, Object?>);
-    } catch (e, st) {
-      _logger.warning('Unable to fetch the Flutter SDK archive', e, st);
-      continue;
-    } finally {
-      client.close();
-    }
+  try {
+    return await httpGetWithRetry(
+      Uri.parse(
+          'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'),
+      responseFn: (rs) =>
+          FlutterArchive.fromJson(json.decode(rs.body) as Map<String, Object?>),
+    );
+  } catch (e, st) {
+    _logger.warning('Unable to fetch the Flutter SDK archive', e, st);
   }
   return null;
 }
