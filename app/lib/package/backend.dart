@@ -920,7 +920,7 @@ class PackageBackend {
         _logger.warning(
             'Saved file length missmatch ($fileLength != ${info.length}).');
         throw InvalidInputException(
-            'Failed to save uploaded file: length missmatch.');
+            'Failed to save uploaded file: length mismatch.');
       }
       final md5Hash = (await file.openRead().transform(md5).single).bytes;
       if (!md5Hash.byteToByteEquals(info.md5Hash)) {
