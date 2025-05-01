@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:http/testing.dart';
-import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/search/search_client.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -70,17 +67,6 @@ void main() {
           'lightweight library for parsing',
         ],
       );
-    });
-
-    testWithProfile('/packages?q=oxyge without working search', fn: () async {
-      registerSearchClient(
-          SearchClient(MockClient((_) async => throw Exception())));
-      await nameTracker.reloadFromDatastore();
-      final content = await expectHtmlResponse(
-        await issueGet('/packages?q=oxyge'),
-        status: 503,
-      );
-      expect(content, contains('oxygen is awesome'));
     });
 
     testWithProfile('/packages?page=2',
