@@ -115,10 +115,11 @@ class TarballStorage {
       return ContentMatchStatus.different;
     }
     // Limit memory use while doing the byte-to-byte comparison by streaming it chunk-wise.
-    final raf = await file.open();
-    var remainingLength = info.length;
-    try {
-      await _canonicalBucket.readWithRetry(objectName, (input) async {
+    var remainingLength = -1;
+    await _canonicalBucket.readWithRetry(objectName, (input) async {
+      final raf = await file.open();
+      remainingLength = info.length;
+      try {
         await for (final chunk in input) {
           if (chunk.isEmpty) continue;
           remainingLength -= chunk.length;
@@ -131,10 +132,10 @@ class TarballStorage {
             return ContentMatchStatus.different;
           }
         }
-      });
-    } finally {
-      await raf.close();
-    }
+      } finally {
+        await raf.close();
+      }
+    });
     if (remainingLength != 0) {
       return ContentMatchStatus.different;
     }
