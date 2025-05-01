@@ -1990,3 +1990,67 @@ void checkPackageVersionParams(String package, [String? version]) {
     }
   }
 }
+
+/// Low-level, narrowly typed data access methods for [Package] entity.
+extension PackageDatastoreDBExt on DatastoreDB {
+  _PackageDataAccess get packages => _PackageDataAccess(this);
+}
+
+extension PackageTransactionWrapperExt on TransactionWrapper {
+  _PackageTransactionDataAcccess get packages =>
+      _PackageTransactionDataAcccess(this);
+
+  _VersionTransactionDataAcccess get versions =>
+      _VersionTransactionDataAcccess(this);
+}
+
+final class _PackageDataAccess {
+  final DatastoreDB _db;
+
+  _PackageDataAccess(this._db);
+
+  Future<bool> exists(String name) async {
+    final packageKey = _db.emptyKey.append(Package, id: name);
+    final package = await _db.lookupOrNull<Package>(packageKey);
+    return package != null;
+  }
+
+  Stream<({String name})> listAllNames() async* {
+    final query = _db.query<Package>();
+    await for (final p in query.run()) {
+      yield (name: p.name!);
+    }
+  }
+
+  Stream<({String name, DateTime updated})> listUpdatedSince(
+      DateTime since) async* {
+    final query = _db.query<Package>()
+      ..filter('updated >', since)
+      ..order('-updated');
+    await for (final p in query.run()) {
+      yield (name: p.name!, updated: p.updated!);
+    }
+  }
+}
+
+class _PackageTransactionDataAcccess {
+  final TransactionWrapper _tx;
+
+  _PackageTransactionDataAcccess(this._tx);
+
+  Future<Package?> lookupOrNull(String name) async {
+    final pkgKey = _tx.emptyKey.append(Package, id: name);
+    return await _tx.lookupOrNull<Package>(pkgKey);
+  }
+}
+
+class _VersionTransactionDataAcccess {
+  final TransactionWrapper _tx;
+
+  _VersionTransactionDataAcccess(this._tx);
+
+  Future<List<PackageVersion>> listVersionsOfPackage(String name) async {
+    final pkgKey = _tx.emptyKey.append(Package, id: name);
+    return await _tx.query<PackageVersion>(pkgKey).run().toList();
+  }
+}

@@ -73,13 +73,13 @@ Duration taskRetryDelay(int attempts) =>
 ///  * `PackageState` entities never have a parent.
 @db.Kind(name: 'PackageState', idType: db.IdType.String)
 class PackageState extends db.ExpandoModel<String> {
-  /// Create a key for [runtimeVersion] and [packageName] in [ddb].
+  /// Create a key for [runtimeVersion] and [packageName] using the Datastore's empty key.
   static db.Key<String> createKey(
-    db.DatastoreDB ddb,
+    db.Key emptyKey,
     String runtimeVersion,
     String packageName,
   ) =>
-      ddb.emptyKey.append<String>(
+      emptyKey.append<String>(
         PackageState,
         id: '$runtimeVersion/$packageName',
       );
