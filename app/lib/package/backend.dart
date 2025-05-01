@@ -920,7 +920,8 @@ class PackageBackend {
           _incomingBucket.absoluteObjectName(uploadObjectName),
           _incomingBucket.absoluteObjectName(workObjectName),
         );
-      } catch (e) {
+      } catch (e, st) {
+        _logger.warning('Failed to copy uploaded file to work object.', e, st);
         throw InvalidInputException(
             'Failed to copy uploaded file (uuid:$uploadGuid).');
       }
