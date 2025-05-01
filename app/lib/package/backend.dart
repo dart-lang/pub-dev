@@ -926,7 +926,7 @@ class PackageBackend {
       if (!md5Hash.byteToByteEquals(info.md5Hash)) {
         _logger.warning('Saved file md5 missmatch.');
         throw InvalidInputException(
-            'Failed to save uploaded file: md5 missmatch.');
+            'Failed to save uploaded file: md5 mismatch.');
       }
       final sha256Hash = (await file.openRead().transform(sha256).single).bytes;
       final archive = await summarizePackageArchive(
