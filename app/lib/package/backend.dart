@@ -918,7 +918,7 @@ class PackageBackend {
       final fileLength = await file.length();
       if (fileLength != info.length) {
         _logger.warning(
-            'Saved file length missmatch ($fileLength != ${info.length}).');
+            'Saved file length mismatch ($fileLength != ${info.length}).');
         throw InvalidInputException(
             'Failed to save uploaded file: length mismatch.');
       }
