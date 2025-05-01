@@ -79,6 +79,8 @@ PackageBackend get packageBackend =>
 class PackageBackend {
   final DatastoreDB db;
 
+  final Storage _storage;
+
   /// The Cloud Storage bucket to use for incoming package archives.
   /// The following files are present:
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
@@ -92,12 +94,12 @@ class PackageBackend {
 
   PackageBackend(
     this.db,
-    Storage storage,
+    this._storage,
     this._incomingBucket,
     Bucket canonicalBucket,
     Bucket publicBucket,
   ) : tarballStorage =
-            TarballStorage(db, storage, canonicalBucket, publicBucket);
+            TarballStorage(db, _storage, canonicalBucket, publicBucket);
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -891,28 +893,48 @@ class PackageBackend {
 
   /// Finishes the upload of a package and returns the list of messages
   /// related to the publishing.
-  Future<List<String>> publishUploadedBlob(String guid) async {
+  Future<List<String>> publishUploadedBlob(String uploadGuid) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
     }
     final agent = await requireAuthenticatedClient();
-    _logger.info('Finishing async upload (uuid: $guid)');
+    _logger.info('Finishing async upload (uuid: $uploadGuid)');
     _logger.info('Reading tarball from cloud storage.');
 
     return await withTempDirectory((Directory dir) async {
-      final filename = '${dir.absolute.path}/tarball.tar.gz';
-      final info = await _incomingBucket.tryInfo(tmpObjectName(guid));
+      // Check the existence of the uploaded file
+      final uploadObjectName = tmpObjectName(uploadGuid);
+      final info = await _incomingBucket.tryInfo(uploadObjectName);
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
       }
+
+      // Create a temporary copy that we will continue working with.
+      // This will protect us against the unlikely scenario where the
+      // uploaded blob changes during this processing.
+      final workGuid = createUuid();
+      final workObjectName = '${tmpObjectName(workGuid)}-$uploadGuid';
+      try {
+        await _storage.copyObjectWithRetry(
+          _incomingBucket.absoluteObjectName(uploadObjectName),
+          _incomingBucket.absoluteObjectName(workObjectName),
+        );
+      } catch (e) {
+        throw InvalidInputException(
+            'Failed to copy uploaded file (uuid:$uploadGuid).');
+      }
+
+      // Check the file size is within limits.
       if (info!.length > UploadSignerService.maxUploadSize) {
         throw PackageRejectedException.archiveTooLarge(
             UploadSignerService.maxUploadSize);
       }
+
+      final filename = '${dir.absolute.path}/tarball.tar.gz';
       await _incomingBucket.readWithRetry(
-          tmpObjectName(guid), (input) => _saveTarballToFS(input, filename));
-      _logger.info('Examining tarball content ($guid).');
+          workObjectName, (input) => _saveTarballToFS(input, filename));
+      _logger.info('Examining tarball content ($uploadGuid).');
       final sw = Stopwatch()..start();
       final file = File(filename);
       final sha256Hash = (await file.openRead().transform(sha256).single).bytes;
@@ -996,15 +1018,16 @@ class PackageBackend {
         entities: entities,
         agent: agent,
         archive: archive,
-        guid: guid,
+        objectName: workObjectName,
         hasCanonicalArchiveObject:
             canonicalContentMatch == ContentMatchStatus.same,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
-      _logger.info('Removing temporary object $guid.');
+      _logger.info('Removing temporary object $uploadGuid.');
 
       sw.reset();
-      await _incomingBucket.deleteWithRetry(tmpObjectName(guid));
+      await _incomingBucket.deleteWithRetry(uploadObjectName);
+      await _incomingBucket.deleteWithRetry(workObjectName);
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return [
         'Successfully uploaded '
@@ -1074,7 +1097,7 @@ class PackageBackend {
     required _UploadEntities entities,
     required AuthenticatedAgent agent,
     required PackageSummary archive,
-    required String guid,
+    required String objectName,
     required bool hasCanonicalArchiveObject,
   }) async {
     final sw = Stopwatch()..start();
@@ -1205,7 +1228,7 @@ class PackageBackend {
         // Copy archive to canonical bucket.
         await tarballStorage.copyFromTempToCanonicalBucket(
           sourceAbsoluteObjectName:
-              _incomingBucket.absoluteObjectName(tmpObjectName(guid)),
+              _incomingBucket.absoluteObjectName(objectName),
           package: newVersion.package,
           version: newVersion.version!,
         );
