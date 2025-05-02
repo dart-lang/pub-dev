@@ -5,7 +5,6 @@
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../package/model_properties.dart';
@@ -60,19 +59,13 @@ String renderPkgVersionsPage(
     }
   }
 
-  final firstPublished =
-      versions.reduce((a, b) => a.published!.isBefore(b.published!) ? a : b);
-  final versionPlural = versions.length > 2 ? 'versions' : 'version';
-  final infoCount = d.fragment([
-    d.text('${versions.length} $versionPlural of '),
-    d.code(text: data.package.name!),
-    d.text(' since ${shortDateFormat.format(firstPublished.published!)}.')
-  ]);
+  final versionsPlural = versions.length > 1 ? 'versions' : 'version';
 
   final blocks = <d.Node>[
     d.p(classes: [
       'pub-monochrome-icon-hoverable',
     ], children: [
+      d.text('${versions.length} $versionsPlural'),
       d.a(
         href: urls.pkgFeedUrl(data.package.name!),
         title: 'Versions feed',
@@ -90,7 +83,6 @@ String renderPkgVersionsPage(
           ),
         ),
       ),
-      infoCount,
     ]),
   ];
   if (stableVersionRows.isNotEmpty &&
