@@ -41,12 +41,11 @@ class DefaultCommand extends Command {
 }
 
 Future _main() async {
-  await updateLocalBuiltFilesIfNeeded();
-  final appHandler = createAppHandler();
-
   if (envConfig.isRunningLocally) {
+    await updateLocalBuiltFilesIfNeeded();
     await watchForResourceChanges();
   }
+  final appHandler = createAppHandler();
   await nameTracker.startTracking();
   await announcementBackend.start();
   await topPackages.start();
