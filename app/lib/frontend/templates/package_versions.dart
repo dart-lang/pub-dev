@@ -4,6 +4,8 @@
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../package/model_properties.dart';
@@ -58,7 +60,39 @@ String renderPkgVersionsPage(
     }
   }
 
-  final blocks = <d.Node>[];
+  final firstPublished =
+      versions.reduce((a, b) => a.published!.isBefore(b.published!) ? a : b);
+  final versionPlural = versions.length > 2 ? 'versions' : 'version';
+  final infoCount = d.fragment([
+    d.text('${versions.length} $versionPlural of '),
+    d.code(text: data.package.name!),
+    d.text(' since ${shortDateFormat.format(firstPublished.published!)}.')
+  ]);
+
+  final blocks = <d.Node>[
+    d.p(classes: [
+      'pub-monochrome-icon-hoverable',
+    ], children: [
+      d.a(
+        href: urls.pkgFeedUrl(data.package.name!),
+        title: 'Versions feed',
+        child: d.img(
+          classes: [
+            'pub-monochrome-icon',
+            'filter-invert-on-dark',
+            'versions-rss-image',
+          ],
+          image: d.Image(
+            src: staticUrls.getAssetUrl('/static/img/rss-feed-icon-4a4a4a.svg'),
+            alt: 'Versions feed',
+            width: 15,
+            height: 15,
+          ),
+        ),
+      ),
+      infoCount,
+    ]),
+  ];
   if (stableVersionRows.isNotEmpty &&
       prereleaseVersionRows.isNotEmpty &&
       latestPrereleaseVersion != null) {
