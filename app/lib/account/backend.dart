@@ -695,7 +695,7 @@ class _UserSessionDataAccess {
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     try {
       await _db.commit(deletes: [key]);
-    } catch (_) {
+    } on Exception catch (_) {
       // ignore if the entity has been already deleted concurrently
     }
     await cache.userSessionData(sessionId).purge();
