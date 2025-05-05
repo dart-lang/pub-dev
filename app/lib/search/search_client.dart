@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:http/http.dart' as http;
 
 import '../../../service/rate_limit/rate_limit.dart';
 import '../shared/configuration.dart';
@@ -33,15 +32,12 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 /// indexed data.
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
-  final http.Client _httpClient;
+  final _httpClient = httpRetryClient();
 
   /// Before this timestamp we may use the fallback search service URL, which
   /// is the unversioned service URL, potentially getting responses from an
   /// older instance.
   final _fallbackSearchThreshold = clock.now().add(Duration(minutes: 30));
-
-  SearchClient([http.Client? client])
-      : _httpClient = client ?? httpRetryClient(retries: 3);
 
   /// Calls the search service (or uses cache) to serve the [query].
   Future<PackageSearchResult> search(
@@ -69,16 +65,25 @@ class SearchClient {
       skipCache = true;
     }
 
-    // returns null on timeout (after 5 seconds)
-    Future<http.Response?> doCallHttpServiceEndpoint({String? prefix}) async {
+    // Returns the status code and the body of the last response, or null on timeout.
+    Future<({int statusCode, String? body})?> doCallHttpServiceEndpoint(
+        {String? prefix}) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       final serviceUrl = '$httpHostPort/search$serviceUrlParams';
       try {
-        return await _httpClient
-            .get(Uri.parse(serviceUrl), headers: cloudTraceHeaders())
-            .timeout(Duration(seconds: 5));
+        return await httpGetWithRetry(
+          Uri.parse(serviceUrl),
+          client: _httpClient,
+          headers: cloudTraceHeaders(),
+          perRequestTimeout: Duration(seconds: 5),
+          retryIf: (e) => (e is UnexpectedStatusException &&
+              e.statusCode == searchIndexNotReadyCode),
+          responseFn: (rs) => (statusCode: rs.statusCode, body: rs.body),
+        );
       } on TimeoutException {
         return null;
+      } on UnexpectedStatusException catch (e) {
+        return (statusCode: e.statusCode, body: null);
       }
     }
 
@@ -103,7 +108,7 @@ class SearchClient {
       }
       if (response.statusCode == 200) {
         return PackageSearchResult.fromJson(
-          json.decode(response.body) as Map<String, dynamic>,
+          json.decode(response.body!) as Map<String, dynamic>,
         );
       }
       // Search request before the service initialization completed.

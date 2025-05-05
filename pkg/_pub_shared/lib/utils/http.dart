@@ -47,23 +47,42 @@ Future<K> httpGetWithRetry<K>(
   Uri uri, {
   required FutureOr<K> Function(http.Response response) responseFn,
   int maxAttempts = 3,
+
+  /// The HTTP client to use.
+  ///
+  /// Note: when the client is not specified, the inner loop will create a new [http.Client] object on each retry attempt.
+  http.Client? client,
+  Map<String, String>? headers,
+
+  /// Per-request time amount that will be applied on the overall HTTP request.
+  Duration? perRequestTimeout,
+
+  /// Additional retry conditions (on top of the default ones).
+  /// Note: check for [UnexpectedStatusException] to allow non-200 response status codes.
+  bool Function(Exception e)? retryIf,
 }) async {
   return await retry(
     () async {
-      final client = http.Client();
+      final closeClient = client == null;
+      final effectiveClient = client ?? http.Client();
       try {
-        final rs = await client.get(uri);
+        var f = effectiveClient.get(uri, headers: headers);
+        if (perRequestTimeout != null) {
+          f = f.timeout(perRequestTimeout);
+        }
+        final rs = await f;
         if (rs.statusCode == 200) {
           return responseFn(rs);
         }
-        throw http.ClientException(
-            'Unexpected status code for $uri: ${rs.statusCode}.');
+        throw UnexpectedStatusException(rs.statusCode, uri);
       } finally {
-        client.close();
+        if (closeClient) {
+          effectiveClient.close();
+        }
       }
     },
     maxAttempts: maxAttempts,
-    retryIf: _retryIf,
+    retryIf: (e) => _retryIf(e) || (retryIf != null && retryIf(e)),
   );
 }
 
@@ -77,5 +96,20 @@ bool _retryIf(Exception e) {
   if (e is http.ClientException) {
     return true; // HTTP issues are worth retrying
   }
+  if (e is UnexpectedStatusException) {
+    return _transientStatusCodes.contains(e.statusCode);
+  }
   return false;
+}
+
+/// Thrown when status code is not 200.
+class UnexpectedStatusException implements Exception {
+  final int statusCode;
+  final String message;
+
+  UnexpectedStatusException(this.statusCode, Uri uri)
+      : message = 'Unexpected status code for $uri: $statusCode.';
+
+  @override
+  String toString() => 'UnexpectedStatusException: $message';
 }
