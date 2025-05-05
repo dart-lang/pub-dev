@@ -428,7 +428,8 @@ class AccountBackend {
     // try to update old session first
     if (oldSession != null) {
       final rs = await withRetryTransaction(_db, (tx) async {
-        final session = await tx.lookupOrNull<UserSession>(oldSession.key);
+        final session =
+            await tx.userSessions.lookupOrNull(oldSession.sessionId);
         if (session == null) {
           return null;
         }
@@ -462,8 +463,7 @@ class AccountBackend {
       throw AuthenticationException.failed();
     }
     final data = await withRetryTransaction(_db, (tx) async {
-      final session = await tx.lookupOrNull<UserSession>(
-          _db.emptyKey.append(UserSession, id: sessionId));
+      final session = await tx.userSessions.lookupOrNull(sessionId);
       if (session == null || session.isExpired()) {
         throw AuthenticationException.failed('Session has been expired.');
       }
@@ -570,36 +570,24 @@ class AccountBackend {
   /// Deletes the session entry if it has already expired and
   /// clears the related cache too.
   Future<UserSession?> lookupValidUserSession(String sessionId) async {
-    final key = _db.emptyKey.append(UserSession, id: sessionId);
-    final session = await _db.lookupOrNull<UserSession>(key);
+    final session = await _db.userSessions.lookupOrNull(sessionId);
     if (session == null) {
       return null;
     }
     if (session.isExpired()) {
-      await _db.commit(deletes: [key]);
-      await cache.userSessionData(sessionId).purge();
+      await _db.userSessions.expire(session.sessionId);
       return null;
     }
     return session;
   }
 
-  /// Removes the session data from the Datastore and from cache.
-  Future<void> invalidateUserSession(String sessionId) async {
-    final key = _db.emptyKey.append(UserSession, id: sessionId);
-    try {
-      await _db.commit(deletes: [key]);
-    } catch (_) {
-      // ignore if the entity has been already deleted concurrently
+  /// Deletes sessions associated with a [userId] or [sessionId].
+  Future<void> deleteUserSessions({String? userId, String? sessionId}) async {
+    if (sessionId != null) {
+      await _db.userSessions.expire(sessionId);
     }
-    await cache.userSessionData(sessionId).purge();
-  }
-
-  /// Scans Datastore for all sessions the user has, and invalidates
-  /// them all (by deleting the Datastore entry and purging the cache).
-  Future<void> invalidateAllUserSessions(String userId) async {
-    final query = _db.query<UserSession>()..filter('userId =', userId);
-    await for (final session in query.run()) {
-      await invalidateUserSession(session.sessionId);
+    if (userId != null) {
+      await _db.userSessions.expireAllForUserId(userId);
     }
   }
 
@@ -608,9 +596,8 @@ class AccountBackend {
     final now = clock.now().toUtc();
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));
-    final query = _db.query<UserSession>()..filter('expires <', ts);
-    final count = await _db.deleteWithQuery(query);
-    _logger.info('Deleted ${count.deleted} UserSession entries.');
+    final count = await _db.userSessions.expireAllBeforeTimestamp(ts);
+    _logger.info('Deleted $count UserSession entries.');
   }
 
   /// Updates the moderated status of a user.
@@ -644,7 +631,7 @@ class AccountBackend {
         tx.insert(mc);
       }
     });
-    await _expireAllSessions(userId);
+    await _db.userSessions.expireAllForUserId(userId);
     await purgeAccountCache(userId: userId);
   }
 
@@ -661,16 +648,6 @@ class AccountBackend {
     }
     return query.run();
   }
-
-  // expire all sessions of a given user from datastore and cache
-  Future<void> _expireAllSessions(String userId) async {
-    final query = _db.query<UserSession>()..filter('userId =', userId);
-    final sessionsToDelete = await query.run().toList();
-    for (final session in sessionsToDelete) {
-      await _db.commit(deletes: [session.key]);
-      await cache.userSessionData(session.sessionId).purge();
-    }
-  }
 }
 
 /// Purge [cache] entries for given [userId].
@@ -681,4 +658,64 @@ Future<void> purgeAccountCache({
     cache.userPackageLikes(userId).purgeAndRepeat(),
     cache.publisherPage(userId).purgeAndRepeat(),
   ]);
+}
+
+/// Low-level, narrowly typed data access methods for [UserSession] entity.
+extension UserSessionDatastoreDBExt on DatastoreDB {
+  _UserSessionDataAccess get userSessions => _UserSessionDataAccess(this);
+}
+
+extension UserSessionTransactionWrapperExt on TransactionWrapper {
+  _UserSessionTransactionDataAcccess get userSessions =>
+      _UserSessionTransactionDataAcccess(this);
+}
+
+class _UserSessionDataAccess {
+  final DatastoreDB _db;
+
+  _UserSessionDataAccess(this._db);
+
+  Future<UserSession?> lookupOrNull(String sessionId) async {
+    final key = _db.emptyKey.append(UserSession, id: sessionId);
+    return await _db.lookupOrNull<UserSession>(key);
+  }
+
+  /// Scans Datastore for all sessions the user has, and invalidates
+  /// them all (by deleting the Datastore entry and purging the cache).
+  Future<void> expireAllForUserId(String userId) async {
+    final query = _db.query<UserSession>()..filter('userId =', userId);
+    final sessionsToDelete = await query.run().toList();
+    for (final session in sessionsToDelete) {
+      await expire(session.sessionId);
+    }
+  }
+
+  /// Removes the session data from the Datastore and from cache.
+  Future<void> expire(String sessionId) async {
+    final key = _db.emptyKey.append(UserSession, id: sessionId);
+    try {
+      await _db.commit(deletes: [key]);
+    } catch (_) {
+      // ignore if the entity has been already deleted concurrently
+    }
+    await cache.userSessionData(sessionId).purge();
+  }
+
+  /// Removes the session data that has expiry before [ts].
+  Future<int> expireAllBeforeTimestamp(DateTime ts) async {
+    final query = _db.query<UserSession>()..filter('expires <', ts);
+    final count = await _db.deleteWithQuery(query);
+    return count.deleted;
+  }
+}
+
+class _UserSessionTransactionDataAcccess {
+  final TransactionWrapper _tx;
+
+  _UserSessionTransactionDataAcccess(this._tx);
+
+  Future<UserSession?> lookupOrNull(String sessionId) async {
+    final key = _tx.emptyKey.append(UserSession, id: sessionId);
+    return await _tx.lookupOrNull<UserSession>(key);
+  }
 }
