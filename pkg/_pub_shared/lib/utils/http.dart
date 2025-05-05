@@ -50,7 +50,7 @@ Future<K> httpGetWithRetry<K>(
 
   /// The HTTP client to use.
   ///
-  /// Note: when the client is not specified, the inner loop will create a new [Client] object on each retry attempt.
+  /// Note: when the client is not specified, the inner loop will create a new [http.Client] object on each retry attempt.
   http.Client? client,
   Map<String, String>? headers,
 
