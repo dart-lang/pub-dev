@@ -55,7 +55,7 @@ Future<K> httpGetWithRetry<K>(
   Map<String, String>? headers,
 
   /// Per-request time amount that will be applied on the overall HTTP request.
-  Duration? timeout,
+  Duration? perRequestTimeout,
 
   /// Additional retry conditions (on top of the default ones).
   bool Function(Exception e)? retryIf,
@@ -66,8 +66,8 @@ Future<K> httpGetWithRetry<K>(
       final effectiveClient = client ?? http.Client();
       try {
         var f = effectiveClient.get(uri, headers: headers);
-        if (timeout != null) {
-          f = f.timeout(timeout);
+        if (perRequestTimeout != null) {
+          f = f.timeout(perRequestTimeout);
         }
         final rs = await f;
         if (rs.statusCode == 200) {

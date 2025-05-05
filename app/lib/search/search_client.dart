@@ -75,7 +75,7 @@ class SearchClient {
           Uri.parse(serviceUrl),
           client: _httpClient,
           headers: cloudTraceHeaders(),
-          timeout: Duration(seconds: 5),
+          perRequestTimeout: Duration(seconds: 5),
           retryIf: (e) => (e is UnexpectedStatusException &&
               e.statusCode == searchIndexNotReadyCode),
           responseFn: (rs) => (statusCode: rs.statusCode, body: rs.body),
