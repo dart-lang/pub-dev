@@ -58,6 +58,7 @@ Future<K> httpGetWithRetry<K>(
   Duration? perRequestTimeout,
 
   /// Additional retry conditions (on top of the default ones).
+  /// Note: check for [UnexpectedStatusException] to allow non-200 response status codes.
   bool Function(Exception e)? retryIf,
 }) async {
   return await retry(
