@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers/atom_feed.dart';
+import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
@@ -244,10 +245,12 @@ final class ApiExporter {
           versionListing,
           forceWrite: forceWrite,
         );
-    await _api.package(package).feedAtomFile.write(
-          await buildPackageAtomFeedContent(package),
-          forceWrite: forceWrite,
-        );
+    if (!isSoftRemoved(package)) {
+      await _api.package(package).feedAtomFile.write(
+            await buildPackageAtomFeedContent(package),
+            forceWrite: forceWrite,
+          );
+    }
   }
 
   /// Scan for updates from packages until [abort] is resolved, or [claim]
