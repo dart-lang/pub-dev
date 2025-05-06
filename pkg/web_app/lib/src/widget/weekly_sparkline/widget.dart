@@ -95,7 +95,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   // Render chart
 
-  chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDate)}';
+  chartSubText.textContent =
+      '${formatDate(firstDay)} - ${formatDate(lastDate)}';
   final chart = SVGGElement();
 
   final sparklineBar = SVGLineElement();
@@ -158,10 +159,11 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
     final coords = computeCoordinates(selectedDay.date, selectedDay.downloads);
     sparklineSpot.setAttribute('cy', '${coords.$2}');
     sparklineCursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
-    toolTip.text = '${formatWithThousandSeperators(selectedDay.downloads)}';
+    toolTip.textContent =
+        '${formatWithThousandSeperators(selectedDay.downloads)}';
 
     final startDay = selectedDay.date.subtract(Duration(days: 7));
-    chartSubText.text =
+    chartSubText.textContent =
         '${formatDate(startDay)} - ${formatDate(selectedDay.date)}';
 
     lastSelectedDay = selectedDay.date;
@@ -170,7 +172,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   void hideSparklineCursor(_) {
     sparklineCursor.setAttribute('style', 'opacity:0');
     toolTip.setAttribute('style', 'opacity:0;position:absolute;');
-    chartSubText.text = '${formatDate(firstDay)} - ${formatDate(lastDate)}';
+    chartSubText.textContent =
+        '${formatDate(firstDay)} - ${formatDate(lastDate)}';
     lastSelectedDay = null;
   }
 
