@@ -303,7 +303,7 @@ void drawChart(
       tickLabel.setAttribute(
           'class', 'downloads-chart-tick-label  downloads-chart-tick-label-x');
     }
-    tickLabel.text = formatAbbrMonthDay(date);
+    tickLabel.textContent = formatAbbrMonthDay(date);
     tickLabel.setAttribute('y', '$tickLabelYCoordinate');
     tickLabel.setAttribute('x', '$x');
 
@@ -321,7 +321,7 @@ void drawChart(
     final suffix = displayMode == DisplayMode.percentage
         ? '%'
         : compactFormat(i * interval).suffix;
-    tickLabel.text = '${compactFormat(i * interval).value}$suffix';
+    tickLabel.textContent = '${compactFormat(i * interval).value}$suffix';
     tickLabel.setAttribute('x', '${xMax + marginPadding}');
     tickLabel.setAttribute('y', '$y');
     chart.append(tickLabel);
@@ -439,7 +439,7 @@ void drawChart(
 
     final legendLabel = SVGTextElement();
     legendLabel.setAttribute('class', 'downloads-chart-tick-label');
-    legendLabel.text = ranges[i];
+    legendLabel.textContent = ranges[i];
     chart.append(legendLabel);
     chart.append(legend);
     legends.add((legend, legendLabel));
@@ -629,7 +629,7 @@ void drawChart(
         'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;$horizontalPosition');
     toolTip.replaceChildren(HTMLDivElement()
       ..setAttribute('class', 'downloads-chart-tooltip-date')
-      ..text =
+      ..textContent =
           '${formatAbbrMonthDay(startDay)} - ${formatAbbrMonthDay(selectedDay)}');
 
     final downloads = values[nearestIndex];
@@ -641,14 +641,14 @@ void drawChart(
         final square = HTMLDivElement()
           ..setAttribute('class',
               'downloads-chart-tooltip-square ${squareColorClass(colorIndex(i))}');
-        final rangeText = HTMLSpanElement()..text = '${ranges[i]}: ';
+        final rangeText = HTMLSpanElement()..textContent = '${ranges[i]}: ';
         final suffix = (displayMode == DisplayMode.percentage)
             ? ' (${(downloads[i] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
             : '';
         final text = '${formatWithThousandSeperators(downloads[i])}$suffix';
         final downloadsText = HTMLSpanElement()
           ..setAttribute('class', 'downloads-chart-tooltip-downloads')
-          ..text = text;
+          ..textContent = text;
 
         final tooltipRange = HTMLDivElement()
           ..setAttribute('class', 'downloads-chart-tooltip-row')

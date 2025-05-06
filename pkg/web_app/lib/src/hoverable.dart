@@ -120,7 +120,7 @@ void _setEventForPreCodeCopyToClipboard() {
 
     final feedback = HTMLDivElement()
       ..classList.add('-pub-pre-copy-feedback')
-      ..text = 'copied to clipboard';
+      ..textContent = 'copied to clipboard';
     container.append(feedback);
 
     _setupCopyAndFeedbackButton(
@@ -176,7 +176,7 @@ void _updateXAgoLabels() {
     final newLabel = formatXAgo(DateTime.now().difference(timestamp));
     final oldLabel = e.textContent;
     if (oldLabel != newLabel) {
-      e.text = newLabel;
+      e.textContent = newLabel;
     }
   });
 }
@@ -188,7 +188,7 @@ void _setEventForXAgo() {
       event.preventDefault();
       event.stopPropagation();
       final text = e.textContent;
-      e.text = e.getAttribute('title') ?? '';
+      e.textContent = e.getAttribute('title') ?? '';
       e.setAttribute('title', text!);
     });
   });

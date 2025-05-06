@@ -48,7 +48,8 @@ void _setupDarkThemeButton() {
     button.onClick.listen((_) {
       final classes = document.body!.classList;
       final isCurrentlyDark = classes.contains('dark-theme');
-      window.localStorage['colorTheme'] = isCurrentlyDark ? 'false' : 'true';
+      window.localStorage
+          .setItem('colorTheme', isCurrentlyDark ? 'false' : 'true');
       classes.toggle('dark-theme');
       classes.toggle('light-theme');
     });
