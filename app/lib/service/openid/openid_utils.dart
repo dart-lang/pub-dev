@@ -13,38 +13,26 @@ import 'openid_models.dart';
 Future<OpenIdData> fetchOpenIdData({
   required String configurationUrl,
 }) async {
-  final client = httpRetryClient();
-  try {
-    final configUri = Uri.parse(configurationUrl);
-    if (!envConfig.isRunningLocally && configUri.scheme != 'https') {
-      throw AssertionError(
-          'OpenID configuration URL must use `https` protocol, was: `$configurationUrl`.');
-    }
-    final providerRs = await client.get(configUri);
-    if (providerRs.statusCode != 200) {
-      throw Exception(
-          'Unexpected status code ${providerRs.statusCode} while fetching $configUri');
-    }
-    final providerData = json.decode(providerRs.body) as Map<String, dynamic>;
-    final provider = OpenIdProvider.fromJson(providerData);
-    final jwksUri = Uri.parse(provider.jwksUri);
-    if (!envConfig.isRunningLocally && jwksUri.scheme != 'https') {
-      throw AssertionError(
-          'JWKS URL must use `https` protocol, was: `$jwksUri`.');
-    }
-    final jwksRs = await client.get(jwksUri);
-    if (jwksRs.statusCode != 200) {
-      throw Exception(
-          'Unexpected status code ${jwksRs.statusCode} while fetching $jwksUri');
-    }
-    final jwksData = json.decode(jwksRs.body) as Map<String, dynamic>;
-    return OpenIdData(
-      provider: provider,
-      jwks: JsonWebKeyList.fromJson(jwksData),
-    );
-  } finally {
-    client.close();
+  final configUri = Uri.parse(configurationUrl);
+  if (!envConfig.isRunningLocally && configUri.scheme != 'https') {
+    throw AssertionError(
+        'OpenID configuration URL must use `https` protocol, was: `$configurationUrl`.');
   }
+  final providerBody =
+      await httpGetWithRetry(configUri, responseFn: (rs) => rs.body);
+  final providerData = json.decode(providerBody) as Map<String, dynamic>;
+  final provider = OpenIdProvider.fromJson(providerData);
+  final jwksUri = Uri.parse(provider.jwksUri);
+  if (!envConfig.isRunningLocally && jwksUri.scheme != 'https') {
+    throw AssertionError(
+        'JWKS URL must use `https` protocol, was: `$jwksUri`.');
+  }
+  final jwksBody = await httpGetWithRetry(jwksUri, responseFn: (rs) => rs.body);
+  final jwksData = json.decode(jwksBody) as Map<String, dynamic>;
+  return OpenIdData(
+    provider: provider,
+    jwks: JsonWebKeyList.fromJson(jwksData),
+  );
 }
 
 String parseAsString(Map<String, dynamic> map, String key) {
