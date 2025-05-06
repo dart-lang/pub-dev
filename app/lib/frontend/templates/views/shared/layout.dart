@@ -30,6 +30,8 @@ d.Node pageLayoutNode({
   required Map<String, dynamic>? schemaOrgSearchActionJson,
   required String? moderationUrl,
   required ModerationSubject? moderationSubject,
+  required String? versionsFeedUrl,
+  required String? versionsFeedTitle,
 }) {
   final appleTouchIconUrl = faviconUrl.endsWith('.png')
       ? faviconUrl
@@ -112,9 +114,16 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'alternate',
               type: 'application/atom+xml',
-              title: 'Updated Packages Feed for Pub',
+              title: 'Recently published packages on pub.dev',
               href: '/feed.atom',
             ),
+            if (versionsFeedUrl != null && versionsFeedTitle != null)
+              d.link(
+                rel: 'alternate',
+                type: 'application/atom+xml',
+                title: versionsFeedTitle,
+                href: versionsFeedUrl,
+              ),
             d.link(
               rel: 'stylesheet',
               type: 'text/css',
