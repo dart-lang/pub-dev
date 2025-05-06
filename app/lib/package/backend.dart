@@ -1861,25 +1861,26 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   if (await targetFile.exists()) {
     await targetFile.delete();
   }
+  late IOSink sink;
   try {
+    sink = targetFile.openWrite();
     int receivedBytes = 0;
-    final stream = data.transform<List<int>>(
-      StreamTransformer<List<int>, List<int>>.fromHandlers(
-        handleData: (chunk, sink) {
-          receivedBytes += chunk.length;
-          if (receivedBytes <= UploadSignerService.maxUploadSize) {
-            sink.add(chunk);
-          } else {
-            sink.addError(PackageRejectedException.archiveTooLarge(
-                UploadSignerService.maxUploadSize));
-          }
-        },
-      ),
-    );
-    await stream.pipe(targetFile.openWrite());
+    await for (final chunk in data) {
+      receivedBytes += chunk.length;
+      if (receivedBytes <= UploadSignerService.maxUploadSize) {
+        sink.add(chunk);
+      } else {
+        await sink.close();
+        throw PackageRejectedException.archiveTooLarge(
+            UploadSignerService.maxUploadSize);
+      }
+    }
+    await sink.flush();
   } catch (e, st) {
     _logger.warning('An error occurred while streaming tarball to FS.', e, st);
     rethrow;
+  } finally {
+    await sink.close();
   }
   _logger.info('Finished streaming tarball to FS (elapsed: ${sw.elapsed}).');
 }
