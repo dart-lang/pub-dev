@@ -11,6 +11,7 @@ void main() {
       expect(calculateLinearRegressionSlope([10.0, 20.0, 30.0]), 10.0);
       expect(calculateLinearRegressionSlope([30.0, 20.0, 10.0]), -10.0);
       expect(calculateLinearRegressionSlope([10.0, 10.0, 10.0]), 0);
+      expect(calculateLinearRegressionSlope([0.0, 0.0, 0.0]), 0);
     });
 
     test('return 0.0 if denominator is very small', () {
@@ -20,8 +21,13 @@ void main() {
   });
 
   group('computeRelativeGrowthRate', () {
-    test('returns 0.0 for stable downloads meeting threshold', () {
+    test('returns 0.0 for stable downloads', () {
       final downloads = List<int>.generate(analysisWindowDays, (i) => 2000);
+      expect(computeRelativeGrowthRate(downloads), 0.0);
+    });
+
+    test('returns 0.0 for 0 downloads', () {
+      final downloads = List<int>.generate(analysisWindowDays, (i) => 0);
       expect(computeRelativeGrowthRate(downloads), 0.0);
     });
 
