@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 const analysisWindowDays = 30;
+const minThirtyDaysDownloadThreshold = 30000;
 
 /// Calculates the relative daily growth rate of a package's downloads.
 ///
@@ -88,4 +91,22 @@ double calculateLinearRegressionSlope(List<num> yValues) {
     return 0.0;
   }
   return (n * sumXY - sumX * sumY) / denominator;
+}
+
+/// Computes a trend score for a package, factoring in both its recent
+/// relative growth rate and its overall download volume.
+///
+/// This score is designed to balance how quickly a package is growing
+/// ([computeRelativeGrowthRate]) against its existing popularity. Popularity is
+/// assessed by comparing the sum of its downloads over the available history
+/// (up to [analysisWindowDays]) against a [minThirtyDaysDownloadThreshold].
+double computeTrendScore(List<int> totalDownloads) {
+  final n = min(analysisWindowDays, totalDownloads.length);
+  final thirtydaySum = totalDownloads.isEmpty
+      ? 0
+      : totalDownloads.sublist(0, n).reduce((prev, element) => prev + element);
+  final dampening = min(thirtydaySum / minThirtyDaysDownloadThreshold, 1.0);
+  final relativGrowth = computeRelativeGrowthRate(totalDownloads);
+
+  return relativGrowth * dampening * dampening;
 }

@@ -212,6 +212,12 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     ),
 
     _daily(
+      name: 'compute-trend-scores',
+      isRuntimeVersioned: false,
+      task: computeTrendScoreTask,
+    ),
+
+    _daily(
       name: 'count-topics',
       isRuntimeVersioned: false,
       task: countTopics,
