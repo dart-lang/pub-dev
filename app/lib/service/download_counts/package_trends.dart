@@ -35,6 +35,10 @@ double computeRelativeGrowthRate(List<int> totalDownloads) {
       recentDownloads.reduce((prev, element) => prev + element) /
           recentDownloads.length;
 
+  if (averageRecentDownloads.abs() < 1e-9) {
+    return 0;
+  }
+
   // We reverse the recentDownloads list for regression, since the first entry
   // is the newest point in time. By reversing, we pass the data in
   // chronological order.
