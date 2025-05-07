@@ -35,7 +35,7 @@ double computeRelativeGrowthRate(List<int> totalDownloads) {
       recentDownloads.reduce((prev, element) => prev + element) /
           recentDownloads.length;
 
-  if (averageRecentDownloads.abs() < 1e-9) {
+  if (averageRecentDownloads == 0) {
     return 0;
   }
 
