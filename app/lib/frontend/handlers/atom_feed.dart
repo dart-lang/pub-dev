@@ -12,7 +12,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../admin/actions/actions.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
-import '../../package/overrides.dart';
 import '../../shared/configuration.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/urls.dart' as urls;
@@ -60,8 +59,7 @@ Future<String> buildAllPackagesAtomFeedContent() async {
 
 /// Builds the content of the `/packages/<package>/feed.atom` endpoint.
 Future<String> buildPackageAtomFeedContent(String package) async {
-  if (isSoftRemoved(package) ||
-      !await packageBackend.isPackageVisible(package)) {
+  if (!await packageBackend.isPackageVisible(package)) {
     throw NotFoundException.resource(package);
   }
   final versions = await packageBackend
