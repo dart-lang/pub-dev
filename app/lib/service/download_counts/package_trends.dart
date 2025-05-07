@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const minAvgDailyDownloadsThreshold = 1000;
 const analysisWindowDays = 30;
-const weightAge = 0.25;
-const weightGrowthRate = 0.75;
 
 /// Calculates the relative daily growth rate of a package's downloads.
 ///
@@ -14,36 +11,30 @@ const weightGrowthRate = 0.75;
 /// over the last ([analysisWindowDays]) days to determine how fast a package is
 /// growing relative to its own current download volume.
 ///
-/// Returns -double.maxFinite:
-/// - If the [totalDownloads] list has fewer data points than
-///   [analysisWindowDays].
-/// - If the average daily downloads over the [analysisWindowDays] period are
-///   less than [minAvgDailyDownloadsThreshold].
-///
-/// Otherwise, it returns the calculated relative growth rate. A positive value
-/// indicates an upward trend in downloads, while a negative value indicates a
-/// downward trend. The magnitude represents the growth (or decline) rate
-/// normalized by the average daily downloads, allowing for comparison across
-/// packages of different popularity. For example, a slope of +10 downloads/day
-/// is more significant for a package with 100 average daily downloads (10%
-/// relative growth) than for a package with 10000 average daily downloads (0.1%
-/// relative growth).
+/// A positive value indicates an upward trend in downloads, while a negative
+/// value indicates a downward trend. The magnitude represents the growth (or
+/// decline) rate normalized by the average daily downloads, allowing for
+/// comparison across packages of different popularity. For example, a slope of
+/// +10 downloads/day is more significant for a package with 100 average daily
+/// downloads (10% relative growth) than for a package with 10000 average daily
+/// downloads (0.1% relative growth).
 double computeRelativeGrowthRate(List<int> totalDownloads) {
+  final List<int> data;
   if (totalDownloads.length < analysisWindowDays) {
-    // insufficient data points.
-    return -double.maxFinite;
+    data = [
+      ...totalDownloads,
+      ...List.filled(analysisWindowDays - totalDownloads.length, 0)
+    ];
+  } else {
+    data = totalDownloads;
   }
 
-  final recentDownloads = totalDownloads.sublist(0, analysisWindowDays);
+  final recentDownloads = data.sublist(0, analysisWindowDays);
 
   final averageRecentDownloads =
       recentDownloads.reduce((prev, element) => prev + element) /
           recentDownloads.length;
 
-  if (averageRecentDownloads < minAvgDailyDownloadsThreshold) {
-    // Package does not meet the minimum average download threshold.
-    return -double.maxFinite;
-  }
   // We reverse the recentDownloads list for regression, since the first entry
   // is the newest point in time. By reversing, we pass the data in
   // chronological order.

@@ -20,17 +20,6 @@ void main() {
   });
 
   group('computeRelativeGrowthRate', () {
-    test('returns -double.maxFinite for insufficient data', () {
-      final downloads = List<int>.generate(analysisWindowDays - 1, (i) => 1500);
-      expect(computeRelativeGrowthRate(downloads), -double.maxFinite);
-    });
-
-    test('returns -double.maxFinite for average downloads below threshold', () {
-      final downloads = List<int>.generate(
-          analysisWindowDays, (i) => minAvgDailyDownloadsThreshold - 1);
-      expect(computeRelativeGrowthRate(downloads), -double.maxFinite);
-    });
-
     test('returns 0.0 for stable downloads meeting threshold', () {
       final downloads = List<int>.generate(analysisWindowDays, (i) => 2000);
       expect(computeRelativeGrowthRate(downloads), 0.0);
