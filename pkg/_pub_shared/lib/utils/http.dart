@@ -83,6 +83,11 @@ Future<K> httpGetWithRetry<K>(
     },
     maxAttempts: maxAttempts,
     retryIf: (e) => _retryIf(e) || (retryIf != null && retryIf(e)),
+    onRetry: (_) {
+      if (client is _RenewableClient) {
+        client.renew();
+      }
+    },
   );
 }
 
@@ -112,4 +117,64 @@ class UnexpectedStatusException implements Exception {
 
   @override
   String toString() => 'UnexpectedStatusException: $message';
+}
+
+/// Creates a client that will be renewed when a HTTP retry happens.
+http.Client httpRenewableClient() => _RenewableClient();
+
+class _RenewableClient extends http.BaseClient {
+  var _client = _Client(http.Client());
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    return await _client.send(request);
+  }
+
+  void renew() {
+    final c = _client;
+    _client = _Client(http.Client());
+    c.close();
+  }
+
+  @override
+  void close() {
+    _client.close();
+  }
+}
+
+class _Client extends http.BaseClient {
+  final http.Client _client;
+  final _pending = <Future>[];
+  var _closing = false;
+
+  _Client(this._client);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (_closing) {
+      throw StateError('HTTP client is closed.');
+    }
+    final f = _client.send(request);
+    _pending.add(f);
+    try {
+      return await f;
+    } finally {
+      _pending.remove(f);
+      if (_closing && _pending.isEmpty) {
+        _client.close();
+      }
+    }
+  }
+
+  @override
+  void close() {
+    _closing = true;
+    if (_pending.isEmpty) {
+      _client.close();
+      return;
+    }
+    unawaited(Future.delayed(Duration(minutes: 1), () {
+      _client.close();
+    }));
+  }
 }
