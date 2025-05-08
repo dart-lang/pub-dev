@@ -82,9 +82,6 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
       nameMatches: (json['nameMatches'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      topicMatches: (json['topicMatches'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
       sdkLibraryHits: (json['sdkLibraryHits'] as List<dynamic>?)
           ?.map((e) => SdkLibraryHit.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -101,7 +98,6 @@ Map<String, dynamic> _$PackageSearchResultToJson(
       'timestamp': instance.timestamp.toIso8601String(),
       'totalCount': instance.totalCount,
       if (instance.nameMatches case final value?) 'nameMatches': value,
-      if (instance.topicMatches case final value?) 'topicMatches': value,
       'sdkLibraryHits': instance.sdkLibraryHits.map((e) => e.toJson()).toList(),
       'packageHits': instance.packageHits.map((e) => e.toJson()).toList(),
       if (instance.errorMessage case final value?) 'errorMessage': value,

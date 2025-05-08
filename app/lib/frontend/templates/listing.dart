@@ -6,7 +6,6 @@ import 'dart:math';
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:collection/collection.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../package/search_adapter.dart';
 import '../../search/search_service.dart';
@@ -52,9 +51,6 @@ String renderPkgIndexPage(
       messageFromBackend: searchResultPage.errorMessage,
     ),
     nameMatches: _nameMatches(searchForm, searchResultPage.nameMatches),
-    topicMatches: requestContext.experimentalFlags.isSearchTopicsEnabled
-        ? _topicMatches(searchForm, searchResultPage.topicMatches)
-        : null,
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
     openSections: openSections,
@@ -147,27 +143,6 @@ d.Node? _nameMatches(SearchForm form, List<String>? matches) {
           href: urls.pkgPageUrl(name),
           child: d.b(text: name),
         ),
-      ];
-    }),
-  ]);
-}
-
-d.Node? _topicMatches(SearchForm form, List<String>? matches) {
-  if (matches == null || matches.isEmpty) {
-    return null;
-  }
-  final singular = matches.length == 1;
-  final isExactNameMatch = singular && form.parsedQuery.text == matches.single;
-  final nameMatchLabel = isExactNameMatch
-      ? 'Exact topic match: '
-      : 'Matching ${singular ? 'topic' : 'topics'}: ';
-
-  return d.p(children: [
-    d.text(nameMatchLabel),
-    ...matches.expandIndexed((i, name) {
-      return [
-        if (i > 0) d.text(', '),
-        d.a(href: urls.searchUrl(q: 'topic:$name'), text: '#$name'),
       ];
     }),
   ]);

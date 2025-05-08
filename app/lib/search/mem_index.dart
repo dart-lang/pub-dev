@@ -230,19 +230,6 @@ class InMemoryPackageIndex {
     );
 
     final nameMatches = textResults?.nameMatches;
-    List<String>? topicMatches;
-
-    if (parsedQueryText != null) {
-      final parts = parsedQueryText
-          .split(' ')
-          .map((t) => canonicalTopics.aliasToCanonicalMap[t] ?? t)
-          .toSet()
-          .where(_topics.contains)
-          .toList();
-      if (parts.isNotEmpty) {
-        topicMatches = parts;
-      }
-    }
 
     List<IndexedPackageHit> indexedHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
@@ -306,7 +293,6 @@ class InMemoryPackageIndex {
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
       nameMatches: nameMatches,
-      topicMatches: topicMatches,
       packageHits: packageHits,
       errorMessage: textResults?.errorMessage,
     );
