@@ -45,7 +45,6 @@ class SearchAdapter {
       form,
       result.totalCount,
       nameMatches: result.nameMatches,
-      topicMatches: result.topicMatches,
       sdkLibraryHits: result.sdkLibraryHits,
       packageHits:
           result.packageHits.map((h) => views[h.package]).nonNulls.toList(),
@@ -149,9 +148,6 @@ class SearchResultPage {
   /// would be considered as blocker for publishing).
   final List<String>? nameMatches;
 
-  /// Topic names that are exact name matches or are close to a known topic.
-  final List<String>? topicMatches;
-
   /// The hits from the SDK libraries.
   final List<SdkLibraryHit> sdkLibraryHits;
 
@@ -169,7 +165,6 @@ class SearchResultPage {
     this.form,
     this.totalCount, {
     this.nameMatches,
-    this.topicMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageView>? packageHits,
     this.errorMessage,

@@ -9,7 +9,7 @@ import '../../shared/cookie_utils.dart';
 typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
-  (name: 'search-topics', description: 'Show matching topics when searching'),
+  (name: 'example', description: 'Short description'),
 };
 
 final _allFlags = <String>{
@@ -85,8 +85,6 @@ class ExperimentalFlags {
     }
     return params;
   }
-
-  bool get isSearchTopicsEnabled => isEnabled('search-topics');
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
 
