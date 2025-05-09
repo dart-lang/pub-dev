@@ -29,6 +29,9 @@ final flutterFavoriteBadgeNode = packageBadgeNode(
   ),
 );
 
+/// Renders the name match badge node, used for exact package name hits.
+final nameMatchBadgeNode = packageBadgeNode(label: 'Name match');
+
 /// Renders the null-safe badge used by package listing and package page.
 d.Node nullSafeBadgeNode({String? title}) {
   return packageBadgeNode(

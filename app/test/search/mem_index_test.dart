@@ -636,9 +636,9 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'nameMatches': ['abc'],
           'sdkLibraryHits': [],
           'packageHits': [
-            // `abc` is at its natural place
-            {'package': 'def', 'score': closeTo(0.85, 0.01)},
+            // `abc` is at the first position, score is kept
             {'package': 'abc', 'score': closeTo(0.70, 0.01)},
+            {'package': 'def', 'score': closeTo(0.85, 0.01)},
           ]
         });
         // exact name match with tags
@@ -651,9 +651,9 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
               'nameMatches': ['abc'],
               'sdkLibraryHits': [],
               'packageHits': [
-                // `abc` is at its natural place
-                {'package': 'def', 'score': closeTo(0.85, 0.01)},
+                // `abc` is at the first position, score is kept
                 {'package': 'abc', 'score': closeTo(0.70, 0.01)},
+                {'package': 'def', 'score': closeTo(0.85, 0.01)},
               ]
             });
         // absent exact name match with tags
@@ -662,11 +662,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
                 .toJson(),
             {
               'timestamp': isNotEmpty,
-              'totalCount': 1,
+              'totalCount': 2,
               'nameMatches': ['abc'],
               'sdkLibraryHits': [],
               'packageHits': [
-                // `abc` is not present in the package list
+                // `abc` is at the first position, score is zero
+                {'package': 'abc', 'score': 0.0},
                 {'package': 'def', 'score': closeTo(0.85, 0.01)},
               ]
             });

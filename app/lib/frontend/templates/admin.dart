@@ -58,6 +58,7 @@ String renderAccountPackagesPage({
       searchForm: null,
       sdkLibraryHits: [],
       packageHits: packageHits,
+      nameMatches: null,
     ),
     if (nextPackage != null)
       d.div(
