@@ -2,19 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:basics/basics.dart';
 import 'package:gcloud/storage.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
+import 'package:pub_dev/service/download_counts/package_trends.dart';
+import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
 
 void main() {
-  group('', () {
+  group('30 days download counts', () {
     testWithProfile('compute download counts 30-days totals', fn: () async {
       final pkg = 'foo';
       final versionsCounts = {
@@ -119,7 +123,9 @@ void main() {
       expect(downloadCountsBackend.lookup30DaysTotalCounts('baz'), 150);
       expect(downloadCountsBackend.lookup30DaysTotalCounts('bax'), isNull);
     });
+  });
 
+  group('weekly download counts', () {
     testWithProfile('compute weekly', fn: () async {
       final pkg = 'foo';
       final date = DateTime.parse('1986-02-16');
@@ -274,6 +280,61 @@ void main() {
         expect(res.patchRangeWeeklyDownloads[i].versionRange,
             expectedPatchWeeklyDownloads[i].versionRange);
       }
+    });
+  });
+  group('trends', () {
+    testWithProfile('compute trend', fn: () async {
+      String date(int i) => i < 10 ? '2024-01-0$i' : '2024-01-$i';
+
+      for (int i = 1; i < 16; i++) {
+        final d = DateTime.parse(date(i));
+        final downloadCountsJsonFileName =
+            'daily_download_counts/${date(i)}T00:00:00Z/data-000000000000.jsonl';
+        await uploadFakeDownloadCountsToBucket(
+            downloadCountsJsonFileName,
+            path.join(
+                Directory.current.path,
+                'test',
+                'service',
+                'download_counts',
+                'fake_download_counts_data_for_trend1.jsonl'));
+        await processDownloadCounts(d);
+      }
+      for (int i = 16; i < 31; i++) {
+        final d = DateTime.parse(date(i));
+        final downloadCountsJsonFileName =
+            'daily_download_counts/${date(i)}T00:00:00Z/data-000000000000.jsonl';
+        await uploadFakeDownloadCountsToBucket(
+            downloadCountsJsonFileName,
+            path.join(
+                Directory.current.path,
+                'test',
+                'service',
+                'download_counts',
+                'fake_download_counts_data_for_trend2.jsonl'));
+        await processDownloadCounts(d);
+      }
+      final neonTrend = computeTrendScore(
+          [...List.filled(15, 2000), ...List.filled(15, 1000)]);
+      final oxygenTrend = computeTrendScore(
+          [...List.filled(15, 5000), ...List.filled(15, 3000)]);
+
+      expect(await computeTrend(),
+          {'flutter_titanium': 0.0, 'neon': neonTrend, 'oxygen': oxygenTrend});
+    });
+
+    testWithProfile('succesful trends upload', fn: () async {
+      final trends = {'foo': 1.0, 'bar': 3.0, 'baz': 2.0};
+      await uploadTrendScores(trends);
+
+      final data = await storageService
+          .bucket(activeConfiguration.reportsBucketName!)
+          .read(trendScoreFileName)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
+          .single;
+
+      expect(data, trends);
     });
   });
 }

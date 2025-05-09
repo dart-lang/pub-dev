@@ -6,14 +6,44 @@ import 'dart:math';
 
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:gcloud/storage.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
+import 'package:pub_dev/service/download_counts/package_trends.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../shared/redis_cache.dart' show cache;
+
+Future<void> computeTrendScoreTask() async {
+  final trendScores = await computeTrend();
+  await uploadTrendScores(trendScores);
+}
+
+Future<Map<String, double>> computeTrend() async {
+  final res = <String, double>{};
+
+  await for (final pkg in packageBackend.allPackages()) {
+    final name = pkg.name!;
+    final downloads =
+        (await downloadCountsBackend.lookupDownloadCountData(name))
+                ?.totalCounts ??
+            [0];
+    res[name] = computeTrendScore(downloads);
+  }
+  return res;
+}
+
+final trendScoreFileName = 'trend-scores.json';
+
+Future<void> uploadTrendScores(Map<String, double> trends) async {
+  final reportsBucket =
+      storageService.bucket(activeConfiguration.reportsBucketName!);
+  await uploadBytesWithRetry(
+      reportsBucket, trendScoreFileName, jsonUtf8Encoder.convert(trends));
+}
 
 Future<void> compute30DaysTotalTask() async {
   final allDownloadCounts = await downloadCountsBackend.listAllDownloadCounts();

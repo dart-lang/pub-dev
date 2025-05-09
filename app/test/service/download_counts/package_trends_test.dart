@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:pub_dev/service/download_counts/package_trends.dart';
 import 'package:test/test.dart';
 
@@ -98,5 +100,88 @@ void main() {
       final expectedRate = 683250.0 / 67425.0 / 1135.0;
       expect(computeRelativeGrowthRate(downloads), expectedRate);
     });
+  });
+  group('computeTrendScore', () {
+    test('Short history, very low sum, positive growth -> heavily dampened',
+        () {
+      final downloads = [100, 50];
+      // For relativeGrowth:
+      //   Padded data: [100, 50, 0...0] (28 zeros)
+      //   avg = 150/30 = 5
+      //   growthRate = 63750 / 67425
+      final expectedDampening = min(1.0, 150 / 30000);
+      final expectedRelativeGrowth = 63750 / 67425 / 5;
+      final expectedScore =
+          expectedRelativeGrowth * expectedDampening * expectedDampening;
+      expect(computeTrendScore(downloads), expectedScore);
+    });
+  });
+
+  test('Full history, sum meets threshold, positive growth -> no dampening',
+      () {
+    final downloads =
+        List<int>.generate(analysisWindowDays, (i) => 1645 - (i * 10));
+    // For relativeGrowth:
+    //   data: [1645, 1635, ..., 1355]
+    //   avg = 1500,
+    //   growthrate = 10
+    final expectedDampening = min(1.0, 45000 / 30000);
+    final expectedRelativeGrowth = 10 / 1500;
+    final expectedScore =
+        expectedRelativeGrowth * expectedDampening * expectedDampening;
+    expect(computeTrendScore(downloads), expectedScore);
+  });
+
+  test('Negative growth, sum meets threshold -> no dampening', () {
+    final downloads =
+        List<int>.generate(analysisWindowDays, (i) => 1355 + (i * 10));
+    // For relativeGrowth:
+    //   data: [1645, 1635, ..., 1355]
+    //   avg = 1500,
+    //   growthrate = -10
+    final expectedDampening = min(1.0, 45000 / 30000);
+    final expectedRelativeGrowth = -10.0 / 1500;
+    final expectedScore =
+        expectedRelativeGrowth * expectedDampening * expectedDampening;
+    expect(computeTrendScore(downloads), expectedScore);
+  });
+  test('Full history, sum below threshold, positive growth -> dampened', () {
+    final downloads =
+        List<int>.generate(analysisWindowDays, (i) => 645 - (i * 10));
+    // For relativeGrowth:
+    //   data: [645,..., 345, 355]
+    //   avg = 500
+    //   growthrate = 10
+    final expectedDampening = min(1.0, 15000 / 30000);
+    final expectedRelativeGrowth = 10.0 / 500.0;
+    final expectedScore =
+        expectedRelativeGrowth * expectedDampening * expectedDampening;
+
+    expect(computeTrendScore(downloads), expectedScore);
+  });
+
+  test('Empty totalDownloads list -> score 0', () {
+    final downloads = <int>[];
+    expect(computeTrendScore(downloads), 0);
+  });
+
+  test('Full history, all zero downloads -> score 0', () {
+    final downloads = List<int>.filled(analysisWindowDays, 0);
+    expect(computeTrendScore(downloads), 0);
+  });
+
+  test('ThirtyDaySum just below threshold correctly, flat growth', () {
+    final downloads = List<int>.filled(analysisWindowDays, 999);
+    expect(computeTrendScore(downloads), 0);
+  });
+
+  test('Short history, high sum meets threshold -> no dampening', () {
+    final downloads = List<int>.filled(15, 2000);
+    final expectedDampening = min(1.0, 30000 / 30000);
+    final expectedRelativeGrowth = 6750000 / 67425 / 1000;
+    final expectedScore =
+        expectedRelativeGrowth * expectedDampening * expectedDampening;
+
+    expect(computeTrendScore(downloads), expectedScore);
   });
 }
