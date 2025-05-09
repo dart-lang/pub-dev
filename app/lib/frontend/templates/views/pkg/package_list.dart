@@ -27,12 +27,19 @@ d.Node listOfPackagesNode({
   required SearchForm? searchForm,
   required List<SdkLibraryHit> sdkLibraryHits,
   required List<PackageView> packageHits,
+  required List<String>? nameMatches,
 }) {
+  final bestNameMatch =
+      (nameMatches == null || nameMatches.isEmpty) ? null : nameMatches.first;
   return d.div(
     classes: ['packages'],
     children: [
       ...sdkLibraryHits.map(_sdkLibraryItem),
-      ...packageHits.map((hit) => _packageItem(hit, searchForm: searchForm)),
+      ...packageHits.map((hit) => _packageItem(
+            hit,
+            searchForm: searchForm,
+            isNameMatch: hit.name == bestNameMatch,
+          )),
       imageCarousel(),
     ],
   );
@@ -48,6 +55,7 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
   return _item(
     url: hit.url!,
     name: hit.library!,
+    isNameMatch: false,
     newTimestamp: null,
     labeledScoresNode: null,
     description: hit.description ?? '',
@@ -71,6 +79,7 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
 d.Node _packageItem(
   PackageView view, {
   required SearchForm? searchForm,
+  required bool isNameMatch,
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
@@ -177,6 +186,7 @@ d.Node _packageItem(
     screenshotDescriptions: screenshotDescriptions,
     url: urls.pkgPageUrl(view.name),
     name: view.name,
+    isNameMatch: isNameMatch,
     newTimestamp: view.created,
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
@@ -207,6 +217,7 @@ d.Node _item({
   List<d.Node> topics = const [],
   required String url,
   required String name,
+  required bool isNameMatch,
   required DateTime? newTimestamp,
   required d.Node? labeledScoresNode,
   required String description,
@@ -230,6 +241,8 @@ d.Node _item({
           ], children: [
             d.a(href: url, text: name),
             if (copyIcon != null) copyIcon,
+            d.text(' '),
+            if (isNameMatch) nameMatchBadgeNode,
           ]),
           if (age != null && age.inDays <= 30)
             d.div(
