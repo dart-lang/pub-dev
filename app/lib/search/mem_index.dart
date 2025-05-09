@@ -225,11 +225,33 @@ class InMemoryPackageIndex {
     final textResults = _searchText(
       packageScores,
       parsedQueryText,
-      includeNameMatches: (query.offset ?? 0) == 0,
       textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
     );
 
-    final nameMatches = textResults?.nameMatches;
+    String? bestNameMatch;
+    if (parsedQueryText != null) {
+      // exact package name
+      if (_documentsByName.containsKey(parsedQueryText)) {
+        bestNameMatch = parsedQueryText;
+      } else {
+        // reduced package name match
+        final matches = _packageNameIndex.lookupMatchingNames(parsedQueryText);
+        if (matches != null && matches.isNotEmpty) {
+          bestNameMatch = matches.length == 1
+              ? matches.single
+              :
+              // Note: to keep it simple, we select the most downloaded one from competing matches.
+              matches.reduce((a, b) {
+                  if (_documentsByName[a]!.downloadCount >
+                      _documentsByName[b]!.downloadCount) {
+                    return a;
+                  } else {
+                    return b;
+                  }
+                });
+        }
+      }
+    }
 
     List<IndexedPackageHit> indexedHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
@@ -292,7 +314,7 @@ class InMemoryPackageIndex {
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
-      nameMatches: nameMatches,
+      nameMatches: bestNameMatch == null ? null : [bestNameMatch],
       packageHits: packageHits,
       errorMessage: textResults?.errorMessage,
     );
@@ -321,7 +343,6 @@ class InMemoryPackageIndex {
   _TextResults? _searchText(
     IndexedScore<String> packageScores,
     String? text, {
-    required bool includeNameMatches,
     required TextMatchExtent textMatchExtent,
   }) {
     if (text == null || text.isEmpty) {
@@ -353,15 +374,6 @@ class InMemoryPackageIndex {
       return aborted;
     }
 
-    Set<String>? nameMatches;
-    if (includeNameMatches) {
-      final matches = _packageNameIndex.lookupMatchingNames(text);
-      if (matches != null) {
-        nameMatches ??= <String>{};
-        nameMatches.addAll(matches);
-      }
-    }
-
     // Multiple words are scored separately, and then the individual scores
     // are multiplied. We can use a package filter that is applied after each
     // word to reduce the scope of the later words based on the previous results.
@@ -373,14 +385,6 @@ class InMemoryPackageIndex {
     final matchApi = textMatchExtent.shouldMatchApi();
 
     for (final word in words) {
-      if (includeNameMatches) {
-        final matches = _packageNameIndex.lookupMatchingNames(word);
-        if (matches != null) {
-          nameMatches ??= <String>{};
-          nameMatches.addAll(matches);
-        }
-      }
-
       _scorePool.withScore(
         value: 0.0,
         fn: (wordScore) {
@@ -454,10 +458,7 @@ class InMemoryPackageIndex {
       }
     }
 
-    return _TextResults(
-      topApiPages,
-      nameMatches: nameMatches?.toList(),
-    );
+    return _TextResults(topApiPages);
   }
 
   List<IndexedPackageHit> _rankWithValues(
@@ -535,20 +536,17 @@ class InMemoryPackageIndex {
 
 class _TextResults {
   final List<List<MapEntry<String, double>>?>? topApiPages;
-  final List<String>? nameMatches;
   final String? errorMessage;
 
   factory _TextResults.empty({String? errorMessage}) {
     return _TextResults(
       null,
-      nameMatches: null,
       errorMessage: errorMessage,
     );
   }
 
   _TextResults(
     this.topApiPages, {
-    required this.nameMatches,
     this.errorMessage,
   });
 }
