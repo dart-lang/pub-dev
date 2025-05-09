@@ -230,20 +230,26 @@ class InMemoryPackageIndex {
 
     String? bestNameMatch;
     if (parsedQueryText != null) {
-      final matches = _packageNameIndex.lookupMatchingNames(parsedQueryText);
-      if (matches != null && matches.isNotEmpty) {
-        bestNameMatch = matches.length == 1
-            ? matches.single
-            :
-            // Note: to keep it simple, we select the most downloaded one from competing matches.
-            matches.reduce((a, b) {
-                if (_documentsByName[a]!.downloadCount >
-                    _documentsByName[b]!.downloadCount) {
-                  return a;
-                } else {
-                  return b;
-                }
-              });
+      // exact package name
+      if (_documentsByName.containsKey(parsedQueryText)) {
+        bestNameMatch = parsedQueryText;
+      } else {
+        // reduced package name match
+        final matches = _packageNameIndex.lookupMatchingNames(parsedQueryText);
+        if (matches != null && matches.isNotEmpty) {
+          bestNameMatch = matches.length == 1
+              ? matches.single
+              :
+              // Note: to keep it simple, we select the most downloaded one from competing matches.
+              matches.reduce((a, b) {
+                  if (_documentsByName[a]!.downloadCount >
+                      _documentsByName[b]!.downloadCount) {
+                    return a;
+                  } else {
+                    return b;
+                  }
+                });
+        }
       }
     }
 
