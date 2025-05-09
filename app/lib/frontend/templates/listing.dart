@@ -5,11 +5,9 @@
 import 'dart:math';
 
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:collection/collection.dart';
 
 import '../../package/search_adapter.dart';
 import '../../search/search_service.dart';
-import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 
 import '_consts.dart';
@@ -29,6 +27,7 @@ d.Node packageList(SearchResultPage searchResultPage) {
     searchForm: searchResultPage.form,
     sdkLibraryHits: searchResultPage.sdkLibraryHits,
     packageHits: searchResultPage.packageHits,
+    nameMatches: searchResultPage.nameMatches,
   );
 }
 
@@ -50,7 +49,6 @@ String renderPkgIndexPage(
       title: topPackages,
       messageFromBackend: searchResultPage.errorMessage,
     ),
-    nameMatches: _nameMatches(searchForm, searchResultPage.nameMatches),
     packageList: packageList(searchResultPage),
     pagination: searchResultPage.hasHit ? paginationNode(links) : null,
     openSections: openSections,
@@ -122,28 +120,4 @@ class PageLinks {
     final int fromCount = 1 + ((count - 1) ~/ searchForm.pageSize!);
     return min(fromSymmetry, max(currentPage!, fromCount));
   }
-}
-
-d.Node? _nameMatches(SearchForm form, List<String>? matches) {
-  if (matches == null || matches.isEmpty) {
-    return null;
-  }
-  final singular = matches.length == 1;
-  final isExactNameMatch = singular && form.parsedQuery.text == matches.single;
-  final nameMatchLabel = isExactNameMatch
-      ? 'Exact package name match: '
-      : 'Matching package ${singular ? 'name' : 'names'}: ';
-
-  return d.p(children: [
-    d.text(nameMatchLabel),
-    ...matches.expandIndexed((i, name) {
-      return [
-        if (i > 0) d.text(', '),
-        d.a(
-          href: urls.pkgPageUrl(name),
-          child: d.b(text: name),
-        ),
-      ];
-    }),
-  ]);
 }
