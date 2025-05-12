@@ -8,7 +8,7 @@ import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
-import '../../../../package/overrides.dart' show redirectPackageUrls;
+import '../../../../package/overrides.dart' show sdkPackageUrls;
 import '../../../../package/screenshots/backend.dart';
 import '../../../../service/topics/models.dart';
 import '../../../../shared/urls.dart' as urls;
@@ -238,7 +238,7 @@ d.Node? _dependencyListNode(Map<String, pubspek.Dependency>? dependencies) {
       nodes.add(d.text(', '));
     }
     final dep = dependencies[p];
-    var href = redirectPackageUrls[p];
+    var href = sdkPackageUrls[p];
     String? constraint;
     if (href == null && dep is pubspek.HostedDependency) {
       href = urls.pkgPageUrl(p);

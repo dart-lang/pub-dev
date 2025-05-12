@@ -151,7 +151,7 @@ class SearchBackend {
       if (!claim.valid) {
         return;
       }
-      if (isSoftRemoved(package)) {
+      if (isSdkPackage(package)) {
         return;
       }
       // Skip if the last document timestamp is before [updated].

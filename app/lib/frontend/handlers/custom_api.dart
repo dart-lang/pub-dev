@@ -38,7 +38,7 @@ import 'cache_control.dart';
 Future<shelf.Response> apiDocumentationHandler(
     shelf.Request request, String package) async {
   checkPackageVersionParams(package);
-  if (isSoftRemoved(package)) {
+  if (isSdkPackage(package)) {
     return jsonResponse({}, status: 404);
   }
 
