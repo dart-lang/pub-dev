@@ -64,6 +64,9 @@ enum SearchOrder {
 
   /// Search order should be in decreasing pub points.
   points,
+
+  /// Search order should be in decreasing trend score.
+  trending,
 }
 
 /// Returns null if [value] is not a recognized search order.
