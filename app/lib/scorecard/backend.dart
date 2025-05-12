@@ -77,8 +77,8 @@ class ScoreCardBackend {
         return null;
       }
 
-      final version = await taskBackend.latestFinishedVersion(package) ??
-          await packageBackend.getLatestVersion(package);
+      final version =
+          await taskBackend.latestFinishedVersion(package) ?? p.latestVersion;
       if (version == null) {
         return null;
       }
