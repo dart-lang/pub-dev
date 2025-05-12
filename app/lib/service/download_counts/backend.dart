@@ -29,7 +29,7 @@ class DownloadCountsBackend {
   final DatastoreDB _db;
 
   late CachedValue<Map<String, int>> _thirtyDaysTotals;
-  var _lastData = (data: <String, int>{}, etag: '');
+  var _lastDownloadsData = (data: <String, int>{}, etag: '');
 
   late CachedValue<Map<String, int>> _trendScores;
   var _lastTrendData = (data: <String, int>{}, etag: '');
@@ -48,70 +48,86 @@ class DownloadCountsBackend {
   }
 
   Future<Map<String, int>> _updateThirtyDaysTotals() async {
+    return _fetchAndUpdateCachedData(
+        fileName: downloadCounts30DaysTotalsFileName,
+        currentCachedData: _lastDownloadsData,
+        updateCache: (data) => _lastDownloadsData = data,
+        errorContext: '30-days total download counts');
+  }
+
+  Future<Map<String, int>> _updateTrendScores() async {
+    return _fetchAndUpdateCachedData(
+        fileName: trendScoreFileName,
+        currentCachedData: _lastTrendData,
+        updateCache: (data) => _lastTrendData = data,
+        errorContext: 'trend scores');
+  }
+
+  Future<Map<String, int>> _fetchAndUpdateCachedData({
+    required String fileName,
+    required ({Map<String, int> data, String etag}) currentCachedData,
+    required void Function(({Map<String, int> data, String etag}) newData)
+        updateCache,
+    required String errorContext,
+  }) async {
     try {
       final info = await storageService
           .bucket(activeConfiguration.reportsBucketName!)
-          .infoWithRetry(downloadCounts30DaysTotalsFileName);
+          .infoWithRetry(fileName);
 
-      if (_lastData.etag == info.etag) {
-        return _lastData.data;
+      if (currentCachedData.etag == info.etag) {
+        return currentCachedData.data;
       }
-      final data = (await storageService
-              .bucket(activeConfiguration.reportsBucketName!)
-              .readWithRetry(
-                downloadCounts30DaysTotalsFileName,
-                (input) async => await input
-                    .transform(utf8.decoder)
-                    .transform(json.decoder)
-                    .single as Map<String, dynamic>,
-              ))
-          .cast<String, int>();
-      _lastData = (data: data, etag: info.etag);
+
+      final rawData = await storageService
+          .bucket(activeConfiguration.reportsBucketName!)
+          .readWithRetry(
+            fileName,
+            (input) async => await input
+                .transform(utf8.decoder)
+                .transform(json.decoder)
+                .single,
+          );
+
+      final data = _parseJsonToMapStringInt(rawData, fileName);
+
+      final newData = (data: data, etag: info.etag);
+      updateCache(newData);
       return data;
     } on FormatException catch (e, st) {
-      logger.severe('Error loading 30-days total download counts:', e, st);
+      logger.severe('Error parsing $errorContext: $e', e, st);
       rethrow;
     } on DetailedApiRequestError catch (e, st) {
       if (e.status != 404) {
         logger.severe(
-            'Failed to load $downloadCounts30DaysTotalsFileName, error : ',
-            e,
-            st);
+            'Failed to load $fileName ($errorContext), error : $e', e, st);
       }
+      rethrow;
+    } on TypeError catch (e, st) {
+      logger.severe('Type error during processing $errorContext: $e', e, st);
       rethrow;
     }
   }
 
-  Future<Map<String, int>> _updateTrendScores() async {
-    try {
-      final info = await storageService
-          .bucket(activeConfiguration.reportsBucketName!)
-          .infoWithRetry(trendScoreFileName);
-
-      if (_lastTrendData.etag == info.etag) {
-        return _lastTrendData.data;
-      }
-      final data = (await storageService
-              .bucket(activeConfiguration.reportsBucketName!)
-              .readWithRetry(
-                trendScoreFileName,
-                (input) async => await input
-                    .transform(utf8.decoder)
-                    .transform(json.decoder)
-                    .single as Map<String, dynamic>,
-              ))
-          .cast<String, int>();
-      _lastTrendData = (data: data, etag: info.etag);
-      return data;
-    } on FormatException catch (e, st) {
-      logger.severe('Error package trend scores:', e, st);
-      rethrow;
-    } on DetailedApiRequestError catch (e, st) {
-      if (e.status != 404) {
-        logger.severe('Failed to load $trendScoreFileName, error : ', e, st);
-      }
-      rethrow;
+  Map<String, int> _parseJsonToMapStringInt(dynamic rawJson, String fileName) {
+    if (rawJson is! Map) {
+      throw FormatException(
+          'Expected JSON for $fileName to be a Map, but got ${rawJson.runtimeType}');
     }
+
+    final Map<String, int> result = {};
+    for (final entry in rawJson.entries) {
+      if (entry.key is! String) {
+        throw FormatException(
+            'Expected map keys for $fileName to be String, but found ${entry.key.runtimeType}');
+      }
+      if (entry.value is! int) {
+        throw FormatException(
+            'Expected map value for key "${entry.key}" in $fileName to be int, but got ${entry.value.runtimeType}');
+      }
+      result[entry.key as String] = entry.value as int;
+    }
+    return result;
   }
 
   Future<void> start() async {
