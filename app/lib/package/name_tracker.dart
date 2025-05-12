@@ -52,7 +52,7 @@ class TrackedPackage {
         updated: p.updated!,
         latestVersion: p.latestVersion!,
         lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible && !isSoftRemoved(p.name!),
+        isVisible: p.isVisible && !isSdkPackage(p.name!),
       );
 
   @visibleForTesting

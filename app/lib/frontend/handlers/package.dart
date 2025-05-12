@@ -233,8 +233,8 @@ Future<shelf.Response> packageScoreLogTxtHandler(
   String? version,
 }) async {
   checkPackageVersionParams(package, version);
-  if (redirectPackageUrls.containsKey(package)) {
-    return redirectResponse(redirectPackageUrls[package]!);
+  if (isSdkPackage(package)) {
+    return redirectResponse(sdkPackageUrls[package]!);
   }
   if (!await packageBackend.isPackageVisible(package)) {
     return shelf.Response.notFound('no such package');
@@ -289,8 +289,8 @@ Future<shelf.Response> _handlePackagePage({
   if (request.requestedUri.path != canonicalUrl) {
     return redirectResponse(canonicalUrl);
   }
-  if (redirectPackageUrls.containsKey(packageName)) {
-    return redirectResponse(redirectPackageUrls[packageName]!);
+  if (isSdkPackage(packageName)) {
+    return redirectResponse(sdkPackageUrls[packageName]!);
   }
   final Stopwatch sw = Stopwatch()..start();
   String? cachedPage;

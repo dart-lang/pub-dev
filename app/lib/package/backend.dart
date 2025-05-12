@@ -137,7 +137,7 @@ class PackageBackend {
         .run()
         .where((p) => p.isVisible)
         .where((p) => p.isIncludedInRobots)
-        .where((p) => !isSoftRemoved(p.name!));
+        .where((p) => !isSdkPackage(p.name!));
   }
 
   /// Retrieves package versions ordered by their published date descending.
@@ -150,7 +150,7 @@ class PackageBackend {
     final versions = await query.run().toList();
     final results = <PackageVersion>[];
     for (final v in versions) {
-      if (isSoftRemoved(v.package)) continue;
+      if (isSdkPackage(v.package)) continue;
       if (!(await isPackageVisible(v.package))) continue;
       results.add(v);
     }
@@ -1011,7 +1011,7 @@ class PackageBackend {
           // purpose of checking if the dependency exists, we skip them.
           continue;
         }
-        if (isSoftRemoved(name)) {
+        if (isSdkPackage(name)) {
           continue;
         }
         if (nameTracker.hasPackage(name)) {

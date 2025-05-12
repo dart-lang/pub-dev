@@ -28,8 +28,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     return notFoundHandler(request);
   }
   checkPackageVersionParams(docFilePath.package, docFilePath.version);
-  if (redirectPackageUrls.containsKey(docFilePath.package)) {
-    return redirectResponse(redirectPackageUrls[docFilePath.package]!);
+  if (isSdkPackage(docFilePath.package)) {
+    return redirectResponse(sdkPackageUrls[docFilePath.package]!);
   }
   if (!await packageBackend.isPackageVisible(docFilePath.package)) {
     return notFoundHandler(request);

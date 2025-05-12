@@ -47,7 +47,8 @@ final _reservedPackageNames = <String>[
   'flutterkit',
 ].map(reducePackageName).toList();
 
-const redirectPackageUrls = <String, String>{
+/// Mapping packages names to URLs that we need to redirect them to after they become SDK packages.
+const sdkPackageUrls = <String, String>{
   'flutter': 'https://api.flutter.dev/',
   'flutter_driver':
       'https://api.flutter.dev/flutter/flutter_driver/flutter_driver-library.html',
@@ -81,10 +82,12 @@ const devDependencyPackages = <String>{
   'test_process',
 };
 
-/// A package is soft-removed when we keep it in the archives and index, but we
-/// won't serve the package or the documentation page, or any data about it.
-bool isSoftRemoved(String packageName) =>
-    redirectPackageUrls.containsKey(packageName);
+/// A package may become an SDK package, after which we redirect
+/// their UI page to a new location.
+///
+/// Note: we keep them in the archives, and keep serving their API information.
+bool isSdkPackage(String packageName) =>
+    sdkPackageUrls.containsKey(packageName);
 
 /// Whether the [name] is (very similar) to a reserved package name.
 bool matchesReservedPackageName(String name) =>

@@ -21,7 +21,7 @@ Future<void> main(List<String> args) async {
   final snapshot = SearchSnapshot.fromJson(content);
   final index = InMemoryPackageIndex(
       documents:
-          snapshot.documents!.values.where((d) => !isSoftRemoved(d.package)));
+          snapshot.documents!.values.where((d) => !isSdkPackage(d.package)));
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [
