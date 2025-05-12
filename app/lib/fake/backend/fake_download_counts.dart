@@ -48,3 +48,9 @@ Future<void> generateFake30DaysTotals(Map<String, int> totals) async {
       .writeBytesWithRetry(
           downloadCounts30DaysTotalsFileName, jsonUtf8Encoder.convert(totals));
 }
+
+Future<void> generateFakeTrendScores(Map<String, int> totals) async {
+  await storageService
+      .bucket(activeConfiguration.reportsBucketName!)
+      .writeBytesWithRetry(trendScoreFileName, jsonUtf8Encoder.convert(totals));
+}
