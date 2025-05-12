@@ -337,4 +337,24 @@ void main() {
       expect(data, trends);
     });
   });
+
+  testWithProfile('cache package trend scores', fn: () async {
+    await generateFakeTrendScores({'foo': 3, 'bar': 1, 'baz': 2});
+    expect(downloadCountsBackend.lookupTrendScore('foo'), isNull);
+    expect(downloadCountsBackend.lookupTrendScore('bar'), isNull);
+    expect(downloadCountsBackend.lookupTrendScore('baz'), isNull);
+
+    await downloadCountsBackend.start();
+    expect(downloadCountsBackend.lookupTrendScore('foo'), 3);
+    expect(downloadCountsBackend.lookupTrendScore('bar'), 1);
+    expect(downloadCountsBackend.lookupTrendScore('baz'), 2);
+    expect(downloadCountsBackend.lookupTrendScore('bax'), isNull);
+
+    await generateFakeTrendScores({'foo': 9, 'bar': 2, 'baz': 5});
+    await downloadCountsBackend.start();
+    expect(downloadCountsBackend.lookupTrendScore('foo'), 9);
+    expect(downloadCountsBackend.lookupTrendScore('bar'), 2);
+    expect(downloadCountsBackend.lookupTrendScore('baz'), 5);
+    expect(downloadCountsBackend.lookupTrendScore('bax'), isNull);
+  });
 }

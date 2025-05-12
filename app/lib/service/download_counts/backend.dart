@@ -31,12 +31,20 @@ class DownloadCountsBackend {
   late CachedValue<Map<String, int>> _thirtyDaysTotals;
   var _lastData = (data: <String, int>{}, etag: '');
 
+  late CachedValue<Map<String, int>> _trendScores;
+  var _lastTrendData = (data: <String, int>{}, etag: '');
+
   DownloadCountsBackend(this._db) {
     _thirtyDaysTotals = CachedValue(
         name: 'thirtyDaysTotalDownloadCounts',
         maxAge: Duration(days: 14),
         interval: Duration(minutes: 30),
         updateFn: _updateThirtyDaysTotals);
+    _trendScores = CachedValue(
+        name: 'trendScores',
+        maxAge: Duration(days: 14),
+        interval: Duration(minutes: 30),
+        updateFn: _updateTrendScores);
   }
 
   Future<Map<String, int>> _updateThirtyDaysTotals() async {
@@ -74,16 +82,53 @@ class DownloadCountsBackend {
     }
   }
 
+  Future<Map<String, int>> _updateTrendScores() async {
+    try {
+      final info = await storageService
+          .bucket(activeConfiguration.reportsBucketName!)
+          .infoWithRetry(trendScoreFileName);
+
+      if (_lastTrendData.etag == info.etag) {
+        return _lastTrendData.data;
+      }
+      final data = (await storageService
+              .bucket(activeConfiguration.reportsBucketName!)
+              .readWithRetry(
+                trendScoreFileName,
+                (input) async => await input
+                    .transform(utf8.decoder)
+                    .transform(json.decoder)
+                    .single as Map<String, dynamic>,
+              ))
+          .cast<String, int>();
+      _lastTrendData = (data: data, etag: info.etag);
+      return data;
+    } on FormatException catch (e, st) {
+      logger.severe('Error package trend scores:', e, st);
+      rethrow;
+    } on DetailedApiRequestError catch (e, st) {
+      if (e.status != 404) {
+        logger.severe('Failed to load $trendScoreFileName, error : ', e, st);
+      }
+      rethrow;
+    }
+  }
+
   Future<void> start() async {
     await _thirtyDaysTotals.update();
+    await _trendScores.update();
   }
 
   Future<void> close() async {
     await _thirtyDaysTotals.close();
+    await _trendScores.close();
   }
 
   int? lookup30DaysTotalCounts(String package) =>
       _thirtyDaysTotals.isAvailable ? _thirtyDaysTotals.value![package] : null;
+
+  int? lookupTrendScore(String package) =>
+      _trendScores.isAvailable ? _trendScores.value![package] : null;
 
   Future<CountData?> lookupDownloadCountData(String pkg) async {
     return (await cache.downloadCounts(pkg).get(() async {
