@@ -30,6 +30,8 @@ class TopPackages {
   );
   final _mostPopular =
       _cachedValue('top-packages-most-popular', order: SearchOrder.downloads);
+  final _trending =
+      _cachedValue('top-packages-trending', order: SearchOrder.trending);
   final _topDart = _cachedValue('top-packages-top-dart', query: SdkTag.sdkDart);
   final _topFlutter =
       _cachedValue('top-packages-top-flutter', query: SdkTag.sdkFlutter);
@@ -87,6 +89,10 @@ class TopPackages {
 
   List<PackageView> topFlutter() {
     return _randomSelection(_topFlutter, 6);
+  }
+
+  List<PackageView> trending() {
+    return _randomSelection(_trending, 6);
   }
 
   List<PackageView> _randomSelection(

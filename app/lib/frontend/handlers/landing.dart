@@ -43,6 +43,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
       mostPopularPackages: topPackages.mostPopular(),
       topFlutterPackages: topPackages.topFlutter(),
       topDartPackages: topPackages.topDart(),
+      trendingPackages: topPackages.trending(),
       topPoWVideos: youtubeBackend.getTopPackageOfWeekVideos(count: 4),
     );
   }
