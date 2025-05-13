@@ -234,7 +234,9 @@ class InMemoryPackageIndex {
     );
 
     String? bestNameMatch;
-    if (parsedQueryText != null) {
+    if (parsedQueryText != null &&
+        query.parsedQuery.hasOnlyFreeText &&
+        query.isNaturalOrder) {
       // exact package name
       if (_documentsByName.containsKey(parsedQueryText)) {
         bestNameMatch = parsedQueryText;
@@ -277,8 +279,11 @@ class InMemoryPackageIndex {
         );
         break;
       case SearchOrder.text:
-        indexedHits = _rankWithValues(packageScores,
-            requiredLengthThreshold: query.offset);
+        indexedHits = _rankWithValues(
+          packageScores,
+          requiredLengthThreshold: query.offset,
+          bestNameMatch: bestNameMatch,
+        );
         break;
       case SearchOrder.created:
         indexedHits = _createdOrderedHits.whereInScores(packageScores);
@@ -322,10 +327,14 @@ class InMemoryPackageIndex {
       packageHits = indexedHits.map((h) => h.hit).toList();
     }
 
+    // Only indicate name match when the first item's score is lower than the second's score.
+    final indicateNameMatch = bestNameMatch != null &&
+        packageHits.length > 1 &&
+        ((packageHits[0].score ?? 0) <= (packageHits[1].score ?? 0));
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
-      nameMatches: bestNameMatch == null ? null : [bestNameMatch],
+      nameMatches: indicateNameMatch ? [bestNameMatch] : null,
       packageHits: packageHits,
       errorMessage: textResults?.errorMessage,
     );

@@ -32,7 +32,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'nameMatches': ['stack_trace'],
         'sdkLibraryHits': [],
         'packageHits': [
           {

@@ -283,7 +283,7 @@ class ServiceSearchQuery {
   late final effectiveOrder = parsedQuery.order ?? order;
   bool get _hasQuery => query != null && query!.isNotEmpty;
   bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
-  bool get _isNaturalOrder =>
+  bool get isNaturalOrder =>
       effectiveOrder == null ||
       effectiveOrder == SearchOrder.top ||
       effectiveOrder == SearchOrder.text;
@@ -294,7 +294,7 @@ class ServiceSearchQuery {
   bool get includeSdkResults =>
       offset == 0 &&
       _hasOnlyFreeText &&
-      _isNaturalOrder &&
+      isNaturalOrder &&
       _hasNoOwnershipScope &&
       !_isFlutterFavorite &&
       (textMatchExtent ?? TextMatchExtent.api).shouldMatchApi();

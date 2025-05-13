@@ -69,7 +69,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'nameMatches': ['flutter_iap'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'flutter_iap', 'score': 1.0},

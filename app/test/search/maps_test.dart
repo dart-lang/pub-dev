@@ -26,7 +26,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'nameMatches': ['maps'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'maps', 'score': 1.0},
@@ -44,8 +43,8 @@ void main() {
         'nameMatches': ['map'],
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'maps', 'score': 1.0},
           {'package': 'map', 'score': 1.0},
+          {'package': 'maps', 'score': 1.0},
         ],
       });
     });

@@ -95,7 +95,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
-        'nameMatches': ['async'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'async', 'score': closeTo(0.71, 0.01)},
@@ -254,7 +253,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'nameMatches': ['http'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http'},
@@ -628,7 +626,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             ]
           },
         );
-        // exact name match without tags
+        // exact name match without tags - promoted
         expect(
             (index.search(ServiceSearchQuery.parse(query: 'abc'))).toJson(), {
           'timestamp': isNotEmpty,
@@ -641,19 +639,29 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             {'package': 'def', 'score': closeTo(0.85, 0.01)},
           ]
         });
-        // exact name match with tags
+        // exact name match without tags - first anyway
+        expect(
+            (index.search(ServiceSearchQuery.parse(query: 'def'))).toJson(), {
+          'timestamp': isNotEmpty,
+          'totalCount': 2,
+          'sdkLibraryHits': [],
+          'packageHits': [
+            {'package': 'def', 'score': closeTo(0.85, 0.01)},
+            {'package': 'abc', 'score': closeTo(0.70, 0.01)},
+          ]
+        });
+        // absent exact name match with tags
         expect(
             (index.search(ServiceSearchQuery.parse(query: 'abc sdk:dart')))
                 .toJson(),
             {
               'timestamp': isNotEmpty,
               'totalCount': 2,
-              'nameMatches': ['abc'],
               'sdkLibraryHits': [],
               'packageHits': [
-                // `abc` is at the first position, score is kept
-                {'package': 'abc', 'score': closeTo(0.70, 0.01)},
+                // `abc` is at the original position
                 {'package': 'def', 'score': closeTo(0.85, 0.01)},
+                {'package': 'abc', 'score': closeTo(0.70, 0.01)},
               ]
             });
         // absent exact name match with tags
@@ -662,12 +670,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
                 .toJson(),
             {
               'timestamp': isNotEmpty,
-              'totalCount': 2,
-              'nameMatches': ['abc'],
+              'totalCount': 1,
               'sdkLibraryHits': [],
               'packageHits': [
-                // `abc` is at the first position, score is zero
-                {'package': 'abc', 'score': 0.0},
+                // `abc` is absent
                 {'package': 'def', 'score': closeTo(0.85, 0.01)},
               ]
             });
