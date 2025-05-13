@@ -43,6 +43,7 @@ class InMemoryPackageIndex {
   late final List<IndexedPackageHit> _downloadsOrderedHits;
   late final List<IndexedPackageHit> _likesOrderedHits;
   late final List<IndexedPackageHit> _pointsOrderedHits;
+  late final List<IndexedPackageHit> _trendingOrderedHits;
 
   // Contains all of the topics the index had seen so far.
   // TODO: consider moving this into a separate index
@@ -121,6 +122,8 @@ class InMemoryPackageIndex {
         score: (doc) => doc.likeCount.toDouble());
     _pointsOrderedHits = _rankWithComparator(_comparePoints,
         score: (doc) => doc.grantedPoints.toDouble());
+    _trendingOrderedHits = _rankWithComparator(_compareTrending,
+        score: (doc) => doc.trendScore.toDouble());
   }
 
   IndexInfo indexInfo() {
@@ -288,6 +291,9 @@ class InMemoryPackageIndex {
         break;
       case SearchOrder.points:
         indexedHits = _pointsOrderedHits.whereInScores(packageScores);
+        break;
+      case SearchOrder.trending:
+        indexedHits = _trendingOrderedHits.whereInScores(packageScores);
         break;
     }
 
@@ -529,6 +535,12 @@ class InMemoryPackageIndex {
 
   int _comparePoints(PackageDocument a, PackageDocument b) {
     final x = -a.grantedPoints.compareTo(b.grantedPoints);
+    if (x != 0) return x;
+    return _compareUpdated(a, b);
+  }
+
+  int _compareTrending(PackageDocument a, PackageDocument b) {
+    final x = -a.trendScore.compareTo(b.trendScore);
     if (x != 0) return x;
     return _compareUpdated(a, b);
   }

@@ -10,6 +10,10 @@ typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
   (name: 'example', description: 'Short description'),
+  (
+    name: 'trending-search',
+    description: 'Show trending packages and search by trending scores'
+  ),
 };
 
 final _allFlags = <String>{
@@ -87,6 +91,8 @@ class ExperimentalFlags {
   }
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
+
+  bool get showTrending => isEnabled('trending-search');
 
   String encodedAsCookie() => _enabled.join(':');
 

@@ -372,6 +372,7 @@ class SearchBackend {
       updated: p.lastVersionPublished!,
       readme: compactReadme(readmeAsset?.textContent),
       downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
+      trendScore: downloadCountsBackend.lookupTrendScore(pv.package),
       likeCount: p.likes,
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
