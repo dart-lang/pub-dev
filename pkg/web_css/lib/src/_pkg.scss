@@ -20,6 +20,11 @@
     color: var(--pub-badge-red-color);
   }
 
+  &.package-badge-name-match {
+    position: relative;
+    top: -5px;
+  }
+
   .package-badge-icon {
     max-width: 13px;
     max-height: 13px;
