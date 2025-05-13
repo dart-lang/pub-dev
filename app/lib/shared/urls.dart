@@ -206,7 +206,6 @@ String searchUrl({
 String listingByDownloadCounts() =>
     SearchForm(order: SearchOrder.downloads).toSearchLink();
 
-
 String listingByTrending() =>
     SearchForm(order: SearchOrder.trending).toSearchLink();
 
