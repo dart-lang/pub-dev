@@ -36,7 +36,7 @@ To create an initialize it with some minimal data, create the following YAML fil
 
 ```yaml
 defaultUser: 'your-email@example.com'
-packages:
+importedPackages:
   - name: retry
   - name: http
 publishers:
