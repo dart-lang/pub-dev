@@ -206,6 +206,10 @@ String searchUrl({
 String listingByDownloadCounts() =>
     SearchForm(order: SearchOrder.downloads).toSearchLink();
 
+
+String listingByTrending() =>
+    SearchForm(order: SearchOrder.trending).toSearchLink();
+
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');
   final channel = isDev ? 'dev' : 'stable';

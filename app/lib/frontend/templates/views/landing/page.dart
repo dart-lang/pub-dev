@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../package/models.dart';
 import '../../../../service/youtube/backend.dart';
@@ -20,6 +21,7 @@ d.Node landingPageNode({
   List<PackageView>? mostPopularPackages,
   List<PackageView>? topFlutterPackages,
   List<PackageView>? topDartPackages,
+  List<PackageView>? trendingPackages,
   List<PkgOfWeekVideo>? topPoWVideos,
 }) {
   return d.fragment([
@@ -34,7 +36,23 @@ d.Node landingPageNode({
         viewAllEvent: 'landing-flutter-favorites-view-all',
         viewAllTitle: 'Search Flutter Favorites packages',
       ),
-    if (_isNotEmptyList(mostPopularPackages))
+    if (requestContext.experimentalFlags.showTrending &&
+        _isNotEmptyList(trendingPackages))
+      _block(
+        shortId: 'mp',
+        image: d.Image.decorative(
+          src: staticUrls.getAssetUrl('/static/img/landing-01.webp'),
+          width: 351,
+          height: 240,
+        ),
+        title: 'Trending packages',
+        info: d.text('Some of the packages trending in the last 30 days'),
+        content: miniListNode('most-trending', trendingPackages!),
+        viewAllUrl: urls.listingByTrending(),
+        viewAllEvent: 'landing-trending-view-all',
+        viewAllTitle: 'Search trending packages',
+      )
+    else if (_isNotEmptyList(mostPopularPackages))
       _block(
         shortId: 'mp',
         image: d.Image.decorative(

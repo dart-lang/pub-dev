@@ -14,6 +14,7 @@ String renderLandingPage({
   List<PackageView>? mostPopularPackages,
   List<PackageView>? topFlutterPackages,
   List<PackageView>? topDartPackages,
+  List<PackageView>? trendingPackages,
   List<PkgOfWeekVideo>? topPoWVideos,
 }) {
   final content = landingPageNode(
@@ -21,6 +22,7 @@ String renderLandingPage({
     mostPopularPackages: mostPopularPackages,
     topFlutterPackages: topFlutterPackages,
     topDartPackages: topDartPackages,
+    trendingPackages: trendingPackages,
     topPoWVideos: topPoWVideos,
   );
   return renderLayoutPage(
