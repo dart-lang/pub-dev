@@ -128,7 +128,7 @@ List<SortDict> getSortDicts(bool isSearch) {
     if (requestContext.experimentalFlags.showTrending)
       SortDict(
           id: 'trending',
-          label: 'trendin',
+          label: 'trending',
           tooltip: 'Packages are sorted by trending.'),
   ];
 }
