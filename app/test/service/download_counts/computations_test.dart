@@ -339,22 +339,22 @@ void main() {
   });
 
   testWithProfile('cache package trend scores', fn: () async {
-    await generateFakeTrendScores({'foo': 3, 'bar': 1, 'baz': 2});
+    await generateFakeTrendScores({'foo': 3.0, 'bar': 1.0, 'baz': 2.0});
     expect(downloadCountsBackend.lookupTrendScore('foo'), isNull);
     expect(downloadCountsBackend.lookupTrendScore('bar'), isNull);
     expect(downloadCountsBackend.lookupTrendScore('baz'), isNull);
 
     await downloadCountsBackend.start();
-    expect(downloadCountsBackend.lookupTrendScore('foo'), 3);
-    expect(downloadCountsBackend.lookupTrendScore('bar'), 1);
-    expect(downloadCountsBackend.lookupTrendScore('baz'), 2);
+    expect(downloadCountsBackend.lookupTrendScore('foo'), 3.0);
+    expect(downloadCountsBackend.lookupTrendScore('bar'), 1.0);
+    expect(downloadCountsBackend.lookupTrendScore('baz'), 2.0);
     expect(downloadCountsBackend.lookupTrendScore('bax'), isNull);
 
-    await generateFakeTrendScores({'foo': 9, 'bar': 2, 'baz': 5});
+    await generateFakeTrendScores({'foo': 9.0, 'bar': 2.0, 'baz': 5.0});
     await downloadCountsBackend.start();
-    expect(downloadCountsBackend.lookupTrendScore('foo'), 9);
-    expect(downloadCountsBackend.lookupTrendScore('bar'), 2);
-    expect(downloadCountsBackend.lookupTrendScore('baz'), 5);
+    expect(downloadCountsBackend.lookupTrendScore('foo'), 9.0);
+    expect(downloadCountsBackend.lookupTrendScore('bar'), 2.0);
+    expect(downloadCountsBackend.lookupTrendScore('baz'), 5.0);
     expect(downloadCountsBackend.lookupTrendScore('bax'), isNull);
   });
 }

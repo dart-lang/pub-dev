@@ -21,7 +21,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       downloadCount: (json['downloadCount'] as num?)?.toInt(),
       downloadScore: (json['downloadScore'] as num?)?.toDouble(),
-      trendScore: (json['trendScore'] as num?)?.toInt(),
+      trendScore: (json['trendScore'] as num?)?.toDouble(),
       likeCount: (json['likeCount'] as num?)?.toInt(),
       likeScore: (json['likeScore'] as num?)?.toDouble(),
       grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
