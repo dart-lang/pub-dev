@@ -79,7 +79,7 @@ class PackageDocument {
   /// The normalized score between [0.0-1.0] (1.0 being the most downloaded package).
   double? downloadScore;
 
-  final int trendScore;
+  final double trendScore;
 
   final int likeCount;
 
@@ -112,7 +112,7 @@ class PackageDocument {
     List<String>? tags,
     int? downloadCount,
     this.downloadScore,
-    int? trendScore,
+    double? trendScore,
     int? likeCount,
     this.likeScore,
     int? grantedPoints,

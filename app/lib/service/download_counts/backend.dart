@@ -31,16 +31,16 @@ class DownloadCountsBackend {
   late CachedValue<Map<String, int>> _thirtyDaysTotals;
   var _lastDownloadsData = (data: <String, int>{}, etag: '');
 
-  late CachedValue<Map<String, int>> _trendScores;
-  var _lastTrendData = (data: <String, int>{}, etag: '');
+  late CachedValue<Map<String, double>> _trendScores;
+  var _lastTrendData = (data: <String, double>{}, etag: '');
 
   DownloadCountsBackend(this._db) {
-    _thirtyDaysTotals = CachedValue(
+    _thirtyDaysTotals = CachedValue<Map<String, int>>(
         name: 'thirtyDaysTotalDownloadCounts',
         maxAge: Duration(days: 14),
         interval: Duration(minutes: 30),
         updateFn: _updateThirtyDaysTotals);
-    _trendScores = CachedValue(
+    _trendScores = CachedValue<Map<String, double>>(
         name: 'trendScores',
         maxAge: Duration(days: 14),
         interval: Duration(minutes: 30),
@@ -48,25 +48,27 @@ class DownloadCountsBackend {
   }
 
   Future<Map<String, int>> _updateThirtyDaysTotals() async {
-    return _fetchAndUpdateCachedData(
-        fileName: downloadCounts30DaysTotalsFileName,
-        currentCachedData: _lastDownloadsData,
-        updateCache: (data) => _lastDownloadsData = data,
-        errorContext: '30-days total download counts');
+    return _fetchAndUpdateCachedData<int>(
+      fileName: downloadCounts30DaysTotalsFileName,
+      currentCachedData: _lastDownloadsData,
+      updateCache: (data) => _lastDownloadsData = data,
+      errorContext: '30-days total download counts',
+    );
   }
 
-  Future<Map<String, int>> _updateTrendScores() async {
-    return _fetchAndUpdateCachedData(
-        fileName: trendScoreFileName,
-        currentCachedData: _lastTrendData,
-        updateCache: (data) => _lastTrendData = data,
-        errorContext: 'trend scores');
+  Future<Map<String, double>> _updateTrendScores() async {
+    return _fetchAndUpdateCachedData<double>(
+      fileName: trendScoreFileName,
+      currentCachedData: _lastTrendData,
+      updateCache: (data) => _lastTrendData = data,
+      errorContext: 'trend scores',
+    );
   }
 
-  Future<Map<String, int>> _fetchAndUpdateCachedData({
+  Future<Map<String, V>> _fetchAndUpdateCachedData<V>({
     required String fileName,
-    required ({Map<String, int> data, String etag}) currentCachedData,
-    required void Function(({Map<String, int> data, String etag}) newData)
+    required ({Map<String, V> data, String etag}) currentCachedData,
+    required void Function(({Map<String, V> data, String etag}) newData)
         updateCache,
     required String errorContext,
   }) async {
@@ -89,7 +91,7 @@ class DownloadCountsBackend {
                 .single,
           );
 
-      final data = _parseJsonToMapStringInt(rawData, fileName);
+      final data = _parseJsonToMapStringV<V>(rawData, fileName);
 
       final newData = (data: data, etag: info.etag);
       updateCache(newData);
@@ -109,23 +111,25 @@ class DownloadCountsBackend {
     }
   }
 
-  Map<String, int> _parseJsonToMapStringInt(dynamic rawJson, String fileName) {
+  Map<String, V> _parseJsonToMapStringV<V>(dynamic rawJson, String fileName) {
     if (rawJson is! Map) {
-      throw FormatException(
-          'Expected JSON for $fileName to be a Map, but got ${rawJson.runtimeType}');
+      throw FormatException('Expected JSON for $fileName to be a Map, but got'
+          ' ${rawJson.runtimeType}');
     }
 
-    final Map<String, int> result = {};
+    final Map<String, V> result = {};
     for (final entry in rawJson.entries) {
       if (entry.key is! String) {
         throw FormatException(
-            'Expected map keys for $fileName to be String, but found ${entry.key.runtimeType}');
+            'Expected map keys for $fileName to be String, but found'
+            ' ${entry.key.runtimeType}');
       }
-      if (entry.value is! int) {
+      if (entry.value is! V) {
         throw FormatException(
-            'Expected map value for key "${entry.key}" in $fileName to be int, but got ${entry.value.runtimeType}');
+            'Expected map value for key "${entry.key}" in $fileName to be'
+            ' ${V.runtimeType}, but got ${entry.value.runtimeType}');
       }
-      result[entry.key as String] = entry.value as int;
+      result[entry.key as String] = entry.value as V;
     }
     return result;
   }
@@ -143,7 +147,7 @@ class DownloadCountsBackend {
   int? lookup30DaysTotalCounts(String package) =>
       _thirtyDaysTotals.isAvailable ? _thirtyDaysTotals.value![package] : null;
 
-  int? lookupTrendScore(String package) =>
+  double? lookupTrendScore(String package) =>
       _trendScores.isAvailable ? _trendScores.value![package] : null;
 
   Future<CountData?> lookupDownloadCountData(String pkg) async {
