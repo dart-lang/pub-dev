@@ -132,8 +132,36 @@ Future<void> _testExportedApiSynchronization(
       isNotNull,
     );
     expect(
-      await bucket.readBytes('$runtimeVersion/api/packages/foo/feed.atom'),
-      isNotNull,
+      await bucket.readGzippedJson('$runtimeVersion/api/packages/foo/likes'),
+      {
+        'package': 'foo',
+        'likes': 0,
+      },
+    );
+    expect(
+      await bucket.readGzippedJson('$runtimeVersion/api/packages/foo/options'),
+      {
+        'isDiscontinued': false,
+        'replacedBy': null,
+        'isUnlisted': false,
+      },
+    );
+    expect(
+      await bucket
+          .readGzippedJson('$runtimeVersion/api/packages/foo/publisher'),
+      {
+        'publisherId': null,
+      },
+    );
+    expect(
+      await bucket.readGzippedJson('$runtimeVersion/api/packages/foo/score'),
+      {
+        'grantedPoints': isNotNull,
+        'maxPoints': isNotNull,
+        'likeCount': isNotNull,
+        'tags': isNotEmpty,
+        'lastUpdated': isNotNull,
+      },
     );
     expect(
       await bucket.readGzippedJson('$runtimeVersion/api/packages/foo'),
@@ -142,6 +170,10 @@ Future<void> _testExportedApiSynchronization(
         'latest': isNotEmpty,
         'versions': hasLength(1),
       },
+    );
+    expect(
+      await bucket.readString('$runtimeVersion/api/packages/foo/feed.atom'),
+      contains('v1.0.0 of foo'),
     );
     expect(
       await bucket
@@ -154,10 +186,6 @@ Future<void> _testExportedApiSynchronization(
     );
     expect(
       await bucket.readString('$runtimeVersion/feed.atom'),
-      contains('v1.0.0 of foo'),
-    );
-    expect(
-      await bucket.readString('$runtimeVersion/api/packages/foo/feed.atom'),
       contains('v1.0.0 of foo'),
     );
   }
@@ -196,6 +224,22 @@ Future<void> _testExportedApiSynchronization(
     expect(
       await bucket.readString('latest/api/packages/foo/feed.atom'),
       contains('v1.0.0 of foo'),
+    );
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/foo/likes'),
+      isNotNull,
+    );
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/foo/options'),
+      isNotNull,
+    );
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/foo/publisher'),
+      isNotNull,
+    );
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/foo/score'),
+      isNotNull,
     );
     // Note. that name completion data won't be updated until search caches
     //       are purged, so we won't test that it is updated.
@@ -445,6 +489,10 @@ Future<void> _testExportedApiSynchronization(
       isNull,
     );
     expect(
+      await bucket.readGzippedJson('latest/api/packages/bar/options'),
+      isNull,
+    );
+    expect(
       await bucket.readGzippedJson('latest/api/packages/feed.atom'),
       isNull,
     );
@@ -483,6 +531,10 @@ Future<void> _testExportedApiSynchronization(
         'latest': isNotEmpty,
         'versions': hasLength(2),
       },
+    );
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/bar/options'),
+      isNotNull,
     );
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
