@@ -190,7 +190,9 @@ void main() {
     await fakeTime.elapse(minutes: 10);
   });
 
-  testWithFakeTime('failing instances will be retried', (fakeTime) async {
+  testWithFakeTime('failing instances will be retried', expectedLogMessages: [
+    'SHOUT [pub-notice:cached_value] Updating cached `thirtyDaysTotalDownloadCounts` value failed.',
+  ], (fakeTime) async {
     await taskBackend.backfillTrackingState();
     await fakeTime.elapse(minutes: 1);
 

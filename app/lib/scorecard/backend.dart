@@ -4,11 +4,13 @@
 
 import 'dart:async';
 
+import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -185,6 +187,43 @@ class ScoreCardBackend {
     final p = list[0] as Package?;
     final pv = list[1] as PackageVersion?;
     return PackageStatus.fromModels(p, pv);
+  }
+
+  /// Return the version score object served in the API.
+  Future<VersionScore> getVersionScore(String package,
+      {String? version}) async {
+    final pkg = await packageBackend.lookupPackage(package);
+    if (pkg == null) {
+      throw NotFoundException.resource('package "$package"');
+    }
+    final v =
+        (version == null || version == 'latest') ? pkg.latestVersion! : version;
+    final pv = await packageBackend.lookupPackageVersion(package, v);
+    if (pv == null) {
+      throw NotFoundException.resource('package "$package" version "$version"');
+    }
+
+    var updated = pkg.updated;
+    final card = await scoreCardBackend.getScoreCardData(package, v);
+    if (updated == null || card.updated?.isAfter(updated) == true) {
+      updated = card.updated;
+    }
+
+    final tags = <String>{
+      ...pkg.getTags(),
+      ...pv.getTags(),
+      ...?card.derivedTags,
+    };
+
+    return VersionScore(
+      grantedPoints: card.grantedPubPoints,
+      maxPoints: card.maxPubPoints,
+      likeCount: pkg.likes,
+      downloadCount30Days:
+          downloadCountsBackend.lookup30DaysTotalCounts(package),
+      tags: tags.toList(),
+      lastUpdated: updated,
+    );
   }
 }
 
