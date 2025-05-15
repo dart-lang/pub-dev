@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
@@ -273,6 +274,20 @@ final class ExportedPackage {
   ExportedJsonFile<ListAdvisoriesResponse> get advisories =>
       _suffix<ListAdvisoriesResponse>('/advisories');
 
+  /// Interface for writing `/api/packages/<package>/likes`.
+  ExportedJsonFile<PackageLikesCount> get likes =>
+      _suffix<PackageLikesCount>('/likes');
+
+  /// Interface for writing `/api/packages/<package>/options`.
+  ExportedJsonFile<PkgOptions> get options => _suffix<PkgOptions>('/options');
+
+  /// Interface for writing `/api/packages/<package>/publisher`.
+  ExportedJsonFile<PackagePublisherInfo> get publisher =>
+      _suffix<PackagePublisherInfo>('/publisher');
+
+  /// Interface for writing `/api/packages/<package>/score`.
+  ExportedJsonFile<VersionScore> get score => _suffix<VersionScore>('/score');
+
   /// Interface for writing `/api/packages/<package>/feed.atom`
   ExportedAtomFeedFile get feedAtomFile => ExportedAtomFeedFile._(
         _owner,
@@ -406,6 +421,10 @@ final class ExportedPackage {
     await Future.wait([
       _owner._pool.withResource(() async => await versions.delete()),
       _owner._pool.withResource(() async => await advisories.delete()),
+      _owner._pool.withResource(() async => await likes.delete()),
+      _owner._pool.withResource(() async => await options.delete()),
+      _owner._pool.withResource(() async => await publisher.delete()),
+      _owner._pool.withResource(() async => await score.delete()),
       _owner._pool.withResource(() async => await feedAtomFile.delete()),
       ..._owner._prefixes.map((prefix) async {
         await _owner._listBucket(

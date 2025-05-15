@@ -71,8 +71,8 @@ void main() {
     testWithProfile('baseline checks', fn: () async {
       await syncExportedApi();
       final data = await listExportedApi();
-      expect(data.keys, hasLength(greaterThan(20)));
-      expect(data.keys, hasLength(lessThan(40)));
+      expect(data.keys, hasLength(greaterThan(50)));
+      expect(data.keys, hasLength(lessThan(70)));
 
       final oxygenFiles = data.keys.where((k) => k.contains('oxygen')).toSet();
       expect(oxygenFiles, hasLength(greaterThan(5)));
@@ -82,12 +82,20 @@ void main() {
         '$runtimeVersion/api/archives/oxygen-2.0.0-dev.tar.gz',
         '$runtimeVersion/api/packages/oxygen',
         '$runtimeVersion/api/packages/oxygen/advisories',
+        '$runtimeVersion/api/packages/oxygen/likes',
+        '$runtimeVersion/api/packages/oxygen/options',
+        '$runtimeVersion/api/packages/oxygen/publisher',
+        '$runtimeVersion/api/packages/oxygen/score',
         '$runtimeVersion/api/packages/oxygen/feed.atom',
         'latest/api/archives/oxygen-1.0.0.tar.gz',
         'latest/api/archives/oxygen-1.2.0.tar.gz',
         'latest/api/archives/oxygen-2.0.0-dev.tar.gz',
         'latest/api/packages/oxygen',
         'latest/api/packages/oxygen/advisories',
+        'latest/api/packages/oxygen/likes',
+        'latest/api/packages/oxygen/options',
+        'latest/api/packages/oxygen/publisher',
+        'latest/api/packages/oxygen/score',
         'latest/api/packages/oxygen/feed.atom',
       });
 
