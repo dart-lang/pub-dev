@@ -18,6 +18,7 @@ import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
+import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
@@ -723,6 +724,7 @@ class TaskBackend {
 
     // Clearing the state cache after the update.
     await _purgeCache(package, version);
+    await apiExporter!.synchronizePackage(package);
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down
