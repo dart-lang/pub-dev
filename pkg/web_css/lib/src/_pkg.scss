@@ -20,6 +20,11 @@
     color: var(--pub-badge-red-color);
   }
 
+  &.package-badge-name-match {
+    position: relative;
+    top: -5px;
+  }
+
   .package-badge-icon {
     max-width: 13px;
     max-height: 13px;
@@ -511,7 +516,7 @@
   display: inline-block;
   height: 20px;
   width: 20px;
-  margin-left: 12px;
+  margin: 0px 12px;
 
   .pkg-page-title-copy-icon {
     display: block;

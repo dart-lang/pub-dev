@@ -380,7 +380,6 @@ MIT'''),
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
-        'nameMatches': ['haversine'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'haversine', 'score': 1.0},

@@ -13,18 +13,12 @@ import '../../../static_files.dart';
 d.Node packageListingNode({
   required SearchForm searchForm,
   required d.Node listingInfo,
-  required d.Node? nameMatches,
   required d.Node packageList,
   required d.Node? pagination,
   required Set<String>? openSections,
 }) {
   final innerContent = d.fragment([
     listingInfo,
-    if (nameMatches != null)
-      d.div(
-        classes: ['listing-highlight-block'],
-        child: nameMatches,
-      ),
     packageList,
     if (pagination != null) pagination,
     d.markdown('Check our help page for details on '

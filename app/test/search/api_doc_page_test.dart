@@ -53,7 +53,6 @@ void main() {
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
-        'nameMatches': ['foo'],
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'foo', 'score': 1.0}, // finds package name

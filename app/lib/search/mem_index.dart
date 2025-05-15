@@ -23,6 +23,7 @@ final _textSearchTimeout = Duration(milliseconds: 500);
 class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
   final _documentsByName = <String, PackageDocument>{};
+  final _nameToIndex = <String, int>{};
   late final PackageNameIndex _packageNameIndex;
   late final TokenIndex<String> _descrIndex;
   late final TokenIndex<String> _readmeIndex;
@@ -62,6 +63,7 @@ class InMemoryPackageIndex {
     for (var i = 0; i < _documents.length; i++) {
       final doc = _documents[i];
       _documentsByName[doc.package] = doc;
+      _nameToIndex[doc.package] = i;
 
       // transform tags into numberical IDs
       final tagIds = <int>[];
@@ -232,7 +234,9 @@ class InMemoryPackageIndex {
     );
 
     String? bestNameMatch;
-    if (parsedQueryText != null) {
+    if (parsedQueryText != null &&
+        query.parsedQuery.hasOnlyFreeText &&
+        query.isNaturalOrder) {
       // exact package name
       if (_documentsByName.containsKey(parsedQueryText)) {
         bestNameMatch = parsedQueryText;
@@ -268,12 +272,18 @@ class InMemoryPackageIndex {
         /// it linearly into the [0.4-1.0] range, to allow better
         /// multiplication outcomes.
         packageScores.multiplyAllFromValues(_adjustedOverallScores);
-        indexedHits = _rankWithValues(packageScores,
-            requiredLengthThreshold: query.offset);
+        indexedHits = _rankWithValues(
+          packageScores,
+          requiredLengthThreshold: query.offset,
+          bestNameMatch: bestNameMatch,
+        );
         break;
       case SearchOrder.text:
-        indexedHits = _rankWithValues(packageScores,
-            requiredLengthThreshold: query.offset);
+        indexedHits = _rankWithValues(
+          packageScores,
+          requiredLengthThreshold: query.offset,
+          bestNameMatch: bestNameMatch,
+        );
         break;
       case SearchOrder.created:
         indexedHits = _createdOrderedHits.whereInScores(packageScores);
@@ -317,10 +327,14 @@ class InMemoryPackageIndex {
       packageHits = indexedHits.map((h) => h.hit).toList();
     }
 
+    // Only indicate name match when the first item's score is lower than the second's score.
+    final indicateNameMatch = bestNameMatch != null &&
+        packageHits.length > 1 &&
+        ((packageHits[0].score ?? 0) <= (packageHits[1].score ?? 0));
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
-      nameMatches: bestNameMatch == null ? null : [bestNameMatch],
+      nameMatches: indicateNameMatch ? [bestNameMatch] : null,
       packageHits: packageHits,
       errorMessage: textResults?.errorMessage,
     );
@@ -471,11 +485,14 @@ class InMemoryPackageIndex {
     IndexedScore<String> score, {
     // if the item count is fewer than this threshold, an empty list will be returned
     int? requiredLengthThreshold,
+    String? bestNameMatch,
   }) {
     final list = <IndexedPackageHit>[];
+    final bestNameIndex =
+        bestNameMatch == null ? null : _nameToIndex[bestNameMatch];
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
-      if (value <= 0.0) continue;
+      if (value <= 0.0 && i != bestNameIndex) continue;
       list.add(IndexedPackageHit(
           i, PackageHit(package: score.keys[i], score: value)));
     }
@@ -484,6 +501,8 @@ class InMemoryPackageIndex {
       return [];
     }
     list.sort((a, b) {
+      if (a.index == bestNameIndex) return -1;
+      if (b.index == bestNameIndex) return 1;
       final scoreCompare = -a.hit.score!.compareTo(b.hit.score!);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
