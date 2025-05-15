@@ -13,9 +13,10 @@ import '../shared/test_services.dart';
 void main() {
   group('search backend', () {
     testWithProfile('fetch SDK library description', fn: () async {
-      final index = await SdkMemIndex.dart();
-      final content = await loadOrFetchSdkIndexJsonAsString(index.indexJsonUri);
-      await index.addDartdocIndex(DartdocIndex.parseJsonText(content));
+      final content = await loadOrFetchSdkIndexJsonAsString(
+          SdkMemIndex.dartSdkIndexJsonUri);
+      final index =
+          SdkMemIndex.dart(index: DartdocIndex.parseJsonText(content));
       expect(
         index.getLibraryDescription('dart:async'),
         'Support for asynchronous programming, with classes such as Future and Stream.',

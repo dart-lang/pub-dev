@@ -31,49 +31,48 @@ void main() {
     final combiner = SearchResultCombiner(
       primaryIndex: primaryIndex,
       dartSdkMemIndex: SdkMemIndex(
-          sdk: 'dart',
-          version: runtimeSdkVersion,
-          baseUri: Uri.parse('https://api.dart.dev/stable/$runtimeSdkVersion/'))
-        ..addDartdocIndex(
-          DartdocIndex.fromJsonList([
-            {
-              'name': 'dart:core',
-              'qualifiedName': 'dart:core',
-              'href': 'dart-core/dart-core-library.html',
-              'kind': 8,
-              'overriddenDepth': 0,
-              'packageName': 'Dart'
-            },
-            {
-              'name': 'String',
-              'qualifiedName': 'dart:core.String',
-              'href': 'dart-core/String-class.html',
-              'kind': 3,
-              'overriddenDepth': 0,
-              'packageName': 'Dart',
-              'enclosedBy': {'name': 'dart:core', 'kind': 8}
-            },
-            {
-              'name': 'substring',
-              'qualifiedName': 'dart:core.String.substring',
-              'href': 'dart-core/String/substring.html',
-              'kind': 9,
-              'overriddenDepth': 0,
-              'packageName': 'Dart',
-              'enclosedBy': {'name': 'String', 'kind': 3}
-            },
-            {
-              // fake method for checking the package name matches
-              'name': 'stringutils',
-              'qualifiedName': 'dart:core.String.stringutils',
-              'href': 'dart-core/String/stringutils.html',
-              'kind': 9,
-              'overriddenDepth': 0,
-              'packageName': 'Dart',
-              'enclosedBy': {'name': 'String', 'kind': 3}
-            },
-          ]),
-        ),
+        sdk: 'dart',
+        version: runtimeSdkVersion,
+        baseUri: Uri.parse('https://api.dart.dev/stable/$runtimeSdkVersion/'),
+        index: DartdocIndex.fromJsonList([
+          {
+            'name': 'dart:core',
+            'qualifiedName': 'dart:core',
+            'href': 'dart-core/dart-core-library.html',
+            'kind': 8,
+            'overriddenDepth': 0,
+            'packageName': 'Dart'
+          },
+          {
+            'name': 'String',
+            'qualifiedName': 'dart:core.String',
+            'href': 'dart-core/String-class.html',
+            'kind': 3,
+            'overriddenDepth': 0,
+            'packageName': 'Dart',
+            'enclosedBy': {'name': 'dart:core', 'kind': 8}
+          },
+          {
+            'name': 'substring',
+            'qualifiedName': 'dart:core.String.substring',
+            'href': 'dart-core/String/substring.html',
+            'kind': 9,
+            'overriddenDepth': 0,
+            'packageName': 'Dart',
+            'enclosedBy': {'name': 'String', 'kind': 3}
+          },
+          {
+            // fake method for checking the package name matches
+            'name': 'stringutils',
+            'qualifiedName': 'dart:core.String.stringutils',
+            'href': 'dart-core/String/stringutils.html',
+            'kind': 9,
+            'overriddenDepth': 0,
+            'packageName': 'Dart',
+            'enclosedBy': {'name': 'String', 'kind': 3}
+          },
+        ]),
+      ),
       flutterSdkMemIndex: null,
     );
 
