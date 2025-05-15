@@ -4,7 +4,6 @@
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import 'backend.dart';
 import 'sdk_mem_index.dart';
@@ -14,7 +13,6 @@ final _logger = Logger('search.dart_sdk_mem_index');
 /// Results from these libraries are ranked with lower score and
 /// will be displayed only if the query has the library name, or
 /// there are not other results that could match the query.
-@visibleForTesting
 const dartSdkLibraryWeights = <String, double>{
   'dart:html': 0.7,
 };
@@ -37,14 +35,9 @@ SdkMemIndex? get dartSdkMemIndex =>
 /// was an error parsing the file or building the index.
 Future<SdkMemIndex?> createDartSdkMemIndex() async {
   try {
-    final index = await SdkMemIndex.dart();
-    final content = await loadOrFetchSdkIndexJsonAsString(index.indexJsonUri);
-    await index.addDartdocIndex(DartdocIndex.parseJsonText(content));
-    index.updateWeights(
-      libraryWeights: dartSdkLibraryWeights,
-      apiPageDirWeights: {},
-    );
-    return index;
+    final content =
+        await loadOrFetchSdkIndexJsonAsString(SdkMemIndex.dartSdkIndexJsonUri);
+    return SdkMemIndex.dart(index: DartdocIndex.parseJsonText(content));
   } catch (e, st) {
     _logger.warning('Unable to load Dart SDK index.', e, st);
     return null;

@@ -12,7 +12,7 @@ import 'sdk_mem_index.dart';
 /// regular packages. The selected libraries are unique to the index.json.
 ///
 /// TODO: try to find a way to derive this list automatically.
-const _allowedLibraries = <String>{
+const flutterSdkAllowedLibraries = <String>{
   'dart:ui',
   'animation',
   'cupertino',
@@ -32,7 +32,7 @@ const _allowedLibraries = <String>{
   'flutter_web_plugins',
 };
 
-const _flutterApiPageDirWeights = <String, double>{
+const flutterApiPageDirWeights = <String, double>{
   'cupertino/CupertinoIcons': 0.25,
   'material/Icons': 0.25,
 };
@@ -54,14 +54,10 @@ SdkMemIndex? get flutterSdkMemIndex =>
 /// api.flutter.dev and returns search results based on [SdkMemIndex].
 Future<SdkMemIndex?> createFlutterSdkMemIndex() async {
   try {
-    final index = SdkMemIndex.flutter();
-    final content = await loadOrFetchSdkIndexJsonAsString(index.indexJsonUri);
-    await index.addDartdocIndex(DartdocIndex.parseJsonText(content),
-        allowedLibraries: _allowedLibraries);
-    index.updateWeights(
-      libraryWeights: {},
-      apiPageDirWeights: _flutterApiPageDirWeights,
-    );
+    final content = await loadOrFetchSdkIndexJsonAsString(
+        SdkMemIndex.flutterSdkIndexJsonUri);
+    final index =
+        SdkMemIndex.flutter(index: DartdocIndex.parseJsonText(content));
     return index;
   } catch (e, st) {
     _logger.warning('Unable to load Flutter SDK index.', e, st);

@@ -8,6 +8,8 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_dev/search/dart_sdk_mem_index.dart';
+import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 
 import '../shared/versions.dart';
 import 'search_service.dart';
@@ -23,39 +25,55 @@ class SdkMemIndex {
   final _tokensPerLibrary = <String, TokenIndex<String>>{};
   final _baseUriPerLibrary = <String, String>{};
   final _descriptionPerLibrary = <String, String>{};
-  final _libraryWeights = <String, double>{};
-  final _apiPageDirWeights = <String, double>{};
+  final Map<String, double> _libraryWeights;
+  final Map<String, double> _apiPageDirWeights;
 
   SdkMemIndex({
     required String sdk,
     required String? version,
     required Uri baseUri,
+    required DartdocIndex index,
+    Set<String>? allowedLibraries,
+    Map<String, double>? libraryWeights,
+    Map<String, double>? apiPageDirWeights,
   })  : _sdk = sdk,
         _version = version,
-        _baseUri = baseUri;
+        _baseUri = baseUri,
+        _libraryWeights = libraryWeights ?? const {},
+        _apiPageDirWeights = apiPageDirWeights ?? const {} {
+    _addDartdocIndex(index, allowedLibraries);
+  }
 
-  static Future<SdkMemIndex> dart() async {
+  static SdkMemIndex dart({required DartdocIndex index}) {
     return SdkMemIndex(
       sdk: 'dart',
       version: runtimeSdkVersion,
       baseUri: Uri.parse('https://api.dart.dev/stable/latest/'),
+      index: index,
+      libraryWeights: dartSdkLibraryWeights,
     );
   }
 
-  factory SdkMemIndex.flutter() {
+  factory SdkMemIndex.flutter({required DartdocIndex index}) {
     return SdkMemIndex(
       sdk: 'flutter',
       version: null,
       baseUri: Uri.parse('https://api.flutter.dev/flutter/'),
+      index: index,
+      allowedLibraries: flutterSdkAllowedLibraries,
+      apiPageDirWeights: flutterApiPageDirWeights,
     );
   }
 
-  late final indexJsonUri = _baseUri.resolve('index.json');
+  static final dartSdkIndexJsonUri =
+      Uri.parse('https://api.dart.dev/stable/latest/index.json');
+  static final flutterSdkIndexJsonUri =
+      Uri.parse('https://api.flutter.dev/flutter/index.json');
 
-  Future<void> addDartdocIndex(
-    DartdocIndex index, {
+  void _addDartdocIndex(
+    DartdocIndex index,
     Set<String>? allowedLibraries,
-  }) async {
+  ) {
     final textsPerLibrary = <String, Map<String, String>>{};
     for (final f in index.entries) {
       final library = f.qualifiedName?.split('.').first;
@@ -84,15 +102,6 @@ class SdkMemIndex {
     for (final e in textsPerLibrary.entries) {
       _tokensPerLibrary[e.key] = TokenIndex.fromMap(e.value);
     }
-  }
-
-  /// Updates the non-default weight for libraries.
-  void updateWeights({
-    required Map<String, double> libraryWeights,
-    required Map<String, double> apiPageDirWeights,
-  }) {
-    _libraryWeights.addAll(libraryWeights);
-    _apiPageDirWeights.addAll(apiPageDirWeights);
   }
 
   List<SdkLibraryHit> search(
