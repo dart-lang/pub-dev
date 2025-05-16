@@ -136,11 +136,13 @@ Set the moderated flag on a package version (updating the flag and the timestamp
       'before': {
         'isModerated': pv.isModerated,
         'moderatedAt': pv.moderatedAt?.toIso8601String(),
+        'retentionUntil': pv.retentionUntil?.toIso8601String(),
       },
       if (pv2 != null)
         'after': {
           'isModerated': pv2.isModerated,
           'moderatedAt': pv2.moderatedAt?.toIso8601String(),
+          'retentionUntil': pv2.retentionUntil?.toIso8601String(),
         },
     };
   },

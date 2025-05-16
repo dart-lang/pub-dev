@@ -72,7 +72,11 @@ void main() {
       expect(r1.output, {
         'package': 'oxygen',
         'version': '1.0.0',
-        'before': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
       });
 
       final r2 =
@@ -80,8 +84,16 @@ void main() {
       expect(r2.output, {
         'package': 'oxygen',
         'version': '1.0.0',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
+        'after': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
       });
       final p1 = await packageBackend.lookupPackage('oxygen');
       expect(p1!.isModerated, isFalse);
@@ -118,8 +130,16 @@ void main() {
       expect(r1.output, {
         'package': 'oxygen',
         'version': '1.0.0',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
+        'after': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
       });
       final p1 = await packageBackend.lookupPackage('oxygen');
       expect(p1!.isModerated, isFalse);
@@ -131,8 +151,16 @@ void main() {
       expect(r2.output, {
         'package': 'oxygen',
         'version': '1.0.0',
-        'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
-        'after': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
+        'after': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isFalse);

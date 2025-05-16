@@ -83,11 +83,13 @@ can't be updated, administrators must not be able to update publisher options.
       'before': {
         'isModerated': publisher.isModerated,
         'moderatedAt': publisher.moderatedAt?.toIso8601String(),
+        'retentionUntil': publisher.retentionUntil?.toIso8601String(),
       },
       if (publisher2 != null)
         'after': {
           'isModerated': publisher2.isModerated,
           'moderatedAt': publisher2.moderatedAt?.toIso8601String(),
+          'retentionUntil': publisher2.retentionUntil?.toIso8601String(),
         },
     };
   },
