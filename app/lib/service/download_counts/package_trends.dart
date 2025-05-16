@@ -6,6 +6,7 @@ import 'dart:math';
 
 const analysisWindowDays = 30;
 const minThirtyDaysDownloadThreshold = 30000;
+const movingAveragePeriod = 7;
 
 /// Calculates the relative daily growth rate of a package's downloads.
 ///
@@ -23,10 +24,11 @@ const minThirtyDaysDownloadThreshold = 30000;
 /// downloads (0.1% relative growth).
 double computeRelativeGrowthRate(List<int> totalDownloads) {
   final List<int> data;
-  if (totalDownloads.length < analysisWindowDays) {
+  if (totalDownloads.length < analysisWindowDays + movingAveragePeriod) {
     data = [
       ...totalDownloads,
-      ...List.filled(analysisWindowDays - totalDownloads.length, 0)
+      ...List.filled(
+          analysisWindowDays + movingAveragePeriod - totalDownloads.length, 0)
     ];
   } else {
     data = totalDownloads;
@@ -34,11 +36,34 @@ double computeRelativeGrowthRate(List<int> totalDownloads) {
 
   final recentDownloads = data.sublist(0, analysisWindowDays);
 
+  final List<double> smoothedDownloads = [];
+  for (int i = 0; i < analysisWindowDays; i++) {
+    double sumForMA = 0;
+    for (int j = 0; j < movingAveragePeriod; j++) {
+      sumForMA += data[i + j];
+    }
+    smoothedDownloads.add(sumForMA / movingAveragePeriod);
+  }
+
+  int lastNonZeroIndex = -1;
+  for (int i = totalDownloads.length - 1; i >= 0; i--) {
+    if (totalDownloads[i] != 0) {
+      lastNonZeroIndex = i;
+      break;
+    }
+  }
+
+  // Create a new list from the beginning up to the last non-zero element
+  final realTotals = totalDownloads.sublist(0, lastNonZeroIndex + 1);
+
+  final totalAverage =
+      realTotals.reduce((prev, element) => prev + element) / realTotals.length;
+
   final averageRecentDownloads =
       recentDownloads.reduce((prev, element) => prev + element) /
           recentDownloads.length;
 
-  if (averageRecentDownloads == 0) {
+  if (averageRecentDownloads == 0 || totalAverage == 0) {
     return 0;
   }
 
@@ -46,12 +71,12 @@ double computeRelativeGrowthRate(List<int> totalDownloads) {
   // is the newest point in time. By reversing, we pass the data in
   // chronological order.
   final growthRate =
-      calculateLinearRegressionSlope(recentDownloads.reversed.toList());
+      calculateLinearRegressionSlope(smoothedDownloads.reversed.toList());
 
   // Normalize slope by average downloads to represent relative growth.
   // This measures how much the download count is growing relative to its
   // current volume.
-  return growthRate / averageRecentDownloads;
+  return growthRate / totalAverage;
 }
 
 /// Computes the slope of the best-fit line for a given list of data points
