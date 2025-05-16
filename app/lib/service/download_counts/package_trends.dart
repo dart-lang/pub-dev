@@ -5,6 +5,7 @@
 import 'dart:math';
 
 const analysisWindowDays = 30;
+const totalTrendWindowDays = 330;
 const minThirtyDaysDownloadThreshold = 30000;
 
 /// Calculates the relative daily growth rate of a package's downloads.
@@ -38,7 +39,12 @@ double computeRelativeGrowthRate(List<int> totalDownloads) {
       recentDownloads.reduce((prev, element) => prev + element) /
           recentDownloads.length;
 
-  if (averageRecentDownloads == 0) {
+  final m = min(totalDownloads.length, totalTrendWindowDays);
+  final averageTotalDownloads =
+      totalDownloads.sublist(0, m).reduce((prev, element) => prev + element) /
+          m;
+
+  if (averageRecentDownloads == 0 || averageTotalDownloads == 0) {
     return 0;
   }
 
@@ -51,7 +57,7 @@ double computeRelativeGrowthRate(List<int> totalDownloads) {
   // Normalize slope by average downloads to represent relative growth.
   // This measures how much the download count is growing relative to its
   // current volume.
-  return growthRate / averageRecentDownloads;
+  return growthRate / averageTotalDownloads;
 }
 
 /// Computes the slope of the best-fit line for a given list of data points

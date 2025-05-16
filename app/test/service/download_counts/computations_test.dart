@@ -314,10 +314,16 @@ void main() {
                 'fake_download_counts_data_for_trend2.jsonl'));
         await processDownloadCounts(d);
       }
-      final neonTrend = computeTrendScore(
-          [...List.filled(15, 2000), ...List.filled(15, 1000)]);
-      final oxygenTrend = computeTrendScore(
-          [...List.filled(15, 5000), ...List.filled(15, 3000)]);
+      final neonTrend = computeTrendScore([
+        ...List.filled(15, 2000),
+        ...List.filled(15, 1000),
+        ...List.filled(701, -1)
+      ]);
+      final oxygenTrend = computeTrendScore([
+        ...List.filled(15, 5000),
+        ...List.filled(15, 3000),
+        ...List.filled(701, -1)
+      ]);
 
       expect(await computeTrend(),
           {'flutter_titanium': 0.0, 'neon': neonTrend, 'oxygen': oxygenTrend});
