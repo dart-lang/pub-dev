@@ -73,15 +73,27 @@ void main() {
       final r1 = await _moderate('oxygen', caseId: mc.caseId);
       expect(r1.output, {
         'package': 'oxygen',
-        'before': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
       });
       await expectModerationActions(mc.caseId, actions: []);
 
       final r2 = await _moderate('oxygen', state: true, caseId: mc.caseId);
       expect(r2.output, {
         'package': 'oxygen',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
+        'after': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isTrue);
@@ -118,15 +130,27 @@ void main() {
       final r1 = await _moderate('oxygen', caseId: mc.caseId);
       expect(r1.output, {
         'package': 'oxygen',
-        'before': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
       });
       await expectModerationActions(mc.caseId, actions: []);
 
       final r2 = await _moderate('oxygen', state: true, caseId: mc.caseId);
       expect(r2.output, {
         'package': 'oxygen',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
+        'after': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
       });
       final p2 = await packageBackend.lookupPackage('oxygen');
       expect(p2!.isModerated, isTrue);
@@ -137,8 +161,16 @@ void main() {
       final r3 = await _moderate('oxygen', state: false, caseId: mc.caseId);
       expect(r3.output, {
         'package': 'oxygen',
-        'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
-        'after': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty
+        },
+        'after': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
       });
       final p3 = await packageBackend.lookupPackage('oxygen');
       expect(p3!.isModerated, isFalse);

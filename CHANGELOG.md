@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2025.05.15`.
  * Upgraded stable Dart analysis SDK to `3.8.0`
+ * Note: started to use (and backfill) `retentionUntil` fields for moderation subjects.
 
 ## `20250515t085900-all`
 

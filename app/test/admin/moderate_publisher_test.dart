@@ -59,14 +59,26 @@ void main() {
       final r1 = await _moderate('example.com', caseId: mc.caseId);
       expect(r1.output, {
         'publisherId': 'example.com',
-        'before': {'isModerated': false, 'moderatedAt': null},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
       });
 
       final r2 = await _moderate('example.com', caseId: mc.caseId, state: true);
       expect(r2.output, {
         'publisherId': 'example.com',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        'before': {
+          'isModerated': false,
+          'moderatedAt': null,
+          'retentionUntil': null,
+        },
+        'after': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
       });
       final p2 = await publisherBackend.lookupPublisher('example.com');
       expect(p2!.isModerated, isTrue);
@@ -75,8 +87,16 @@ void main() {
           await _moderate('example.com', caseId: mc.caseId, state: false);
       expect(r3.output, {
         'publisherId': 'example.com',
-        'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
-        'after': {'isModerated': false, 'moderatedAt': isNull},
+        'before': {
+          'isModerated': true,
+          'moderatedAt': isNotEmpty,
+          'retentionUntil': isNotEmpty,
+        },
+        'after': {
+          'isModerated': false,
+          'moderatedAt': isNull,
+          'retentionUntil': null,
+        },
       });
       final p3 = await publisherBackend.lookupPublisher('example.com');
       expect(p3!.isModerated, isFalse);
