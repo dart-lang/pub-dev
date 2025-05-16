@@ -92,7 +92,11 @@ class TopPackages {
   }
 
   List<PackageView> trending() {
-    return _randomSelection(_trending, 6);
+    final trending = _trending.value;
+    if (trending != null && trending.length > 6) {
+      return trending.sublist(0, 6);
+    }
+    return [];
   }
 
   List<PackageView> _randomSelection(
