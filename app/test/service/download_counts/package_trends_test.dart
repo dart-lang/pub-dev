@@ -36,9 +36,12 @@ void main() {
     test('calculates positive relative growth rate for positive trend', () {
       // Input list (newest first):  [1645, 1635, ..., 1355] (30 values)
       // Average = 1500 for the first 30 values. Slope: 10.
-      final downloads =
-          List<int>.generate(analysisWindowDays * 2, (i) => 1645 - (i * 10));
-      final expectedRate = 10.0 / 1500.0;
+      final downloads = <int>[
+        ...List<int>.generate(analysisWindowDays * 2, (i) => 1645 - (i * 10)),
+        ...List.filled(300, 0)
+      ];
+      final avg = downloads.reduce((prev, element) => prev + element) / 330;
+      final expectedRate = 10.0 / avg;
       expect(computeRelativeGrowthRate(downloads), expectedRate);
     });
 
@@ -107,10 +110,10 @@ void main() {
       final downloads = [100, 50];
       // For relativeGrowth:
       //   Padded data: [100, 50, 0...0] (28 zeros)
-      //   avg = 150/30 = 5
+      //   avg = (100 + 50) / 2 = 75.
       //   growthRate = 63750 / 67425
       final expectedDampening = min(1.0, 150 / 30000);
-      final expectedRelativeGrowth = 63750 / 67425 / 5;
+      final expectedRelativeGrowth = (63750 / 67425) / 75;
       final expectedScore =
           expectedRelativeGrowth * expectedDampening * expectedDampening;
       expect(computeTrendScore(downloads), expectedScore);
@@ -178,7 +181,7 @@ void main() {
   test('Short history, high sum meets threshold -> no dampening', () {
     final downloads = List<int>.filled(15, 2000);
     final expectedDampening = min(1.0, 30000 / 30000);
-    final expectedRelativeGrowth = 6750000 / 67425 / 1000;
+    final expectedRelativeGrowth = (6750000 / 67425) / 2000;
     final expectedScore =
         expectedRelativeGrowth * expectedDampening * expectedDampening;
 

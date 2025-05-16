@@ -23,6 +23,9 @@ const minThirtyDaysDownloadThreshold = 30000;
 /// downloads (10% relative growth) than for a package with 10000 average daily
 /// downloads (0.1% relative growth).
 double computeRelativeGrowthRate(List<int> totalDownloads) {
+  if (totalDownloads.isEmpty) {
+    return 0;
+  }
   final List<int> data;
   if (totalDownloads.length < analysisWindowDays) {
     data = [
