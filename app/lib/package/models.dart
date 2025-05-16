@@ -9,6 +9,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pana/models.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -128,6 +129,10 @@ class Package extends db.ExpandoModel<String> {
   /// The timestamp when the package was moderated.
   @db.DateTimeProperty()
   DateTime? moderatedAt;
+
+  /// The timestamp when the package entry will be deleted.
+  @db.DateTimeProperty()
+  DateTime? retentionUntil;
 
   /// Tags that are assigned to this package.
   ///
@@ -399,9 +404,15 @@ class Package extends db.ExpandoModel<String> {
   void updateIsModerated({
     required bool isModerated,
   }) {
-    this.isModerated = isModerated;
-    moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
+    this.isModerated = isModerated;
+    if (isModerated) {
+      moderatedAt = clock.now().toUtc();
+      retentionUntil = moderatedAt!.add(defaultModeratedKeptUntil);
+    } else {
+      moderatedAt = null;
+      retentionUntil = null;
+    }
   }
 }
 
@@ -586,6 +597,10 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? moderatedAt;
 
+  /// The timestamp when the version entry will be deleted.
+  @db.DateTimeProperty()
+  DateTime? retentionUntil;
+
   PackageVersion();
 
   PackageVersion.init() {
@@ -652,7 +667,13 @@ class PackageVersion extends db.ExpandoModel<String> {
     required bool isModerated,
   }) {
     this.isModerated = isModerated;
-    moderatedAt = isModerated ? clock.now().toUtc() : null;
+    if (isModerated) {
+      moderatedAt = clock.now().toUtc();
+      retentionUntil = moderatedAt!.add(defaultModeratedKeptUntil);
+    } else {
+      moderatedAt = null;
+      retentionUntil = null;
+    }
   }
 }
 

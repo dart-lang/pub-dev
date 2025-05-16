@@ -101,11 +101,13 @@ Note: the action may take a longer time to complete as the public archive bucket
       'before': {
         'isModerated': p.isModerated,
         'moderatedAt': p.moderatedAt?.toIso8601String(),
+        'retentionUntil': p.retentionUntil?.toIso8601String(),
       },
       if (p2 != null)
         'after': {
           'isModerated': p2.isModerated,
           'moderatedAt': p2.moderatedAt?.toIso8601String(),
+          'retentionUntil': p2.retentionUntil?.toIso8601String(),
         },
     };
   },

@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:ulid/ulid.dart';
 
@@ -61,6 +62,10 @@ class User extends db.ExpandoModel<String> {
   @db.StringProperty()
   String? moderatedReason;
 
+  /// The timestamp when the user entry will be cleared to the bare minimum information.
+  @db.DateTimeProperty()
+  DateTime? retentionUntil;
+
   User();
   User.init() {
     isDeleted = false;
@@ -86,8 +91,14 @@ class User extends db.ExpandoModel<String> {
     }
 
     this.isModerated = isModerated;
-    moderatedAt = isModerated ? clock.now().toUtc() : null;
     this.moderatedReason = moderatedReason;
+    if (isModerated) {
+      moderatedAt = clock.now().toUtc();
+      retentionUntil = moderatedAt!.add(defaultModeratedKeptUntil);
+    } else {
+      moderatedAt = null;
+      retentionUntil = null;
+    }
   }
 }
 

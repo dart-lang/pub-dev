@@ -145,12 +145,14 @@ The active web sessions of the user will be expired.
         'isModerated': user.isModerated,
         'moderatedAt': user.moderatedAt?.toIso8601String(),
         'moderatedReason': user.moderatedReason,
+        'retentionUntil': user.retentionUntil?.toIso8601String(),
       },
       if (user2 != null)
         'after': {
           'isModerated': user2.isModerated,
           'moderatedAt': user2.moderatedAt?.toIso8601String(),
           'moderatedReason': user2.moderatedReason,
+          'retentionUntil': user2.retentionUntil?.toIso8601String(),
         },
     };
   },

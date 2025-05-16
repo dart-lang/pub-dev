@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/admin/models.dart';
 
 import '../shared/datastore.dart' as db;
 
@@ -62,6 +63,10 @@ class Publisher extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? moderatedAt;
 
+  /// The timestamp when the publisher entry will be deleted.
+  @db.DateTimeProperty()
+  DateTime? retentionUntil;
+
   Publisher();
 
   Publisher.init({
@@ -91,9 +96,15 @@ class Publisher extends db.ExpandoModel<String> {
   bool get isVisible => !isUnlisted;
 
   void updateIsModerated({required bool isModerated}) {
-    this.isModerated = isModerated;
-    moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
+    this.isModerated = isModerated;
+    if (isModerated) {
+      moderatedAt = clock.now().toUtc();
+      retentionUntil = moderatedAt!.add(defaultModeratedKeptUntil);
+    } else {
+      moderatedAt = null;
+      retentionUntil = null;
+    }
   }
 }
 

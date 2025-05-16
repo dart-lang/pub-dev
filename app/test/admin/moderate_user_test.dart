@@ -69,6 +69,7 @@ void main() {
           'isModerated': false,
           'moderatedAt': null,
           'moderatedReason': null,
+          'retentionUntil': null,
         },
       });
 
@@ -84,11 +85,13 @@ void main() {
           'isModerated': false,
           'moderatedAt': null,
           'moderatedReason': null,
+          'retentionUntil': null,
         },
         'after': {
           'isModerated': true,
           'moderatedAt': isNotEmpty,
           'moderatedReason': 'policy-violation',
+          'retentionUntil': isNotEmpty,
         },
       });
       final u2 = await accountBackend.lookupUserByEmail('user@pub.dev');
@@ -104,11 +107,13 @@ void main() {
           'isModerated': true,
           'moderatedAt': isNotEmpty,
           'moderatedReason': 'policy-violation',
+          'retentionUntil': isNotEmpty,
         },
         'after': {
           'isModerated': false,
           'moderatedAt': isNull,
           'moderatedReason': null,
+          'retentionUntil': null,
         },
       });
       final u3 = await accountBackend.lookupUserByEmail('user@pub.dev');

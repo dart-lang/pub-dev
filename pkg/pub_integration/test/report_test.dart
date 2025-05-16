@@ -122,8 +122,16 @@ void main() {
         moderateRs.output,
         {
           'package': 'oxygen',
-          'before': {'isModerated': false, 'moderatedAt': null},
-          'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+          'before': {
+            'isModerated': false,
+            'moderatedAt': null,
+            'retentionUntil': null,
+          },
+          'after': {
+            'isModerated': true,
+            'moderatedAt': isNotEmpty,
+            'retentionUntil': isNotEmpty,
+          },
         },
       );
 

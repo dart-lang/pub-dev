@@ -13,6 +13,11 @@ import '../shared/urls.dart' as urls;
 
 part 'models.g.dart';
 
+/// The default time period while the moderated subject's (package, version,
+/// publisher or user) database entry is kept. Once the time is over, we are
+/// deleting the database entry and related assets.
+final defaultModeratedKeptUntil = Duration(days: 3 * 366); // extra buffer days
+
 /// Tracks the status of the moderation or appeal case.
 @db.Kind(name: 'ModerationCase', idType: db.IdType.String)
 class ModerationCase extends db.ExpandoModel<String> {
