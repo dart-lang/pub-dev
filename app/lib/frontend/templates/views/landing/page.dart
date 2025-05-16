@@ -46,7 +46,7 @@ d.Node landingPageNode({
           height: 240,
         ),
         title: 'Trending packages',
-        info: d.text('Some of the packages trending in the last 30 days'),
+        info: d.text('Top trending packages in the last 30 days'),
         content: miniListNode('most-trending', trendingPackages!),
         viewAllUrl: urls.listingByTrending(),
         viewAllEvent: 'landing-trending-view-all',
