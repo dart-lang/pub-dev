@@ -8,7 +8,6 @@ import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 
 import '../shared/versions.dart';
@@ -16,6 +15,21 @@ import 'search_service.dart';
 import 'token_index.dart';
 
 export 'package:pana/src/dartdoc/dartdoc_index.dart';
+
+/// Results from these libraries are ranked with lower score and
+/// will be displayed only if the query has the library name, or
+/// there are not other results that could match the query.
+const _libraryWeights = {
+  'dart:html': 0.7,
+};
+
+/// Results from these API pages are ranked with lower score and
+/// will be displayed only if the query has the library and the page
+/// name, or there are not other results that could match the query.
+const _defaultApiPageDirWeights = {
+  'cupertino/CupertinoIcons': 0.25,
+  'material/Icons': 0.25,
+};
 
 /// In-memory index for SDK library search queries.
 class SdkMemIndex {
@@ -25,7 +39,6 @@ class SdkMemIndex {
   final _tokensPerLibrary = <String, TokenIndex<String>>{};
   final _baseUriPerLibrary = <String, String>{};
   final _descriptionPerLibrary = <String, String>{};
-  final Map<String, double> _libraryWeights;
   final Map<String, double> _apiPageDirWeights;
 
   SdkMemIndex({
@@ -34,13 +47,11 @@ class SdkMemIndex {
     required Uri baseUri,
     required DartdocIndex index,
     Set<String>? allowedLibraries,
-    Map<String, double>? libraryWeights,
     Map<String, double>? apiPageDirWeights,
   })  : _sdk = sdk,
         _version = version,
         _baseUri = baseUri,
-        _libraryWeights = libraryWeights ?? const {},
-        _apiPageDirWeights = apiPageDirWeights ?? const {} {
+        _apiPageDirWeights = apiPageDirWeights ?? _defaultApiPageDirWeights {
     _addDartdocIndex(index, allowedLibraries);
   }
 
@@ -50,7 +61,6 @@ class SdkMemIndex {
       version: runtimeSdkVersion,
       baseUri: Uri.parse('https://api.dart.dev/stable/latest/'),
       index: index,
-      libraryWeights: dartSdkLibraryWeights,
     );
   }
 
@@ -61,7 +71,6 @@ class SdkMemIndex {
       baseUri: Uri.parse('https://api.flutter.dev/flutter/'),
       index: index,
       allowedLibraries: flutterSdkAllowedLibraries,
-      apiPageDirWeights: flutterApiPageDirWeights,
     );
   }
 
