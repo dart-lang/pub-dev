@@ -110,7 +110,6 @@ void main() {
         'sdkLibraryHits': [
           {
             'sdk': 'dart',
-            'version': isNotEmpty,
             'library': 'dart:core',
             'url': contains('dart-core-library.html'),
             'score': closeTo(0.98, 0.01),
