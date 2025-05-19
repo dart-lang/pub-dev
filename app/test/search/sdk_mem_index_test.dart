@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:pub_dev/search/dart_sdk_mem_index.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:test/test.dart';
 
@@ -17,10 +16,6 @@ void main() {
         sdk: 'dart',
         version: '',
         baseUri: Uri.parse('https://api.dart.dev/x/'),
-        libraryWeights: dartSdkLibraryWeights,
-        apiPageDirWeights: {
-          'dart:html/FakeIcons': 0.7,
-        },
         index: DartdocIndex.fromJsonList([
           {
             'name': 'dart:async',

@@ -32,11 +32,6 @@ const flutterSdkAllowedLibraries = <String>{
   'flutter_web_plugins',
 };
 
-const flutterApiPageDirWeights = <String, double>{
-  'cupertino/CupertinoIcons': 0.25,
-  'material/Icons': 0.25,
-};
-
 final _logger = Logger('search.flutter_sdk_mem_index');
 
 /// Sets the Flutter SDK in-memory index.
