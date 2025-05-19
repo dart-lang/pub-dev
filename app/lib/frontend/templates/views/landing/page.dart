@@ -36,8 +36,7 @@ d.Node landingPageNode({
         viewAllEvent: 'landing-flutter-favorites-view-all',
         viewAllTitle: 'Search Flutter Favorites packages',
       ),
-    if (requestContext.experimentalFlags.showTrending &&
-        _isNotEmptyList(trendingPackages))
+    if (_isNotEmptyList(trendingPackages))
       _block(
         shortId: 'mp',
         image: d.Image.decorative(
