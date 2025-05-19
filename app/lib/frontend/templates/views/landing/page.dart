@@ -4,7 +4,6 @@
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../package/models.dart';
 import '../../../../service/youtube/backend.dart';
