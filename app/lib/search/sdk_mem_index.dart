@@ -10,7 +10,6 @@ import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
 
-import '../shared/versions.dart';
 import 'search_service.dart';
 import 'token_index.dart';
 
@@ -34,7 +33,6 @@ const _defaultApiPageDirWeights = {
 /// In-memory index for SDK library search queries.
 class SdkMemIndex {
   final String _sdk;
-  final String? _version;
   final Uri _baseUri;
   final _tokensPerLibrary = <String, TokenIndex<String>>{};
   final _baseUriPerLibrary = <String, String>{};
@@ -43,13 +41,11 @@ class SdkMemIndex {
 
   SdkMemIndex({
     required String sdk,
-    required String? version,
     required Uri baseUri,
     required DartdocIndex index,
     Set<String>? allowedLibraries,
     Map<String, double>? apiPageDirWeights,
   })  : _sdk = sdk,
-        _version = version,
         _baseUri = baseUri,
         _apiPageDirWeights = apiPageDirWeights ?? _defaultApiPageDirWeights {
     _addDartdocIndex(index, allowedLibraries);
@@ -58,7 +54,6 @@ class SdkMemIndex {
   static SdkMemIndex dart({required DartdocIndex index}) {
     return SdkMemIndex(
       sdk: 'dart',
-      version: runtimeSdkVersion,
       baseUri: Uri.parse('https://api.dart.dev/stable/latest/'),
       index: index,
     );
@@ -67,7 +62,6 @@ class SdkMemIndex {
   factory SdkMemIndex.flutter({required DartdocIndex index}) {
     return SdkMemIndex(
       sdk: 'flutter',
-      version: null,
       baseUri: Uri.parse('https://api.flutter.dev/flutter/'),
       index: index,
       allowedLibraries: flutterSdkAllowedLibraries,
@@ -159,7 +153,6 @@ class SdkMemIndex {
         .where((h) => h.score >= minScore)
         .map((hit) => SdkLibraryHit(
               sdk: _sdk,
-              version: _version,
               library: hit.library,
               description: _descriptionPerLibrary[hit.library],
               url: _baseUriPerLibrary[hit.library] ?? _baseUri.toString(),

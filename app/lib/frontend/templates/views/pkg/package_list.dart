@@ -47,10 +47,6 @@ d.Node listOfPackagesNode({
 
 d.Node _sdkLibraryItem(SdkLibraryHit hit) {
   final sdkDict = getSdkDict(hit.sdk!);
-  final metadataText = [
-    if (hit.version != null) 'v ${hit.version}',
-    sdkDict.libraryTypeLabel,
-  ].join(' • ');
 
   return _item(
     url: hit.url!,
@@ -60,7 +56,8 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     labeledScoresNode: null,
     description: hit.description ?? '',
     metadataNode: d.fragment([
-      d.span(classes: ['packages-metadata-block'], text: metadataText),
+      d.span(
+          classes: ['packages-metadata-block'], text: sdkDict.libraryTypeLabel),
       coreLibraryBadgeNode,
       nullSafeBadgeNode(),
     ]),

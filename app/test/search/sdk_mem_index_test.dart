@@ -14,7 +14,6 @@ void main() {
     setUpAll(() async {
       index = SdkMemIndex(
         sdk: 'dart',
-        version: '',
         baseUri: Uri.parse('https://api.dart.dev/x/'),
         index: DartdocIndex.fromJsonList([
           {
@@ -91,7 +90,6 @@ void main() {
         [
           {
             'sdk': 'dart',
-            'version': '',
             'library': 'dart:async',
             'description': 'async description',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
@@ -124,7 +122,6 @@ void main() {
         [
           {
             'sdk': 'dart',
-            'version': '',
             'library': 'dart:async',
             'description': 'async description',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
@@ -148,7 +145,6 @@ void main() {
         [
           {
             'sdk': 'dart',
-            'version': '',
             'library': 'dart:async',
             'description': 'async description',
             'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
