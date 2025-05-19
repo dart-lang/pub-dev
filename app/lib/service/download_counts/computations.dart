@@ -36,7 +36,7 @@ Future<Map<String, double>> computeTrend() async {
   return res;
 }
 
-final trendScoreFileName = 'trend-scores.json';
+final trendScoreFileName = 'trend-scores-v2.json';
 
 Future<void> uploadTrendScores(Map<String, double> trends) async {
   final reportsBucket =

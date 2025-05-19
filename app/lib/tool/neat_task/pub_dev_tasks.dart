@@ -212,7 +212,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     ),
 
     _daily(
-      name: 'compute-trend-scores',
+      name: 'compute-trend-scores-v2',
       isRuntimeVersioned: false,
       task: computeTrendScoreTask,
     ),
