@@ -419,6 +419,20 @@ class PackageBackend {
     return count;
   }
 
+  /// Returns the package options.
+  Future<api.PkgOptions> getPackageOptions(String package) async {
+    checkPackageVersionParams(package);
+    final p = await packageBackend.lookupPackage(package);
+    if (p == null) {
+      throw NotFoundException.resource(package);
+    }
+    return api.PkgOptions(
+      isDiscontinued: p.isDiscontinued,
+      replacedBy: p.replacedBy,
+      isUnlisted: p.isUnlisted,
+    );
+  }
+
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
