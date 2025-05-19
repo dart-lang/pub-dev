@@ -32,7 +32,6 @@ void main() {
       primaryIndex: primaryIndex,
       dartSdkMemIndex: SdkMemIndex(
         sdk: 'dart',
-        version: runtimeSdkVersion,
         baseUri: Uri.parse('https://api.dart.dev/stable/$runtimeSdkVersion/'),
         index: DartdocIndex.fromJsonList([
           {

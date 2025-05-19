@@ -469,7 +469,6 @@ void main() {
             sdkLibraryHits: [
               SdkLibraryHit(
                 sdk: 'dart',
-                version: '2.14.0',
                 library: 'dart:core',
                 description: 'core description',
                 url: 'https://api.dart.dev/library-page.html',

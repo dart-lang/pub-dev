@@ -427,7 +427,6 @@ class PackageSearchResult {
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class SdkLibraryHit {
   final String? sdk;
-  final String? version;
   final String? library;
   final String? description;
   final String? url;
@@ -436,7 +435,6 @@ class SdkLibraryHit {
 
   SdkLibraryHit({
     required this.sdk,
-    required this.version,
     required this.library,
     required this.description,
     required this.url,

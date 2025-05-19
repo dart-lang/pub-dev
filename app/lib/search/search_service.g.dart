@@ -109,7 +109,6 @@ Map<String, dynamic> _$PackageSearchResultToJson(
 SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
     SdkLibraryHit(
       sdk: json['sdk'] as String?,
-      version: json['version'] as String?,
       library: json['library'] as String?,
       description: json['description'] as String?,
       url: json['url'] as String?,
@@ -122,7 +121,6 @@ SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) =>
     <String, dynamic>{
       if (instance.sdk case final value?) 'sdk': value,
-      if (instance.version case final value?) 'version': value,
       if (instance.library case final value?) 'library': value,
       if (instance.description case final value?) 'description': value,
       if (instance.url case final value?) 'url': value,

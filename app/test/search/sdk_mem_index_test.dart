@@ -14,7 +14,6 @@ void main() {
     setUpAll(() async {
       index = SdkMemIndex(
         sdk: 'dart',
-        version: '',
         baseUri: Uri.parse('https://api.dart.dev/x/'),
         index: DartdocIndex.fromJsonList([
           {
