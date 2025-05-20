@@ -21,7 +21,6 @@ import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
-import '../../service/download_counts/backend.dart';
 import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
@@ -218,38 +217,7 @@ Future<VersionScore> packageVersionScoreHandler(
     {String? version}) async {
   checkPackageVersionParams(package, version);
   return (await cache.versionScore(package, version).get(() async {
-    final pkg = await packageBackend.lookupPackage(package);
-    if (pkg == null) {
-      throw NotFoundException.resource('package "$package"');
-    }
-    final v =
-        (version == null || version == 'latest') ? pkg.latestVersion! : version;
-    final pv = await packageBackend.lookupPackageVersion(package, v);
-    if (pv == null) {
-      throw NotFoundException.resource('package "$package" version "$version"');
-    }
-
-    var updated = pkg.updated;
-    final card = await scoreCardBackend.getScoreCardData(package, v);
-    if (updated == null || card.updated?.isAfter(updated) == true) {
-      updated = card.updated;
-    }
-
-    final tags = <String>{
-      ...pkg.getTags(),
-      ...pv.getTags(),
-      ...?card.derivedTags,
-    };
-
-    return VersionScore(
-      grantedPoints: card.grantedPubPoints,
-      maxPoints: card.maxPubPoints,
-      likeCount: pkg.likes,
-      downloadCount30Days:
-          downloadCountsBackend.lookup30DaysTotalCounts(package),
-      tags: tags.toList(),
-      lastUpdated: updated,
-    );
+    return await scoreCardBackend.getVersionScore(package, version: version);
   }))!;
 }
 
@@ -475,15 +443,7 @@ Future<PkgOptions> getPackageOptionsHandler(
   shelf.Request request,
   String package,
 ) async {
-  checkPackageVersionParams(package);
-  final p = await packageBackend.lookupPackage(package);
-  if (p == null) {
-    throw NotFoundException.resource(package);
-  }
-  return PkgOptions(
-    isDiscontinued: p.isDiscontinued,
-    isUnlisted: p.isUnlisted,
-  );
+  return await packageBackend.getPackageOptions(package);
 }
 
 /// Handles `PUT /api/packages/<package>/options`.
