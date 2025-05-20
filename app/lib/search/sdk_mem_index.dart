@@ -34,9 +34,7 @@ const _defaultApiPageDirWeights = {
 class SdkMemIndex {
   final String _sdk;
   final Uri _baseUri;
-  final _tokensPerLibrary = <String, TokenIndex<String>>{};
-  final _baseUriPerLibrary = <String, String>{};
-  final _descriptionPerLibrary = <String, String>{};
+  final _libraries = <String, _Library>{};
   final Map<String, double> _apiPageDirWeights;
 
   SdkMemIndex({
@@ -78,6 +76,9 @@ class SdkMemIndex {
     Set<String>? allowedLibraries,
   ) {
     final textsPerLibrary = <String, Map<String, String>>{};
+    final baseUrls = <String, String>{};
+    final descriptions = <String, String>{};
+
     for (final f in index.entries) {
       final library = f.qualifiedName?.split('.').first;
       if (library == null) continue;
@@ -88,11 +89,11 @@ class SdkMemIndex {
         continue;
       }
       if (f.isLibrary) {
-        _baseUriPerLibrary[library] = _baseUri.resolve(f.href!).toString();
+        baseUrls[library] = _baseUri.resolve(f.href!).toString();
 
         final desc = f.desc?.replaceAll(RegExp(r'\s+'), ' ').trim();
         if (desc != null && desc.isNotEmpty) {
-          _descriptionPerLibrary[library] = desc;
+          descriptions[library] = desc;
         }
       }
 
@@ -103,7 +104,12 @@ class SdkMemIndex {
       }
     }
     for (final e in textsPerLibrary.entries) {
-      _tokensPerLibrary[e.key] = TokenIndex.fromMap(e.value);
+      _libraries[e.key] = _Library(
+        name: e.key,
+        baseUrl: baseUrls[e.key],
+        description: descriptions[e.key],
+        tokenIndex: TokenIndex.fromMap(e.value),
+      );
     }
   }
 
@@ -116,24 +122,22 @@ class SdkMemIndex {
     if (words.isEmpty) return <SdkLibraryHit>[];
 
     final hits = <_Hit>[];
-    for (final library in _tokensPerLibrary.keys) {
+    for (final library in _libraries.values) {
       // We may reduce the rank of certain libraries, except when their name is
       // also part of the query. E.g. `dart:html` with `query=cursor` may be
       // scored lower than `query=html cursor`.
-      final isQualifiedQuery = query.contains(library.split(':').last);
+      final isQualifiedQuery = query.contains(library.lastNamePart);
 
-      final tokens = _tokensPerLibrary[library]!;
-      final plainResults = tokens.withSearchWords(
-          words, (score) => score.top(3, minValue: 0.05));
+      final plainResults = library.tokenIndex
+          .withSearchWords(words, (score) => score.top(3, minValue: 0.05));
       if (plainResults.isEmpty) continue;
 
-      final libraryWeight = _libraryWeights[library] ?? 1.0;
       final weightedResults = isQualifiedQuery
           ? plainResults
           : plainResults.map(
               (key, value) {
                 final dir = p.dirname(key);
-                final w = (_apiPageDirWeights[dir] ?? 1.0) * libraryWeight;
+                final w = (_apiPageDirWeights[dir] ?? 1.0) * library.weight;
                 return MapEntry(key, w * value);
               },
             );
@@ -153,9 +157,9 @@ class SdkMemIndex {
         .where((h) => h.score >= minScore)
         .map((hit) => SdkLibraryHit(
               sdk: _sdk,
-              library: hit.library,
-              description: _descriptionPerLibrary[hit.library],
-              url: _baseUriPerLibrary[hit.library] ?? _baseUri.toString(),
+              library: hit.library.name,
+              description: hit.library.description,
+              url: hit.library.baseUrl ?? _baseUri.toString(),
               score: hit.score,
               apiPages: hit.top.entries
                   .map(
@@ -171,14 +175,31 @@ class SdkMemIndex {
 
   @visibleForTesting
   String? getLibraryDescription(String library) =>
-      _descriptionPerLibrary[library];
+      _libraries[library]?.description;
 }
 
 class _Hit {
-  final String library;
+  final _Library library;
   final Map<String, double> top;
 
   _Hit(this.library, this.top);
 
   late final score = top.values.fold(0.0, (a, b) => max(a, b));
+}
+
+class _Library {
+  final String name;
+  final String? baseUrl;
+  final String? description;
+  final TokenIndex<String> tokenIndex;
+
+  _Library({
+    required this.name,
+    required this.baseUrl,
+    required this.description,
+    required this.tokenIndex,
+  });
+
+  late final weight = _libraryWeights[name] ?? 1.0;
+  late final lastNamePart = name.split(':').last;
 }
