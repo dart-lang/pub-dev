@@ -32,8 +32,6 @@ const _defaultApiPageDirWeights = {
 
 /// In-memory index for SDK library search queries.
 class SdkMemIndex {
-  final String _sdk;
-  final Uri _baseUri;
   final _libraries = <String, _Library>{};
   final Map<String, double> _apiPageDirWeights;
 
@@ -43,10 +41,8 @@ class SdkMemIndex {
     required DartdocIndex index,
     Set<String>? allowedLibraries,
     Map<String, double>? apiPageDirWeights,
-  })  : _sdk = sdk,
-        _baseUri = baseUri,
-        _apiPageDirWeights = apiPageDirWeights ?? _defaultApiPageDirWeights {
-    _addDartdocIndex(index, allowedLibraries);
+  }) : _apiPageDirWeights = apiPageDirWeights ?? _defaultApiPageDirWeights {
+    _addDartdocIndex(sdk, baseUri, index, allowedLibraries);
   }
 
   static SdkMemIndex dart({required DartdocIndex index}) {
@@ -72,11 +68,13 @@ class SdkMemIndex {
       Uri.parse('https://api.flutter.dev/flutter/index.json');
 
   void _addDartdocIndex(
+    String sdk,
+    Uri baseUri,
     DartdocIndex index,
     Set<String>? allowedLibraries,
   ) {
     final textsPerLibrary = <String, Map<String, String>>{};
-    final baseUrls = <String, String>{};
+    final baseUris = <String, Uri>{};
     final descriptions = <String, String>{};
 
     for (final f in index.entries) {
@@ -89,7 +87,7 @@ class SdkMemIndex {
         continue;
       }
       if (f.isLibrary) {
-        baseUrls[library] = _baseUri.resolve(f.href!).toString();
+        baseUris[library] = baseUri.resolve(f.href!);
 
         final desc = f.desc?.replaceAll(RegExp(r'\s+'), ' ').trim();
         if (desc != null && desc.isNotEmpty) {
@@ -105,8 +103,9 @@ class SdkMemIndex {
     }
     for (final e in textsPerLibrary.entries) {
       _libraries[e.key] = _Library(
+        sdk: sdk,
         name: e.key,
-        baseUrl: baseUrls[e.key],
+        baseUri: baseUris[e.key] ?? baseUri,
         description: descriptions[e.key],
         tokenIndex: TokenIndex.fromMap(e.value),
       );
@@ -156,16 +155,16 @@ class SdkMemIndex {
         .take(limit)
         .where((h) => h.score >= minScore)
         .map((hit) => SdkLibraryHit(
-              sdk: _sdk,
+              sdk: hit.library.sdk,
               library: hit.library.name,
               description: hit.library.description,
-              url: hit.library.baseUrl ?? _baseUri.toString(),
+              url: hit.library.url,
               score: hit.score,
               apiPages: hit.top.entries
                   .map(
                     (e) => ApiPageRef(
                       path: e.key,
-                      url: _baseUri.resolve(e.key).toString(),
+                      url: hit.library.baseUri.resolve(e.key).toString(),
                     ),
                   )
                   .toList(),
@@ -188,18 +187,21 @@ class _Hit {
 }
 
 class _Library {
+  final String sdk;
   final String name;
-  final String? baseUrl;
+  final Uri baseUri;
   final String? description;
   final TokenIndex<String> tokenIndex;
 
   _Library({
+    required this.sdk,
     required this.name,
-    required this.baseUrl,
+    required this.baseUri,
     required this.description,
     required this.tokenIndex,
   });
 
+  late final url = baseUri.toString();
   late final weight = _libraryWeights[name] ?? 1.0;
   late final lastNamePart = name.split(':').last;
 }
