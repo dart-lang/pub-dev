@@ -104,8 +104,9 @@ class SdkMemIndex {
     for (final e in textsPerLibrary.entries) {
       _libraries[e.key] = _Library(
         sdk: sdk,
+        sdkBaseUri: baseUri,
         name: e.key,
-        baseUri: baseUris[e.key] ?? baseUri,
+        libraryUrl: (baseUris[e.key] ?? baseUri).toString(),
         description: descriptions[e.key],
         tokenIndex: TokenIndex.fromMap(e.value),
       );
@@ -158,13 +159,13 @@ class SdkMemIndex {
               sdk: hit.library.sdk,
               library: hit.library.name,
               description: hit.library.description,
-              url: hit.library.url,
+              url: hit.library.libraryUrl,
               score: hit.score,
               apiPages: hit.top.entries
                   .map(
                     (e) => ApiPageRef(
                       path: e.key,
-                      url: hit.library.baseUri.resolve(e.key).toString(),
+                      url: hit.library.sdkBaseUri.resolve(e.key).toString(),
                     ),
                   )
                   .toList(),
@@ -188,20 +189,21 @@ class _Hit {
 
 class _Library {
   final String sdk;
+  final Uri sdkBaseUri;
   final String name;
-  final Uri baseUri;
+  final String libraryUrl;
   final String? description;
   final TokenIndex<String> tokenIndex;
 
   _Library({
     required this.sdk,
+    required this.sdkBaseUri,
     required this.name,
-    required this.baseUri,
+    required this.libraryUrl,
     required this.description,
     required this.tokenIndex,
   });
 
-  late final url = baseUri.toString();
   late final weight = _libraryWeights[name] ?? 1.0;
   late final lastNamePart = name.split(':').last;
 }
