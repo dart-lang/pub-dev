@@ -110,18 +110,6 @@ class PackageBackend {
     }))!;
   }
 
-  /// Whether the package has been deleted and a [ModeratedPackage] entity exists for it.
-  Future<bool> isPackageModerated(String package) async {
-    return (await cache.packageModerated(package).get(() async {
-      final visible = await isPackageVisible(package);
-      if (visible) {
-        return false;
-      }
-      final p = await lookupModeratedPackage(package);
-      return p != null;
-    }))!;
-  }
-
   Stream<Package> allPackages() => db.query<Package>().run();
 
   Stream<String> allPackageNames() {
@@ -1783,7 +1771,6 @@ api.PackagePublisherInfo _asPackagePublisherInfo(Package p) =>
 Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageVisible(package).purge(),
-    cache.packageModerated(package).purge(),
     cache.packageData(package).purge(),
     cache.packageDataGz(package).purge(),
     cache.packageLatestVersion(package).purge(),
