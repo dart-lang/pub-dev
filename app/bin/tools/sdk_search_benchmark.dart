@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
+import 'package:pub_dev/search/sdk_mem_index.dart';
 
 /// Loads a Dart SDK search snapshot and executes queries on it, benchmarking their total time to complete.
 Future<void> main() async {
-  final index = await createFlutterSdkMemIndex();
+  final index = await createSdkMemIndex();
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [
