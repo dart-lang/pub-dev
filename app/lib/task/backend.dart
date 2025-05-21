@@ -1179,7 +1179,7 @@ List<Version> _versionsToTrack(
       // Ignore retracted versions
       .where((pv) => !pv.isRetracted)
       // Ignore moderated versions
-      .where((pv) => !pv.isModerated)
+      .where((pv) => pv.isVisible)
       .map((pv) => pv.semanticVersion)
       .toSet();
   final visibleStableVersions = visibleVersions

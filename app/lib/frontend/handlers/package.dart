@@ -317,7 +317,7 @@ Future<shelf.Response> _handlePackagePage({
     } on NotFoundException {
       return formattedNotFoundHandler(request);
     }
-    if (data.version.isModerated) {
+    if (data.version.isNotVisible) {
       final content = renderModeratedPackagePage(packageName);
       return htmlResponse(content, status: 404);
     }

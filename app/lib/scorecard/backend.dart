@@ -142,7 +142,7 @@ class ScoreCardBackend {
       throw NotFoundException(
           'Package version "$packageName $packageVersion" does not exist.');
     }
-    if (version.isModerated) {
+    if (version.isNotVisible) {
       throw ModeratedException.packageVersion(packageName, packageVersion);
     }
     final status = PackageStatus.fromModels(package, version);

@@ -69,7 +69,7 @@ value of `set-retracted`, which should either be `true` or `false`.
         if (pv == null) {
           throw NotFoundException.resource(version);
         }
-        if (pv.isModerated) {
+        if (pv.isNotVisible) {
           throw ModeratedException.packageVersion(packageName, version);
         }
 
