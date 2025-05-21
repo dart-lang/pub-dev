@@ -137,6 +137,7 @@ void main() {
           '/static/css/dartdoc.css.map',
           '/static/css/style.css.map',
           '/static/js/script.dart.js.deps',
+          '/static/js/script.dart.js.info.data',
           '/static/js/script.dart.js.info.json',
           '/static/js/script.dart.js.map',
           '/static/material/bundle/script.min.js.map',
