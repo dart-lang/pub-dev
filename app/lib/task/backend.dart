@@ -36,6 +36,7 @@ import 'package:pub_dev/shared/versions.dart'
         acceptedRuntimeVersions;
 import 'package:pub_dev/shared/versions.dart' as shared_versions
     show runtimeVersion;
+import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/handlers.dart';
@@ -138,7 +139,7 @@ class TaskBackend {
               st,
             );
             // Sleep 5 minutes to reduce risk of degenerate behavior
-            await Future.delayed(Duration(minutes: 5));
+            await clock.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
@@ -176,7 +177,7 @@ class TaskBackend {
               st,
             );
             // Sleep 5 minutes to reduce risk of degenerate behavior
-            await Future.delayed(Duration(minutes: 5));
+            await clock.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
@@ -349,7 +350,8 @@ class TaskBackend {
       seen.removeWhere((_, updated) => updated.isBefore(since));
 
       // Wait until aborted or 10 minutes before scanning again!
-      await abort.future.timeout(Duration(minutes: 10), onTimeout: () => null);
+      await abort.future
+          .timeoutWithClock(Duration(minutes: 10), onTimeout: () => null);
     }
   }
 

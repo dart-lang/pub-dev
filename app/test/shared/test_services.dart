@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
@@ -27,6 +28,7 @@ import 'package:pub_dev/shared/integrity.dart';
 import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/versions.dart';
+import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/tool/neat_task/pub_dev_tasks.dart';
@@ -37,11 +39,18 @@ import 'package:pub_dev/tool/utils/pub_api_client.dart';
 import 'package:test/test.dart';
 
 import '../shared/utils.dart';
-import '../task/fake_time.dart';
 import 'handlers_test_utils.dart';
 import 'test_models.dart';
 
 export 'package:pub_dev/tool/utils/pub_api_client.dart';
+
+void _registerClockControl(ClockController clockControl) =>
+    register(#_clockControl, clockControl);
+
+/// Get [ClockController] for manipulating time.
+///
+/// This is only valid inside [testWithProfile].
+ClockController get clockControl => lookup(#_clockControl) as ClockController;
 
 /// Create a [StaticFileCache] for reuse when testing.
 // TODO: Find out if there are any downsides to doing this, and make forTests()
@@ -64,7 +73,7 @@ Future<void> withRuntimeVersions(
 
 /// The stored and shared state of the appengine context (including datastore,
 /// storage and cloud compute).
-class FakeAppengineEnv {
+final class FakeAppengineEnv {
   final _storage = MemStorage();
   final _datastore = MemDatastore();
   final _cloudCompute = FakeCloudCompute();
@@ -87,36 +96,39 @@ class FakeAppengineEnv {
       if (runtimeVersions != null) {
         registerAcceptedRuntimeVersions(runtimeVersions);
       }
-      return await withFakeServices(
-        datastore: _datastore,
-        storage: _storage,
-        cloudCompute: _cloudCompute,
-        fn: () async {
-          registerStaticFileCacheForTest(_staticFileCacheForTesting);
+      return await withClockControl((clockControl) async {
+        _registerClockControl(clockControl);
+        return await withFakeServices(
+          datastore: _datastore,
+          storage: _storage,
+          cloudCompute: _cloudCompute,
+          fn: () async {
+            registerStaticFileCacheForTest(_staticFileCacheForTesting);
 
-          if (testProfile != null) {
-            await importProfile(
-              profile: testProfile,
-              source: importSource,
-            );
-          }
-          if (processJobsWithFakeRunners) {
-            await generateFakeDownloadCountsInDatastore();
-            await processTasksWithFakePanaAndDartdoc();
-          }
-          await nameTracker.reloadFromDatastore();
-          await indexUpdater.updateAllPackages();
-          await topPackages.start();
-          await youtubeBackend.start();
-          await asyncQueue.ongoingProcessing;
-          fakeEmailSender.sentMessages.clear();
+            if (testProfile != null) {
+              await importProfile(
+                profile: testProfile,
+                source: importSource,
+              );
+            }
+            if (processJobsWithFakeRunners) {
+              await generateFakeDownloadCountsInDatastore();
+              await processTasksWithFakePanaAndDartdoc();
+            }
+            await nameTracker.reloadFromDatastore();
+            await indexUpdater.updateAllPackages();
+            await topPackages.start();
+            await youtubeBackend.start();
+            await asyncQueue.ongoingProcessing;
+            fakeEmailSender.sentMessages.clear();
 
-          await fork(() async {
-            await fn();
-          });
-          await _postTestVerification(integrityProblem: integrityProblem);
-        },
-      );
+            await fork(() async {
+              await fn();
+            });
+            await _postTestVerification(integrityProblem: integrityProblem);
+          },
+        );
+      });
     }) as R;
   }
 }
@@ -178,43 +190,6 @@ void testWithProfile(
     timeout: timeout,
     skip: skip,
   );
-}
-
-/// Execute [fn] with [FakeTime.run] inside [testWithProfile].
-@isTest
-void testWithFakeTime(
-  String name,
-  FutureOr<void> Function(FakeTime fakeTime) fn, {
-  TestProfile? testProfile,
-  ImportSource? importSource,
-  Pattern? integrityProblem,
-  Iterable<Pattern>? expectedLogMessages,
-}) {
-  scopedTest(name, expectedLogMessages: expectedLogMessages, () async {
-    await FakeTime.run((fakeTime) async {
-      setupDebugEnvBasedLogging();
-      await withFakeServices(
-        fn: () async {
-          registerStaticFileCacheForTest(_staticFileCacheForTesting);
-
-          await importProfile(
-            profile: testProfile ?? defaultTestProfile,
-            source: importSource,
-          );
-          await nameTracker.reloadFromDatastore();
-          await generateFakeDownloadCountsInDatastore();
-          await indexUpdater.updateAllPackages();
-          await asyncQueue.ongoingProcessing;
-          fakeEmailSender.sentMessages.clear();
-
-          await fork(() async {
-            await fn(fakeTime);
-          });
-          await _postTestVerification(integrityProblem: integrityProblem);
-        },
-      );
-    });
-  });
 }
 
 void setupTestsWithCallerAuthorizationIssues(

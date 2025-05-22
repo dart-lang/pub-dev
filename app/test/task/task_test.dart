@@ -22,22 +22,6 @@ import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_services.dart';
-import 'fake_time.dart';
-
-Future<void> delay({
-  int days = 0,
-  int hours = 0,
-  int minutes = 0,
-  int seconds = 0,
-  int milliseconds = 0,
-}) =>
-    Future.delayed(Duration(
-      days: days,
-      hours: hours,
-      minutes: minutes,
-      seconds: seconds,
-      milliseconds: milliseconds,
-    ));
 
 extension on FakeCloudInstance {
   /// First argument is always a JSON blob with the [Payload].
@@ -49,7 +33,7 @@ extension on FakeCloudInstance {
 FakeCloudCompute get cloud => taskWorkerCloudCompute as FakeCloudCompute;
 
 void main() {
-  testWithFakeTime('tasks can scheduled and processed',
+  testWithProfile('tasks can scheduled and processed',
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
@@ -68,12 +52,12 @@ void main() {
         users: [
           TestUser(email: 'admin@pub.dev', likes: []),
         ],
-      ), (fakeTime) async {
+      ), fn: () async {
     await taskBackend.backfillTrackingState();
-    await fakeTime.elapse(minutes: 1);
+    await clockControl.elapse(minutes: 1);
 
     await taskBackend.start();
-    await fakeTime.elapse(minutes: 5);
+    await clockControl.elapse(minutes: 5);
 
     // Check that the log is missing.
     final log1 = await taskBackend.taskLog('oxygen', '1.2.0');
@@ -95,7 +79,7 @@ void main() {
       cloud.fakeStartInstance(instance.instanceName);
     }
 
-    await fakeTime.elapse(minutes: 5);
+    await clockControl.elapse(minutes: 5);
 
     for (final instance in instances) {
       final payload = instance.payload;
@@ -162,7 +146,7 @@ void main() {
       }
     }
 
-    await fakeTime.elapse(minutes: 5);
+    await clockControl.elapse(minutes: 5);
 
     // Check that we can get the log file
     final log2 = await taskBackend.taskLog('oxygen', '1.2.0');
@@ -187,12 +171,12 @@ void main() {
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   });
 
-  testWithFakeTime('failing instances will be retried', (fakeTime) async {
+  testWithProfile('failing instances will be retried', fn: () async {
     await taskBackend.backfillTrackingState();
-    await fakeTime.elapse(minutes: 1);
+    await clockControl.elapse(minutes: 1);
 
     await taskBackend.start();
 
@@ -200,7 +184,7 @@ void main() {
     // try to scheduled it until we hit the [taskRetryLimit].
     for (var i = 0; i < taskRetryLimit; i++) {
       // Within 24 hours an instance should be created
-      await fakeTime.elapseUntil(
+      await clockControl.elapseUntil(
         () => cloud.listInstances().isNotEmpty,
         timeout: Duration(days: 1),
       );
@@ -208,7 +192,7 @@ void main() {
       // If nothing happens, then it should be killed within 24 hours.
       // Actually, it'll happen much sooner, like ~2 hours, but we'll leave the
       // test some wiggle room.
-      await fakeTime.elapseUntil(
+      await clockControl.elapseUntil(
         () => cloud.listInstances().isEmpty,
         timeout: Duration(days: 1),
       );
@@ -218,7 +202,7 @@ void main() {
     // created for the next day...
     assert(taskRetriggerInterval > Duration(days: 1));
     await expectLater(
-      fakeTime.elapseUntil(
+      clockControl.elapseUntil(
         () => cloud.listInstances().isNotEmpty,
         timeout: Duration(days: 1),
       ),
@@ -227,14 +211,14 @@ void main() {
 
     // But the task should be retried after [taskRetriggerInterval], this is a
     // long time, but for sanity we do re-analyze everything occasionally.
-    await fakeTime.elapseUntil(
+    await clockControl.elapseUntil(
       () => cloud.listInstances().isNotEmpty,
       timeout: taskRetriggerInterval + Duration(days: 1),
     );
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   },
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
@@ -250,11 +234,11 @@ void main() {
         ],
       ));
 
-  testWithFakeTime('Limit to 5 latest major versions', (fakeTime) async {
+  testWithProfile('Limit to 5 latest major versions', fn: () async {
     await taskBackend.backfillTrackingState();
-    await fakeTime.elapse(minutes: 1);
+    await clockControl.elapse(minutes: 1);
     await taskBackend.start();
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     // We expect there to be one instance with less than 10 versions to be
     // analyzed, this even though there really is 20 versions.
@@ -277,7 +261,7 @@ void main() {
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   },
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
@@ -304,10 +288,10 @@ void main() {
         ],
       ));
 
-  testWithFakeTime('continued scan finds new packages', (fakeTime) async {
+  testWithProfile('continued scan finds new packages', fn: () async {
     await taskBackend.backfillTrackingState();
     await taskBackend.start();
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     expect(await cloud.listInstances().toList(), hasLength(0));
 
@@ -325,13 +309,13 @@ void main() {
       ),
     );
 
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     expect(await cloud.listInstances().toList(), hasLength(1));
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   },
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
@@ -341,10 +325,10 @@ void main() {
         ],
       ));
 
-  testWithFakeTime('analyzed packages stay idle', (fakeTime) async {
+  testWithProfile('analyzed packages stay idle', fn: () async {
     await taskBackend.backfillTrackingState();
     await taskBackend.start();
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     final instances = await cloud.listInstances().toList();
     // There is only one package, so we should only get one instance
@@ -402,17 +386,17 @@ void main() {
     await api.taskUploadFinished(payload.package, v.version);
 
     // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-    await fakeTime.elapse(minutes: 5);
+    await clockControl.elapse(minutes: 5);
 
     // We don't expect anything to be scheduled for the next 7 days.
-    await fakeTime.expectUntil(
+    await clockControl.expectUntil(
       () => cloud.listInstances().isEmpty,
       Duration(days: 7),
     );
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   },
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
@@ -428,10 +412,10 @@ void main() {
         ],
       ));
 
-  testWithFakeTime('continued scan finds new versions', (fakeTime) async {
+  testWithProfile('continued scan finds new versions', fn: () async {
     await taskBackend.backfillTrackingState();
     await taskBackend.start();
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
     {
       final instances = await cloud.listInstances().toList();
       // There is only one package, so we should only get one instance
@@ -489,10 +473,10 @@ void main() {
       await api.taskUploadFinished(payload.package, v.version);
     }
     // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-    await fakeTime.elapse(minutes: 5);
+    await clockControl.elapse(minutes: 5);
 
     // We don't expect anything to be scheduled for the next 3 days.
-    await fakeTime.expectUntil(
+    await clockControl.expectUntil(
       () => cloud.listInstances().isEmpty,
       Duration(days: 3),
     );
@@ -511,7 +495,7 @@ void main() {
       ),
     );
 
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     {
       final instances = await cloud.listInstances().toList();
@@ -535,7 +519,7 @@ void main() {
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   },
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
@@ -551,10 +535,10 @@ void main() {
         ],
       ));
 
-  testWithFakeTime('re-analyzes when dependency is updated', (fakeTime) async {
+  testWithProfile('re-analyzes when dependency is updated', fn: () async {
     await taskBackend.backfillTrackingState();
     await taskBackend.start();
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     // There should be 2 packages for analysis now
     expect(await cloud.listInstances().toList(), hasLength(2));
@@ -627,7 +611,7 @@ void main() {
     }
 
     // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     // We don't expect anything to be scheduled now
     expect(await cloud.listInstances().toList(), isEmpty);
@@ -647,7 +631,7 @@ void main() {
       ),
     );
 
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
 
     // Expect that neon is scheduled within 15 minutes
     expect(
@@ -657,7 +641,7 @@ void main() {
 
     // Since oxygen was recently scheduled, we expect that it won't have been
     // scheduled yet.
-    await fakeTime.elapse(minutes: 15);
+    await clockControl.elapse(minutes: 15);
     expect(
       await cloud.listInstances().map((i) => i.payload.package).toList(),
       isNot(contains('oxygen')),
@@ -665,14 +649,14 @@ void main() {
 
     // At some point oxygen must also be retriggered, by this can be offset by
     // the [taskDependencyRetriggerCoolOff] delay.
-    await fakeTime.elapseUntil(
+    await clockControl.elapseUntil(
       () => cloud.listInstances().any((i) => i.payload.package == 'oxygen'),
       timeout: taskDependencyRetriggerCoolOff + Duration(minutes: 15),
     );
 
     await taskBackend.stop();
 
-    await fakeTime.elapse(minutes: 10);
+    await clockControl.elapse(minutes: 10);
   },
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
@@ -693,7 +677,7 @@ void main() {
         ],
       ));
 
-  testWithFakeTime(
+  testWithProfile(
     'new version during ongoing analysis',
     testProfile: TestProfile(
       defaultUser: 'admin@pub.dev',
@@ -707,10 +691,10 @@ void main() {
         TestUser(email: 'admin@pub.dev', likes: []),
       ],
     ),
-    (fakeTime) async {
+    fn: () async {
       await taskBackend.backfillTrackingState();
       await taskBackend.start();
-      await fakeTime.elapse(minutes: 15);
+      await clockControl.elapse(minutes: 15);
       {
         final instances = await cloud.listInstances().toList();
         // There is only one package, so we should only get one instance
@@ -743,7 +727,7 @@ void main() {
           ),
         );
 
-        await fakeTime.elapse(minutes: 15);
+        await clockControl.elapse(minutes: 15);
 
         // Use token to get the upload information
         final api = createPubApiClient(authToken: v.token);
@@ -766,11 +750,11 @@ void main() {
         );
       }
       // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-      await fakeTime.elapse(minutes: 5);
+      await clockControl.elapse(minutes: 5);
 
       await taskBackend.stop();
 
-      await fakeTime.elapse(minutes: 10);
+      await clockControl.elapse(minutes: 10);
     },
   );
 }
@@ -778,21 +762,6 @@ void main() {
 extension<T> on Stream<T> {
   Future<bool> get isNotEmpty async {
     return !await this.isEmpty;
-  }
-}
-
-extension on FakeTime {
-  /// Expect [condition] to return `true` until [duration] has elapsed.
-  Future<void> expectUntil(
-      FutureOr<bool> Function() condition, Duration duration) async {
-    try {
-      await elapseUntil(() async {
-        return !await condition();
-      }, timeout: duration);
-      fail('Condition failed before $duration expired');
-    } on TimeoutException {
-      return;
-    }
   }
 }
 

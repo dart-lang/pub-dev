@@ -300,7 +300,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
 
     // Create a zone-local flag to indicate that services setup has been completed.
     return await fork(
-      () => Zone.current.fork(zoneValues: {
+      () async => Zone.current.fork(zoneValues: {
         _pubDevServicesInitializedKey: true,
       }).run(
         () async {

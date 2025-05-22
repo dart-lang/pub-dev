@@ -23,7 +23,6 @@ import 'package:test/test.dart';
 
 import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
-import '../../task/fake_time.dart';
 
 final _log = Logger('api_export.test');
 
@@ -43,12 +42,12 @@ final _testProfile = TestProfile(
 );
 
 void main() {
-  testWithFakeTime('synchronizeExportedApi()',
+  testWithProfile('synchronizeExportedApi()',
       testProfile: _testProfile,
       expectedLogMessages: [
         'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
         'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
-      ], (fakeTime) async {
+      ], fn: () async {
     // Since we want to verify post-upload tasks triggering API exporter,
     // we cannot use an isolated instance, we need to use the same setup.
     // However, for better control and consistency, we can remove all the
@@ -59,20 +58,19 @@ void main() {
     await _deleteAll(bucket);
 
     await _testExportedApiSynchronization(
-      fakeTime,
       bucket,
       apiExporter!.synchronizeExportedApi,
     );
   });
 
-  testWithFakeTime(
+  testWithProfile(
     'apiExporter.start()',
     expectedLogMessages: [
       'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
       'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
     ],
     testProfile: _testProfile,
-    (fakeTime) async {
+    fn: () async {
       // Since we want to verify post-upload tasks triggering API exporter,
       // we cannot use an isolated instance, we need to use the same setup.
       // However, for better control and consistency, we can remove all the
@@ -87,9 +85,8 @@ void main() {
       await apiExporter!.start();
 
       await _testExportedApiSynchronization(
-        fakeTime,
         bucket,
-        () async => await fakeTime.elapse(minutes: 15),
+        () async => await clockControl.elapse(minutes: 15),
       );
 
       await apiExporter!.stop();
@@ -106,7 +103,6 @@ Future<void> _deleteAll(Bucket bucket) async {
 }
 
 Future<void> _testExportedApiSynchronization(
-  FakeTime fakeTime,
   Bucket bucket,
   Future<void> Function() synchronize,
 ) async {
@@ -341,7 +337,7 @@ Future<void> _testExportedApiSynchronization(
   {
     // Elapse time before moderating package, because exported-api won't delete
     // recently created files as a guard against race conditions.
-    fakeTime.elapseSync(days: 1);
+    clockControl.elapseSync(days: 1);
 
     await withRetryPubApiClient(
       authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
@@ -422,7 +418,7 @@ Future<void> _testExportedApiSynchronization(
   {
     // Elapse time before moderating package, because exported-api won't delete
     // recently created files as a guard against race conditions.
-    fakeTime.elapseSync(days: 1);
+    clockControl.elapseSync(days: 1);
 
     await withRetryPubApiClient(
         authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
