@@ -49,6 +49,9 @@ void main() {
 
     // Uses timer to track event loop latencies.
     'lib/tool/utils/event_loop_tracker.dart',
+
+    // Uses timer to implement delays
+    'lib/task/clock_control.dart',
   };
 
   test('Timer is used only with a permitted pattern', () {
