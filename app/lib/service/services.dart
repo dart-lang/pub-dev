@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show FutureOr, Zone;
+import 'dart:io' show Platform;
 
 import 'package:_pub_shared/utils/http.dart';
 import 'package:appengine/appengine.dart';
@@ -14,6 +15,10 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:postgres/postgres.dart' show Pool, Endpoint, PoolSettings;
+import 'package:pub_dev/database/model.dart';
+import 'package:pub_dev/fake/backend/fake_database.dart'
+    show createFakeDatabaseAdaptor;
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
@@ -86,6 +91,29 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
           .clientViaApplicationDefaultCredentials(scopes: [...Storage.SCOPES]);
       final retryingAuthClient = httpRetryClient(innerClient: authClient);
       registerScopeExitCallback(() async => retryingAuthClient.close());
+
+      final databaseAdapter = DatabaseAdapter.postgres(
+        Pool.withEndpoints(
+          [
+            Endpoint(
+              host: Platform.environment['PGHOST'] ?? '127.0.0.1',
+              port: int.tryParse(Platform.environment['PGPORT'] ?? '') ?? 5432,
+              database: Platform.environment['PGDATABASE'] ?? 'postgres',
+              username: Platform.environment['PGUSER'] ?? 'postgres',
+              password: Platform.environment['PGPASSWORD'] ?? 'postgres',
+            ),
+          ],
+          settings: PoolSettings(
+            applicationName: 'pub-dev',
+            maxConnectionCount: 10,
+          ),
+        ),
+      );
+      registerDatabase(Database<PrimaryDatabase>(
+        databaseAdapter,
+        SqlDialect.postgres(),
+      ));
+      registerScopeExitCallback(() => databaseAdapter.close());
 
       // override storageService with retrying http client
       registerStorageService(
@@ -179,6 +207,14 @@ Future<R> withFakeServices<R>({
     }
 
     // register fake services that would have external dependencies
+    final databaseAdapter = createFakeDatabaseAdaptor();
+    registerDatabase(Database<PrimaryDatabase>(
+      databaseAdapter,
+      SqlDialect.postgres(),
+    ));
+    await database.createTables();
+    registerScopeExitCallback(() => databaseAdapter.close());
+
     registerSecretBackend(FakeSecretBackend({}));
     registerAuthProvider(FakeAuthProvider());
     registerScopeExitCallback(authProvider.close);
@@ -261,7 +297,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerIndexUpdater(IndexUpdater(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
-    registerSearchBackend(SearchBackend(dbService,
+    registerSearchBackend(SearchBackend(database, dbService,
         storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
@@ -280,6 +316,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       storageService.bucket(activeConfiguration.publicPackagesBucketName!),
     ));
     registerTaskBackend(TaskBackend(
+      database,
       dbService,
       storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));

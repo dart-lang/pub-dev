@@ -19,6 +19,7 @@ import 'package:meta/meta.dart';
 import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
+import 'package:pub_dev/database/model.dart';
 import 'package:pub_dev/shared/monitoring.dart';
 import 'package:retry/retry.dart';
 
@@ -40,7 +41,6 @@ import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/global_lock.dart';
-import '../task/models.dart';
 
 import 'dart_sdk_mem_index.dart';
 import 'flutter_sdk_mem_index.dart';
@@ -85,10 +85,11 @@ void registerSearchIndex(SearchIndex index) =>
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
+  final Database<PrimaryDatabase> db;
   final DatastoreDB _db;
   final VersionedJsonStorage _snapshotStorage;
 
-  SearchBackend(this._db, Bucket snapshotBucket)
+  SearchBackend(this.db, this._db, Bucket snapshotBucket)
       : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
 
   /// Runs a forever loop and tries to get a global lock.
@@ -255,11 +256,14 @@ class SearchBackend {
       addResult(p.name!, p.updated!);
     }
 
-    final q3 = _db.query<PackageState>()
-      ..filter('finished >=', updatedThreshold)
-      ..order('-finished');
-    await for (final s in q3.run()) {
-      addResult(s.package, s.finished);
+    final q2 = db.tasks
+        .where((task) =>
+            task.runtimeVersion.equalsValue(runtimeVersion) &
+            task.finished.isAfterValue(updatedThreshold))
+        .orderBy((task) => [(task.finished, Order.descending)])
+        .select((task) => (task.package, task.finished));
+    await for (final (package, finished) in q2.stream()) {
+      addResult(package, finished);
     }
 
     return results;
