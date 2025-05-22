@@ -27,6 +27,14 @@ Future<T> withClockControl<T>(
 }
 
 extension FutureTimeout<T> on Future<T> {
+  /// Create a [Future] that will timeout after [timeLimit], and controllable
+  /// by [ClockController].
+  ///
+  /// This is the same as [timeout], except [ClockController.elapse] will also
+  /// trigger this timeout, but will not trigger [timeout].
+  ///
+  /// Use this if you need a timeout that will be fired when [clock] is advanced
+  /// during testing. In production this should have no effect.
   Future<T> timeoutWithClock(
     Duration timeLimit, {
     FutureOr<T> Function()? onTimeout,
@@ -65,6 +73,14 @@ extension FutureTimeout<T> on Future<T> {
 }
 
 extension ClockDelayed on Clock {
+  /// Create a [Future] that is resolved after [delay], and controllable by
+  /// [ClockController].
+  ///
+  /// This is the same as [Future.delayed], except [ClockController.elapse] will
+  /// also resolve this future, but will not resolve [Future.delayed].
+  ///
+  /// Use this if you need a delay that will be fired when [clock] is advanced
+  /// during testing. In production this should have no effect.
   Future<void> delayed(Duration delay) {
     final clockCtrl = Zone.current[_clockCtrlKey];
     if (clockCtrl is ClockController) {
