@@ -79,7 +79,7 @@ class CountData {
   /// Process and store download counts given in [dayCounts] on the form
   /// {version: #downloads} for a date given by [dateTime].
   void addDownloadCounts(Map<String, int> dayCounts, DateTime dateTime) {
-    final date = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final date = DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
     newestDate ??= date.addCalendarDays(-1);
 
     final nextNewestDate = date.isAfter(newestDate!) ? date : newestDate!;

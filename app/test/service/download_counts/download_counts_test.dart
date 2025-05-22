@@ -31,7 +31,7 @@ void main() {
         '4.0.0-0': 2,
         '6.1.0': 2,
       };
-      final date = DateTime.parse('1986-02-16');
+      final date = DateTime.parse('1986-02-16T00:00:00Z');
       final updatedDownloadCounts = await downloadCountsBackend
           .updateDownloadCounts(pkg, versionsCounts, date);
       expect(updatedDownloadCounts, isNotNull);
@@ -48,7 +48,7 @@ void main() {
     });
 
     testWithProfile('process download counts', fn: () async {
-      final date = DateTime.parse('2024-01-05');
+      final date = DateTime.parse('2024-01-05T00:00:00Z');
       final downloadCountsJsonFileName =
           'daily_download_counts/2024-01-05T00:00:00Z/data-000000000000.jsonl';
       await uploadFakeDownloadCountsToBucket(
@@ -69,7 +69,7 @@ void main() {
     testWithProfile(
         'Process download counts - 0 count for unmentioned packages',
         fn: () async {
-      final date = DateTime.parse('2024-01-05');
+      final date = DateTime.parse('2024-01-05T00:00:00Z');
       final downloadCountsJsonFileNameJan5 =
           'daily_download_counts/2024-01-05T00:00:00Z/data-000000000000.jsonl';
       await uploadFakeDownloadCountsToBucket(
@@ -78,7 +78,7 @@ void main() {
               'download_counts', 'fake_download_counts_data.jsonl'));
       await processDownloadCounts(date);
 
-      final nextDate = DateTime.parse('2024-01-06');
+      final nextDate = DateTime.parse('2024-01-06T00:00:00Z');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
       await uploadFakeDownloadCountsToBucket(
@@ -110,7 +110,7 @@ void main() {
     });
 
     testWithProfile('with faulty line', fn: () async {
-      final nextDate = DateTime.parse('2024-01-06');
+      final nextDate = DateTime.parse('2024-01-06T00:00:00Z');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
       await uploadFakeDownloadCountsToBucket(
@@ -147,7 +147,7 @@ void main() {
     });
 
     testWithProfile('with non-existing package', fn: () async {
-      final nextDate = DateTime.parse('2024-01-06');
+      final nextDate = DateTime.parse('2024-01-06T00:00:00Z');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
       await uploadFakeDownloadCountsToBucket(
@@ -182,7 +182,7 @@ void main() {
     });
 
     testWithProfile('file not present', fn: () async {
-      final nextDate = DateTime.parse('2024-01-06');
+      final nextDate = DateTime.parse('2024-01-06T00:00:00Z');
       Set<String> failedFiles;
       final messages = <String>[];
       final subscription = Logger.root.onRecord.listen((event) {
@@ -199,7 +199,7 @@ void main() {
     });
 
     testWithProfile('empty file', fn: () async {
-      final nextDate = DateTime.parse('2024-01-06');
+      final nextDate = DateTime.parse('2024-01-06T00:00:00Z');
       final downloadCountsJsonFileNameJan6 =
           'daily_download_counts/2024-01-06T00:00:00Z/data-000000000000.jsonl';
       await uploadFakeDownloadCountsToBucket(

@@ -51,7 +51,7 @@ void main() {
   }
 
   test('Add counts on following date', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
     // Extend existing counts and expel the lowest range.
@@ -94,7 +94,7 @@ void main() {
   });
 
   test('Add counts for two days later', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
     // Extend existing counts and expel the lowest range.
@@ -211,7 +211,7 @@ void main() {
   });
 
   test('Add counts on older date', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
     final versionsCounts = {
@@ -253,7 +253,7 @@ void main() {
   });
 
   test('Add counts not affecting minor ranges', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
     final versionsCounts = {
@@ -297,7 +297,7 @@ void main() {
   });
 
   test('Add counts on missing minor range in the middle', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
     final versionCounts = {
@@ -341,7 +341,7 @@ void main() {
   });
 
   test('Add counts on missing minor range in the end', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
 
     final countData = CountData.empty();
     final versionsCounts = {
@@ -392,7 +392,7 @@ void main() {
   });
 
   test('More than maxAge dates', () async {
-    final initialLastDate = DateTime.parse('1986-02-16');
+    final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = CountData.empty();
     final versionsCounts = {
       '1.1.0': 2,
