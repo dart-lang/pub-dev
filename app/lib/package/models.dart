@@ -293,8 +293,8 @@ class Package extends db.ExpandoModel<String> {
         .toList();
 
     final isAllRetracted = versions.every((v) => v.isRetracted);
-    final isAllModerated = versions.every((v) => v.isNotVisible);
-    if (isAllModerated) {
+    final noVisibleVersions = versions.every((v) => v.isNotVisible);
+    if (noVisibleVersions) {
       throw NotAcceptableException('No visible versions left.');
     }
 
