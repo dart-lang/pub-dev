@@ -189,7 +189,7 @@ void main() {
     );
   });
 
-  testWithFakeTime('ExportedApi.garbageCollect()', (fakeTime) async {
+  testWithProfile('ExportedApi.garbageCollect()', fn: () async {
     await storageService.createBucket('exported-api');
     final bucket = storageService.bucket('exported-api');
     final exportedApi = ExportedApi(storageService, bucket);
@@ -208,7 +208,7 @@ void main() {
     );
 
     // Check that GC after 10 mins won't delete a package we don't recognize
-    fakeTime.elapseSync(minutes: 10);
+    clockControl.elapseSync(minutes: 10);
     await exportedApi.garbageCollect({});
     expect(
       await bucket.readGzippedJson('latest/api/packages/retry'),
@@ -216,7 +216,7 @@ void main() {
     );
 
     // Check that GC after 2 days won't delete a package we know
-    fakeTime.elapseSync(days: 2);
+    clockControl.elapseSync(days: 2);
     await exportedApi.garbageCollect({'retry'});
     expect(
       await bucket.readGzippedJson('latest/api/packages/retry'),
@@ -256,8 +256,7 @@ void main() {
     }
   });
 
-  testWithFakeTime('ExportedApi.package().synchronizeTarballs()',
-      (fakeTime) async {
+  testWithProfile('ExportedApi.package().synchronizeTarballs()', fn: () async {
     await storageService.createBucket('exported-api');
     final bucket = storageService.bucket('exported-api');
     final exportedApi = ExportedApi(storageService, bucket);
@@ -313,7 +312,7 @@ void main() {
       [3, 0, 0],
     );
 
-    fakeTime.elapseSync(days: 2);
+    clockControl.elapseSync(days: 2);
 
     await exportedApi.package('retry').synchronizeTarballs({
       '1.0.0': src1,
@@ -338,7 +337,7 @@ void main() {
     );
   });
 
-  testWithFakeTime('ExportedApi.package().garbageCollect()', (fakeTime) async {
+  testWithProfile('ExportedApi.package().garbageCollect()', fn: () async {
     await storageService.createBucket('exported-api');
     final bucket = storageService.bucket('exported-api');
     final exportedApi = ExportedApi(storageService, bucket);
@@ -363,7 +362,7 @@ void main() {
     );
 
     // Nothing is GC'ed after 10 mins
-    fakeTime.elapseSync(minutes: 10);
+    clockControl.elapseSync(minutes: 10);
     await exportedApi.package('retry').garbageCollect({'1.2.3'});
     expect(
       await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
@@ -375,7 +374,7 @@ void main() {
     );
 
     // Something is GC'ed after 2 days
-    fakeTime.elapseSync(days: 2);
+    clockControl.elapseSync(days: 2);
     await exportedApi.package('retry').garbageCollect({'1.2.3'});
     expect(
       await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),

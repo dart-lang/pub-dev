@@ -11,6 +11,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
+import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
@@ -39,7 +40,7 @@ Future<void> schedule(
       // Await a micro task to ensure consistent behavior
       await Future.microtask(() {});
     } else {
-      await abort.future.timeout(delay, onTimeout: () => null);
+      await abort.future.timeoutWithClock(delay, onTimeout: () => null);
     }
   }
 
