@@ -501,7 +501,7 @@ class PackageBackend {
       if (pv == null) {
         throw NotFoundException.resource(version);
       }
-      if (pv.isModerated) {
+      if (pv.isNotVisible) {
         throw ModeratedException.packageVersion(package, version);
       }
 
@@ -797,7 +797,7 @@ class PackageBackend {
       throw NotFoundException.resource('package "$package"');
     }
     final packageVersions = (await packageBackend.versionsOfPackage(package))
-        .where((v) => !v.isModerated)
+        .where((v) => v.isVisible)
         .toList();
     if (packageVersions.isEmpty) {
       throw NotFoundException.resource('package "$package"');

@@ -129,6 +129,15 @@ class Package extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? moderatedAt;
 
+  /// `true` if package was deleted by admins (pending final deletion).
+  /// TODO: mark `required: true` after backfill is done and all runtimes use the field
+  @db.BoolProperty(required: false)
+  bool? isAdminDeleted;
+
+  /// The timestamp when the package was deleted by admins.
+  @db.DateTimeProperty()
+  DateTime? adminDeletedAt;
+
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
@@ -179,19 +188,19 @@ class Package extends db.ExpandoModel<String> {
       ..isDiscontinued = false
       ..isUnlisted = false
       ..isModerated = false
+      ..isAdminDeleted = false
       ..assignedTags = []
       ..deletedVersions = [];
   }
 
   // Convenience Fields:
 
-  bool get isVisible => !isModerated;
+  bool get isVisible => !isModerated && !(isAdminDeleted ?? false);
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
     final now = clock.now();
     return isVisible &&
-        !isModerated &&
         !isDiscontinued &&
         !isUnlisted &&
         now.difference(created!) > robotsVisibilityMinAge &&
@@ -284,8 +293,8 @@ class Package extends db.ExpandoModel<String> {
         .toList();
 
     final isAllRetracted = versions.every((v) => v.isRetracted);
-    final isAllModerated = versions.every((v) => v.isModerated);
-    if (isAllModerated) {
+    final noVisibleVersions = versions.every((v) => v.isNotVisible);
+    if (noVisibleVersions) {
       throw NotAcceptableException('No visible versions left.');
     }
 
@@ -301,7 +310,7 @@ class Package extends db.ExpandoModel<String> {
 
     for (final pv in versions) {
       // Skip all moderated versions.
-      if (pv.isModerated) {
+      if (pv.isNotVisible) {
         continue;
       }
 
@@ -586,12 +595,25 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? moderatedAt;
 
+  /// `true` if package version was deleted by admins (pending final deletion).
+  /// TODO: mark `required: true` after backfill is done and all runtimes use the field
+  @db.BoolProperty(required: false)
+  bool? isAdminDeleted;
+
+  /// The timestamp when the package version was deleted by admins.
+  @db.DateTimeProperty()
+  DateTime? adminDeletedAt;
+
   PackageVersion();
 
   PackageVersion.init() {
     isModerated = false;
+    isAdminDeleted = false;
     isRetracted = false;
   }
+
+  late final isVisible = !isModerated && !(isAdminDeleted ?? false);
+  late final isNotVisible = !isVisible;
 
   // Convenience Fields:
 

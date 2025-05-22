@@ -217,7 +217,7 @@ class TarballStorage {
       if (lastPackage?.name != pv.package) {
         lastPackage = await packageBackend.lookupPackage(pv.package);
       }
-      final isModerated = lastPackage!.isModerated || pv.isModerated;
+      final isModerated = lastPackage!.isNotVisible || pv.isNotVisible;
 
       final objectName = tarballObjectName(pv.package, pv.version!);
       final publicInfo = await _publicBucket.tryInfo(objectName);

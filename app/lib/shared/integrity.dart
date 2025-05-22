@@ -383,7 +383,7 @@ class IntegrityChecker {
       // while the integrity check is running.
       if (!pv.created!.isAfter(p.lastVersionPublished!)) {
         // Moderated versions are not counted.
-        if (!pv.isModerated) {
+        if (pv.isVisible) {
           versionCountUntilLastPublished++;
         }
       }
@@ -441,6 +441,12 @@ class IntegrityChecker {
       id: p.name!,
       isModerated: p.isModerated,
       moderatedAt: p.moderatedAt,
+    );
+    yield* _checkAdminDeletedFlags(
+      kind: 'Package',
+      id: p.name!,
+      isAdminDeleted: p.isAdminDeleted ?? false,
+      adminDeletedAt: p.adminDeletedAt,
     );
     if (p.isModerated) {
       _packagesWithIsModeratedFlag.add(p.name!);
@@ -575,7 +581,7 @@ class IntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
     }
     final shouldBeInPublicBucket =
-        !_packagesWithIsModeratedFlag.contains(pv.package) && !pv.isModerated;
+        !_packagesWithIsModeratedFlag.contains(pv.package) && pv.isVisible;
     final tarballItems = await retry(
       () async {
         return await _checkTarballInBuckets(pv, archiveDownloadUri,
@@ -591,6 +597,12 @@ class IntegrityChecker {
       id: pv.qualifiedVersionKey.toString(),
       isModerated: pv.isModerated,
       moderatedAt: pv.moderatedAt,
+    );
+    yield* _checkAdminDeletedFlags(
+      kind: 'PackageVersion',
+      id: pv.qualifiedVersionKey.toString(),
+      isAdminDeleted: pv.isAdminDeleted ?? false,
+      adminDeletedAt: pv.adminDeletedAt,
     );
 
     // Sanity checks for the `created` property
@@ -1010,5 +1022,20 @@ Stream<String> _checkModeratedFlags({
   }
   if (!isModerated && moderatedAt != null) {
     yield '$kind "$id" has `isModerated = false` but `moderatedAt` is not null.';
+  }
+}
+
+/// Check that `isAdminDeleted` and `adminDeletedAt` are consistent.
+Stream<String> _checkAdminDeletedFlags({
+  required String kind,
+  required String id,
+  required bool isAdminDeleted,
+  required DateTime? adminDeletedAt,
+}) async* {
+  if (isAdminDeleted && adminDeletedAt == null) {
+    yield '$kind "$id" has `isAdminDeleted = true` but `adminDeletedAt` is null.';
+  }
+  if (!isAdminDeleted && adminDeletedAt != null) {
+    yield '$kind "$id" has `isAdminDeleted = false` but `adminDeletedAt` is not null.';
   }
 }

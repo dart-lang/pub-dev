@@ -52,7 +52,7 @@ Future<shelf.Response> packageAtomFeedhandler(
 /// Builds the content of the /feed.atom endpoint.
 Future<String> buildAllPackagesAtomFeedContent() async {
   final versions = await packageBackend.latestPackageVersions(limit: 100);
-  versions.removeWhere((pv) => pv.isModerated || pv.isRetracted);
+  versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
   final feed = _allPackagesFeed(versions);
   return feed.toXmlDocument();
 }
@@ -69,7 +69,7 @@ Future<String> buildPackageAtomFeedContent(String package) async {
         limit: 10,
       )
       .toList();
-  versions.removeWhere((pv) => pv.isModerated || pv.isRetracted);
+  versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
   final feed = _packageFeed(package, versions);
   return feed.toXmlDocument();
 }
