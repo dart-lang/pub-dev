@@ -66,7 +66,10 @@ void main() {
       expect(parserWithoutFirstEntry, originalWithoutFirstEntry);
 
       // parsing into SDK index
-      final sdkMemIndex = SdkMemIndex.flutter(index: index);
+      final sdkMemIndex = SdkMemIndex(
+        dartIndex: DartdocIndex([]),
+        flutterIndex: index,
+      );
       final rs = sdkMemIndex.search('StatelessWidget');
       expect(json.decode(json.encode(rs)), [
         {

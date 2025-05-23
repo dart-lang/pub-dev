@@ -9,8 +9,7 @@ import 'dart:isolate';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/search/backend.dart';
-import 'package:pub_dev/search/dart_sdk_mem_index.dart';
-import 'package:pub_dev/search/flutter_sdk_mem_index.dart';
+import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/entrypoint/_isolate.dart';
@@ -37,8 +36,7 @@ Future<void> main(List<String> args, var message) async {
   }
   await fork(() async {
     await servicesWrapperFn(() async {
-      registerDartSdkMemIndex(await createDartSdkMemIndex());
-      registerFlutterSdkMemIndex(await createFlutterSdkMemIndex());
+      registerSdkMemIndex(await createSdkMemIndex());
       await indexUpdater.init();
 
       final requestReceivePort = ReceivePort();

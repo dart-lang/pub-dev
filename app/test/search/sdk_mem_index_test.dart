@@ -13,9 +13,7 @@ void main() {
 
     setUpAll(() async {
       index = SdkMemIndex(
-        sdk: 'dart',
-        baseUri: Uri.parse('https://api.dart.dev/x/'),
-        index: DartdocIndex.fromJsonList([
+        dartIndex: DartdocIndex.fromJsonList([
           {
             'name': 'dart:async',
             'qualifiedName': 'dart:async',
@@ -80,6 +78,7 @@ void main() {
             'enclosedBy': {'name': 'dart:html.FakeIcons', 'kind': 3},
           },
         ]),
+        flutterIndex: DartdocIndex([]),
       );
     });
 
@@ -92,22 +91,24 @@ void main() {
             'sdk': 'dart',
             'library': 'dart:async',
             'description': 'async description',
-            'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
+            'url':
+                'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
                 'path': 'dart-async/AsyncError-class.html',
-                'url': 'https://api.dart.dev/x/dart-async/AsyncError-class.html'
+                'url':
+                    'https://api.dart.dev/stable/latest/dart-async/AsyncError-class.html'
               },
               {
                 'path': 'dart-async/AsyncError/AsyncError.html',
                 'url':
-                    'https://api.dart.dev/x/dart-async/AsyncError/AsyncError.html'
+                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/AsyncError.html'
               },
               {
                 'path': 'dart-async/AsyncError/defaultStackTrace.html',
                 'url':
-                    'https://api.dart.dev/x/dart-async/AsyncError/defaultStackTrace.html'
+                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html'
               },
             ]
           },
@@ -124,13 +125,14 @@ void main() {
             'sdk': 'dart',
             'library': 'dart:async',
             'description': 'async description',
-            'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
+            'url':
+                'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
             'score': closeTo(0.28, 0.01),
             'apiPages': [
               {
                 'path': 'dart-async/AsyncError/defaultStackTrace.html',
                 'url':
-                    'https://api.dart.dev/x/dart-async/AsyncError/defaultStackTrace.html'
+                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html'
               },
             ]
           },
@@ -147,13 +149,14 @@ void main() {
             'sdk': 'dart',
             'library': 'dart:async',
             'description': 'async description',
-            'url': 'https://api.dart.dev/x/dart-async/dart-async-library.html',
+            'url':
+                'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
             'score': closeTo(0.98, 0.01),
             'apiPages': [
               {
                 'path': 'dart-async/AsyncError/defaultStackTrace.html',
                 'url':
-                    'https://api.dart.dev/x/dart-async/AsyncError/defaultStackTrace.html'
+                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html'
               },
             ]
           },

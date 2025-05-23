@@ -9,7 +9,6 @@ import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -30,10 +29,8 @@ void main() {
     );
     final combiner = SearchResultCombiner(
       primaryIndex: primaryIndex,
-      dartSdkMemIndex: SdkMemIndex(
-        sdk: 'dart',
-        baseUri: Uri.parse('https://api.dart.dev/stable/$runtimeSdkVersion/'),
-        index: DartdocIndex.fromJsonList([
+      sdkMemIndex: SdkMemIndex(
+        dartIndex: DartdocIndex.fromJsonList([
           {
             'name': 'dart:core',
             'qualifiedName': 'dart:core',
@@ -71,8 +68,8 @@ void main() {
             'enclosedBy': {'name': 'String', 'kind': 3}
           },
         ]),
+        flutterIndex: DartdocIndex([]),
       ),
-      flutterSdkMemIndex: null,
     );
 
     test('non-text ranking', () async {

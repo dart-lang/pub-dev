@@ -15,8 +15,10 @@ void main() {
     testWithProfile('fetch SDK library description', fn: () async {
       final content = await loadOrFetchSdkIndexJsonAsString(
           SdkMemIndex.dartSdkIndexJsonUri);
-      final index =
-          SdkMemIndex.dart(index: DartdocIndex.parseJsonText(content));
+      final index = SdkMemIndex(
+        dartIndex: DartdocIndex.parseJsonText(content),
+        flutterIndex: DartdocIndex([]),
+      );
       expect(
         index.getLibraryDescription('dart:async'),
         'Support for asynchronous programming, with classes such as Future and Stream.',
