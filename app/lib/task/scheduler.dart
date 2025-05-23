@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:_pub_shared/data/task_payload.dart';
+import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/database/model.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -15,18 +17,18 @@ import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 final _log = Logger('pub.task.schedule');
 
 const _maxInstancesPerIteration = 50; // Later consider something like: 50;
 
-/// Schedule tasks from [PackageState] while [claim] is valid, and [abort] have
+/// Schedule [Task] while [claim] is valid, and [abort] have
 /// not been resolved.
 Future<void> schedule(
   GlobalLockClaim claim,
   CloudCompute compute,
-  DatastoreDB db, {
+  DatastoreDB db,
+  Database<PrimaryDatabase> db2, {
   required Completer<void> abort,
 }) async {
   /// Sleep [delay] time [since] timestamp, or now if not given.
@@ -145,23 +147,28 @@ Future<void> schedule(
 
     // Schedule analysis for some packages
     var pendingPackagesReviewed = 0;
-    await Future.wait(await (db.query<PackageState>()
-          ..filter('runtimeVersion =', runtimeVersion)
-          ..filter('pendingAt <=', clock.now())
-          ..order('pendingAt')
-          ..limit(min(
-            _maxInstancesPerIteration,
-            max(0, activeConfiguration.maxTaskInstances - instances),
-          )))
-        .run()
-        .map<Future<void>>((state) async {
+
+    final tasks = await db2.tasks
+        .where((task) => task.runtimeVersion.equalsValue(runtimeVersion))
+        .where((task) => task.pendingAt.isBeforeValue(clock.now()))
+        .orderBy((task) => [(task.pendingAt, Order.ascending)])
+        .limit(min(
+          _maxInstancesPerIteration,
+          max(0, activeConfiguration.maxTaskInstances - instances),
+        ))
+        .fetch();
+    await Future.wait(tasks.map<Future<void>>((task) async {
       pendingPackagesReviewed += 1;
 
       final instanceName = compute.generateInstanceName();
       final zone = pickZone();
 
       final payload = await updatePackageStateWithPendingVersions(
-          db, state, zone, instanceName);
+        db2,
+        task.package,
+        zone,
+        instanceName,
+      );
       if (payload == null) {
         return;
       }
@@ -180,7 +187,7 @@ Future<void> schedule(
           await purgePackageCache(payload.package);
           _log.info(
             'creating instance $instanceName in $zone for '
-            'package:${state.package}',
+            'package:${task.package}',
           );
           await compute.createInstance(
             zone: zone,
@@ -229,23 +236,42 @@ Future<void> schedule(
           banZone(zone, minutes: 15);
         } finally {
           if (rollbackPackageState) {
-            // Restore the state of the PackageState for versions that were
+            // Restore the state of the Task.state for versions that were
             // suppose to run on the instance we just failed to create.
             // If this doesn't work, we'll eventually retry. Hence, correctness
             // does not hinge on this transaction being successful.
-            await withRetryTransaction(db, (tx) async {
-              final s = await tx.lookupOrNull<PackageState>(state.key);
-              if (s == null) {
+            await db2.transact(() async {
+              final (lastDependencyChanged, state) = await db2.tasks
+                  .byKey(runtimeVersion, task.package)
+                  .select((task) => (
+                        task.lastDependencyChanged,
+                        task.state,
+                      ))
+                  .fetchOrNulls();
+              if (lastDependencyChanged == null || state == null) {
                 return; // Presumably, the package was deleted.
               }
 
-              s.versions!.addEntries(
-                s.versions!.entries
-                    .where((e) => e.value.instance == instanceName)
-                    .map((e) => MapEntry(e.key, state.versions![e.key]!)),
+              final restoredState = TaskState(
+                abortedTokens: state.abortedTokens,
+                versions: {
+                  ...state.versions,
+                  ...state.versions
+                      .whereValue((v) => v.instance == instanceName)
+                      .map((v, _) => MapEntry(v, task.state.versions[v]!)),
+                },
               );
-              s.derivePendingAt();
-              tx.insert(s);
+
+              await db2.tasks
+                  .byKey(runtimeVersion, task.package)
+                  .update((_, set) => set(
+                        state: restoredState.asExpr,
+                        pendingAt: derivePendingAt(
+                          state: restoredState,
+                          lastDependencyChanged: lastDependencyChanged,
+                        ).asExpr,
+                      ))
+                  .execute();
             });
           }
         }
@@ -275,21 +301,24 @@ Future<void> schedule(
 /// will be pending soon.
 @visibleForTesting
 Future<Payload?> updatePackageStateWithPendingVersions(
-  DatastoreDB db,
-  PackageState state,
+  Database<PrimaryDatabase> db,
+  String package,
   String zone,
   String instanceName,
 ) async {
-  return await withRetryTransaction(db, (tx) async {
-    final s = await tx.lookupOrNull<PackageState>(state.key);
-    if (s == null) {
+  return await db.transact(() async {
+    final task = await db.tasks.byKey(runtimeVersion, package).fetch();
+    if (task == null) {
       // presumably the package was deleted.
       return null;
     }
 
     final now = clock.now();
-    final pendingVersions =
-        s.pendingVersions(at: now).map(Version.parse).toList();
+    final pendingVersions = derivePendingVersions(
+      state: task.state,
+      lastDependencyChanged: task.lastDependencyChanged,
+      at: now,
+    );
     if (pendingVersions.isEmpty) {
       // do not schedule anything
       return null;
@@ -304,8 +333,10 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     // - 3.0.0-dev1
     // - 2.7.0-beta
     // - 1.0.0-dev
-    pendingVersions
-        .sort((a, b) => compareSemanticVersionsDesc(a, b, true, true));
+    pendingVersions.sort(
+      (a, b) => compareSemanticVersionsDesc(a, b, true, true),
+    );
+
     // Promote the first prerelease version to the second position, e.g.
     // - 2.5.0
     // - 3.0.0-dev2
@@ -326,28 +357,37 @@ Future<Payload?> updatePackageStateWithPendingVersions(
       }
     }
 
-    // Update PackageState
-    s.versions!.addAll({
+    // Create updated TaskState
+    final state = TaskState(abortedTokens: task.state.abortedTokens, versions: {
       for (final v in pendingVersions.map((v) => v.toString()))
         v: PackageVersionStateInfo(
           scheduled: now,
-          attempts: s.versions![v]!.attempts + 1,
+          attempts: task.state.versions[v]!.attempts + 1,
           zone: zone,
           instance: instanceName,
           secretToken: createUuid(),
-          finished: s.versions![v]!.finished,
+          finished: task.state.versions[v]!.finished,
         ),
     });
-    s.derivePendingAt();
-    tx.insert(s);
+
+    await db.tasks
+        .byKey(runtimeVersion, package)
+        .update((_, set) => set(
+              state: state.asExpr,
+              pendingAt: derivePendingAt(
+                state: state,
+                lastDependencyChanged: task.lastDependencyChanged,
+              ).asExpr,
+            ))
+        .execute();
 
     // Create payload
     return Payload(
-      package: s.package,
+      package: package,
       pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
       versions: pendingVersions.map((v) => VersionTokenPair(
             version: v.toString(),
-            token: s.versions![v.toString()]!.secretToken!,
+            token: state.versions[v.toString()]!.secretToken!,
           )),
     );
   });

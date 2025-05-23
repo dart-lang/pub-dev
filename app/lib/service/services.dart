@@ -14,6 +14,9 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/model.dart';
+import 'package:pub_dev/fake/backend/fake_database.dart'
+    show createFakeDatabaseAdaptor;
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
@@ -87,6 +90,15 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       final retryingAuthClient = httpRetryClient(innerClient: authClient);
       registerScopeExitCallback(() async => retryingAuthClient.close());
 
+      registerSecretBackend(GcpSecretBackend(authClient));
+
+      final databaseAdapter = await setupDatabaseConnection();
+      registerDatabase(Database<PrimaryDatabase>(
+        databaseAdapter,
+        SqlDialect.postgres(),
+      ));
+      registerScopeExitCallback(() => databaseAdapter.close());
+
       // override storageService with retrying http client
       registerStorageService(
           Storage(retryingAuthClient, activeConfiguration.projectId));
@@ -105,7 +117,6 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
             : loggingEmailSender,
       );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
-      registerSecretBackend(GcpSecretBackend(authClient));
 
       // Configure a CloudCompute pool for later use in TaskBackend
       //
@@ -179,6 +190,14 @@ Future<R> withFakeServices<R>({
     }
 
     // register fake services that would have external dependencies
+    final databaseAdapter = createFakeDatabaseAdaptor();
+    registerDatabase(Database<PrimaryDatabase>(
+      databaseAdapter,
+      SqlDialect.postgres(),
+    ));
+    await database.createTables();
+    registerScopeExitCallback(() => databaseAdapter.close());
+
     registerSecretBackend(FakeSecretBackend({}));
     registerAuthProvider(FakeAuthProvider());
     registerScopeExitCallback(authProvider.close);
@@ -261,7 +280,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     registerIndexUpdater(IndexUpdater(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
-    registerSearchBackend(SearchBackend(dbService,
+    registerSearchBackend(SearchBackend(database, dbService,
         storageService.bucket(activeConfiguration.searchSnapshotBucketName!)));
     registerSearchClient(SearchClient());
     registerSearchAdapter(SearchAdapter());
@@ -280,6 +299,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
       storageService.bucket(activeConfiguration.publicPackagesBucketName!),
     ));
     registerTaskBackend(TaskBackend(
+      database,
       dbService,
       storageService.bucket(activeConfiguration.taskResultBucketName!),
     ));

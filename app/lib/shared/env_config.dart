@@ -37,6 +37,11 @@ class _EnvConfig {
   /// Youtube API key to use (skips Datastore secret).
   late final youtubeApiKey = Platform.environment['YOUTUBE_API_KEY'];
 
+  /// True, if the process is running in a CI environment.
+  late final isContinuesIntegration = !['false', '0', ''].contains(
+    Platform.environment['CI']?.toLowerCase() ?? '',
+  );
+
   /// Drives the logging environment in certain tests.
   /// **Examples**:
   ///  * `DEBUG='*'`, will show output from all loggers.

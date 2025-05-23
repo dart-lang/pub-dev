@@ -16,6 +16,8 @@ class Secret extends db.Model {
 abstract class SecretKey {
   static const String redisConnectionString = 'redis-connection-string';
 
+  static const String databaseConnectionString = 'database-connection-string';
+
   /// OAuth client secret.
   static const String oauthClientSecret = 'oauth-client-secret';
 
@@ -38,6 +40,7 @@ abstract class SecretKey {
   /// List of all keys.
   static const values = [
     redisConnectionString,
+    databaseConnectionString,
     oauthClientSecret,
     announcement,
     uploadRestriction,

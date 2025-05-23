@@ -6,6 +6,7 @@ targets:
       - '$package$'
       - 'lib/$lib$'
       - 'lib/account/models.dart'
+      - 'lib/database/**'
       - 'lib/admin/models.dart'
       - 'lib/dartdoc/models.dart'
       - 'lib/frontend/handlers/pubapi.dart'
