@@ -7,6 +7,7 @@ import 'dart:isolate' show Isolate;
 
 import 'package:logging/logging.dart';
 import 'package:pub_dev/database/model.dart';
+import 'package:pub_dev/shared/env_config.dart';
 
 DatabaseAdapter createFakeDatabaseAdaptor() {
   return DatabaseAdapter.withLogging(
@@ -15,10 +16,7 @@ DatabaseAdapter createFakeDatabaseAdaptor() {
 }
 
 Future<DatabaseAdapter> _createFakeDatabaseAdaptor() async {
-  final isCI = !['false', '0', ''].contains(
-    Platform.environment['CI']?.toLowerCase() ?? '',
-  );
-  if (isCI) {
+  if (envConfig.isContinuesIntegration) {
     // ignore: invalid_use_of_visible_for_testing_member
     return DatabaseAdapter.postgresTestDatabase();
   }
