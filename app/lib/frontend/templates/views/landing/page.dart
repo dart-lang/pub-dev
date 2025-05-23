@@ -39,7 +39,7 @@ d.Node landingPageNode({
       _block(
         shortId: 'mp',
         image: d.Image.decorative(
-          src: staticUrls.getAssetUrl('/static/img/landing-01.webp'),
+          src: staticUrls.getAssetUrl('/static/img/landing-trending.webp'),
           width: 351,
           height: 240,
         ),
