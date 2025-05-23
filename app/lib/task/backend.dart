@@ -40,8 +40,6 @@ import 'package:pub_dev/shared/versions.dart'
         gcBeforeRuntimeVersion,
         shouldGCVersion,
         acceptedRuntimeVersions;
-import 'package:pub_dev/shared/versions.dart' as shared_versions
-    show runtimeVersion;
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
@@ -346,15 +344,10 @@ class TaskBackend {
       seen.removeWhere((_, updated) => updated.isBefore(since));
 
       // Wait until aborted or 10 minutes before scanning again!
-<<<<<<< HEAD
-      await abort.future
-          .timeoutWithClock(Duration(minutes: 10), onTimeout: () => null);
-=======
       await abort.future.timeoutWithClock(
         Duration(minutes: 10),
         onTimeout: () => null,
       );
->>>>>>> 9bf3c7bae (Initial migration of task backend to typed_sql)
     }
   }
 
