@@ -30,7 +30,7 @@ void main() {
         '4.0.0-0': 2,
         '6.1.0': 2,
       };
-      final date = DateTime.parse('1986-02-16');
+      final date = DateTime.parse('1986-02-16T00:00:00Z');
       var downloadCounts1 = await downloadCountsBackend.updateDownloadCounts(
           pkg, versionsCounts, date);
       for (var i = 1; i < 5; i++) {
@@ -128,7 +128,7 @@ void main() {
   group('weekly download counts', () {
     testWithProfile('compute weekly', fn: () async {
       final pkg = 'foo';
-      final date = DateTime.parse('1986-02-16');
+      final date = DateTime.parse('1986-02-16T00:00:00Z');
       final versionsCounts = {
         '1.0.1': 2,
         '2.0.0-alpha': 2,
@@ -172,7 +172,7 @@ void main() {
 
     testWithProfile('compute weekly for all verion ranges', fn: () async {
       final pkg = 'foo';
-      final date = DateTime.parse('1986-02-16');
+      final date = DateTime.parse('1986-02-16T00:00:00Z');
       final versions = [
         '1.1.0',
         '2.0.0-alpha',
