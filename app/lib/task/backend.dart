@@ -378,7 +378,8 @@ class TaskBackend {
 
     if (package.isNotVisible) {
       await db.tasks.delete(runtimeVersion, packageName).execute();
-      return; // TODO: Purge caches
+      await _purgeCache(packageName, package.latestVersion);
+      return;
     }
 
     // Determined the set of versions to track
