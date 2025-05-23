@@ -412,6 +412,14 @@ class Package extends db.ExpandoModel<String> {
     moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
   }
+
+  void updateIsAdminDeleted({
+    required bool isAdminDeleted,
+  }) {
+    this.isAdminDeleted = isAdminDeleted;
+    adminDeletedAt = isAdminDeleted ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
+  }
 }
 
 /// Describes the various categories of latest releases.
@@ -675,6 +683,13 @@ class PackageVersion extends db.ExpandoModel<String> {
   }) {
     this.isModerated = isModerated;
     moderatedAt = isModerated ? clock.now().toUtc() : null;
+  }
+
+  void updateIsAdminDeleted({
+    required bool isAdminDeleted,
+  }) {
+    this.isAdminDeleted = isAdminDeleted;
+    adminDeletedAt = isAdminDeleted ? clock.now().toUtc() : null;
   }
 }
 
