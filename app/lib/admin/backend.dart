@@ -455,6 +455,7 @@ class AdminBackend {
   /// Removes the specific package version from the Datastore and updates other
   /// related entities. It is safe to call [removePackageVersion] on an already
   /// removed version, as the call is idempotent.
+  @visibleForTesting
   Future<
       ({
         int deletedPackageVersions,
@@ -802,6 +803,7 @@ class AdminBackend {
     }
 
     // delete package versions
+    // TODO: merge this with the removePackageVersion method.
     final pvQuery = _db.query<PackageVersion>()
       ..filter('moderatedAt <', before)
       ..order('moderatedAt');
@@ -910,6 +912,31 @@ class AdminBackend {
       _logger.info('Deleting moderated user: ${user.userId}');
       await _removeUser(user);
       _logger.info('Deleting moderated user: ${user.userId}');
+    }
+  }
+
+  /// Scans datastore and deletes admin-deleted entities where the last action
+  /// was more than 2 months ago.
+  Future<void> deleteAdminDeletedEntities({
+    @visibleForTesting DateTime? before,
+  }) async {
+    before ??= clock.ago(days: 62).toUtc(); // extra buffer days
+
+    // delete package versions
+    final pvQuery = _db.query<PackageVersion>()
+      ..filter('adminDeletedAt <', before)
+      ..order('adminDeletedAt');
+    await for (final version in pvQuery.run()) {
+      // sanity check
+      if (!(version.isAdminDeleted ?? false)) {
+        continue;
+      }
+
+      _logger.info(
+          'Deleting admin-deleted package version: ${version.qualifiedVersionKey}');
+      await removePackageVersion(version.package, version.version!);
+      _logger.info(
+          'Deleted moderated package version: ${version.qualifiedVersionKey}');
     }
   }
 

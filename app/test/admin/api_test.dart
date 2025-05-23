@@ -240,7 +240,105 @@ void main() {
           AdminInvokeActionArguments(
               arguments: {'package': 'oxygen', 'version': '1.2.0'})));
 
-      testWithProfile('OK', processJobsWithFakeRunners: true, fn: () async {
+      testWithProfile(
+        'marking and reverting',
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        ],
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          final removeVersion = '1.2.0';
+
+          // mark for deletion
+          await client.adminInvokeAction(
+            'package-version-delete',
+            AdminInvokeActionArguments(
+              arguments: {
+                'package': 'oxygen',
+                'version': removeVersion,
+                'state': 'true',
+              },
+            ),
+          );
+
+          // repeated call updates the timestamp
+          final rsAgain = await client.adminInvokeAction(
+            'package-version-delete',
+            AdminInvokeActionArguments(
+              arguments: {
+                'package': 'oxygen',
+                'version': removeVersion,
+                'state': 'true',
+              },
+            ),
+          );
+          expect(rsAgain.output, {
+            'package': 'oxygen',
+            'version': '1.2.0',
+            'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+            'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+          });
+          expect(
+            (rsAgain.output['before'] as Map)['adminDeletedAt'] ==
+                (rsAgain.output['after'] as Map)['adminDeletedAt'],
+            isFalse,
+          );
+
+          // version is no longer visible
+          final pvAfterMarked = await packageBackend.lookupPackageVersion(
+              'oxygen', removeVersion);
+          expect(pvAfterMarked!.isVisible, false);
+          final archiveAfterMarked = await packageBackend.tarballStorage
+              .getPublicBucketArchiveInfo('oxygen', removeVersion);
+          expect(archiveAfterMarked, isNull);
+          final versionsAfterMarked =
+              await packageBackend.listVersions('oxygen');
+          expect(
+            versionsAfterMarked.versions
+                .where((v) => v.version == removeVersion),
+            isEmpty,
+          );
+
+          // revert
+          final rsRevert = await client.adminInvokeAction(
+            'package-version-delete',
+            AdminInvokeActionArguments(
+              arguments: {
+                'package': 'oxygen',
+                'version': removeVersion,
+                'state': 'false',
+              },
+            ),
+          );
+          expect(rsRevert.output, {
+            'package': 'oxygen',
+            'version': '1.2.0',
+            'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+            'after': {'isAdminDeleted': false, 'adminDeletedAt': null},
+          });
+
+          // version is visible again
+          final pvAfterReverted = await packageBackend.lookupPackageVersion(
+              'oxygen', removeVersion);
+          expect(pvAfterReverted!.isVisible, true);
+          final archiveAfterReverted = await packageBackend.tarballStorage
+              .getPublicBucketArchiveInfo('oxygen', removeVersion);
+          expect(archiveAfterReverted, isNotNull);
+          final versionsAfterReverted =
+              await packageBackend.listVersions('oxygen');
+          expect(
+            versionsAfterReverted.versions
+                .where((v) => v.version == removeVersion),
+            isNotEmpty,
+          );
+        },
+      );
+
+      testWithProfile('OK',
+          processJobsWithFakeRunners: true,
+          expectedLogMessages: [
+            'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          ], fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
         final removeVersion = '1.2.0';
 
@@ -281,19 +379,41 @@ void main() {
 
         final timeBeforeRemoval = clock.now().toUtc();
         final rs = await client.adminInvokeAction(
-            'package-version-delete',
-            AdminInvokeActionArguments(
-                arguments: {'package': 'oxygen', 'version': removeVersion}));
+          'package-version-delete',
+          AdminInvokeActionArguments(
+            arguments: {
+              'package': 'oxygen',
+              'version': removeVersion,
+              'state': 'true',
+            },
+          ),
+        );
 
         expect(rs.output, {
-          'message': 'Package version and all associated resources deleted.',
           'package': 'oxygen',
           'version': '1.2.0',
-          'deletedPackageVersions': 1,
-          'deletedPackageVersionInfos': 1,
-          'deletedPackageVersionAssets': 5
+          'before': {'isAdminDeleted': false, 'adminDeletedAt': null},
+          'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotEmpty},
         });
 
+        // entity is present, but public archive is not accessible
+        final pvAfterMarked =
+            await packageBackend.lookupPackageVersion('oxygen', removeVersion);
+        expect(pvAfterMarked!.isVisible, false);
+        final archiveAfterMarked = await packageBackend.tarballStorage
+            .getPublicBucketArchiveInfo('oxygen', removeVersion);
+        expect(archiveAfterMarked, isNull);
+        final versionsAfterMarked = await packageBackend.listVersions('oxygen');
+        expect(
+          versionsAfterMarked.versions.where((v) => v.version == removeVersion),
+          isEmpty,
+        );
+
+        // trigger removal after 60+ days
+        await withClock(Clock.fixed(clock.daysFromNow(63)),
+            () => adminBackend.deleteAdminDeletedEntities());
+
+        // checks after actual removal
         final pkgAfter1stRemoval =
             await dbService.lookupOrNull<Package>(pkgKey);
         expect(pkgAfter1stRemoval, isNotNull);
@@ -318,39 +438,6 @@ void main() {
         moderatedPkg =
             await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
         expect(moderatedPkg, isNull);
-
-        // calling remove second time must not affect updated or version count
-        final rs2 = await client.adminInvokeAction(
-            'package-version-delete',
-            AdminInvokeActionArguments(
-                arguments: {'package': 'oxygen', 'version': removeVersion}));
-        expect(rs2.output, {
-          'message': 'Package version and all associated resources deleted.',
-          'package': 'oxygen',
-          'version': '1.2.0',
-          'deletedPackageVersions': 0,
-          'deletedPackageVersionInfos': 0,
-          'deletedPackageVersionAssets': 0,
-        });
-        final pkgAfter2ndRemoval =
-            await dbService.lookupOrNull<Package>(pkgKey);
-        expect(pkgAfter2ndRemoval, isNotNull);
-        expect(
-          pkgAfter2ndRemoval!.latestVersion,
-          pkgAfter1stRemoval.latestVersion,
-        );
-        expect(
-          pkgAfter2ndRemoval.updated,
-          pkgAfter1stRemoval.updated,
-        );
-        expect(
-          pkgAfter2ndRemoval.versionCount,
-          pkgAfter1stRemoval.versionCount,
-        );
-        expect(
-          pkgAfter2ndRemoval.deletedVersions,
-          pkgAfter1stRemoval.deletedVersions,
-        );
 
         // sanity check that scorecard is being loaded
         final sc2 =
