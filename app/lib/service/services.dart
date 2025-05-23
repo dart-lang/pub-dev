@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show FutureOr, Zone;
-import 'dart:io' show Platform;
 
 import 'package:_pub_shared/utils/http.dart';
 import 'package:appengine/appengine.dart';
@@ -15,7 +14,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
-import 'package:postgres/postgres.dart' show Pool, Endpoint, PoolSettings;
 import 'package:pub_dev/database/model.dart';
 import 'package:pub_dev/fake/backend/fake_database.dart'
     show createFakeDatabaseAdaptor;
@@ -92,23 +90,9 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       final retryingAuthClient = httpRetryClient(innerClient: authClient);
       registerScopeExitCallback(() async => retryingAuthClient.close());
 
-      final databaseAdapter = DatabaseAdapter.postgres(
-        Pool.withEndpoints(
-          [
-            Endpoint(
-              host: Platform.environment['PGHOST'] ?? '127.0.0.1',
-              port: int.tryParse(Platform.environment['PGPORT'] ?? '') ?? 5432,
-              database: Platform.environment['PGDATABASE'] ?? 'postgres',
-              username: Platform.environment['PGUSER'] ?? 'postgres',
-              password: Platform.environment['PGPASSWORD'] ?? 'postgres',
-            ),
-          ],
-          settings: PoolSettings(
-            applicationName: 'pub-dev',
-            maxConnectionCount: 10,
-          ),
-        ),
-      );
+      registerSecretBackend(GcpSecretBackend(authClient));
+
+      final databaseAdapter = await setupDatabaseConnection();
       registerDatabase(Database<PrimaryDatabase>(
         databaseAdapter,
         SqlDialect.postgres(),
@@ -133,7 +117,6 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
             : loggingEmailSender,
       );
       registerUploadSigner(await createUploadSigner(retryingAuthClient));
-      registerSecretBackend(GcpSecretBackend(authClient));
 
       // Configure a CloudCompute pool for later use in TaskBackend
       //

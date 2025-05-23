@@ -17,7 +17,7 @@ DatabaseAdapter createFakeDatabaseAdaptor() {
 
 Future<DatabaseAdapter> _createFakeDatabaseAdaptor() async {
   if (envConfig.isContinuesIntegration) {
-    // ignore: invalid_use_of_visible_for_testing_member
+    // Use default environment variables.
     return DatabaseAdapter.postgresTestDatabase();
   }
 
@@ -58,7 +58,6 @@ Future<DatabaseAdapter> _createFakeDatabaseAdaptor() async {
     }
   }
 
-  // ignore: invalid_use_of_visible_for_testing_member
   return DatabaseAdapter.postgresTestDatabase(
     host: socketPath,
     database: 'postgres',
