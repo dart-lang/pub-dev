@@ -174,7 +174,7 @@ Future<shelf.Response> _testProfile(shelf.Request rq) async {
   // ignore: invalid_use_of_visible_for_testing_member
   await importProfile(profile: profile);
   final analysis = (map['analysis'] as String?) ?? 'fake';
-  await apiExporter!.synchronizeExportedApi();
+  await apiExporter.synchronizeExportedApi();
   await processTaskFakeLocalOrWorker(analysis);
   return shelf.Response.ok('{}');
 }

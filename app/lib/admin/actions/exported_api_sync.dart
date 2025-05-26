@@ -39,7 +39,7 @@ Optionally, write rewrite of all files using:
     final packagesOpt = options['packages'] ?? '';
     final syncAll = packagesOpt == 'ALL';
     if (syncAll) {
-      await apiExporter!.synchronizeExportedApi(forceWrite: forceWrite);
+      await apiExporter.synchronizeExportedApi(forceWrite: forceWrite);
       return {
         'packages': 'ALL',
         'forceWrite': forceWrite,
@@ -50,7 +50,7 @@ Optionally, write rewrite of all files using:
         InvalidInputException.checkPackageName(p);
       }
       for (final p in packages) {
-        await apiExporter!.synchronizePackage(p, forceWrite: forceWrite);
+        await apiExporter.synchronizePackage(p, forceWrite: forceWrite);
       }
       return {
         'packages': packages,

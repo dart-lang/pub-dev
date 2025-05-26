@@ -83,7 +83,7 @@ Note: the action may take a longer time to complete as the public archive bucket
       await purgePackageCache(package);
 
       // sync exported API(s)
-      await apiExporter?.synchronizePackage(package, forceDelete: true);
+      await apiExporter.synchronizePackage(package, forceDelete: true);
 
       // retract or re-populate public archive files
       await packageBackend.tarballStorage.updatePublicArchiveBucket(

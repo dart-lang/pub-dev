@@ -29,8 +29,8 @@ final Logger _log = Logger('api_export.api_exporter');
 void registerApiExporter(ApiExporter value) =>
     ss.register(#_apiExporter, value);
 
-/// The active API Exporter service or null if it hasn't been initialized.
-ApiExporter? get apiExporter => ss.lookup(#_apiExporter) as ApiExporter?;
+/// The API Exporter service.
+ApiExporter get apiExporter => ss.lookup(#_apiExporter) as ApiExporter;
 
 const _concurrency = 50;
 
