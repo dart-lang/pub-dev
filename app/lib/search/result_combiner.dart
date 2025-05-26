@@ -42,7 +42,6 @@ class SearchResultCombiner {
       if (primaryHitsTopScore > 0) {
         sdkLibraryHits.removeWhere((hit) => hit.score < primaryHitsTopScore);
       }
-      sdkLibraryHits.sort((a, b) => -a.score.compareTo(b.score));
     }
 
     return primaryResult.change(

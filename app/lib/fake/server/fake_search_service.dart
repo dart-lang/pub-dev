@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/search/handlers.dart';
+import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -38,6 +39,7 @@ class FakeSearchService {
         storage: _storage,
         cloudCompute: _cloudCompute,
         fn: () async {
+          registerSdkMemIndex(await createSdkMemIndex());
           final handler = wrapHandler(_logger, searchServiceHandler);
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
