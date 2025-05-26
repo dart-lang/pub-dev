@@ -52,14 +52,14 @@ void main() {
     // we cannot use an isolated instance, we need to use the same setup.
     // However, for better control and consistency, we can remove all the
     // existing files from the bucket at the start of this test:
-    await apiExporter!.stop();
+    await apiExporter.stop();
     final bucket =
         storageService.bucket(activeConfiguration.exportedApiBucketName!);
     await _deleteAll(bucket);
 
     await _testExportedApiSynchronization(
       bucket,
-      apiExporter!.synchronizeExportedApi,
+      apiExporter.synchronizeExportedApi,
     );
   });
 
@@ -75,21 +75,21 @@ void main() {
       // we cannot use an isolated instance, we need to use the same setup.
       // However, for better control and consistency, we can remove all the
       // existing files from the bucket at the start of this test:
-      await apiExporter!.stop();
+      await apiExporter.stop();
       final bucket =
           storageService.bucket(activeConfiguration.exportedApiBucketName!);
       await _deleteAll(bucket);
 
-      await apiExporter!.synchronizeExportedApi();
+      await apiExporter.synchronizeExportedApi();
 
-      await apiExporter!.start();
+      await apiExporter.start();
 
       await _testExportedApiSynchronization(
         bucket,
         () async => await clockControl.elapse(minutes: 15),
       );
 
-      await apiExporter!.stop();
+      await apiExporter.stop();
     },
   );
 }

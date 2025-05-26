@@ -133,7 +133,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _daily(
       name: 'synchronize-exported-api',
       isRuntimeVersioned: true,
-      task: () async => await apiExporter?.synchronizeExportedApi(),
+      task: () async => await apiExporter.synchronizeExportedApi(),
     ),
 
     // Deletes moderated packages, versions, publishers and users.

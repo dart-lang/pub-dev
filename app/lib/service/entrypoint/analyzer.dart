@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/backend.dart';
-import 'package:pub_dev/shared/configuration.dart';
 
 import '../../analyzer/handlers.dart';
 import '../../service/services.dart';
@@ -41,10 +40,8 @@ class AnalyzerCommand extends Command {
       // TODO: rewrite this loop to have a start/stop logic
       scheduleMicrotask(searchBackend.updateSnapshotInForeverLoop);
 
-      if (activeConfiguration.exportedApiBucketName != null) {
-        await apiExporter!.start();
-        registerScopeExitCallback(() => apiExporter!.stop());
-      }
+      await apiExporter.start();
+      registerScopeExitCallback(() => apiExporter.stop());
 
       await runHandler(logger, analyzerServiceHandler);
     });

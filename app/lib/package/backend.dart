@@ -1320,10 +1320,8 @@ class PackageBackend {
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           emailBackend.trySendOutgoingEmail(outgoingEmail),
         taskBackend.trackPackage(newVersion.package, updateDependents: true),
-        if (apiExporter != null) ...[
-          apiExporter!.synchronizePackage(newVersion.package),
-          apiExporter!.synchronizeAllPackagesAtomFeed(),
-        ],
+        apiExporter.synchronizePackage(newVersion.package),
+        apiExporter.synchronizeAllPackagesAtomFeed(),
       ]);
       await tarballStorage.updateContentDispositionOnPublicBucket(
           newVersion.package, newVersion.version!);
