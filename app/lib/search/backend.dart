@@ -42,10 +42,9 @@ import '../task/backend.dart';
 import '../task/global_lock.dart';
 import '../task/models.dart';
 
-import 'dart_sdk_mem_index.dart';
-import 'flutter_sdk_mem_index.dart';
 import 'models.dart';
 import 'result_combiner.dart';
+import 'sdk_mem_index.dart';
 import 'search_client.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
@@ -623,8 +622,7 @@ class _CombinedSearchIndex implements SearchIndex {
   PackageSearchResult search(ServiceSearchQuery query) {
     final combiner = SearchResultCombiner(
       primaryIndex: _packageIndexHolder._index,
-      dartSdkMemIndex: dartSdkMemIndex,
-      flutterSdkMemIndex: flutterSdkMemIndex,
+      sdkMemIndex: sdkMemIndex,
     );
     return combiner.search(query);
   }

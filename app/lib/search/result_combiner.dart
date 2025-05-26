@@ -13,13 +13,11 @@ import 'search_service.dart';
 /// SDK index.
 class SearchResultCombiner {
   final InMemoryPackageIndex primaryIndex;
-  final SdkMemIndex? dartSdkMemIndex;
-  final SdkMemIndex? flutterSdkMemIndex;
+  final SdkMemIndex? sdkMemIndex;
 
   SearchResultCombiner({
     required this.primaryIndex,
-    required this.dartSdkMemIndex,
-    required this.flutterSdkMemIndex,
+    required this.sdkMemIndex,
   });
 
   PackageSearchResult search(ServiceSearchQuery query) {
@@ -30,11 +28,10 @@ class SearchResultCombiner {
 
     final queryFlutterSdk = query.tagsPredicate.hasNoTagPrefix('sdk:') ||
         query.tagsPredicate.hasTag(SdkTag.sdkFlutter);
-    final sdkLibraryHits = [
-      ...?dartSdkMemIndex?.search(query.query!, limit: 2),
-      if (queryFlutterSdk)
-        ...?flutterSdkMemIndex?.search(query.query!, limit: 2),
-    ];
+    final sdkLibraryHits = sdkMemIndex
+            ?.search(query.query!, limit: 2, skipFlutter: !queryFlutterSdk)
+            .toList() ??
+        <SdkLibraryHit>[];
     if (sdkLibraryHits.isNotEmpty) {
       // Do not display low SDK scores if the package hits are more relevant on the page.
       //
