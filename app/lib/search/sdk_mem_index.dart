@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
@@ -66,8 +67,18 @@ Future<SdkMemIndex?> createSdkMemIndex() async {
   }
 }
 
+/// Defines the general interface for the SDK index.
+// ignore: one_member_abstracts
+abstract class SdkIndex {
+  FutureOr<List<SdkLibraryHit>> search(
+    String query, {
+    int? limit,
+    bool skipFlutter = false,
+  });
+}
+
 /// In-memory index for SDK library search queries.
-class SdkMemIndex {
+class SdkMemIndex implements SdkIndex {
   final _libraries = <String, _Library>{};
   final Map<String, double> _apiPageDirWeights;
 
@@ -126,6 +137,7 @@ class SdkMemIndex {
     }
   }
 
+  @override
   List<SdkLibraryHit> search(
     String query, {
     int? limit,

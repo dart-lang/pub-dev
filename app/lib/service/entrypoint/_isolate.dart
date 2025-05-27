@@ -8,6 +8,8 @@ import 'dart:isolate';
 
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/monitoring.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../services.dart';
@@ -324,4 +326,32 @@ Future<void> _wrapper(List args) async {
   } finally {
     timer.cancel();
   }
+}
+
+/// Run [fn] inside the isolate, using message passing from the control isolate.
+Future<void> runIsolateFunctions({
+  required Object? message,
+  required Logger logger,
+  required Future<ReplyMessage> Function(Object payload) fn,
+}) async {
+  final requestReceivePort = ReceivePort();
+  final entryMessage = Message.fromObject(message) as EntryMessage;
+
+  final subs = requestReceivePort.listen((e) async {
+    try {
+      final msg = Message.fromObject(e) as RequestMessage;
+      final reply = await fn(msg.payload);
+      msg.replyPort.send(reply.encodeAsJson());
+    } catch (e, st) {
+      logger.pubNoticeShout(
+          'isolate-message-error', 'Error processing message: $e', e, st);
+    }
+  });
+  entryMessage.protocolSendPort.send(
+    ReadyMessage(requestSendPort: requestReceivePort.sendPort).encodeAsJson(),
+  );
+
+  await waitForProcessSignalTermination();
+  requestReceivePort.close();
+  await subs.cancel();
 }

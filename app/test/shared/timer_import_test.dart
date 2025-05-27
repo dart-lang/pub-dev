@@ -44,6 +44,9 @@ void main() {
     // Uses timer to prevent GC compaction.
     'lib/service/entrypoint/search_index.dart',
 
+    // Uses timer to prevent GC compaction.
+    'lib/service/entrypoint/sdk_isolate_index.dart',
+
     // Uses timer to timeout GlobalLock claim acquisition.
     'lib/tool/neat_task/pub_dev_tasks.dart',
 

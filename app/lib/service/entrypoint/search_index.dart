@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
 
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
@@ -39,43 +38,24 @@ Future<void> main(List<String> args, var message) async {
       registerSdkMemIndex(await createSdkMemIndex());
       await indexUpdater.init();
 
-      final requestReceivePort = ReceivePort();
-      final entryMessage = Message.fromObject(message) as EntryMessage;
-
-      final subs = requestReceivePort.listen((e) async {
-        try {
-          final msg = Message.fromObject(e) as RequestMessage;
-          final payload = msg.payload;
+      await runIsolateFunctions(
+        message: message,
+        logger: _logger,
+        fn: (payload) async {
           if (payload is String && payload == 'info') {
             final info = await searchIndex.indexInfo();
-            msg.replyPort
-                .send(ReplyMessage.result(info.toJson()).encodeAsJson());
-            return;
+            return ReplyMessage.result(info.toJson());
           } else if (payload is String) {
             final q = ServiceSearchQuery.fromServiceUrl(Uri.parse(payload));
             final rs = await searchIndex.search(q);
-            msg.replyPort.send(
-                ReplyMessage.result(json.encode(rs.toJson())).encodeAsJson());
-            return;
+            return ReplyMessage.result(json.encode(rs.toJson()));
           } else {
             _logger.pubNoticeShout(
-                'unknown-isolate-message', 'Unrecognized payload: $msg');
-            msg.replyPort.send(ReplyMessage.error('Unrecognized payload: $msg')
-                .encodeAsJson());
+                'unknown-isolate-message', 'Unrecognized payload: $payload');
+            return ReplyMessage.error('Unrecognized payload: $payload');
           }
-        } catch (e, st) {
-          _logger.pubNoticeShout(
-              'isolate-message-error', 'Error processing message: $e', e, st);
-        }
-      });
-      entryMessage.protocolSendPort.send(
-        ReadyMessage(requestSendPort: requestReceivePort.sendPort)
-            .encodeAsJson(),
+        },
       );
-
-      await Completer().future;
-      requestReceivePort.close();
-      await subs.cancel();
     });
   });
 
