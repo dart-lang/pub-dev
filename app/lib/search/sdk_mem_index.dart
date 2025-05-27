@@ -6,7 +6,6 @@ import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:pana/src/dartdoc/dartdoc_index.dart';
 import 'package:path/path.dart' as p;
@@ -188,10 +187,6 @@ class SdkMemIndex {
             ))
         .toList();
   }
-
-  @visibleForTesting
-  String? getLibraryDescription(String library) =>
-      _libraries[library]?.description;
 }
 
 class _Hit {
