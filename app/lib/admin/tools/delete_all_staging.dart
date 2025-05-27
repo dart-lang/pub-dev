@@ -55,6 +55,7 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
     dbService.query<ModeratedPackage>(): 500,
     dbService.query<NeatTaskStatus>(): 500,
     dbService.query<Secret>(): 500,
+    // ignore: deprecated_member_use_from_same_package
     dbService.query<PackageState>(): 100,
   };
 

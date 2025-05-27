@@ -7,7 +7,9 @@ import 'dart:convert' show json;
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/database/model.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/versions.dart' as shared_versions;
@@ -71,6 +73,7 @@ Duration taskRetryDelay(int attempts) =>
 ///
 ///  * `id`, is the `runtimeVersion / packageName`.
 ///  * `PackageState` entities never have a parent.
+@Deprecated('use db')
 @db.Kind(name: 'PackageState', idType: db.IdType.String)
 class PackageState extends db.ExpandoModel<String> {
   /// Create a key for [runtimeVersion] and [packageName] using the Datastore's empty key.
@@ -211,7 +214,69 @@ class PackageState extends db.ExpandoModel<String> {
       '\n)';
 }
 
-/// State of a given `version` within a [PackageState].
+/// Derive [Task.pendingAt] using [TaskState] and [lastDependencyChanged].
+///
+/// When updating PackageState the pendingAt property is set to the minimum of:
+///   * `scheduled + 31 days` for any version,
+///   * `scheduled + 24 hours` for any version where `dependencyChanged > scheduled`
+///   * `scheduled + 3 hours * attempts^2` for any version where `attempts > 0 && attempts < 3`.
+DateTime derivePendingAt({
+  required TaskState state,
+  required DateTime lastDependencyChanged,
+}) {
+  return [
+    // scheduled + 31 days
+    ...state.versions.values.map((v) => v.scheduled.add(taskRetriggerInterval)),
+    // scheduled + 24 hours, where scheduled < lastDependencyChanged
+    ...state.versions.values
+        .where((v) => v.scheduled.isBefore(lastDependencyChanged))
+        .map((v) => v.scheduled.add(taskDependencyRetriggerCoolOff)),
+    // scheduled + 3 hours * attempts^2, where attempts > 0 && attempts < 3
+    ...state.versions.values
+        .where((v) => v.attempts > 0 && v.attempts < taskRetryLimit)
+        .map((v) => v.scheduled.add(taskRetryDelay(v.attempts))),
+    // Pick the minimum of the candidates, default scheduling in year 3k
+    // if there is no date before that.
+  ].fold(DateTime(3000), (a, b) => a.isBefore(b) ? a : b);
+}
+
+/// Return a list of pending versions for this package.
+///
+/// When scheduling analysis of a package we piggyback along versions that
+/// are going to be pending soon too. Hence, we return a version if:
+///   * `now - scheduled > 21 days`,
+///   * `lastDependencyChanged > scheduled`, or,
+///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
+List<Version> derivePendingVersions({
+  DateTime? at,
+  required TaskState state,
+  required DateTime lastDependencyChanged,
+}) {
+  final at_ = at ?? clock.now();
+  Duration timeSince(DateTime past) => at_.difference(past);
+
+  return state.versions.entries
+      .where(
+        // NOTE: Any changes here must be reflected in [derivePendingAt]
+        (e) =>
+            // If scheduled more than 21 days ago
+            timeSince(e.value.scheduled) > minTaskRetriggerInterval ||
+            // If a dependency has changed since it was last scheduled
+            lastDependencyChanged.isAfter(e.value.scheduled) ||
+            // If:
+            //  - attempts > 0 (analysis is not done, and has been started)
+            //  - no more than 3 attempts have been done,
+            //  - now - scheduled > 3 hours * attempts^2
+            (e.value.attempts > 0 &&
+                e.value.attempts < taskRetryLimit &&
+                timeSince(e.value.scheduled) >
+                    taskRetryDelay(e.value.attempts)),
+      )
+      .map((e) => Version.parse(e.key))
+      .toList();
+}
+
+/// State of a given `version` within a [Task].
 @JsonSerializable()
 class PackageVersionStateInfo {
   PackageVersionStatus get status {
@@ -414,7 +479,7 @@ enum PackageVersionStatus {
   failed,
 }
 
-/// Tracks a token that was removed from the [PackageState], but a worker
+/// Tracks a token that was removed from the [Task], but a worker
 /// may still use it to report a completed task. Such workers may recieve
 /// an error code that says they shouldn't really panic on the rejection.
 @JsonSerializable()
