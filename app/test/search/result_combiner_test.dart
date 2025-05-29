@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
@@ -13,7 +14,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ResultCombiner', () {
-    final primaryIndex = InMemoryPackageIndex(
+    final packageIndex = InMemoryPackageIndex(
       documents: [
         PackageDocument(
           package: 'stringutils',
@@ -27,9 +28,10 @@ void main() {
         ),
       ],
     );
+    final primaryIndex = PackageIndexHolder()..updatePackageIndex(packageIndex);
     final combiner = SearchResultCombiner(
       primaryIndex: primaryIndex,
-      sdkMemIndex: SdkMemIndex(
+      sdkIndex: SdkMemIndex(
         dartIndex: DartdocIndex.fromJsonList([
           {
             'name': 'dart:core',
@@ -73,7 +75,7 @@ void main() {
     );
 
     test('non-text ranking', () async {
-      final results = combiner
+      final results = await combiner
           .search(ServiceSearchQuery.parse(order: SearchOrder.downloads));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
@@ -87,7 +89,7 @@ void main() {
 
     test('no actual text query', () async {
       final results =
-          combiner.search(ServiceSearchQuery.parse(query: 'package:s'));
+          await combiner.search(ServiceSearchQuery.parse(query: 'package:s'));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -100,7 +102,7 @@ void main() {
 
     test('search: substring', () async {
       final results =
-          combiner.search(ServiceSearchQuery.parse(query: 'substring'));
+          await combiner.search(ServiceSearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,

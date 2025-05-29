@@ -619,18 +619,34 @@ class _CombinedSearchIndex implements SearchIndex {
   IndexInfo indexInfo() => _packageIndexHolder._index.indexInfo();
 
   @override
-  PackageSearchResult search(ServiceSearchQuery query) {
+  Future<PackageSearchResult> search(ServiceSearchQuery query) async {
     final combiner = SearchResultCombiner(
-      primaryIndex: _packageIndexHolder._index,
-      sdkMemIndex: sdkMemIndex,
+      primaryIndex: _packageIndexHolder,
+      sdkIndex: sdkIndex,
     );
-    return combiner.search(query);
+    return await combiner.search(query);
   }
 }
 
 /// Holds an immutable [InMemoryPackageIndex] that is the actual active search index.
-class PackageIndexHolder {
+class PackageIndexHolder implements SearchIndex {
   var _index = InMemoryPackageIndex(documents: const []);
+
+  @override
+  bool isReady() => indexInfo().isReady;
+
+  @override
+  IndexInfo indexInfo() => _index.indexInfo();
+
+  @override
+  PackageSearchResult search(ServiceSearchQuery query) {
+    return _index.search(query);
+  }
+
+  /// Updates the active package index with [newIndex].
+  void updatePackageIndex(InMemoryPackageIndex newIndex) {
+    _index = newIndex;
+  }
 }
 
 /// Updates the active package index with [newIndex].

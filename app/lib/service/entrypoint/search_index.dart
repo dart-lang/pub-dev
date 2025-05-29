@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/search/backend.dart';
-import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/entrypoint/_isolate.dart';
@@ -35,7 +34,6 @@ Future<void> main(List<String> args, var message) async {
   }
   await fork(() async {
     await servicesWrapperFn(() async {
-      registerSdkMemIndex(await createSdkMemIndex());
       await indexUpdater.init();
 
       await runIsolateFunctions(

@@ -17,15 +17,15 @@ import 'token_index.dart';
 
 export 'package:pana/src/dartdoc/dartdoc_index.dart';
 
-/// Sets the SDK in-memory index.
-void registerSdkMemIndex(SdkMemIndex? index) {
+/// Sets the SDK index.
+void registerSdkIndex(SdkIndex? index) {
   if (index != null) {
-    ss.register(#_sdkMemIndex, index);
+    ss.register(#_sdkIndex, index);
   }
 }
 
 /// The active SDK in-memory index.
-SdkMemIndex? get sdkMemIndex => ss.lookup(#_sdkMemIndex) as SdkMemIndex?;
+SdkIndex? get sdkIndex => ss.lookup(#_sdkIndex) as SdkIndex?;
 
 /// Results from these libraries are ranked with lower score and
 /// will be displayed only if the query has the library name, or
