@@ -220,7 +220,13 @@ class _RelativeUrlRewriter extends html_parsing.TreeVisitor {
     super.visitElement(element);
 
     // check current element
-    if (element.localName == 'a') {
+    if (element.localName == 'a' &&
+        element.attributes.length == 1 &&
+        element.attributes.containsKey('name') &&
+        element.attributes['name']!.isNotEmpty &&
+        element.nodes.isEmpty) {
+      // allow name anchor without any other attribute or content
+    } else if (element.localName == 'a') {
       _updateUrlAttributes(element, 'href');
     } else if (element.localName == 'img') {
       _updateUrlAttributes(element, 'src', raw: true);
