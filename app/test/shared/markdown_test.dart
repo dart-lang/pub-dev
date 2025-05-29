@@ -27,6 +27,16 @@ void main() {
         '</ul>\n',
       );
     });
+
+    test('named anchor', () {
+      expect(
+          markdownToHtml('<a name="abc"></a>'), '<p><a name="abc"></a></p>\n');
+    });
+
+    test('named anchor with other content', () {
+      expect(markdownToHtml('<a name="abc" other="1"></a>'), '<p></p>\n');
+      expect(markdownToHtml('<a name="abc">x</a>'), '<p>x</p>\n');
+    });
   });
 
   group('Valid custom base URL', () {
