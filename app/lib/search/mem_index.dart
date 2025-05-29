@@ -29,6 +29,7 @@ class InMemoryPackageIndex {
   late final TokenIndex<String> _descrIndex;
   late final TokenIndex<String> _readmeIndex;
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
+  late final _bitArrayPool = BitArrayPool(_documents.length);
   late final _scorePool = ScorePool(_packageNameIndex._packageNames);
 
   /// Maps the tag strings to a list of document index values using bit arrays.
@@ -140,22 +141,21 @@ class InMemoryPackageIndex {
     if ((query.offset ?? 0) >= _documents.length) {
       return PackageSearchResult.empty();
     }
-    return _scorePool.withScore(
-      value: 0.0,
-      fn: (score) {
-        return _search(query, score);
-      },
-    );
+    return _bitArrayPool.withBitArrayAllSet(fn: (array) {
+      return _scorePool.withScore(
+        value: 0.0,
+        fn: (score) {
+          return _search(query, array, score);
+        },
+      );
+    });
   }
 
   PackageSearchResult _search(
     ServiceSearchQuery query,
+    BitArray packages,
     IndexedScore<String> packageScores,
   ) {
-    // TODO: implement pooling of this object similarly to [ScorePool].
-    final packages = BitArray(_documents.length)
-      ..setRange(0, _documents.length);
-
     // filter on tags
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
