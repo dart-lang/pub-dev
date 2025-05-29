@@ -176,10 +176,11 @@ Future<IsolateRunner> startWorkerIsolate({
 Future<IsolateRunner> startQueryIsolate({
   required Logger logger,
   required Uri spawnUri,
+  required String kind,
 }) async {
   final worker = IsolateRunner.uri(
     logger: logger,
-    kind: 'query',
+    kind: kind,
     spawnUri: spawnUri,
   );
   await worker.start(1);

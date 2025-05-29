@@ -8,6 +8,8 @@ import 'dart:math';
 import 'package:args/command_runner.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/search/result_combiner.dart';
+import 'package:pub_dev/service/entrypoint/sdk_isolate_index.dart';
 import 'package:pub_dev/service/entrypoint/search_index.dart';
 
 import '../../search/backend.dart';
@@ -36,14 +38,29 @@ class SearchCommand extends Command {
 
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      final index = await startQueryIsolate(
+      final packageIsolate = await startQueryIsolate(
         logger: _logger,
+        kind: 'package',
         spawnUri:
             Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
       );
-      registerScopeExitCallback(index.close);
+      registerScopeExitCallback(packageIsolate.close);
 
-      registerSearchIndex(LatencyAwareSearchIndex(IsolateSearchIndex(index)));
+      final sdkIsolate = await startQueryIsolate(
+        logger: _logger,
+        kind: 'sdk',
+        spawnUri: Uri.parse(
+            'package:pub_dev/service/entrypoint/sdk_isolate_index.dart'),
+      );
+      registerScopeExitCallback(sdkIsolate.close);
+
+      registerSearchIndex(
+        SearchResultCombiner(
+          primaryIndex:
+              LatencyAwareSearchIndex(IsolateSearchIndex(packageIsolate)),
+          sdkIndex: SdkIsolateIndex(sdkIsolate),
+        ),
+      );
 
       void scheduleRenew() {
         scheduleMicrotask(() async {
@@ -53,7 +70,7 @@ class SearchCommand extends Command {
           await Future.delayed(delay);
 
           // create a new index and handover with a 2-minute maximum wait
-          await index.renew(count: 1, wait: Duration(minutes: 2));
+          await packageIsolate.renew(count: 1, wait: Duration(minutes: 2));
 
           // schedule the renewal again
           scheduleRenew();
