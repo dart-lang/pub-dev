@@ -38,110 +38,134 @@ Set the moderated flag on a package version (updating the flag and the timestamp
     final caseId = options['case'];
 
     final package = options['package'];
-    InvalidInputException.check(
-      package != null && package.isNotEmpty,
-      'package must be given',
-    );
     final version = options['version'];
-    InvalidInputException.check(
-      version != null && version.isNotEmpty,
-      'version must be given',
-    );
-
     final state = options['state'];
-    bool? valueToSet;
-    switch (state) {
-      case 'true':
-        valueToSet = true;
-        break;
-      case 'false':
-        valueToSet = false;
-        break;
-    }
-
     final note = options['note'];
 
     final refCase =
         await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
-    final p = await packageBackend.lookupPackage(package!);
-    if (p == null) {
-      throw NotFoundException.resource(package);
-    }
-    final pv = await packageBackend.lookupPackageVersion(package, version!);
-    if (pv == null) {
-      throw NotFoundException.resource('$package $version');
-    }
-
-    PackageVersion? pv2;
-    if (valueToSet != null) {
-      final currentDartSdk = await getCachedDartSdkVersion(
-          lastKnownStable: toolStableDartSdkVersion);
-      final currentFlutterSdk = await getCachedFlutterSdkVersion(
-          lastKnownStable: toolStableFlutterSdkVersion);
-      pv2 = await withRetryTransaction(dbService, (tx) async {
-        final v = await tx.lookupValue<PackageVersion>(pv.key);
-        v.updateIsModerated(isModerated: valueToSet!);
-        tx.insert(v);
-
-        // Update references to latest versions.
-        final pkg = await tx.lookupValue<Package>(p.key);
-        final versions = await tx.query<PackageVersion>(pkg.key).run().toList();
-        pkg.updateVersions(
-          versions,
-          dartSdkVersion: currentDartSdk.semanticVersion,
-          flutterSdkVersion: currentFlutterSdk.semanticVersion,
-          replaced: v,
-        );
-        if (pkg.latestVersionKey == null) {
-          throw InvalidInputException('xx');
-        }
-        pkg.updated = clock.now().toUtc();
-        tx.insert(pkg);
+    return await adminMarkPackageVersionVisibility(
+      package,
+      version,
+      state: state,
+      whenUpdating: (tx, v, valueToSet) async {
+        v.updateIsModerated(isModerated: valueToSet);
 
         if (refCase != null) {
           final mc = await tx.lookupValue<ModerationCase>(refCase.key);
           mc.addActionLogEntry(
-            ModerationSubject.package(package, version).fqn,
+            ModerationSubject.package(package!, version!).fqn,
             valueToSet ? ModerationAction.apply : ModerationAction.revert,
             note,
           );
           tx.insert(mc);
         }
-
-        return v;
-      });
-
-      // make sure visibility cache is updated immediately
-      await purgePackageCache(package);
-
-      // sync exported API(s)
-      await apiExporter.synchronizePackage(package, forceDelete: true);
-
-      // retract or re-populate public archive files
-      await packageBackend.tarballStorage.updatePublicArchiveBucket(
-        package: package,
-        ageCheckThreshold: Duration.zero,
-        deleteIfOlder: Duration.zero,
-      );
-
-      await taskBackend.trackPackage(package);
-      await purgePackageCache(package);
-      await purgeScorecardData(package, version, isLatest: true);
-    }
-
-    return {
-      'package': p.name,
-      'version': pv.version,
-      'before': {
-        'isModerated': pv.isModerated,
-        'moderatedAt': pv.moderatedAt?.toIso8601String(),
       },
-      if (pv2 != null)
-        'after': {
-          'isModerated': pv2.isModerated,
-          'moderatedAt': pv2.moderatedAt?.toIso8601String(),
-        },
-    };
+      valueFn: (v) => {
+        'isModerated': v.isModerated,
+        'moderatedAt': v.moderatedAt?.toIso8601String(),
+      },
+    );
   },
 );
+
+/// Changes the moderated or the admin-deleted flag and timestamp on a [package] [version].
+Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
+  String? package,
+  String? version, {
+  /// `true`, `false` or `null`
+  required String? state,
+
+  /// The updates to apply during the transaction.
+  required Future<void> Function(
+    TransactionWrapper tx,
+    PackageVersion v,
+    bool valueToSet,
+  ) whenUpdating,
+
+  /// The debug information to return.
+  required Map Function(PackageVersion v) valueFn,
+}) async {
+  InvalidInputException.check(
+    package != null && package.isNotEmpty,
+    'package must be given',
+  );
+  InvalidInputException.check(
+    version != null && version.isNotEmpty,
+    'version must be given',
+  );
+
+  bool? valueToSet;
+  switch (state) {
+    case 'true':
+      valueToSet = true;
+      break;
+    case 'false':
+      valueToSet = false;
+      break;
+  }
+
+  final p = await packageBackend.lookupPackage(package!);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+  final pv = await packageBackend.lookupPackageVersion(package, version!);
+  if (pv == null) {
+    throw NotFoundException.resource('$package $version');
+  }
+
+  PackageVersion? pv2;
+  if (valueToSet != null) {
+    final currentDartSdk = await getCachedDartSdkVersion(
+        lastKnownStable: toolStableDartSdkVersion);
+    final currentFlutterSdk = await getCachedFlutterSdkVersion(
+        lastKnownStable: toolStableFlutterSdkVersion);
+    pv2 = await withRetryTransaction(dbService, (tx) async {
+      final v = await tx.lookupValue<PackageVersion>(pv.key);
+      await whenUpdating(tx, v, valueToSet!);
+      tx.insert(v);
+
+      // Update references to latest versions.
+      final pkg = await tx.lookupValue<Package>(p.key);
+      final versions = await tx.query<PackageVersion>(pkg.key).run().toList();
+      pkg.updateVersions(
+        versions,
+        dartSdkVersion: currentDartSdk.semanticVersion,
+        flutterSdkVersion: currentFlutterSdk.semanticVersion,
+        replaced: v,
+      );
+      if (pkg.latestVersionKey == null) {
+        throw InvalidInputException('xx');
+      }
+      pkg.updated = clock.now().toUtc();
+      tx.insert(pkg);
+
+      return v;
+    });
+
+    // make sure visibility cache is updated immediately
+    await purgePackageCache(package);
+
+    // sync exported API(s)
+    await apiExporter.synchronizePackage(package, forceDelete: true);
+
+    // retract or re-populate public archive files
+    await packageBackend.tarballStorage.updatePublicArchiveBucket(
+      package: package,
+      ageCheckThreshold: Duration.zero,
+      deleteIfOlder: Duration.zero,
+    );
+
+    await taskBackend.trackPackage(package);
+    await purgePackageCache(package);
+    await purgeScorecardData(package, version, isLatest: true);
+  }
+
+  return {
+    'package': p.name,
+    'version': pv.version,
+    'before': valueFn(pv),
+    if (pv2 != null) 'after': valueFn(pv2),
+  };
+}

@@ -4,47 +4,38 @@
 
 import '../../account/backend.dart';
 import '../../shared/configuration.dart';
-import '../backend.dart';
 import 'actions.dart';
+import 'moderate_package_versions.dart';
 
 final packageVersionDelete = AdminAction(
-    name: 'package-version-delete',
-    options: {
-      'package': 'name of package to delete',
-      'version': 'version of package',
-    },
-    summary: 'Deletes package <package> version <version>.',
-    description: '''
-Deletes package <package> version <version>.
-
-Deletes all associated resources:
-
-* PackageVersions
-* PackageVersionAsset
-* archives (might be retrievable from backup)
-
-The package version will be "tombstoned" and same version cannot be published
-later.
+  name: 'package-version-delete',
+  summary:
+      'Set the admin-deleted flag on a package version (making it not visible).',
+  description: '''
+Set the admin-deleted flag on a package version (updating the flag and the timestamp). After 2 months it will be fully deleted.
 ''',
-    invoke: (args) async {
-      await requireAuthenticatedAdmin(AdminPermission.removePackage);
-      final packageName = args['package'];
-      if (packageName == null) {
-        throw InvalidInputException('Missing `package` argument');
-      }
-      final version = args['version'];
-      if (version == null) {
-        throw InvalidInputException('Missing `version` argument');
-      }
-      final result =
-          await adminBackend.removePackageVersion(packageName, version);
-
-      return {
-        'message': 'Package version and all associated resources deleted.',
-        'package': packageName,
-        'version': version,
-        'deletedPackageVersions': result.deletedPackageVersions,
-        'deletedPackageVersionInfos': result.deletedPackageVersionInfos,
-        'deletedPackageVersionAssets': result.deletedPackageVersionAssets,
-      };
-    });
+  options: {
+    'package': 'The package name to be deleted',
+    'version': 'The version to be deleted',
+    'state':
+        'Set admin-deleted state true / false. Returns current state if omitted.',
+  },
+  invoke: (args) async {
+    await requireAuthenticatedAdmin(AdminPermission.removePackage);
+    final package = args['package'];
+    final version = args['version'];
+    final state = args['state'];
+    return await adminMarkPackageVersionVisibility(
+      package,
+      version,
+      state: state,
+      whenUpdating: (tx, v, valueToSet) async {
+        v.updateIsAdminDeleted(isAdminDeleted: valueToSet);
+      },
+      valueFn: (v) => {
+        'isAdminDeleted': v.isAdminDeleted,
+        'adminDeletedAt': v.adminDeletedAt?.toIso8601String(),
+      },
+    );
+  },
+);

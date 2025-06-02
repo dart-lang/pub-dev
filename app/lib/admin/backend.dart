@@ -455,6 +455,7 @@ class AdminBackend {
   /// Removes the specific package version from the Datastore and updates other
   /// related entities. It is safe to call [removePackageVersion] on an already
   /// removed version, as the call is idempotent.
+  @visibleForTesting
   Future<
       ({
         int deletedPackageVersions,
@@ -466,6 +467,20 @@ class AdminBackend {
         lastKnownStable: toolStableDartSdkVersion);
     final currentFlutterSdk = await getCachedFlutterSdkVersion(
         lastKnownStable: toolStableFlutterSdkVersion);
+
+    _logger.info('Removing GCS objects ...');
+    await packageBackend.removePackageTarball(packageName, version);
+
+    final deletedPackageVersionInfos = await _db.deleteWithQuery(
+      _db.query<PackageVersionInfo>()..filter('package =', packageName),
+      where: (PackageVersionInfo info) => info.version == version,
+    );
+
+    final deletedPackageVersionAssets = await _db.deleteWithQuery(
+      _db.query<PackageVersionAsset>()..filter('package =', packageName),
+      where: (PackageVersionAsset asset) => asset.version == version,
+    );
+
     await withRetryTransaction(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
@@ -501,19 +516,6 @@ class AdminBackend {
 
       tx.insert(package);
     });
-
-    _logger.info('Removing GCS objects ...');
-    await packageBackend.removePackageTarball(packageName, version);
-
-    final deletedPackageVersionInfos = await _db.deleteWithQuery(
-      _db.query<PackageVersionInfo>()..filter('package =', packageName),
-      where: (PackageVersionInfo info) => info.version == version,
-    );
-
-    final deletedPackageVersionAssets = await _db.deleteWithQuery(
-      _db.query<PackageVersionAsset>()..filter('package =', packageName),
-      where: (PackageVersionAsset asset) => asset.version == version,
-    );
 
     await purgePackageCache(packageName);
     await purgeScorecardData(packageName, version, isLatest: true);
@@ -813,48 +815,7 @@ class AdminBackend {
 
       _logger.info(
           'Deleting moderated package version: ${version.qualifiedVersionKey}');
-
-      // deleting from canonical bucket
-      await packageBackend.tarballStorage
-          .deleteArchiveFromCanonicalBucket(version.package, version.version!);
-
-      // deleting from datastore
-      await withRetryTransaction(_db, (tx) async {
-        final pv = await tx.lookupOrNull<PackageVersion>(version.key);
-        if (pv == null) {
-          return null;
-        }
-        final p = await tx.lookupOrNull<Package>(version.packageKey!);
-        if (p == null) {
-          return;
-        }
-        final pvi = await tx.lookupOrNull<PackageVersionInfo>(_db.emptyKey
-            .append(PackageVersionInfo,
-                id: version.qualifiedVersionKey.qualifiedVersion));
-
-        p.deletedVersions ??= [];
-        p.deletedVersions!.add(version.version!);
-        p.deletedVersions!.sort();
-        p.updated = clock.now().toUtc();
-        tx.insert(p);
-
-        // delete version + info + assets
-        tx.delete(pv.key);
-        if (pvi != null) {
-          tx.delete(pvi.key);
-
-          for (final assetKind in pvi.assets) {
-            tx.delete(
-              _db.emptyKey.append(PackageVersionAsset,
-                  id: Uri(pathSegments: [
-                    version.package,
-                    version.version!,
-                    assetKind
-                  ]).path),
-            );
-          }
-        }
-      });
+      await removePackageVersion(version.package, version.version!);
       _logger.info(
           'Deleted moderated package version: ${version.qualifiedVersionKey}');
     }
@@ -910,6 +871,31 @@ class AdminBackend {
       _logger.info('Deleting moderated user: ${user.userId}');
       await _removeUser(user);
       _logger.info('Deleting moderated user: ${user.userId}');
+    }
+  }
+
+  /// Scans datastore and deletes admin-deleted entities where the last action
+  /// was more than 2 months ago.
+  Future<void> deleteAdminDeletedEntities({
+    @visibleForTesting DateTime? before,
+  }) async {
+    before ??= clock.ago(days: 62).toUtc(); // extra buffer days
+
+    // delete package versions
+    final pvQuery = _db.query<PackageVersion>()
+      ..filter('adminDeletedAt <', before)
+      ..order('adminDeletedAt');
+    await for (final version in pvQuery.run()) {
+      // sanity check
+      if (!(version.isAdminDeleted ?? false)) {
+        continue;
+      }
+
+      _logger.info(
+          'Deleting admin-deleted package version: ${version.qualifiedVersionKey}');
+      await removePackageVersion(version.package, version.version!);
+      _logger.info(
+          'Deleted moderated package version: ${version.qualifiedVersionKey}');
     }
   }
 
