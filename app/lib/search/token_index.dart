@@ -204,9 +204,9 @@ class BitArrayPool<K> {
   R withBitArrayAllSet<R>({
     required R Function(BitArray array) fn,
   }) {
-    final score = _acquireAllSet();
-    final r = fn(score);
-    _release(score);
+    final array = _acquireAllSet();
+    final r = fn(array);
+    _release(array);
     return r;
   }
 }
