@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
+import 'package:pub_dev/third_party/bit_array/bit_array.dart';
 
 import 'text_utils.dart';
 
@@ -179,6 +180,33 @@ class ScorePool<K> {
     final score = _acquire(value);
     final r = fn(score);
     _release(score);
+    return r;
+  }
+}
+
+/// A reusable pool for [BitArray] instances to spare some memory allocation.
+class BitArrayPool<K> {
+  final int _length;
+  final _pool = <BitArray>[];
+
+  BitArrayPool(this._length);
+
+  BitArray _acquireAllSet() {
+    final array = _pool.isNotEmpty ? _pool.removeLast() : BitArray(_length);
+    array.setRange(0, _length);
+    return array;
+  }
+
+  void _release(BitArray array) {
+    _pool.add(array);
+  }
+
+  R withBitArrayAllSet<R>({
+    required R Function(BitArray array) fn,
+  }) {
+    final array = _acquireAllSet();
+    final r = fn(array);
+    _release(array);
     return r;
   }
 }
