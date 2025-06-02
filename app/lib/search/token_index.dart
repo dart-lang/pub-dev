@@ -192,6 +192,7 @@ class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
   ScorePool(List<K> keys)
       : super(
           () => IndexedScore(keys),
+          // sets all values to 0.0
           (score) => score._values
               .setAll(0, Iterable.generate(score.length, (_) => 0.0)),
         );
@@ -201,7 +202,9 @@ class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
 class BitArrayPool extends _AllocationPool<BitArray> {
   BitArrayPool(int length)
       : super(
+          // sets all bits to 1
           () => BitArray(length)..setRange(0, length),
+          // sets all bits to 1
           (array) => array.setRange(0, length),
         );
 }
