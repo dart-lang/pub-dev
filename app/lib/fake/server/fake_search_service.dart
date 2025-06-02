@@ -39,7 +39,7 @@ class FakeSearchService {
         storage: _storage,
         cloudCompute: _cloudCompute,
         fn: () async {
-          registerSdkMemIndex(await createSdkMemIndex());
+          registerSdkIndex(await createSdkMemIndex());
           final handler = wrapHandler(_logger, searchServiceHandler);
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {

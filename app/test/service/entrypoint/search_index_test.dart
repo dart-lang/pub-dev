@@ -34,7 +34,7 @@ void main() {
       final rs =
           await searchIndex.search(ServiceSearchQuery.parse(query: 'json'));
       expect(rs.errorMessage, isNull);
-      expect(rs.sdkLibraryHits, isNotEmpty);
+      expect(rs.sdkLibraryHits, isEmpty);
       expect(rs.packageHits, isEmpty);
     }, timeout: Timeout(Duration(minutes: 5)));
   });
