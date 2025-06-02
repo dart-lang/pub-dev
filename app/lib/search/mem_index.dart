@@ -141,9 +141,8 @@ class InMemoryPackageIndex {
     if ((query.offset ?? 0) >= _documents.length) {
       return PackageSearchResult.empty();
     }
-    return _bitArrayPool.withBitArrayAllSet(fn: (array) {
-      return _scorePool.withScore(
-        value: 0.0,
+    return _bitArrayPool.withPoolItem(fn: (array) {
+      return _scorePool.withPoolItem(
         fn: (score) {
           return _search(query, array, score);
         },
@@ -400,8 +399,7 @@ class InMemoryPackageIndex {
     final matchApi = textMatchExtent.shouldMatchApi();
 
     for (final word in words) {
-      _scorePool.withScore(
-        value: 0.0,
+      _scorePool.withPoolItem(
         fn: (wordScore) {
           _packageNameIndex.searchWord(word,
               score: wordScore, filterOnNonZeros: packageScores);

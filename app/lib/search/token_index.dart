@@ -107,7 +107,7 @@ class TokenIndex<K> {
 
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
-      final s = _scorePool._acquire(0.0);
+      final s = _scorePool._acquire();
       searchAndAccumulate(w, score: s, weight: weight);
       if (score == null) {
         score = s;
@@ -116,7 +116,7 @@ class TokenIndex<K> {
         _scorePool._release(s);
       }
     }
-    score ??= _scorePool._acquire(0.0);
+    score ??= _scorePool._acquire();
     final r = fn(score);
     _scorePool._release(score);
     return r;
@@ -151,64 +151,62 @@ extension StringTokenIndexExt on TokenIndex<String> {
   }
 }
 
-/// A reusable pool for [IndexedScore] instances to spare some memory allocation.
-class ScorePool<K> {
-  final List<K> _keys;
-  final _pool = <IndexedScore<K>>[];
+abstract class _AllocationPool<T> {
+  final _pool = <T>[];
 
-  ScorePool(this._keys);
+  /// Creates a ready-to-use item for the pool.
+  final T Function() _allocate;
 
-  IndexedScore<K> _acquire(double value) {
-    late IndexedScore<K> score;
+  /// Resets a previously used item to its initial state.
+  final void Function(T) _reset;
+
+  _AllocationPool(this._allocate, this._reset);
+
+  T _acquire() {
+    final T t;
     if (_pool.isNotEmpty) {
-      score = _pool.removeLast();
-      score._values.setAll(0, Iterable.generate(score.length, (_) => value));
+      t = _pool.removeLast();
+      _reset(t);
     } else {
-      score = IndexedScore<K>(_keys, value);
+      t = _allocate();
     }
-    return score;
+    return t;
   }
 
-  void _release(IndexedScore<K> score) {
-    _pool.add(score);
+  void _release(T item) {
+    _pool.add(item);
   }
 
-  R withScore<R>({
-    required double value,
-    required R Function(IndexedScore<K> score) fn,
+  R withPoolItem<R>({
+    required R Function(T array) fn,
   }) {
-    final score = _acquire(value);
-    final r = fn(score);
-    _release(score);
+    final item = _acquire();
+    final r = fn(item);
+    _release(item);
     return r;
   }
 }
 
+/// A reusable pool for [IndexedScore] instances to spare some memory allocation.
+class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
+  ScorePool(List<K> keys)
+      : super(
+          () => IndexedScore(keys),
+          // sets all values to 0.0
+          (score) => score._values
+              .setAll(0, Iterable.generate(score.length, (_) => 0.0)),
+        );
+}
+
 /// A reusable pool for [BitArray] instances to spare some memory allocation.
-class BitArrayPool<K> {
-  final int _length;
-  final _pool = <BitArray>[];
-
-  BitArrayPool(this._length);
-
-  BitArray _acquireAllSet() {
-    final array = _pool.isNotEmpty ? _pool.removeLast() : BitArray(_length);
-    array.setRange(0, _length);
-    return array;
-  }
-
-  void _release(BitArray array) {
-    _pool.add(array);
-  }
-
-  R withBitArrayAllSet<R>({
-    required R Function(BitArray array) fn,
-  }) {
-    final array = _acquireAllSet();
-    final r = fn(array);
-    _release(array);
-    return r;
-  }
+class BitArrayPool extends _AllocationPool<BitArray> {
+  BitArrayPool(int length)
+      : super(
+          // sets all bits to 1
+          () => BitArray(length)..setRange(0, length),
+          // sets all bits to 1
+          (array) => array.setRange(0, length),
+        );
 }
 
 /// Mutable score list that can accessed via integer index.
