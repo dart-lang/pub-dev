@@ -154,7 +154,24 @@ extension StringTokenIndexExt on TokenIndex<String> {
 abstract class _AllocationPool<T> {
   final _pool = <T>[];
 
-  T _acquire();
+  /// Creates a ready-to-use item for the pool.
+  final T Function() _allocate;
+
+  /// Resets a previously used item to its initial state.
+  final void Function(T) _reset;
+
+  _AllocationPool(this._allocate, this._reset);
+
+  T _acquire() {
+    final T t;
+    if (_pool.isNotEmpty) {
+      t = _pool.removeLast();
+      _reset(t);
+    } else {
+      t = _allocate();
+    }
+    return t;
+  }
 
   void _release(T item) {
     _pool.add(item);
@@ -172,36 +189,21 @@ abstract class _AllocationPool<T> {
 
 /// A reusable pool for [IndexedScore] instances to spare some memory allocation.
 class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
-  final List<K> _keys;
-
-  ScorePool(this._keys);
-
-  @override
-  IndexedScore<K> _acquire() {
-    late IndexedScore<K> score;
-    if (_pool.isNotEmpty) {
-      score = _pool.removeLast();
-      score._values.setAll(0, Iterable.generate(score.length, (_) => 0.0));
-    } else {
-      score = IndexedScore<K>(_keys);
-    }
-    return score;
-  }
+  ScorePool(List<K> keys)
+      : super(
+          () => IndexedScore(keys),
+          (score) => score._values
+              .setAll(0, Iterable.generate(score.length, (_) => 0.0)),
+        );
 }
 
 /// A reusable pool for [BitArray] instances to spare some memory allocation.
 class BitArrayPool extends _AllocationPool<BitArray> {
-  final int _length;
-
-  BitArrayPool(this._length);
-
-  @override
-  BitArray _acquire() {
-    final array = _pool.isNotEmpty ? _pool.removeLast() : BitArray(_length);
-    // Sets all the bits to 1.
-    array.setRange(0, _length);
-    return array;
-  }
+  BitArrayPool(int length)
+      : super(
+          () => BitArray(length)..setRange(0, length),
+          (array) => array.setRange(0, length),
+        );
 }
 
 /// Mutable score list that can accessed via integer index.
