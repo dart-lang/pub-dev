@@ -804,7 +804,6 @@ class AdminBackend {
     }
 
     // delete package versions
-    // TODO: merge this with the removePackageVersion method.
     final pvQuery = _db.query<PackageVersion>()
       ..filter('moderatedAt <', before)
       ..order('moderatedAt');
