@@ -59,7 +59,7 @@
 # merging/managing topics.
 topics:
 - topic: chart
-  description: Packages that facilitate charting or graphing.
+  description: Packages that facilitate visualizing data in charts or graphs.
   aliases:
   - charts
 - topic: env
