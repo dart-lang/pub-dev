@@ -107,7 +107,7 @@ class TokenIndex<K> {
 
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
-      final s = _scorePool._acquire(0.0);
+      final s = _scorePool._acquire();
       searchAndAccumulate(w, score: s, weight: weight);
       if (score == null) {
         score = s;
@@ -116,7 +116,7 @@ class TokenIndex<K> {
         _scorePool._release(s);
       }
     }
-    score ??= _scorePool._acquire(0.0);
+    score ??= _scorePool._acquire();
     final r = fn(score);
     _scorePool._release(score);
     return r;
@@ -151,63 +151,56 @@ extension StringTokenIndexExt on TokenIndex<String> {
   }
 }
 
-/// A reusable pool for [IndexedScore] instances to spare some memory allocation.
-class ScorePool<K> {
-  final List<K> _keys;
-  final _pool = <IndexedScore<K>>[];
+abstract class _AllocationPool<T> {
+  final _pool = <T>[];
 
-  ScorePool(this._keys);
+  T _acquire();
 
-  IndexedScore<K> _acquire(double value) {
-    late IndexedScore<K> score;
-    if (_pool.isNotEmpty) {
-      score = _pool.removeLast();
-      score._values.setAll(0, Iterable.generate(score.length, (_) => value));
-    } else {
-      score = IndexedScore<K>(_keys, value);
-    }
-    return score;
+  void _release(T item) {
+    _pool.add(item);
   }
 
-  void _release(IndexedScore<K> score) {
-    _pool.add(score);
-  }
-
-  R withScore<R>({
-    required double value,
-    required R Function(IndexedScore<K> score) fn,
+  R withPoolItem<R>({
+    required R Function(T array) fn,
   }) {
-    final score = _acquire(value);
-    final r = fn(score);
-    _release(score);
+    final item = _acquire();
+    final r = fn(item);
+    _release(item);
     return r;
   }
 }
 
+/// A reusable pool for [IndexedScore] instances to spare some memory allocation.
+class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
+  final List<K> _keys;
+
+  ScorePool(this._keys);
+
+  @override
+  IndexedScore<K> _acquire() {
+    late IndexedScore<K> score;
+    if (_pool.isNotEmpty) {
+      score = _pool.removeLast();
+      score._values.setAll(0, Iterable.generate(score.length, (_) => 0.0));
+    } else {
+      score = IndexedScore<K>(_keys);
+    }
+    return score;
+  }
+}
+
 /// A reusable pool for [BitArray] instances to spare some memory allocation.
-class BitArrayPool<K> {
+class BitArrayPool extends _AllocationPool<BitArray> {
   final int _length;
-  final _pool = <BitArray>[];
 
   BitArrayPool(this._length);
 
-  BitArray _acquireAllSet() {
+  @override
+  BitArray _acquire() {
     final array = _pool.isNotEmpty ? _pool.removeLast() : BitArray(_length);
+    // Sets all the bits to 1.
     array.setRange(0, _length);
     return array;
-  }
-
-  void _release(BitArray array) {
-    _pool.add(array);
-  }
-
-  R withBitArrayAllSet<R>({
-    required R Function(BitArray array) fn,
-  }) {
-    final array = _acquireAllSet();
-    final r = fn(array);
-    _release(array);
-    return r;
   }
 }
 
