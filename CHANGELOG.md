@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: search instance uses separate isolate for the SDK index.
 
 ## `20250522t102600-all`
  * Bump runtimeVersion to `2025.05.21`.
