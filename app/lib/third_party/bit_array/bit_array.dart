@@ -212,7 +212,7 @@ class BitArray extends BitSet {
     }
   }
 
-  /// Sets the bits from [start] (inclusive) up to [end] (exclusive) to false.
+  /// Sets the bits from [start] (inclusive) up to [end] (exclusive) to true.
   void setRange(int start, int end) {
     assert(start >= 0 && start < _length);
     assert(start <= end && end <= _length);
