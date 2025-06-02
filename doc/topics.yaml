@@ -62,9 +62,6 @@ topics:
   description: Packages that facilitate charting or graphing.
   aliases:
   - charts
-  - graph
-  - plot
-  - diagram
 - topic: env
   description: Packages that facilitate environment configuration.
   aliases:
