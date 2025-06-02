@@ -12,7 +12,7 @@ final packageVersionDelete = AdminAction(
   summary:
       'Set the admin-deleted flag on a package version (making it not visible).',
   description: '''
-Set the admin-deleted flag on a package version (updating the flag and the timestamp).
+Set the admin-deleted flag on a package version (updating the flag and the timestamp). After 2 months it will be fully deleted.
 ''',
   options: {
     'package': 'The package name to be deleted',
