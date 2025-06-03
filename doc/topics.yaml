@@ -58,6 +58,10 @@
 # The editorial guidelines are intended to evolve as we gain more experience
 # merging/managing topics.
 topics:
+- topic: chart
+  description: Packages that facilitate visualizing data in charts or graphs.
+  aliases:
+  - charts
 - topic: env
   description: Packages that facilitate environment configuration.
   aliases:
