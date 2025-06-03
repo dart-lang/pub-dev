@@ -167,8 +167,8 @@ class ServiceSearchQuery {
 
   /// The value of the `sort` URL query parameter.
   final SearchOrder? order;
-  final int? offset;
-  final int? limit;
+  final int offset;
+  final int limit;
 
   /// The scope/depth of text matching.
   final TextMatchExtent? textMatchExtent;
@@ -179,10 +179,12 @@ class ServiceSearchQuery {
     String? publisherId,
     required this.minPoints,
     this.order,
-    this.offset,
-    this.limit,
+    int? offset,
+    int? limit,
     this.textMatchExtent,
-  })  : parsedQuery = ParsedQueryText.parse(query),
+  })  : offset = max(0, offset ?? 0),
+        limit = max(_minSearchLimit, limit ?? 10),
+        parsedQuery = ParsedQueryText.parse(query),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
         publisherId = publisherId?.trimToNull();
 
@@ -232,8 +234,8 @@ class ServiceSearchQuery {
       publisherId: publisherId,
       order: order,
       minPoints: minPoints,
-      offset: max(0, offset),
-      limit: max(_minSearchLimit, limit),
+      offset: offset,
+      limit: limit,
       textMatchExtent: textMatchExtent,
     );
   }
@@ -264,10 +266,10 @@ class ServiceSearchQuery {
       'q': query,
       'tags': tagsPredicate.toQueryParameters(),
       'publisherId': publisherId,
-      'offset': offset?.toString(),
+      'offset': offset.toString(),
       if (minPoints != null && minPoints! > 0)
         'minPoints': minPoints.toString(),
-      'limit': limit?.toString(),
+      'limit': limit.toString(),
       'order': order?.name,
       if (textMatchExtent != null) 'textMatchExtent': textMatchExtent!.name,
     };

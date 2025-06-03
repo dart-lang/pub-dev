@@ -155,16 +155,16 @@ String contentType(String name) {
 }
 
 /// Returns a subset of the list, bounded by [offset] and [limit].
-List<T> boundedList<T>(List<T> list, {int? offset, int? limit}) {
+List<T> boundedList<T>(List<T> list, {int offset = 0, int limit = 0}) {
   Iterable<T> iterable = list;
-  if (offset != null && offset > 0) {
+  if (offset > 0) {
     if (offset >= list.length) {
       return <T>[];
     } else {
       iterable = iterable.skip(offset);
     }
   }
-  if (limit != null && limit > 0) {
+  if (limit > 0) {
     iterable = iterable.take(limit);
   }
   return iterable.toList();

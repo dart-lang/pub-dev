@@ -138,7 +138,7 @@ class InMemoryPackageIndex {
 
   PackageSearchResult search(ServiceSearchQuery query) {
     // prevent any work if offset is outside of the range
-    if ((query.offset ?? 0) >= _documents.length) {
+    if (query.offset >= _documents.length) {
       return PackageSearchResult.empty();
     }
     return _bitArrayPool.withPoolItem(fn: (array) {
@@ -150,11 +150,10 @@ class InMemoryPackageIndex {
     });
   }
 
-  PackageSearchResult _search(
-    ServiceSearchQuery query,
-    BitArray packages,
-    IndexedScore<String> packageScores,
-  ) {
+  /// Filters on query predicates with fast bitmap operations.
+  /// Returns 0 if no document matches the query, or the number
+  /// of documents that matches the predicates so far.
+  int _filterOnPredicates(ServiceSearchQuery query, BitArray packages) {
     // filter on tags
     final combinedTagsPredicate =
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
@@ -164,7 +163,7 @@ class InMemoryPackageIndex {
         if (entry.value) {
           if (tagBits == null) {
             // the predicate is not matched by any document
-            return PackageSearchResult.empty();
+            return 0;
           }
           packages.and(tagBits);
         } else {
@@ -215,6 +214,19 @@ class InMemoryPackageIndex {
           (i) => now.difference(_documents[i].updated) > updatedDuration);
     }
 
+    return packages.cardinality;
+  }
+
+  PackageSearchResult _search(
+    ServiceSearchQuery query,
+    BitArray packages,
+    IndexedScore<String> packageScores,
+  ) {
+    final predicateFilterCount = _filterOnPredicates(query, packages);
+    if (predicateFilterCount <= query.offset) {
+      return PackageSearchResult.empty();
+    }
+
     // TODO: find a better way to handle predicate-only filtering and scoring
     for (final index in packages.asIntIterable()) {
       if (index >= _documents.length) break;
@@ -230,32 +242,7 @@ class InMemoryPackageIndex {
       textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
     );
 
-    String? bestNameMatch;
-    if (parsedQueryText != null &&
-        query.parsedQuery.hasOnlyFreeText &&
-        query.isNaturalOrder) {
-      // exact package name
-      if (_documentsByName.containsKey(parsedQueryText)) {
-        bestNameMatch = parsedQueryText;
-      } else {
-        // reduced package name match
-        final matches = _packageNameIndex.lookupMatchingNames(parsedQueryText);
-        if (matches != null && matches.isNotEmpty) {
-          bestNameMatch = matches.length == 1
-              ? matches.single
-              :
-              // Note: to keep it simple, we select the most downloaded one from competing matches.
-              matches.reduce((a, b) {
-                  if (_documentsByName[a]!.downloadCount >
-                      _documentsByName[b]!.downloadCount) {
-                    return a;
-                  } else {
-                    return b;
-                  }
-                });
-        }
-      }
-    }
+    final bestNameMatch = _bestNameMatch(query);
 
     List<IndexedPackageHit> indexedHits;
     switch (query.effectiveOrder ?? SearchOrder.top) {
@@ -335,6 +322,42 @@ class InMemoryPackageIndex {
       packageHits: packageHits,
       errorMessage: textResults?.errorMessage,
     );
+  }
+
+  /// Returns the package name that is considered as the best name match
+  /// for the [query], or `null` if there is no such package name, or the
+  /// match is not enabled for the given context (e.g. non-default ordering).
+  String? _bestNameMatch(ServiceSearchQuery query) {
+    final parsedQueryText = query.parsedQuery.text;
+    if (parsedQueryText == null) {
+      return null;
+    }
+    if (!query.parsedQuery.hasOnlyFreeText || !query.isNaturalOrder) {
+      return null;
+    }
+
+    // exact package name
+    if (_documentsByName.containsKey(parsedQueryText)) {
+      return parsedQueryText;
+    }
+
+    // reduced package name match
+    final matches = _packageNameIndex.lookupMatchingNames(parsedQueryText);
+    if (matches == null || matches.isEmpty) {
+      return null;
+    }
+    if (matches.length == 1) {
+      return matches.single;
+    }
+    // Note: to keep it simple, we select the most downloaded one from competing matches.
+    return matches.reduce((a, b) {
+      if (_documentsByName[a]!.downloadCount >
+          _documentsByName[b]!.downloadCount) {
+        return a;
+      } else {
+        return b;
+      }
+    });
   }
 
   /// Update the overall score both on [PackageDocument] and in the [_adjustedOverallScores] map.
