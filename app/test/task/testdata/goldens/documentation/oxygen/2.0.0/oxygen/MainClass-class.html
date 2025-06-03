@@ -42,13 +42,10 @@
       <form class="search navbar-right" role="search">
         <input id="search-box" class="form-control typeahead" type="text" placeholder="Loading search..." autocomplete="off"/>
       </form>
-      <div id="theme-button" class="toggle" title="Toggle brightness">
-        <label for="theme">
-          <input id="theme" type="checkbox" value="light-theme"/>
-          <span id="dark-theme-button" class="material-symbols-outlined">dark_mode</span>
-          <span id="light-theme-button" class="material-symbols-outlined">light_mode</span>
-        </label>
-      </div>
+      <button id="theme-button" class="toggle" aria-label="Light and dark mode toggle" title="Toggle between light and dark mode">
+        <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">dark_mode</span>
+        <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">light_mode</span>
+      </button>
     </header>
     <main>
       <div id="dartdoc-main-content" class="main-content" data-above-sidebar="oxygen/oxygen-library-sidebar.html" data-below-sidebar="oxygen/MainClass-class-sidebar.html">

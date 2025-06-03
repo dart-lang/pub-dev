@@ -190,24 +190,25 @@ extension DartDocPageRender on DartDocPage {
             placeholder: 'Loading search...',
           ),
         ),
-        d.div(
+        d.button(
           id: 'theme-button',
           classes: ['toggle'],
-          attributes: {'title': 'Toggle brightness'},
-          child: d.label(
-            attributes: {'for': 'theme'},
-            children: [
-              d.input(id: 'theme', type: 'checkbox', value: 'light-theme'),
-              d.span(
-                  id: 'dark-theme-button',
-                  classes: ['material-symbols-outlined'],
-                  text: 'dark_mode'),
-              d.span(
-                  id: 'light-theme-button',
-                  classes: ['material-symbols-outlined'],
-                  text: 'light_mode'),
-            ],
-          ),
+          ariaLabel: 'Light and dark mode toggle',
+          attributes: {'title': 'Toggle between light and dark mode'},
+          children: [
+            d.span(
+              id: 'dark-theme-button',
+              classes: ['material-symbols-outlined'],
+              attributes: {'aria-hidden': 'true'},
+              text: 'dark_mode',
+            ),
+            d.span(
+              id: 'light-theme-button',
+              classes: ['material-symbols-outlined'],
+              attributes: {'aria-hidden': 'true'},
+              text: 'light_mode',
+            ),
+          ],
         ),
       ]);
 
