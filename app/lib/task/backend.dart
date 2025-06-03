@@ -1327,8 +1327,13 @@ final class _TaskDataAccess {
     return await withRetryTransaction(_db, (tx) async {
       // Reload [state] within a transaction to avoid overwriting changes
       // made by others trying to update state for another package.
-      final s = await tx.lookupValue<PackageState>(
+      final s = await tx.lookupOrNull<PackageState>(
           PackageState.createKey(_db.emptyKey, runtimeVersion, package));
+      if (s == null) {
+        // No entry has been created yet, probably because of a new deployment rolling out.
+        // We can ignore it for now.
+        return false;
+      }
       if (s.lastDependencyChanged!.isBefore(publishedAt)) {
         tx.insert(
           s
