@@ -92,7 +92,7 @@ class ExperimentalFlags {
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
 
-  bool get showTrending => isEnabled('trending-search');
+  bool get showTrending => true;
 
   String encodedAsCookie() => _enabled.join(':');
 
