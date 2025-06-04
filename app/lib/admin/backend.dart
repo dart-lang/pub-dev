@@ -881,6 +881,21 @@ class AdminBackend {
   }) async {
     before ??= clock.ago(days: 62).toUtc(); // extra buffer days
 
+    // delete packages
+    final pQuery = _db.query<Package>()
+      ..filter('adminDeletedAt <', before)
+      ..order('adminDeletedAt');
+    await for (final package in pQuery.run()) {
+      // sanity check
+      if (!(package.isAdminDeleted ?? false)) {
+        continue;
+      }
+
+      _logger.info('Deleting admin-deleted package: ${package.name}');
+      await removePackage(package.name!);
+      _logger.info('Deleted moderated package: ${package.name}');
+    }
+
     // delete package versions
     final pvQuery = _db.query<PackageVersion>()
       ..filter('adminDeletedAt <', before)
