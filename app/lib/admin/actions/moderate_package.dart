@@ -33,80 +33,101 @@ Note: the action may take a longer time to complete as the public archive bucket
     final caseId = options['case'];
 
     final package = options['package'];
-    InvalidInputException.check(
-      package != null && package.isNotEmpty,
-      'package must be given',
-    );
-
     final state = options['state'];
-    bool? valueToSet;
-    switch (state) {
-      case 'true':
-        valueToSet = true;
-        break;
-      case 'false':
-        valueToSet = false;
-        break;
-    }
-
     final note = options['note'];
 
     final refCase =
         await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
 
-    final p = await packageBackend.lookupPackage(package!);
-    if (p == null) {
-      throw NotFoundException.resource(package);
-    }
-
-    Package? p2;
-    if (valueToSet != null) {
-      p2 = await withRetryTransaction(dbService, (tx) async {
-        final pkg = await tx.lookupValue<Package>(p.key);
-        pkg.updateIsModerated(isModerated: valueToSet!);
-        tx.insert(pkg);
+    return await adminMarkPackageVisibility(
+      package,
+      state: state,
+      whenUpdating: (tx, p, valueToSet) async {
+        p.updateIsModerated(isModerated: valueToSet);
 
         if (refCase != null) {
           final mc = await tx.lookupValue<ModerationCase>(refCase.key);
           mc.addActionLogEntry(
-            ModerationSubject.package(package).fqn,
+            ModerationSubject.package(package!).fqn,
             valueToSet ? ModerationAction.apply : ModerationAction.revert,
             note,
           );
           tx.insert(mc);
         }
-
-        return pkg;
-      });
-
-      // make sure visibility cache is updated immediately
-      await purgePackageCache(package);
-
-      // sync exported API(s)
-      await apiExporter.synchronizePackage(package, forceDelete: true);
-
-      // retract or re-populate public archive files
-      await packageBackend.tarballStorage.updatePublicArchiveBucket(
-        package: package,
-        ageCheckThreshold: Duration.zero,
-        deleteIfOlder: Duration.zero,
-      );
-
-      await taskBackend.trackPackage(package);
-      await purgePackageCache(package);
-    }
-
-    return {
-      'package': p.name,
-      'before': {
+      },
+      valueFn: (p) => {
         'isModerated': p.isModerated,
         'moderatedAt': p.moderatedAt?.toIso8601String(),
       },
-      if (p2 != null)
-        'after': {
-          'isModerated': p2.isModerated,
-          'moderatedAt': p2.moderatedAt?.toIso8601String(),
-        },
-    };
+    );
   },
 );
+
+/// Changes the moderated or the admin-deleted flag and timestamp on a [package].
+Future<Map<String, dynamic>> adminMarkPackageVisibility(
+  String? package, {
+  /// `true`, `false` or `null`
+  required String? state,
+
+  /// The updates to apply during the transaction.
+  required Future<void> Function(
+    TransactionWrapper tx,
+    Package v,
+    bool valueToSet,
+  ) whenUpdating,
+
+  /// The debug information to return.
+  required Map Function(Package v) valueFn,
+}) async {
+  InvalidInputException.check(
+    package != null && package.isNotEmpty,
+    'package must be given',
+  );
+
+  bool? valueToSet;
+  switch (state) {
+    case 'true':
+      valueToSet = true;
+      break;
+    case 'false':
+      valueToSet = false;
+      break;
+  }
+
+  final p = await packageBackend.lookupPackage(package!);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  Package? p2;
+  if (valueToSet != null) {
+    p2 = await withRetryTransaction(dbService, (tx) async {
+      final pkg = await tx.lookupValue<Package>(p.key);
+      await whenUpdating(tx, pkg, valueToSet!);
+      tx.insert(pkg);
+      return pkg;
+    });
+
+    // make sure visibility cache is updated immediately
+    await purgePackageCache(package);
+
+    // sync exported API(s)
+    await apiExporter.synchronizePackage(package, forceDelete: true);
+
+    // retract or re-populate public archive files
+    await packageBackend.tarballStorage.updatePublicArchiveBucket(
+      package: package,
+      ageCheckThreshold: Duration.zero,
+      deleteIfOlder: Duration.zero,
+    );
+
+    await taskBackend.trackPackage(package);
+    await purgePackageCache(package);
+  }
+
+  return {
+    'package': p.name,
+    'before': valueFn(p),
+    if (p2 != null) 'after': valueFn(p2),
+  };
+}

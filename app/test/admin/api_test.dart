@@ -163,7 +163,85 @@ void main() {
         ),
       );
 
-      testWithProfile('OK', fn: () async {
+      testWithProfile('mark and revert', expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ], fn: () async {
+        final client = createPubApiClient(authToken: siteAdminToken);
+        final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
+        final package = await dbService.lookupValue<Package>(pkgKey);
+        expect(package, isNotNull);
+
+        // mark for deletion
+        await client.adminInvokeAction(
+          'package-delete',
+          AdminInvokeActionArguments(arguments: {
+            'package': 'oxygen',
+            'state': 'true',
+          }),
+        );
+
+        // repeated call updates the timestamp
+        final rsAgain = await client.adminInvokeAction(
+          'package-delete',
+          AdminInvokeActionArguments(arguments: {
+            'package': 'oxygen',
+            'state': 'true',
+          }),
+        );
+        expect(rsAgain.output, {
+          'package': 'oxygen',
+          'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+          'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+        });
+        expect(
+          (rsAgain.output['before'] as Map)['adminDeletedAt'] ==
+              (rsAgain.output['after'] as Map)['adminDeletedAt'],
+          isFalse,
+        );
+
+        // package is no longer visible
+        final pkgAfterMarked = await dbService.lookupOrNull<Package>(pkgKey);
+        expect(pkgAfterMarked!.isVisible, false);
+        final archiveAfterMarked = await packageBackend.tarballStorage
+            .getPublicBucketArchiveInfo('oxygen', '1.2.0');
+        expect(archiveAfterMarked, isNull);
+        await expectLater(() => packageBackend.listVersions('oxygen'),
+            throwsA(isA<NotFoundException>()));
+
+        // revert
+        final rsRevert = await client.adminInvokeAction(
+          'package-delete',
+          AdminInvokeActionArguments(
+            arguments: {
+              'package': 'oxygen',
+              'state': 'false',
+            },
+          ),
+        );
+        expect(rsRevert.output, {
+          'package': 'oxygen',
+          'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+          'after': {'isAdminDeleted': false, 'adminDeletedAt': null},
+        });
+
+        // package is visible again
+        final pkgAfterReverted = await dbService.lookupOrNull<Package>(pkgKey);
+        expect(pkgAfterReverted!.isVisible, true);
+        final archiveAfterReverted = await packageBackend.tarballStorage
+            .getPublicBucketArchiveInfo('oxygen', '1.2.0');
+        expect(archiveAfterReverted, isNotNull);
+        final versionsAfterReverted =
+            await packageBackend.listVersions('oxygen');
+        expect(versionsAfterReverted, isNotNull);
+      });
+
+      testWithProfile('OK', expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ], fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
 
         final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
@@ -198,22 +276,22 @@ void main() {
         final timeBeforeRemoval = clock.now().toUtc();
         final rs = await client.adminInvokeAction(
           'package-delete',
-          AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
+          AdminInvokeActionArguments(arguments: {
+            'package': 'oxygen',
+            'state': 'true',
+          }),
         );
-
         expect(rs.output, {
-          'message':
-              contains('Package and all associated resources deleted.\n'),
           'package': 'oxygen',
-          'deletedPackages': 1,
-          'deletedPackageVersions': 3,
-          'deletedPackageVersionInfos': 3,
-          'deletedPackageVersionAssets': 15,
-          'deletedLikes': 1,
-          'deletedAuditLogs': 4,
-          'replacedByFixes': 0
+          'before': {'isAdminDeleted': false, 'adminDeletedAt': null},
+          'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
         });
 
+        // trigger removal after 60+ days
+        await withClock(Clock.fixed(clock.daysFromNow(63)),
+            () => adminBackend.deleteAdminDeletedEntities());
+
+        // checks after actual removal
         final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
         expect(pkgAfterRemoval, isNull);
 
