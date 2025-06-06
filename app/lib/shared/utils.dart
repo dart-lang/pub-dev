@@ -154,22 +154,6 @@ String contentType(String name) {
   return mime.defaultExtensionMap[ext] ?? 'application/octet-stream';
 }
 
-/// Returns a subset of the list, bounded by [offset] and [limit].
-List<T> boundedList<T>(List<T> list, {int offset = 0, int limit = 0}) {
-  Iterable<T> iterable = list;
-  if (offset > 0) {
-    if (offset >= list.length) {
-      return <T>[];
-    } else {
-      iterable = iterable.skip(offset);
-    }
-  }
-  if (limit > 0) {
-    iterable = iterable.take(limit);
-  }
-  return iterable.toList();
-}
-
 /// Returns a UUID in v4 format as a `String`.
 ///
 /// If [bytes] is provided, it must be length 16 and have values between `0` and
