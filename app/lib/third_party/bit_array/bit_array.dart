@@ -63,6 +63,8 @@ class BitArray extends BitSet {
     return BitArray._(data);
   }
 
+  bool isSet(int index) => this[index];
+
   /// The value of the bit with the specified [index].
   @override
   bool operator [](int index) {

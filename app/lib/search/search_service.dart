@@ -282,13 +282,11 @@ class ServiceSearchQuery {
   /// - URL query sort [order] is used as a fallback.
   ///
   /// TODO: remove this field when [order] is removed.
-  late final effectiveOrder = parsedQuery.order ?? order;
+  late final effectiveOrder = parsedQuery.order ?? order ?? SearchOrder.top;
   bool get _hasQuery => query != null && query!.isNotEmpty;
   bool get _hasOnlyFreeText => _hasQuery && parsedQuery.hasOnlyFreeText;
   bool get isNaturalOrder =>
-      effectiveOrder == null ||
-      effectiveOrder == SearchOrder.top ||
-      effectiveOrder == SearchOrder.text;
+      effectiveOrder == SearchOrder.top || effectiveOrder == SearchOrder.text;
   bool get _hasNoOwnershipScope => publisherId == null;
   bool get _isFlutterFavorite =>
       tagsPredicate.hasTag(PackageTags.isFlutterFavorite);
