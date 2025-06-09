@@ -9,10 +9,12 @@ import 'dart:io';
 import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
+import 'package:gcloud/db.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
@@ -695,6 +697,7 @@ void main() {
       await taskBackend.backfillTrackingState();
       await taskBackend.start();
       await clockControl.elapse(minutes: 15);
+      late VersionTokenPair v;
       {
         final instances = await cloud.listInstances().toList();
         // There is only one package, so we should only get one instance
@@ -705,7 +708,7 @@ void main() {
 
         // There should only be one version
         expect(payload.versions, hasLength(1));
-        final v = payload.versions.first;
+        v = payload.versions.first;
 
         // Create new versions, removing the token from the first version
         await importProfile(
@@ -729,6 +732,13 @@ void main() {
 
         await clockControl.elapse(minutes: 15);
 
+        // verify token is now aborted
+        final ps = await dbService.lookupValue<PackageState>(
+            PackageState.createKey(dbService.emptyKey, runtimeVersion, 'neon'));
+        expect(ps.versions?[v.version]?.secretToken, isNull);
+        expect(ps.abortedTokens, isNotEmpty);
+        expect(ps.abortedTokens?.where((x) => x.token == v.token), isNotEmpty);
+
         // Use token to get the upload information
         final api = createPubApiClient(authToken: v.token);
         await expectApiException(
@@ -751,6 +761,34 @@ void main() {
       }
       // Leave time for the instance to be deleted (takes 1 min in fake cloud)
       await clockControl.elapse(minutes: 5);
+
+      {
+        await clockControl.elapseTime(maxTaskExecutionTime);
+        // Create new version, removing the token from the aborted list
+        await importProfile(
+          profile: TestProfile(
+            defaultUser: 'admin@pub.dev',
+            generatedPackages: [
+              GeneratedTestPackage(
+                name: 'neon',
+                versions: [GeneratedTestVersion(version: '6.0.0')],
+              ),
+            ],
+          ),
+        );
+        final ps = await dbService.lookupValue<PackageState>(
+            PackageState.createKey(dbService.emptyKey, runtimeVersion, 'neon'));
+        expect(ps.abortedTokens?.where((x) => x.token == v.token), isEmpty);
+
+        // Report the task as finished
+        final api = createPubApiClient(authToken: v.token);
+        await expectApiException(
+          api.taskUploadFinished('neon', v.version),
+          status: 404,
+          code: 'NotFound',
+          message: 'Could not find `neon/1.0.0`.',
+        );
+      }
 
       await taskBackend.stop();
 
