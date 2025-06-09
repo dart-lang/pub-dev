@@ -784,9 +784,9 @@ void main() {
         final api = createPubApiClient(authToken: v.token);
         await expectApiException(
           api.taskUploadFinished('neon', v.version),
-          status: 404,
-          code: 'NotFound',
-          message: 'Could not find `neon/1.0.0`.',
+          status: 400,
+          code: 'TaskAborted',
+          message: 'The provided token is invalid or expired.',
         );
       }
 

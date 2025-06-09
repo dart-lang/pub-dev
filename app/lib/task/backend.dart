@@ -1153,11 +1153,11 @@ PackageVersionStateInfo _authorizeWorkerCallback(
 
   final versionState = state.versions![version];
   if (versionState == null) {
-    throw NotFoundException.resource('$package/$version');
+    throw TaskAbortedException('The provided token is invalid or expired.');
   }
   // Check the secret token
   if (!versionState.isAuthorized(token)) {
-    throw AuthenticationException.authenticationRequired();
+    throw TaskAbortedException('The provided token is invalid or expired.');
   }
   assert(versionState.scheduled != initialTimestamp);
   assert(versionState.instance != null);
