@@ -108,6 +108,15 @@ Future<void> analyze(Payload payload) async {
         }
       } on TaskAbortedException catch (e, st) {
         warnTaskAborted(e, st);
+      } on RequestException catch (e, st) {
+        late final map = e.bodyAsJson();
+        late final error = map['error'];
+        late final code = map['code'] ?? (error is Map ? error['code'] : null);
+        if (e.status == 400 && code is String && code == 'TaskAborted') {
+          warnTaskAborted(e, st);
+        } else {
+          shoutTaskError(e, st);
+        }
       } on ApiResponseException catch (e, st) {
         if (e.status == 400 && e.code == 'TaskAborted') {
           warnTaskAborted(e, st);
