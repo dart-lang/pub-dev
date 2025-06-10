@@ -177,12 +177,36 @@ abstract class _AllocationPool<T> {
     _pool.add(item);
   }
 
+  /// Executes [fn] and provides a pool item in the callback.
+  /// The item will be released to the pool after [fn] completes.
   R withPoolItem<R>({
     required R Function(T array) fn,
   }) {
     final item = _acquire();
     final r = fn(item);
     _release(item);
+    return r;
+  }
+
+  /// Executes [fn] and provides a getter function that can be used to
+  /// acquire new pool items while the [fn] is being executed. The
+  /// acquired items will be released back to the pool after [fn] completes.
+  R withItemGetter<R>(R Function(T Function() itemFn) fn) {
+    List<T>? items;
+    T itemFn() {
+      items ??= <T>[];
+      final item = _acquire();
+      items!.add(item);
+      return item;
+    }
+
+    final r = fn(itemFn);
+
+    if (items != null) {
+      for (final item in items!) {
+        _release(item);
+      }
+    }
     return r;
   }
 }
@@ -224,6 +248,14 @@ class IndexedScore<K> {
 
   List<K> get keys => _keys;
   late final length = _values.length;
+
+  int positiveCount() {
+    var count = 0;
+    for (var i = 0; i < length; i++) {
+      if (isPositive(i)) count++;
+    }
+    return count;
+  }
 
   bool isPositive(int index) {
     return _values[index] > 0.0;

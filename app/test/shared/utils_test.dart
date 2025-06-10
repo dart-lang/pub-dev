@@ -8,30 +8,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('boundedList', () {
-    final numbers10 = List.generate(10, (i) => i);
-
-    test('empty bounds', () {
-      expect(boundedList(numbers10), numbers10);
-    });
-
-    test('offset only', () {
-      expect(boundedList(numbers10, offset: 6), [6, 7, 8, 9]);
-      expect(boundedList(numbers10, offset: 16), []);
-    });
-
-    test('limit only', () {
-      expect(boundedList(numbers10, limit: 0), numbers10);
-      expect(boundedList(numbers10, limit: 3), [0, 1, 2]);
-      expect(boundedList(numbers10, limit: 13), numbers10);
-    });
-
-    test('offset and limit', () {
-      expect(boundedList(numbers10, offset: 1, limit: 3), [1, 2, 3]);
-      expect(boundedList(numbers10, offset: 9, limit: 10), [9]);
-    });
-  });
-
   group('uuid', () {
     test('format known UUId', () {
       expect(createUuid(List<int>.filled(16, 0)),

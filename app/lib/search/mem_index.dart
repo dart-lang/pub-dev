@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 import 'package:pub_dev/service/topics/models.dart';
 import 'package:pub_dev/third_party/bit_array/bit_array.dart';
 
-import '../shared/utils.dart' show boundedList;
 import 'models.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
@@ -142,9 +141,9 @@ class InMemoryPackageIndex {
       return PackageSearchResult.empty();
     }
     return _bitArrayPool.withPoolItem(fn: (array) {
-      return _scorePool.withPoolItem(
-        fn: (score) {
-          return _search(query, array, score);
+      return _scorePool.withItemGetter(
+        (scoreFn) {
+          return _search(query, array, scoreFn);
         },
       );
     });
@@ -220,88 +219,107 @@ class InMemoryPackageIndex {
   PackageSearchResult _search(
     ServiceSearchQuery query,
     BitArray packages,
-    IndexedScore<String> packageScores,
+    IndexedScore<String> Function() scoreFn,
   ) {
     final predicateFilterCount = _filterOnPredicates(query, packages);
     if (predicateFilterCount <= query.offset) {
       return PackageSearchResult.empty();
     }
-
-    // TODO: find a better way to handle predicate-only filtering and scoring
-    for (final index in packages.asIntIterable()) {
-      if (index >= _documents.length) break;
-      packageScores.setValue(index, 1.0);
-    }
+    final bestNameMatch = _bestNameMatch(query);
+    final bestNameIndex =
+        bestNameMatch == null ? null : _nameToIndex[bestNameMatch];
 
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
-    final textResults = _searchText(
-      packageScores,
-      packages,
-      parsedQueryText,
-      textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
-    );
+    _TextResults? textResults;
+    IndexedScore<String>? packageScores;
 
-    final bestNameMatch = _bestNameMatch(query);
+    if (parsedQueryText != null && parsedQueryText.isNotEmpty) {
+      packageScores = scoreFn();
+      textResults = _searchText(
+        packageScores,
+        packages,
+        parsedQueryText,
+        textMatchExtent: query.textMatchExtent ?? TextMatchExtent.api,
+      );
+      if (textResults.hasNoMatch) {
+        return textResults.errorMessage == null
+            ? PackageSearchResult.empty()
+            : PackageSearchResult.error(
+                errorMessage: textResults.errorMessage,
+                statusCode: 500,
+              );
+      }
+    }
 
-    List<IndexedPackageHit> indexedHits;
-    switch (query.effectiveOrder ?? SearchOrder.top) {
+    // The function takes the document index as parameter and returns whether
+    // it should be in the result set. When text search is applied, the
+    // [packageScores] contains the scores of the results, otherwise we are
+    // using the bitarray index of the filtering.
+    final selectFn = packageScores?.isPositive ?? packages.isSet;
+
+    // We know the total count at this point, we don't need to build the fully
+    // sorted result list to get the number. The best name match may insert an
+    // extra item, that will be addressed after the ranking score is determined.
+    var totalCount = packageScores?.positiveCount() ?? predicateFilterCount;
+
+    Iterable<IndexedPackageHit> indexedHits;
+    switch (query.effectiveOrder) {
       case SearchOrder.top:
-        if (textResults == null) {
-          indexedHits = _overallOrderedHits.whereInScores(packageScores);
+      case SearchOrder.text:
+        if (packageScores == null) {
+          indexedHits = _overallOrderedHits.whereInScores(selectFn);
           break;
         }
 
-        /// Adjusted score takes the overall score and transforms
-        /// it linearly into the [0.4-1.0] range, to allow better
-        /// multiplication outcomes.
-        packageScores.multiplyAllFromValues(_adjustedOverallScores);
+        if (query.effectiveOrder == SearchOrder.top) {
+          /// Adjusted score takes the overall score and transforms
+          /// it linearly into the [0.4-1.0] range, to allow better
+          /// multiplication outcomes.
+          packageScores.multiplyAllFromValues(_adjustedOverallScores);
+        }
+        // Check whether the best name match will increase the total item count.
+        if (bestNameIndex != null &&
+            packageScores.getValue(bestNameIndex) <= 0.0) {
+          totalCount++;
+        }
         indexedHits = _rankWithValues(
           packageScores,
           requiredLengthThreshold: query.offset,
-          bestNameMatch: bestNameMatch,
-        );
-        break;
-      case SearchOrder.text:
-        indexedHits = _rankWithValues(
-          packageScores,
-          requiredLengthThreshold: query.offset,
-          bestNameMatch: bestNameMatch,
+          bestNameIndex: bestNameIndex ?? -1,
         );
         break;
       case SearchOrder.created:
-        indexedHits = _createdOrderedHits.whereInScores(packageScores);
+        indexedHits = _createdOrderedHits.whereInScores(selectFn);
         break;
       case SearchOrder.updated:
-        indexedHits = _updatedOrderedHits.whereInScores(packageScores);
+        indexedHits = _updatedOrderedHits.whereInScores(selectFn);
         break;
       // ignore: deprecated_member_use
       case SearchOrder.popularity:
       case SearchOrder.downloads:
-        indexedHits = _downloadsOrderedHits.whereInScores(packageScores);
+        indexedHits = _downloadsOrderedHits.whereInScores(selectFn);
         break;
       case SearchOrder.like:
-        indexedHits = _likesOrderedHits.whereInScores(packageScores);
+        indexedHits = _likesOrderedHits.whereInScores(selectFn);
         break;
       case SearchOrder.points:
-        indexedHits = _pointsOrderedHits.whereInScores(packageScores);
+        indexedHits = _pointsOrderedHits.whereInScores(selectFn);
         break;
       case SearchOrder.trending:
-        indexedHits = _trendingOrderedHits.whereInScores(packageScores);
+        indexedHits = _trendingOrderedHits.whereInScores(selectFn);
         break;
     }
 
-    // bound by offset and limit (or randomize items)
-    final totalCount = indexedHits.length;
-    indexedHits =
-        boundedList(indexedHits, offset: query.offset, limit: query.limit);
+    // bound by offset and limit
+    indexedHits = indexedHits.skip(query.offset).take(query.limit);
 
     late List<PackageHit> packageHits;
     if ((query.textMatchExtent ?? TextMatchExtent.api).shouldMatchApi() &&
         textResults != null &&
         (textResults.topApiPages?.isNotEmpty ?? false)) {
       packageHits = indexedHits.map((ps) {
-        final apiPages = textResults.topApiPages?[ps.index]
+        final apiPages = textResults!.topApiPages?[ps.index]
             // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
             ?.map((MapEntry<String, double> e) => ApiPageRef(path: e.key))
             .toList();
@@ -380,31 +398,28 @@ class InMemoryPackageIndex {
     }).toList();
   }
 
-  _TextResults? _searchText(
+  _TextResults _searchText(
     IndexedScore<String> packageScores,
     BitArray packages,
-    String? text, {
+    String text, {
     required TextMatchExtent textMatchExtent,
   }) {
-    if (text == null || text.isEmpty) {
-      return null;
-    }
-
     final sw = Stopwatch()..start();
     final words = splitForQuery(text);
     if (words.isEmpty) {
-      // packages.clearAll();
-      packageScores.fillRange(0, packageScores.length, 0);
       return _TextResults.empty();
     }
 
     final matchName = textMatchExtent.shouldMatchName();
     if (!matchName) {
-      // packages.clearAll();
-      packageScores.fillRange(0, packageScores.length, 0);
       return _TextResults.empty(
           errorMessage:
               'Search index in reduced mode: unable to match query text.');
+    }
+
+    for (final index in packages.asIntIterable()) {
+      if (index >= _documents.length) break;
+      packageScores.setValue(index, 1.0);
     }
 
     bool aborted = false;
@@ -500,19 +515,18 @@ class InMemoryPackageIndex {
   List<IndexedPackageHit> _rankWithValues(
     IndexedScore<String> score, {
     // if the item count is fewer than this threshold, an empty list will be returned
-    int? requiredLengthThreshold,
-    String? bestNameMatch,
+    required int requiredLengthThreshold,
+    // When no best name match is applied, this parameter will be `-1`
+    required int bestNameIndex,
   }) {
     final list = <IndexedPackageHit>[];
-    final bestNameIndex =
-        bestNameMatch == null ? null : _nameToIndex[bestNameMatch];
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
       if (value <= 0.0 && i != bestNameIndex) continue;
       list.add(IndexedPackageHit(
           i, PackageHit(package: score.keys[i], score: value)));
     }
-    if ((requiredLengthThreshold ?? 0) > list.length) {
+    if (requiredLengthThreshold > list.length) {
       // There is no point to sort or even keep the results, as the search query offset ignores these anyway.
       return [];
     }
@@ -582,6 +596,7 @@ class InMemoryPackageIndex {
 }
 
 class _TextResults {
+  final bool hasNoMatch;
   final List<List<MapEntry<String, double>>?>? topApiPages;
   final String? errorMessage;
 
@@ -589,12 +604,14 @@ class _TextResults {
     return _TextResults(
       null,
       errorMessage: errorMessage,
+      hasNoMatch: true,
     );
   }
 
   _TextResults(
     this.topApiPages, {
     this.errorMessage,
+    this.hasNoMatch = false,
   });
 }
 
@@ -713,8 +730,8 @@ class _PkgNameData {
 }
 
 extension on List<IndexedPackageHit> {
-  List<IndexedPackageHit> whereInScores(IndexedScore scores) {
-    return where((h) => scores.isPositive(h.index)).toList();
+  Iterable<IndexedPackageHit> whereInScores(bool Function(int index) select) {
+    return where((h) => select(h.index));
   }
 }
 
