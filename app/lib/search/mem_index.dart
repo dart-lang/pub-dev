@@ -516,7 +516,7 @@ class InMemoryPackageIndex {
     IndexedScore<String> score, {
     // if the item count is fewer than this threshold, an empty list will be returned
     required int requiredLengthThreshold,
-    // note: when no best name match is applied, this parameter will be `-1`
+    // When no best name match is applied, this parameter will be `-1`
     required int bestNameIndex,
   }) {
     final list = <IndexedPackageHit>[];
