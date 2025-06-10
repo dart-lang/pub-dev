@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2025.06.03`.
  * Upgraded dartdoc to `8.3.4`.
+ * Note: started to delete all `Secret` entries in Datastore.
 
 ## `20250603t091500-all`
  * Bump runtimeVersion to `2025.06.02`.
