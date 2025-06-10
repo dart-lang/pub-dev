@@ -17,7 +17,7 @@ A package in this state will appear deleted from the public. But its archive fil
 
 After 2 months it will be fully purged.
 
-To undo a deletion <insert action here>
+To undo a deletion run the same command with `state: false`.
 ''',
   options: {
     'package': 'The package name to be deleted',
