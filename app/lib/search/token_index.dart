@@ -196,6 +196,7 @@ abstract class _AllocationPool<T> {
     }
 
     final r = fn(itemFn);
+
     if (items != null) {
       for (final item in items!) {
         _release(item);
