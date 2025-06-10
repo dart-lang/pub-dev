@@ -4,54 +4,40 @@
 
 import '../../account/backend.dart';
 import '../../shared/configuration.dart';
-import '../backend.dart';
 import 'actions.dart';
+import 'moderate_package.dart';
 
 final packageDelete = AdminAction(
-    name: 'package-delete',
-    options: {
-      'package': 'name of package to delete',
-    },
-    summary: 'Deletes package <package>.',
-    description: '''
-Deletes package <package>.
+  name: 'package-delete',
+  summary: 'Set the admin-deleted flag on a package (making it not visible).',
+  description: '''
+Set the admin-deleted flag on a package (updating the flag and the timestamp).
 
-Deletes all associated resources:
+A package in this state will appear deleted from the public. But its archive file will still exist in the canonical bucket, and the metadata will still be present.
 
-* PackageVersions
-* Likes
-* AuditLogRecords
-* PackageVersionAsset
-* replacedBy references
-* archives (might be retrievable from backup)
+After 2 months it will be fully purged.
 
-The package will be "tombstoned" and no package with the same name can be 
-published later.
+To undo a deletion run the same command with `state: false`.
 ''',
-    invoke: (args) async {
-      final packageName = args['package'];
-      if (packageName == null) {
-        throw InvalidInputException('Missing `package` argument');
-      }
-
-      await requireAuthenticatedAdmin(AdminPermission.removePackage);
-      final result = await adminBackend.removePackage(packageName);
-
-      return {
-        'message': '''
-Package and all associated resources deleted.
-
-A tombstone has been created
-
-'NOTICE: Redis caches referencing the package will expire given time.'
-''',
-        'package': packageName,
-        'deletedPackages': result.deletedPackages,
-        'deletedPackageVersions': result.deletedPackageVersions,
-        'deletedPackageVersionInfos': result.deletedPackageVersionInfos,
-        'deletedPackageVersionAssets': result.deletedPackageVersionAssets,
-        'deletedLikes': result.deletedLikes,
-        'deletedAuditLogs': result.deletedAuditLogs,
-        'replacedByFixes': result.replacedByFixes,
-      };
-    });
+  options: {
+    'package': 'The package name to be deleted',
+    'state':
+        'Set admin-deleted state true / false. Returns current state if omitted.',
+  },
+  invoke: (args) async {
+    await requireAuthenticatedAdmin(AdminPermission.removePackage);
+    final package = args['package'];
+    final state = args['state'];
+    return await adminMarkPackageVisibility(
+      package,
+      state: state,
+      whenUpdating: (tx, p, valueToSet) async {
+        p.updateIsAdminDeleted(isAdminDeleted: valueToSet);
+      },
+      valueFn: (p) => {
+        'isAdminDeleted': p.isAdminDeleted,
+        'adminDeletedAt': p.adminDeletedAt?.toIso8601String(),
+      },
+    );
+  },
+);

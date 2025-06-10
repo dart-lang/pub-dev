@@ -12,7 +12,13 @@ final packageVersionDelete = AdminAction(
   summary:
       'Set the admin-deleted flag on a package version (making it not visible).',
   description: '''
-Set the admin-deleted flag on a package version (updating the flag and the timestamp). After 2 months it will be fully deleted.
+Set the admin-deleted flag on a package version (updating the flag and the timestamp).
+
+A package version in this state will appear deleted from the public. But its archive file will still exist in the canonical bucket, and the metadata will still be present.
+
+After 2 months it will be fully purged.
+
+To undo a deletion run the same command with `state: false`.
 ''',
   options: {
     'package': 'The package name to be deleted',
