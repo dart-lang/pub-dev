@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/third_party/bit_array/bit_array.dart';
 
 import 'text_utils.dart';
@@ -313,21 +314,16 @@ class IndexedScore<K> {
   }
 
   Map<K, double> top(int count, {double? minValue}) {
-    final list = <int>[];
-    double? lastValue;
+    minValue ??= 0.0;
+    final builder = TopKSortedListBuilder<int>(
+        count, (a, b) => -_values[a].compareTo(_values[b]));
     for (var i = 0; i < length; i++) {
       final v = _values[i];
-      if (minValue != null && v < minValue) continue;
-      if (list.length == count) {
-        if (lastValue != null && lastValue >= v) continue;
-        list[count - 1] = i;
-      } else {
-        list.add(i);
-      }
-      list.sort((a, b) => -_values[a].compareTo(_values[b]));
-      lastValue = _values[list.last];
+      if (v < minValue) continue;
+      builder.add(i);
     }
-    return Map.fromEntries(list.map((i) => MapEntry(_keys[i], _values[i])));
+    return Map.fromEntries(
+        builder.getTopK().map((i) => MapEntry(_keys[i], _values[i])));
   }
 
   Map<K, double> toMap() {
