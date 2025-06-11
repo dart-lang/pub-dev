@@ -73,4 +73,37 @@ void main() {
       expect(tracker.getLatency().inMilliseconds, greaterThan(15000));
     });
   });
+
+  group('top-k sorted list', () {
+    int compare(int a, int b) => -a.compareTo(b);
+
+    test('no items', () {
+      final builder = TopKSortedListBuilder(5, compare);
+      expect(builder.getTopK().toList(), []);
+    });
+
+    test('single item', () {
+      final builder = TopKSortedListBuilder(5, compare);
+      builder.add(1);
+      expect(builder.getTopK().toList(), [1]);
+    });
+
+    test('three items ascending', () {
+      final builder = TopKSortedListBuilder(5, compare);
+      builder.addAll([1, 2, 3]);
+      expect(builder.getTopK().toList(), [3, 2, 1]);
+    });
+
+    test('three items descending', () {
+      final builder = TopKSortedListBuilder(5, compare);
+      builder.addAll([3, 2, 1]);
+      expect(builder.getTopK().toList(), [3, 2, 1]);
+    });
+
+    test('10 items + repeated', () {
+      final builder = TopKSortedListBuilder(5, compare);
+      builder.addAll([1, 10, 2, 9, 3, 8, 4, 7, 6, 5, 9]);
+      expect(builder.getTopK().toList(), [10, 9, 9, 8, 7]);
+    });
+  });
 }

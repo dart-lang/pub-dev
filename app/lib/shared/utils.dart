@@ -148,6 +148,50 @@ class DurationTracker extends LastNTracker<Duration> {
       };
 }
 
+/// Builds a sorted list of the top-k items using the provided comparator.
+///
+/// The algorithm uses a binary tree insertion, resulting in O(N * log(K)) comparison.
+class TopKSortedListBuilder<T> {
+  final int _k;
+  final Comparator<T> _compare;
+  final _list = <T>[];
+
+  TopKSortedListBuilder(this._k, this._compare);
+
+  void addAll(Iterable<T> items) {
+    for (final item in items) {
+      add(item);
+    }
+  }
+
+  void add(T item) {
+    if (_list.length >= _k && _compare(_list.last, item) <= 0) {
+      return;
+    }
+    var start = 0, end = _list.length;
+    while (start < end) {
+      final mid = (start + end) >> 1;
+      if (_compare(_list[mid], item) <= 0) {
+        start = mid + 1;
+      } else {
+        end = mid;
+      }
+    }
+    if (_list.length < _k) {
+      _list.insert(start, item);
+      return;
+    }
+    for (var i = _list.length - 1; i > start; i--) {
+      _list[i] = _list[i - 1];
+    }
+    _list[start] = item;
+  }
+
+  Iterable<T> getTopK() {
+    return _list;
+  }
+}
+
 /// Returns the MIME content type based on the name of the file.
 String contentType(String name) {
   final ext = p.extension(name).replaceAll('.', '');
