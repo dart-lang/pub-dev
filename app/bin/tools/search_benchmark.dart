@@ -2,26 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:pub_dev/package/overrides.dart';
-import 'package:pub_dev/search/mem_index.dart';
-import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/search_service.dart';
+import 'package:pub_dev/search/updater.dart';
 
 /// Loads a search snapshot and executes queries on it, benchmarking their total time to complete.
 Future<void> main(List<String> args) async {
   // Assumes that the first argument is a search snapshot file.
-  final file = File(args.first);
-  final content =
-      json.decode(utf8.decode(gzip.decode(await file.readAsBytes())))
-          as Map<String, Object?>;
-  final snapshot = SearchSnapshot.fromJson(content);
-  final index = InMemoryPackageIndex(
-      documents:
-          snapshot.documents!.values.where((d) => !isSdkPackage(d.package)));
+  final index = await loadInMemoryPackageIndexFromFile(args.first);
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [

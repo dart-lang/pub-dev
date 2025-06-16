@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/package/overrides.dart';
+import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 
 import '../package/models.dart' show Package;
@@ -23,6 +27,31 @@ void registerIndexUpdater(IndexUpdater updater) =>
 
 /// The active index updater.
 IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
+
+/// Loads a local search snapshot file and builds an in-memory package index from it.
+Future<InMemoryPackageIndex> loadInMemoryPackageIndexFromFile(
+    String path) async {
+  final file = File(path);
+  final content =
+      json.decode(utf8.decode(gzip.decode(await file.readAsBytes())))
+          as Map<String, Object?>;
+  final snapshot = SearchSnapshot.fromJson(content);
+  return InMemoryPackageIndex(
+      documents:
+          snapshot.documents!.values.where((d) => !isSdkPackage(d.package)));
+}
+
+/// Saves the provided [documents] into a local search snapshot file.
+Future<void> saveInMemoryPackageIndexToFile(
+    Iterable<PackageDocument> documents, String path) async {
+  final file = File(path);
+  final snapshot = SearchSnapshot();
+  for (final doc in documents) {
+    snapshot.add(doc);
+  }
+  await file
+      .writeAsBytes(gzip.encode(utf8.encode(json.encode(snapshot.toJson()))));
+}
 
 class IndexUpdater {
   final DatastoreDB _db;
