@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:args/args.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/search/backend.dart';
@@ -20,9 +21,19 @@ import 'package:pub_dev/shared/utils.dart';
 
 final _logger = Logger('search_index');
 
+final _argParser = ArgParser()
+  ..addOption(
+    'snapshot',
+    help:
+        'If specified, the snapshot will be loaded from the local path instead of cloud storage.',
+  );
+
 /// Entry point for the search index isolate.
 Future<void> main(List<String> args, var message) async {
   final timer = Timer.periodic(Duration(milliseconds: 250), (_) {});
+
+  final argv = _argParser.parse(args);
+  final snapshot = argv['snapshot'] as String?;
 
   final ServicesWrapperFn servicesWrapperFn;
   if (envConfig.isRunningInAppengine) {
@@ -34,7 +45,11 @@ Future<void> main(List<String> args, var message) async {
   }
   await fork(() async {
     await servicesWrapperFn(() async {
-      await indexUpdater.init();
+      if (snapshot == null) {
+        await indexUpdater.init();
+      } else {
+        updatePackageIndex(await loadInMemoryPackageIndexFromFile(snapshot));
+      }
 
       await runIsolateFunctions(
         message: message,

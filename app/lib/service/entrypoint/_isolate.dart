@@ -33,6 +33,7 @@ class IsolateRunner {
   final ServicesWrapperFn? servicesWrapperFn;
   final EntryPointFn? entryPoint;
   final Uri? spawnUri;
+  final List<String>? spawnArgs;
 
   int started = 0;
   final _isolates = <_Isolate>[];
@@ -43,14 +44,17 @@ class IsolateRunner {
     required this.kind,
     required ServicesWrapperFn this.servicesWrapperFn,
     required EntryPointFn this.entryPoint,
-  }) : spawnUri = null;
+  })  : spawnUri = null,
+        spawnArgs = null;
 
   IsolateRunner.uri({
     required this.logger,
     required this.kind,
     required Uri this.spawnUri,
+    List<String>? spawnArgs,
   })  : entryPoint = null,
-        servicesWrapperFn = null;
+        servicesWrapperFn = null,
+        spawnArgs = spawnArgs ?? <String>[];
 
   /// Starts [count] new isolates.
   Future<void> start(int count) async {
@@ -138,7 +142,7 @@ class IsolateRunner {
         entryPoint: entryPoint!,
       );
     } else {
-      await isolate.spawnUri(spawnUri: spawnUri!);
+      await isolate.spawnUri(spawnUri: spawnUri!, args: spawnArgs);
     }
     if (_closing) {
       await isolate.close();
@@ -176,12 +180,14 @@ Future<IsolateRunner> startWorkerIsolate({
 Future<IsolateRunner> startQueryIsolate({
   required Logger logger,
   required Uri spawnUri,
+  List<String>? spawnArgs,
   required String kind,
 }) async {
   final worker = IsolateRunner.uri(
     logger: logger,
     kind: kind,
     spawnUri: spawnUri,
+    spawnArgs: spawnArgs ?? [],
   );
   await worker.start(1);
   return worker;
@@ -242,10 +248,11 @@ class _Isolate {
 
   Future<void> spawnUri({
     required Uri spawnUri,
+    required List<String>? args,
   }) async {
     _isolate = await Isolate.spawnUri(
       spawnUri,
-      [],
+      args ?? [],
       EntryMessage(
         protocolSendPort: _protocolReceivePort.sendPort,
       ).encodeAsJson(),
