@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2025.06.03`.
  * Upgraded dartdoc to `8.3.4`.
  * Note: started to delete all `Secret` entries in Datastore.
+ * Note: search instance uses separate isolate for predicate-only queries.
 
 ## `20250603t091500-all`
  * Bump runtimeVersion to `2025.06.02`.

@@ -320,15 +320,16 @@ class ParsedQueryText {
   bool get hasAnyDependency =>
       refDependencies.isNotEmpty || allDependencies.isNotEmpty;
 
+  late final hasFreeText = text != null && text!.isNotEmpty;
+
   bool get hasOnlyFreeText =>
-      text != null &&
-      text!.isNotEmpty &&
+      hasFreeText &&
       packagePrefix == null &&
       !hasAnyDependency &&
       tagsPredicate.isEmpty;
 
   int get componentCount =>
-      (text == null || text!.isEmpty ? 0 : 1) +
+      (hasFreeText ? 1 : 0) +
       (packagePrefix == null ? 0 : 1) +
       refDependencies.length +
       allDependencies.length +
