@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/search/updater.dart';
@@ -11,44 +10,59 @@ import 'package:pub_dev/service/entrypoint/search_index.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
-final _logger = Logger('search_index_test');
-
 void main() {
   group('Search index inside an isolate', () {
-    late IsolateRunner indexRunner;
+    late IsolateRunner primaryRunner;
+    late IsolateRunner reducedRunner;
 
     tearDown(() async {
-      await indexRunner.close();
+      await primaryRunner.close();
+      await reducedRunner.close();
     });
 
     test('start and work with local index', () async {
       await withTempDirectory((tempDir) async {
-        final snapshotPath = p.join(tempDir.path, 'index.json.gz');
+        // NOTE: The primary and the reduced index loads two different dataset,
+        //       in order to make the testing of the executation path unambigious.
+        final primaryPath = p.join(tempDir.path, 'primary.json.gz');
         await saveInMemoryPackageIndexToFile(
           [
             PackageDocument(
               package: 'json_annotation',
               description: 'Annotation metadata for JSON serialization.',
+              tags: ['sdk:dart'],
             ),
           ],
-          snapshotPath,
+          primaryPath,
         );
 
-        indexRunner = IsolateRunner.uri(
-          kind: 'index',
-          logger: _logger,
-          spawnUri:
-              Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
-          spawnArgs: ['--snapshot', snapshotPath],
+        primaryRunner = await startSearchIsolate(snapshot: primaryPath);
+
+        final reducedPath = p.join(tempDir.path, 'reduced.json.gz');
+        await saveInMemoryPackageIndexToFile(
+          [
+            PackageDocument(
+              package: 'reduced_json_annotation',
+              description: 'Annotation metadata for JSON serialization.',
+              tags: ['sdk:dart'],
+              downloadScore: 1.0,
+              maxPoints: 100,
+              grantedPoints: 100,
+            ),
+          ],
+          reducedPath,
         );
 
-        await indexRunner.start(1);
+        reducedRunner = await startSearchIsolate(snapshot: reducedPath);
+
+        await primaryRunner.start(1);
+        await reducedRunner.start(1);
 
         // index calling the sendport
-        final searchIndex = IsolateSearchIndex(indexRunner);
+        final searchIndex = IsolateSearchIndex(primaryRunner, reducedRunner);
         expect(await searchIndex.isReady(), true);
 
-        // returns package hit
+        // text query - result from primary index
         final rs =
             await searchIndex.search(ServiceSearchQuery.parse(query: 'json'));
         expect(rs.toJson(), {
@@ -58,6 +72,21 @@ void main() {
           'packageHits': [
             {
               'package': 'json_annotation',
+              'score': greaterThan(0.5),
+            },
+          ],
+        });
+
+        // predicate query - result from reduced index
+        final rs2 = await searchIndex
+            .search(ServiceSearchQuery.parse(query: 'sdk:dart'));
+        expect(rs2.toJson(), {
+          'timestamp': isNotEmpty,
+          'totalCount': 1,
+          'sdkLibraryHits': [],
+          'packageHits': [
+            {
+              'package': 'reduced_json_annotation',
               'score': greaterThan(0.5),
             },
           ],

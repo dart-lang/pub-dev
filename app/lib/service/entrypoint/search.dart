@@ -38,13 +38,14 @@ class SearchCommand extends Command {
 
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      final packageIsolate = await startQueryIsolate(
+      final primaryIsolate = await startSearchIsolate(logger: _logger);
+      registerScopeExitCallback(primaryIsolate.close);
+
+      final reducedIsolate = await startSearchIsolate(
         logger: _logger,
-        kind: 'package',
-        spawnUri:
-            Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
+        removeTextContent: true,
       );
-      registerScopeExitCallback(packageIsolate.close);
+      registerScopeExitCallback(reducedIsolate.close);
 
       final sdkIsolate = await startQueryIsolate(
         logger: _logger,
@@ -56,8 +57,9 @@ class SearchCommand extends Command {
 
       registerSearchIndex(
         SearchResultCombiner(
-          primaryIndex:
-              LatencyAwareSearchIndex(IsolateSearchIndex(packageIsolate)),
+          primaryIndex: LatencyAwareSearchIndex(
+            IsolateSearchIndex(primaryIsolate, reducedIsolate),
+          ),
           sdkIndex: SdkIsolateIndex(sdkIsolate),
         ),
       );
@@ -70,7 +72,10 @@ class SearchCommand extends Command {
           await Future.delayed(delay);
 
           // create a new index and handover with a 2-minute maximum wait
-          await packageIsolate.renew(count: 1, wait: Duration(minutes: 2));
+          await Future.wait([
+            primaryIsolate.renew(count: 1, wait: Duration(minutes: 2)),
+            reducedIsolate.renew(count: 1, wait: Duration(minutes: 2)),
+          ]);
 
           // schedule the renewal again
           scheduleRenew();
