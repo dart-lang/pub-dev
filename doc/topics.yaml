@@ -58,6 +58,10 @@
 # The editorial guidelines are intended to evolve as we gain more experience
 # merging/managing topics.
 topics:
+- topic: authentication
+  description: Packages that facilitate authentication.
+  aliases:
+  - auth
 - topic: chart
   description: Packages that facilitate visualizing data in charts or graphs.
   aliases:
