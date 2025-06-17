@@ -8,59 +8,31 @@ const analysisWindowDays = 30;
 const totalTrendWindowDays = 330;
 const minThirtyDaysDownloadThreshold = 30000;
 
-/// Calculates the relative daily growth rate of a package's downloads.
+/// Calculates the exponential growth rate of a package's downloads.
 ///
-/// Given a list with total daily downloads ([totalDownloads]), where the most
-/// recent day's data is at index 0, this function analyzes the downloads trend
-/// over the last ([analysisWindowDays]) days to determine how fast a package is
-/// growing relative to its own current download volume.
+/// Given a list with total daily downloads ([downloads]), where the most
+/// recent day's data is at index 0, this function performs a
+/// linear regression on the log-transformed download counts over the last
+/// [analysisWindowDays].
 ///
-/// A positive value indicates an upward trend in downloads, while a negative
-/// value indicates a downward trend. The magnitude represents the growth (or
-/// decline) rate normalized by the average daily downloads, allowing for
-/// comparison across packages of different popularity. For example, a slope of
-/// +10 downloads/day is more significant for a package with 100 average daily
-/// downloads (10% relative growth) than for a package with 10000 average daily
-/// downloads (0.1% relative growth).
-double computeRelativeGrowthRate(List<int> totalDownloads) {
-  if (totalDownloads.isEmpty) {
+/// The resulting slope represents the continuous daily growth rate. A positive
+/// slope indicates exponential growth, while a negative slope indicates
+/// exponential decline. For example, a slope of `0.1` corresponds to a growth
+/// of approximately 10.5% per day.
+double computeRelativeGrowthRate(List<int> downloads) {
+  if (downloads.length < 2) {
     return 0;
   }
-  final List<int> data;
-  if (totalDownloads.length < analysisWindowDays) {
-    data = [
-      ...totalDownloads,
-      ...List.filled(analysisWindowDays - totalDownloads.length, 0)
-    ];
-  } else {
-    data = totalDownloads;
-  }
 
-  final recentDownloads = data.sublist(0, analysisWindowDays);
-
-  final averageRecentDownloads =
-      recentDownloads.reduce((prev, element) => prev + element) /
-          recentDownloads.length;
-
-  final m = min(totalDownloads.length, totalTrendWindowDays);
-  final averageTotalDownloads =
-      totalDownloads.sublist(0, m).reduce((prev, element) => prev + element) /
-          m;
-
-  if (averageRecentDownloads == 0 || averageTotalDownloads == 0) {
-    return 0;
-  }
+  final analysisData = downloads.length > analysisWindowDays
+      ? downloads.sublist(0, analysisWindowDays)
+      : downloads;
 
   // We reverse the recentDownloads list for regression, since the first entry
   // is the newest point in time. By reversing, we pass the data in
   // chronological order.
-  final growthRate =
-      calculateLinearRegressionSlope(recentDownloads.reversed.toList());
-
-  // Normalize slope by average downloads to represent relative growth.
-  // This measures how much the download count is growing relative to its
-  // current volume.
-  return growthRate / averageTotalDownloads;
+  return calculateLinearRegressionSlope(
+      safeLogTransform(analysisData).reversed.toList());
 }
 
 /// Computes the slope of the best-fit line for a given list of data points
@@ -114,8 +86,41 @@ double computeTrendScore(List<int> totalDownloads) {
   final thirtydaySum = totalDownloads.isEmpty
       ? 0
       : totalDownloads.sublist(0, n).reduce((prev, element) => prev + element);
-  final dampening = min(thirtydaySum / minThirtyDaysDownloadThreshold, 1.0);
-  final relativGrowth = computeRelativeGrowthRate(totalDownloads);
+  final sigmoid = calculateSigmoidScaleScore(total30Downloads: thirtydaySum);
 
-  return relativGrowth * dampening * dampening;
+  return computeRelativeGrowthRate(totalDownloads) * sigmoid;
+}
+
+/// Transforms a list of numbers to their natural logarithm.
+///
+/// Non-positive numbers (<= 0) are treated as 1 before the logarithm is taken,
+/// resulting in a log value of 0.0.
+List<double> safeLogTransform(List<int> numbers) {
+  double myLog(int number) {
+    if (number <= 0) {
+      return log(1); // 0.0
+    }
+    return log(number);
+  }
+
+  return numbers.map(myLog).toList();
+}
+
+/// Calculates a dampening score between 0.0 and 1.0 based on download volume.
+///
+/// This uses a sigmoid function to create a smooth "S"-shaped curve. Packages
+/// with very low download counts get a score near 0, while packages with high
+/// download counts get a score near 1.
+///
+/// The function takes the total number of downloads in the last 30 days
+/// ([total30Downloads]) and the parameter [midpoint] at which the score is
+/// exactly 0.5 and [steepness] controlling how quickly the score transitions
+/// from 0 to 1. Higher values create a steeper, more sudden transition.
+double calculateSigmoidScaleScore({
+  required int total30Downloads,
+  double midpoint = 30000.0,
+  double steepness = 0.00015,
+}) {
+  final double exponent = -steepness * (total30Downloads - midpoint);
+  return 1 / (1 + exp(exponent));
 }

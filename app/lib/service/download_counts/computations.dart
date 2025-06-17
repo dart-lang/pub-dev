@@ -31,7 +31,10 @@ Future<Map<String, double>> computeTrend() async {
         (await downloadCountsBackend.lookupDownloadCountData(name))
                 ?.totalCounts ??
             [0];
-    res[name] = computeTrendScore(downloads);
+
+    final lastNonZeroIndex = downloads.lastIndexWhere((e) => e != 0);
+    res[name] = computeTrendScore(
+        lastNonZeroIndex >= 0 ? downloads.sublist(0, lastNonZeroIndex) : []);
   }
   return res;
 }
