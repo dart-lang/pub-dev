@@ -263,6 +263,13 @@ class InMemoryPackageIndex {
     // extra item, that will be addressed after the ranking score is determined.
     var totalCount = packageScores?.positiveCount() ?? predicateFilterCount;
 
+    // Checking if it is worth to calculate the sorted order, estimating the
+    // total count by overcounting the best name matches.
+    final maximumTotalCount = totalCount + (bestNameIndex != null ? 1 : 0);
+    if (maximumTotalCount < query.offset) {
+      return PackageSearchResult.empty();
+    }
+
     Iterable<IndexedPackageHit> indexedHits;
     switch (query.effectiveOrder) {
       case SearchOrder.top:
@@ -512,33 +519,37 @@ class InMemoryPackageIndex {
     return _TextResults(topApiPages);
   }
 
-  List<IndexedPackageHit> _rankWithValues(
+  Iterable<IndexedPackageHit> _rankWithValues(
     IndexedScore<String> score, {
     // if the item count is fewer than this threshold, an empty list will be returned
     required int requiredLengthThreshold,
     // When no best name match is applied, this parameter will be `-1`
     required int bestNameIndex,
   }) {
-    final list = <IndexedPackageHit>[];
+    int compare(int aIndex, int bIndex) {
+      if (aIndex == bestNameIndex) return -1;
+      if (bIndex == bestNameIndex) return 1;
+      final aScore = score.getValue(aIndex);
+      final bScore = score.getValue(bIndex);
+      final scoreCompare = -aScore.compareTo(bScore);
+      if (scoreCompare != 0) return scoreCompare;
+      // if two packages got the same score, order by last updated
+      return _compareUpdated(_documents[aIndex], _documents[bIndex]);
+    }
+
+    final list = <int>[];
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
       if (value <= 0.0 && i != bestNameIndex) continue;
-      list.add(IndexedPackageHit(
-          i, PackageHit(package: score.keys[i], score: value)));
+      list.add(i);
     }
     if (requiredLengthThreshold > list.length) {
       // There is no point to sort or even keep the results, as the search query offset ignores these anyway.
       return [];
     }
-    list.sort((a, b) {
-      if (a.index == bestNameIndex) return -1;
-      if (b.index == bestNameIndex) return 1;
-      final scoreCompare = -a.hit.score!.compareTo(b.hit.score!);
-      if (scoreCompare != 0) return scoreCompare;
-      // if two packages got the same score, order by last updated
-      return _compareUpdated(_documents[a.index], _documents[b.index]);
-    });
-    return list;
+    list.sort(compare);
+    return list.map((i) => IndexedPackageHit(
+        i, PackageHit(package: score.keys[i], score: score.getValue(i))));
   }
 
   List<IndexedPackageHit> _rankWithComparator(
