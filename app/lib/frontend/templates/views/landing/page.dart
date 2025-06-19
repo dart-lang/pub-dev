@@ -46,6 +46,7 @@ d.Node landingPageNode({
         title: 'Trending packages',
         info: d.text('Top trending packages in the last 30 days'),
         content: miniListNode('most-trending', trendingPackages!),
+        viewAllUrl: urls.listingByTrending(),
         viewAllEvent: 'landing-trending-view-all',
         viewAllTitle: 'Search trending packages',
       )
@@ -123,12 +124,12 @@ d.Node _block({
   required String title,
   required d.Node info,
   required d.Node content,
-  String? viewAllUrl,
+  required String viewAllUrl,
   required String viewAllEvent,
   String viewAllLabel = 'View all',
   required String viewAllTitle,
 }) {
-  final isExternalUrl = viewAllUrl != null && !viewAllUrl.startsWith('/');
+  final isExternalUrl = !viewAllUrl.startsWith('/');
   return d.div(
     classes: ['home-block', 'home-block-$shortId'],
     children: [
@@ -145,19 +146,18 @@ d.Node _block({
           d.h1(classes: ['home-block-title'], text: title),
           d.p(classes: ['home-block-context-info'], child: info),
           content,
-          if (viewAllUrl != null)
-            d.div(
-              classes: ['home-block-view-all'],
-              child: d.a(
-                classes: ['home-block-view-all-link'],
-                href: viewAllUrl,
-                target: isExternalUrl ? '_blank' : null,
-                rel: isExternalUrl ? 'noopener nofollow' : 'nofollow',
-                text: viewAllLabel,
-                title: viewAllTitle,
-                attributes: {'data-ga-click-event': viewAllEvent},
-              ),
+          d.div(
+            classes: ['home-block-view-all'],
+            child: d.a(
+              classes: ['home-block-view-all-link'],
+              href: viewAllUrl,
+              target: isExternalUrl ? '_blank' : null,
+              rel: isExternalUrl ? 'noopener nofollow' : 'nofollow',
+              text: viewAllLabel,
+              title: viewAllTitle,
+              attributes: {'data-ga-click-event': viewAllEvent},
             ),
+          ),
         ],
       ),
       // image: after content
