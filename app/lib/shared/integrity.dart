@@ -445,7 +445,7 @@ class IntegrityChecker {
     yield* _checkAdminDeletedFlags(
       kind: 'Package',
       id: p.name!,
-      isAdminDeleted: p.isAdminDeleted ?? false,
+      isAdminDeleted: p.isAdminDeleted,
       adminDeletedAt: p.adminDeletedAt,
     );
     if (p.isModerated) {
@@ -601,7 +601,7 @@ class IntegrityChecker {
     yield* _checkAdminDeletedFlags(
       kind: 'PackageVersion',
       id: pv.qualifiedVersionKey.toString(),
-      isAdminDeleted: pv.isAdminDeleted ?? false,
+      isAdminDeleted: pv.isAdminDeleted,
       adminDeletedAt: pv.adminDeletedAt,
     );
 

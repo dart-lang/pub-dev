@@ -887,7 +887,7 @@ class AdminBackend {
       ..order('adminDeletedAt');
     await for (final package in pQuery.run()) {
       // sanity check
-      if (!(package.isAdminDeleted ?? false)) {
+      if (!package.isAdminDeleted) {
         continue;
       }
 
@@ -902,7 +902,7 @@ class AdminBackend {
       ..order('adminDeletedAt');
     await for (final version in pvQuery.run()) {
       // sanity check
-      if (!(version.isAdminDeleted ?? false)) {
+      if (!version.isAdminDeleted) {
         continue;
       }
 

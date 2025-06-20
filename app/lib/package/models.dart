@@ -130,9 +130,8 @@ class Package extends db.ExpandoModel<String> {
   DateTime? moderatedAt;
 
   /// `true` if package was deleted by admins (pending final deletion).
-  /// TODO: mark `required: true` after backfill is done and all runtimes use the field
-  @db.BoolProperty(required: false)
-  bool? isAdminDeleted;
+  @db.BoolProperty(required: true)
+  bool isAdminDeleted = false;
 
   /// The timestamp when the package was deleted by admins.
   @db.DateTimeProperty()
@@ -195,7 +194,7 @@ class Package extends db.ExpandoModel<String> {
 
   // Convenience Fields:
 
-  bool get isVisible => !isModerated && !(isAdminDeleted ?? false);
+  bool get isVisible => !isModerated && !isAdminDeleted;
   bool get isNotVisible => !isVisible;
 
   bool get isIncludedInRobots {
@@ -604,9 +603,8 @@ class PackageVersion extends db.ExpandoModel<String> {
   DateTime? moderatedAt;
 
   /// `true` if package version was deleted by admins (pending final deletion).
-  /// TODO: mark `required: true` after backfill is done and all runtimes use the field
-  @db.BoolProperty(required: false)
-  bool? isAdminDeleted;
+  @db.BoolProperty(required: true)
+  bool isAdminDeleted = false;
 
   /// The timestamp when the package version was deleted by admins.
   @db.DateTimeProperty()
@@ -620,7 +618,7 @@ class PackageVersion extends db.ExpandoModel<String> {
     isRetracted = false;
   }
 
-  late final isVisible = !isModerated && !(isAdminDeleted ?? false);
+  late final isVisible = !isModerated && !isAdminDeleted;
   late final isNotVisible = !isVisible;
 
   // Convenience Fields:

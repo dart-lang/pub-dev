@@ -9,7 +9,6 @@ import '../../account/models.dart';
 import '../../audit/models.dart';
 import '../../package/models.dart';
 import '../../publisher/models.dart';
-import '../../service/secret/models.dart';
 import '../../shared/datastore.dart';
 import '../../shared/env_config.dart';
 import '../../task/models.dart';
@@ -54,7 +53,6 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
     dbService.query<Publisher>(): 500,
     dbService.query<ModeratedPackage>(): 500,
     dbService.query<NeatTaskStatus>(): 500,
-    dbService.query<Secret>(): 500,
     dbService.query<PackageState>(): 100,
   };
 
