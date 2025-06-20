@@ -9,6 +9,7 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/search/heap.dart';
 import 'package:pub_dev/service/topics/models.dart';
 import 'package:pub_dev/third_party/bit_array/bit_array.dart';
 
@@ -292,8 +293,8 @@ class InMemoryPackageIndex {
         }
         indexedHits = _rankWithValues(
           packageScores,
-          requiredLengthThreshold: query.offset,
           bestNameIndex: bestNameIndex ?? -1,
+          topK: query.offset + query.limit,
         );
         break;
       case SearchOrder.created:
@@ -521,12 +522,13 @@ class InMemoryPackageIndex {
 
   Iterable<IndexedPackageHit> _rankWithValues(
     IndexedScore<String> score, {
-    // if the item count is fewer than this threshold, an empty list will be returned
-    required int requiredLengthThreshold,
-    // When no best name match is applied, this parameter will be `-1`
+    /// When no best name match is applied, this parameter will be `-1`
     required int bestNameIndex,
+
+    /// Return (and sort) only the top-k results.
+    required int topK,
   }) {
-    int compare(int aIndex, int bIndex) {
+    final builder = TopKSortedListBuilder<int>(topK, (aIndex, bIndex) {
       if (aIndex == bestNameIndex) return -1;
       if (bIndex == bestNameIndex) return 1;
       final aScore = score.getValue(aIndex);
@@ -535,20 +537,13 @@ class InMemoryPackageIndex {
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
       return _compareUpdated(_documents[aIndex], _documents[bIndex]);
-    }
-
-    final list = <int>[];
+    });
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
       if (value <= 0.0 && i != bestNameIndex) continue;
-      list.add(i);
+      builder.add(i);
     }
-    if (requiredLengthThreshold > list.length) {
-      // There is no point to sort or even keep the results, as the search query offset ignores these anyway.
-      return [];
-    }
-    list.sort(compare);
-    return list.map((i) => IndexedPackageHit(
+    return builder.getTopK().map((i) => IndexedPackageHit(
         i, PackageHit(package: score.keys[i], score: score.getValue(i))));
   }
 
