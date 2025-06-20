@@ -54,8 +54,9 @@ class _Heap<T> {
 
 /// Builds a sorted list of the top-k items using the provided comparator.
 ///
-/// The algorithm uses min-heap to select the top-k items, and then builds
-/// a max-heap and uses heap sort to return the items in descending order.
+/// The algorithm collects all items, builds a max-heap in O(N) steps, and
+/// then selects the top-k items by removing the largest item from the heap
+/// and restoring the heap property again in O(k * log(N)) steps.
 class TopKSortedListBuilder<T> {
   final int _k;
   final _Heap<T> _heap;
