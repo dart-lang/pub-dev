@@ -35,7 +35,7 @@ class Heap<T> {
     _isValid = false;
   }
 
-  /// Ensures that the tree structre below the [index] is a valid heap.
+  /// Ensures that the tree structure below the [index] is a valid heap.
   void _heapify(int index) {
     final maxLength = _items.length;
     final item = _items[index];
