@@ -46,10 +46,14 @@ void main() {
         final length = 1000 + r.nextInt(1000);
         final k = 10 + r.nextInt(200);
         final items = List.generate(length, (i) => i);
-        final builder = TopKSortedListBuilder(k, compare);
-        builder.addAll(items);
-        final result = builder.getTopK().toList();
-        expect(result, List.generate(k, (i) => length - 1 - i));
+        final b1 = TopKSortedListBuilder(k, compare)..addAll(items);
+        final r1 = b1.getTopK().toList();
+        expect(r1, List.generate(k, (i) => length - 1 - i));
+
+        items.shuffle(r);
+        final b2 = TopKSortedListBuilder(k, compare)..addAll(items);
+        final r2 = b2.getTopK().toList();
+        expect(r2, r1);
       }
     });
   });
