@@ -8,15 +8,35 @@
 /// than or equal to its children's values.
 ///
 /// The provided comparator decides which kind of heap is being built.
-class _Heap<T> {
+class Heap<T> {
   final Comparator<T> _compare;
   final _items = <T>[];
+  bool _isValid = true;
 
-  _Heap(this._compare);
+  Heap(this._compare);
 
   int get length => _items.length;
 
-  void _pushDown(int index) {
+  /// Collects [item] and adds it to the end of the internal list, marks the [Heap]
+  /// as non-valid.
+  ///
+  /// A separate operation may trigger the restoration of the heap proprerty.
+  void collect(T item) {
+    _items.add(item);
+    _isValid = false;
+  }
+
+  /// Collects [items] and adds them the end of the internal list, marks the [Heap]
+  /// as non-valid.
+  ///
+  /// A separate operation may trigger the restoration of the heap proprerty.
+  void collectAll(Iterable<T> items) {
+    _items.addAll(items);
+    _isValid = false;
+  }
+
+  /// Ensures that the tree structre below the [index] is a valid heap.
+  void _heapify(int index) {
     final maxLength = _items.length;
     final item = _items[index];
     while (index < maxLength) {
@@ -39,60 +59,54 @@ class _Heap<T> {
     }
   }
 
+  /// (Re-)builds the heap property if needed.
+  void _buildHeapIfNeeded() {
+    if (_isValid) {
+      assert(_isValidHeap());
+      return;
+    }
+
+    if (_items.isEmpty) {
+      _isValid = true;
+      return;
+    }
+    for (var i = (_items.length >> 1); i >= 0; i--) {
+      _heapify(i);
+    }
+
+    assert(_isValidHeap());
+    _isValid = true;
+  }
+
+  /// Verifies the heap property is true for all items.
   bool _isValidHeap() {
     for (var i = 1; i < _items.length; i++) {
       final parentIndex = (i - 1) >> 1;
       if (_compare(_items[parentIndex], _items[i]) > 0) {
-        print(parentIndex);
-        print(_items);
         return false;
       }
     }
     return true;
   }
-}
 
-/// Builds a sorted list of the top-k items using the provided comparator.
-///
-/// The algorithm collects all items, builds a max-heap in O(N) steps, and
-/// then selects the top-k items by removing the largest item from the heap
-/// and restoring the heap property again in O(k * log(N)) steps.
-class TopKSortedListBuilder<T> {
-  final int _k;
-  final _Heap<T> _heap;
-
-  TopKSortedListBuilder(this._k, Comparator<T> compare)
-      : _heap = _Heap<T>(compare);
-
-  void addAll(Iterable<T> items) {
-    for (final item in items) {
-      add(item);
-    }
-  }
-
-  void add(T item) {
-    _heap._items.add(item);
-  }
-
-  /// Gets and removes the top-k items from the current list.
-  Iterable<T> getTopK() sync* {
-    if (_heap._items.isEmpty) {
-      return;
-    }
-    for (var i = (_heap._items.length >> 1); i >= 0; i--) {
-      _heap._pushDown(i);
-    }
-    assert(_heap._isValidHeap());
-    var count = _k;
-    while (count > 0 && _heap._items.isNotEmpty) {
-      yield _heap._items[0];
-      count--;
-      final last = _heap._items.removeLast();
-      if (_heap._items.isEmpty) {
+  /// Creates a sorted list of the top-k items and removes them from the [Heap].
+  ///
+  /// The algorithm builds a max-heap in `O(N)` steps on the already collected items,
+  /// and then selects the top-k items by removing the largest item from the [Heap]
+  /// and restoring the heap property again in `O(k * log(N))` steps.
+  Iterable<T> getAndRemoveTopK(int k) sync* {
+    _buildHeapIfNeeded();
+    var remaining = k;
+    while (remaining > 0 && _items.isNotEmpty) {
+      yield _items[0];
+      remaining--;
+      final last = _items.removeLast();
+      if (_items.isEmpty) {
         break;
       }
-      _heap._items[0] = last;
-      _heap._pushDown(0);
+      _items[0] = last;
+      _heapify(0);
     }
+    assert(_isValidHeap());
   }
 }

@@ -528,7 +528,7 @@ class InMemoryPackageIndex {
     /// Return (and sort) only the top-k results.
     required int topK,
   }) {
-    final builder = TopKSortedListBuilder<int>(topK, (aIndex, bIndex) {
+    final heap = Heap<int>((aIndex, bIndex) {
       if (aIndex == bestNameIndex) return -1;
       if (bIndex == bestNameIndex) return 1;
       final aScore = score.getValue(aIndex);
@@ -541,9 +541,9 @@ class InMemoryPackageIndex {
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
       if (value <= 0.0 && i != bestNameIndex) continue;
-      builder.add(i);
+      heap.collect(i);
     }
-    return builder.getTopK().map((i) => IndexedPackageHit(
+    return heap.getAndRemoveTopK(topK).map((i) => IndexedPackageHit(
         i, PackageHit(package: score.keys[i], score: score.getValue(i))));
   }
 

@@ -12,32 +12,32 @@ void main() {
     int compare(int a, int b) => -a.compareTo(b);
 
     test('no items', () {
-      final builder = TopKSortedListBuilder(5, compare);
-      expect(builder.getTopK().toList(), []);
+      final heap = Heap(compare);
+      expect(heap.getAndRemoveTopK(5).toList(), []);
     });
 
     test('single item', () {
-      final builder = TopKSortedListBuilder(5, compare);
-      builder.add(1);
-      expect(builder.getTopK().toList(), [1]);
+      final heap = Heap(compare);
+      heap.collect(1);
+      expect(heap.getAndRemoveTopK(5).toList(), [1]);
     });
 
     test('three items ascending', () {
-      final builder = TopKSortedListBuilder(5, compare);
-      builder.addAll([1, 2, 3]);
-      expect(builder.getTopK().toList(), [3, 2, 1]);
+      final builder = Heap(compare);
+      builder.collectAll([1, 2, 3]);
+      expect(builder.getAndRemoveTopK(5).toList(), [3, 2, 1]);
     });
 
     test('three items descending', () {
-      final builder = TopKSortedListBuilder(5, compare);
-      builder.addAll([3, 2, 1]);
-      expect(builder.getTopK().toList(), [3, 2, 1]);
+      final heap = Heap(compare);
+      heap.collectAll([3, 2, 1]);
+      expect(heap.getAndRemoveTopK(5).toList(), [3, 2, 1]);
     });
 
     test('10 items + repeated', () {
-      final builder = TopKSortedListBuilder(5, compare);
-      builder.addAll([1, 10, 2, 9, 3, 8, 4, 7, 6, 5, 9]);
-      expect(builder.getTopK().toList(), [10, 9, 9, 8, 7]);
+      final heap = Heap(compare);
+      heap.collectAll([1, 10, 2, 9, 3, 8, 4, 7, 6, 5, 9]);
+      expect(heap.getAndRemoveTopK(5).toList(), [10, 9, 9, 8, 7]);
     });
 
     test('randomized verification', () {
@@ -46,13 +46,13 @@ void main() {
         final length = 1000 + r.nextInt(1000);
         final k = 10 + r.nextInt(200);
         final items = List.generate(length, (i) => i);
-        final b1 = TopKSortedListBuilder(k, compare)..addAll(items);
-        final r1 = b1.getTopK().toList();
+        final b1 = Heap(compare)..collectAll(items);
+        final r1 = b1.getAndRemoveTopK(k).toList();
         expect(r1, List.generate(k, (i) => length - 1 - i));
 
         items.shuffle(r);
-        final b2 = TopKSortedListBuilder(k, compare)..addAll(items);
-        final r2 = b2.getTopK().toList();
+        final b2 = Heap(compare)..collectAll(items);
+        final r2 = b2.getAndRemoveTopK(k).toList();
         expect(r2, r1);
       }
     });

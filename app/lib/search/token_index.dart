@@ -315,15 +315,15 @@ class IndexedScore<K> {
 
   Map<K, double> top(int count, {double? minValue}) {
     minValue ??= 0.0;
-    final builder = TopKSortedListBuilder<int>(
-        count, (a, b) => -_values[a].compareTo(_values[b]));
+    final heap = Heap<int>((a, b) => -_values[a].compareTo(_values[b]));
     for (var i = 0; i < length; i++) {
       final v = _values[i];
       if (v < minValue) continue;
-      builder.add(i);
+      heap.collect(i);
     }
-    return Map.fromEntries(
-        builder.getTopK().map((i) => MapEntry(_keys[i], _values[i])));
+    return Map.fromEntries(heap
+        .getAndRemoveTopK(count)
+        .map((i) => MapEntry(_keys[i], _values[i])));
   }
 
   Map<K, double> toMap() {
