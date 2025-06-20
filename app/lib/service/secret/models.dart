@@ -2,17 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../shared/datastore.dart' as db;
-
-/// A secret value stored in Datastore, typically an access credential used by
-/// the application.
-@db.Kind(name: 'Secret', idType: db.IdType.String)
-class Secret extends db.Model {
-  @db.StringProperty(required: true)
-  String? value;
-}
-
-/// Identifiers of the [Secret] keys.
+/// Identifiers and secret keys.
 abstract class SecretKey {
   static const String redisConnectionString = 'redis-connection-string';
 
