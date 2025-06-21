@@ -53,10 +53,10 @@ void main() {
           reducedPath,
         );
 
-        reducedRunner = await startSearchIsolate(snapshot: reducedPath);
-
-        await primaryRunner.start(1);
-        await reducedRunner.start(1);
+        reducedRunner = await startSearchIsolate(
+          snapshot: reducedPath,
+          removeTextContent: true,
+        );
 
         // index calling the sendport
         final searchIndex = IsolateSearchIndex(primaryRunner, reducedRunner);
