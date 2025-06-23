@@ -94,6 +94,7 @@ Future<IsolateRunner> startSearchIsolate({
     spawnUri: Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
     spawnArgs: [
       if (snapshot != null) ...['--snapshot', snapshot],
+      if (removeTextContent) '--remove-text-content',
     ],
   );
 }
