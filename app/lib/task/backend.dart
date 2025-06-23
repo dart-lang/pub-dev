@@ -724,7 +724,7 @@ class TaskBackend {
 
     // Clearing the state cache after the update.
     await _purgeCache(package, version);
-    await apiExporter!.synchronizePackage(package);
+    await apiExporter.synchronizePackage(package);
 
     // If nothing else is running on the instance, delete it!
     // We do this in a microtask after returning, so that it doesn't slow down

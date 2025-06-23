@@ -482,7 +482,7 @@ class PackageBackend {
     });
     await purgePackageCache(package);
     await taskBackend.trackPackage(package);
-    await apiExporter!.synchronizePackage(package);
+    await apiExporter.synchronizePackage(package);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -523,7 +523,7 @@ class PackageBackend {
     await purgePackageCache(package);
     await purgeScorecardData(package, version,
         isLatest: pkg.latestVersion == version);
-    await apiExporter!.synchronizePackage(package);
+    await apiExporter.synchronizePackage(package);
   }
 
   /// Verifies an update to the credential-less publishing settings and
@@ -788,7 +788,7 @@ class PackageBackend {
     if (currentPublisherId != null) {
       await purgePublisherCache(publisherId: currentPublisherId);
     }
-    await apiExporter!.synchronizePackage(packageName);
+    await apiExporter.synchronizePackage(packageName);
     return rs;
   }
 
