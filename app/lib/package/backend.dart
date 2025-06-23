@@ -18,6 +18,7 @@ import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/tarball_storage.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -481,6 +482,7 @@ class PackageBackend {
     });
     await purgePackageCache(package);
     await taskBackend.trackPackage(package);
+    await apiExporter.synchronizePackage(package);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -519,6 +521,9 @@ class PackageBackend {
       }
     });
     await purgePackageCache(package);
+    await purgeScorecardData(package, version,
+        isLatest: pkg.latestVersion == version);
+    await apiExporter.synchronizePackage(package);
   }
 
   /// Verifies an update to the credential-less publishing settings and
@@ -783,7 +788,7 @@ class PackageBackend {
     if (currentPublisherId != null) {
       await purgePublisherCache(publisherId: currentPublisherId);
     }
-
+    await apiExporter.synchronizePackage(packageName);
     return rs;
   }
 

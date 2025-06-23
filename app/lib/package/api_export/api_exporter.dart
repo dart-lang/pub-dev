@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers/atom_feed.dart';
+import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
@@ -243,6 +244,22 @@ final class ApiExporter {
         );
     await _api.package(package).versions.write(
           versionListing,
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).likes.write(
+          await packageBackend.getPackageLikesCount(package),
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).options.write(
+          await packageBackend.getPackageOptions(package),
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).publisher.write(
+          await packageBackend.getPublisherInfo(package),
+          forceWrite: forceWrite,
+        );
+    await _api.package(package).score.write(
+          await scoreCardBackend.getVersionScore(package),
           forceWrite: forceWrite,
         );
     await _api.package(package).feedAtomFile.write(

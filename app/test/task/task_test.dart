@@ -176,7 +176,9 @@ void main() {
     await clockControl.elapse(minutes: 10);
   });
 
-  testWithProfile('failing instances will be retried', fn: () async {
+  testWithProfile('failing instances will be retried', expectedLogMessages: [
+    'SHOUT [pub-notice:cached_value] Updating cached `thirtyDaysTotalDownloadCounts` value failed.',
+  ], fn: () async {
     await taskBackend.backfillTrackingState();
     await clockControl.elapse(minutes: 1);
 
