@@ -98,7 +98,7 @@ double computeTrendScore(List<int> totalDownloads) {
 List<double> safeLogTransform(List<int> numbers) {
   double myLog(int number) {
     if (number <= 0) {
-      return log(1); // 0.0
+      return 0.0;
     }
     return log(number);
   }
