@@ -10,13 +10,10 @@ void main() {
   final exceptions = {
     // the only valid use
     'lib/shared/datastore.dart',
-    // these should migrated away from using it
-    'lib/fake/server/fake_dartdoc_service.dart',
-    'lib/fake/server/fake_analyzer_service.dart',
-    'lib/fake/tool/init_data_file.dart',
   };
 
   test('Only lib/shared/datastore.dart imports gcloud/db.dart', () {
+    final foundExceptions = <String>{};
     final gcloudDatastoreFiles = <String>[];
     final gcloudDbFiles = <String>[];
     for (final dir in ['bin', 'lib']) {
@@ -28,7 +25,10 @@ void main() {
           .toList();
 
       for (final file in files) {
-        if (exceptions.contains(file.path)) continue;
+        if (exceptions.contains(file.path)) {
+          foundExceptions.add(file.path);
+          continue;
+        }
         final content = file.readAsStringSync();
         if (content.contains('package:gcloud/datastore.dart')) {
           gcloudDatastoreFiles.add(file.path);
@@ -41,5 +41,6 @@ void main() {
 
     expect(gcloudDatastoreFiles, isEmpty);
     expect(gcloudDbFiles, isEmpty);
+    expect(foundExceptions, exceptions);
   });
 }
