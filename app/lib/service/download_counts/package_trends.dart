@@ -6,7 +6,10 @@ import 'dart:math';
 
 const analysisWindowDays = 30;
 const totalTrendWindowDays = 330;
-const minThirtyDaysDownloadThreshold = 30000;
+
+/// The total download count over 30 days at which a package is considered
+/// moderately popular.
+const popularityMidpoint = 30000.0;
 
 /// Calculates the exponential growth rate of a package's downloads.
 ///
@@ -74,13 +77,17 @@ double calculateLinearRegressionSlope(List<num> yValues) {
   return (n * sumXY - sumX * sumY) / denominator;
 }
 
-/// Computes a trend score for a package, factoring in both its recent
-/// relative growth rate and its overall download volume.
+/// Computes a trend score for a package, factoring in both its recent relative
+/// growth rate and its overall download volume.
 ///
-/// This score is designed to balance how quickly a package is growing
-/// ([computeRelativeGrowthRate]) against its existing popularity. Popularity is
-/// assessed by comparing the sum of its downloads over the available history
-/// (up to [analysisWindowDays]) against a [minThirtyDaysDownloadThreshold].
+/// This function sanitizes the download history by trimming any trailing zeros
+/// in [totalDownloads], which represent the time before the package was
+/// published. This ensures the trend is only calculated over the package's
+/// active lifetime.
+///
+/// The final score is designed to balance how quickly a package is growing
+/// against its existing popularity. Popularity is assessed using a sigmoid
+/// function where the midpoint is defined by [popularityMidpoint].
 double computeTrendScore(List<int> totalDownloads) {
   final lastNonZeroIndex = totalDownloads.lastIndexWhere((e) => e != 0);
 
@@ -122,12 +129,13 @@ List<double> safeLogTransform(List<int> numbers) {
 /// download counts get a score near 1.
 ///
 /// The function takes the total number of downloads in the last 30 days
-/// ([total30Downloads]) and the parameter [midpoint] at which the score is
-/// exactly 0.5 and [steepness] controlling how quickly the score transitions
-/// from 0 to 1. Higher values create a steeper, more sudden transition.
+/// ([total30Downloads]) and the parameter [midpoint] (defaults to
+/// [popularityMidpoint]) at which the score is exactly 0.5 and
+/// [steepness] controlling how quickly the score transitions from 0 to 1.
+/// Higher values create a steeper, more sudden transition.
 double calculateSigmoidScaleScore({
   required int total30Downloads,
-  double midpoint = 30000.0,
+  double midpoint = popularityMidpoint,
   double steepness = 0.00015,
 }) {
   final double exponent = -steepness * (total30Downloads - midpoint);
