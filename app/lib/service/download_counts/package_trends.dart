@@ -82,13 +82,22 @@ double calculateLinearRegressionSlope(List<num> yValues) {
 /// assessed by comparing the sum of its downloads over the available history
 /// (up to [analysisWindowDays]) against a [minThirtyDaysDownloadThreshold].
 double computeTrendScore(List<int> totalDownloads) {
-  final n = min(analysisWindowDays, totalDownloads.length);
-  final thirtydaySum = totalDownloads.isEmpty
+  final lastNonZeroIndex = totalDownloads.lastIndexWhere((e) => e != 0);
+
+  // We trim trailing zeros to ensure an accurate calculation of the trend. The
+  // zeros represent the time before the package was published. Leaving them in
+  // would artificially flatten the calculated growth rate.
+  final downloads = lastNonZeroIndex >= 0
+      ? totalDownloads.sublist(0, lastNonZeroIndex + 1)
+      : <int>[];
+
+  final n = min(analysisWindowDays, downloads.length);
+  final thirtydaySum = downloads.isEmpty
       ? 0
-      : totalDownloads.sublist(0, n).reduce((prev, element) => prev + element);
+      : downloads.sublist(0, n).reduce((prev, element) => prev + element);
   final sigmoid = calculateSigmoidScaleScore(total30Downloads: thirtydaySum);
 
-  return computeRelativeGrowthRate(totalDownloads) * sigmoid;
+  return computeRelativeGrowthRate(downloads) * sigmoid;
 }
 
 /// Transforms a list of numbers to their natural logarithm.

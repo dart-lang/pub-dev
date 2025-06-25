@@ -32,9 +32,7 @@ Future<Map<String, double>> computeTrend() async {
                 ?.totalCounts ??
             [0];
 
-    final lastNonZeroIndex = downloads.lastIndexWhere((e) => e != 0);
-    res[name] = computeTrendScore(
-        lastNonZeroIndex >= 0 ? downloads.sublist(0, lastNonZeroIndex) : []);
+    res[name] = computeTrendScore(downloads);
   }
   return res;
 }
