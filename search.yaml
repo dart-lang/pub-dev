@@ -7,10 +7,10 @@ env: flex
 service: search
 
 resources:
-  cpu: 2
+  cpu: 4
   # This is the max memory we can request for 2 cpus.
   # https://cloud.google.com/appengine/docs/flexible/reference/app-yaml?tab=python
-  memory_gb: 12.6
+  memory_gb: 25.6
   disk_size_gb: 25
 
 #manual_scaling:

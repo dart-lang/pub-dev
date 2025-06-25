@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.32.4`.
  * Note: started to export `/api/packages/<package>/[likes|options|publisher|score]` endpoints.
  * Note: search instance uses separate isolate for predicate-only queries.
+ * Note: increased search instance's CPU core count to 4, memory to 25GB.
 
 ## `20250619t085100-all`
  * Bump runtimeVersion to `2025.06.03`.
