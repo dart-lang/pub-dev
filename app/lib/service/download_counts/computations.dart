@@ -31,6 +31,7 @@ Future<Map<String, double>> computeTrend() async {
         (await downloadCountsBackend.lookupDownloadCountData(name))
                 ?.totalCounts ??
             [0];
+
     res[name] = computeTrendScore(downloads);
   }
   return res;
