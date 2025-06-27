@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:math';
 
 import 'package:_pub_shared/search/search_form.dart';
@@ -23,13 +24,15 @@ final queries = [
 ];
 
 Future<void> main(List<String> args) async {
-  print('Loading...');
+  print('Started. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
+      'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
   final primaryRunner = await startSearchIsolate(snapshot: args.first);
   final reducedRunner = await startSearchIsolate(
     snapshot: args.first,
     removeTextContent: true,
   );
-  print('Loaded.');
+  print('Loaded. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
+      'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
 
   for (var i = 0; i < 5; i++) {
     await _benchmark(primaryRunner, primaryRunner);
@@ -39,6 +42,8 @@ Future<void> main(List<String> args) async {
 
   await primaryRunner.close();
   await reducedRunner.close();
+  print('Done. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
+      'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
 }
 
 Future<void> _benchmark(IsolateRunner primary, IsolateRunner reduced) async {

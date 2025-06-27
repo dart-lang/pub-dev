@@ -51,18 +51,40 @@ class TokenIndex<K> {
       if (text == null) {
         continue;
       }
-      final tokens = tokenize(text);
-      if (tokens == null || tokens.isEmpty) {
+      _build(i, text, skipDocumentWeight);
+    }
+  }
+
+  TokenIndex.fromValues(
+    List<K> ids,
+    List<List<String>?> values, {
+    bool skipDocumentWeight = false,
+  }) : _ids = ids {
+    assert(ids.length == values.length);
+    final length = values.length;
+    for (var i = 0; i < length; i++) {
+      final parts = values[i];
+
+      if (parts == null || parts.isEmpty) {
         continue;
       }
-      // Document weight is a highly scaled-down proxy of the length.
-      final dw =
-          skipDocumentWeight ? 1.0 : 1 + math.log(1 + tokens.length) / 100;
-      for (final e in tokens.entries) {
-        final token = e.key;
-        final weights = _inverseIds.putIfAbsent(token, () => {});
-        weights[i] = math.max(weights[i] ?? 0.0, e.value / dw);
+      for (final text in parts) {
+        _build(i, text, skipDocumentWeight);
       }
+    }
+  }
+
+  void _build(int i, String text, bool skipDocumentWeight) {
+    final tokens = tokenize(text);
+    if (tokens == null || tokens.isEmpty) {
+      return;
+    }
+    // Document weight is a highly scaled-down proxy of the length.
+    final dw = skipDocumentWeight ? 1.0 : 1 + math.log(1 + tokens.length) / 100;
+    for (final e in tokens.entries) {
+      final token = e.key;
+      final weights = _inverseIds.putIfAbsent(token, () => {});
+      weights[i] = math.max(weights[i] ?? 0.0, e.value / dw);
     }
   }
 
