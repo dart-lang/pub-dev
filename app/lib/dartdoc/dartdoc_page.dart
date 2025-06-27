@@ -102,6 +102,7 @@ extension DartDocPageRender on DartDocPage {
             name: 'viewport',
             content:
                 'width=device-width, height=device-height, initial-scale=1, user-scalable=no'),
+        d.meta(name: 'color-scheme', content: 'light dark'),
         d.meta(name: 'generator', content: 'made with love by dartdoc'),
         d.meta(name: 'description', content: description),
         d.element('title', text: _pageTitle(options)),

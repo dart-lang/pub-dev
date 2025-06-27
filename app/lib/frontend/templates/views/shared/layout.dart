@@ -59,6 +59,7 @@ d.Node pageLayoutNode({
               name: 'viewport',
               content: 'width=device-width, initial-scale=1',
             ),
+            d.meta(name: 'color-scheme', content: 'light dark'),
             if (noIndex) d.meta(name: 'robots', content: 'noindex'),
 
             // <!-- Twitter tags -->

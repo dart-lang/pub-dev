@@ -156,6 +156,8 @@
 }
 
 .light-theme {
+  color-scheme: light;
+
   .displayed-in-dark-theme {
     display: none !important;
   }
@@ -163,6 +165,8 @@
 
 /// Variables that are specific to the dark theme.
 .dark-theme {
+  color-scheme: dark;
+
   @include dash_variables.dark-theme;
 
   --pub-color-darkBlack:       #121317;
