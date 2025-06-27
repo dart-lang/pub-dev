@@ -4154,7 +4154,7 @@ if(a){s.classList.remove("light-theme")
 s.classList.add("dark-theme")
 r.window.localStorage.setItem("colorTheme","true")}else{s.classList.remove("dark-theme")
 s.classList.add("light-theme")
-r.window.localStorage.setItem("colorTheme","false")}},
+r.window.localStorage.setItem("colorTheme","false")}s.classList.remove("loading-theme")},
 $S:27}
 A.dN.prototype={
 $1(a){this.b.$1(!this.a.classList.contains("dark-theme"))},
