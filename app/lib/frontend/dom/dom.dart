@@ -758,6 +758,7 @@ Node script({
   String? text,
   String? type,
   String? src,
+  String? blocking,
   bool async = false,
   bool defer = false,
   String? onload,
@@ -769,6 +770,7 @@ Node script({
       attributes: <String, String>{
         if (type != null) 'type': type,
         if (src != null) 'src': src,
+        if (blocking != null) 'blocking': blocking,
         if (async) 'async': 'async',
         if (defer) 'defer': 'defer',
         if (onload != null) 'onload': onload,

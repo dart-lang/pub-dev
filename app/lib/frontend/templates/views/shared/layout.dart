@@ -192,7 +192,9 @@ d.Node pageLayoutNode({
             // The initialization of dark theme must be in a synchronous, blocking
             // script execution, as otherwise users may see flash of unstyled content
             // (usually white background instead of a dark theme).
-            d.script(src: staticUrls.getAssetUrl('/static/js/dark-init.js')),
+            d.script(
+                src: staticUrls.getAssetUrl('/static/js/dark-init.js'),
+                blocking: 'render'),
             if (activeConfiguration.isStaging)
               d.div(classes: ['staging-ribbon'], text: 'staging'),
             // <!-- Google Tag Manager (noscript) -->
