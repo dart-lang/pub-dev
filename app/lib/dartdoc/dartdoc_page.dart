@@ -301,6 +301,9 @@ extension DartDocPageRender on DartDocPage {
             'width': '0',
             'style': 'display:none;visibility:hidden',
           })),
+      // NOTE: dartdoc's own initialization will still run, but it is not in conflict
+      //       with the current script.
+      d.script(src: staticUrls.getAssetUrl('/static/js/dark-init.js')),
       d.div(id: 'overlay-under-drawer'),
       _renderHeader(options),
       _renderMain(options),
