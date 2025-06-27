@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ - Reduced flash of white while loading pages in dark mode.
 
 ## `20250626t093300-all`
  * Bump runtimeVersion to `2025.06.20`.
