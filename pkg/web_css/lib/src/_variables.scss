@@ -267,6 +267,17 @@
   }
 }
 
+.loading-theme {
+  // This class is applied before dark-init.js runs.
+  // This tells the browser to use the system theme's lightness until
+  // the script can set body's class to either `light-theme` or `dark-theme`.
+  color-scheme: light dark;
+  background: initial;
+  color: initial;
+  --pub-neutral-bgColor: initial;
+  --pub-neutral-textColor: initial;
+}
+
 @mixin elevated-content-border {
   .light-theme & {
     box-shadow: 0px 2px 7px 0px var(--pub-home_card-box_shadow-color);

@@ -287,6 +287,7 @@ extension DartDocPageRender on DartDocPage {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
     return d.element('body', classes: [
       'light-theme',
+      'loading-theme',
     ], attributes: {
       'data-base-href':
           baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),

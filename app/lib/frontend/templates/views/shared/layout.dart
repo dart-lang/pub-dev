@@ -184,6 +184,8 @@ d.Node pageLayoutNode({
             requestContext.experimentalFlags.isDarkModeDefault
                 ? 'dark-theme'
                 : 'light-theme',
+            // `loading-theme` will be removed by the dark-init.js script
+            'loading-theme',
           ],
           attributes: {
             if (activeConfiguration.isStaging) 'data-staging': '1',
