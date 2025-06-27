@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/search/heap.dart';
-import 'package:pub_dev/service/topics/models.dart';
 import 'package:pub_dev/third_party/bit_array/bit_array.dart';
 
 import 'models.dart';
@@ -23,7 +22,6 @@ final _textSearchTimeout = Duration(milliseconds: 500);
 
 class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
-  final _documentsByName = <String, PackageDocument>{};
   final _nameToIndex = <String, int>{};
   late final PackageNameIndex _packageNameIndex;
   late final TokenIndex<String> _descrIndex;
@@ -47,23 +45,15 @@ class InMemoryPackageIndex {
   late final List<IndexedPackageHit> _pointsOrderedHits;
   late final List<IndexedPackageHit> _trendingOrderedHits;
 
-  // Contains all of the topics the index had seen so far.
-  // TODO: consider moving this into a separate index
-  // TODO: get the list of topics from the bucket
-  final _topics = <String>{
-    ...canonicalTopics.aliasToCanonicalMap.values,
-  };
-
   late final DateTime _lastUpdated;
 
   InMemoryPackageIndex({
     required Iterable<PackageDocument> documents,
   }) : _documents = [...documents] {
     final apiDocPageKeys = <IndexedApiDocPage>[];
-    final apiDocPageValues = <String>[];
+    final apiDocPageValues = <List<String>>[];
     for (var i = 0; i < _documents.length; i++) {
       final doc = _documents[i];
-      _documentsByName[doc.package] = doc;
       _nameToIndex[doc.package] = i;
 
       // transform tags into numberical IDs
@@ -78,16 +68,10 @@ class InMemoryPackageIndex {
         for (final page in apiDocPages) {
           if (page.symbols != null && page.symbols!.isNotEmpty) {
             apiDocPageKeys.add(IndexedApiDocPage(i, page));
-            apiDocPageValues.add(page.symbols!.join(' '));
+            apiDocPageValues.add(page.symbols!);
           }
         }
       }
-
-      // Note: we are not removing topics from this set, only adding them, no
-      //       need for tracking the current topic count.
-      _topics.addAll(doc.tags
-          .where((t) => t.startsWith('topic:'))
-          .map((t) => t.split('topic:').last));
     }
 
     final packageKeys = _documents.map((d) => d.package).toList();
@@ -101,7 +85,7 @@ class InMemoryPackageIndex {
       packageKeys,
       _documents.map((d) => d.readme).toList(),
     );
-    _apiSymbolIndex = TokenIndex(apiDocPageKeys, apiDocPageValues);
+    _apiSymbolIndex = TokenIndex.fromValues(apiDocPageKeys, apiDocPageValues);
 
     // update download scores only if they were not set (should happen on old runtime's snapshot and local tests)
     if (_documents.any((e) => e.downloadScore == null)) {
@@ -131,7 +115,7 @@ class InMemoryPackageIndex {
   IndexInfo indexInfo() {
     return IndexInfo(
       isReady: true,
-      packageCount: _documentsByName.length,
+      packageCount: _documents.length,
       lastUpdated: _lastUpdated,
     );
   }
@@ -363,7 +347,7 @@ class InMemoryPackageIndex {
     }
 
     // exact package name
-    if (_documentsByName.containsKey(parsedQueryText)) {
+    if (_nameToIndex.containsKey(parsedQueryText)) {
       return parsedQueryText;
     }
 
@@ -377,12 +361,9 @@ class InMemoryPackageIndex {
     }
     // Note: to keep it simple, we select the most downloaded one from competing matches.
     return matches.reduce((a, b) {
-      if (_documentsByName[a]!.downloadCount >
-          _documentsByName[b]!.downloadCount) {
-        return a;
-      } else {
-        return b;
-      }
+      final aDoc = _documents[_nameToIndex[a]!];
+      final bDoc = _documents[_nameToIndex[b]!];
+      return aDoc.downloadCount > bDoc.downloadCount ? a : b;
     });
   }
 
@@ -487,7 +468,7 @@ class InMemoryPackageIndex {
             packageScores.setValueMaxOf(doc.index, value);
 
             // add the page and re-sort the current results
-            pages.add(MapEntry(doc.page.relativePath, value));
+            pages.add(MapEntry(doc.relativePath, value));
             if (pages.length > 1) {
               pages.sort((a, b) => -a.value.compareTo(b.value));
             }
@@ -750,7 +731,8 @@ class IndexedPackageHit {
 
 class IndexedApiDocPage {
   final int index;
-  final ApiDocPage page;
+  final String relativePath;
 
-  IndexedApiDocPage(this.index, this.page);
+  IndexedApiDocPage(this.index, ApiDocPage page)
+      : relativePath = page.relativePath;
 }
