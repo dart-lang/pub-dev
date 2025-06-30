@@ -20,6 +20,7 @@ import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/service/change_event/change_event.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
@@ -480,9 +481,8 @@ class PackageBackend {
         options: optionsChanges,
       ));
     });
-    await purgePackageCache(package);
-    await taskBackend.trackPackage(package);
-    await apiExporter.synchronizePackage(package);
+    changeEventAggregator
+        .addChange(CapturedChange(ChangeAction.update, Package, [package]));
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -2094,5 +2094,24 @@ class _VersionTransactionDataAcccess {
   Future<List<PackageVersion>> listVersionsOfPackage(String name) async {
     final pkgKey = _tx.emptyKey.append(Package, id: name);
     return await _tx.query<PackageVersion>(pkgKey).run().toList();
+  }
+}
+
+Iterable<TriggeredEvent> processPackageChange(CapturedChange change) sync* {
+  if (change.entity != Package) return;
+  final package = change.keys.single as String;
+  if (change.action == ChangeAction.update) {
+    yield change.toTriggeredEvent(
+      ['purge-cache'],
+      () => purgePackageCache(package),
+    );
+    yield change.toTriggeredEvent(
+      ['track-task'],
+      () => taskBackend.trackPackage(package),
+    );
+    yield change.toTriggeredEvent(
+      ['export-package'],
+      () => apiExporter.synchronizePackage(package),
+    );
   }
 }

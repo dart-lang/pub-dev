@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:pub_dev/service/change_event/change_event.dart';
 
 import '../audit/models.dart';
 import '../frontend/request_context.dart';
@@ -462,7 +463,7 @@ class AccountBackend {
     if (user == null || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }
-    final data = await withRetryTransaction(_db, (tx) async {
+    final (data, change) = await withRetryTransaction(_db, (tx) async {
       final session = await tx.userSessions.lookupOrNull(sessionId);
       if (session == null || session.isExpired()) {
         throw AuthenticationException.failed('Session has been expired.');
@@ -473,7 +474,8 @@ class AccountBackend {
           oldUserId != user.userId) {
         // expire old session
         tx.delete(session.key);
-        await cache.userSessionData(sessionId).purgeAndRepeat();
+        final change =
+            CapturedChange(ChangeAction.delete, UserSession, [sessionId]);
 
         // create a new session
         final newSession = UserSession.init()
@@ -487,7 +489,7 @@ class AccountBackend {
           ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(newSession);
-        return SessionData.fromModel(newSession);
+        return (SessionData.fromModel(newSession), change);
       } else {
         // only update the current one
         session
@@ -500,10 +502,13 @@ class AccountBackend {
           ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(session);
-        return SessionData.fromModel(session);
+        return (SessionData.fromModel(session), null);
       }
     });
     await cache.userSessionData(data.sessionId).set(data);
+    if (change != null) {
+      changeEventAggregator.addChange(change);
+    }
     return data;
   }
 
@@ -698,7 +703,8 @@ class _UserSessionDataAccess {
     } on Exception catch (_) {
       // ignore if the entity has been already deleted concurrently
     }
-    await cache.userSessionData(sessionId).purge();
+    changeEventAggregator.addChange(
+        CapturedChange(ChangeAction.delete, UserSession, [sessionId]));
   }
 
   /// Removes the session data that has expiry before [ts].
@@ -717,5 +723,14 @@ class _UserSessionTransactionDataAcccess {
   Future<UserSession?> lookupOrNull(String sessionId) async {
     final key = _tx.emptyKey.append(UserSession, id: sessionId);
     return await _tx.lookupOrNull<UserSession>(key);
+  }
+}
+
+Iterable<TriggeredEvent> processUserSessionChange(CapturedChange change) sync* {
+  if (change.entity == UserSession && change.action == ChangeAction.delete) {
+    yield TriggeredEvent(
+      [UserSession, ...change.keys],
+      () => cache.userSessionData(change.keys.single as String).purge(),
+    );
   }
 }

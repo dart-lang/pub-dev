@@ -16,9 +16,6 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/handlers.dart';
-import 'package:pub_dev/service/async_queue/async_queue.dart';
-import 'package:pub_dev/service/download_counts/backend.dart';
-import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -47,7 +44,11 @@ import '../search/backend.dart';
 import '../search/search_client.dart';
 import '../search/top_packages.dart';
 import '../search/updater.dart';
+import '../service/async_queue/async_queue.dart';
+import '../service/change_event/change_event.dart';
+import '../service/download_counts/backend.dart';
 import '../service/email/backend.dart';
+import '../service/security_advisories/backend.dart';
 import '../service/youtube/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
@@ -250,6 +251,10 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
     ));
     registerAsyncQueue(AsyncQueue());
     registerAuditBackend(AuditBackend(dbService));
+    registerChangeEventAggregator(ChangeEventAggregator([
+      processPackageChange,
+      processUserSessionChange,
+    ]));
     registerConsentBackend(ConsentBackend(dbService));
     registerEmailBackend(EmailBackend(dbService));
     registerLikeBackend(LikeBackend(dbService));
