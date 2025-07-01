@@ -14,13 +14,6 @@
     // ignore errors e.g. when media query matching is not supported
   }
 
-  // NOTE: dartdoc currently does not support externally supported color scheme,
-  //       and we disable that part for the affected URLs.
-  // TODO: remove this part when dartdoc supports the above detection too
-  if (window.location.pathname.startsWith('/documentation/')) {
-    mediaPrefersDarkScheme = false;
-  }
-
   // Detects whether the control widget was set to use a specific theme
   let colorTheme = window.localStorage.getItem('colorTheme');
   let lightThemeIsSet = colorTheme == 'false';
