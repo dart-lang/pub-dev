@@ -137,29 +137,6 @@ class PackageDocument {
   Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
 
   late final packageNameLowerCased = package.toLowerCase();
-
-  /// Removes the text-heavy content from the current object,
-  /// making it lightweight for no-text indexing.
-  PackageDocument removeTextContent() => PackageDocument(
-        package: package,
-        version: version,
-        created: created,
-        updated: updated,
-        sourceUpdated: sourceUpdated,
-        timestamp: timestamp,
-        apiDocPages: null,
-        dependencies: dependencies,
-        description: null,
-        downloadCount: downloadCount,
-        downloadScore: downloadScore,
-        grantedPoints: grantedPoints,
-        likeCount: likeCount,
-        likeScore: likeScore,
-        maxPoints: maxPoints,
-        readme: null,
-        tags: tags,
-        trendScore: trendScore,
-      );
 }
 
 /// A reference to an API doc page

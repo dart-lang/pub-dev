@@ -38,14 +38,8 @@ class SearchCommand extends Command {
 
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      final primaryIsolate = await startSearchIsolate(logger: _logger);
-      registerScopeExitCallback(primaryIsolate.close);
-
-      final reducedIsolate = await startSearchIsolate(
-        logger: _logger,
-        removeTextContent: true,
-      );
-      registerScopeExitCallback(reducedIsolate.close);
+      final packageIsolate = await startSearchIsolate(logger: _logger);
+      registerScopeExitCallback(packageIsolate.close);
 
       final sdkIsolate = await startQueryIsolate(
         logger: _logger,
@@ -57,9 +51,8 @@ class SearchCommand extends Command {
 
       registerSearchIndex(
         SearchResultCombiner(
-          primaryIndex: LatencyAwareSearchIndex(
-            IsolateSearchIndex(primaryIsolate, reducedIsolate),
-          ),
+          primaryIndex:
+              LatencyAwareSearchIndex(IsolateSearchIndex(packageIsolate)),
           sdkIndex: SdkIsolateIndex(sdkIsolate),
         ),
       );
@@ -72,10 +65,7 @@ class SearchCommand extends Command {
           await Future.delayed(delay);
 
           // create a new index and handover with a 2-minute maximum wait
-          await Future.wait([
-            primaryIsolate.renew(count: 1, wait: Duration(minutes: 2)),
-            reducedIsolate.renew(count: 1, wait: Duration(minutes: 2)),
-          ]);
+          await packageIsolate.renew(count: 1, wait: Duration(minutes: 2));
 
           // schedule the renewal again
           scheduleRenew();

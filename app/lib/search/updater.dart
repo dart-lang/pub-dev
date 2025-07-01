@@ -30,18 +30,15 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 /// Loads a local search snapshot file and builds an in-memory package index from it.
 Future<InMemoryPackageIndex> loadInMemoryPackageIndexFromFile(
-  String path, {
-  bool removeTextContent = false,
-}) async {
+    String path) async {
   final file = File(path);
   final content =
       json.decode(utf8.decode(gzip.decode(await file.readAsBytes())))
           as Map<String, Object?>;
   final snapshot = SearchSnapshot.fromJson(content);
   return InMemoryPackageIndex(
-    documents: snapshot.documents!.values
-        .where((d) => !isSdkPackage(d.package))
-        .map((d) => removeTextContent ? d.removeTextContent() : d),
+    documents:
+        snapshot.documents!.values.where((d) => !isSdkPackage(d.package)),
   );
 }
 
@@ -64,8 +61,8 @@ class IndexUpdater {
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
-  Future<void> init({bool removeTextContent = false}) async {
-    final isReady = await _initSnapshot(removeTextContent);
+  Future<void> init() async {
+    final isReady = await _initSnapshot();
     if (!isReady) {
       _logger.info('Loading minimum package index...');
       final documents = await searchBackend.loadMinimumPackageIndex().toList();
@@ -89,17 +86,14 @@ class IndexUpdater {
   }
 
   /// Returns whether the snapshot was initialized and loaded properly.
-  Future<bool> _initSnapshot(bool removeTextContent) async {
+  Future<bool> _initSnapshot() async {
     try {
       _logger.info('Loading snapshot...');
       final documents = await searchBackend.fetchSnapshotDocuments();
       if (documents == null) {
         return false;
       }
-      updatePackageIndex(InMemoryPackageIndex(
-        documents:
-            documents.map((d) => removeTextContent ? d.removeTextContent() : d),
-      ));
+      updatePackageIndex(InMemoryPackageIndex(documents: documents));
       // Arbitrary sanity check that the snapshot is not entirely bogus.
       // Index merge will enable search.
       if (documents.length > 10) {

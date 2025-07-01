@@ -12,19 +12,15 @@ import 'package:test/test.dart';
 
 void main() {
   group('Search index inside an isolate', () {
-    late IsolateRunner primaryRunner;
-    late IsolateRunner reducedRunner;
+    late IsolateRunner runner;
 
     tearDown(() async {
-      await primaryRunner.close();
-      await reducedRunner.close();
+      await runner.close();
     });
 
     test('start and work with local index', () async {
       await withTempDirectory((tempDir) async {
-        // NOTE: The primary and the reduced index loads two different dataset,
-        //       in order to make the testing of the executation path unambigious.
-        final primaryPath = p.join(tempDir.path, 'primary.json.gz');
+        final snapshotPath = p.join(tempDir.path, 'snapshot.json.gz');
         await saveInMemoryPackageIndexToFile(
           [
             PackageDocument(
@@ -33,36 +29,16 @@ void main() {
               tags: ['sdk:dart'],
             ),
           ],
-          primaryPath,
+          snapshotPath,
         );
 
-        primaryRunner = await startSearchIsolate(snapshot: primaryPath);
-
-        final reducedPath = p.join(tempDir.path, 'reduced.json.gz');
-        await saveInMemoryPackageIndexToFile(
-          [
-            PackageDocument(
-              package: 'reduced_json_annotation',
-              description: 'Annotation metadata for JSON serialization.',
-              tags: ['sdk:dart'],
-              downloadScore: 1.0,
-              maxPoints: 100,
-              grantedPoints: 100,
-            ),
-          ],
-          reducedPath,
-        );
-
-        reducedRunner = await startSearchIsolate(
-          snapshot: reducedPath,
-          removeTextContent: true,
-        );
+        runner = await startSearchIsolate(snapshot: snapshotPath);
 
         // index calling the sendport
-        final searchIndex = IsolateSearchIndex(primaryRunner, reducedRunner);
+        final searchIndex = IsolateSearchIndex(runner);
         expect(await searchIndex.isReady(), true);
 
-        // text query - result from primary index
+        // text query - result from package index
         final rs =
             await searchIndex.search(ServiceSearchQuery.parse(query: 'json'));
         expect(rs.toJson(), {
@@ -72,21 +48,6 @@ void main() {
           'packageHits': [
             {
               'package': 'json_annotation',
-              'score': greaterThan(0.5),
-            },
-          ],
-        });
-
-        // predicate query - result from reduced index
-        final rs2 = await searchIndex
-            .search(ServiceSearchQuery.parse(query: 'sdk:dart'));
-        expect(rs2.toJson(), {
-          'timestamp': isNotEmpty,
-          'totalCount': 1,
-          'sdkLibraryHits': [],
-          'packageHits': [
-            {
-              'package': 'reduced_json_annotation',
               'score': greaterThan(0.5),
             },
           ],
