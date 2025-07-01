@@ -185,6 +185,14 @@ void main() {
                 contains('https://www.googletagmanager.com/'));
             firstNoScript.remove();
 
+            // removing extra dark-theme initializer script
+            renderedXmlDoc.descendantElements
+                .where((e) =>
+                    e.localName == 'script' &&
+                    e.getAttribute('src')!.endsWith('/dark-init.js'))
+                .single
+                .remove();
+
             // removing extra logo
             final firstLogo = renderedXmlDoc.descendantElements.firstWhere(
                 (e) =>
