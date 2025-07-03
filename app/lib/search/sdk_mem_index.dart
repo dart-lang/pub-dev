@@ -42,6 +42,22 @@ const _defaultApiPageDirWeights = {
   'material/Icons': 0.25,
 };
 
+/// The list of libraries that are to be exposed as part of the Flutter SDK index.
+const _flutterLibraryAllowlist = {
+  'animation',
+  'cupertino',
+  'foundation',
+  'gestures',
+  'material',
+  'painting',
+  'physics',
+  'rendering',
+  'scheduler',
+  'semantics',
+  'services',
+  'widgets',
+};
+
 final _logger = Logger('search.dart_sdk_mem_index');
 final _dartUri = Uri.parse('https://api.dart.dev/stable/latest/');
 final _flutterUri = Uri.parse('https://api.flutter.dev/flutter/');
@@ -88,7 +104,14 @@ class SdkMemIndex implements SdkIndex {
     Map<String, double>? apiPageDirWeights,
   }) : _apiPageDirWeights = apiPageDirWeights ?? _defaultApiPageDirWeights {
     _addDartdocIndex('dart', _dartUri, dartIndex);
-    _addDartdocIndex('flutter', _flutterUri, flutterIndex);
+    _addDartdocIndex(
+      'flutter',
+      _flutterUri,
+      flutterIndex,
+      includeLibraryFn: (library) =>
+          library.startsWith('flutter_') ||
+          _flutterLibraryAllowlist.contains(library),
+    );
   }
 
   static final dartSdkIndexJsonUri =
@@ -99,8 +122,11 @@ class SdkMemIndex implements SdkIndex {
   void _addDartdocIndex(
     String sdk,
     Uri baseUri,
-    DartdocIndex index,
-  ) {
+    DartdocIndex index, {
+    /// If specified, the index building will call this function for
+    /// each library, and will include only the ones that return `true`.
+    bool Function(String library)? includeLibraryFn,
+  }) {
     final textsPerLibrary = <String, Map<String, String>>{};
     final baseUris = <String, Uri>{};
     final descriptions = <String, String>{};
@@ -109,7 +135,16 @@ class SdkMemIndex implements SdkIndex {
       final library = f.qualifiedName?.split('.').first;
       if (library == null) continue;
       if (f.href == null) continue;
-      if (_libraries.containsKey(library)) continue;
+      // Skips libraries that were added in a previous call of this method,
+      // e.g. Dart SDK libraries are kept as-is and Flutter SDK libraries
+      // are not overriding them here.
+      if (_libraries.containsKey(library)) {
+        continue;
+      }
+      // Skips libraries that are not explicitly allowed.
+      if (includeLibraryFn != null && !includeLibraryFn(library)) {
+        continue;
+      }
       if (f.isLibrary) {
         baseUris[library] = baseUri.resolve(f.href!);
 
