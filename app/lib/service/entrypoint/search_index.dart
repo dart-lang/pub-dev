@@ -22,11 +22,6 @@ import 'package:pub_dev/shared/utils.dart';
 final _logger = Logger('search_index');
 
 final _argParser = ArgParser()
-  ..addFlag(
-    'remove-text-content',
-    defaultsTo: false,
-    help: 'When set, the text content of the index will be removed.',
-  )
   ..addOption(
     'snapshot',
     help:
@@ -39,7 +34,6 @@ Future<void> main(List<String> args, var message) async {
 
   final argv = _argParser.parse(args);
   final snapshot = argv['snapshot'] as String?;
-  final removeTextContent = (argv['remove-text-content'] as bool?) ?? false;
 
   final ServicesWrapperFn servicesWrapperFn;
   if (envConfig.isRunningInAppengine) {
@@ -52,10 +46,9 @@ Future<void> main(List<String> args, var message) async {
   await fork(() async {
     await servicesWrapperFn(() async {
       if (snapshot == null) {
-        await indexUpdater.init(removeTextContent: removeTextContent);
+        await indexUpdater.init();
       } else {
-        updatePackageIndex(await loadInMemoryPackageIndexFromFile(snapshot,
-            removeTextContent: removeTextContent));
+        updatePackageIndex(await loadInMemoryPackageIndexFromFile(snapshot));
       }
 
       await runIsolateFunctions(
@@ -85,16 +78,14 @@ Future<void> main(List<String> args, var message) async {
 /// Starts a new search isolate with optional overrides.
 Future<IsolateRunner> startSearchIsolate({
   Logger? logger,
-  bool removeTextContent = false,
   String? snapshot,
 }) async {
   return await startQueryIsolate(
     logger: logger ?? _logger,
-    kind: removeTextContent ? 'reduced' : 'primary',
+    kind: 'package',
     spawnUri: Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
     spawnArgs: [
       if (snapshot != null) ...['--snapshot', snapshot],
-      if (removeTextContent) '--remove-text-content',
     ],
   );
 }
@@ -103,9 +94,8 @@ Future<IsolateRunner> startSearchIsolate({
 /// across isolate boundaries. The instance should be registered inside the
 /// `frontend` isolate, and it calls the `index` isolate as a delegate.
 class IsolateSearchIndex implements SearchIndex {
-  final IsolateRunner _primary;
-  final IsolateRunner _reduced;
-  IsolateSearchIndex(this._primary, this._reduced);
+  final IsolateRunner _runner;
+  IsolateSearchIndex(this._runner);
   var _isReady = false;
 
   @override
@@ -121,7 +111,7 @@ class IsolateSearchIndex implements SearchIndex {
   @override
   FutureOr<IndexInfo> indexInfo() async {
     try {
-      final info = await _primary.sendRequest(
+      final info = await _runner.sendRequest(
         'info',
         timeout: Duration(seconds: 5),
       );
@@ -139,8 +129,7 @@ class IsolateSearchIndex implements SearchIndex {
   @override
   FutureOr<PackageSearchResult> search(ServiceSearchQuery query) async {
     try {
-      final runner = query.parsedQuery.hasFreeText ? _primary : _reduced;
-      final rs = await runner.sendRequest(
+      final rs = await _runner.sendRequest(
         Uri(queryParameters: query.toUriQueryParameters()).toString(),
         timeout: Duration(minutes: 1),
       );

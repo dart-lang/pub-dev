@@ -26,28 +26,22 @@ final queries = [
 Future<void> main(List<String> args) async {
   print('Started. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
       'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
-  final primaryRunner = await startSearchIsolate(snapshot: args.first);
-  final reducedRunner = await startSearchIsolate(
-    snapshot: args.first,
-    removeTextContent: true,
-  );
+  final runner = await startSearchIsolate(snapshot: args.first);
   print('Loaded. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
       'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
 
   for (var i = 0; i < 5; i++) {
-    await _benchmark(primaryRunner, primaryRunner);
-    await _benchmark(primaryRunner, reducedRunner);
+    await _benchmark(runner);
     print('--');
   }
 
-  await primaryRunner.close();
-  await reducedRunner.close();
+  await runner.close();
   print('Done. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
       'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
 }
 
-Future<void> _benchmark(IsolateRunner primary, IsolateRunner reduced) async {
-  final index = IsolateSearchIndex(primary, reduced);
+Future<void> _benchmark(IsolateRunner primary) async {
+  final index = IsolateSearchIndex(primary);
   final durations = <String, List<int>>{};
   for (var i = 0; i < 100; i++) {
     final random = Random(i);
