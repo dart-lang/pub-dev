@@ -5,13 +5,11 @@
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
 
-import '../../package/api_export/api_exporter.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
-import '../../task/backend.dart';
 
 import '../backend.dart';
 import '../models.dart';
@@ -144,11 +142,7 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
       return v;
     });
 
-    // make sure visibility cache is updated immediately
-    await purgePackageCache(package);
-
-    // sync exported API(s)
-    await apiExporter.synchronizePackage(package, forceDelete: true);
+    await triggerPackagePostUpdates(package, exportForceDelete: true).future;
 
     // retract or re-populate public archive files
     await packageBackend.tarballStorage.updatePublicArchiveBucket(
@@ -157,8 +151,6 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
       deleteIfOlder: Duration.zero,
     );
 
-    await taskBackend.trackPackage(package);
-    await purgePackageCache(package);
     await purgeScorecardData(package, version, isLatest: true);
   }
 

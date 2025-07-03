@@ -42,7 +42,8 @@ Future<String> executeSetPackagePublisher(List<String> args) async {
     tx.insert(pkg);
   });
   await purgePublisherCache(publisherId: publisherId);
-  await purgePackageCache(packageName);
+  triggerPackagePostUpdates(packageName,
+      skipTask: true, skipVersionsExport: true);
   if (currentPublisherId != null) {
     await purgePublisherCache(publisherId: currentPublisherId);
   }

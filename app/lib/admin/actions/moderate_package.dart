@@ -4,11 +4,10 @@
 
 import '../../admin/backend.dart';
 import '../../admin/models.dart';
-import '../../package/api_export/api_exporter.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
+import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
-import '../../task/backend.dart';
 import 'actions.dart';
 
 final moderatePackage = AdminAction(
@@ -108,11 +107,7 @@ Future<Map<String, dynamic>> adminMarkPackageVisibility(
       return pkg;
     });
 
-    // make sure visibility cache is updated immediately
-    await purgePackageCache(package);
-
-    // sync exported API(s)
-    await apiExporter.synchronizePackage(package, forceDelete: true);
+    await triggerPackagePostUpdates(package, exportForceDelete: true).future;
 
     // retract or re-populate public archive files
     await packageBackend.tarballStorage.updatePublicArchiveBucket(
@@ -121,8 +116,7 @@ Future<Map<String, dynamic>> adminMarkPackageVisibility(
       deleteIfOlder: Duration.zero,
     );
 
-    await taskBackend.trackPackage(package);
-    await purgePackageCache(package);
+    await purgeScorecardData(package, p2!.latestVersion!, isLatest: true);
   }
 
   return {
