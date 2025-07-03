@@ -108,7 +108,7 @@ class SdkMemIndex implements SdkIndex {
       'flutter',
       _flutterUri,
       flutterIndex,
-      libraryFn: (library) =>
+      includeLibraryFn: (library) =>
           library.startsWith('flutter_') ||
           _flutterLibraryAllowlist.contains(library),
     );
@@ -123,7 +123,9 @@ class SdkMemIndex implements SdkIndex {
     String sdk,
     Uri baseUri,
     DartdocIndex index, {
-    bool Function(String library)? libraryFn,
+    /// If specified, the index building will call this function for
+    /// each library, and will include only the ones that return `true`.
+    bool Function(String library)? includeLibraryFn,
   }) {
     final textsPerLibrary = <String, Map<String, String>>{};
     final baseUris = <String, Uri>{};
@@ -140,7 +142,7 @@ class SdkMemIndex implements SdkIndex {
         continue;
       }
       // Skips libraries that are not explicitly allowed.
-      if (libraryFn != null && !libraryFn(library)) {
+      if (includeLibraryFn != null && !includeLibraryFn(library)) {
         continue;
       }
       if (f.isLibrary) {
