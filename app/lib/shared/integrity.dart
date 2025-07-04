@@ -26,6 +26,7 @@ import '../publisher/models.dart';
 import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
 import '../shared/env_config.dart';
+import '../shared/monitoring.dart';
 import 'configuration.dart';
 import 'datastore.dart';
 import 'storage.dart';
@@ -947,15 +948,31 @@ class IntegrityChecker {
   }
 
   Stream<String> _queryWithPool<R extends Model>(
-      Stream<String> Function(R model) fn) async* {
+    Stream<String> Function(R model) fn, {
+    /// Note: This time limit aborts the integrity check after a reasonable
+    /// amount of time has passed with an entity-related operation.
+    ///
+    /// The integrity check process should be restarted soon after, and
+    /// hopefully it should complete on the next round.
+    Duration timeLimit = const Duration(minutes: 15),
+  }) async* {
     final query = _db.query<R>();
     final pool = Pool(_concurrency);
     final futures = <Future<List<String>>>[];
     try {
       await for (final m in query.run()) {
         _updateUnmappedFields(m);
-        final f = pool.withResource(() => fn(m).toList());
-        futures.add(f);
+        final taskFuture = pool.withResource(() async {
+          final f = fn(m).toList();
+          try {
+            return await f.timeout(timeLimit);
+          } on TimeoutException catch (e, st) {
+            _logger.pubNoticeShout('integrity-check-timeout',
+                'Integrity check operation timed out.', e, st);
+            rethrow;
+          }
+        });
+        futures.add(taskFuture);
       }
       for (final f in futures) {
         for (final item in await f) {
