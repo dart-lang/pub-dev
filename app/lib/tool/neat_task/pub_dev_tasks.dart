@@ -244,7 +244,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _weekly(
       name: 'check-datastore-integrity',
       isRuntimeVersioned: true,
-      task: () async => await IntegrityChecker(dbService, concurrency: 2)
+      task: () async => await IntegrityChecker(dbService, concurrency: 4)
           .verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
