@@ -35,7 +35,7 @@ Sends an invite to <email> to become uploader of <package>.
           packageName, package.publisherId!);
     }
     final authenticatedAgent =
-        await requireAuthenticatedAdmin(AdminPermission.removePackage);
+        await requireAuthenticatedAdmin(AdminPermission.invokeAction);
 
     final inviteStatus = await consentBackend.invitePackageUploader(
         packageName: packageName,

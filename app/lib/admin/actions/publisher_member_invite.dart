@@ -33,7 +33,7 @@ Sends an invite to <email> to become a member of <publisher>.
     }
 
     final authenticatedAgent =
-        await requireAuthenticatedAdmin(AdminPermission.removePackage);
+        await requireAuthenticatedAdmin(AdminPermission.invokeAction);
 
     await publisherBackend.verifyPublisherMemberInvite(
         publisherId, InviteMemberRequest(email: invitedEmail));
