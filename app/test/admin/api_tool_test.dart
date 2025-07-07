@@ -147,6 +147,76 @@ void main() {
     });
   });
 
+  group('package uploader invite', () {
+    setupTestsWithAdminTokenIssues((client) => client.adminInvokeAction(
+        'package-invite-uploader',
+        AdminInvokeActionArguments(
+            arguments: {'package': 'oxygen', 'email': 'member@example.com'})));
+
+    testWithProfile('invite + accept', fn: () async {
+      final adminClient = createPubApiClient(authToken: siteAdminToken);
+      final adminOutput = await adminClient.adminInvokeAction(
+          'package-invite-uploader',
+          AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'email': 'newmember@pub.dev'}));
+
+      expect(adminOutput.output, {
+        'message': 'Invited user',
+        'package': 'oxygen',
+        'emailSent': true,
+        'email': 'newmember@pub.dev',
+      });
+
+      final email = fakeEmailSender.sentMessages.first;
+      expect(email.subject, 'You have a new invitation to confirm on pub.dev');
+
+      final page = await auditBackend.listRecordsForPackage('oxygen');
+      final r = page.records
+          .firstWhere((e) => e.kind == AuditLogRecordKind.uploaderInvited);
+      expect(r.summary,
+          '`support@pub.dev` invited `newmember@pub.dev` to be an uploader for package `oxygen`.');
+
+      late String consentId;
+      await withFakeAuthRequestContext(
+        'newmember@pub.dev',
+        () async {
+          final authenticatedUser = await requireAuthenticatedWebUser();
+          final user = authenticatedUser.user;
+          final consentRow = await dbService.query<Consent>().run().single;
+          final consent =
+              await consentBackend.getConsent(consentRow.consentId, user);
+          expect(consent.descriptionHtml, contains('/packages/oxygen'));
+          expect(consent.descriptionHtml,
+              contains('perform administrative actions'));
+          consentId = consentRow.consentId;
+        },
+      );
+
+      final acceptingClient =
+          await createFakeAuthPubApiClient(email: 'newmember@pub.dev');
+      final rs = await acceptingClient.resolveConsent(
+          consentId, account_api.ConsentResult(granted: true));
+      expect(rs.granted, true);
+
+      final page2 = await auditBackend.listRecordsForPackage('oxygen');
+      final r2 = page2.records.firstWhere(
+          (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted);
+      expect(r2.summary,
+          '`newmember@pub.dev` accepted uploader invite for package `oxygen`.');
+
+      final uploaders =
+          (await packageBackend.lookupPackage('oxygen'))!.uploaders;
+      expect(uploaders!, hasLength(2));
+      expect(
+          await Future.wait(uploaders.map((uploader) async =>
+              (await accountBackend.lookupUserById(uploader))!.email)),
+          {
+            'admin@pub.dev',
+            'newmember@pub.dev',
+          });
+    });
+  });
+
   group('create and delete publisher', () {
     testWithProfile('publisher has packages', fn: () async {
       final p1 = await publisherBackend.lookupPublisher('example.com');
