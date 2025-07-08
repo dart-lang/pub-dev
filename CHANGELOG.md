@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20250708t090800-all`
  * Bump runtimeVersion to `2025.07.04`.
  * Note: integrity check is running with internal concurrency of 4 and 15 minutes time limit / entity.
 
