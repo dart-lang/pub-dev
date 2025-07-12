@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2025.07.14`.
+ * Upgraded stable Flutter analysis SDK to `3.32.6`.
  * Note: Updated worker base image to use Debian 12.
 
 ## `20250708t090800-all`
