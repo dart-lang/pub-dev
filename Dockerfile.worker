@@ -1,4 +1,4 @@
-FROM gcr.io/google-containers/debian-base-amd64:v2.0.0
+FROM marketplace.gcr.io/google/debian12:latest
 
 RUN apt-get update && \
   apt-get upgrade -y && \
