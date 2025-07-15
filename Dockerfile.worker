@@ -1,4 +1,4 @@
-FROM marketplace.gcr.io/google/debian12:latest
+FROM docker.io/debian:12
 
 RUN apt-get update && \
   apt-get upgrade -y && \
