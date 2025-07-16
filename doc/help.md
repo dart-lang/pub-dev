@@ -18,4 +18,4 @@ please use the "Report package" link, see [content moderation][1].
 
 ## Contact us
 
-If the above information doesn't answer your questions, you can contact us at [support@pub.dev].
+If the above information doesn't answer your questions, you can contact us at support@pub.dev.
