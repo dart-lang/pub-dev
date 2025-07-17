@@ -410,7 +410,7 @@ void main() {
       expect(
         lines.single,
         '<h2 class="changelog-version hash-header" id="100---2022-05-30">'
-        '[1.0.0] - 2022-05-30 '
+        '1.0.0 - 2022-05-30 '
         '<a href="#100---2022-05-30" class="hash-link">#</a>'
         '</h2>',
       );

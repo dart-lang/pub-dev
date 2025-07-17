@@ -8,7 +8,7 @@ import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_semver/pub_semver.dart';
+import 'package:pub_dev/shared/changelog.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
 import 'urls.dart' show UriExt;
@@ -360,72 +360,38 @@ class _TaskListRewriteTreeVisitor extends html_parsing.TreeVisitor {
 ///   </div>
 /// </div>
 Iterable<html.Node> _groupChangelogNodes(List<html.Node> nodes) sync* {
-  html.Element? lastContentDiv;
-  String? firstHeaderTag;
-  for (final node in nodes) {
-    final nodeTag = node is html.Element ? node.localName : null;
-    final isNewHeaderTag = firstHeaderTag == null &&
-        nodeTag != null &&
-        _structuralHeaderTags.contains(nodeTag);
-    final matchesFirstHeaderTag =
-        firstHeaderTag != null && nodeTag == firstHeaderTag;
-    final mayBeVersion = node is html.Element &&
-        (isNewHeaderTag || matchesFirstHeaderTag) &&
-        node.nodes.isNotEmpty &&
-        node.nodes.first is html.Text;
-    final versionText = mayBeVersion ? node.nodes.first.text?.trim() : null;
-    final version = mayBeVersion ? _extractVersion(versionText) : null;
-    if (version != null) {
-      firstHeaderTag ??= nodeTag;
-      var id = node.attributes['id'];
-      if (id == null || id.isEmpty) {
-        // `package:markdown` generates ids without dots (`.`), using similar
-        // normalization here.
-        // TODO: consider replacing all uses with `<a>.<b>.<c>` id attributes
-        id = version.toString().replaceAll('.', '');
-      }
-      final titleElem = html.Element.tag('h2')
-        ..attributes['class'] = 'changelog-version'
-        ..attributes['id'] = id
-        ..append(html.Text(versionText!));
-
-      lastContentDiv = html.Element.tag('div')
-        ..attributes['class'] = 'changelog-content';
-
-      yield html.Element.tag('div')
-        ..attributes['class'] = 'changelog-entry'
-        ..append(html.Text('\n'))
-        ..append(titleElem)
-        ..append(html.Text('\n'))
-        ..append(lastContentDiv);
-    } else if (lastContentDiv != null) {
-      final lastChild = lastContentDiv.nodes.lastOrNull;
-      if (lastChild is html.Element && lastChild.localName == 'div') {
-        lastContentDiv.append(html.Text('\n'));
-      }
-      lastContentDiv.append(node);
-    } else {
-      yield node;
+  final changelog = ChangelogParser().parseHtmlNodes(nodes);
+  if (changelog.title != null) {
+    yield html.Element.tag('h1')
+      ..text = changelog.title
+      ..attributes['id'] = 'changelog';
+    yield html.Text('\n');
+  }
+  if (changelog.description != null) {
+    yield changelog.description!.asHtmlNode;
+  }
+  for (final release in changelog.releases) {
+    final versionLine = [
+      release.version,
+      if (release.date != null)
+        '- ${release.date!.toIso8601String().split('T').first}',
+      if (release.note != null) release.note,
+    ].join(' ');
+    final titleElem = html.Element.tag('h2')
+      ..attributes['class'] = 'changelog-version'
+      ..append(html.Text(versionLine));
+    if (release.anchor != null) {
+      titleElem.attributes['id'] = release.anchor!;
     }
-  }
-}
+    final contentElem = html.Element.tag('div')
+      ..attributes['class'] = 'changelog-content';
+    contentElem.append(release.content.asHtmlNode);
 
-/// Returns the extracted version (if it is a specific version, not `any` or empty).
-Version? _extractVersion(String? text) {
-  if (text == null || text.isEmpty) return null;
-  text = text.trim().split(' ').first;
-  if (text.startsWith('[') && text.endsWith(']')) {
-    text = text.substring(1, text.length - 1).trim();
-  }
-  if (text.startsWith('v')) {
-    text = text.substring(1).trim();
-  }
-  if (text.isEmpty) return null;
-  try {
-    final v = Version.parse(text);
-    if (v.isEmpty || v.isAny) return null;
-    return v;
-  } on FormatException catch (_) {
-    return null;
+    yield html.Element.tag('div')
+      ..attributes['class'] = 'changelog-entry'
+      ..append(html.Text('\n'))
+      ..append(titleElem)
+      ..append(html.Text('\n'))
+      ..append(contentElem);
   }
 }
