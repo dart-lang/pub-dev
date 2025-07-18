@@ -11,6 +11,7 @@ import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
@@ -33,7 +34,6 @@ import 'storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 
-final _logger = Logger('integrity.check');
 final _random = math.Random.secure();
 
 /// The unmapped/unused fields that we expect to be present on some entities.
@@ -45,14 +45,73 @@ const _allowedUnmappedFields = {
   'User.isBlocked',
 };
 
-/// Checks the integrity of the datastore.
-class IntegrityChecker {
+@visibleForTesting
+Stream<String> findAllIntegrityProblems() async* {
+  yield* IntegrityChecker(dbService)._findProblems();
+  yield* TarballIntegrityChecker(dbService)._findProblems();
+}
+
+class _BaseIntegrityChecker {
+  final Logger _logger;
   final DatastoreDB _db;
   final int _concurrency;
 
   /// Maps an unmapped field in the form of `<ClassName>.<fieldName>` to an
   /// object identifier (usually the `id` value of the entity).
   final _unmappedFieldsToObject = <String, String>{};
+
+  _BaseIntegrityChecker._(this._logger, this._db, this._concurrency);
+
+  void _updateUnmappedFields(Model m) {
+    if (m is ExpandoModel && m.additionalProperties.isNotEmpty) {
+      for (final key in m.additionalProperties.keys) {
+        final qualifiedField = [m.runtimeType.toString(), key].join('.');
+        if (_unmappedFieldsToObject.containsKey(qualifiedField)) continue;
+        _unmappedFieldsToObject[qualifiedField] = m.id.toString();
+      }
+    }
+  }
+
+  Stream<String> _queryWithPool<R extends Model>(
+    Stream<String> Function(R model) fn, {
+    /// Note: This time limit aborts the integrity check after a reasonable
+    /// amount of time has passed with an entity-related operation.
+    ///
+    /// The integrity check process should be restarted soon after, and
+    /// hopefully it should complete on the next round.
+    Duration timeLimit = const Duration(minutes: 15),
+  }) async* {
+    final query = _db.query<R>();
+    final pool = Pool(_concurrency);
+    final futures = <Future<List<String>>>[];
+    try {
+      await for (final m in query.run()) {
+        _updateUnmappedFields(m);
+        final taskFuture = pool.withResource(() async {
+          final f = fn(m).toList();
+          try {
+            return await f.timeout(timeLimit);
+          } on TimeoutException catch (e, st) {
+            _logger.pubNoticeShout('integrity-check-timeout',
+                'Integrity check operation timed out.', e, st);
+            rethrow;
+          }
+        });
+        futures.add(taskFuture);
+      }
+      for (final f in futures) {
+        for (final item in await f) {
+          yield item;
+        }
+      }
+    } finally {
+      await pool.close();
+    }
+  }
+}
+
+/// Checks the integrity of the datastore.
+class IntegrityChecker extends _BaseIntegrityChecker {
   final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
@@ -68,15 +127,14 @@ class IntegrityChecker {
   final _badVersionInPubspec = <String, Set<String>>{};
   int _packageChecked = 0;
   int _versionChecked = 0;
-  late http.Client _httpClient;
 
-  IntegrityChecker(this._db, {int? concurrency})
-      : _concurrency = concurrency ?? 1;
+  IntegrityChecker(DatastoreDB db, {int? concurrency})
+      : super._(Logger('integrity.check'), db, concurrency ?? 1);
 
   /// Runs integrity checks, and reports the problems via a [Logger].
   Future<void> verifyAndLogIssues() async {
     var count = 0;
-    await for (final problem in findProblems()) {
+    await for (final problem in _findProblems()) {
       count++;
       _logger.warning('[pub-integrity-problem] $problem');
     }
@@ -87,34 +145,29 @@ class IntegrityChecker {
   }
 
   /// Runs integrity checks, and returns the list of problems.
-  Stream<String> findProblems() async* {
-    _httpClient = httpRetryClient(lenient: true);
-    try {
-      yield* _checkUsers();
-      yield* _checkOAuthUserIDs();
+  Stream<String> _findProblems() async* {
+    yield* _checkUsers();
+    yield* _checkOAuthUserIDs();
 
-      final publisherAttributes = _PublisherAttributes();
-      yield* _checkPublishers(publisherAttributes);
-      yield* _checkPublisherMembers(publisherAttributes);
-      yield* _checkPublishersAfterMembers(publisherAttributes);
-      yield* _checkPackages(publisherAttributes: publisherAttributes);
-      publisherAttributes.clear(); // no longer used
+    final publisherAttributes = _PublisherAttributes();
+    yield* _checkPublishers(publisherAttributes);
+    yield* _checkPublisherMembers(publisherAttributes);
+    yield* _checkPublishersAfterMembers(publisherAttributes);
+    yield* _checkPackages(publisherAttributes: publisherAttributes);
+    publisherAttributes.clear(); // no longer used
 
-      yield* _checkVersions();
-      yield* _checkLikes();
-      yield* _checkModeratedPackages();
-      yield* _checkAuditLogs();
-      yield* _checkModerationCases();
-      yield* _reportPubspecVersionIssues();
+    yield* _checkVersions();
+    yield* _checkLikes();
+    yield* _checkModeratedPackages();
+    yield* _checkAuditLogs();
+    yield* _checkModerationCases();
+    yield* _reportPubspecVersionIssues();
 
-      if (_unmappedFieldsToObject.isNotEmpty) {
-        for (final entry in _unmappedFieldsToObject.entries) {
-          if (_allowedUnmappedFields.contains(entry.key)) continue;
-          yield 'Unmapped field found: "${entry.key}" on entity "${entry.value}".';
-        }
+    if (_unmappedFieldsToObject.isNotEmpty) {
+      for (final entry in _unmappedFieldsToObject.entries) {
+        if (_allowedUnmappedFields.contains(entry.key)) continue;
+        yield 'Unmapped field found: "${entry.key}" on entity "${entry.value}".';
       }
-    } finally {
-      _httpClient.close();
     }
   }
 
@@ -563,9 +616,6 @@ class IntegrityChecker {
   }
 
   Stream<String> _checkPackageVersion(PackageVersion pv) async* {
-    final archiveDownloadUri = Uri.parse(urls.pkgArchiveDownloadUrl(
-        pv.package, pv.version!,
-        baseUri: activeConfiguration.primaryApiUri));
     _packagesWithVersion.add(pv.package);
 
     if (pv.uploader == null) {
@@ -581,17 +631,6 @@ class IntegrityChecker {
     if (pv.isRetracted && pv.retracted == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" is retracted, but `retracted` property is null.';
     }
-    final shouldBeInPublicBucket =
-        !_packagesWithIsModeratedFlag.contains(pv.package) && pv.isVisible;
-    final tarballItems = await retry(
-      () async {
-        return await _checkTarballInBuckets(pv, archiveDownloadUri,
-                shouldBeInPublicBucket: shouldBeInPublicBucket)
-            .toList();
-      },
-      maxAttempts: 2,
-    );
-    yield* Stream.fromIterable(tarballItems);
 
     yield* _checkModeratedFlags(
       kind: 'PackageVersion',
@@ -628,61 +667,6 @@ class IntegrityChecker {
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
       _logger.info('  .. $_versionChecked done (${pv.qualifiedVersionKey})');
-    }
-  }
-
-  Stream<String> _checkTarballInBuckets(
-    PackageVersion pv,
-    Uri archiveDownloadUri, {
-    required bool shouldBeInPublicBucket,
-  }) async* {
-    final canonicalInfo = await packageBackend.tarballStorage
-        .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
-    if (canonicalInfo == null) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
-      return;
-    }
-
-    final info =
-        await packageBackend.packageTarballInfo(pv.package, pv.version!);
-    if (info == null) {
-      if (shouldBeInPublicBucket) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file.';
-      }
-      return;
-    }
-
-    if (!shouldBeInPublicBucket) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has matching public archive file but it must not.';
-      return;
-    }
-
-    if (!canonicalInfo.hasSameSignatureAs(info)) {
-      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
-    }
-
-    final publicInfo = await packageBackend.tarballStorage
-        .getPublicBucketArchiveInfo(pv.package, pv.version!);
-    if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
-      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
-    }
-
-    final sha256Hash = pv.sha256;
-    if (sha256Hash == null || sha256Hash.length != 32) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
-    } else if (envConfig.isRunningLocally || _random.nextInt(1000) == 0) {
-      // On prod do not check every archive all the time, but select a few of the archives randomly.
-      final bytes = (await _httpClient.get(archiveDownloadUri)).bodyBytes;
-      final hash = sha256.convert(bytes).bytes;
-      if (!hash.byteToByteEquals(sha256Hash)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
-      }
-    }
-
-    // Also issue a HTTP request.
-    final rs = await _httpClient.head(archiveDownloadUri);
-    if (rs.statusCode != 200) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
     }
   }
 
@@ -936,53 +920,6 @@ class IntegrityChecker {
       ].join();
     }
   }
-
-  void _updateUnmappedFields(Model m) {
-    if (m is ExpandoModel && m.additionalProperties.isNotEmpty) {
-      for (final key in m.additionalProperties.keys) {
-        final qualifiedField = [m.runtimeType.toString(), key].join('.');
-        if (_unmappedFieldsToObject.containsKey(qualifiedField)) continue;
-        _unmappedFieldsToObject[qualifiedField] = m.id.toString();
-      }
-    }
-  }
-
-  Stream<String> _queryWithPool<R extends Model>(
-    Stream<String> Function(R model) fn, {
-    /// Note: This time limit aborts the integrity check after a reasonable
-    /// amount of time has passed with an entity-related operation.
-    ///
-    /// The integrity check process should be restarted soon after, and
-    /// hopefully it should complete on the next round.
-    Duration timeLimit = const Duration(minutes: 15),
-  }) async* {
-    final query = _db.query<R>();
-    final pool = Pool(_concurrency);
-    final futures = <Future<List<String>>>[];
-    try {
-      await for (final m in query.run()) {
-        _updateUnmappedFields(m);
-        final taskFuture = pool.withResource(() async {
-          final f = fn(m).toList();
-          try {
-            return await f.timeout(timeLimit);
-          } on TimeoutException catch (e, st) {
-            _logger.pubNoticeShout('integrity-check-timeout',
-                'Integrity check operation timed out.', e, st);
-            rethrow;
-          }
-        });
-        futures.add(taskFuture);
-      }
-      for (final f in futures) {
-        for (final item in await f) {
-          yield item;
-        }
-      }
-    } finally {
-      await pool.close();
-    }
-  }
 }
 
 typedef StreamingIssuesFn = Stream<String> Function();
@@ -1054,5 +991,103 @@ Stream<String> _checkAdminDeletedFlags({
   }
   if (!isAdminDeleted && adminDeletedAt != null) {
     yield '$kind "$id" has `isAdminDeleted = false` but `adminDeletedAt` is not null.';
+  }
+}
+
+/// Checks the integrity of the tarball storage (both canonical and public buckets).
+class TarballIntegrityChecker extends _BaseIntegrityChecker {
+  TarballIntegrityChecker(DatastoreDB db, {int? concurrency})
+      : super._(Logger('tarball-integrity-check'), db, concurrency ?? 1);
+
+  /// Runs integrity checks, and reports the problems via a [Logger].
+  Future<void> verifyAndLogIssues() async {
+    var count = 0;
+    await for (final problem in _findProblems()) {
+      count++;
+      _logger.warning('[tarball-integrity-problem] $problem');
+    }
+    _logger.info([
+      'Tarball integrity check completed with $count issue(s).',
+      if (count == 0) '[tarball-integrity-no-problems-found]',
+    ].join(' '));
+  }
+
+  /// Runs integrity checks, and returns the list of problems.
+  Stream<String> _findProblems() async* {
+    final httpClient = httpRetryClient(lenient: true);
+    try {
+      yield* _checkVersions(httpClient);
+    } finally {
+      httpClient.close();
+    }
+  }
+
+  Stream<String> _checkVersions(http.Client httpClient) async* {
+    _logger.info('Scanning PackageVersion tarballs...');
+    yield* _queryWithPool<PackageVersion>((pv) async* {
+      final items = await retry(
+          () => _checkTarballInBuckets(pv, httpClient).toList(),
+          maxAttempts: 2);
+      yield* Stream.fromIterable(items);
+    });
+  }
+
+  Stream<String> _checkTarballInBuckets(
+      PackageVersion pv, http.Client httpClient) async* {
+    final archiveDownloadUri = Uri.parse(urls.pkgArchiveDownloadUrl(
+        pv.package, pv.version!,
+        baseUri: activeConfiguration.primaryApiUri));
+
+    final shouldBeInPublicBucket =
+        await packageBackend.isPackageVisible(pv.package) && pv.isVisible;
+
+    final canonicalInfo = await packageBackend.tarballStorage
+        .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
+    if (canonicalInfo == null) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
+      return;
+    }
+
+    final info =
+        await packageBackend.packageTarballInfo(pv.package, pv.version!);
+    if (info == null) {
+      if (shouldBeInPublicBucket) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file.';
+      }
+      return;
+    }
+
+    if (!shouldBeInPublicBucket) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has matching public archive file but it must not.';
+      return;
+    }
+
+    if (!canonicalInfo.hasSameSignatureAs(info)) {
+      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
+    }
+
+    final publicInfo = await packageBackend.tarballStorage
+        .getPublicBucketArchiveInfo(pv.package, pv.version!);
+    if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
+      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+    }
+
+    final sha256Hash = pv.sha256;
+    if (sha256Hash == null || sha256Hash.length != 32) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
+    } else if (envConfig.isRunningLocally || _random.nextInt(1000) == 0) {
+      // On prod do not check every archive all the time, but select a few of the archives randomly.
+      final bytes = (await httpClient.get(archiveDownloadUri)).bodyBytes;
+      final hash = sha256.convert(bytes).bytes;
+      if (!hash.byteToByteEquals(sha256Hash)) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
+      }
+    }
+
+    // Also issue a HTTP request.
+    final rs = await httpClient.head(archiveDownloadUri);
+    if (rs.statusCode != 200) {
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+    }
   }
 }

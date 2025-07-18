@@ -136,7 +136,7 @@ final class FakeAppengineEnv {
 Future<void> _postTestVerification({
   required Pattern? integrityProblem,
 }) async {
-  final problems = await IntegrityChecker(dbService).findProblems().toList();
+  final problems = await findAllIntegrityProblems().toList();
   if (problems.isNotEmpty &&
       (integrityProblem == null ||
           integrityProblem.matchAsPrefix(problems.first) == null)) {
@@ -153,8 +153,7 @@ Future<void> _postTestVerification({
   }
 
   // re-run integrity checks on the updated state
-  final laterProblems =
-      await IntegrityChecker(dbService).findProblems().toList();
+  final laterProblems = await findAllIntegrityProblems().toList();
   expect(laterProblems, problems);
 }
 

@@ -248,6 +248,16 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
           .verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
+
+    // Checks the tarball storage integrity of the archive files.
+    _weekly(
+      name: 'check-tarball-integrity',
+      isRuntimeVersioned: true,
+      task: () async => await TarballIntegrityChecker(dbService, concurrency: 4)
+          .verifyAndLogIssues(),
+      timeout: Duration(days: 1),
+    ),
+
     // Deletes the old search snapshots
     _weekly(
       name: 'delete-old-search-snapshots',

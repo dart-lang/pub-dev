@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20250804t140400-all`
  * Bump runtimeVersion to `2025.07.14`.
  * Note: Updated worker base image to use Debian 12.
+ * Note: Tarball-related integrity checks are run in a separate weekly task (`check-tarball-integrity`).
 
 ## `20250708t090800-all`
  * Bump runtimeVersion to `2025.07.04`.
