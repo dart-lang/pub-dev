@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -72,25 +73,25 @@ class _BaseIntegrityChecker {
     }
   }
 
-  Stream<String> _queryWithPool<R extends Model>(
-    Stream<String> Function(R model) fn, {
+  Stream<String> _streamWithPool<T>(
+    Stream<T> Function() streamFn,
+    Stream<String> Function(T item) itemFn, {
     /// Note: This time limit aborts the integrity check after a reasonable
     /// amount of time has passed with an entity-related operation.
     ///
     /// The integrity check process should be restarted soon after, and
     /// hopefully it should complete on the next round.
-    Duration timeLimit = const Duration(minutes: 15),
+    Duration? timeLimit,
   }) async* {
-    final query = _db.query<R>();
+    timeLimit ??= const Duration(minutes: 15);
     final pool = Pool(_concurrency);
     final futures = <Future<List<String>>>[];
     try {
-      await for (final m in query.run()) {
-        _updateUnmappedFields(m);
+      await for (final item in streamFn()) {
         final taskFuture = pool.withResource(() async {
-          final f = fn(m).toList();
+          final f = itemFn(item).toList();
           try {
-            return await f.timeout(timeLimit);
+            return await f.timeout(timeLimit!);
           } on TimeoutException catch (e, st) {
             _logger.pubNoticeShout('integrity-check-timeout',
                 'Integrity check operation timed out.', e, st);
@@ -107,6 +108,25 @@ class _BaseIntegrityChecker {
     } finally {
       await pool.close();
     }
+  }
+
+  Stream<String> _queryWithPool<R extends Model>(
+    Stream<String> Function(R model) fn, {
+    /// Note: This time limit aborts the integrity check after a reasonable
+    /// amount of time has passed with an entity-related operation.
+    ///
+    /// The integrity check process should be restarted soon after, and
+    /// hopefully it should complete on the next round.
+    Duration? timeLimit,
+  }) async* {
+    yield* _streamWithPool(
+      () => _db.query<R>().run(),
+      (m) async* {
+        _updateUnmappedFields(m);
+        yield* fn(m);
+      },
+      timeLimit: timeLimit,
+    );
   }
 }
 
@@ -1017,6 +1037,7 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     final httpClient = httpRetryClient(lenient: true);
     try {
       yield* _checkVersions(httpClient);
+      yield* _checkCanonicalFiles();
     } finally {
       httpClient.close();
     }
@@ -1089,5 +1110,43 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     if (rs.statusCode != 200) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
     }
+  }
+
+  /// Checks if the canonical bucket contains files that have existing database entry.
+  Stream<String> _checkCanonicalFiles() async* {
+    _logger.info('Scanning canonical bucket...');
+
+    // NOTE: To make it effiecient, we don't list all the files in the bucket,
+    // only the package names. This may leave out other files that are not in
+    // the `packages/` directory (objectname-prefix), or for some reason not
+    // matched as package names.
+    final packages = await packageBackend.tarballStorage
+        .listPackagesInCanonicalBucket()
+        .timeout(Duration(minutes: 15));
+    yield* _streamWithPool(
+      () => Stream.fromIterable(packages),
+      (package) async* {
+        final p = await packageBackend.lookupPackage(package);
+        if (p == null) {
+          yield 'Missing Package entity in database: "$package".';
+          return;
+        }
+        final bucketVersions = await packageBackend.tarballStorage
+            .listVersionsInCanonicalBucket(package);
+        final dbVersions = await packageBackend.versionsOfPackage(package);
+
+        for (final e in bucketVersions.entries) {
+          final version = e.key;
+          final dbv = dbVersions.singleWhereOrNull((e) => e.version == version);
+          if (dbv == null) {
+            // NOTE: This check may expose files that become stale during an aborted upload.
+            //       If that's the case, further bucket cleanup may be required.
+            yield 'Missing PackageVersion entity in database: "$package/$version". May be a stale upload, investigatation needed!';
+          }
+        }
+
+        // Note: checking the other way around is already done via iterating over the version entries in the database.
+      },
+    );
   }
 }
