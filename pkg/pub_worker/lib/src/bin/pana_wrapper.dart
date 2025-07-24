@@ -98,23 +98,14 @@ Future<void> main(List<String> args) async {
     retryOptions: RetryOptions(maxAttempts: 3),
   );
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
-  final detected = await _detectSdks(pkgDir.path);
-
-  final toolEnv = await ToolEnvironment.create(
-    dartSdkConfig: SdkConfig(
-      rootPath: detected.dartSdkPath,
-      configHomePath: _configHomePath('dart', detected.configKind),
+  final toolEnv = await _setupSdksForPackage(
+    pkgDir.path,
+    toolFn: (detected) => _createToolEnvironment(
+      detected: detected,
+      pubCache: pubCache,
     ),
-    flutterSdkConfig: SdkConfig(
-      rootPath: detected.flutterSdkPath,
-      configHomePath: _configHomePath('flutter', detected.configKind),
-    ),
-    pubCacheDir: pubCache,
-    dartdocVersion: _dartdocVersion,
   );
 
-  //final dartdocOutputDir =
-  //    await Directory(p.join(outputFolder, 'doc')).create();
   final resourcesOutputDir =
       await Directory(p.join(outputFolder, 'resources')).create();
   final pana = PackageAnalyzer(toolEnv);
@@ -192,11 +183,38 @@ String? _configHomePath(String sdk, String kind) {
   return path;
 }
 
-Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
-    _detectSdks(String pkgDir) async {
+Future<ToolEnvironment> _createToolEnvironment({
+  required _DetectedSdks detected,
+  required String? pubCache,
+}) async {
+  return await ToolEnvironment.create(
+    dartSdkConfig: SdkConfig(
+      rootPath: detected.dartSdkPath,
+      configHomePath: _configHomePath('dart', detected.configKind),
+    ),
+    flutterSdkConfig: SdkConfig(
+      rootPath: detected.flutterSdkPath,
+      configHomePath: _configHomePath('flutter', detected.configKind),
+    ),
+    pubCacheDir: pubCache,
+    dartdocVersion: _dartdocVersion,
+  );
+}
+
+typedef _DetectedSdks = ({
+  String configKind,
+  String? dartSdkPath,
+  String? flutterSdkPath
+});
+
+Future<ToolEnvironment> _setupSdksForPackage(
+  String pkgDir, {
+  required Future<ToolEnvironment> Function(_DetectedSdks detected) toolFn,
+}) async {
   // Load the pubspec so we detect which SDK to use for analysis
   final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
   final pubspec = Pubspec.parseYaml(await pubspecFile.readAsString());
+  final usesFlutter = pubspec.usesFlutter;
 
   // Discover installed Dart and Flutter SDKs.
   // This reads sibling folders to the Dart and Flutter SDK.
@@ -254,6 +272,16 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
     return true;
   }
 
+  ToolEnvironment? stableToolEnv;
+  Future<ToolEnvironment> createOrGetStableToolEnv() async {
+    stableToolEnv ??= await toolFn((
+      configKind: 'stable',
+      dartSdkPath: installedDartSdk?.path,
+      flutterSdkPath: installedFlutterSdk?.path,
+    ));
+    return stableToolEnv!;
+  }
+
   // try to use the latest SDKs in the docker image
   final matchesInstalledSdks = matchesSdks(
     dart: installedDartSdk?.version,
@@ -262,13 +290,15 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
     allowsMissingVersion: true,
   );
   if (matchesInstalledSdks) {
-    // TODO(https://github.com/dart-lang/pub-dev/issues/7268): Also use `pub get` for better SDK selection.
-
-    return (
-      configKind: 'stable',
-      dartSdkPath: installedDartSdk?.path,
-      flutterSdkPath: installedFlutterSdk?.path,
+    final env = await createOrGetStableToolEnv();
+    final pr = await env.runPub(
+      pkgDir,
+      usesFlutter: usesFlutter,
+      command: 'get',
     );
+    if (!pr.wasError) {
+      return env;
+    }
   }
 
   // try to use the latest stable downloadable SDKs, or
@@ -296,20 +326,24 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
         channel: bundle.channel,
       );
 
-      return (
+      final env = await toolFn((
         configKind: bundle.configKind,
         dartSdkPath: dartSdkPath,
         flutterSdkPath: flutterSdkPath,
+      ));
+      final pr = await env.runPub(
+        pkgDir,
+        usesFlutter: usesFlutter,
+        command: 'get',
       );
+      if (!pr.wasError) {
+        return env;
+      }
     }
   }
 
-  // should not happen, but instead of failing, let's return the installed SDKs
-  return (
-    configKind: 'stable',
-    dartSdkPath: installedDartSdk?.path,
-    flutterSdkPath: installedFlutterSdk?.path,
-  );
+  // As a fallback, returning the installed tool environment (which may have been created already).
+  return await createOrGetStableToolEnv();
 }
 
 Future<String?> _installSdk({
