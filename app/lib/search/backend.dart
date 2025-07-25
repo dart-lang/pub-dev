@@ -375,24 +375,35 @@ class SearchBackend {
       likeCount: p.likes,
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
-      dependencies: _buildDependencies(pv.pubspec!, scoreCard),
+      dependencies: await _buildDependencies(pv.pubspec!, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
       sourceUpdated: sourceUpdated,
     );
   }
 
-  Map<String, String> _buildDependencies(Pubspec pubspec, ScoreCardData? view) {
-    final Map<String, String> dependencies = <String, String>{};
-    view?.panaReport?.allDependencies?.forEach((p) {
-      dependencies[p] = DependencyTypes.transitive;
-    });
-    pubspec.devDependencies.forEach((package) {
-      dependencies[package] = DependencyTypes.dev;
-    });
-    pubspec.dependencyNames.forEach((package) {
-      dependencies[package] = DependencyTypes.direct;
-    });
+  Future<Map<String, String>> _buildDependencies(
+      Pubspec pubspec, ScoreCardData? view) async {
+    final dependencies = <String, String>{};
+    for (final p in view?.panaReport?.allDependencies ?? <String>[]) {
+      if (await packageBackend.isPackageVisible(p)) {
+        dependencies[p] = DependencyTypes.transitive;
+      }
+    }
+    for (final p in pubspec.devDependencies) {
+      // Note: at this point the visibility may have been checked.
+      if (dependencies.containsKey(p) ||
+          await packageBackend.isPackageVisible(p)) {
+        dependencies[p] = DependencyTypes.dev;
+      }
+    }
+    for (final p in pubspec.dependencyNames) {
+      // Note: at this point the visibility may have been checked.
+      if (dependencies.containsKey(p) ||
+          await packageBackend.isPackageVisible(p)) {
+        dependencies[p] = DependencyTypes.direct;
+      }
+    }
     return dependencies;
   }
 
