@@ -1,5 +1,9 @@
 # highlight.js
 
+**License:** https://github.com/highlightjs/highlight.js/blob/main/LICENSE
+
+## Update
+
 1. Visit https://highlightjs.org/download/
 2. Open the developer console.
 3. Copy the below code block and execute.
@@ -8,22 +12,22 @@
 
 ```javascript
 var selected = [
-  'bash.js',
-  'c.js',
-  'css.js',
-  'dart.js',
-  'diff.js',
-  'java.js',
-  'javascript.js',
-  'json.js',
-  'kotlin.js',
-  'markdown.js',
-  'objectivec.js',
-  'plaintext.js',
-  'shell.js',
-  'swift.js',
-  'xml.js', // also includes html
-  'yaml.js',
+  'bash',
+  'c',
+  'css',
+  'dart',
+  'diff',
+  'java',
+  'javascript',
+  'json',
+  'kotlin',
+  'markdown',
+  'objectivec',
+  'plaintext',
+  'shell',
+  'swift',
+  'xml', // also includes html
+  'yaml',
 ];
-document.querySelectorAll('input[type=checkbox]').forEach(function (elem) {elem.checked = selected.includes(elem.name);});
+document.querySelectorAll('input[type=checkbox]').forEach(function (elem) {elem.checked = selected.includes(elem.value);});
 ```
