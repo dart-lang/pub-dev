@@ -1,5 +1,9 @@
 # highlight.js
 
+**License:** https://github.com/highlightjs/highlight.js/blob/main/LICENSE
+
+## Update
+
 1. Visit https://highlightjs.org/download/
 2. Open the developer console.
 3. Copy the below code block and execute.
