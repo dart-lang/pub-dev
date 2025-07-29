@@ -158,6 +158,10 @@ void main() {
           markdownToHtml('[me](mailto:email@example.com)',
               urlResolverFn: urlResolverFn),
           '<p><a href="mailto:email@example.com">me</a></p>\n');
+      expect(
+        markdownToHtml('mail to email@example.com.'),
+        '<p>mail to <a href="mailto:email@example.com">email@example.com</a>.</p>\n',
+      );
     });
   });
 
