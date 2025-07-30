@@ -53,8 +53,6 @@ void main() {
         // github publishing
         await user.withBrowserPage((page) async {
           await page.gotoOrigin('/packages/test_pkg/admin');
-          await page.takeScreenshots(
-              prefix: 'package-page/admin-page', selector: 'body');
 
           await page.waitAndClick('#-pkg-admin-automated-github-enabled');
           await page.waitForLayout([
@@ -70,6 +68,24 @@ void main() {
           final value = await page.propertyValue(
               '#-pkg-admin-automated-github-repository', 'value');
           expect(value, githubRepository);
+
+          await page.takeScreenshots(
+              prefix: 'package-page/admin-page', selector: 'body');
+        });
+
+        // maintainer wanted
+        await user.withBrowserPage((page) async {
+          await page.gotoOrigin('/packages/test_pkg/admin');
+          final valueBefore = await page.propertyValue(
+              '#-admin-is-maintainer-wanted-checkbox', 'checked');
+          expect(valueBefore, 'false');
+
+          await page.waitAndClick('#-admin-is-maintainer-wanted-checkbox');
+          await page.waitAndClickOnDialogOk();
+          await page.reload();
+          final valueAfter = await page.propertyValue(
+              '#-admin-is-maintainer-wanted-checkbox', 'checked');
+          expect(valueAfter, 'true');
         });
 
         // visit activity log page

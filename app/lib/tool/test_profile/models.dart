@@ -80,6 +80,7 @@ class TestPackage {
   final bool? isDiscontinued;
   final String? replacedBy;
   final bool? isUnlisted;
+  final bool? isMaintainerWanted;
   final bool? isFlutterFavorite;
   final List<String>? retractedVersions;
   final int? likeCount;
@@ -92,6 +93,7 @@ class TestPackage {
     this.isDiscontinued,
     this.replacedBy,
     this.isUnlisted,
+    this.isMaintainerWanted,
     this.isFlutterFavorite,
     this.retractedVersions,
     this.likeCount,

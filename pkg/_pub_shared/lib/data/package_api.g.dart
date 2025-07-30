@@ -23,6 +23,7 @@ PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) => PkgOptions(
       isDiscontinued: json['isDiscontinued'] as bool?,
       replacedBy: json['replacedBy'] as String?,
       isUnlisted: json['isUnlisted'] as bool?,
+      isMaintainerWanted: json['isMaintainerWanted'] as bool?,
     );
 
 Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
@@ -30,6 +31,7 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isDiscontinued': instance.isDiscontinued,
       'replacedBy': instance.replacedBy,
       'isUnlisted': instance.isUnlisted,
+      'isMaintainerWanted': instance.isMaintainerWanted,
     };
 
 AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(

@@ -35,6 +35,9 @@ final nameMatchBadgeNode = packageBadgeNode(
   color: 'name-match',
 );
 
+/// Renders the maintainer-wanted badged used by package listing and package page.
+final maintainerWantedBadgeNode = packageBadgeNode(label: 'Maintainer wanted');
+
 /// Renders the null-safe badge used by package listing and package page.
 d.Node nullSafeBadgeNode({String? title}) {
   return packageBadgeNode(

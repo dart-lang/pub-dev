@@ -84,6 +84,7 @@ class _PkgAdminWidget {
   InputElement? _replacedByInput;
   Element? _replacedByButton;
   InputElement? _unlistedCheckbox;
+  InputElement? _maintainerWantedCheckbox;
   Element? _inviteUploaderButton;
   Element? _inviteUploaderContent;
   InputElement? _inviteUploaderInput;
@@ -109,6 +110,11 @@ class _PkgAdminWidget {
     _unlistedCheckbox =
         document.getElementById('-admin-is-unlisted-checkbox') as InputElement?;
     _unlistedCheckbox?.onChange.listen((_) => _toggleUnlisted());
+    _maintainerWantedCheckbox =
+        document.getElementById('-admin-is-maintainer-wanted-checkbox')
+            as InputElement?;
+    _maintainerWantedCheckbox?.onChange
+        .listen((_) => _toggleMaintainerWanted());
     _inviteUploaderButton =
         document.getElementById('-pkg-admin-invite-uploader-button');
     _inviteUploaderContent =
@@ -310,6 +316,30 @@ class _PkgAdminWidget {
     } else {
       _unlistedCheckbox!.defaultChecked = newValue;
       _unlistedCheckbox!.checked = newValue;
+    }
+  }
+
+  Future<void> _toggleMaintainerWanted() async {
+    final oldValue = _maintainerWantedCheckbox!.defaultChecked ?? false;
+    final newValue = await api_client.rpc(
+      confirmQuestion: text(
+          'Are you sure you want change the "maintainerWanted" status of the package?'),
+      fn: () async {
+        final rs = await api_client.client.setPackageOptions(
+            pageData.pkgData!.package,
+            PkgOptions(
+              isMaintainerWanted: !oldValue,
+            ));
+        return rs.isUnlisted;
+      },
+      successMessage: text('"maintainerWanted" status changed.'),
+      onError: (err) => null,
+    );
+    if (newValue == null) {
+      _maintainerWantedCheckbox!.checked = oldValue;
+    } else {
+      _maintainerWantedCheckbox!.defaultChecked = newValue;
+      _maintainerWantedCheckbox!.checked = newValue;
     }
   }
 

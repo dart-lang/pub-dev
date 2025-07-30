@@ -140,6 +140,7 @@ Future<void> _testExportedApiSynchronization(
         'isDiscontinued': false,
         'replacedBy': null,
         'isUnlisted': false,
+        'isMaintainerWanted': false,
       },
     );
     expect(

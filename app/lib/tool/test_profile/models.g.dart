@@ -45,6 +45,7 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
       isDiscontinued: json['isDiscontinued'] as bool?,
       replacedBy: json['replacedBy'] as String?,
       isUnlisted: json['isUnlisted'] as bool?,
+      isMaintainerWanted: json['isMaintainerWanted'] as bool?,
       isFlutterFavorite: json['isFlutterFavorite'] as bool?,
       retractedVersions: (json['retractedVersions'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -62,6 +63,8 @@ Map<String, dynamic> _$TestPackageToJson(TestPackage instance) =>
       if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
       if (instance.replacedBy case final value?) 'replacedBy': value,
       if (instance.isUnlisted case final value?) 'isUnlisted': value,
+      if (instance.isMaintainerWanted case final value?)
+        'isMaintainerWanted': value,
       if (instance.isFlutterFavorite case final value?)
         'isFlutterFavorite': value,
       if (instance.retractedVersions case final value?)

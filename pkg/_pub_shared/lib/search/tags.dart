@@ -33,6 +33,9 @@ abstract class PackageTags {
   /// Package is marked unlisted, discontinued, or is a legacy package.
   static const String isUnlisted = 'is:unlisted';
 
+  /// Package is marked maintainerWanted.
+  static const String isMaintainerWanted = 'is:maintainer-wanted';
+
   /// Package is shown, regardless of its unlisted status.
   static const String showUnlisted = 'show:unlisted';
 
