@@ -161,6 +161,7 @@ Future<void> importProfile({
               isDiscontinued: testPackage.isDiscontinued,
               replacedBy: testPackage.replacedBy,
               isUnlisted: testPackage.isUnlisted,
+              isMaintainerWanted: testPackage.isMaintainerWanted,
             ));
 
         if (testPackage.retractedVersions != null) {

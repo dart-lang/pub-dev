@@ -449,6 +449,11 @@ class IntegrityChecker {
       isAdminDeleted: p.isAdminDeleted,
       adminDeletedAt: p.adminDeletedAt,
     );
+    yield* _checkMaintainerWantedFlags(
+      package: p.name!,
+      isMaintainerWanted: p.isMaintainerWanted,
+      maintainerWantedStartedAt: p.maintainerWantedStartedAt,
+    );
     if (p.isModerated) {
       _packagesWithIsModeratedFlag.add(p.name!);
     }
@@ -1054,5 +1059,20 @@ Stream<String> _checkAdminDeletedFlags({
   }
   if (!isAdminDeleted && adminDeletedAt != null) {
     yield '$kind "$id" has `isAdminDeleted = false` but `adminDeletedAt` is not null.';
+  }
+}
+
+/// Check that `isMaintainerWanted` and `maintainerWantedStartedAt` are consistent.
+Stream<String> _checkMaintainerWantedFlags({
+  required String package,
+  required bool? isMaintainerWanted,
+  required DateTime? maintainerWantedStartedAt,
+}) async* {
+  isMaintainerWanted ??= false;
+  if (isMaintainerWanted && maintainerWantedStartedAt == null) {
+    yield 'Package "$package" has `isMaintainerWanted = true` but `maintainerWantedStartedAt` is null.';
+  }
+  if (!isMaintainerWanted && maintainerWantedStartedAt != null) {
+    yield 'Package "$package" has `isMaintainerWanted = false` but `maintainerWantedStartedAt` is not null.';
   }
 }

@@ -79,6 +79,7 @@ d.Node _packageItem(
   required bool isNameMatch,
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
+  final isMaintainerWanted = view.tags.contains(PackageTags.isMaintainerWanted);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
   final isDart3Compatible =
       view.tags.contains(PackageVersionTags.isDart3Compatible);
@@ -139,6 +140,7 @@ d.Node _packageItem(
         child: licenseNode,
       ),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
+    if (isMaintainerWanted) maintainerWantedBadgeNode,
     if (isNullSafe && !isDart3Compatible) nullSafeBadgeNode(),
     if (isDart3Compatible) dart3CompatibleNode,
     if (isDart3Incompatible) dart3IncompatibleNode,

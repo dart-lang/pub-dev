@@ -200,6 +200,19 @@ d.Node packageAdminPageNode({
         ),
       ),
     ],
+    d.a(name: 'maintainer-wanted'),
+    d.h3(text: 'Maintainer wanted'),
+    d.markdown(
+        'A package that\'s marked as *maintainWanted* will be featured with an '
+        'extra badge on the package page and in the search results.'),
+    d.div(
+      classes: ['-pub-form-checkbox-row'],
+      child: material.checkbox(
+        id: '-admin-is-maintainer-wanted-checkbox',
+        label: 'Mark "maintainWanted"',
+        checked: package.isMaintainerWanted ?? false,
+      ),
+    ),
     _automatedPublishing(package),
     d.a(name: 'version-retraction'),
     d.h2(text: 'Version retraction'),

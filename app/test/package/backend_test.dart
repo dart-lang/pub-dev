@@ -364,6 +364,7 @@ void main() {
           expect(p.isDiscontinued, isTrue);
           expect(p.replacedBy, isNull);
           expect(p.isUnlisted, isFalse);
+          expect(p.isMaintainerWanted ?? false, isFalse);
         });
       });
 
@@ -434,6 +435,7 @@ void main() {
           expect(p.isDiscontinued, isTrue);
           expect(p.replacedBy, 'neon');
           expect(p.isUnlisted, isFalse);
+          expect(p.isMaintainerWanted ?? false, isFalse);
 
           await packageBackend.updateOptions(
               'oxygen', PkgOptions(isDiscontinued: true));
@@ -441,6 +443,7 @@ void main() {
           expect(p1.isDiscontinued, isTrue);
           expect(p1.replacedBy, isNull);
           expect(p1.isUnlisted, isFalse);
+          expect(p1.isMaintainerWanted ?? false, isFalse);
 
           // check audit log record
           final page = await auditBackend.listRecordsForPackage('oxygen');
@@ -455,6 +458,7 @@ void main() {
           expect(p2.isDiscontinued, isFalse);
           expect(p2.replacedBy, isNull);
           expect(p2.isUnlisted, isFalse);
+          expect(p2.isMaintainerWanted ?? false, isFalse);
         });
       });
 
@@ -466,6 +470,19 @@ void main() {
           expect(p.isDiscontinued, isFalse);
           expect(p.replacedBy, isNull);
           expect(p.isUnlisted, isTrue);
+          expect(p.isMaintainerWanted ?? false, isFalse);
+        });
+      });
+
+      testWithProfile('maintainerWanted', fn: () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
+          await packageBackend.updateOptions(
+              'oxygen', PkgOptions(isMaintainerWanted: true));
+          final p = (await packageBackend.lookupPackage('oxygen'))!;
+          expect(p.isDiscontinued, isFalse);
+          expect(p.replacedBy, isNull);
+          expect(p.isUnlisted, isFalse);
+          expect(p.isMaintainerWanted, isTrue);
         });
       });
     });
