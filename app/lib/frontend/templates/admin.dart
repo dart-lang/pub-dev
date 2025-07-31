@@ -4,7 +4,7 @@
 
 import 'package:_pub_shared/data/page_data.dart';
 
-import '../../account/models.dart' show LikeData, User, SessionData;
+import '../../account/models.dart' show User, SessionData;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/models.dart';
@@ -96,7 +96,7 @@ String renderAccountPackagesPage({
 String renderMyLikedPackagesPage({
   required User user,
   required SessionData userSessionData,
-  required List<LikeData> likes,
+  required List<LikeAndPackageData> likes,
 }) {
   final resultCount = likes.isNotEmpty
       ? d.p(

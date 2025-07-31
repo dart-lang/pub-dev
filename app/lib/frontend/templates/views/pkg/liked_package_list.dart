@@ -2,15 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../../account/models.dart';
 import '../../../../shared/urls.dart' as urls;
 
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
 import '../../../static_files.dart' show staticUrls;
 
+/// Describes the combined like data that will be rendered.
+class LikeAndPackageData {
+  final String package;
+  final DateTime likeCreated;
+  final DateTime? lastPublished;
+
+  LikeAndPackageData({
+    required this.package,
+    required this.likeCreated,
+    required this.lastPublished,
+  });
+}
+
 /// Renders the package list of /my-liked-packages page.
-d.Node likedPackageListNode(List<LikeData> likes) {
+d.Node likedPackageListNode(List<LikeAndPackageData> likes) {
   final thumbUpOutlinedUrl =
       staticUrls.getAssetUrl('/static/img/thumb-up-24px.svg');
   final thumbUpFilledUrl =
@@ -27,7 +39,7 @@ d.Node likedPackageListNode(List<LikeData> likes) {
               d.h3(
                 classes: ['packages-title'],
                 child: d.a(
-                  href: urls.pkgPageUrl(like.package!),
+                  href: urls.pkgPageUrl(like.package),
                   text: like.package,
                 ),
               ),
@@ -37,7 +49,7 @@ d.Node likedPackageListNode(List<LikeData> likes) {
                   unelevated: true,
                   customTypeClass: '-pub-like-button',
                   attributes: {
-                    'data-package': like.package!,
+                    'data-package': like.package,
                     'data-thumb_up_outlined': thumbUpOutlinedUrl,
                     'data-thumb_up_filled': thumbUpFilledUrl,
                   },
@@ -56,7 +68,12 @@ d.Node likedPackageListNode(List<LikeData> likes) {
             classes: ['packages-metadata'],
             children: [
               d.text(' Liked '),
-              d.xAgoTimestamp(like.created!, datePrefix: 'on'),
+              d.xAgoTimestamp(like.likeCreated, datePrefix: 'on'),
+              if (like.lastPublished != null) ...[
+                d.br(),
+                d.text(' Published '),
+                d.xAgoTimestamp(like.lastPublished!, datePrefix: 'on'),
+              ],
             ],
           ),
         ],
