@@ -10,7 +10,6 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
@@ -28,6 +27,7 @@ import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/report.dart';
+import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -701,19 +701,31 @@ void main() {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
         final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
+        final published1 = liked1.add(Duration(days: 10));
         final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
+        final published2 = liked2.subtract(Duration(days: 10));
         final html = renderMyLikedPackagesPage(
           user: user,
           userSessionData: requestContext.sessionData!,
           likes: [
-            LikeData(package: 'super_package', created: liked1),
-            LikeData(package: 'another_package', created: liked2)
+            LikeAndPackageData(
+              package: 'super_package',
+              likeCreated: liked1,
+              lastPublished: published1,
+            ),
+            LikeAndPackageData(
+              package: 'another_package',
+              likeCreated: liked2,
+              lastPublished: published2,
+            ),
           ],
         );
         expectGoldenFile(html, 'my_liked_packages.html', timestamps: {
           'user-created': user.created,
           'liked1': liked1,
+          'published1': published1,
           'liked2': liked2,
+          'published2': published2,
         });
       });
     });

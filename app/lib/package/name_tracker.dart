@@ -150,6 +150,16 @@ class NameTracker {
   /// Whether the name tracker has a record of the package.
   bool hasPackage(String name) => _data._hasPackage(name);
 
+  /// Returns the tracked data of a package, or `null` if [name] is
+  /// not a visible package.
+  TrackedPackage? getPackage(String name) {
+    final p = _data._packages[name];
+    if (p != null && p.isVisible) {
+      return p;
+    }
+    return null;
+  }
+
   /// Scans the Datastore and populates the tracker.
   @visibleForTesting
   Future<void> reloadFromDatastore() async {

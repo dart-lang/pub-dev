@@ -4,7 +4,6 @@
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:clock/clock.dart';
-import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -15,6 +14,7 @@ import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
 import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
+import '../../package/name_tracker.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../scorecard/backend.dart';
@@ -26,6 +26,9 @@ import '../../shared/urls.dart' as urls;
 import '../templates/admin.dart';
 import '../templates/consent.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
+import '../templates/views/pkg/liked_package_list.dart';
+
+import 'cache_control.dart';
 
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
@@ -295,10 +298,18 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
   final user = (await accountBackend
       .lookupUserById(requestContext.authenticatedUserId!))!;
   final likes = await likeBackend.listPackageLikes(user);
+  // extending the like data with cached last-published timestamp
+  final combined = likes
+      .map((d) => LikeAndPackageData(
+            package: d.package!,
+            likeCreated: d.created!,
+            lastPublished: nameTracker.getPackage(d.package!)?.lastPublished,
+          ))
+      .toList();
   final html = renderMyLikedPackagesPage(
     user: user,
     userSessionData: requestContext.sessionData!,
-    likes: likes,
+    likes: combined,
   );
   return htmlResponse(html);
 }
