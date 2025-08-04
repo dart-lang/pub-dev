@@ -15,3 +15,7 @@ To report concerns over potential [policy issues](/policy),
 please use the "Report package" link, see [content moderation][1].
 
 [1]: /help/content-moderation
+
+## Contact us
+
+If the above information doesn't answer your questions, you can contact us at support@pub.dev.
