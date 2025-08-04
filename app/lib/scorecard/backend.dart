@@ -73,6 +73,9 @@ class ScoreCardBackend {
   @visibleForTesting
   Future<PackageView?> getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
+      if (!await packageBackend.isPackageVisible(package)) {
+        return null;
+      }
       final p = await packageBackend.lookupPackage(package);
       if (p == null) {
         _logger.warning('Package lookup failed for "$package".');
@@ -85,20 +88,24 @@ class ScoreCardBackend {
         return null;
       }
 
-      final releases = await packageBackend.latestReleases(p);
-      final pvFuture = packageBackend.lookupPackageVersion(package, version);
-      final cardFuture = scoreCardBackend.getScoreCardData(package, version);
-      await Future.wait([pvFuture, cardFuture]);
+      try {
+        final releases = await packageBackend.latestReleases(p);
+        final pvFuture = packageBackend.lookupPackageVersion(package, version);
+        final cardFuture = scoreCardBackend.getScoreCardData(package, version);
+        await Future.wait([pvFuture, cardFuture]);
 
-      final pv = await pvFuture;
-      final card = await cardFuture;
+        final pv = await pvFuture;
+        final card = await cardFuture;
 
-      return PackageView.fromModel(
-        package: p,
-        releases: releases,
-        version: pv,
-        scoreCard: card,
-      );
+        return PackageView.fromModel(
+          package: p,
+          releases: releases,
+          version: pv,
+          scoreCard: card,
+        );
+      } on NotFoundException catch (_) {
+        return null;
+      }
     });
   }
 

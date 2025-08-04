@@ -171,6 +171,8 @@ class SearchBackend {
           snapshot.add(doc);
         } on RemovedPackageException catch (_) {
           snapshot.remove(package);
+        } on NotFoundException catch (_) {
+          snapshot.remove(package);
         }
       });
     }
