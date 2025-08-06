@@ -178,14 +178,19 @@ class _UnsafeUrlFilter extends html_parsing.TreeVisitor {
   void visitElement(html.Element element) {
     super.visitElement(element);
 
-    final isUnsafe =
-        _isUnsafe(element, 'a', 'href') || _isUnsafe(element, 'img', 'src');
+    final isUnsafe = _isUnsafe(element, 'a', 'href') ||
+        _isUnsafe(element, 'img', 'src', allowDataBase64: true);
     if (isUnsafe) {
       element.replaceWith(html.Text(element.text));
     }
   }
 
-  bool _isUnsafe(html.Element element, String tag, String attr) {
+  bool _isUnsafe(
+    html.Element element,
+    String tag,
+    String attr, {
+    bool allowDataBase64 = false,
+  }) {
     if (element.localName != tag) {
       return false;
     }
@@ -194,12 +199,28 @@ class _UnsafeUrlFilter extends html_parsing.TreeVisitor {
       return false;
     }
     final uri = Uri.tryParse(url);
-    if (uri == null || uri.isInvalid) {
+    var isInvalid = uri == null || uri.isInvalid;
+    if (allowDataBase64 &&
+        uri != null &&
+        uri.scheme == 'data' &&
+        _isValidDataBase64ImageUrl(uri.path)) {
+      isInvalid = false;
+    }
+    if (isInvalid) {
       element.attributes.remove(attr);
       return true;
     }
     return false;
   }
+}
+
+bool _isValidDataBase64ImageUrl(String value) {
+  // NOTE: This is only a high-level check. It doesn't decode the image bytes,
+  //       and it doesn't check if the content is valid and matching the specified type.
+  if (RegExp(r'^image/[a-z0-9\+\-]+;base64,.*$').matchAsPrefix(value) == null) {
+    return false;
+  }
+  return true;
 }
 
 /// Rewrites relative URLs with the provided [urlResolverFn].

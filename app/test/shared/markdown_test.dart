@@ -448,4 +448,26 @@ void main() {
       ]);
     });
   });
+
+  group('data URLs', () {
+    final dataUrl =
+        'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+
+    test('rejected in links', () {
+      final output = markdownToHtml('[link]($dataUrl)');
+      expect(output, '<p>link</p>\n');
+    });
+
+    test('accepted in image', () {
+      // TODO: also enable data: URLs in sanitize_html
+      final output = markdownToHtml('![link]($dataUrl)');
+      expect(output, '<p><img alt="link"></p>\n');
+    });
+
+    test('rejected non-image', () {
+      final output =
+          markdownToHtml('![link](data:text/plain;base64,invalid-content)');
+      expect(output, '<p></p>\n');
+    });
+  });
 }
