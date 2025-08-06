@@ -139,6 +139,71 @@ String renderErrorPage(String title, String message) {
   );
 }
 
+/// Describes an additional action that the formatted not found page may display.
+class LinkToAction {
+  // The lead title will be rendered as section header.
+  final String leadTitle;
+  // The lead text will be rendered as section paragraph, right before the action button.
+  final String leadText;
+
+  /// The URI to go to via the link.
+  final String href;
+
+  /// The visible text of the action button.
+  final String buttonLabel;
+
+  /// The on-hover help text of the action button.
+  final String buttonTitle;
+
+  LinkToAction({
+    required this.leadTitle,
+    required this.leadText,
+    required this.href,
+    required this.buttonLabel,
+    required this.buttonTitle,
+  });
+}
+
+/// Renders the formatted 404 page with optional content.
+String renderFormattedNotFoundPage({
+  required String title,
+  required String requestedPath,
+  LinkToAction? linkToAction,
+}) {
+  final mainMessage =
+      'You\'ve stumbled onto a page (`$requestedPath`) that doesn\'t exist. '
+      'Luckily you have several options:\n\n'
+      '- Use the search box above, which will list packages that match your query.\n'
+      '- Visit the [packages](/packages) page and start browsing.\n'
+      '- Pick one of the top packages, listed on the [home page](/).\n';
+
+  return renderLayoutPage(
+    PageType.error,
+    errorPageNode(
+      title: title,
+      content: d.fragment([
+        d.markdown(mainMessage),
+        if (linkToAction != null)
+          d.fragment([
+            d.h3(text: linkToAction.leadTitle),
+            d.markdown(linkToAction.leadText),
+            d.p(
+              child: d.a(
+                classes: ['link-button'],
+                href: linkToAction.href,
+                text: linkToAction.buttonLabel,
+                title: linkToAction.buttonTitle,
+                rel: 'nofollow ugc',
+              ),
+            ),
+          ]),
+      ]),
+    ),
+    title: title,
+    noIndex: true,
+  );
+}
+
 d.Node renderFatalError({
   required String title,
   required Uri requestedUri,

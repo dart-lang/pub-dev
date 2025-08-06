@@ -114,6 +114,27 @@ void main() {
               prefix: 'package-page/score-page', selector: 'body');
         },
       );
+
+      // 404 page
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/retry');
+        await page.takeScreenshots(
+          prefix: '404-page/link-to-retry-package',
+          selector: 'body',
+        );
+
+        await page.gotoOrigin('/not-retry');
+        await page.takeScreenshots(
+          prefix: '404-page/link-to-retry-search',
+          selector: 'body',
+        );
+
+        await page.gotoOrigin('/x/y/z/w');
+        await page.takeScreenshots(
+          prefix: '404-page/generic-page',
+          selector: 'body',
+        );
+      });
     });
   }, timeout: Timeout.factor(testTimeoutFactor));
 }
