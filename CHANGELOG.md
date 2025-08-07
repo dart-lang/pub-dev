@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.8.3`
  * Upgraded stable Flutter analysis SDK to `3.32.8`.
  * Upgraded pana to `0.22.22`.
+ * Note: Tarball-related integrity checks are run in a separate weekly task (`check-tarball-integrity`).
 
 ## `20250804t140400-all`
  * Bump runtimeVersion to `2025.07.14`.

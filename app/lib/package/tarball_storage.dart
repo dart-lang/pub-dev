@@ -61,6 +61,19 @@ class TarballStorage {
   String getCanonicalBucketAbsoluteObjectName(String package, String version) =>
       _canonicalBucket.absoluteObjectName(tarballObjectName(package, version));
 
+  /// Get a list of package names in the canonical bucket.
+  Future<List<String>> listPackagesInCanonicalBucket() async {
+    final items = await _canonicalBucket.listAllItemsWithRetry(
+        prefix: 'packages/', delimiter: '-');
+    final packages = items
+        .where((i) => i.isDirectory)
+        .map((i) => i.name)
+        .map((name) => name.substring(9).split('-').first)
+        .toSet()
+        .toList();
+    return packages;
+  }
+
   /// Get map from `version` to [SourceObjectInfo] for each version of [package] in
   /// canonical bucket.
   Future<Map<String, SourceObjectInfo>> listVersionsInCanonicalBucket(
