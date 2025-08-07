@@ -10,6 +10,8 @@
 4. Verify that the listed language are selected.
 5. Download and extract assets.
 
+**NOTE:** when updating this list, also update the `init.js`.
+
 ```javascript
 var selected = [
   'bash',
