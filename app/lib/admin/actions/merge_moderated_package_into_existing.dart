@@ -62,7 +62,7 @@ Fails if that package has no existing Package entity.
       tx.insert(p!);
       tx.delete(mpKey);
     });
-    await purgePackageCache(packageName);
+    await triggerPackagePostUpdates(packageName).future;
 
     return {
       'package': packageName,
