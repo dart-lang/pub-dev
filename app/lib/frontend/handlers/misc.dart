@@ -272,18 +272,47 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
   });
 }
 
-String _notFoundMessage(Uri requestedUri) {
-  return 'You\'ve stumbled onto a page (`${requestedUri.path}`) that doesn\'t exist. '
-      'Luckily you have several options:\n\n'
-      '- Use the search box above, which will list packages that match your query.\n'
-      '- Visit the [packages](/packages) page and start browsing.\n'
-      '- Pick one of the top packages, listed on the [home page](/).\n';
-}
-
 /// Renders a formatted response when the request points to a missing or invalid path.
 shelf.Response formattedNotFoundHandler(shelf.Request request) {
+  String? package;
+  String? searchQuery;
+
+  // Extract unidentified text from the request URI.
+  final shouldSuggest = request.requestedUri.queryParameters.isEmpty &&
+      request.requestedUri.pathSegments.length == 1;
+  var unidentifiedText =
+      shouldSuggest ? request.requestedUri.pathSegments.single.trim() : '';
+
+  // may render additional content
+  if (unidentifiedText.isNotEmpty) {
+    final isPackage = nameTracker.hasPackage(unidentifiedText);
+    if (isPackage) {
+      package = unidentifiedText;
+      searchQuery = unidentifiedText;
+    } else {
+      // somewhat normalize content
+      unidentifiedText = unidentifiedText
+          .replaceAll('`', '')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+      // clip long content
+      if (unidentifiedText.length > 100) {
+        unidentifiedText = unidentifiedText.substring(0, 100);
+      }
+      // require a few characters for search
+      if (unidentifiedText.length > 2) {
+        searchQuery = unidentifiedText;
+      }
+    }
+  }
+
   return htmlResponse(
-    renderErrorPage(default404NotFound, _notFoundMessage(request.requestedUri)),
+    renderFormattedNotFoundPage(
+      title: default404NotFound,
+      requestedPath: request.requestedUri.path,
+      package: package,
+      searchQuery: searchQuery,
+    ),
     status: 404,
   );
 }

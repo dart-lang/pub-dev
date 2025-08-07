@@ -5,8 +5,8 @@
 import 'dart:io' as io;
 
 import 'package:path/path.dart' as p;
-import 'package:pub_dev/frontend/templates/views/page/topics_list.dart';
 
+import '../../shared/urls.dart' as urls;
 import '../dom/dom.dart' as d;
 import '../static_files.dart' as static_files;
 
@@ -15,6 +15,7 @@ import 'views/account/unauthenticated.dart';
 import 'views/account/unauthorized.dart';
 import 'views/page/error.dart';
 import 'views/page/standalone.dart';
+import 'views/page/topics_list.dart';
 
 /// The content of `/doc/policy.md`
 final _policyMarkdown = _readDocContent('policy.md');
@@ -137,6 +138,32 @@ String renderErrorPage(String title, String message) {
     title: title,
     noIndex: true,
   );
+}
+
+/// Renders the formatted 404 page with optional content.
+String renderFormattedNotFoundPage({
+  required String title,
+  required String requestedPath,
+  String? package,
+  String? searchQuery,
+}) {
+  final options = [
+    if (package != null)
+      'Go to [package:$package](${urls.pkgPageUrl(package)}).',
+    if (searchQuery != null)
+      'Search for packages matching <a href="${urls.searchUrl(q: searchQuery)}" rel="nofollow ugc">$searchQuery</a>.'
+    else
+      'Use the search box above, which will list packages that match your query.',
+    'Visit the [packages](/packages) page and start browsing.',
+    'Pick one of the top packages, listed on the [home page](/).',
+  ];
+
+  final body =
+      'You\'ve stumbled onto a page (`$requestedPath`) that doesn\'t exist. '
+      'Luckily you have several options:\n\n'
+      '${options.map((o) => '- $o\n').join()}';
+
+  return renderErrorPage(title, body);
 }
 
 d.Node renderFatalError({
