@@ -35,11 +35,13 @@ class PkgOptions {
   final bool? isDiscontinued;
   final String? replacedBy;
   final bool? isUnlisted;
+  final bool? isMaintainerWanted;
 
   PkgOptions({
     this.isDiscontinued,
     this.replacedBy,
     this.isUnlisted,
+    this.isMaintainerWanted,
   });
 
   factory PkgOptions.fromJson(Map<String, dynamic> json) =>

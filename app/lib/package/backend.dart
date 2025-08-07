@@ -419,6 +419,7 @@ class PackageBackend {
       isDiscontinued: p.isDiscontinued,
       replacedBy: p.replacedBy,
       isUnlisted: p.isUnlisted,
+      isMaintainerWanted: p.isMaintainerWanted ?? false,
     );
   }
 
@@ -463,6 +464,13 @@ class PackageBackend {
         p.isUnlisted = options.isUnlisted!;
         optionsChanges.add('unlisted');
       }
+      if ((options.isMaintainerWanted ?? false) &&
+          (options.isMaintainerWanted ?? false) !=
+              (p.isMaintainerWanted ?? false)) {
+        p.updateMaintainerWanted(
+            isMaintainerWanted: options.isMaintainerWanted ?? false);
+        optionsChanges.add('maintainerWanted');
+      }
 
       if (optionsChanges.isEmpty) {
         return;
@@ -471,7 +479,8 @@ class PackageBackend {
       p.updated = clock.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
-          'isUnlisted: ${p.isUnlisted}');
+          'isUnlisted: ${p.isUnlisted} '
+          'isMaintainerWanted: ${p.isMaintainerWanted}');
       tx.insert(p);
       tx.insert(await AuditLogRecord.packageOptionsUpdated(
         agent: authenticatedUser,

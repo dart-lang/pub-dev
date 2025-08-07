@@ -355,7 +355,7 @@ extension PageExt on Page {
   /// Returns the [property] value of the first element by [selector].
   Future<String> propertyValue(String selector, String property) async {
     final h = await $(selector);
-    return await h.propertyValue(property);
+    return (await h.propertyValue(property)).toString();
   }
 }
 

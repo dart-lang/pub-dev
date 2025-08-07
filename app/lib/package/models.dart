@@ -137,6 +137,16 @@ class Package extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? adminDeletedAt;
 
+  /// `true` if a package admin wants to advertise that they are looking for new maintainer(s).
+  ///
+  /// Note: the value expires and resets to false after a set period (e.g. 6 months after setting it).
+  @db.BoolProperty(required: false)
+  bool? isMaintainerWanted;
+
+  /// The timestamp when the [isMaintainerWanted] flag was set.
+  @db.DateTimeProperty()
+  DateTime? maintainerWantedStartedAt;
+
   /// Tags that are assigned to this package.
   ///
   /// The permissions required to assign a tag typically depends on the tag.
@@ -188,6 +198,7 @@ class Package extends db.ExpandoModel<String> {
       ..isUnlisted = false
       ..isModerated = false
       ..isAdminDeleted = false
+      ..isMaintainerWanted = false
       ..assignedTags = []
       ..deletedVersions = [];
   }
@@ -380,6 +391,7 @@ class Package extends db.ExpandoModel<String> {
       ],
       if (isUnlisted) PackageTags.isUnlisted,
       if (publisherId != null) PackageTags.publisherTag(publisherId!),
+      if (isMaintainerWanted ?? false) PackageTags.isMaintainerWanted,
     };
   }
 
@@ -417,6 +429,14 @@ class Package extends db.ExpandoModel<String> {
   }) {
     this.isAdminDeleted = isAdminDeleted;
     adminDeletedAt = isAdminDeleted ? clock.now().toUtc() : null;
+    updated = clock.now().toUtc();
+  }
+
+  void updateMaintainerWanted({
+    required bool isMaintainerWanted,
+  }) {
+    this.isMaintainerWanted = isMaintainerWanted;
+    maintainerWantedStartedAt = isMaintainerWanted ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
   }
 }

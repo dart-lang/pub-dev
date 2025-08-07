@@ -116,6 +116,7 @@ d.Node renderPkgHeader(PackagePageData data) {
     packageName: package.name!,
     publisherId: package.publisherId,
     published: data.version.created!,
+    isMaintainerWanted: package.isMaintainerWanted ?? false,
     isNullSafe: isNullSafe,
     isDart3Compatible:
         pkgView.tags.contains(PackageVersionTags.isDart3Compatible),
