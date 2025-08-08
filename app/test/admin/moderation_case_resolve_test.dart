@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
+import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -71,6 +72,15 @@ void main() {
       return mc!.status!;
     }
 
+    Future<void> _verifyCaseExistence(String caseId, bool exists) async {
+      final mc = await adminBackend.lookupModerationCase(caseId);
+      if (exists) {
+        expect(mc, isNotNull);
+      } else {
+        expect(mc, isNull);
+      }
+    }
+
     testWithProfile('notification: no action', fn: () async {
       final mc = await _prepare(apply: null);
       expect(await _close(mc.caseId), 'no-action');
@@ -82,6 +92,13 @@ void main() {
       'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
     ], fn: () async {
       final mc = await _prepare(apply: true);
+
+      // cleanup doesn't remove case prematurely
+      await _verifyCaseExistence(mc.caseId, true);
+      await adminBackend.deleteModerationCases(before: clock.now().toUtc());
+      await _verifyCaseExistence(mc.caseId, true);
+
+      // close case
       expect(
         await _close(
           mc.caseId,
@@ -89,6 +106,11 @@ void main() {
         ),
         'moderation-applied',
       );
+
+      // cleanup does remove case after the threshold is reached
+      await _verifyCaseExistence(mc.caseId, true);
+      await adminBackend.deleteModerationCases(before: clock.now().toUtc());
+      await _verifyCaseExistence(mc.caseId, false);
     });
 
     testWithProfile('appeal no action: revert', expectedLogMessages: [
