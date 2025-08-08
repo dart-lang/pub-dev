@@ -282,7 +282,7 @@
 }
 
 @mixin brightness-on-hover {
-  transition: 0.3s filter;
+  // transition: 0.3s filter;
 
   .light-theme & {
     &:hover {
