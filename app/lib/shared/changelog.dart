@@ -14,7 +14,7 @@
 /// The parser is designed to support the widely adopted "Keep a Changelog"
 /// format (see https://keepachangelog.com/en/1.1.0/ for details).
 /// Additionally, it has been tested with a diverse set of changelog files
-/// available a part of the packages on https://pub.dev/.
+/// available as part of the packages on https://pub.dev/.
 library;
 
 import 'package:collection/collection.dart';
