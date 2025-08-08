@@ -779,6 +779,34 @@ class AdminBackend {
     return refCase;
   }
 
+  /// Scans datastore and deletes [ModerationCase] entities where the last
+  /// action was more than 3 years ago.
+  Future<void> deleteModerationCases({
+    @visibleForTesting DateTime? before,
+  }) async {
+    before ??= clock.ago(days: 3 * 366).toUtc(); // extra buffer days
+
+    /// Querying the cases that were opened before the threshold,
+    /// as the resolved timestamp may be null for ongoing cases.
+    final query = _db.query<ModerationCase>()
+      ..filter('opened <', before)
+      ..order('opened');
+    await for (final mc in query.run()) {
+      // sanity check that both timestamps are before the threshold
+      if (mc.opened.isAfter(before)) {
+        continue;
+      }
+      final resolved = mc.resolved;
+      if (resolved == null || resolved.isAfter(before)) {
+        continue;
+      }
+      // delete the entity
+      _logger.info('Deleting ModerationCase: ${mc.caseId}');
+      await _db.commit(deletes: [mc.key]);
+      _logger.info('Deleted ModerationCase: ${mc.caseId}');
+    }
+  }
+
   /// Scans datastore and deletes moderated subjects where the last action
   /// was more than 3 years ago.
   Future<void> deleteModeratedSubjects({
