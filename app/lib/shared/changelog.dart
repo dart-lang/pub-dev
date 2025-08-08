@@ -20,7 +20,6 @@ library;
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart' as html;
 import 'package:html/parser.dart' as html_parser;
-import 'package:markdown/markdown.dart' as m;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Represents the entire changelog, containing a list of releases.
@@ -116,14 +115,6 @@ class ChangelogParser {
   })  : _strictLevels = strictLevels,
         _partOfLevelThreshold = partOfLevelThreshold;
 
-  Changelog parseMarkdown(String input) {
-    final nodes =
-        m.Document(extensionSet: m.ExtensionSet.gitHubWeb).parse(input);
-    final rawHtml = m.renderToHtml(nodes);
-    final root = html_parser.parseFragment(rawHtml);
-    return parseHtmlNodes(root.nodes);
-  }
-
   /// Parses markdown nodes into a [Changelog] structure.
   Changelog parseHtmlNodes(List<html.Node> input) {
     String? title;
@@ -161,7 +152,7 @@ class ChangelogParser {
             node.localName != firstReleaseLocalName) {
           continue;
         }
-        final headerText = _extractText(node).trim();
+        final headerText = node.text.trim();
 
         // Check if this looks like a version header first
         final parsed = _tryParseAsHeader(node, headerText);
@@ -198,16 +189,6 @@ class ChangelogParser {
       description: description,
       releases: releases,
     );
-  }
-
-  String _extractText(html.Node node) {
-    if (node is html.Text) {
-      return node.text;
-    } else if (node is html.Element) {
-      return node.nodes.map(_extractText).join();
-    } else {
-      return node.text ?? '';
-    }
   }
 
   /// Parses the release header line or return `null` when no version part was recognized.
