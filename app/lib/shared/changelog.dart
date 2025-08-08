@@ -73,7 +73,7 @@ class Release {
   });
 }
 
-/// Describes an arbitrary content (e.g. a changelog description or inside an entry).
+/// Describes an arbitrary piece of content (e.g. the description of a single version).
 ///
 /// If the content is specified as parsed HTML nodes, the class will store it as-is,
 /// and serialize them only when needed.
