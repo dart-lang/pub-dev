@@ -108,13 +108,14 @@ d.Node raisedButton({
 
 /// Renders a two-state material icon button
 d.Node iconButton({
-  required String id,
+  String? id,
   required bool isOn,
   Map<String, String>? attributes,
   required d.Image onIcon,
   required d.Image offIcon,
   bool disabled = false,
   String? title,
+  List<String>? classes,
 }) {
   return d.element(
     'button',
@@ -122,6 +123,7 @@ d.Node iconButton({
     classes: [
       'mdc-icon-button',
       if (isOn) 'mdc-icon-button--on',
+      ...?classes,
     ],
     attributes: {
       ...?attributes,
