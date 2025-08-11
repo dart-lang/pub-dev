@@ -10,16 +10,13 @@ import 'views/shared/detail/tabs.dart';
 final wideHeaderDetailPageClassName = '-wide-header-detail-page';
 
 /// Renders the detail page's header template.
-///
-/// The like button in the header will not be displayed when [isLiked] is null.
 d.Node renderDetailHeader({
   required d.Node titleNode,
   d.Image? image,
-  int? packageLikes,
-  bool? isLiked,
   bool isFlutterFavorite = false,
   d.Node? metadataNode,
   d.Node? tagsNode,
+  d.Node? likeNode,
 
   /// Set true for more whitespace in the header.
   bool isLoose = false,
@@ -28,10 +25,9 @@ d.Node renderDetailHeader({
     titleNode: titleNode,
     metadataNode: metadataNode,
     tagsNode: tagsNode,
+    likeNode: likeNode,
     image: image,
     isLoose: isLoose,
-    isLiked: isLiked == true,
-    likeCount: packageLikes,
     isFlutterFavorite: isFlutterFavorite,
   );
 }
