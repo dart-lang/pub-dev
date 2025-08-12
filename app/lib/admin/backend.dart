@@ -779,8 +779,7 @@ class AdminBackend {
     return refCase;
   }
 
-  /// Scans datastore and deletes [ModerationCase] entities where the last
-  /// action was more than 3 years ago.
+  /// Scans datastore and deletes [ModerationCase] entities opened more than 3 years ago.
   Future<void> deleteModerationCases({
     @visibleForTesting DateTime? before,
   }) async {
