@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:test/test.dart';
 
@@ -38,6 +39,21 @@ void main() {
             {'package': 'oxygen', 'score': isPositive},
           ],
         });
+
+        await expectJsonResponse(
+          await issuePost(
+            '/search',
+            body: SearchRequestData(query: 'oxygen').toJson(),
+          ),
+          body: {
+            'timestamp': isNotNull,
+            'totalCount': 1,
+            'sdkLibraryHits': [],
+            'packageHits': [
+              {'package': 'oxygen', 'score': isPositive},
+            ],
+          },
+        );
       });
 
       testWithProfile('Finds text in description or readme', fn: () async {

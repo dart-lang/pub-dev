@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';

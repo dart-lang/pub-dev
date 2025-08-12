@@ -53,7 +53,6 @@ enum SearchOrder {
   /// WARNING: The value shouldn't be used anymore.
   ///
   /// TODO: remove in a future release.
-  @Deprecated('Popularity is no longer used.')
   popularity,
 
   /// Search order should be in decreasing download counts.
