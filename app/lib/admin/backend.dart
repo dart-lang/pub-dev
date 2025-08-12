@@ -784,7 +784,7 @@ class AdminBackend {
   Future<void> deleteModerationCases({
     @visibleForTesting DateTime? before,
   }) async {
-    before ??= clock.ago(days: 3 * 366).toUtc(); // extra buffer days
+    before ??= clock.ago(days: 3 * 365).toUtc();
 
     /// Querying the cases that were opened before the threshold,
     /// as the resolved timestamp may be null for ongoing cases.
@@ -794,10 +794,6 @@ class AdminBackend {
     await for (final mc in query.run()) {
       // sanity check that both timestamps are before the threshold
       if (mc.opened.isAfter(before)) {
-        continue;
-      }
-      final resolved = mc.resolved;
-      if (resolved == null || resolved.isAfter(before)) {
         continue;
       }
       // delete the entity

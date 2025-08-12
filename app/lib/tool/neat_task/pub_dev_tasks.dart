@@ -136,18 +136,18 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       task: () async => await apiExporter.synchronizeExportedApi(),
     ),
 
+    // Deletes ModerationCase entities.
+    _daily(
+      name: 'delete-moderation-cases',
+      isRuntimeVersioned: false,
+      task: () async => adminBackend.deleteModerationCases(),
+    ),
+
     // Deletes admin-deleted entities.
     _weekly(
       name: 'delete-admin-deleted-entities',
       isRuntimeVersioned: false,
       task: () async => adminBackend.deleteAdminDeletedEntities(),
-    ),
-
-    // Deletes ModerationCase entities.
-    _weekly(
-      name: 'delete-moderation-cases',
-      isRuntimeVersioned: false,
-      task: () async => adminBackend.deleteModerationCases(),
     ),
 
     // Deletes moderated packages, versions, publishers and users.
