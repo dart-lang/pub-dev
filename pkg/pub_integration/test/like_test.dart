@@ -40,27 +40,37 @@ void main() {
       final user = await fakeTestScenario.createTestUser(email: 'user@pub.dev');
 
       await user.withBrowserPage((page) async {
-        Future<String> getCountLabel() async {
-          final label = await page.$('.like-button-and-label--count');
-          return await label.textContent();
+        Future<List<String>> getCountLabels() async {
+          final buttonLabel = await page.$('.like-button-and-label--count');
+          final viewLabel =
+              await page.$('.packages-score-like .packages-score-value-number');
+          final keyScoreLabel = await page
+              .$OrNull('.score-key-figure--likes .score-key-figure-value');
+          return [
+            await buttonLabel.textContent(),
+            await viewLabel.textContent(),
+            (await keyScoreLabel?.textContent()) ?? '',
+          ];
         }
 
         await page.gotoOrigin('/packages/test_pkg');
-        expect(await getCountLabel(), '0');
+        expect(await getCountLabels(), ['0', '0', '']);
 
         await page.click('.like-button-and-label--button');
         await Future.delayed(Duration(seconds: 1));
-        expect(await getCountLabel(), '1');
+        expect(await getCountLabels(), ['1', '1', '']);
 
-        await page.gotoOrigin('/packages/test_pkg');
-        expect(await getCountLabel(), '1');
+        // displaying all three
+        await page.gotoOrigin('/packages/test_pkg/score');
+        expect(await getCountLabels(), ['1', '1', '1']);
 
         await page.click('.like-button-and-label--button');
         await Future.delayed(Duration(seconds: 1));
 
-        expect(await getCountLabel(), '0');
+        // checking it on the main package page too
+        expect(await getCountLabels(), ['0', '0', '0']);
         await page.gotoOrigin('/packages/test_pkg');
-        expect(await getCountLabel(), '0');
+        expect(await getCountLabels(), ['0', '0', '']);
       });
     });
   });
