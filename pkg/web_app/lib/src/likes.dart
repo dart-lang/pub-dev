@@ -63,10 +63,26 @@ void setupLikes() {
 
     var likesDelta = 0;
 
-    // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
-    String likesString() {
+    void updateLabels() {
       final likesCount = originalCount + likesDelta;
-      return formatWithSuffix(likesCount);
+      // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
+      countLabel.innerText = formatWithSuffix(likesCount);
+
+      // keep in-sync with app/lib/frontend/templates/views/pkg/labeled_scores.dart
+      final formatted = compactFormat(likesCount);
+      final labeledScoreLikeString = '${formatted.value}${formatted.suffix}';
+      final labeledLikes = querySelectorAll('.packages-score-like')
+          .where((e) => e.dataset['package'] == package)
+          .toList();
+      for (final labeledLike in labeledLikes) {
+        labeledLike.querySelector('.packages-score-value-number')?.text =
+            labeledScoreLikeString;
+      }
+
+      // keep in-sync with app/lib/frontend/templates/views/pkg/score_tab.dart
+      querySelector('.score-key-figure--likes')
+          ?.querySelector('.score-key-figure-value')
+          ?.text = labeledScoreLikeString;
     }
 
     final iconButtonToggle = MDCIconButtonToggle(likeButton);
@@ -87,12 +103,12 @@ void setupLikes() {
       if (iconButtonToggle.on ?? false) {
         // The button has shifted to on.
         likesDelta++;
-        countLabel.innerText = likesString();
+        updateLabels();
         _enqueue(() => api_client.client.likePackage(package));
       } else {
         // The button has shifted to off.
         likesDelta--;
-        countLabel.innerText = likesString();
+        updateLabels();
         _enqueue(() => api_client.client.unlikePackage(package));
       }
     });
