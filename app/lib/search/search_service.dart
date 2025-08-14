@@ -186,10 +186,6 @@ class ServiceSearchQuery {
     ));
   }
 
-  factory ServiceSearchQuery.fromServiceUrl(Uri uri) {
-    return ServiceSearchQuery(SearchRequestData.fromServiceUrl(uri));
-  }
-
   ServiceSearchQuery change({
     TextMatchExtent? textMatchExtent,
   }) {
