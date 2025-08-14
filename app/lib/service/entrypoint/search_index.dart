@@ -60,9 +60,8 @@ Future<void> main(List<String> args, var message) async {
             final info = await searchIndex.indexInfo();
             return ReplyMessage.result(info.toJson());
           } else if (payload is String) {
-            final q = ServiceSearchQuery.fromSearchRequestData(
-                SearchRequestData.fromJson(
-                    json.decode(payload) as Map<String, dynamic>));
+            final q = ServiceSearchQuery(SearchRequestData.fromJson(
+                json.decode(payload) as Map<String, dynamic>));
             final rs = await searchIndex.search(q);
             return ReplyMessage.result(json.encode(rs.toJson()));
           } else {

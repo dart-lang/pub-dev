@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' show max;
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/shared/utils.dart';
 
@@ -158,36 +158,9 @@ class ApiDocPage {
 }
 
 class ServiceSearchQuery {
-  final String? query;
-  final ParsedQueryText parsedQuery;
-  final TagsPredicate tagsPredicate;
+  final SearchRequestData _data;
 
-  final String? publisherId;
-
-  final int? minPoints;
-
-  /// The value of the `sort` URL query parameter.
-  final SearchOrder? order;
-  final int offset;
-  final int limit;
-
-  /// The scope/depth of text matching.
-  final TextMatchExtent? textMatchExtent;
-
-  ServiceSearchQuery._({
-    this.query,
-    TagsPredicate? tagsPredicate,
-    String? publisherId,
-    required this.minPoints,
-    this.order,
-    int? offset,
-    int? limit,
-    this.textMatchExtent,
-  })  : offset = max(0, offset ?? 0),
-        limit = max(_minSearchLimit, limit ?? 10),
-        parsedQuery = ParsedQueryText.parse(query),
-        tagsPredicate = tagsPredicate ?? TagsPredicate(),
-        publisherId = publisherId?.trimToNull();
+  ServiceSearchQuery(this._data);
 
   factory ServiceSearchQuery.parse({
     String? query,
@@ -200,96 +173,47 @@ class ServiceSearchQuery {
     TextMatchExtent? textMatchExtent,
   }) {
     final q = query?.trimToNull();
-    return ServiceSearchQuery._(
+    final tags = tagsPredicate?.toQueryParameters();
+    return ServiceSearchQuery(SearchRequestData(
       query: q,
-      tagsPredicate: tagsPredicate,
+      tags: tags,
       publisherId: publisherId,
       minPoints: minPoints,
       order: order,
       offset: offset,
       limit: limit,
       textMatchExtent: textMatchExtent,
-    );
-  }
-
-  factory ServiceSearchQuery.fromServiceUrl(Uri uri) {
-    final q = uri.queryParameters['q'];
-    final tagsPredicate =
-        TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
-    final publisherId = uri.queryParameters['publisherId'];
-    final String? orderValue = uri.queryParameters['order'];
-    final SearchOrder? order = parseSearchOrder(orderValue);
-
-    final minPoints =
-        int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
-    final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
-    final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
-    final textMatchExtentValue =
-        uri.queryParameters['textMatchExtent']?.trim() ?? '';
-    final textMatchExtent = TextMatchExtent.values
-        .firstWhereOrNull((e) => e.name == textMatchExtentValue);
-
-    return ServiceSearchQuery.parse(
-      query: q,
-      tagsPredicate: tagsPredicate,
-      publisherId: publisherId,
-      order: order,
-      minPoints: minPoints,
-      offset: offset,
-      limit: limit,
-      textMatchExtent: textMatchExtent,
-    );
-  }
-
-  factory ServiceSearchQuery.fromSearchRequestData(SearchRequestData data) {
-    final tagsPredicate = TagsPredicate.parseQueryValues(data.tags);
-    return ServiceSearchQuery.parse(
-      query: data.query,
-      tagsPredicate: tagsPredicate,
-      publisherId: data.publisherId,
-      order: data.order,
-      minPoints: data.minPoints,
-      offset: data.offset ?? 0,
-      limit: data.limit,
-      textMatchExtent: data.textMatchExtent,
-    );
+    ));
   }
 
   ServiceSearchQuery change({
-    String? query,
-    TagsPredicate? tagsPredicate,
-    String? publisherId,
-    SearchOrder? order,
-    int? offset,
-    int? limit,
     TextMatchExtent? textMatchExtent,
   }) {
-    return ServiceSearchQuery._(
-      query: query ?? this.query,
-      tagsPredicate: tagsPredicate ?? this.tagsPredicate,
-      publisherId: publisherId ?? this.publisherId,
-      order: order ?? this.order,
+    return ServiceSearchQuery(SearchRequestData(
+      query: query,
+      tags: _data.tags,
+      publisherId: publisherId,
+      order: order,
       minPoints: minPoints,
-      offset: offset ?? this.offset,
-      limit: limit ?? this.limit,
+      offset: offset,
+      limit: limit,
       textMatchExtent: textMatchExtent ?? this.textMatchExtent,
-    );
+    ));
   }
 
+  late final parsedQuery = ParsedQueryText.parse(_data.query);
+  late final tagsPredicate = TagsPredicate.parseQueryValues(_data.tags);
+
+  String? get query => _data.query;
+  String? get publisherId => _data.publisherId?.trimToNull();
+  int? get minPoints => _data.minPoints;
+  SearchOrder? get order => _data.order;
+  int get offset => max(0, _data.offset ?? 0);
+  int get limit => max(_minSearchLimit, _data.limit ?? 10);
+  TextMatchExtent? get textMatchExtent => _data.textMatchExtent;
+
   Map<String, dynamic> toUriQueryParameters() {
-    final map = <String, dynamic>{
-      'q': query,
-      'tags': tagsPredicate.toQueryParameters(),
-      'publisherId': publisherId,
-      'offset': offset.toString(),
-      if (minPoints != null && minPoints! > 0)
-        'minPoints': minPoints.toString(),
-      'limit': limit.toString(),
-      'order': order?.name,
-      if (textMatchExtent != null) 'textMatchExtent': textMatchExtent!.name,
-    };
-    map.removeWhere((k, v) => v == null);
-    return map;
+    return _data.toUriQueryParameters();
   }
 
   /// The effective sort order to use:
@@ -327,17 +251,10 @@ class ServiceSearchQuery {
   }
 
   SearchRequestData toSearchRequestData() {
-    return SearchRequestData(
-      query: query,
-      tags: tagsPredicate.toQueryParameters(),
-      publisherId: publisherId,
-      minPoints: minPoints,
-      order: order,
-      offset: offset,
-      limit: limit,
-      textMatchExtent: textMatchExtent,
-    );
+    return _data;
   }
+
+  String toDebugString() => json.encode(_data.toJson());
 }
 
 class QueryValidity {

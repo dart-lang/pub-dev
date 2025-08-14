@@ -19,19 +19,69 @@ class SearchRequestData {
   final TextMatchExtent? textMatchExtent;
 
   SearchRequestData({
-    this.query,
+    String? query,
     this.tags,
-    this.publisherId,
+    String? publisherId,
     this.minPoints,
     this.order,
     this.offset,
     this.limit,
     this.textMatchExtent,
-  });
+  })  : query = _trimToNull(query),
+        publisherId = _trimToNull(publisherId);
 
   factory SearchRequestData.fromJson(Map<String, dynamic> json) =>
       _$SearchRequestDataFromJson(json);
   Map<String, dynamic> toJson() => _$SearchRequestDataToJson(this);
+
+  factory SearchRequestData.fromServiceUrl(Uri uri) {
+    final q = uri.queryParameters['q'];
+    final tags = uri.queryParametersAll['tags'];
+    final publisherId = uri.queryParameters['publisherId'];
+    final String? orderValue = uri.queryParameters['order'];
+    final SearchOrder? order = parseSearchOrder(orderValue);
+
+    final minPoints =
+        int.tryParse(uri.queryParameters['minPoints'] ?? '0') ?? 0;
+    final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
+    final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
+    final textMatchExtentValue =
+        uri.queryParameters['textMatchExtent']?.trim() ?? '';
+    TextMatchExtent? textMatchExtent;
+    for (final extent in TextMatchExtent.values) {
+      if (extent.name == textMatchExtentValue) {
+        textMatchExtent = extent;
+        break;
+      }
+    }
+
+    return SearchRequestData(
+      query: q,
+      tags: tags,
+      publisherId: publisherId,
+      order: order,
+      minPoints: minPoints,
+      offset: offset,
+      limit: limit,
+      textMatchExtent: textMatchExtent,
+    );
+  }
+
+  Map<String, dynamic> toUriQueryParameters() {
+    final map = <String, dynamic>{
+      'q': query,
+      'tags': tags,
+      'publisherId': publisherId,
+      'offset': (offset ?? 0).toString(),
+      if (minPoints != null && minPoints! > 0)
+        'minPoints': minPoints.toString(),
+      'limit': (limit ?? 10).toString(),
+      'order': order?.name,
+      if (textMatchExtent != null) 'textMatchExtent': textMatchExtent!.name,
+    };
+    map.removeWhere((k, v) => v == null);
+    return map;
+  }
 }
 
 /// The scope (depth) of the text matching.
@@ -64,4 +114,9 @@ enum TextMatchExtent {
 
   /// Text search is on names, descriptions, topic tags, readme content and API symbols.
   bool shouldMatchApi() => index >= api.index;
+}
+
+String? _trimToNull(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
 }
