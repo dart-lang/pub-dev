@@ -60,7 +60,9 @@ Future<void> main(List<String> args, var message) async {
             final info = await searchIndex.indexInfo();
             return ReplyMessage.result(info.toJson());
           } else if (payload is String) {
-            final q = ServiceSearchQuery.fromServiceUrl(Uri.parse(payload));
+            final q = ServiceSearchQuery.fromSearchRequestData(
+                SearchRequestData.fromJson(
+                    json.decode(payload) as Map<String, dynamic>));
             final rs = await searchIndex.search(q);
             return ReplyMessage.result(json.encode(rs.toJson()));
           } else {
@@ -131,7 +133,7 @@ class IsolateSearchIndex implements SearchIndex {
   FutureOr<PackageSearchResult> search(ServiceSearchQuery query) async {
     try {
       final rs = await _runner.sendRequest(
-        Uri(queryParameters: query.toUriQueryParameters()).toString(),
+        json.encode(query.toSearchRequestData().toJson()),
         timeout: Duration(minutes: 1),
       );
       return PackageSearchResult.fromJson(
