@@ -61,7 +61,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   }
   final Stopwatch sw = Stopwatch()..start();
   final query = request.method == 'POST'
-      ? ServiceSearchQuery.fromSearchRequestData(
+      ? ServiceSearchQuery(
           SearchRequestData.fromJson(
             json.decode(await request.readAsString()) as Map<String, dynamic>,
           ),
@@ -72,7 +72,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   if (elapsed > _slowSearchThreshold) {
     _logger.info(
         '[pub-slow-search-query] Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds} ms: '
-        '${query.toUriQueryParameters()}');
+        '${query.toDebugString()}');
   }
 
   if (request.requestedUri.queryParameters['debug-drift'] == '1') {
