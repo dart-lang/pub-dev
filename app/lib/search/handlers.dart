@@ -52,6 +52,7 @@ Future<shelf.Response> _debugHandler(shelf.Request request) async {
 }
 
 /// Handles GET /search requests.
+/// Handles POST /search requests.
 Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final info = await searchIndex.indexInfo();
   if (!info.isReady) {
