@@ -29,14 +29,12 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
       version: json['version'] as String,
       publisherId: json['publisherId'] as String?,
       isDiscontinued: json['isDiscontinued'] as bool,
-      likes: (json['likes'] as num).toInt(),
       isLatest: json['isLatest'] as bool,
     );
 
 Map<String, dynamic> _$PkgDataToJson(PkgData instance) => <String, dynamic>{
       'package': instance.package,
       'version': instance.version,
-      'likes': instance.likes,
       if (instance.publisherId case final value?) 'publisherId': value,
       'isDiscontinued': instance.isDiscontinued,
       'isLatest': instance.isLatest,

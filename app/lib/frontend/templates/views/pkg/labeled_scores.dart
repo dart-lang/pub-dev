@@ -7,11 +7,15 @@ import 'package:_pub_shared/format/number_format.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node labeledScoresNode({
+  required String package,
   required String pkgScorePageUrl,
   required int likeCount,
   required int? grantedPubPoints,
   required int? thirtyDaysDownloads,
 }) {
+  final formattedLikes = compactFormat(likeCount);
+  final formattedDownloads =
+      thirtyDaysDownloads == null ? null : compactFormat(thirtyDaysDownloads);
   return d.a(
     classes: ['packages-scores'],
     href: pkgScorePageUrl,
@@ -20,9 +24,10 @@ d.Node labeledScoresNode({
         classes: ['packages-score', 'packages-score-like'],
         child: _labeledScore(
             'likes',
-            '${compactFormat(likeCount).value}'
-                '${compactFormat(likeCount).suffix}',
+            // keep in-sync with pkg/web_app/lib/src/likes.dart
+            '${formattedLikes.value}${formattedLikes.suffix}',
             sign: ''),
+        attributes: {'data-package': package},
       ),
       d.div(
         classes: ['packages-score', 'packages-score-health'],
@@ -35,9 +40,8 @@ d.Node labeledScoresNode({
         classes: ['packages-score', 'packages-score-downloads'],
         child: _labeledScore(
           'downloads',
-          thirtyDaysDownloads != null
-              ? '${compactFormat(thirtyDaysDownloads).value}'
-                  '${compactFormat(thirtyDaysDownloads).suffix}'
+          formattedDownloads != null
+              ? '${formattedDownloads.value}${formattedDownloads.suffix}'
               : null,
           sign: '',
         ),
