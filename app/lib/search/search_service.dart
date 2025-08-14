@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' show max;
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -240,6 +241,20 @@ class ServiceSearchQuery {
     );
   }
 
+  factory ServiceSearchQuery.fromSearchRequestData(SearchRequestData data) {
+    final tagsPredicate = TagsPredicate.parseQueryValues(data.tags);
+    return ServiceSearchQuery.parse(
+      query: data.query,
+      tagsPredicate: tagsPredicate,
+      publisherId: data.publisherId,
+      order: data.order,
+      minPoints: data.minPoints,
+      offset: data.offset ?? 0,
+      limit: data.limit,
+      textMatchExtent: data.textMatchExtent,
+    );
+  }
+
   ServiceSearchQuery change({
     String? query,
     TagsPredicate? tagsPredicate,
@@ -310,38 +325,19 @@ class ServiceSearchQuery {
 
     return QueryValidity.accept();
   }
-}
 
-/// The scope (depth) of the text matching.
-enum TextMatchExtent {
-  /// No text search is done.
-  /// Requests with text queries will return a failure message.
-  none,
-
-  /// Text search is on package names.
-  name,
-
-  /// Text search is on package names, descriptions and topic tags.
-  description,
-
-  /// Text search is on names, descriptions, topic tags and readme content.
-  readme,
-
-  /// Text search is on names, descriptions, topic tags, readme content and API symbols.
-  api,
-  ;
-
-  /// Text search is on package names.
-  bool shouldMatchName() => index >= name.index;
-
-  /// Text search is on package names, descriptions and topic tags.
-  bool shouldMatchDescription() => index >= description.index;
-
-  /// Text search is on names, descriptions, topic tags and readme content.
-  bool shouldMatchReadme() => index >= readme.index;
-
-  /// Text search is on names, descriptions, topic tags, readme content and API symbols.
-  bool shouldMatchApi() => index >= api.index;
+  SearchRequestData toSearchRequestData() {
+    return SearchRequestData(
+      query: query,
+      tags: tagsPredicate.toQueryParameters(),
+      publisherId: publisherId,
+      minPoints: minPoints,
+      order: order,
+      offset: offset,
+      limit: limit,
+      textMatchExtent: textMatchExtent,
+    );
+  }
 }
 
 class QueryValidity {

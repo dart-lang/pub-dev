@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -287,8 +288,6 @@ class InMemoryPackageIndex {
       case SearchOrder.updated:
         indexedHits = _updatedOrderedHits.whereInScores(selectFn);
         break;
-      // ignore: deprecated_member_use
-      case SearchOrder.popularity:
       case SearchOrder.downloads:
         indexedHits = _downloadsOrderedHits.whereInScores(selectFn);
         break;

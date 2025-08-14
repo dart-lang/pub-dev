@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../service/rate_limit/rate_limit.dart';
 import '../shared/configuration.dart';
@@ -69,8 +70,33 @@ class SearchClient {
     Future<({int statusCode, String? body})?> doCallHttpServiceEndpoint(
         {String? prefix}) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
-      final serviceUrl = '$httpHostPort/search$serviceUrlParams';
       try {
+        if (requestContext.experimentalFlags.useSearchPost) {
+          return await withRetryHttpClient(
+            (client) async {
+              final data = query.toSearchRequestData();
+              // NOTE: Keeping the query parameter to help investigating logs.
+              final uri = Uri.parse('$httpHostPort/search').replace(
+                queryParameters: {
+                  'q': data.query,
+                },
+              );
+              final rs = await client.post(
+                uri,
+                headers: {
+                  ...?cloudTraceHeaders(),
+                  'content-type': 'application/json',
+                },
+                body: json.encode(data.toJson()),
+              );
+              return (statusCode: rs.statusCode, body: rs.body);
+            },
+            client: _httpClient,
+            retryIf: (e) => (e is UnexpectedStatusException &&
+                e.statusCode == searchIndexNotReadyCode),
+          );
+        }
+        final serviceUrl = '$httpHostPort/search$serviceUrlParams';
         return await httpGetWithRetry(
           Uri.parse(serviceUrl),
           client: _httpClient,

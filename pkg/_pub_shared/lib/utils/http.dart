@@ -61,20 +61,47 @@ Future<K> httpGetWithRetry<K>(
   /// Note: check for [UnexpectedStatusException] to allow non-200 response status codes.
   bool Function(Exception e)? retryIf,
 }) async {
+  return await withRetryHttpClient(
+    (http.Client effectiveClient) async {
+      var f = effectiveClient.get(uri, headers: headers);
+      if (perRequestTimeout != null) {
+        f = f.timeout(perRequestTimeout);
+      }
+      final rs = await f;
+      if (rs.statusCode == 200) {
+        return responseFn(rs);
+      }
+      throw UnexpectedStatusException(rs.statusCode, uri);
+    },
+    client: client,
+    maxAttempts: maxAttempts,
+    retryIf: retryIf,
+  );
+}
+
+/// Creates a HTTP client and executes a HTTP request(s) with it,
+/// making sure that the HTTP resources are freed after the callback
+/// finishes.
+///
+/// The callback is retried on the transient network errors.
+Future<K> withRetryHttpClient<K>(
+  Future<K> Function(http.Client client) fn, {
+  int maxAttempts = 3,
+
+  /// The HTTP client to use.
+  ///
+  /// Note: when the client is not specified, the inner loop will create a new [http.Client] object on each retry attempt.
+  http.Client? client,
+
+  /// Additional retry conditions (on top of the default ones).
+  bool Function(Exception e)? retryIf,
+}) async {
   return await retry(
     () async {
       final closeClient = client == null;
       final effectiveClient = client ?? http.Client();
       try {
-        var f = effectiveClient.get(uri, headers: headers);
-        if (perRequestTimeout != null) {
-          f = f.timeout(perRequestTimeout);
-        }
-        final rs = await f;
-        if (rs.statusCode == 200) {
-          return responseFn(rs);
-        }
-        throw UnexpectedStatusException(rs.statusCode, uri);
+        return await fn(effectiveClient);
       } finally {
         if (closeClient) {
           effectiveClient.close();

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:args/args.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';

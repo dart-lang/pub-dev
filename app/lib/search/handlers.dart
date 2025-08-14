@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf_router/shelf_router.dart';
 
 import '../shared/env_config.dart';
 import '../shared/handlers.dart';
@@ -18,28 +21,22 @@ final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 
 /// Handlers for the search service.
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
-  final path = request.requestedUri.path;
-  final handler = <String, shelf.Handler>{
-    '/debug': _debugHandler,
-    '/liveness_check': _livenessCheckHandler,
-    '/readiness_check': _readinessCheckHandler,
-    '/search': _searchHandler,
-    '/robots.txt': rejectRobotsHandler,
-  }[path];
-
-  if (handler != null) {
-    return await handler(request);
-  } else {
-    return notFoundHandler(request);
-  }
+  final router = Router(notFoundHandler: notFoundHandler)
+    ..get('/debug', _debugHandler)
+    ..get('/liveness_check', _livenessCheckHandler)
+    ..get('/readiness_check', _readinessCheckHandler)
+    ..get('/search', _searchHandler)
+    ..post('/search', _searchHandler)
+    ..get('/robots.txt', rejectRobotsHandler);
+  return await router.call(request);
 }
 
-/// Handles /liveness_check requests.
+/// Handles GET /liveness_check requests.
 Future<shelf.Response> _livenessCheckHandler(shelf.Request request) async {
   return htmlResponse('OK');
 }
 
-/// Handles /readiness_check requests.
+/// Handles GET /readiness_check requests.
 Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
   if (await searchIndex.isReady()) {
     return htmlResponse('OK');
@@ -48,13 +45,14 @@ Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
   }
 }
 
-/// Handler /debug requests
+/// Handler GET /debug requests
 Future<shelf.Response> _debugHandler(shelf.Request request) async {
   final info = await searchIndex.indexInfo();
   return debugResponse(info.toJson());
 }
 
-/// Handles /search requests.
+/// Handles GET /search requests.
+/// Handles POST /search requests.
 Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final info = await searchIndex.indexInfo();
   if (!info.isReady) {
@@ -62,7 +60,13 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
         status: searchIndexNotReadyCode);
   }
   final Stopwatch sw = Stopwatch()..start();
-  final query = ServiceSearchQuery.fromServiceUrl(request.requestedUri);
+  final query = request.method == 'POST'
+      ? ServiceSearchQuery.fromSearchRequestData(
+          SearchRequestData.fromJson(
+            json.decode(await request.readAsString()) as Map<String, dynamic>,
+          ),
+        )
+      : ServiceSearchQuery.fromServiceUrl(request.requestedUri);
   final result = await searchIndex.search(query);
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
