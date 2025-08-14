@@ -36,7 +36,6 @@ const _$SearchOrderEnumMap = {
   SearchOrder.text: 'text',
   SearchOrder.created: 'created',
   SearchOrder.updated: 'updated',
-  SearchOrder.popularity: 'popularity',
   SearchOrder.downloads: 'downloads',
   SearchOrder.like: 'like',
   SearchOrder.points: 'points',

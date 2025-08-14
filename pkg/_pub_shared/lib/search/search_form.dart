@@ -49,12 +49,6 @@ enum SearchOrder {
   /// Search order should be in decreasing last package updated time.
   updated,
 
-  /// Search order should be in decreasing popularity score.
-  /// WARNING: The value shouldn't be used anymore.
-  ///
-  /// TODO: remove in a future release.
-  popularity,
-
   /// Search order should be in decreasing download counts.
   downloads,
 
