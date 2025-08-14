@@ -288,8 +288,6 @@ class InMemoryPackageIndex {
       case SearchOrder.updated:
         indexedHits = _updatedOrderedHits.whereInScores(selectFn);
         break;
-      // ignore: deprecated_member_use
-      case SearchOrder.popularity:
       case SearchOrder.downloads:
         indexedHits = _downloadsOrderedHits.whereInScores(selectFn);
         break;
