@@ -44,12 +44,14 @@ class AsyncQueue {
 
   AsyncQueue() : _zone = Zone.current;
 
-  void addAsyncFn(AsyncFn fn) {
+  ({Future future}) addAsyncFn(AsyncFn fn) {
     if (_closed) {
       throw StateError('AsyncQueue is closed, task was not accepted.');
     }
-    _queue.add(_Task(fn, StackTrace.current));
+    final task = _Task(fn, StackTrace.current);
+    _queue.add(task);
     _triggerProcessing();
+    return (future: task.completer.future);
   }
 
   void _triggerProcessing() {
@@ -61,10 +63,12 @@ class AsyncQueue {
       final first = _queue.removeFirst();
       try {
         await first.fn();
+        first.completer.complete();
       } catch (e, st) {
         final trace = Chain([Trace.from(first.origin), Trace.from(st)]).terse;
         stderr.writeln('Error executing off-request function: $e\n$trace');
         _logger.severe('Error executing off-request function.', e, trace);
+        first.completer.completeError(e, st);
       }
     }
 
@@ -80,6 +84,7 @@ class AsyncQueue {
 class _Task {
   final AsyncFn fn;
   final StackTrace origin;
+  final completer = Completer();
 
   _Task(this.fn, this.origin);
 }

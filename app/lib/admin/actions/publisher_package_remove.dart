@@ -59,7 +59,8 @@ If the publisher has no members, the package will end up without uploaders.
           ),
         );
       });
-      await purgePackageCache(packageName);
+      triggerPackagePostUpdates(packageName,
+          skipTask: true, skipVersionsExport: true);
       await purgePublisherCache(publisherId: currentPublisherId);
       return {
         'previousPublisher': currentPublisherId,
