@@ -23,10 +23,10 @@ RUN mkdir -p /home/worker/config/dart-stable
 RUN mkdir -p /home/worker/config/flutter-stable
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/54588cb8088890ea08fe1a31b95efe478a4609b5
+RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.9.0
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.32.8
+RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.35.1
 
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin

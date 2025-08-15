@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:checked_yaml/checked_yaml.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:logging/logging.dart';
@@ -161,6 +162,9 @@ Future<PackageSummary> summarizePackageArchive(
     pubspec = Pubspec.parse(pubspecContent);
   } on YamlException catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
+    return PackageSummary(issues: issues);
+  } on ParsedYamlException catch (e) {
+    issues.add(ArchiveIssue('Error parsing pubspec.yaml: ${e.message}'));
     return PackageSummary(issues: issues);
   } on Exception catch (e) {
     issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
