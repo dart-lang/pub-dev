@@ -8,6 +8,8 @@ import 'package:path/path.dart' as p;
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_tool_client.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -36,10 +38,27 @@ void main() {
     test('uses a template', () async {
       final tempDir = await Directory.systemTemp.createTemp();
       try {
-        final dependentPackages = {
-          'lints': '6.0.0',
-          'path': '1.9.1',
-          'test': '1.99.0',
+        // create templated package
+        final pkgDir = p.join(tempDir.path, 'pkg');
+        await globalDartTool.create(pkgDir);
+
+        // collect dependencies:
+        final pubspec = Pubspec.parse(
+            await File(p.join(pkgDir, 'pubspec.yaml')).readAsString());
+
+        String extractConstraint(Dependency d) {
+          if (d is! HostedDependency) {
+            throw ArgumentError();
+          }
+          final v = d.version as VersionRange;
+          return v.min.toString();
+        }
+
+        final dependentPackages = <String, String>{
+          ...pubspec.dependencies
+              .map((k, v) => MapEntry(k, extractConstraint(v))),
+          ...pubspec.devDependencies
+              .map((k, v) => MapEntry(k, extractConstraint(v))),
         };
         for (final d in dependentPackages.keys) {
           final pkgDir = p.join(tempDir.path, d);
@@ -58,11 +77,6 @@ void main() {
           }
           await localDartTool.publish(pkgDir);
         }
-
-        final pkgName = 'pkg';
-        final pkgDir = p.join(tempDir.path, pkgName);
-        // create templated package
-        await globalDartTool.create(pkgDir);
 
         // customize content to clear publishing warnings
         final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
