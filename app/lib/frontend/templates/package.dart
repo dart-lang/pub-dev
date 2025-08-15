@@ -5,6 +5,7 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
@@ -129,8 +130,11 @@ d.Node renderPkgHeader(PackagePageData data) {
       package: package.name!,
       version: data.version.version!,
     ),
-    packageLikes: package.likes,
-    isLiked: data.isLiked,
+    likeNode: renderLikeButtonAndLabel(
+      package: package.name!,
+      likeCount: package.likes,
+      isLiked: data.isLiked,
+    ),
     isFlutterFavorite:
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataNode: metadataNode,
@@ -307,7 +311,6 @@ PageData pkgPageData(
       version: selectedVersion.version!,
       publisherId: package.publisherId,
       isDiscontinued: package.isDiscontinued,
-      likes: package.likes,
       isLatest: package.latestVersion == selectedVersion.version,
     ),
     sessionAware: editable,

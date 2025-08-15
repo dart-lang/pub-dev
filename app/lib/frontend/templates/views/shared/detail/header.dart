@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_pub_shared/format/number_format.dart';
-
 import '../../../../dom/dom.dart' as d;
-import '../../../../dom/material.dart' as material;
 import '../../../../static_files.dart';
 
 d.Node detailHeaderNode({
@@ -13,8 +10,7 @@ d.Node detailHeaderNode({
   required d.Node? metadataNode,
   required d.Node? tagsNode,
   required d.Image? image,
-  required bool isLiked,
-  required int? likeCount,
+  required d.Node? likeNode,
   required bool isFlutterFavorite,
 
   /// Set true for more whitespace in the header.
@@ -116,50 +112,13 @@ d.Node detailHeaderNode({
                   child: titleNode,
                 ),
                 d.div(classes: ['metadata'], child: metadataNode),
-                if (tagsNode != null || likeCount != null)
+                if (tagsNode != null || likeNode != null)
                   d.div(
                     classes: ['detail-tags-and-like'],
                     children: [
                       if (tagsNode != null)
                         d.div(classes: ['detail-tags'], child: tagsNode),
-                      if (likeCount != null)
-                        d.div(
-                          classes: ['detail-like'],
-                          children: [
-                            material.iconButton(
-                              id: '-pub-like-icon-button',
-                              isOn: isLiked,
-                              onIcon: d.Image(
-                                src: staticUrls
-                                    .getAssetUrl('/static/img/like-active.svg'),
-                                alt: 'liked status: active',
-                                width: 18,
-                                height: 18,
-                              ),
-                              offIcon: d.Image(
-                                src: staticUrls.getAssetUrl(
-                                    '/static/img/like-inactive.svg'),
-                                alt: 'liked status: inactive',
-                                width: 18,
-                                height: 18,
-                              ),
-                              title: isLiked
-                                  ? 'Unlike this package'
-                                  : 'Like this package',
-                              attributes: {
-                                'data-ga-click-event': 'toggle-like',
-                                'aria-pressed': isLiked ? 'true' : 'false',
-                              },
-                            ),
-                            d.span(
-                              classes: ['likes-count'],
-                              child: d.span(
-                                id: 'likes-count',
-                                text: _formatPackageLikes(likeCount),
-                              ),
-                            ),
-                          ],
-                        ),
+                      if (likeNode != null) likeNode,
                     ],
                   ),
               ],
@@ -169,10 +128,4 @@ d.Node detailHeaderNode({
       ),
     ),
   ]);
-}
-
-// keep in-sync with pkg/web_app/lib/src/likes.dart
-String? _formatPackageLikes(int? likesCount) {
-  if (likesCount == null) return null;
-  return formatWithSuffix(likesCount);
 }

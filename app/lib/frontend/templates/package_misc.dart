@@ -200,6 +200,7 @@ d.Node replacedByLink(String replacedBy) {
 /// Renders the labeled scores widget (the score values in a compact layout).
 d.Node labeledScoresNodeFromPackageView(PackageView view, {String? version}) {
   return labeledScoresNode(
+    package: view.name,
     pkgScorePageUrl: urls.pkgScoreUrl(view.name, version: version),
     likeCount: view.likes,
     grantedPubPoints: view.grantedPubPoints,

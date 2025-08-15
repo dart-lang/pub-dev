@@ -318,11 +318,13 @@ d.Node _likeKeyFigureNode(int? likeCount) {
       label: 'likes',
     );
   }
+  final formatted = compactFormat(likeCount);
+  // keep in-sync with pkg/web_app/lib/src/likes.dart
   return _keyFigureNode(
-    value: '${compactFormat(likeCount).value}'
-        '${compactFormat(likeCount).suffix}',
+    value: '${formatted.value}${formatted.suffix}',
     supplemental: '',
     label: 'likes',
+    classes: ['score-key-figure--likes'],
   );
 }
 
@@ -367,9 +369,10 @@ d.Node _keyFigureNode({
   required String value,
   required String supplemental,
   required String label,
+  List<String>? classes,
 }) {
   return d.div(
-    classes: ['score-key-figure'],
+    classes: ['score-key-figure', ...?classes],
     children: [
       d.div(
         classes: ['score-key-figure-title'],
