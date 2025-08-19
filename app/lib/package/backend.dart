@@ -2102,8 +2102,8 @@ class _VersionTransactionDataAcccess {
 /// Triggers post-update event processing after a [Package] object is part of
 /// a transaction.
 ///
-/// Returns a record with an optionally awaitable [Future] in case the caller needs
-/// wait the updates before yielding its response.
+/// Returns a record with an optionally awaitable [Future] in case the caller needs to
+/// wait for the updates before yielding its response.
 ({Future future}) triggerPackagePostUpdates(
   String package, {
   /// Skip trigger a new analysis on the package.
