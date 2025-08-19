@@ -91,12 +91,11 @@ void main() {
       'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
       'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
     ], fn: () async {
-      final starTime = clock.now();
       final mc = await _prepare(apply: true);
 
       // cleanup doesn't remove case prematurely
       await _verifyCaseExistence(mc.caseId, true);
-      await adminBackend.deleteModerationCases(before: starTime);
+      await adminBackend.deleteModerationCases();
       await _verifyCaseExistence(mc.caseId, true);
 
       // close case
@@ -110,7 +109,10 @@ void main() {
 
       // cleanup does remove case after the threshold is reached
       await _verifyCaseExistence(mc.caseId, true);
-      await adminBackend.deleteModerationCases(before: clock.now().toUtc());
+      final futureClock = Clock.fixed(clock.now().add(Duration(days: 365 * 3)));
+      await withClock(futureClock, () async {
+        await adminBackend.deleteModerationCases();
+      });
       await _verifyCaseExistence(mc.caseId, false);
     });
 

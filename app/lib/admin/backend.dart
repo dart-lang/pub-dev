@@ -780,10 +780,8 @@ class AdminBackend {
   }
 
   /// Scans datastore and deletes [ModerationCase] entities opened more than 3 years ago.
-  Future<void> deleteModerationCases({
-    @visibleForTesting DateTime? before,
-  }) async {
-    before ??= clock.ago(days: 3 * 365).toUtc();
+  Future<void> deleteModerationCases() async {
+    final before = clock.ago(days: 3 * 365).toUtc();
 
     /// Querying the cases that were opened before the threshold,
     /// as the resolved timestamp may be null for ongoing cases.
