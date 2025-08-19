@@ -383,7 +383,7 @@ class PackageBackend {
     if (updated) {
       triggerPackagePostUpdates(
         package,
-        skipTask: true,
+        skipReanalysis: true,
         skipExport: true,
       );
     }
@@ -790,7 +790,7 @@ class PackageBackend {
     }
     triggerPackagePostUpdates(
       packageName,
-      skipTask: true,
+      skipReanalysis: true,
       skipVersionsExport: true,
     );
     return rs;
@@ -1583,7 +1583,8 @@ class PackageBackend {
         package: packageName,
       ));
     });
-    triggerPackagePostUpdates(packageName, skipTask: true, skipExport: true);
+    triggerPackagePostUpdates(packageName,
+        skipReanalysis: true, skipExport: true);
   }
 
   Future<void> _validatePackageUploader(
@@ -1659,7 +1660,8 @@ class PackageBackend {
         uploaderUser: uploader,
       ));
     });
-    triggerPackagePostUpdates(packageName, skipTask: true, skipExport: true);
+    triggerPackagePostUpdates(packageName,
+        skipReanalysis: true, skipExport: true);
     return api.SuccessMessage(
         success: api.Message(
             message:
@@ -2107,7 +2109,7 @@ class _VersionTransactionDataAcccess {
 ({Future future}) triggerPackagePostUpdates(
   String package, {
   /// Skip trigger a new analysis on the package.
-  bool skipTask = false,
+  bool skipReanalysis = false,
 
   /// Skip triggering a new export to the CDN bucket.
   bool skipExport = false,
@@ -2129,7 +2131,7 @@ class _VersionTransactionDataAcccess {
 
   final futures = [
     add(() => purgePackageCache(package)),
-    if (!skipTask)
+    if (!skipReanalysis)
       add(() => taskBackend.trackPackage(
             package,
             updateDependents: taskUpdateDependents,

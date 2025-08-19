@@ -43,7 +43,7 @@ Future<String> executeSetPackagePublisher(List<String> args) async {
   });
   await purgePublisherCache(publisherId: publisherId);
   triggerPackagePostUpdates(packageName,
-      skipTask: true, skipVersionsExport: true);
+      skipReanalysis: true, skipVersionsExport: true);
   if (currentPublisherId != null) {
     await purgePublisherCache(publisherId: currentPublisherId);
   }
