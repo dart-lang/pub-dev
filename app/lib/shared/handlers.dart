@@ -25,12 +25,10 @@ const jsonResponseHeaders = <String, String>{
   'x-content-type-options': 'nosniff',
 };
 
-Map<String, Object> _htmlResponseHeaders(
-    Map<String, Object>? headers, bool noReferrer) {
+Map<String, Object> _htmlResponseHeaders(Map<String, Object>? headers) {
   headers ??= <String, Object>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
-  headers['referrer-policy'] =
-      noReferrer ? 'no-referrer' : 'no-referrer-when-downgrade';
+  headers['referrer-policy'] = 'no-referrer';
   return headers;
 }
 
@@ -74,12 +72,11 @@ shelf.Response htmlResponse(
   String content, {
   int status = 200,
   Map<String, Object>? headers,
-  bool noReferrer = false,
 }) {
   return shelf.Response(
     status,
     body: content,
-    headers: _htmlResponseHeaders(headers, noReferrer),
+    headers: _htmlResponseHeaders(headers),
   );
 }
 
@@ -87,12 +84,11 @@ shelf.Response htmlBytesResponse(
   List<int> content, {
   int status = 200,
   Map<String, Object>? headers,
-  bool noReferrer = false,
 }) {
   return shelf.Response(
     status,
     body: content,
-    headers: _htmlResponseHeaders(headers, noReferrer),
+    headers: _htmlResponseHeaders(headers),
   );
 }
 

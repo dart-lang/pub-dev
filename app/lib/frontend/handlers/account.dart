@@ -172,9 +172,6 @@ Future<shelf.Response> consentPageHandler(
       title: consent.titleText,
       descriptionHtml: consent.descriptionHtml,
     ),
-    // Consent pages have the consent ID in the URL. Browsers should not pass on
-    // this ID to the pages that are linked from the consent page.
-    noReferrer: true,
     headers: CacheControl.explicitlyPrivate.headers,
   );
 }
