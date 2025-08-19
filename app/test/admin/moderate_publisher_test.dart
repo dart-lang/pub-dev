@@ -195,7 +195,8 @@ void main() {
         fn: () async {
       // moderate and cleanup
       await _moderate('example.com', state: true, caseId: 'none');
-      await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
+      await withClock(Clock.fixed(clock.fromNow(days: 3 * 366)),
+          () => adminBackend.deleteModeratedSubjects());
 
       // no publisher or member
       expect(await publisherBackend.lookupPublisher('example.com'), isNull);
