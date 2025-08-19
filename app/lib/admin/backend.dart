@@ -23,7 +23,7 @@ import '../account/models.dart';
 import '../admin/models.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
-    show checkPackageVersionParams, packageBackend, purgePackageCache;
+    show checkPackageVersionParams, packageBackend, triggerPackagePostUpdates;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../scorecard/backend.dart';
@@ -32,7 +32,6 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/versions.dart';
-import '../task/backend.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
 import 'tools/list_tools.dart';
@@ -400,7 +399,7 @@ class AdminBackend {
     await _db
         .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
 
-    await purgePackageCache(packageName);
+    triggerPackagePostUpdates(packageName);
 
     _logger.info('Package "$packageName" got successfully removed.');
     return (
@@ -448,7 +447,7 @@ class AdminBackend {
               caller, tx, p, pv, isRetracted);
         }
       });
-      await purgePackageCache(packageName);
+      triggerPackagePostUpdates(packageName);
     }
   }
 
@@ -517,10 +516,8 @@ class AdminBackend {
       tx.insert(package);
     });
 
-    await purgePackageCache(packageName);
     await purgeScorecardData(packageName, version, isLatest: true);
-    // trigger (eventual) re-analysis
-    await taskBackend.trackPackage(packageName);
+    triggerPackagePostUpdates(packageName);
     return (
       deletedPackageVersions: deletedPackageVersions,
       deletedPackageVersionInfos: deletedPackageVersionInfos.deleted,

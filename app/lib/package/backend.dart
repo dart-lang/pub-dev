@@ -381,7 +381,11 @@ class PackageBackend {
       return true;
     });
     if (updated) {
-      await purgePackageCache(package);
+      triggerPackagePostUpdates(
+        package,
+        skipReanalysis: true,
+        skipExport: true,
+      );
     }
     return updated;
   }
@@ -480,9 +484,7 @@ class PackageBackend {
         options: optionsChanges,
       ));
     });
-    await purgePackageCache(package);
-    await taskBackend.trackPackage(package);
-    await apiExporter.synchronizePackage(package);
+    triggerPackagePostUpdates(package, skipVersionsExport: true);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -520,10 +522,9 @@ class PackageBackend {
             authenticatedUser, tx, p, pv, options.isRetracted!);
       }
     });
-    await purgePackageCache(package);
     await purgeScorecardData(package, version,
         isLatest: pkg.latestVersion == version);
-    await apiExporter.synchronizePackage(package);
+    triggerPackagePostUpdates(package);
   }
 
   /// Verifies an update to the credential-less publishing settings and
@@ -780,7 +781,6 @@ class PackageBackend {
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
-    await purgePackageCache(packageName);
 
     if (email != null) {
       await emailBackend.trySendOutgoingEmail(email!);
@@ -788,7 +788,11 @@ class PackageBackend {
     if (currentPublisherId != null) {
       await purgePublisherCache(publisherId: currentPublisherId);
     }
-    await apiExporter.synchronizePackage(packageName);
+    triggerPackagePostUpdates(
+      packageName,
+      skipReanalysis: true,
+      skipVersionsExport: true,
+    );
     return rs;
   }
 
@@ -1299,7 +1303,7 @@ class PackageBackend {
     sw.reset();
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
-    await purgePackageCache(newVersion.package);
+    triggerPackagePostUpdates(newVersion.package, taskUpdateDependents: true);
 
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
@@ -1324,12 +1328,10 @@ class PackageBackend {
       await Future.wait([
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           emailBackend.trySendOutgoingEmail(outgoingEmail),
-        taskBackend.trackPackage(newVersion.package, updateDependents: true),
-        apiExporter.synchronizePackage(newVersion.package),
         apiExporter.synchronizeAllPackagesAtomFeed(),
+        tarballStorage.updateContentDispositionOnPublicBucket(
+            newVersion.package, newVersion.version!),
       ]);
-      await tarballStorage.updateContentDispositionOnPublicBucket(
-          newVersion.package, newVersion.version!);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
@@ -1581,7 +1583,8 @@ class PackageBackend {
         package: packageName,
       ));
     });
-    await purgePackageCache(packageName);
+    triggerPackagePostUpdates(packageName,
+        skipReanalysis: true, skipExport: true);
   }
 
   Future<void> _validatePackageUploader(
@@ -1657,7 +1660,8 @@ class PackageBackend {
         uploaderUser: uploader,
       ));
     });
-    await purgePackageCache(packageName);
+    triggerPackagePostUpdates(packageName,
+        skipReanalysis: true, skipExport: true);
     return api.SuccessMessage(
         success: api.Message(
             message:
@@ -2095,4 +2099,50 @@ class _VersionTransactionDataAcccess {
     final pkgKey = _tx.emptyKey.append(Package, id: name);
     return await _tx.query<PackageVersion>(pkgKey).run().toList();
   }
+}
+
+/// Triggers post-update event processing after a [Package] object is part of
+/// a transaction.
+///
+/// Returns a record with an optionally awaitable [Future] in case the caller needs to
+/// wait for the updates before yielding its response.
+({Future future}) triggerPackagePostUpdates(
+  String package, {
+  /// Skip trigger a new analysis on the package.
+  bool skipReanalysis = false,
+
+  /// Skip triggering a new export to the CDN bucket.
+  bool skipExport = false,
+
+  /// Skip only the version-related exports to the CDN bucket, keeps the
+  /// package-related operations.
+  /// TODO: implement this in API exporter.
+  bool skipVersionsExport = false,
+
+  /// Pass the force-deletion flag to the package export operation.
+  bool exportForceDelete = false,
+
+  /// Pass the update-dependents flag to the task update operation.
+  bool taskUpdateDependents = false,
+}) {
+  Future add(Future Function() fn) {
+    return asyncQueue.addAsyncFn(fn).future;
+  }
+
+  final futures = [
+    add(() => purgePackageCache(package)),
+    if (!skipReanalysis)
+      add(() => taskBackend.trackPackage(
+            package,
+            updateDependents: taskUpdateDependents,
+          )),
+    if (!skipExport)
+      add(() => apiExporter.synchronizePackage(
+            package,
+            forceDelete: exportForceDelete,
+            // TODO: implement and use [skipVersionsExport]
+          )),
+  ];
+
+  return (future: Future.wait(futures));
 }

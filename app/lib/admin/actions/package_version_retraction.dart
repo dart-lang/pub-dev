@@ -88,7 +88,7 @@ value of `set-retracted`, which should either be `true` or `false`.
           'isRetracted': pv.isRetracted,
         };
       });
-      await purgePackageCache(packageName);
+      triggerPackagePostUpdates(packageName);
 
       return {
         'before': before,
