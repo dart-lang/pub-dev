@@ -802,10 +802,8 @@ class AdminBackend {
 
   /// Scans datastore and deletes moderated subjects where the last action
   /// was more than 3 years ago.
-  Future<void> deleteModeratedSubjects({
-    @visibleForTesting DateTime? before,
-  }) async {
-    before ??= clock.ago(days: 3 * 366).toUtc(); // extra buffer days
+  Future<void> deleteModeratedSubjects() async {
+    final before = clock.ago(days: 3 * 366).toUtc(); // extra buffer days
     // delete packages
     final pQuery = _db.query<Package>()
       ..filter('moderatedAt <', before)
@@ -897,10 +895,8 @@ class AdminBackend {
 
   /// Scans datastore and deletes admin-deleted entities where the last action
   /// was more than 2 months ago.
-  Future<void> deleteAdminDeletedEntities({
-    @visibleForTesting DateTime? before,
-  }) async {
-    before ??= clock.ago(days: 62).toUtc(); // extra buffer days
+  Future<void> deleteAdminDeletedEntities() async {
+    final before = clock.ago(days: 62).toUtc(); // extra buffer days
 
     // delete packages
     final pQuery = _db.query<Package>()

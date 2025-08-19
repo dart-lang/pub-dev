@@ -510,7 +510,8 @@ void main() {
 
       // moderate and cleanup
       await _moderate('oxygen', '1.0.0', state: true);
-      await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
+      await withClock(Clock.fixed(clock.fromNow(days: 3 * 366)),
+          () => adminBackend.deleteModeratedSubjects());
 
       // package exists
       final p = await packageBackend.lookupPackage('oxygen');

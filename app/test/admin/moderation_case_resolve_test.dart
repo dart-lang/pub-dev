@@ -109,10 +109,8 @@ void main() {
 
       // cleanup does remove case after the threshold is reached
       await _verifyCaseExistence(mc.caseId, true);
-      final futureClock = Clock.fixed(clock.now().add(Duration(days: 365 * 3)));
-      await withClock(futureClock, () async {
-        await adminBackend.deleteModerationCases();
-      });
+      await withClock(Clock.fixed(clock.fromNow(days: 365 * 3)),
+          () => adminBackend.deleteModerationCases());
       await _verifyCaseExistence(mc.caseId, false);
     });
 

@@ -289,7 +289,8 @@ void main() {
       // moderate and cleanup
       final origUser = await accountBackend.lookupUserByEmail('admin@pub.dev');
       await _moderate('admin@pub.dev', state: true, reason: 'policy-violation');
-      await adminBackend.deleteModeratedSubjects(before: clock.now().toUtc());
+      await withClock(Clock.fixed(clock.fromNow(days: 3 * 366)),
+          () => adminBackend.deleteModeratedSubjects());
 
       // entity is marked as deleted
       final user = await accountBackend.lookupUserById(origUser.userId);
