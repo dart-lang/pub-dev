@@ -207,6 +207,7 @@ class InMemoryPackageIndex {
     BitArray packages,
     IndexedScore<String> Function() scoreFn,
   ) {
+    _resetBitArray(packages, query.packages);
     final predicateFilterCount = _filterOnPredicates(query, packages);
     if (predicateFilterCount <= query.offset) {
       return PackageSearchResult.empty();
@@ -331,6 +332,21 @@ class InMemoryPackageIndex {
       packageHits: packageHits,
       errorMessage: textResults?.errorMessage,
     );
+  }
+
+  /// The [BitArrayPool] does not resets the reused pool items, because initialization
+  /// depends on the presence of the [filterOnPackages] list.
+  void _resetBitArray(BitArray selected, List<String>? filterOnPackages) {
+    if (filterOnPackages != null && filterOnPackages.isNotEmpty) {
+      selected.clearAll();
+      for (final package in filterOnPackages) {
+        final index = _nameToIndex[package];
+        if (index == null) continue;
+        selected.setBit(index);
+      }
+    } else {
+      selected.setRange(0, _documents.length);
+    }
   }
 
   /// Returns the package name that is considered as the best name match

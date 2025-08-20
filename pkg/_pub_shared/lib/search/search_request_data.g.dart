@@ -17,6 +17,9 @@ SearchRequestData _$SearchRequestDataFromJson(Map<String, dynamic> json) =>
       limit: (json['limit'] as num?)?.toInt(),
       textMatchExtent: $enumDecodeNullable(
           _$TextMatchExtentEnumMap, json['textMatchExtent']),
+      packages: (json['packages'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$SearchRequestDataToJson(SearchRequestData instance) =>
@@ -29,6 +32,7 @@ Map<String, dynamic> _$SearchRequestDataToJson(SearchRequestData instance) =>
       'offset': instance.offset,
       'limit': instance.limit,
       'textMatchExtent': _$TextMatchExtentEnumMap[instance.textMatchExtent],
+      'packages': instance.packages,
     };
 
 const _$SearchOrderEnumMap = {

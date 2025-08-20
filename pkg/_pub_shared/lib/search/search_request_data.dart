@@ -17,6 +17,7 @@ class SearchRequestData {
   final int? offset;
   final int? limit;
   final TextMatchExtent? textMatchExtent;
+  final List<String>? packages;
 
   SearchRequestData({
     String? query,
@@ -27,8 +28,10 @@ class SearchRequestData {
     this.offset,
     this.limit,
     this.textMatchExtent,
+    List<String>? packages,
   })  : query = _trimToNull(query),
-        publisherId = _trimToNull(publisherId);
+        publisherId = _trimToNull(publisherId),
+        packages = packages != null && packages.isNotEmpty ? packages : null;
 
   factory SearchRequestData.fromJson(Map<String, dynamic> json) =>
       _$SearchRequestDataFromJson(json);
@@ -54,6 +57,7 @@ class SearchRequestData {
         break;
       }
     }
+    final packages = uri.queryParametersAll['packages'];
 
     return SearchRequestData(
       query: q,
@@ -64,6 +68,7 @@ class SearchRequestData {
       offset: offset,
       limit: limit,
       textMatchExtent: textMatchExtent,
+      packages: packages,
     );
   }
 
@@ -78,6 +83,7 @@ class SearchRequestData {
       'limit': (limit ?? 10).toString(),
       'order': order?.name,
       if (textMatchExtent != null) 'textMatchExtent': textMatchExtent!.name,
+      if (packages != null && packages!.isNotEmpty) 'packages': packages,
     };
     map.removeWhere((k, v) => v == null);
     return map;
