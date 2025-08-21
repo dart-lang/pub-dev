@@ -546,9 +546,10 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('only packages list filter', () {
-      final rs = index
-          .search(ServiceSearchQuery(SearchRequestData(packages: ['http'])));
-      expect(rs.packageHits.map((e) => e.package).toList(), ['http']);
+      final rs = index.search(
+          ServiceSearchQuery(SearchRequestData(packages: ['async', 'http'])));
+      // returns two packages, ordered by overall score
+      expect(rs.packageHits.map((e) => e.package).toList(), ['http', 'async']);
     });
 
     test('query + packages list filter', () {
