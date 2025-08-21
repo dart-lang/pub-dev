@@ -30,7 +30,7 @@ Map<String, Object> _htmlResponseHeaders(
   headers ??= <String, Object>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
   headers['referrer-policy'] =
-      noReferrer ? 'no-referrer' : 'no-referrer-when-downgrade';
+      noReferrer ? 'no-referrer' : 'strict-origin-when-cross-origin';
   return headers;
 }
 
