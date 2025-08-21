@@ -249,10 +249,8 @@ class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
 class BitArrayPool extends _AllocationPool<BitArray> {
   BitArrayPool(int length)
       : super(
-          // sets all bits to 1
-          () => BitArray(length)..setRange(0, length),
-          // sets all bits to 1
-          (array) => array.setRange(0, length),
+          () => BitArray(length),
+          (array) {}, // keeping the array as-is, reset happens at the beginning of the processing
         );
 }
 

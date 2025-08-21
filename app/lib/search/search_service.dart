@@ -211,6 +211,7 @@ class ServiceSearchQuery {
   int get offset => max(0, _data.offset ?? 0);
   int get limit => max(_minSearchLimit, _data.limit ?? 10);
   TextMatchExtent? get textMatchExtent => _data.textMatchExtent;
+  List<String>? get packages => _data.packages;
 
   Map<String, dynamic> toUriQueryParameters() {
     return _data.toUriQueryParameters();

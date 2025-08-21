@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
@@ -542,6 +543,28 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       final rs = index.search(
           ServiceSearchQuery.parse(query: '=', order: SearchOrder.text));
       expect(rs.isEmpty, isTrue);
+    });
+
+    test('only packages list filter', () {
+      final rs = index.search(
+          ServiceSearchQuery(SearchRequestData(packages: ['async', 'http'])));
+      // returns two packages, ordered by overall score
+      expect(rs.packageHits.map((e) => e.package).toList(), ['http', 'async']);
+    });
+
+    test('query + packages list filter', () {
+      // library itself would return `http` too
+      final rs = index.search(ServiceSearchQuery(SearchRequestData(
+        query: 'library',
+        packages: ['async'],
+      )));
+      expect(rs.packageHits.map((e) => e.package).toList(), ['async']);
+    });
+
+    test('non-existent package name', () {
+      final rs = index.search(
+          ServiceSearchQuery(SearchRequestData(packages: ['not-a-package'])));
+      expect(rs.packageHits, isEmpty);
     });
   });
 
