@@ -334,7 +334,7 @@ class InMemoryPackageIndex {
     );
   }
 
-  /// The [BitArrayPool] does not resets the reused pool items, because initialization
+  /// The [BitArrayPool] does not reset the reused pool items, because initialization
   /// depends on the presence of the [filterOnPackages] list.
   void _resetBitArray(BitArray selected, List<String>? filterOnPackages) {
     if (filterOnPackages != null && filterOnPackages.isNotEmpty) {
