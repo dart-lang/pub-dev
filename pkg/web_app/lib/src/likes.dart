@@ -13,7 +13,6 @@ import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
 import '_dom_helper.dart';
 import 'account.dart';
 import 'api_client/api_client.dart' deferred as api_client;
-import 'page_data.dart';
 
 Future<void> _done = Future.value();
 
@@ -46,48 +45,72 @@ void setupLikesList() {
 }
 
 void setupLikes() {
-  final likes = document.querySelector('#likes-count');
-  final likeButton =
-      document.querySelector('#-pub-like-icon-button') as ButtonElement?;
+  for (final buttonAndLabel
+      in document.querySelectorAll('.like-button-and-label')) {
+    final likeButton = buttonAndLabel
+        .querySelector('.like-button-and-label--button') as ButtonElement?;
+    if (likeButton == null) continue;
 
-  // If `likeButton` is not on this page we assume the page doesn't display a
-  // `like package` button.
-  if (likeButton == null) return;
+    final countLabel =
+        buttonAndLabel.querySelector('.like-button-and-label--count');
+    if (countLabel == null) continue;
 
-  final iconButtonToggle = MDCIconButtonToggle(likeButton);
-  var likesDelta = 0;
+    final package = countLabel.dataset['package'];
+    if (package == null || package.isEmpty) continue;
 
-  // keep in-sync with app/lib/frontend/templates/views/shared/detail/header.dart
-  String likesString() {
-    final likesCount = pageData.pkgData!.likes + likesDelta;
-    return formatWithSuffix(likesCount);
-  }
+    final originalCount = int.tryParse(countLabel.dataset['value'] ?? '');
+    if (originalCount == null) continue;
 
-  iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) async {
-    if (isNotAuthenticated) {
-      iconButtonToggle.on = false;
-      final content = ParagraphElement()
-        ..text = 'You need to be signed-in to like packages. '
-            'Would you like to visit the authentication page?';
-      final redirect = await modalConfirm(content);
-      if (redirect) {
-        document.getElementById('-account-login')?.click();
+    var likesDelta = 0;
+
+    void updateLabels() {
+      final likesCount = originalCount + likesDelta;
+      // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
+      countLabel.innerText = formatWithSuffix(likesCount);
+
+      // keep in-sync with app/lib/frontend/templates/views/pkg/labeled_scores.dart
+      final formatted = compactFormat(likesCount);
+      final labeledScoreLikeString = '${formatted.value}${formatted.suffix}';
+      final labeledLikes = querySelectorAll('.packages-score-like')
+          .where((e) => e.dataset['package'] == package)
+          .toList();
+      for (final labeledLike in labeledLikes) {
+        labeledLike.querySelector('.packages-score-value-number')?.text =
+            labeledScoreLikeString;
       }
-      return;
+
+      // keep in-sync with app/lib/frontend/templates/views/pkg/score_tab.dart
+      querySelector('.score-key-figure--likes')
+          ?.querySelector('.score-key-figure-value')
+          ?.text = labeledScoreLikeString;
     }
-    likeButton.blur();
-    await api_client.loadLibrary();
-    if (iconButtonToggle.on ?? false) {
-      // The button has shifted to on.
-      likesDelta++;
-      likes!.innerText = likesString();
-      _enqueue(() => api_client.client.likePackage(pageData.pkgData!.package));
-    } else {
-      // The button has shifted to off.
-      likesDelta--;
-      likes!.innerText = likesString();
-      _enqueue(
-          () => api_client.client.unlikePackage(pageData.pkgData!.package));
-    }
-  });
+
+    final iconButtonToggle = MDCIconButtonToggle(likeButton);
+    iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) async {
+      if (isNotAuthenticated) {
+        iconButtonToggle.on = false;
+        final content = ParagraphElement()
+          ..text = 'You need to be signed-in to like packages. '
+              'Would you like to visit the authentication page?';
+        final redirect = await modalConfirm(content);
+        if (redirect) {
+          document.getElementById('-account-login')?.click();
+        }
+        return;
+      }
+      likeButton.blur();
+      await api_client.loadLibrary();
+      if (iconButtonToggle.on ?? false) {
+        // The button has shifted to on.
+        likesDelta++;
+        updateLabels();
+        _enqueue(() => api_client.client.likePackage(package));
+      } else {
+        // The button has shifted to off.
+        likesDelta--;
+        updateLabels();
+        _enqueue(() => api_client.client.unlikePackage(package));
+      }
+    });
+  }
 }

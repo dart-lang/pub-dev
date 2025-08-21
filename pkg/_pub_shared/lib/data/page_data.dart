@@ -49,7 +49,6 @@ class PageData {
 class PkgData {
   final String package;
   final String version;
-  final int likes;
 
   /// PublisherId of publisher that owns this package, `null` if the package
   /// isn't owned by a publisher.
@@ -62,7 +61,6 @@ class PkgData {
     required this.version,
     required this.publisherId,
     required this.isDiscontinued,
-    required this.likes,
     required this.isLatest,
   });
 
