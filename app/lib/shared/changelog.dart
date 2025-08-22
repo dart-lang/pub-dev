@@ -257,12 +257,6 @@ class _MarkdownVisitor extends dom_parsing.TreeVisitor {
   @override
   void visitText(html.Text node) {
     _result.write(node.text.normalizeAndTrim());
-    // if (_inlineDepth > 0 &&
-    //     (node.parent?.nodes.indexOf(this) ?? -1) !=
-    //         (node.parent?.nodes.length ?? 0) - 1 &&
-    //     node.text.endsWithWhitespace()) {
-    //   _out.write(' ');
-    // }
   }
 
   @override
