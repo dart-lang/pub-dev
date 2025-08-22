@@ -1353,7 +1353,10 @@ class PackageBackend {
               !line.startsWith('---'))
           .take(10)
           // prevent accidental HTML-tag creation
-          .map((line) => line.replaceAll('<', '[').replaceAll('>', ']'))
+          .map((line) => line
+              .replaceAll('<', '[')
+              .replaceAll('>', ']')
+              .replaceAll('&', ' '))
           .map((line) =>
               line.length < 76 ? line : '${line.substring(0, 70)}[...]')
           .join('\n');
