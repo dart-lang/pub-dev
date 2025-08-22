@@ -128,6 +128,8 @@ void main() {
         expect(email.subject, 'Package uploaded: new_package 1.2.3');
         expect(email.bodyText,
             contains('https://pub.dev/packages/new_package/versions/1.2.3\n'));
+        // No relevant changelog entry for this version.
+        expect(email.bodyText, isNot(contains('Excerpt of the changelog')));
 
         final audits = await auditBackend.listRecordsForPackageVersion(
             'new_package', '1.2.3');
@@ -1193,7 +1195,9 @@ void main() {
         final p1 = await packageBackend.lookupPackage('oxygen');
         expect(p1!.versionCount, 3);
         final tarball = await packageArchiveBytes(
-            pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
+            pubspecContent: generatePubspecYaml('oxygen', '3.0.0'),
+            changelogContent:
+                '# Changelog\n\n## v3.0.0\n\nSome bug fixes:\n- one,\n- two\n\n');
         final message = await createPubApiClient(authToken: adminClientToken)
             .uploadPackageBytes(tarball);
         expect(message.success.message, contains('Successfully uploaded'));
@@ -1210,6 +1214,15 @@ void main() {
         expect(email.subject, 'Package uploaded: oxygen 3.0.0');
         expect(email.bodyText,
             contains('https://pub.dev/packages/oxygen/versions/3.0.0\n'));
+        expect(
+            email.bodyText,
+            contains('\n'
+                'Excerpt of the changelog:\n'
+                '```\n'
+                'Some bug fixes:\n'
+                '- one,\n'
+                '- two\n'
+                '```\n\n'));
 
         await nameTracker.reloadFromDatastore();
         final lastPublished =

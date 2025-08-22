@@ -19,7 +19,9 @@ library;
 
 import 'package:collection/collection.dart';
 import 'package:html/dom.dart' as html;
+import 'package:html/dom_parsing.dart' as dom_parsing;
 import 'package:html/parser.dart' as html_parser;
+import 'package:markdown/markdown.dart' as m;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Represents the entire changelog, containing a list of releases.
@@ -101,6 +103,182 @@ class Content {
     if (_asNode != null) return _asNode!;
     return html_parser.parseFragment(_asText!);
   }();
+
+  late final asMarkdownText = () {
+    final visitor = _MarkdownVisitor()..visit(asHtmlNode);
+    return visitor.toString();
+  }();
+}
+
+class _MarkdownVisitor extends dom_parsing.TreeVisitor {
+  final _result = StringBuffer();
+  int _listDepth = 0;
+
+  void _write(String text) {
+    _result.write(text);
+  }
+
+  void _writeln([String? text]) {
+    if (text != null) {
+      _write(text);
+    }
+    _write('\n');
+  }
+
+  void _visitChildrenInline(html.Element node) {
+    for (var i = 0; i < node.nodes.length; i++) {
+      final child = node.nodes[i];
+      if (i > 0 && (node.nodes[i - 1].text?.endsWithWhitespace() ?? false)) {
+        _result.write(' ');
+      }
+      visit(child);
+    }
+  }
+
+  @override
+  void visitElement(html.Element node) {
+    final localName = node.localName!;
+
+    switch (localName) {
+      case 'h1':
+        _write('# ');
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'h2':
+        _write('## ');
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'h3':
+        _write('### ');
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'h4':
+        _write('#### ');
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'h5':
+        _write('##### ');
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'h6':
+        _write('###### ');
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'p':
+        _visitChildrenInline(node);
+        _writeln();
+        _writeln();
+        break;
+      case 'br':
+        _writeln();
+        break;
+      case 'strong':
+      case 'b':
+        _write('**');
+        _visitChildrenInline(node);
+        _write('**');
+        break;
+      case 'em':
+      case 'i':
+        _write('*');
+        _visitChildrenInline(node);
+        _write('*');
+        break;
+      case 'code':
+        _write('`');
+        _visitChildrenInline(node);
+        _write('`');
+        break;
+      case 'pre':
+        _writeln('```');
+        visitChildren(node);
+        _writeln('```');
+        break;
+      case 'blockquote':
+        _write('>');
+        _visitChildrenInline(node);
+        _writeln();
+        break;
+      case 'a':
+        final href = node.attributes['href'];
+        if (href != null) {
+          _write('[');
+          _visitChildrenInline(node);
+          _write(']($href)');
+        } else {
+          visitChildren(node);
+        }
+        break;
+      case 'ul':
+        _listDepth++;
+        visitChildren(node);
+        _listDepth--;
+        if (_listDepth == 0) _writeln();
+        break;
+      case 'ol':
+        _listDepth++;
+        visitChildren(node);
+        _listDepth--;
+        if (_listDepth == 0) _writeln();
+        break;
+      case 'li':
+        final parent = node.parent?.localName;
+        final indent = '  ' * (_listDepth - 1);
+        _write(indent);
+        if (parent == 'ol') {
+          _write('1. ');
+        } else {
+          _write('- ');
+        }
+        _visitChildrenInline(node);
+        _writeln();
+        break;
+      case 'hr':
+        _writeln('---');
+        break;
+      default:
+        visitChildren(node);
+        break;
+    }
+  }
+
+  @override
+  void visitText(html.Text node) {
+    _result.write(node.text.normalizeAndTrim());
+    // if (_inlineDepth > 0 &&
+    //     (node.parent?.nodes.indexOf(this) ?? -1) !=
+    //         (node.parent?.nodes.length ?? 0) - 1 &&
+    //     node.text.endsWithWhitespace()) {
+    //   _out.write(' ');
+    // }
+  }
+
+  @override
+  String toString() => _result.toString().trim();
+}
+
+extension on String {
+  String normalizeAndTrim() {
+    return replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  bool endsWithWhitespace() {
+    if (isEmpty) return false;
+    final last = this[length - 1];
+    return last == ' ' || last == '\n';
+  }
 }
 
 /// Parses the changelog with pre-configured options.
@@ -115,7 +293,16 @@ class ChangelogParser {
   })  : _strictLevels = strictLevels,
         _partOfLevelThreshold = partOfLevelThreshold;
 
-  /// Parses markdown nodes into a [Changelog] structure.
+  /// Parses markdown text into a [Changelog] structure.
+  Changelog parseMarkdownText(String input) {
+    final nodes =
+        m.Document(extensionSet: m.ExtensionSet.gitHubWeb).parse(input);
+    final rawHtml = m.renderToHtml(nodes);
+    final root = html_parser.parseFragment(rawHtml);
+    return parseHtmlNodes(root.nodes);
+  }
+
+  /// Parses HTML nodes into a [Changelog] structure.
   Changelog parseHtmlNodes(List<html.Node> input) {
     String? title;
     Content? description;
