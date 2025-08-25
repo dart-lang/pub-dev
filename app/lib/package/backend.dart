@@ -1175,7 +1175,7 @@ class PackageBackend {
       versionKey: newVersion.qualifiedVersionKey,
       changelogContent: entities.changelogAsset?.textContent,
     );
-    if (changelogExcerpt != null) {
+    if (changelogExcerpt != null && changelogExcerpt.isNotEmpty) {
       uploadMessages
           .add('Excerpt of the changelog:\n```\n$changelogExcerpt\n```');
     }
