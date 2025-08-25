@@ -1346,17 +1346,20 @@ class PackageBackend {
       /// Limit the changelog to 10 lines, 75 characters each:
       final lines = text.split('\n');
       final excerpt = lines
-          // filter empty or decorative lines to maximalize usefulness
-          .where((line) =>
-              line.isNotEmpty &&
-              !line.startsWith('```') && // also removes the need to escape it
-              !line.startsWith('---'))
-          .take(10)
           // prevent accidental HTML-tag creation
           .map((line) => line
               .replaceAll('<', '[')
               .replaceAll('>', ']')
-              .replaceAll('&', ' '))
+              .replaceAll('&', ' ')
+              .trim())
+          // filter empty or decorative lines to maximalize usefulness
+          .where((line) =>
+              line.isNotEmpty &&
+              line != '-' && // empty list item
+              line != '1.' && // empty list item
+              !line.startsWith('```') && // also removes the need to escape it
+              !line.startsWith('---'))
+          .take(10)
           .map((line) =>
               line.length < 76 ? line : '${line.substring(0, 70)}[...]')
           .join('\n');
