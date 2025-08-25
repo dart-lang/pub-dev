@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:html/parser.dart' as html_parser;
-import 'package:markdown/markdown.dart' as m;
 import 'package:pub_dev/shared/changelog.dart';
 import 'package:test/test.dart';
 
 Changelog _parse(String input) {
-  final nodes = m.Document(extensionSet: m.ExtensionSet.gitHubWeb).parse(input);
-  final rawHtml = m.renderToHtml(nodes);
-  final root = html_parser.parseFragment(rawHtml);
-  return ChangelogParser().parseHtmlNodes(root.nodes);
+  return ChangelogParser().parseMarkdownText(input);
 }
 
 void main() {
@@ -47,6 +42,7 @@ void main() {
       expect(firstRelease.date, equals(DateTime(2025, 7, 10)));
       expect(firstRelease.content.asHtmlText, contains('New feature A'));
       expect(firstRelease.content.asHtmlText, contains('Bug fix 1'));
+      expect(firstRelease.content.asMarkdownText, contains('Bug fix 1'));
 
       final secondRelease = changelog.releases[1];
       expect(secondRelease.version, equals('1.1.0'));
@@ -537,6 +533,74 @@ This is the changelog for the project.
           changelog.description!.asHtmlText, contains('This is the changelog'));
       expect(changelog.releases, hasLength(1));
       expect(changelog.releases[0].version, equals('1.0.0'));
+    });
+
+    test('markdown rendering with different styles', () {
+      const markdown = '''
+# Changelog
+
+## Header 2
+
+Text 2 over
+two lines.
+
+Multiple paragraphs with [link](https://pub.dev), `code`, and *different* **emphasis**.
+
+---
+
+Also:
+- unordered
+  multiline
+- list
+
+And:
+1. order
+1. list
+
+>With multiline quoted
+> `code` and *text*.
+
+### Header 3
+#### Header 4
+##### Header 5
+###### Header 6
+''';
+      final changelog = _parse(markdown);
+      expect(
+          changelog.description?.asMarkdownText,
+          '## Header 2\n'
+          '\n'
+          'Text 2 over two lines.\n'
+          '\n'
+          'Multiple paragraphs with [link](https://pub.dev), `code`, and *different* **emphasis**.\n'
+          '\n'
+          '---\n'
+          'Also:\n'
+          '\n'
+          '- unordered multiline\n'
+          '- list\n'
+          '\n'
+          'And:\n'
+          '\n'
+          '1. order\n'
+          '2. list\n'
+          '\n'
+          '> With multiline quoted `code`and *text*.\n'
+          '\n'
+          '\n'
+          '### Header 3\n'
+          '\n'
+          '#### Header 4\n'
+          '\n'
+          '##### Header 5\n'
+          '\n'
+          '###### Header 6');
+
+      // check stability: another round of the markdown output yields the same result
+      final changelog2 =
+          _parse('# Changelog\n${changelog.description?.asMarkdownText}');
+      expect(changelog2.description?.asMarkdownText,
+          changelog.description?.asMarkdownText);
     });
   });
 }
