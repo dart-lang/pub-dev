@@ -238,7 +238,8 @@ class _MarkdownVisitor extends dom_parsing.TreeVisitor {
         final indent = '  ' * (_listDepth - 1);
         _write(indent);
         if (parent == 'ol') {
-          _write('1. ');
+          final childIndex = (node.parent?.children.indexOf(node) ?? 0) + 1;
+          _write('$childIndex. ');
         } else {
           _write('- ');
         }

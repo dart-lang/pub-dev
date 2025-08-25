@@ -583,7 +583,7 @@ And:
           'And:\n'
           '\n'
           '1. order\n'
-          '1. list\n'
+          '2. list\n'
           '\n'
           '> With multiline quoted `code`and *text*.\n'
           '\n'
