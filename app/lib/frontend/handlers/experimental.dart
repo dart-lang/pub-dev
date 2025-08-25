@@ -95,8 +95,6 @@ class ExperimentalFlags {
 
   bool get useSearchPost => isEnabled('search-post');
 
-  bool get showTrending => true;
-
   String encodedAsCookie() => _enabled.join(':');
 
   @override

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/search/tags.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../dom/dom.dart' as d;
 
@@ -119,16 +118,13 @@ final _sortDicts = const <SortDict>[
       id: 'downloads',
       label: 'downloads',
       tooltip: 'Packages are sorted by their download counts.'),
+  SortDict(
+      id: 'trending',
+      label: 'trending',
+      tooltip: 'Packages are sorted by trending.'),
 ];
 
 List<SortDict> getSortDicts(bool isSearch) {
   final removeId = isSearch ? 'listing_relevance' : 'search_relevance';
-  return <SortDict>[
-    ..._sortDicts.where((d) => d.id != removeId),
-    if (requestContext.experimentalFlags.showTrending)
-      SortDict(
-          id: 'trending',
-          label: 'trending',
-          tooltip: 'Packages are sorted by trending.'),
-  ];
+  return _sortDicts.where((d) => d.id != removeId).toList();
 }
