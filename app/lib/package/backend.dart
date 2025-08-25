@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -21,6 +22,8 @@ import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
+import 'package:pub_dev/shared/changelog.dart';
+import 'package:pub_dev/shared/monitoring.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
@@ -1168,6 +1171,15 @@ class PackageBackend {
         .run()
         .toList();
 
+    final changelogExcerpt = _createChangelogExcerpt(
+      versionKey: newVersion.qualifiedVersionKey,
+      changelogContent: entities.changelogAsset?.textContent,
+    );
+    if (changelogExcerpt != null && changelogExcerpt.isNotEmpty) {
+      uploadMessages
+          .add('Excerpt of the changelog:\n```\n$changelogExcerpt\n```');
+    }
+
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
@@ -1313,6 +1325,50 @@ class PackageBackend {
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return (pv, uploadMessages);
+  }
+
+  String? _createChangelogExcerpt({
+    required QualifiedVersionKey versionKey,
+    required String? changelogContent,
+  }) {
+    if (changelogContent == null) {
+      return null;
+    }
+    try {
+      final parsed = ChangelogParser().parseMarkdownText(changelogContent);
+      final version = parsed.releases
+          .firstWhereOrNull((r) => r.version == versionKey.version);
+      if (version == null) {
+        return null;
+      }
+      final text = version.content.asMarkdownText;
+
+      /// Limit the changelog to 10 lines, 75 characters each:
+      final lines = text.split('\n');
+      final excerpt = lines
+          // prevent accidental HTML-tag creation
+          .map((line) => line
+              .replaceAll('<', '[')
+              .replaceAll('>', ']')
+              .replaceAll('&', ' ')
+              .trim())
+          // filter empty or decorative lines to maximalize usefulness
+          .where((line) =>
+              line.isNotEmpty &&
+              line != '-' && // empty list item
+              line != '1.' && // empty list item
+              !line.startsWith('```') && // also removes the need to escape it
+              !line.startsWith('---'))
+          .take(10)
+          .map((line) =>
+              line.length < 76 ? line : '${line.substring(0, 70)}[...]')
+          .join('\n');
+      return excerpt;
+    } catch (e, st) {
+      _logger.pubNoticeShout('changelog-parse-error',
+          'Unable to parse changelog for $versionKey', e, st);
+      return null;
+    }
   }
 
   /// The post-upload tasks are not critical and could fail without any impact on
@@ -1903,6 +1959,9 @@ class _UploadEntities {
     this.packageVersionInfo,
     this.assets,
   );
+
+  late final changelogAsset =
+      assets.firstWhereOrNull((e) => e.kind == AssetKind.changelog);
 }
 
 class DerivedPackageVersionEntities {

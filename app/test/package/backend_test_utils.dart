@@ -19,10 +19,13 @@ Future<T> withTempDirectory<T>(Future<T> Function(String temp) func) async {
   }
 }
 
-Future<List<int>> packageArchiveBytes({required String pubspecContent}) async {
+Future<List<int>> packageArchiveBytes({
+  required String pubspecContent,
+  String? changelogContent,
+}) async {
   final builder = ArchiveBuilder();
   builder.addFile('README.md', foobarReadmeContent);
-  builder.addFile('CHANGELOG.md', foobarChangelogContent);
+  builder.addFile('CHANGELOG.md', changelogContent ?? foobarChangelogContent);
   builder.addFile('pubspec.yaml', pubspecContent);
   builder.addFile('LICENSE', 'BSD LICENSE 2.0');
   builder.addFile('lib/test_library.dart', 'hello() => print("hello");');
