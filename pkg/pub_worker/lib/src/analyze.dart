@@ -35,7 +35,11 @@ const _panaTimeout = Duration(minutes: 50);
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
 /// Retry requests with a longer delay between them.
-final _retryOptions = RetryOptions(delayFactor: Duration(seconds: 5));
+final _retryOptions = RetryOptions(
+  maxAttempts: 4,
+  delayFactor: Duration(seconds: 10),
+  maxDelay: Duration(seconds: 90),
+);
 
 /// Retry request if it fails because of an [IOException] or status is 5xx.
 bool _retryIf(Exception e) =>
