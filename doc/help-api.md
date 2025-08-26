@@ -134,7 +134,7 @@ The API returns the current scores and score-related metadata for the package:
 - `grantedPoints` / `maxPoints`: the current values of `pana` scores
 - `tags`: the tags assigned by `pana` or by `pub.dev`
 
-Absent values or values that are not calculated yet return `null`.
+If a value has not been calculated yet (e.g. for newly created packages) it will be `null`.
 
 ## FAQ
 
