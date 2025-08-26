@@ -42,8 +42,9 @@ Loads and displays the package version information.
         'isModerated': pv.isModerated,
         if (pv.moderatedAt != null)
           'moderatedAt': pv.moderatedAt?.toIso8601String(),
+        'isAdminDeleted': pv.isAdminDeleted,
         if (pv.adminDeletedAt != null)
-          'moderatedAt': pv.adminDeletedAt?.toIso8601String(),
+          'adminDeletedAt': pv.adminDeletedAt?.toIso8601String(),
       },
     };
   },

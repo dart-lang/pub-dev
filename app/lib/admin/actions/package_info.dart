@@ -46,6 +46,7 @@ Loads and displays the package information.
         'isModerated': p.isModerated,
         if (p.moderatedAt != null)
           'moderatedAt': p.moderatedAt?.toIso8601String(),
+        'isAdminDeleted': p.isAdminDeleted,
         if (p.adminDeletedAt != null)
           'adminDeletedAt': p.adminDeletedAt?.toIso8601String(),
       },
