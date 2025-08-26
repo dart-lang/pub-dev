@@ -210,12 +210,7 @@ class ScoreCardBackend {
       throw NotFoundException.resource('package "$package" version "$version"');
     }
 
-    var updated = pkg.updated;
     final card = await scoreCardBackend.getScoreCardData(package, v);
-    if (updated == null || card.updated?.isAfter(updated) == true) {
-      updated = card.updated;
-    }
-
     final tags = <String>{
       ...pkg.getTags(),
       ...pv.getTags(),
@@ -229,7 +224,6 @@ class ScoreCardBackend {
       downloadCount30Days:
           downloadCountsBackend.lookup30DaysTotalCounts(package),
       tags: tags.toList(),
-      lastUpdated: updated,
     );
   }
 }

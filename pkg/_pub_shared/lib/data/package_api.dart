@@ -274,14 +274,13 @@ class VersionInfo {
   Map<String, dynamic> toJson() => _$VersionInfoToJson(this);
 }
 
-@JsonSerializable(includeIfNull: false)
+@JsonSerializable(includeIfNull: true)
 class VersionScore {
   final int? grantedPoints;
   final int? maxPoints;
   final int? likeCount;
   final int? downloadCount30Days;
   final List<String>? tags;
-  final DateTime? lastUpdated;
 
   VersionScore({
     required this.grantedPoints,
@@ -289,7 +288,6 @@ class VersionScore {
     required this.likeCount,
     required this.downloadCount30Days,
     required this.tags,
-    required this.lastUpdated,
   });
 
   factory VersionScore.fromJson(Map<String, dynamic> json) =>

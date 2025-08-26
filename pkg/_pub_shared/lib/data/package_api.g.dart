@@ -182,21 +182,15 @@ VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
       likeCount: (json['likeCount'] as num?)?.toInt(),
       downloadCount30Days: (json['downloadCount30Days'] as num?)?.toInt(),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      lastUpdated: json['lastUpdated'] == null
-          ? null
-          : DateTime.parse(json['lastUpdated'] as String),
     );
 
 Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) =>
     <String, dynamic>{
-      if (instance.grantedPoints case final value?) 'grantedPoints': value,
-      if (instance.maxPoints case final value?) 'maxPoints': value,
-      if (instance.likeCount case final value?) 'likeCount': value,
-      if (instance.downloadCount30Days case final value?)
-        'downloadCount30Days': value,
-      if (instance.tags case final value?) 'tags': value,
-      if (instance.lastUpdated?.toIso8601String() case final value?)
-        'lastUpdated': value,
+      'grantedPoints': instance.grantedPoints,
+      'maxPoints': instance.maxPoints,
+      'likeCount': instance.likeCount,
+      'downloadCount30Days': instance.downloadCount30Days,
+      'tags': instance.tags,
     };
 
 RemoveUploaderRequest _$RemoveUploaderRequestFromJson(

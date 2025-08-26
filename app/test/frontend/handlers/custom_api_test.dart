@@ -180,8 +180,8 @@ void main() {
           'grantedPoints': greaterThan(10),
           'maxPoints': greaterThan(50),
           'likeCount': 0,
+          'downloadCount30Days': null,
           'tags': contains('sdk:dart'),
-          'lastUpdated': isNotEmpty,
         });
       },
     );

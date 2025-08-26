@@ -155,8 +155,8 @@ Future<void> _testExportedApiSynchronization(
         'grantedPoints': isNotNull,
         'maxPoints': isNotNull,
         'likeCount': isNotNull,
+        'downloadCount30Days': null,
         'tags': isNotEmpty,
-        'lastUpdated': isNotNull,
       },
     );
     expect(
