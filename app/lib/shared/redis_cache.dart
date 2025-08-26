@@ -122,7 +122,7 @@ class CachePatterns {
 
   Entry<bool> packageVisible(String package) => _cache
       .withPrefix('package-visible/')
-      .withTTL(Duration(days: 7))
+      .withTTL(Duration(hours: 12))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
@@ -312,7 +312,7 @@ class CachePatterns {
 
   Entry<bool> publisherVisible(String publisherId) => _cache
       .withPrefix('publisher-visible/')
-      .withTTL(Duration(days: 7))
+      .withTTL(Duration(hours: 12))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
@@ -337,21 +337,6 @@ class CachePatterns {
   Entry<List<int>> searchInputCompletionDataJsonGz() => _cache
       .withPrefix('search-input-completion-data-json-gz/')
       .withTTL(Duration(hours: 8))['-'];
-
-  /// Stores the flag that latest version of packages have been scanned for job entities.
-  Entry<bool> jobHistoryLatestScanned(String service) =>
-      jobHistoryPackageScanned(service, '');
-
-  /// Stores the flag that a [package]'s versions have been scanned for job entities.
-  Entry<bool> jobHistoryPackageScanned(String service, String package) => _cache
-      .withPrefix('job-history-package-scanned/')
-      .withTTL(Duration(days: 7))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (bool value) => value,
-        decode: (d) => d as bool,
-      ))['$service/$package'];
 
   /// Cache for index objects, used by TaskBackend.
   Entry<BlobIndex> taskResultIndex(String package, String version) => _cache

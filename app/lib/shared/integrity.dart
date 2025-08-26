@@ -1059,8 +1059,8 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
         pv.package, pv.version!,
         baseUri: activeConfiguration.primaryApiUri));
 
-    final shouldBeInPublicBucket =
-        await packageBackend.isPackageVisible(pv.package) && pv.isVisible;
+    final isPackageVisible = await packageBackend.isPackageVisible(pv.package);
+    final shouldBeInPublicBucket = isPackageVisible && pv.isVisible;
 
     final canonicalInfo = await packageBackend.tarballStorage
         .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
@@ -1069,11 +1069,12 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
       return;
     }
 
-    final info =
-        await packageBackend.packageTarballInfo(pv.package, pv.version!);
+    final info = await packageBackend.tarballStorage
+        .getPublicBucketArchiveInfo(pv.package, pv.version!);
     if (info == null) {
       if (shouldBeInPublicBucket) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file.';
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file '
+            '(Package: $isPackageVisible, PackageVersion: ${pv.isVisible}).';
       }
       return;
     }

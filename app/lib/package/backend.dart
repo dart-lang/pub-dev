@@ -1750,11 +1750,6 @@ class PackageBackend {
     await tarballStorage.deleteArchiveFromAllBuckets(package, version);
   }
 
-  /// Gets the file info of a [package] in the given [version].
-  Future<ObjectInfo?> packageTarballInfo(String package, String version) async {
-    return await tarballStorage.getPublicBucketArchiveInfo(package, version);
-  }
-
   void _updatePackageAutomatedPublishingLock(
       Package package, AuthenticatedAgent agent) {
     final current = package.automatedPublishing;
