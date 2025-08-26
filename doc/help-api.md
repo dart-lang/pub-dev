@@ -50,6 +50,7 @@ Notes:
  * The order of the packages reflects their overall ranking on `pub.dev`.
  * The inclusion criteria used by `pub.dev` may change without notice.
 
+
 ### Package names for archiving and mirrors
 
 **GET** `https://pub.dev/api/package-names`
@@ -84,6 +85,56 @@ by the `cache-control` header).
 Notes:
  * The order of the packages, the number of packages on a response page,
    or the URL structure of `"nextUrl"` may change without notice.
+
+
+### Package metadata: publisher
+
+**GET** `https://pub.dev/api/packages/<package>/publisher`
+
+**Response**
+* `cache-control: public,  max-age=120`
+* `content-type: application/json; charset="utf-8"`
+
+```js
+{
+  "publisherId": "dart.dev"
+}
+```
+
+The API returns the publisher of the requested `<package>`, or `null` if the
+package is not under a publisher.
+
+
+### Package metadata: score
+
+**GET** `https://pub.dev/api/packages/<package>/score`
+
+**Response**
+* `cache-control: public,  max-age=120`
+* `content-type: application/json; charset="utf-8"`
+
+```js
+{
+  "grantedPoints": 160,
+  "maxPoints": 160,
+  "likeCount": 8297,
+  "downloadCount30Days": 11831655,
+  "tags": [
+    "sdk:dart",
+    "sdk:flutter",
+    "platform:android",
+    /* further tags */
+  ],
+}
+```
+
+The API returns the current scores and score-related metadata for the package:
+- `likeCount`: the number of likes on the package
+- `downloadCount30Days`: the 30-days download count of the package
+- `grantedPoints` / `maxPoints`: the current values of `pana` scores
+- `tags`: the tags assigned by `pana` or by `pub.dev`
+
+If a value has not been calculated yet (e.g. for newly created packages) it will be `null`.
 
 ## FAQ
 
