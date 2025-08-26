@@ -26,6 +26,7 @@ void main() {
           'version': '1.2.0',
           'created': isNotEmpty,
           'isModerated': false,
+          'isAdminDeleted': false,
         }
       });
     });
