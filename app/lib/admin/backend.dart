@@ -178,7 +178,7 @@ class AdminBackend {
   Future<void> _removeAndDecrementLikes(User user) async {
     final pool = Pool(5);
     final futures = <Future>[];
-    for (final like in await likeBackend.listPackageLikes(user)) {
+    for (final like in await likeBackend.listPackageLikes(user.userId)) {
       final f = pool
           .withResource(() => likeBackend.unlikePackage(user, like.package!));
       futures.add(f);

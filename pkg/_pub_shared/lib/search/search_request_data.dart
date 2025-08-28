@@ -88,6 +88,25 @@ class SearchRequestData {
     map.removeWhere((k, v) => v == null);
     return map;
   }
+
+  /// Creates a new instance with fields being replaced (if provided).
+  SearchRequestData replace({
+    String? query,
+    List<String>? tags,
+    List<String>? packages,
+  }) {
+    return SearchRequestData(
+      query: query ?? this.query,
+      minPoints: minPoints,
+      publisherId: publisherId,
+      tags: tags ?? this.tags,
+      packages: packages ?? this.packages,
+      order: order,
+      offset: offset,
+      limit: limit,
+      textMatchExtent: textMatchExtent,
+    );
+  }
 }
 
 /// The scope (depth) of the text matching.

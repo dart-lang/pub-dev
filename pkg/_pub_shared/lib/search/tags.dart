@@ -151,6 +151,11 @@ abstract class PlatformTagValue {
   static const String windows = 'windows';
 }
 
+/// Tags that control account-related search features.
+abstract class AccountTag {
+  static const isLikedByMe = 'is:liked-by-me';
+}
+
 /// Tags that may be relevant in search for packages that have preview or
 /// prerelease version published.
 const _futureVersionTags = <String>{

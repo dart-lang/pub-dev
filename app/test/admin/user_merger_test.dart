@@ -150,17 +150,17 @@ void main() {
     final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
     await likeBackend.likePackage(admin, 'oxygen');
     expect(
-        (await likeBackend.listPackageLikes(admin))
+        (await likeBackend.listPackageLikes(admin.userId))
             .map((e) => e.package)
             .toList(),
         ['oxygen']);
-    expect(await likeBackend.listPackageLikes(user), isEmpty);
+    expect(await likeBackend.listPackageLikes(user.userId), isEmpty);
 
     await _corruptAndFix();
 
-    expect(await likeBackend.listPackageLikes(admin), isEmpty);
+    expect(await likeBackend.listPackageLikes(admin.userId), isEmpty);
     expect(
-        (await likeBackend.listPackageLikes(user))
+        (await likeBackend.listPackageLikes(user.userId))
             .map((e) => e.package)
             .toList(),
         ['oxygen']);

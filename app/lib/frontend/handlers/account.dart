@@ -197,7 +197,7 @@ Future<LikedPackagesResponse> listPackageLikesHandler(
     shelf.Request request) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
-  final packages = await likeBackend.listPackageLikes(user);
+  final packages = await likeBackend.listPackageLikes(user.userId);
   final List<PackageLikeResponse> packageLikes = packages
       .map((like) => PackageLikeResponse(
           liked: true, package: like.package, created: like.created))
@@ -294,7 +294,7 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
 
   final user = (await accountBackend
       .lookupUserById(requestContext.authenticatedUserId!))!;
-  final likes = await likeBackend.listPackageLikes(user);
+  final likes = await likeBackend.listPackageLikes(user.userId);
   final html = renderMyLikedPackagesPage(
     user: user,
     userSessionData: requestContext.sessionData!,

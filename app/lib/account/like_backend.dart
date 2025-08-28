@@ -34,13 +34,14 @@ class LikeBackend {
   }
 
   /// Returns a list with [LikeData] of all the packages that the given
-  ///  [user] likes.
-  Future<List<LikeData>> listPackageLikes(User user) async {
-    return (await cache.userPackageLikes(user.userId).get(() async {
+  ///  user's likes.
+  Future<List<LikeData>> listPackageLikes(String userId) async {
+    return (await cache.userPackageLikes(userId).get(() async {
       // TODO(zarah): Introduce pagination and/or migrate this to search.
-      final query = _db.query<Like>(ancestorKey: user.key)
-        ..order('-created')
-        ..limit(1000);
+      final query =
+          _db.query<Like>(ancestorKey: _db.emptyKey.append(User, id: userId))
+            ..order('-created')
+            ..limit(1000);
       final likes = await query.run().toList();
       return likes.map((Like l) => LikeData.fromModel(l)).toList();
     }))!;
