@@ -29,6 +29,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20250804t140400-all`
  * Bump runtimeVersion to `2025.07.14`.
  * Note: Updated worker base image to use Debian 12.
+ * Note: `worker` SDK selection runs `pub get` to verify if the selection is correct.
 
 ## `20250708t090800-all`
  * Bump runtimeVersion to `2025.07.04`.
