@@ -667,6 +667,7 @@ class PackageVersion extends db.ExpandoModel<String> {
       if (pubspec!.funding.isNotEmpty) PackageVersionTags.hasFundingLink,
       if (pubspec!.hasTopic) PackageVersionTags.hasTopic,
       if (pluginForName != null) PackageVersionTags.pluginFor(pluginForName),
+      if (pluginForName != null) 'has:plugin-for-name',
     };
   }
 
