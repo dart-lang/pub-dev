@@ -29,7 +29,6 @@ Map<String, dynamic> _loadYaml(String yamlString) {
 class Pubspec {
   final pubspek.Pubspec _inner;
   final String jsonString;
-  Map<String, dynamic>? _json;
   String? _canonicalVersion;
 
   Pubspec._(this._inner, this.jsonString);
@@ -44,10 +43,9 @@ class Pubspec {
   factory Pubspec.fromJson(Map<String, dynamic> map) =>
       Pubspec._(pubspek.Pubspec.fromJson(map, lenient: true), json.encode(map));
 
-  Map<String, dynamic> get asJson {
-    _load();
-    return _json!;
-  }
+  late final _json = _loadYaml(jsonString);
+
+  Map<String, dynamic> get asJson => _json;
 
   String get name => _inner.name;
 
@@ -84,8 +82,7 @@ class Pubspec {
       .toList();
 
   Map<String, dynamic>? get executables {
-    _load();
-    final map = _json!['executables'];
+    final map = _json['executables'];
     return map is Map<String, dynamic> ? map : null;
   }
 
@@ -97,7 +94,6 @@ class Pubspec {
   /// Returns null if the constraint is missing or does not follow the
   /// `>=<version>` pattern.
   MinSdkVersion? get minSdkVersion {
-    _load();
     return MinSdkVersion.tryParse(_inner.environment['sdk']);
   }
 
@@ -106,7 +102,6 @@ class Pubspec {
   /// Returns null if the constraint is missing or does not follow the
   /// `>=<version>` pattern.
   late final _minFlutterSdkVersion = () {
-    _load();
     return MinSdkVersion.tryParse(_inner.environment['flutter']);
   }();
 
@@ -162,27 +157,32 @@ class Pubspec {
               .intersect(VersionConstraint.parse('<2.12.0-0'))
               .isEmpty;
 
-  /// Whether the pubspec file contains a flutter.plugin entry.
-  bool get hasFlutterPlugin {
-    _load();
-    final flutter = _json!['flutter'];
-    if (flutter == null || flutter is! Map) return false;
+  late final _flutterPluginMap = () {
+    final flutter = _json['flutter'];
+    if (flutter == null || flutter is! Map) {
+      return null;
+    }
     final plugin = flutter['plugin'];
-    return plugin != null && plugin is Map;
-  }
+    if (plugin != null && plugin is Map<String, dynamic>) {
+      return plugin;
+    } else {
+      return null;
+    }
+  }();
+
+  /// Whether the pubspec file contains a flutter.plugin entry.
+  bool get hasFlutterPlugin => _flutterPluginMap != null;
 
   /// Whether the package has a dependency on flutter.
   bool get dependsOnFlutter {
-    _load();
-    final dependencies = _json!['dependencies'];
+    final dependencies = _json['dependencies'];
     if (dependencies == null || dependencies is! Map) return false;
     return dependencies.containsKey('flutter');
   }
 
   /// Whether the package has a dependency on flutter and it refers to the SDK.
   bool get dependsOnFlutterSdk {
-    _load();
-    final dependencies = _json!['dependencies'];
+    final dependencies = _json['dependencies'];
     if (dependencies == null || dependencies is! Map) return false;
     final flutter = dependencies['flutter'];
     if (flutter == null || flutter is! Map) return false;
@@ -195,14 +195,22 @@ class Pubspec {
   bool get hasOptedIntoNullSafety =>
       _sdkConstraintStatus.hasOptedIntoNullSafety;
 
-  void _load() {
-    _json ??= _loadYaml(jsonString);
-  }
-
   late final List<Uri> funding = _inner.funding ?? const <Uri>[];
 
   /// Whether the pubspec has any topic entry.
   bool get hasTopic => canonicalizedTopics.isNotEmpty;
+
+  late final pluginForPackageName = () {
+    if (_flutterPluginMap == null) {
+      return null;
+    }
+    final implements = _flutterPluginMap['implements'];
+    if (implements != null && implements is String) {
+      return implements;
+    } else {
+      return null;
+    }
+  }();
 }
 
 class MinSdkVersion {
