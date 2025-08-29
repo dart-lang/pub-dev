@@ -45,25 +45,21 @@ void setupLikesList() {
 }
 
 void setupLikes() {
-  for (final buttonAndLabel
-      in document.querySelectorAll('.like-button-and-label')) {
-    final likeButton = buttonAndLabel
-        .querySelector('.like-button-and-label--button') as ButtonElement?;
-    if (likeButton == null) continue;
-
-    final countLabel =
-        buttonAndLabel.querySelector('.like-button-and-label--count');
-    if (countLabel == null) continue;
-
-    final package = countLabel.dataset['package'];
+  for (final likeButton
+      in document.querySelectorAll('.like-button-and-label--button')) {
+    final package = likeButton.dataset['package'];
     if (package == null || package.isEmpty) continue;
 
-    final originalCount = int.tryParse(countLabel.dataset['value'] ?? '');
-    if (originalCount == null) continue;
+    final countLabel =
+        likeButton.parent?.querySelector('.like-button-and-label--count');
+    final originalCount = int.tryParse(countLabel?.dataset['value'] ?? '');
 
     var likesDelta = 0;
 
     void updateLabels() {
+      if (countLabel == null || originalCount == null) {
+        return;
+      }
       final likesCount = originalCount + likesDelta;
       // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
       countLabel.innerText = formatWithSuffix(likesCount);

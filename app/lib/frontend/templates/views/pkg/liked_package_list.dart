@@ -72,39 +72,43 @@ d.Node renderLikeButtonAndLabel(
   return d.div(
     classes: ['like-button-and-label'],
     children: [
-      material.iconButton(
-        classes: ['like-button-and-label--button'],
-        isOn: isLiked,
-        onIcon: d.Image(
-          src: staticUrls.getAssetUrl('/static/img/like-active.svg'),
-          alt: 'liked status: active',
-          width: 18,
-          height: 18,
-        ),
-        offIcon: d.Image(
-          src: staticUrls.getAssetUrl('/static/img/like-inactive.svg'),
-          alt: 'liked status: inactive',
-          width: 18,
-          height: 18,
-        ),
-        title: isLiked ? 'Unlike this package' : 'Like this package',
-        attributes: {
-          'data-ga-click-event': 'toggle-like',
-          'aria-pressed': isLiked ? 'true' : 'false',
-        },
-      ),
+      _renderLikeButton(package, isLiked),
       d.span(
         classes: ['like-button-and-label--count-wrapper'],
         child: d.span(
           classes: ['like-button-and-label--count'],
           text: _formatPackageLikes(likeCount),
           attributes: {
-            'data-package': package,
             'data-value': likeCount.toString(),
           },
         ),
       ),
     ],
+  );
+}
+
+d.Node _renderLikeButton(String package, bool isLiked) {
+  return material.iconButton(
+    classes: ['like-button-and-label--button'],
+    isOn: isLiked,
+    onIcon: d.Image(
+      src: staticUrls.getAssetUrl('/static/img/like-active.svg'),
+      alt: 'liked status: active',
+      width: 18,
+      height: 18,
+    ),
+    offIcon: d.Image(
+      src: staticUrls.getAssetUrl('/static/img/like-inactive.svg'),
+      alt: 'liked status: inactive',
+      width: 18,
+      height: 18,
+    ),
+    title: isLiked ? 'Unlike this package' : 'Like this package',
+    attributes: {
+      'data-ga-click-event': 'toggle-like',
+      'aria-pressed': isLiked ? 'true' : 'false',
+      'data-package': package,
+    },
   );
 }
 
