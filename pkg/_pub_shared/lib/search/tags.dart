@@ -16,7 +16,8 @@ const allowedTagPrefixes = [
   'sdk:',
   'show:',
   'has:',
-  'topic:'
+  'topic:',
+  'plugin-for:',
 ];
 
 /// Collection of package-related tags.
@@ -86,6 +87,9 @@ abstract class PackageVersionTags {
 
   /// Package version may be used in WASM compilation.
   static const String isWasmReady = 'is:wasm-ready';
+
+  /// The `plugin-for:<name>` tag.
+  static String pluginFor(String name) => 'plugin-for:$name';
 
   /// Version tags that provide a positive, forward-looking property
   /// of a prerelease or preview version.
@@ -167,5 +171,7 @@ const _futureVersionTags = <String>{
 /// Returns whether a [tag] is relevant to the package search,
 /// if it is a value from a preview or prerelease version.
 bool isFutureVersionTag(String tag) {
-  return _futureVersionTags.contains(tag) || tag.startsWith('runtime:');
+  return _futureVersionTags.contains(tag) ||
+      tag.startsWith('runtime:') ||
+      tag.startsWith('plugin-for:');
 }

@@ -658,6 +658,7 @@ class PackageVersion extends db.ExpandoModel<String> {
 
   /// List of tags from the properties on the current [PackageVersion] entity.
   Iterable<String> getTags() {
+    final pluginForName = pubspec!.pluginForPackageName;
     return <String>{
       if (pubspec!.supportsOnlyLegacySdk) ...[
         PackageVersionTags.isLegacy,
@@ -665,6 +666,7 @@ class PackageVersion extends db.ExpandoModel<String> {
       ],
       if (pubspec!.funding.isNotEmpty) PackageVersionTags.hasFundingLink,
       if (pubspec!.hasTopic) PackageVersionTags.hasTopic,
+      if (pluginForName != null) PackageVersionTags.pluginFor(pluginForName),
     };
   }
 
