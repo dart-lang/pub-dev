@@ -5,12 +5,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../service/rate_limit/rate_limit.dart';
+import '../../account/like_backend.dart';
+import '../../frontend/request_context.dart';
 import '../shared/configuration.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
@@ -66,15 +68,40 @@ class SearchClient {
       skipCache = true;
     }
 
+    final hasLikedByMeTag =
+        query.parsedQuery.tagsPredicate.hasTag(AccountTag.isLikedByMe);
+    final userId = requestContext.sessionData?.userId;
+    if (hasLikedByMeTag) {
+      skipCache = true;
+    }
+
+    List<String>? packages;
+    if (userId != null && hasLikedByMeTag) {
+      final likedPackages = await likeBackend.listPackageLikes(userId);
+      packages = likedPackages.map((l) => l.package!).toList();
+    }
+
     // Returns the status code and the body of the last response, or null on timeout.
     Future<({int statusCode, String? body})?> doCallHttpServiceEndpoint(
         {String? prefix}) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       try {
-        if (requestContext.experimentalFlags.useSearchPost) {
+        if (requestContext.experimentalFlags.useMyLikedSearch) {
           return await withRetryHttpClient(
             (client) async {
-              final data = query.toSearchRequestData();
+              var data = query.toSearchRequestData();
+              if (userId != null && hasLikedByMeTag) {
+                final newQuery =
+                    data.query?.replaceAll(AccountTag.isLikedByMe, ' ').trim();
+                final newTags = data.tags!
+                    .where((e) => e != AccountTag.isLikedByMe)
+                    .toList();
+                data = data.replace(
+                  query: newQuery,
+                  tags: newTags,
+                  packages: packages,
+                );
+              }
               // NOTE: Keeping the query parameter to help investigating logs.
               final uri = Uri.parse('$httpHostPort/search').replace(
                 queryParameters: {

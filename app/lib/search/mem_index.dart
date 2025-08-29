@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/search_request_data.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
@@ -125,6 +126,13 @@ class InMemoryPackageIndex {
     // prevent any work if offset is outside of the range
     if (query.offset >= _documents.length) {
       return PackageSearchResult.empty();
+    }
+    // Special case for the account-related tag.
+    if (query.parsedQuery.tagsPredicate.hasTag(AccountTag.isLikedByMe)) {
+      return PackageSearchResult.error(
+        statusCode: 400,
+        errorMessage: '`is:liked-by-me` is only for authenticated users.',
+      );
     }
     return _bitArrayPool.withPoolItem(fn: (array) {
       return _scorePool.withItemGetter(

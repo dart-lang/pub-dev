@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
+import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
@@ -31,6 +32,7 @@ void main() {
               'defaultUser': 'admin@pub.dev',
               'generatedPackages': [
                 {'name': 'test_pkg'},
+                {'name': 'other_pkg'},
               ],
             },
           },
@@ -38,6 +40,23 @@ void main() {
       );
 
       final user = await fakeTestScenario.createTestUser(email: 'user@pub.dev');
+      final anon = await fakeTestScenario.createAnonymousTestUser();
+
+      // checking that regular search returns two packages
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/packages?q=pkg');
+        final info = await listingPageInfo(page);
+        expect(info.packageNames.toSet(), {'test_pkg', 'other_pkg'});
+      });
+
+      // checking that anonymous page request gets an error
+      await anon.withBrowserPage((page) async {
+        await page.gotoOrigin('/experimental?my-liked-search=1');
+        await page.gotoOrigin('/packages?q=pkg+is:liked-by-me');
+        expect(await page.content, contains('is only for authenticated users'));
+        final info = await listingPageInfo(page);
+        expect(info.packageNames, isEmpty);
+      });
 
       await user.withBrowserPage((page) async {
         Future<List<String>> getCountLabels() async {
@@ -53,12 +72,19 @@ void main() {
           ];
         }
 
+        await page.gotoOrigin('/experimental?my-liked-search=1');
+
         await page.gotoOrigin('/packages/test_pkg');
         expect(await getCountLabels(), ['0', '0', '']);
 
         await page.click('.like-button-and-label--button');
         await Future.delayed(Duration(seconds: 1));
         expect(await getCountLabels(), ['1', '1', '']);
+
+        // checking search with my-liked packages
+        await page.gotoOrigin('/packages?q=pkg+is:liked-by-me');
+        final info = await listingPageInfo(page);
+        expect(info.packageNames.toSet(), {'test_pkg'});
 
         // displaying all three
         await page.gotoOrigin('/packages/test_pkg/score');
