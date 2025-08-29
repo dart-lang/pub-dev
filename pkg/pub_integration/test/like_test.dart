@@ -74,6 +74,11 @@ void main() {
 
         await page.gotoOrigin('/experimental?my-liked-search=1');
 
+        // checking search with my-liked packages - without any likes
+        await page.gotoOrigin('/packages?q=pkg+is:liked-by-me');
+        final info1 = await listingPageInfo(page);
+        expect(info1.packageNames, isEmpty);
+
         await page.gotoOrigin('/packages/test_pkg');
         expect(await getCountLabels(), ['0', '0', '']);
 
@@ -81,10 +86,10 @@ void main() {
         await Future.delayed(Duration(seconds: 1));
         expect(await getCountLabels(), ['1', '1', '']);
 
-        // checking search with my-liked packages
+        // checking search with my-liked packages - with the one liked package
         await page.gotoOrigin('/packages?q=pkg+is:liked-by-me');
-        final info = await listingPageInfo(page);
-        expect(info.packageNames.toSet(), {'test_pkg'});
+        final info2 = await listingPageInfo(page);
+        expect(info2.packageNames.toSet(), {'test_pkg'});
 
         // displaying all three
         await page.gotoOrigin('/packages/test_pkg/score');
