@@ -180,6 +180,13 @@ void main() {
           query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
     });
 
+    test('complex tag', () {
+      final query = SearchForm(query: 'plugin-for:url_launcher');
+      expect(query.parsedQuery.text, isNull);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
+          ['plugin-for:url_launcher']);
+    });
+
     test('forbidden known tag', () {
       final query = SearchForm(query: '-is:legacy');
       expect(query.parsedQuery.text, isNull);
