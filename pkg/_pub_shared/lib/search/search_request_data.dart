@@ -28,10 +28,9 @@ class SearchRequestData {
     this.offset,
     this.limit,
     this.textMatchExtent,
-    List<String>? packages,
+    this.packages,
   })  : query = _trimToNull(query),
-        publisherId = _trimToNull(publisherId),
-        packages = packages != null && packages.isNotEmpty ? packages : null;
+        publisherId = _trimToNull(publisherId);
 
   factory SearchRequestData.fromJson(Map<String, dynamic> json) =>
       _$SearchRequestDataFromJson(json);

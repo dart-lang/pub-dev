@@ -237,7 +237,8 @@ class ServiceSearchQuery {
       isNaturalOrder &&
       _hasNoOwnershipScope &&
       !_isFlutterFavorite &&
-      (textMatchExtent ?? TextMatchExtent.api).shouldMatchApi();
+      (textMatchExtent ?? TextMatchExtent.api).shouldMatchApi() &&
+      packages == null;
 
   /// Returns the validity status of the query.
   QueryValidity evaluateValidity() {
