@@ -189,16 +189,7 @@ class ServiceSearchQuery {
   ServiceSearchQuery change({
     TextMatchExtent? textMatchExtent,
   }) {
-    return ServiceSearchQuery(SearchRequestData(
-      query: query,
-      tags: _data.tags,
-      publisherId: publisherId,
-      order: order,
-      minPoints: minPoints,
-      offset: offset,
-      limit: limit,
-      textMatchExtent: textMatchExtent ?? this.textMatchExtent,
-    ));
+    return ServiceSearchQuery(_data.replace(textMatchExtent: textMatchExtent));
   }
 
   late final parsedQuery = ParsedQueryText.parse(_data.query);

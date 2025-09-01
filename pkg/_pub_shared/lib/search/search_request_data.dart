@@ -93,6 +93,7 @@ class SearchRequestData {
     String? query,
     List<String>? tags,
     List<String>? packages,
+    TextMatchExtent? textMatchExtent,
   }) {
     return SearchRequestData(
       query: query ?? this.query,
@@ -103,7 +104,7 @@ class SearchRequestData {
       order: order,
       offset: offset,
       limit: limit,
-      textMatchExtent: textMatchExtent,
+      textMatchExtent: textMatchExtent ?? this.textMatchExtent,
     );
   }
 }
