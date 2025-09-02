@@ -89,10 +89,12 @@ abstract class PackageVersionTags {
   static const String isWasmReady = 'is:wasm-ready';
 
   /// Package version has an entry indicating it implements a federated plugin.
-  static const String hasImplementsFederatedPlugin = 'has:implements-federated-plugin';
+  static const String hasImplementsFederatedPlugin =
+      'has:implements-federated-plugin';
 
   /// The `implements-federated-plugin:<name>` tag.
-  static String implementsFederatedPlugin(String name) => 'implements-federated-plugin:$name';
+  static String implementsFederatedPlugin(String name) =>
+      'implements-federated-plugin:$name';
 
   /// Version tags that provide a positive, forward-looking property
   /// of a prerelease or preview version.
