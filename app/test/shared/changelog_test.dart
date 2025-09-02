@@ -118,11 +118,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Pre-release version
+
+## Version 0.9.0 (Bugfix release)
+
+- Fixing a bug.
+
 ''';
 
       final changelog = _parse(markdown);
 
-      expect(changelog.releases, hasLength(3));
+      expect(changelog.releases, hasLength(4));
 
       expect(changelog.releases[0].version, equals('2.0.0'));
       expect(changelog.releases[0].date, equals(DateTime(2025, 8, 1)));
@@ -132,6 +137,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
       expect(changelog.releases[2].version, equals('1.0.0-beta.1'));
       expect(changelog.releases[2].date, equals(DateTime(2025, 1, 15)));
+
+      expect(changelog.releases[3].version, equals('0.9.0'));
+      expect(changelog.releases[3].note, '(Bugfix release)');
     });
 
     test('handles different date formats', () {
@@ -232,6 +240,21 @@ void main() {
       expect(changelog.releases, hasLength(2));
       expect(changelog.releases[0].version, equals('2.0.0'));
       expect(changelog.releases[1].version, equals('1.0.0'));
+    });
+
+    test('handles mixed header levels #2', () {
+      const markdown = '''## Changelog
+
+#### v2.0.0
+
+#### v1.0.0
+
+''';
+      final changelog = _parse(markdown);
+      expect(
+        changelog.releases.map((e) => e.version).toList(),
+        ['2.0.0', '1.0.0'],
+      );
     });
 
     test('handles embedded header levels', () {
