@@ -181,10 +181,11 @@ void main() {
     });
 
     test('complex tag', () {
-      final query = SearchForm(query: 'plugin-for:url_launcher');
+      final query =
+          SearchForm(query: 'implements-federated-plugin:url_launcher');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
-          ['plugin-for:url_launcher']);
+          ['implements-federated-plugin:url_launcher']);
     });
 
     test('forbidden known tag', () {

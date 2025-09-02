@@ -200,7 +200,9 @@ class Pubspec {
   /// Whether the pubspec has any topic entry.
   bool get hasTopic => canonicalizedTopics.isNotEmpty;
 
-  late final pluginForPackageName = () {
+  /// If package is implementing a federated Flutter plugin, this will be name
+  /// of the plugin package, `null` otherwise.
+  late final implementsFederatedPluginName = () {
     if (_flutterPluginMap == null) {
       return null;
     }
