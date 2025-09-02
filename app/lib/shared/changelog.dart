@@ -382,11 +382,12 @@ class ChangelogParser {
   /// - `unreleased`
   /// - `next release (...)`
   _ParsedHeader? _tryParseAsHeader(html.Element elem, String input) {
+    assert(input == input.trim());
     final level = _acceptedHeaderTags.indexOf(elem.localName!);
 
     final anchor = elem.attributes['id'];
     // special case: unreleased
-    final inputLowerCase = input.toLowerCase().trim();
+    final inputLowerCase = input.toLowerCase();
     final unreleasedTexts = ['unreleased', 'next release'];
     for (final unreleasedText in unreleasedTexts) {
       if (inputLowerCase == unreleasedText) {
@@ -403,7 +404,7 @@ class ChangelogParser {
 
     // remove leading 'Version' label
     if (inputLowerCase.startsWith('version ')) {
-      input = input.trim().substring(7).trim();
+      input = input.substring(7).trim();
     }
 
     // extract version
