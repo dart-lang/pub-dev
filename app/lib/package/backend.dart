@@ -1130,6 +1130,8 @@ class PackageBackend {
   }) async {
     final sw = Stopwatch()..start();
     final uploadMessages = <String>[];
+    // messages that are sent in the email but not returned as upload messages to the pub client
+    final additionalEmailMessages = <String>[];
     final newVersion = entities.packageVersion;
     final [currentDartSdk, currentFlutterSdk] = await Future.wait([
       getCachedDartSdkVersion(lastKnownStable: toolStableDartSdkVersion),
@@ -1176,7 +1178,7 @@ class PackageBackend {
       changelogContent: entities.changelogAsset?.textContent,
     );
     if (changelogExcerpt != null && changelogExcerpt.isNotEmpty) {
-      uploadMessages
+      additionalEmailMessages
           .add('Excerpt of the changelog:\n```\n$changelogExcerpt\n```');
     }
 
@@ -1279,7 +1281,10 @@ class PackageBackend {
         displayId: agent.displayId,
         authorizedUploaders:
             uploaderEmails.map((email) => EmailAddress(email)).toList(),
-        uploadMessages: uploadMessages,
+        uploadMessages: [
+          ...uploadMessages,
+          ...additionalEmailMessages,
+        ],
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 
