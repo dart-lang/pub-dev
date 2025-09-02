@@ -403,8 +403,9 @@ class ChangelogParser {
     }
 
     // remove leading 'Version' label
-    if (inputLowerCase.startsWith('version ')) {
-      input = input.substring(7).trim();
+    const versionLabelPrefix = 'version ';
+    if (inputLowerCase.startsWith(versionLabelPrefix)) {
+      input = input.substring(versionLabelPrefix.length).trim();
     }
 
     // extract version
