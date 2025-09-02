@@ -401,6 +401,11 @@ class ChangelogParser {
       }
     }
 
+    // remove leading 'Version' label
+    if (inputLowerCase.startsWith('version ')) {
+      input = input.trim().substring(7).trim();
+    }
+
     // extract version
     final versionPart = input.split(' ').firstWhereOrNull((e) => e.isNotEmpty);
     if (versionPart == null) {
