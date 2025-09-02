@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/format/encoding.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
@@ -105,7 +106,10 @@ d.Node packageInfoBoxNode({
       ),
     if (license != null) _block('License', license),
     if (dependencies != null) _block('Dependencies', dependencies),
-    _more(package.name!),
+    _more(
+      package.name!,
+      showImplementsLink: data.version.pubspec?.hasFlutterPlugin ?? false,
+    ),
   ]);
 }
 
@@ -160,14 +164,26 @@ d.Node _metadata({
   ]);
 }
 
-d.Node _more(String packageName) {
+d.Node _more(String packageName, {required bool showImplementsLink}) {
   return _block(
     'More',
-    d.a(
-      href: urls.searchUrl(q: 'dependency:$packageName'),
-      rel: 'nofollow',
-      text: 'Packages that depend on $packageName',
-    ),
+    d.fragment([
+      d.a(
+        href: urls.searchUrl(q: 'dependency:$packageName'),
+        rel: 'nofollow',
+        text: 'Packages that depend on $packageName',
+      ),
+      if (showImplementsLink) ...[
+        d.br(),
+        d.br(),
+        d.a(
+          href: urls.searchUrl(
+              q: PackageVersionTags.implementsFederatedPlugin(packageName)),
+          rel: 'nofollow',
+          text: 'Packages that implement $packageName',
+        ),
+      ],
+    ]),
   );
 }
 
