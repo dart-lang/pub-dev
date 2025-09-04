@@ -72,22 +72,20 @@ d.Node renderLikeButtonAndLabel(
   return d.div(
     classes: ['like-button-and-label'],
     children: [
-      _renderLikeButton(package, isLiked),
+      renderLikeButton(package, likeCount: likeCount, isLiked: isLiked),
       d.span(
         classes: ['like-button-and-label--count-wrapper'],
         child: d.span(
           classes: ['like-button-and-label--count'],
           text: _formatPackageLikes(likeCount),
-          attributes: {
-            'data-value': likeCount.toString(),
-          },
         ),
       ),
     ],
   );
 }
 
-d.Node _renderLikeButton(String package, bool isLiked) {
+d.Node renderLikeButton(String package,
+    {required int likeCount, required bool isLiked}) {
   return material.iconButton(
     classes: ['like-button-and-label--button'],
     isOn: isLiked,
@@ -108,6 +106,7 @@ d.Node _renderLikeButton(String package, bool isLiked) {
       'data-ga-click-event': 'toggle-like',
       'aria-pressed': isLiked ? 'true' : 'false',
       'data-package': package,
+      'data-value': likeCount.toString(),
     },
   );
 }

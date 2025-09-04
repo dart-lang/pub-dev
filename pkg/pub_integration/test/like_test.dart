@@ -60,14 +60,15 @@ void main() {
 
       await user.withBrowserPage((page) async {
         Future<List<String>> getCountLabels() async {
-          final buttonLabel = await page.$('.like-button-and-label--count');
-          final viewLabel =
-              await page.$('.packages-score-like .packages-score-value-number');
+          final buttonLabel =
+              await page.$OrNull('.like-button-and-label--count');
+          final viewLabel = await page
+              .$OrNull('.packages-score-like .packages-score-value-number');
           final keyScoreLabel = await page
               .$OrNull('.score-key-figure--likes .score-key-figure-value');
           return [
-            await buttonLabel.textContent(),
-            await viewLabel.textContent(),
+            (await buttonLabel?.textContent()) ?? '',
+            (await viewLabel?.textContent()) ?? '',
             (await keyScoreLabel?.textContent()) ?? '',
           ];
         }
@@ -83,7 +84,7 @@ void main() {
         expect(await getCountLabels(), ['0', '0', '']);
 
         await page.click('.like-button-and-label--button');
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(Duration(milliseconds: 200));
         expect(await getCountLabels(), ['1', '1', '']);
 
         // checking search with my-liked packages - with the one liked package
@@ -96,12 +97,32 @@ void main() {
         expect(await getCountLabels(), ['1', '1', '1']);
 
         await page.click('.like-button-and-label--button');
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(Duration(milliseconds: 200));
 
         // checking it on the main package page too
         expect(await getCountLabels(), ['0', '0', '0']);
         await page.gotoOrigin('/packages/test_pkg');
         expect(await getCountLabels(), ['0', '0', '']);
+
+        // unlike on the is:liked-by-me page
+        {
+          await page.gotoOrigin('/packages/test_pkg');
+          await page.click('.like-button-and-label--button');
+          await Future.delayed(Duration(milliseconds: 200));
+          expect(await getCountLabels(), ['1', '1', '']);
+
+          await page.gotoOrigin('/packages?q=pkg+is:liked-by-me');
+          final info = await listingPageInfo(page);
+          expect(info.packageNames.toSet(), {'test_pkg'});
+          expect(await getCountLabels(), ['', '1', '']);
+
+          await page.click('.like-button-and-label--button');
+          await Future.delayed(Duration(milliseconds: 200));
+          expect(await getCountLabels(), ['', '0', '']);
+
+          await page.gotoOrigin('/packages/test_pkg');
+          expect(await getCountLabels(), ['0', '0', '']);
+        }
       });
     });
   });

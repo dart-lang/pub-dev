@@ -6,6 +6,8 @@ import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
 import '../../../../package/models.dart';
 import '../../../../package/screenshots/backend.dart';
@@ -31,6 +33,11 @@ d.Node listOfPackagesNode({
 }) {
   final bestNameMatch =
       (nameMatches == null || nameMatches.isEmpty) ? null : nameMatches.first;
+  final listingPackagesLikedByMe =
+      requestContext.experimentalFlags.useMyLikedSearch &&
+          (searchForm?.parsedQuery.tagsPredicate
+                  .isRequiredTag(AccountTag.isLikedByMe) ??
+              false);
   return d.div(
     classes: ['packages'],
     children: [
@@ -39,6 +46,7 @@ d.Node listOfPackagesNode({
             hit,
             searchForm: searchForm,
             isNameMatch: hit.name == bestNameMatch,
+            isLiked: listingPackagesLikedByMe,
           )),
       imageCarousel(),
     ],
@@ -77,6 +85,7 @@ d.Node _packageItem(
   PackageView view, {
   required SearchForm? searchForm,
   required bool isNameMatch,
+  required bool isLiked,
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
@@ -188,6 +197,9 @@ d.Node _packageItem(
     labeledScoresNode: labeledScoresNodeFromPackageView(view),
     description: view.ellipsizedDescription ?? '',
     metadataNode: metadataNode,
+    likeIcon: isLiked
+        ? renderLikeButton(view.name, likeCount: view.likes, isLiked: isLiked)
+        : null,
     copyIcon:
         copyIcon(package: view.name, version: view.releases.stable.version),
     tagsNode: tagsNodeFromPackageView(searchForm: searchForm, package: view),
@@ -220,6 +232,7 @@ d.Node _item({
   required String description,
   required d.Node metadataNode,
   required d.Node? tagsNode,
+  d.Node? likeIcon,
   d.Node? copyIcon,
   required String? replacedBy,
   required List<_ApiPageUrl>? apiPages,
@@ -237,6 +250,7 @@ d.Node _item({
             'pub-monochrome-icon-hoverable',
           ], children: [
             d.a(href: url, text: name),
+            if (likeIcon != null) ...[d.text(' '), likeIcon],
             if (copyIcon != null) copyIcon,
             d.text(' '),
             if (isNameMatch) nameMatchBadgeNode,
