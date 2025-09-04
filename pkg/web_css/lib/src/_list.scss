@@ -234,6 +234,11 @@
     font-weight: 500;
     margin: 0;
     overflow-wrap: anywhere;
+
+    .like-button-and-label--button img {
+      width: 18px;
+      height: 18px;
+    }
   }
 
   .packages-recent {

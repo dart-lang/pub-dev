@@ -48,21 +48,22 @@ void setupLikes() {
   for (final likeButton
       in document.querySelectorAll('.like-button-and-label--button')) {
     final package = likeButton.dataset['package'];
-    if (package == null || package.isEmpty) continue;
+    final originalCount = int.tryParse(likeButton.dataset['value'] ?? '');
 
-    final countLabel =
-        likeButton.parent?.querySelector('.like-button-and-label--count');
-    final originalCount = int.tryParse(countLabel?.dataset['value'] ?? '');
+    if (package == null || package.isEmpty || originalCount == null) {
+      continue;
+    }
 
     var likesDelta = 0;
 
     void updateLabels() {
-      if (countLabel == null || originalCount == null) {
-        return;
-      }
       final likesCount = originalCount + likesDelta;
-      // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
-      countLabel.innerText = formatWithSuffix(likesCount);
+      final countLabel =
+          likeButton.parent?.querySelector('.like-button-and-label--count');
+      if (countLabel != null) {
+        // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
+        countLabel.innerText = formatWithSuffix(likesCount);
+      }
 
       // keep in-sync with app/lib/frontend/templates/views/pkg/labeled_scores.dart
       final formatted = compactFormat(likesCount);

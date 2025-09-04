@@ -75,6 +75,7 @@ class LikeBackend {
       tx.queueMutations(inserts: [p, newLike]);
       return newLike;
     });
+    await cache.packageView(package).purge();
     await purgeAccountCache(userId: user.userId);
     return res;
   }
@@ -100,6 +101,7 @@ class LikeBackend {
       p.likes--;
       tx.queueMutations(inserts: [p], deletes: [likeKey]);
     });
+    await cache.packageView(package).purge();
     await cache.userPackageLikes(user.userId).purge();
   }
 }
