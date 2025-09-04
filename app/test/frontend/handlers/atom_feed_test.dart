@@ -36,20 +36,22 @@ void main() {
           '  <id>urn:uuid:a6a43bff-e1ef-4633-b5ee-e0516b655be9</id>\n'
           '  <title>v1.2.0 of oxygen</title>\n'
           '  <updated>(.*)</updated>\n'
-          '  <content>oxygen is awesome</content>\n'
+          // Note: pretty format + indenting converts the newlines into spaces.
+          '  <content>oxygen is awesome Changelog excerpt: - updated</content>\n'
           '  <link href="${activeConfiguration.primarySiteUri}/packages/oxygen" rel="alternate" title="oxygen"/>\n'
           '</entry>');
       expect(
         oxygenExpr.hasMatch(entries[1].toXmlString(pretty: true, indent: '  ')),
         isTrue,
-        reason: entries[1].toXmlString(),
+        reason: entries[1].toXmlString(pretty: true, indent: '  '),
       );
 
       final neonExpr = RegExp('<entry>\n'
           '  <id>urn:uuid:5f920595-c067-404a-bb19-2b0918372eb6</id>\n'
           '  <title>v1.0.0 of neon</title>\n'
           '  <updated>(.*)</updated>\n'
-          '  <content>neon is awesome</content>\n'
+          // Note: pretty format + indenting converts the newlines into spaces.
+          '  <content>neon is awesome Changelog excerpt: - updated</content>\n'
           '  <link href="${activeConfiguration.primarySiteUri}/packages/neon" rel="alternate" title="neon"/>\n'
           '</entry>');
       expect(
