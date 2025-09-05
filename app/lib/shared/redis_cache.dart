@@ -130,6 +130,13 @@ class CachePatterns {
         decode: (d) => d as bool,
       ))[package];
 
+  Entry<String> changelogReleaseContentAsMarkdown(
+          String package, String version) =>
+      _cache
+          .withPrefix('changelog-release-content-md/')
+          .withTTL(Duration(hours: 1))
+          .withCodec(utf8)['$package-$version'];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];

@@ -6,7 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:pub_dev/shared/changelog.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../admin/actions/actions.dart';
@@ -53,7 +55,9 @@ Future<shelf.Response> packageAtomFeedhandler(
 Future<String> buildAllPackagesAtomFeedContent() async {
   final versions = await packageBackend.latestPackageVersions(limit: 100);
   versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
-  final feed = _allPackagesFeed(versions);
+  final contents = await Future.wait(
+      versions.map((v) => _getChangelogReleaseContent(v.package, v.version!)));
+  final feed = _allPackagesFeed(versions, contents);
   return feed.toXmlDocument();
 }
 
@@ -70,8 +74,32 @@ Future<String> buildPackageAtomFeedContent(String package) async {
       )
       .toList();
   versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
-  final feed = _packageFeed(package, versions);
+  final contents = await Future.wait(
+      versions.map((v) => _getChangelogReleaseContent(package, v.version!)));
+  final feed = _packageFeed(package, versions, contents);
   return feed.toXmlDocument();
+}
+
+Future<String> _getChangelogReleaseContent(
+    String package, String version) async {
+  final content = await cache
+      .changelogReleaseContentAsMarkdown(package, version)
+      .get(() async {
+    final asset = await packageBackend.lookupPackageVersionAsset(
+        package, version, AssetKind.changelog);
+    final content = asset?.textContent;
+    if (content == null) {
+      return '';
+    }
+    final parsed = ChangelogParser().parseMarkdownText(content);
+    final release =
+        parsed.releases.firstWhereOrNull((r) => r.version == version);
+    if (release == null) {
+      return '';
+    }
+    return release.content.asMarkdownText;
+  });
+  return content ?? '';
 }
 
 class FeedEntry {
@@ -181,7 +209,10 @@ class Feed {
   }
 }
 
-Feed _allPackagesFeed(List<PackageVersion> versions) {
+Feed _allPackagesFeed(
+  List<PackageVersion> versions,
+  List<String> releaseContents,
+) {
   final entries = <FeedEntry>[];
   for (var i = 0; i < versions.length; i++) {
     final version = versions[i];
@@ -195,7 +226,14 @@ Feed _allPackagesFeed(List<PackageVersion> versions) {
         sha512.convert(utf8.encode('${version.package}/${version.version}'));
     final id = createUuid(hash.bytes.sublist(0, 16));
     final title = 'v${version.version} of ${version.package}';
-    final content = version.ellipsizedDescription ?? '[no description]';
+    final fullReleaseContent = releaseContents[i];
+    final releaseContent = fullReleaseContent.length > 512
+        ? '${fullReleaseContent.substring(0, 500)}[...]'
+        : fullReleaseContent;
+    final content = [
+      version.ellipsizedDescription ?? '[no description]',
+      if (releaseContent.isNotEmpty) 'Changelog excerpt:\n$releaseContent',
+    ].join('\n\n');
     entries.add(FeedEntry(
       id: id,
       title: title,
@@ -216,7 +254,11 @@ Feed _allPackagesFeed(List<PackageVersion> versions) {
   );
 }
 
-Feed _packageFeed(String package, List<PackageVersion> versions) {
+Feed _packageFeed(
+  String package,
+  List<PackageVersion> versions,
+  List<String> releaseContents,
+) {
   return Feed(
     title: 'Recently published versions of package $package on pub.dev',
     alternateUrl: activeConfiguration.primarySiteUri
@@ -227,7 +269,7 @@ Feed _packageFeed(String package, List<PackageVersion> versions) {
         .resolve(urls.pkgFeedUrl(package))
         .toString(),
     author: versions.firstOrNull?.publisherId,
-    entries: versions.map((v) {
+    entries: versions.mapIndexed((i, v) {
       final hash =
           sha512.convert(utf8.encode('package-feed/$package/${v.version}'));
       final id = createUuid(hash.bytes.sublist(0, 16));
@@ -238,13 +280,19 @@ Feed _packageFeed(String package, List<PackageVersion> versions) {
             version: v.version,
           ))
           .toString();
+      final fullReleaseContent = releaseContents[i];
+      final releaseContent = fullReleaseContent.length > 1024
+          ? '${fullReleaseContent.substring(0, 1000)}[...]'
+          : fullReleaseContent;
       return FeedEntry(
         id: id,
         title: 'v${v.version} of $package',
         alternateUrl: alternateUrl,
         alternateTitle: v.version,
-        content:
-            '${v.version} was published on ${shortDateFormat.format(v.created!)}.',
+        content: [
+          '${v.version} was published on ${shortDateFormat.format(v.created!)}.',
+          if (releaseContent.isNotEmpty) 'Changelog excerpt:\n$releaseContent',
+        ].join('\n\n'),
         updated: v.created!,
       );
     }).toList(),
