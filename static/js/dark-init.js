@@ -26,4 +26,6 @@
     document.body.classList.remove('light-theme');
     document.body.classList.add('dark-theme');
   }
+
+  document.body.classList.remove('loading-theme');
 })();
