@@ -54,20 +54,20 @@ OSV _$OSVFromJson(Map<String, dynamic> json) => OSV(
 );
 
 Map<String, dynamic> _$OSVToJson(OSV instance) => <String, dynamic>{
-  if (instance.schemaVersion case final value?) 'schema_version': value,
+  'schema_version': ?instance.schemaVersion,
   'id': instance.id,
   'modified': instance.modified,
-  if (instance.published case final value?) 'published': value,
-  if (instance.withdrawn case final value?) 'withdrawn': value,
+  'published': ?instance.published,
+  'withdrawn': ?instance.withdrawn,
   'aliases': instance.aliases,
-  if (instance.related case final value?) 'related': value,
-  if (instance.summary case final value?) 'summary': value,
-  if (instance.details case final value?) 'details': value,
-  if (instance.severity case final value?) 'severity': value,
-  if (instance.affected case final value?) 'affected': value,
-  if (instance.references case final value?) 'references': value,
-  if (instance.credits case final value?) 'credits': value,
-  if (instance.databaseSpecific case final value?) 'database_specific': value,
+  'related': ?instance.related,
+  'summary': ?instance.summary,
+  'details': ?instance.details,
+  'severity': ?instance.severity,
+  'affected': ?instance.affected,
+  'references': ?instance.references,
+  'credits': ?instance.credits,
+  'database_specific': ?instance.databaseSpecific,
 };
 
 Severity _$SeverityFromJson(Map<String, dynamic> json) =>

@@ -46,7 +46,7 @@ dependencies:
   watcher: ^1.0.0
   yaml: ^3.1.0
   # pana version to be pinned
-  pana: '0.22.22'
+  pana: '0.22.23'
   # 3rd-party packages with pinned versions
   mailer: '6.5.0'
   ulid: '2.0.1'
@@ -59,6 +59,6 @@ dev_dependencies:
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
   shelf_router_generator: ^1.0.0
-  source_gen: '^2.0.0'
+  source_gen: '^3.0.0'
   test: ^1.16.5
   xml: ^6.0.0

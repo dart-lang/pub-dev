@@ -18,10 +18,10 @@ PageData _$PageDataFromJson(Map<String, dynamic> json) => PageData(
 );
 
 Map<String, dynamic> _$PageDataToJson(PageData instance) => <String, dynamic>{
-  if (instance.consentId case final value?) 'consentId': value,
-  if (instance.pkgData case final value?) 'pkgData': value,
-  if (instance.publisher case final value?) 'publisher': value,
-  if (instance.sessionAware case final value?) 'sessionAware': value,
+  'consentId': ?instance.consentId,
+  'pkgData': ?instance.pkgData,
+  'publisher': ?instance.publisher,
+  'sessionAware': ?instance.sessionAware,
 };
 
 PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
@@ -35,7 +35,7 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) => PkgData(
 Map<String, dynamic> _$PkgDataToJson(PkgData instance) => <String, dynamic>{
   'package': instance.package,
   'version': instance.version,
-  if (instance.publisherId case final value?) 'publisherId': value,
+  'publisherId': ?instance.publisherId,
   'isDiscontinued': instance.isDiscontinued,
   'isLatest': instance.isLatest,
 };

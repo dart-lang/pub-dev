@@ -59,10 +59,10 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$AutomatedPublishingToJson(
   AutomatedPublishing instance,
 ) => <String, dynamic>{
-  if (instance.githubConfig?.toJson() case final value?) 'githubConfig': value,
-  if (instance.githubLock?.toJson() case final value?) 'githubLock': value,
-  if (instance.gcpConfig?.toJson() case final value?) 'gcpConfig': value,
-  if (instance.gcpLock?.toJson() case final value?) 'gcpLock': value,
+  'githubConfig': ?instance.githubConfig?.toJson(),
+  'githubLock': ?instance.githubLock?.toJson(),
+  'gcpConfig': ?instance.gcpConfig?.toJson(),
+  'gcpLock': ?instance.gcpLock?.toJson(),
 };
 
 GitHubPublishingLock _$GitHubPublishingLockFromJson(
@@ -109,23 +109,21 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
   topics: (json['topics'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
-Map<String, dynamic> _$PackageViewToJson(
-  PackageView instance,
-) => <String, dynamic>{
-  'name': instance.name,
-  'releases': instance.releases,
-  if (instance.ellipsizedDescription case final value?)
-    'ellipsizedDescription': value,
-  'created': instance.created.toIso8601String(),
-  if (instance.publisherId case final value?) 'publisherId': value,
-  'isPending': instance.isPending,
-  'likes': instance.likes,
-  if (instance.grantedPubPoints case final value?) 'grantedPubPoints': value,
-  if (instance.maxPubPoints case final value?) 'maxPubPoints': value,
-  'tags': instance.tags,
-  if (instance.replacedBy case final value?) 'replacedBy': value,
-  if (instance.spdxIdentifiers case final value?) 'spdxIdentifiers': value,
-  if (instance.apiPages case final value?) 'apiPages': value,
-  if (instance.screenshots case final value?) 'screenshots': value,
-  if (instance.topics case final value?) 'topics': value,
-};
+Map<String, dynamic> _$PackageViewToJson(PackageView instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'releases': instance.releases,
+      'ellipsizedDescription': ?instance.ellipsizedDescription,
+      'created': instance.created.toIso8601String(),
+      'publisherId': ?instance.publisherId,
+      'isPending': instance.isPending,
+      'likes': instance.likes,
+      'grantedPubPoints': ?instance.grantedPubPoints,
+      'maxPubPoints': ?instance.maxPubPoints,
+      'tags': instance.tags,
+      'replacedBy': ?instance.replacedBy,
+      'spdxIdentifiers': ?instance.spdxIdentifiers,
+      'apiPages': ?instance.apiPages,
+      'screenshots': ?instance.screenshots,
+      'topics': ?instance.topics,
+    };

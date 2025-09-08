@@ -19,7 +19,7 @@ Map<String, dynamic> _$ResolvedDocUrlVersionToJson(
 ) => <String, dynamic>{
   'version': instance.version,
   'urlSegment': instance.urlSegment,
-  if (instance.message case final value?) 'message': value,
+  'message': ?instance.message,
 };
 
 DocPageStatus _$DocPageStatusFromJson(Map<String, dynamic> json) =>
@@ -32,8 +32,8 @@ DocPageStatus _$DocPageStatusFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$DocPageStatusToJson(DocPageStatus instance) =>
     <String, dynamic>{
       'code': _$DocPageStatusCodeEnumMap[instance.code]!,
-      if (instance.redirectPath case final value?) 'redirectPath': value,
-      if (instance.errorMessage case final value?) 'errorMessage': value,
+      'redirectPath': ?instance.redirectPath,
+      'errorMessage': ?instance.errorMessage,
     };
 
 const _$DocPageStatusCodeEnumMap = {

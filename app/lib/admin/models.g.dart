@@ -39,7 +39,7 @@ Map<String, dynamic> _$ModerationActionLogEntryToJson(
   'timestamp': instance.timestamp.toIso8601String(),
   'subject': instance.subject,
   'moderationAction': _$ModerationActionEnumMap[instance.moderationAction]!,
-  if (instance.note case final value?) 'note': value,
+  'note': ?instance.note,
 };
 
 const _$ModerationActionEnumMap = {

@@ -307,9 +307,9 @@ RateLimit _$RateLimitFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RateLimitToJson(RateLimit instance) => <String, dynamic>{
   'operation': instance.operation,
   'scope': _$RateLimitScopeEnumMap[instance.scope]!,
-  if (instance.burst case final value?) 'burst': value,
-  if (instance.hourly case final value?) 'hourly': value,
-  if (instance.daily case final value?) 'daily': value,
+  'burst': ?instance.burst,
+  'hourly': ?instance.hourly,
+  'daily': ?instance.daily,
 };
 
 const _$RateLimitScopeEnumMap = {

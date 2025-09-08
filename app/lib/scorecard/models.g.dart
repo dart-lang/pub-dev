@@ -87,17 +87,16 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
     <String, dynamic>{
-      if (instance.timestamp?.toIso8601String() case final value?)
-        'timestamp': value,
-      if (instance.panaRuntimeInfo case final value?) 'panaRuntimeInfo': value,
-      if (instance.reportStatus case final value?) 'reportStatus': value,
-      if (instance.derivedTags case final value?) 'derivedTags': value,
-      if (instance.allDependencies case final value?) 'allDependencies': value,
-      if (instance.licenses case final value?) 'licenses': value,
-      if (instance.report case final value?) 'report': value,
-      if (instance.result case final value?) 'result': value,
-      if (instance.screenshots case final value?) 'screenshots': value,
-      if (instance.urlProblems case final value?) 'urlProblems': value,
+      'timestamp': ?instance.timestamp?.toIso8601String(),
+      'panaRuntimeInfo': ?instance.panaRuntimeInfo,
+      'reportStatus': ?instance.reportStatus,
+      'derivedTags': ?instance.derivedTags,
+      'allDependencies': ?instance.allDependencies,
+      'licenses': ?instance.licenses,
+      'report': ?instance.report,
+      'result': ?instance.result,
+      'screenshots': ?instance.screenshots,
+      'urlProblems': ?instance.urlProblems,
     };
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) =>

@@ -48,7 +48,7 @@ code.Method _buildRouterMethod({
       code.Parameter(
         (b) => b
           ..name = 'service'
-          ..type = code.refer(classElement.name),
+          ..type = code.refer(classElement.name!),
       ),
     )
     ..returns = code.refer('Router')
