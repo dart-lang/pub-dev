@@ -47,13 +47,16 @@ class Handler {
 
 /// Find members of a class annotated with [EndPoint].
 List<ExecutableElement> _getAnnotatedElementsOrderBySourceOffset(
-    ClassElement cls) {
+  ClassElement cls,
+) {
   return cls.children
       .whereType<ExecutableElement>()
       .where(_endPointType.hasAnnotationOfExact)
       .toList()
-    ..sort((a, b) =>
-        (a.firstFragment.nameOffset!).compareTo(b.firstFragment.nameOffset!));
+    ..sort(
+      (a, b) =>
+          (a.firstFragment.nameOffset!).compareTo(b.firstFragment.nameOffset!),
+    );
 }
 
 abstract class EndPointGenerator extends g.Generator {
