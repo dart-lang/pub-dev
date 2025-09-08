@@ -46,9 +46,9 @@ void main() {
     }
 
     setUpAll(() async {
-      variables =
-          extractVariables(await File('lib/src/_variables.scss').readAsLines())
-              .toSet();
+      variables = extractVariables(
+        await File('lib/src/_variables.scss').readAsLines(),
+      ).toSet();
 
       // remove Material design variables
       variables.removeWhere((v) => v.startsWith('--mdc-'));
@@ -68,8 +68,9 @@ void main() {
 
     test('a variable does not share another as prefix', () {
       for (final v in variables) {
-        final shared =
-            variables.where((x) => x != v && x.startsWith(v)).toList();
+        final shared = variables
+            .where((x) => x != v && x.startsWith(v))
+            .toList();
         expect(shared, isEmpty, reason: v);
       }
     });

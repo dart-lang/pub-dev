@@ -31,37 +31,37 @@ final _testProfile = TestProfile(
   generatedPackages: [
     GeneratedTestPackage(
       name: 'foo',
-      versions: [
-        GeneratedTestVersion(version: '1.0.0'),
-      ],
+      versions: [GeneratedTestVersion(version: '1.0.0')],
     ),
   ],
-  users: [
-    TestUser(email: userAtPubDevEmail, likes: []),
-  ],
+  users: [TestUser(email: userAtPubDevEmail, likes: [])],
 );
 
 void main() {
-  testWithProfile('synchronizeExportedApi()',
-      testProfile: _testProfile,
-      expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
-      ], fn: () async {
-    // Since we want to verify post-upload tasks triggering API exporter,
-    // we cannot use an isolated instance, we need to use the same setup.
-    // However, for better control and consistency, we can remove all the
-    // existing files from the bucket at the start of this test:
-    await apiExporter.stop();
-    final bucket =
-        storageService.bucket(activeConfiguration.exportedApiBucketName!);
-    await _deleteAll(bucket);
+  testWithProfile(
+    'synchronizeExportedApi()',
+    testProfile: _testProfile,
+    expectedLogMessages: [
+      'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
+      'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
+    ],
+    fn: () async {
+      // Since we want to verify post-upload tasks triggering API exporter,
+      // we cannot use an isolated instance, we need to use the same setup.
+      // However, for better control and consistency, we can remove all the
+      // existing files from the bucket at the start of this test:
+      await apiExporter.stop();
+      final bucket = storageService.bucket(
+        activeConfiguration.exportedApiBucketName!,
+      );
+      await _deleteAll(bucket);
 
-    await _testExportedApiSynchronization(
-      bucket,
-      apiExporter.synchronizeExportedApi,
-    );
-  });
+      await _testExportedApiSynchronization(
+        bucket,
+        apiExporter.synchronizeExportedApi,
+      );
+    },
+  );
 
   testWithProfile(
     'apiExporter.start()',
@@ -76,8 +76,9 @@ void main() {
       // However, for better control and consistency, we can remove all the
       // existing files from the bucket at the start of this test:
       await apiExporter.stop();
-      final bucket =
-          storageService.bucket(activeConfiguration.exportedApiBucketName!);
+      final bucket = storageService.bucket(
+        activeConfiguration.exportedApiBucketName!,
+      );
       await _deleteAll(bucket);
 
       await apiExporter.synchronizeExportedApi();
@@ -111,14 +112,11 @@ Future<void> _testExportedApiSynchronization(
     await synchronize();
 
     // Check that exsting package was synchronized
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/foo'),
-      {
-        'name': 'foo',
-        'latest': isNotEmpty,
-        'versions': hasLength(1),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/foo'), {
+      'name': 'foo',
+      'latest': isNotEmpty,
+      'versions': hasLength(1),
+    });
     expect(
       await bucket.readGzippedJson('latest/api/package-name-completion-data'),
       {'packages': hasLength(1)},
@@ -129,25 +127,17 @@ Future<void> _testExportedApiSynchronization(
     );
     expect(
       await bucket.readGzippedJson('$runtimeVersion/api/packages/foo/likes'),
-      {
-        'package': 'foo',
-        'likes': 0,
-      },
+      {'package': 'foo', 'likes': 0},
     );
     expect(
       await bucket.readGzippedJson('$runtimeVersion/api/packages/foo/options'),
-      {
-        'isDiscontinued': false,
-        'replacedBy': null,
-        'isUnlisted': false,
-      },
+      {'isDiscontinued': false, 'replacedBy': null, 'isUnlisted': false},
     );
     expect(
-      await bucket
-          .readGzippedJson('$runtimeVersion/api/packages/foo/publisher'),
-      {
-        'publisherId': null,
-      },
+      await bucket.readGzippedJson(
+        '$runtimeVersion/api/packages/foo/publisher',
+      ),
+      {'publisherId': null},
     );
     expect(
       await bucket.readGzippedJson('$runtimeVersion/api/packages/foo/score'),
@@ -159,21 +149,19 @@ Future<void> _testExportedApiSynchronization(
         'tags': isNotEmpty,
       },
     );
-    expect(
-      await bucket.readGzippedJson('$runtimeVersion/api/packages/foo'),
-      {
-        'name': 'foo',
-        'latest': isNotEmpty,
-        'versions': hasLength(1),
-      },
-    );
+    expect(await bucket.readGzippedJson('$runtimeVersion/api/packages/foo'), {
+      'name': 'foo',
+      'latest': isNotEmpty,
+      'versions': hasLength(1),
+    });
     expect(
       await bucket.readString('$runtimeVersion/api/packages/foo/feed.atom'),
       contains('v1.0.0 of foo'),
     );
     expect(
-      await bucket
-          .readGzippedJson('$runtimeVersion/api/package-name-completion-data'),
+      await bucket.readGzippedJson(
+        '$runtimeVersion/api/package-name-completion-data',
+      ),
       {'packages': hasLength(1)},
     );
     expect(
@@ -205,10 +193,7 @@ Future<void> _testExportedApiSynchronization(
     await synchronize();
 
     // Check that exsting package is still there
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/foo'),
-      isNotNull,
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/foo'), isNotNull);
     expect(
       await bucket.readBytes('latest/api/archives/foo-1.0.0.tar.gz'),
       isNotNull,
@@ -241,14 +226,11 @@ Future<void> _testExportedApiSynchronization(
     //       are purged, so we won't test that it is updated.
 
     // Check that new package was synchronized
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(1),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(1),
+    });
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
       isNotNull,
@@ -282,14 +264,11 @@ Future<void> _testExportedApiSynchronization(
     await synchronize();
 
     // Check that version listing was updated
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(2),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(2),
+    });
     // Check that versions are there
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
@@ -312,46 +291,34 @@ Future<void> _testExportedApiSynchronization(
   _log.info('## Discontinued flipped on');
   {
     final api = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-    await api.setPackageOptions(
-      'bar',
-      PkgOptions(isDiscontinued: true),
-    );
+    await api.setPackageOptions('bar', PkgOptions(isDiscontinued: true));
 
     // Synchronize again
     await synchronize();
 
     // Check that version listing was updated
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(2),
-        'isDiscontinued': true,
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(2),
+      'isDiscontinued': true,
+    });
   }
 
   _log.info('## Discontinued flipped off');
   {
     final api = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-    await api.setPackageOptions(
-      'bar',
-      PkgOptions(isDiscontinued: false),
-    );
+    await api.setPackageOptions('bar', PkgOptions(isDiscontinued: false));
 
     // Synchronize again
     await synchronize();
 
     // Check that version listing was updated
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(2),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(2),
+    });
   }
 
   _log.info('## Version retracted');
@@ -367,14 +334,11 @@ Future<void> _testExportedApiSynchronization(
     await synchronize();
 
     // Check that version listing was updated
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': contains(containsPair('retracted', true))
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': contains(containsPair('retracted', true)),
+    });
   }
 
   _log.info('## Version moderated');
@@ -388,12 +352,14 @@ Future<void> _testExportedApiSynchronization(
       (adminApi) async {
         await adminApi.adminInvokeAction(
           'moderate-package-version',
-          AdminInvokeActionArguments(arguments: {
-            'case': 'none',
-            'package': 'bar',
-            'version': '2.0.0',
-            'state': 'true',
-          }),
+          AdminInvokeActionArguments(
+            arguments: {
+              'case': 'none',
+              'package': 'bar',
+              'version': '2.0.0',
+              'state': 'true',
+            },
+          ),
         );
       },
     );
@@ -402,14 +368,11 @@ Future<void> _testExportedApiSynchronization(
     await synchronize();
 
     // Check that version listing was updated
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(1),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(1),
+    });
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
       isNull,
@@ -423,31 +386,31 @@ Future<void> _testExportedApiSynchronization(
   _log.info('## Version reinstated');
   {
     await withRetryPubApiClient(
-        authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-        (adminApi) async {
-      await adminApi.adminInvokeAction(
-        'moderate-package-version',
-        AdminInvokeActionArguments(arguments: {
-          'case': 'none',
-          'package': 'bar',
-          'version': '2.0.0',
-          'state': 'false',
-        }),
-      );
-    });
+      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+      (adminApi) async {
+        await adminApi.adminInvokeAction(
+          'moderate-package-version',
+          AdminInvokeActionArguments(
+            arguments: {
+              'case': 'none',
+              'package': 'bar',
+              'version': '2.0.0',
+              'state': 'false',
+            },
+          ),
+        );
+      },
+    );
 
     // Synchronize again
     await synchronize();
 
     // Check that version listing was updated
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(2),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(2),
+    });
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
       isNotNull,
@@ -465,25 +428,21 @@ Future<void> _testExportedApiSynchronization(
     clockControl.elapseSync(days: 1);
 
     await withRetryPubApiClient(
-        authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-        (adminApi) async {
-      await adminApi.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(arguments: {
-          'case': 'none',
-          'package': 'bar',
-          'state': 'true',
-        }),
-      );
-    });
+      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+      (adminApi) async {
+        await adminApi.adminInvokeAction(
+          'moderate-package',
+          AdminInvokeActionArguments(
+            arguments: {'case': 'none', 'package': 'bar', 'state': 'true'},
+          ),
+        );
+      },
+    );
 
     // Synchronize again
     await synchronize();
 
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      isNull,
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), isNull);
     expect(
       await bucket.readGzippedJson('latest/api/packages/bar/options'),
       isNull,
@@ -505,29 +464,25 @@ Future<void> _testExportedApiSynchronization(
   _log.info('## Package reinstated');
   {
     await withRetryPubApiClient(
-        authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
-        (adminApi) async {
-      await adminApi.adminInvokeAction(
-        'moderate-package',
-        AdminInvokeActionArguments(arguments: {
-          'case': 'none',
-          'package': 'bar',
-          'state': 'false',
-        }),
-      );
-    });
+      authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
+      (adminApi) async {
+        await adminApi.adminInvokeAction(
+          'moderate-package',
+          AdminInvokeActionArguments(
+            arguments: {'case': 'none', 'package': 'bar', 'state': 'false'},
+          ),
+        );
+      },
+    );
 
     // Synchronize again
     await synchronize();
 
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/bar'),
-      {
-        'name': 'bar',
-        'latest': isNotEmpty,
-        'versions': hasLength(2),
-      },
-    );
+    expect(await bucket.readGzippedJson('latest/api/packages/bar'), {
+      'name': 'bar',
+      'latest': isNotEmpty,
+      'versions': hasLength(2),
+    });
     expect(
       await bucket.readGzippedJson('latest/api/packages/bar/options'),
       isNotNull,

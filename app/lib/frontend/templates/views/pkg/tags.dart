@@ -31,7 +31,8 @@ class SimpleTag {
     return SimpleTag(
       status: 'unlisted',
       text: 'unlisted',
-      title: 'Package is unlisted, this means that while the package is still '
+      title:
+          'Package is unlisted, this means that while the package is still '
           'publicly available the author has decided that it should not appear '
           'in search results with default search filters. This is typically '
           'done because this package is meant to support another package, '
@@ -64,9 +65,7 @@ class SimpleTag {
     );
   }
 
-  factory SimpleTag.analysisIssue({
-    required String scorePageUrl,
-  }) {
+  factory SimpleTag.analysisIssue({required String scorePageUrl}) {
     return SimpleTag(
       status: 'unidentified',
       text: '[analysis issue]',
@@ -75,9 +74,7 @@ class SimpleTag {
     );
   }
 
-  factory SimpleTag.unknownPlatforms({
-    required String scorePageUrl,
-  }) {
+  factory SimpleTag.unknownPlatforms({required String scorePageUrl}) {
     return SimpleTag(
       status: 'unidentified',
       text: '[unknown platforms]',
@@ -93,12 +90,7 @@ class BadgeTag {
   final String? href;
   final List<BadgeSubTag> subTags;
 
-  BadgeTag({
-    required this.text,
-    this.title,
-    this.href,
-    required this.subTags,
-  });
+  BadgeTag({required this.text, this.title, this.href, required this.subTags});
 }
 
 class BadgeSubTag {
@@ -106,11 +98,7 @@ class BadgeSubTag {
   final String title;
   final String href;
 
-  BadgeSubTag({
-    required this.text,
-    required this.title,
-    required this.href,
-  });
+  BadgeSubTag({required this.text, required this.title, required this.href});
 }
 
 d.Node badgeTagNode(BadgeTag t) {

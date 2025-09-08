@@ -18,7 +18,8 @@ Future<CachedSdkVersion?> fetchLatestDartSdkVersion({
   try {
     return await httpGetWithRetry(
       Uri.parse(
-          'https://storage.googleapis.com/dart-archive/channels/$channel/release/latest/VERSION'),
+        'https://storage.googleapis.com/dart-archive/channels/$channel/release/latest/VERSION',
+      ),
       responseFn: (rs) {
         final map = json.decode(rs.body) as Map<String, dynamic>;
         final version = map['version'] as String;

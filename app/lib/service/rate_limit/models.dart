@@ -14,12 +14,9 @@ class RateLimitRequestCounter {
   final DateTime started;
   final int value;
 
-  RateLimitRequestCounter({
-    required this.started,
-    required this.value,
-  });
+  RateLimitRequestCounter({required this.started, required this.value});
   RateLimitRequestCounter.init([this.value = 0])
-      : started = clock.now().toUtc();
+    : started = clock.now().toUtc();
 
   factory RateLimitRequestCounter.fromJson(Map<String, dynamic> json) =>
       _$RateLimitRequestCounterFromJson(json);
@@ -49,9 +46,6 @@ class RateLimitRequestCounter {
         window: window,
       );
     }
-    return RateLimitRequestCounter(
-      started: newStarted,
-      value: newValue,
-    );
+    return RateLimitRequestCounter(started: newStarted, value: newValue);
   }
 }

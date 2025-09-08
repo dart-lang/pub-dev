@@ -24,7 +24,8 @@ Future<FlutterArchive?> fetchFlutterArchive() async {
   try {
     return await httpGetWithRetry(
       Uri.parse(
-          'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json'),
+        'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json',
+      ),
       responseFn: (rs) =>
           FlutterArchive.fromJson(json.decode(rs.body) as Map<String, Object?>),
     );
@@ -60,7 +61,8 @@ class FlutterArchive {
     if (releasesInChannel == null || releasesInChannel.isEmpty) return null;
 
     return releasesInChannel.reduce(
-        (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a);
+      (a, b) => a.semanticVersion.compareTo(b.semanticVersion) <= 0 ? b : a,
+    );
   }
 }
 

@@ -51,11 +51,7 @@ d.Node _useAsExecutable(String package, List<String> executables) {
     d.codeSnippet(
       language: 'shell',
       children: executables.map(
-        (e) => d.fragment([
-          d.text(r'$ '),
-          d.strong(text: e),
-          d.text('\n'),
-        ]),
+        (e) => d.fragment([d.text(r'$ '), d.strong(text: e), d.text('\n')]),
       ),
     ),
   ]);
@@ -67,7 +63,8 @@ d.Node _useAsLibrary(
   bool isDevDependency,
 ) {
   final isFlutterPackage = version.pubspec!.usesFlutter;
-  final bool usePubGet = !isFlutterPackage ||
+  final bool usePubGet =
+      !isFlutterPackage ||
       tags == null ||
       tags.isEmpty ||
       tags.contains(SdkTag.sdkDart);
@@ -85,12 +82,16 @@ d.Node _useAsLibrary(
     d.p(text: 'Run this command:'),
     if (usePubGet) _pubAddNode('Dart', 'dart $pubAddCommand'),
     if (useFlutterPackagesGet) _pubAddNode('Flutter', 'flutter $pubAddCommand'),
-    d.p(children: [
-      d.text('This will add a line like this to your package\'s '
-          'pubspec.yaml (and run an implicit '),
-      d.code(text: '${flutterOnly ? 'flutter' : 'dart'} pub get'),
-      d.text('):'),
-    ]),
+    d.p(
+      children: [
+        d.text(
+          'This will add a line like this to your package\'s '
+          'pubspec.yaml (and run an implicit ',
+        ),
+        d.code(text: '${flutterOnly ? 'flutter' : 'dart'} pub get'),
+        d.text('):'),
+      ],
+    ),
     d.codeSnippet(
       language: 'yaml',
       children: [
@@ -99,24 +100,22 @@ d.Node _useAsLibrary(
       ],
     ),
     if (showEditorSupport)
-      d.p(children: [
-        d.text('Alternatively, your editor might support '),
-        if (!flutterOnly) d.code(text: 'dart pub get'),
-        if (!flutterOnly && useFlutterPackagesGet) d.text(' or '),
-        if (useFlutterPackagesGet) d.code(text: 'flutter pub get'),
-        d.text('. Check the docs for your editor to learn more.'),
-      ]),
+      d.p(
+        children: [
+          d.text('Alternatively, your editor might support '),
+          if (!flutterOnly) d.code(text: 'dart pub get'),
+          if (!flutterOnly && useFlutterPackagesGet) d.text(' or '),
+          if (useFlutterPackagesGet) d.code(text: 'flutter pub get'),
+          d.text('. Check the docs for your editor to learn more.'),
+        ],
+      ),
   ]);
 }
 
 d.Node _pubAddNode(String sdkLabel, String command) {
   return d.fragment([
     d.p(text: 'With $sdkLabel:'),
-    d.codeSnippet(
-      language: 'shell',
-      textToCopy: command,
-      text: ' \$ $command',
-    ),
+    d.codeSnippet(language: 'shell', textToCopy: command, text: ' \$ $command'),
   ]);
 }
 

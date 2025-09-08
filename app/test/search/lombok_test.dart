@@ -14,26 +14,21 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'lombok',
-          version: '1.0.0',
-        ),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [PackageDocument(package: 'lombok', version: '1.0.0')],
+      );
     });
 
     test('lombock', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'lombock', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'lombock', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {
-            'package': 'lombok',
-            'score': closeTo(0.60, 0.01),
-          },
+          {'package': 'lombok', 'score': closeTo(0.60, 0.01)},
         ],
       });
     });

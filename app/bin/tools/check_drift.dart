@@ -74,12 +74,9 @@ Future<_Sample> _sample({
 Future<_Item> _singleItem(SearchForm form) async {
   final params = form.toServiceQuery().toUriQueryParameters();
   final rs = await _client.get(
-    Uri.parse('https://search-dot-dartlang-pub.appspot.com/search').replace(
-      queryParameters: {
-        ...params,
-        'debug-drift': '1',
-      },
-    ),
+    Uri.parse(
+      'https://search-dot-dartlang-pub.appspot.com/search',
+    ).replace(queryParameters: {...params, 'debug-drift': '1'}),
   );
   if (rs.statusCode == 200) {
     final body = json.decode(rs.body) as Map<String, dynamic>;
@@ -90,8 +87,8 @@ Future<_Item> _singleItem(SearchForm form) async {
     final updatedPackages = (index['updatedPackages'] as List).cast<String>();
     final lastUpdated = DateTime.parse(index['lastUpdated'] as String);
 
-    final packagesList =
-        (body['packages'] as List).cast<Map<String, dynamic>>();
+    final packagesList = (body['packages'] as List)
+        .cast<Map<String, dynamic>>();
     final packages = <String?>[];
     final scores = <String?, double?>{};
 
@@ -119,9 +116,7 @@ class _Sample {
   final List<_Item>? items;
   _Diff? _diff;
 
-  _Sample({
-    this.items,
-  });
+  _Sample({this.items});
 
   int get length => items!.length;
   _Item get first => items!.first;
@@ -189,17 +184,18 @@ class _Diff {
       for (var j = i + 1; j < items.length; j++) {
         final item = items[i];
         final other = items[j];
-        final updatedShared = item.updatedPackages!
-            .toSet()
-            .intersection(other.updatedPackages!.toSet());
+        final updatedShared = item.updatedPackages!.toSet().intersection(
+          other.updatedPackages!.toSet(),
+        );
         final allUpdated = <String>{
           ...item.updatedPackages!,
-          ...other.updatedPackages!
+          ...other.updatedPackages!,
         };
         updatedCounts.add(allUpdated.length - updatedShared.length);
 
-        final pkgShared =
-            item.packages!.toSet().intersection(other.packages!.toSet());
+        final pkgShared = item.packages!.toSet().intersection(
+          other.packages!.toSet(),
+        );
         final allPackages = <String?>{...item.packages!, ...other.packages!};
         packagesCounts.add(allPackages.length - pkgShared.length);
 
@@ -219,7 +215,9 @@ class _Diff {
       updatedCount:
           updatedCounts.fold<int>(0, (sum, v) => sum + v) / items.length,
       updatedDuration: updatedDiffs.fold<Duration>(
-          Duration.zero, (mv, d) => mv > d ? mv : d),
+        Duration.zero,
+        (mv, d) => mv > d ? mv : d,
+      ),
     );
   }
 
@@ -227,12 +225,12 @@ class _Diff {
       hasObservableDifference! || packagesCount! > 0.0 || scoreDiffPct! > 0.0;
 
   Map<String, dynamic> toJson() => {
-        'observable': hasObservableDifference,
-        'pkg': packagesCount,
-        'maxScore': scoreDiffPct,
-        'updated': updatedCount,
-        'maxDelta': updatedDuration,
-      };
+    'observable': hasObservableDifference,
+    'pkg': packagesCount,
+    'maxScore': scoreDiffPct,
+    'updated': updatedCount,
+    'maxDelta': updatedDuration,
+  };
 }
 
 class _FormWithSummary {

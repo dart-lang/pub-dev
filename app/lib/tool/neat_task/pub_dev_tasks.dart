@@ -63,14 +63,11 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
             'send-outgoing-emails',
             expiration: Duration(minutes: 20),
           );
-          await lock.withClaim(
-            (claim) async {
-              await emailBackend.trySendAllOutgoingEmails(
-                stopAfter: Duration(minutes: 10),
-              );
-            },
-            abort: acquireAbort,
-          );
+          await lock.withClaim((claim) async {
+            await emailBackend.trySendAllOutgoingEmails(
+              stopAfter: Duration(minutes: 10),
+            );
+          }, abort: acquireAbort);
         } finally {
           acquireTimer.cancel();
         }
@@ -231,11 +228,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       task: computeTrendScoreTask,
     ),
 
-    _daily(
-      name: 'count-topics',
-      isRuntimeVersioned: false,
-      task: countTopics,
-    ),
+    _daily(name: 'count-topics', isRuntimeVersioned: false, task: countTopics),
 
     // NOTE: This task will fetch the advisories from a public endpoint,
     //       running it on every test is not worth it.
@@ -251,8 +244,10 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _weekly(
       name: 'check-datastore-integrity',
       isRuntimeVersioned: true,
-      task: () async => await IntegrityChecker(dbService, concurrency: 4)
-          .verifyAndLogIssues(),
+      task: () async => await IntegrityChecker(
+        dbService,
+        concurrency: 4,
+      ).verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
 
@@ -260,8 +255,10 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _weekly(
       name: 'check-tarball-integrity',
       isRuntimeVersioned: true,
-      task: () async => await TarballIntegrityChecker(dbService, concurrency: 4)
-          .verifyAndLogIssues(),
+      task: () async => await TarballIntegrityChecker(
+        dbService,
+        concurrency: 4,
+      ).verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
 
@@ -286,8 +283,11 @@ NeatPeriodicTaskScheduler _15mins({
     name: name,
     interval: Duration(minutes: 15),
     timeout: Duration(minutes: 10),
-    status: DatastoreStatusProvider.create(dbService, name,
-        isRuntimeVersioned: isRuntimeVersioned),
+    status: DatastoreStatusProvider.create(
+      dbService,
+      name,
+      isRuntimeVersioned: isRuntimeVersioned,
+    ),
     task: _wrapMemoryLogging(name, task),
   );
 }
@@ -301,8 +301,11 @@ NeatPeriodicTaskScheduler _daily({
     name: name,
     interval: Duration(hours: 24),
     timeout: Duration(hours: 12),
-    status: DatastoreStatusProvider.create(dbService, name,
-        isRuntimeVersioned: isRuntimeVersioned),
+    status: DatastoreStatusProvider.create(
+      dbService,
+      name,
+      isRuntimeVersioned: isRuntimeVersioned,
+    ),
     task: _wrapMemoryLogging(name, task),
   );
 }
@@ -317,8 +320,11 @@ NeatPeriodicTaskScheduler _weekly({
     name: name,
     interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: timeout,
-    status: DatastoreStatusProvider.create(dbService, name,
-        isRuntimeVersioned: isRuntimeVersioned),
+    status: DatastoreStatusProvider.create(
+      dbService,
+      name,
+      isRuntimeVersioned: isRuntimeVersioned,
+    ),
     task: _wrapMemoryLogging(name, task),
   );
 }

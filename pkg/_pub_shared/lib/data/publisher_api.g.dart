@@ -7,20 +7,20 @@ part of 'publisher_api.dart';
 // **************************************************************************
 
 UpdatePublisherRequest _$UpdatePublisherRequestFromJson(
-        Map<String, dynamic> json) =>
-    UpdatePublisherRequest(
-      description: json['description'] as String?,
-      websiteUrl: json['websiteUrl'] as String?,
-      contactEmail: json['contactEmail'] as String?,
-    );
+  Map<String, dynamic> json,
+) => UpdatePublisherRequest(
+  description: json['description'] as String?,
+  websiteUrl: json['websiteUrl'] as String?,
+  contactEmail: json['contactEmail'] as String?,
+);
 
 Map<String, dynamic> _$UpdatePublisherRequestToJson(
-        UpdatePublisherRequest instance) =>
-    <String, dynamic>{
-      'description': instance.description,
-      'websiteUrl': instance.websiteUrl,
-      'contactEmail': instance.contactEmail,
-    };
+  UpdatePublisherRequest instance,
+) => <String, dynamic>{
+  'description': instance.description,
+  'websiteUrl': instance.websiteUrl,
+  'contactEmail': instance.contactEmail,
+};
 
 PublisherInfo _$PublisherInfoFromJson(Map<String, dynamic> json) =>
     PublisherInfo(
@@ -44,9 +44,7 @@ PublisherMembers _$PublisherMembersFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PublisherMembersToJson(PublisherMembers instance) =>
-    <String, dynamic>{
-      'members': instance.members,
-    };
+    <String, dynamic>{'members': instance.members};
 
 PublisherMember _$PublisherMemberFromJson(Map<String, dynamic> json) =>
     PublisherMember(
@@ -63,24 +61,16 @@ Map<String, dynamic> _$PublisherMemberToJson(PublisherMember instance) =>
     };
 
 UpdatePublisherMemberRequest _$UpdatePublisherMemberRequestFromJson(
-        Map<String, dynamic> json) =>
-    UpdatePublisherMemberRequest(
-      role: json['role'] as String?,
-    );
+  Map<String, dynamic> json,
+) => UpdatePublisherMemberRequest(role: json['role'] as String?);
 
 Map<String, dynamic> _$UpdatePublisherMemberRequestToJson(
-        UpdatePublisherMemberRequest instance) =>
-    <String, dynamic>{
-      'role': instance.role,
-    };
+  UpdatePublisherMemberRequest instance,
+) => <String, dynamic>{'role': instance.role};
 
 InviteMemberRequest _$InviteMemberRequestFromJson(Map<String, dynamic> json) =>
-    InviteMemberRequest(
-      email: json['email'] as String,
-    );
+    InviteMemberRequest(email: json['email'] as String);
 
 Map<String, dynamic> _$InviteMemberRequestToJson(
-        InviteMemberRequest instance) =>
-    <String, dynamic>{
-      'email': instance.email,
-    };
+  InviteMemberRequest instance,
+) => <String, dynamic>{'email': instance.email};

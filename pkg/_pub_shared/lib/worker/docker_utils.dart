@@ -11,19 +11,13 @@ final _ciEnv = Platform.environment['CI']?.toLowerCase();
 final _isRunningOnCI = _ciEnv == 'true' || _ciEnv == '1';
 
 Future<void> buildDockerImage() async {
-  final gitRootDir =
-      (await Process.run('git', ['rev-parse', '--show-toplevel']))
-          .stdout
-          .toString()
-          .trim();
+  final gitRootDir = (await Process.run('git', [
+    'rev-parse',
+    '--show-toplevel',
+  ])).stdout.toString().trim();
   final pr = await Process.start(
     'docker',
-    [
-      'build',
-      '.',
-      '--tag=pub_worker',
-      '--file=Dockerfile.worker',
-    ],
+    ['build', '.', '--tag=pub_worker', '--file=Dockerfile.worker'],
     workingDirectory: gitRootDir,
     mode: ProcessStartMode.inheritStdio,
   );
@@ -34,18 +28,14 @@ Future<void> buildDockerImage() async {
 }
 
 Future<Process> startDockerAnalysis(Payload payload) async {
-  return await Process.start(
-    'docker',
-    <String>[
-      'run',
-      if (!_isRunningOnCI) '-it',
-      '--network=host',
-      '--entrypoint=dart',
-      '--rm',
-      'pub_worker',
-      'bin/pub_worker.dart',
-      json.encode(payload),
-    ],
-    mode: ProcessStartMode.inheritStdio,
-  );
+  return await Process.start('docker', <String>[
+    'run',
+    if (!_isRunningOnCI) '-it',
+    '--network=host',
+    '--entrypoint=dart',
+    '--rm',
+    'pub_worker',
+    'bin/pub_worker.dart',
+    json.encode(payload),
+  ], mode: ProcessStartMode.inheritStdio);
 }

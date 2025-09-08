@@ -56,8 +56,10 @@ Future<shelf.Response> _debugHandler(shelf.Request request) async {
 Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final info = await searchIndex.indexInfo();
   if (!info.isReady) {
-    return htmlResponse(searchIndexNotReadyText,
-        status: searchIndexNotReadyCode);
+    return htmlResponse(
+      searchIndexNotReadyText,
+      status: searchIndexNotReadyCode,
+    );
   }
   final Stopwatch sw = Stopwatch()..start();
   final query = request.method == 'POST'
@@ -73,8 +75,9 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
     _logger.info(
-        '[pub-slow-search-query] Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds} ms: '
-        '${query.toDebugString()}');
+      '[pub-slow-search-query] Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds} ms: '
+      '${query.toDebugString()}',
+    );
   }
 
   if (request.requestedUri.queryParameters['debug-drift'] == '1') {

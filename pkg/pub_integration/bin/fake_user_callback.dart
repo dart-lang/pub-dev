@@ -13,14 +13,15 @@ import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 
 Future<void> main(List<String> args) async {
-  final runner = CommandRunner<String>(
-    'fake_user_callback',
-    'Provides integration test details for fake server user authentication.',
-  )
-    ..addCommand(_ApiAccessTokenCommand())
-    ..addCommand(_ClientCredentialsJsonCommand())
-    ..addCommand(_BrowserCookiesCommand())
-    ..addCommand(_LastEmailCommand());
+  final runner =
+      CommandRunner<String>(
+          'fake_user_callback',
+          'Provides integration test details for fake server user authentication.',
+        )
+        ..addCommand(_ApiAccessTokenCommand())
+        ..addCommand(_ClientCredentialsJsonCommand())
+        ..addCommand(_BrowserCookiesCommand())
+        ..addCommand(_LastEmailCommand());
   final rs = await runner.run(args);
   print(rs);
 }
@@ -86,18 +87,18 @@ class _BrowserCookiesCommand extends Command<String> {
     final pubHostedUrl = argResults!['pub-hosted-url'] as String;
     final email = argResults!['email'] as String;
     final scopes = (argResults!['scopes'] as String?)?.split(',');
-    final testBrowser = TestBrowser(
-      origin: pubHostedUrl,
-    );
+    final testBrowser = TestBrowser(origin: pubHostedUrl);
     try {
       await testBrowser.startBrowser();
       final session = await testBrowser.createSession();
-      return await session.withPage(fn: (page) async {
-        await page.fakeAuthSignIn(email: email, scopes: scopes);
-        await page.gotoOrigin('/my-liked-packages');
-        final cookies = await page.cookies();
-        return json.encode(cookies.map((e) => e.toJson()).toList());
-      });
+      return await session.withPage(
+        fn: (page) async {
+          await page.fakeAuthSignIn(email: email, scopes: scopes);
+          await page.gotoOrigin('/my-liked-packages');
+          final cookies = await page.cookies();
+          return json.encode(cookies.map((e) => e.toJson()).toList());
+        },
+      );
     } finally {
       await testBrowser.close();
     }

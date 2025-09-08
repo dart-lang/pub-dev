@@ -119,10 +119,7 @@ class Severity {
   /// notation, either V2 or V3 depending on the value of [type].
   String score;
 
-  Severity({
-    required this.type,
-    required this.score,
-  });
+  Severity({required this.type, required this.score});
 
   factory Severity.fromJson(Map<String, dynamic> json) =>
       _$SeverityFromJson(json);
@@ -136,11 +133,7 @@ class Package {
   String name;
   String? purl;
 
-  Package({
-    required this.ecosystem,
-    required this.name,
-    this.purl,
-  });
+  Package({required this.ecosystem, required this.name, this.purl});
 
   factory Package.fromJson(Map<String, dynamic> json) =>
       _$PackageFromJson(json);
@@ -155,12 +148,7 @@ class Event {
   String? lastAffected;
   String? limit;
 
-  Event({
-    this.introduced,
-    this.fixed,
-    this.lastAffected,
-    this.limit,
-  });
+  Event({this.introduced, this.fixed, this.lastAffected, this.limit});
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
   Map<String, dynamic> toJson() => _$EventToJson(this);
 }
@@ -173,12 +161,7 @@ class Range {
   @JsonKey(name: 'database_specific')
   Map<String, dynamic>? databaseSpecific;
 
-  Range({
-    required this.type,
-    this.repo,
-    this.events,
-    this.databaseSpecific,
-  });
+  Range({required this.type, this.repo, this.events, this.databaseSpecific});
   factory Range.fromJson(Map<String, dynamic> json) => _$RangeFromJson(json);
   Map<String, dynamic> toJson() => _$RangeToJson(this);
 }
@@ -193,12 +176,13 @@ class Affected {
   @JsonKey(name: 'ecosystem_specific')
   Map<String, dynamic>? ecosystemSpecific;
 
-  Affected(
-      {required this.package,
-      this.ranges,
-      this.versions,
-      this.databaseSpecific,
-      this.ecosystemSpecific});
+  Affected({
+    required this.package,
+    this.ranges,
+    this.versions,
+    this.databaseSpecific,
+    this.ecosystemSpecific,
+  });
 
   factory Affected.fromJson(Map<String, dynamic> json) =>
       _$AffectedFromJson(json);
@@ -210,10 +194,7 @@ class Credit {
   String name;
   List<String>? contact;
 
-  Credit({
-    required this.name,
-    this.contact,
-  });
+  Credit({required this.name, this.contact});
 
   factory Credit.fromJson(Map<String, dynamic> json) => _$CreditFromJson(json);
   Map<String, dynamic> toJson() => _$CreditToJson(this);
@@ -224,10 +205,7 @@ class Reference {
   String? type;
   String? url;
 
-  Reference({
-    this.type,
-    this.url,
-  });
+  Reference({this.type, this.url});
 
   factory Reference.fromJson(Map<String, dynamic> json) =>
       _$ReferenceFromJson(json);

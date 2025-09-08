@@ -22,49 +22,44 @@ class RsaKeyPair {
 }
 
 /// Generates a new RSA keypair using `openssl`.
-Future<RsaKeyPair> generateRsaKeyPair({
-  int keySize = 2048,
-}) async {
+Future<RsaKeyPair> generateRsaKeyPair({int keySize = 2048}) async {
   final uuid = createUuid();
   return withTempDirectory((dir) async {
     final privateKeyPath = p.join(dir.path, 'private-$uuid.pem');
     final publicKeyPath = p.join(dir.path, 'public-$uuid.pem');
-    final pr1 = await runConstrained(
-      [
-        'openssl',
-        'genrsa',
-        '-out',
-        privateKeyPath,
-        '$keySize',
-      ],
-      timeout: Duration(seconds: 10),
-    );
+    final pr1 = await runConstrained([
+      'openssl',
+      'genrsa',
+      '-out',
+      privateKeyPath,
+      '$keySize',
+    ], timeout: Duration(seconds: 10));
     if (pr1.exitCode != 0) {
       throw Exception('Unable to run openssl:\n${pr1.asJoinedOutput}');
     }
     final privateContent = await File(privateKeyPath).readAsString();
-    final privateKeyBytes = decodePemBlocks(PemLabel.privateKey,
-            privateContent.replaceAll(' RSA PRIVATE KEY', ' PRIVATE KEY'))
-        .single;
+    final privateKeyBytes = decodePemBlocks(
+      PemLabel.privateKey,
+      privateContent.replaceAll(' RSA PRIVATE KEY', ' PRIVATE KEY'),
+    ).single;
 
-    final pr2 = await runConstrained(
-      [
-        'openssl',
-        'rsa',
-        '-in',
-        privateKeyPath,
-        '-pubout',
-        '-out',
-        publicKeyPath,
-      ],
-      timeout: Duration(seconds: 10),
-    );
+    final pr2 = await runConstrained([
+      'openssl',
+      'rsa',
+      '-in',
+      privateKeyPath,
+      '-pubout',
+      '-out',
+      publicKeyPath,
+    ], timeout: Duration(seconds: 10));
     if (pr2.exitCode != 0) {
       throw Exception('Unable to run openssl:\n${pr1.asJoinedOutput}');
     }
     final publicContent = await File(publicKeyPath).readAsString();
-    final publicKeyBytes =
-        decodePemBlocks(PemLabel.publicKey, publicContent).single;
+    final publicKeyBytes = decodePemBlocks(
+      PemLabel.publicKey,
+      publicContent,
+    ).single;
     return RsaKeyPair(
       Uint8List.fromList(privateKeyBytes),
       Asn1RsaPublicKey.fromDerEncodedBytes(publicKeyBytes),
@@ -84,22 +79,22 @@ Future<Uint8List> signTextWithRsa({
     await inputFile.writeAsString(input);
     final privateKeyFile = File(p.join(dir.path, 'private-$uuid.pem'));
     await privateKeyFile.writeAsString(
-        encodePemBlock(PemLabel.privateKey, privateKey)
-            .replaceAll(' PRIVATE KEY', ' RSA PRIVATE KEY'));
-    final pr = await runConstrained(
-      [
-        'openssl',
-        'dgst',
-        '-sha256',
-        '-binary',
-        '-sign',
-        privateKeyFile.path,
-        '-out',
-        outputFile.path,
-        inputFile.path,
-      ],
-      timeout: Duration(seconds: 10),
+      encodePemBlock(
+        PemLabel.privateKey,
+        privateKey,
+      ).replaceAll(' PRIVATE KEY', ' RSA PRIVATE KEY'),
     );
+    final pr = await runConstrained([
+      'openssl',
+      'dgst',
+      '-sha256',
+      '-binary',
+      '-sign',
+      privateKeyFile.path,
+      '-out',
+      outputFile.path,
+      inputFile.path,
+    ], timeout: Duration(seconds: 10));
     if (pr.exitCode != 0) {
       throw Exception('Unable to run openssl:\n${pr.asJoinedOutput}');
     }

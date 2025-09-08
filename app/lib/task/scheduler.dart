@@ -53,11 +53,9 @@ Future<void> schedule(
       throw ArgumentError.value(zone, 'zone');
     }
 
-    final until = clock.now().add(Duration(
-          minutes: minutes,
-          hours: hours,
-          days: days,
-        ));
+    final until = clock.now().add(
+      Duration(minutes: minutes, hours: hours, days: days),
+    );
     if (zoneBannedUntil[zone]!.isBefore(until)) {
       zoneBannedUntil[zone] = until;
     }
@@ -128,11 +126,12 @@ Future<void> schedule(
     }
 
     // Determine which zones are not banned
-    final allowedZones = zoneBannedUntil.entries
-        .where((e) => e.value.isBefore(clock.now()))
-        .map((e) => e.key)
-        .toList()
-      ..shuffle(rng);
+    final allowedZones =
+        zoneBannedUntil.entries
+            .where((e) => e.value.isBefore(clock.now()))
+            .map((e) => e.key)
+            .toList()
+          ..shuffle(rng);
     var nextZoneIndex = 0;
     String pickZone() => allowedZones[nextZoneIndex++ % allowedZones.length];
 
@@ -145,112 +144,121 @@ Future<void> schedule(
 
     // Schedule analysis for some packages
     var pendingPackagesReviewed = 0;
-    await Future.wait(await (db.query<PackageState>()
-          ..filter('runtimeVersion =', runtimeVersion)
-          ..filter('pendingAt <=', clock.now())
-          ..order('pendingAt')
-          ..limit(min(
-            _maxInstancesPerIteration,
-            max(0, activeConfiguration.maxTaskInstances - instances),
-          )))
-        .run()
-        .map<Future<void>>((state) async {
-      pendingPackagesReviewed += 1;
+    await Future.wait(
+      await (db.query<PackageState>()
+            ..filter('runtimeVersion =', runtimeVersion)
+            ..filter('pendingAt <=', clock.now())
+            ..order('pendingAt')
+            ..limit(
+              min(
+                _maxInstancesPerIteration,
+                max(0, activeConfiguration.maxTaskInstances - instances),
+              ),
+            ))
+          .run()
+          .map<Future<void>>((state) async {
+            pendingPackagesReviewed += 1;
 
-      final instanceName = compute.generateInstanceName();
-      final zone = pickZone();
+            final instanceName = compute.generateInstanceName();
+            final zone = pickZone();
 
-      final payload = await updatePackageStateWithPendingVersions(
-          db, state, zone, instanceName);
-      if (payload == null) {
-        return;
-      }
-      // Create human readable description for GCP console.
-      final description =
-          'package:${payload.package} analysis of ${payload.versions.length} '
-          'versions.';
+            final payload = await updatePackageStateWithPendingVersions(
+              db,
+              state,
+              zone,
+              instanceName,
+            );
+            if (payload == null) {
+              return;
+            }
+            // Create human readable description for GCP console.
+            final description =
+                'package:${payload.package} analysis of ${payload.versions.length} '
+                'versions.';
 
-      scheduleMicrotask(() async {
-        var rollbackPackageState = true;
-        try {
-          // Purging cache is important for the edge case, where the new upload happens
-          // on a different runtime version, and the current one's cache is still stale
-          // and does not have the version yet.
-          // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
-          await purgePackageCache(payload.package);
-          _log.info(
-            'creating instance $instanceName in $zone for '
-            'package:${state.package}',
-          );
-          await compute.createInstance(
-            zone: zone,
-            instanceName: instanceName,
-            dockerImage: activeConfiguration.taskWorkerImage!,
-            arguments: [json.encode(payload)],
-            description: description,
-          );
-          rollbackPackageState = false;
-        } on ZoneExhaustedException catch (e, st) {
-          // A zone being exhausted is normal operations, we just use another
-          // zone for 15 minutes.
-          _log.info(
-            'zone resources exhausted, banning ${e.zone} for 30 minutes',
-            e,
-            st,
-          );
-          // Ban usage of zone for 30 minutes
-          banZone(e.zone, minutes: 30);
-        } on QuotaExhaustedException catch (e, st) {
-          // Quota exhausted, this can happen, but it shouldn't. We'll just stop
-          // doing anything for 10 minutes. Hopefully that'll resolve the issue.
-          // We log severe, because this is a reason to adjust the quota or
-          // instance limits.
-          _log.severe(
-            'Quota exhausted trying to create $instanceName, banning all zones '
-            'for 10 minutes',
-            e,
-            st,
-          );
+            scheduleMicrotask(() async {
+              var rollbackPackageState = true;
+              try {
+                // Purging cache is important for the edge case, where the new upload happens
+                // on a different runtime version, and the current one's cache is still stale
+                // and does not have the version yet.
+                // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
+                await purgePackageCache(payload.package);
+                _log.info(
+                  'creating instance $instanceName in $zone for '
+                  'package:${state.package}',
+                );
+                await compute.createInstance(
+                  zone: zone,
+                  instanceName: instanceName,
+                  dockerImage: activeConfiguration.taskWorkerImage!,
+                  arguments: [json.encode(payload)],
+                  description: description,
+                );
+                rollbackPackageState = false;
+              } on ZoneExhaustedException catch (e, st) {
+                // A zone being exhausted is normal operations, we just use another
+                // zone for 15 minutes.
+                _log.info(
+                  'zone resources exhausted, banning ${e.zone} for 30 minutes',
+                  e,
+                  st,
+                );
+                // Ban usage of zone for 30 minutes
+                banZone(e.zone, minutes: 30);
+              } on QuotaExhaustedException catch (e, st) {
+                // Quota exhausted, this can happen, but it shouldn't. We'll just stop
+                // doing anything for 10 minutes. Hopefully that'll resolve the issue.
+                // We log severe, because this is a reason to adjust the quota or
+                // instance limits.
+                _log.severe(
+                  'Quota exhausted trying to create $instanceName, banning all zones '
+                  'for 10 minutes',
+                  e,
+                  st,
+                );
 
-          // Ban all zones for 10 minutes
-          for (final zone in compute.zones) {
-            banZone(zone, minutes: 10);
-          }
-        } on Exception catch (e, st) {
-          // No idea what happened, but for robustness we'll stop using the zone
-          // and shout into the logs
-          _log.shout(
-            'Failed to create instance $instanceName, banning zone "$zone" for '
-            '15 minutes',
-            e,
-            st,
-          );
-          // Ban usage of zone for 15 minutes
-          banZone(zone, minutes: 15);
-        } finally {
-          if (rollbackPackageState) {
-            // Restore the state of the PackageState for versions that were
-            // suppose to run on the instance we just failed to create.
-            // If this doesn't work, we'll eventually retry. Hence, correctness
-            // does not hinge on this transaction being successful.
-            await withRetryTransaction(db, (tx) async {
-              final s = await tx.lookupOrNull<PackageState>(state.key);
-              if (s == null) {
-                return; // Presumably, the package was deleted.
+                // Ban all zones for 10 minutes
+                for (final zone in compute.zones) {
+                  banZone(zone, minutes: 10);
+                }
+              } on Exception catch (e, st) {
+                // No idea what happened, but for robustness we'll stop using the zone
+                // and shout into the logs
+                _log.shout(
+                  'Failed to create instance $instanceName, banning zone "$zone" for '
+                  '15 minutes',
+                  e,
+                  st,
+                );
+                // Ban usage of zone for 15 minutes
+                banZone(zone, minutes: 15);
+              } finally {
+                if (rollbackPackageState) {
+                  // Restore the state of the PackageState for versions that were
+                  // suppose to run on the instance we just failed to create.
+                  // If this doesn't work, we'll eventually retry. Hence, correctness
+                  // does not hinge on this transaction being successful.
+                  await withRetryTransaction(db, (tx) async {
+                    final s = await tx.lookupOrNull<PackageState>(state.key);
+                    if (s == null) {
+                      return; // Presumably, the package was deleted.
+                    }
+
+                    s.versions!.addEntries(
+                      s.versions!.entries
+                          .where((e) => e.value.instance == instanceName)
+                          .map((e) => MapEntry(e.key, state.versions![e.key]!)),
+                    );
+                    s.derivePendingAt();
+                    tx.insert(s);
+                  });
+                }
               }
-
-              s.versions!.addEntries(
-                s.versions!.entries
-                    .where((e) => e.value.instance == instanceName)
-                    .map((e) => MapEntry(e.key, state.versions![e.key]!)),
-              );
-              s.derivePendingAt();
-              tx.insert(s);
             });
-          }
-        }
-      });
-    }).toList());
+          })
+          .toList(),
+    );
 
     // If there was no pending packages reviewed, and no instances currently
     // running, then we can easily sleep 5 minutes before we poll again.
@@ -288,8 +296,10 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     }
 
     final now = clock.now();
-    final pendingVersions =
-        s.pendingVersions(at: now).map(Version.parse).toList();
+    final pendingVersions = s
+        .pendingVersions(at: now)
+        .map(Version.parse)
+        .toList();
     if (pendingVersions.isEmpty) {
       // do not schedule anything
       return null;
@@ -304,8 +314,9 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     // - 3.0.0-dev1
     // - 2.7.0-beta
     // - 1.0.0-dev
-    pendingVersions
-        .sort((a, b) => compareSemanticVersionsDesc(a, b, true, true));
+    pendingVersions.sort(
+      (a, b) => compareSemanticVersionsDesc(a, b, true, true),
+    );
     // Promote the first prerelease version to the second position, e.g.
     // - 2.5.0
     // - 3.0.0-dev2
@@ -318,8 +329,9 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     //
     // (applicable only when the second position is a stable version)
     if (pendingVersions.length > 2 && !pendingVersions[1].isPreRelease) {
-      final firstPrereleaseIndex =
-          pendingVersions.indexWhere((v) => v.isPreRelease);
+      final firstPrereleaseIndex = pendingVersions.indexWhere(
+        (v) => v.isPreRelease,
+      );
       if (firstPrereleaseIndex > 1) {
         final v = pendingVersions.removeAt(firstPrereleaseIndex);
         pendingVersions.insert(1, v);
@@ -345,10 +357,12 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     return Payload(
       package: s.package,
       pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
-      versions: pendingVersions.map((v) => VersionTokenPair(
-            version: v.toString(),
-            token: s.versions![v.toString()]!.secretToken!,
-          )),
+      versions: pendingVersions.map(
+        (v) => VersionTokenPair(
+          version: v.toString(),
+          token: s.versions![v.toString()]!.secretToken!,
+        ),
+      ),
     );
   });
 }

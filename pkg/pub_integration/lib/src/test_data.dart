@@ -8,9 +8,9 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 Future<String> _testDataFolder() async {
-  final u = await Isolate.resolvePackageUri(Uri.parse(
-    'package:pub_integration/pub_integration.dart',
-  ));
+  final u = await Isolate.resolvePackageUri(
+    Uri.parse('package:pub_integration/pub_integration.dart'),
+  );
   return p.join(p.dirname(u!.toFilePath()), '..', 'test_data');
 }
 
@@ -18,8 +18,11 @@ Future createFakeRetryPkg(String dir) async {
   await _copy(p.join(await _testDataFolder(), 'retry'), dir);
 }
 
-Future createDummyPkg(String dir, String? version,
-    {int changelogContentSizeInKB = 0}) async {
+Future createDummyPkg(
+  String dir,
+  String? version, {
+  int changelogContentSizeInKB = 0,
+}) async {
   await _copy(p.join(await _testDataFolder(), '_dummy_pkg'), dir);
   final pubspecFile = File(p.join(dir, 'pubspec.yaml'));
   final pubspecContent = await pubspecFile.readAsString();

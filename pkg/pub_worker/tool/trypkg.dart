@@ -8,15 +8,23 @@ import 'package:path/path.dart' as p;
 import 'package:pub_worker/src/testing/server.dart';
 
 final _argParser = ArgParser()
-  ..addFlag('observe',
-      negatable: false, help: 'start pub_worker with --observe')
-  ..addFlag('docker',
-      negatable: false, help: 'run pub_worker in docker container')
+  ..addFlag(
+    'observe',
+    negatable: false,
+    help: 'start pub_worker with --observe',
+  )
+  ..addFlag(
+    'docker',
+    negatable: false,
+    help: 'run pub_worker in docker container',
+  )
   ..addFlag('help', negatable: false)
-  ..addOption('output',
-      abbr: 'o',
-      help: 'folder output should be written to',
-      valueHelp: 'folder');
+  ..addOption(
+    'output',
+    abbr: 'o',
+    help: 'folder output should be written to',
+    valueHelp: 'folder',
+  );
 
 void main(List<String> args) async {
   ArgResults argResults;
@@ -46,12 +54,7 @@ void main(List<String> args) async {
   final payload = Payload(
     package: package,
     pubHostedUrl: '${server.baseUrl}',
-    versions: [
-      VersionTokenPair(
-        version: version,
-        token: 'secret-token',
-      ),
-    ],
+    versions: [VersionTokenPair(version: version, token: 'secret-token')],
   );
 
   final Process worker;
@@ -65,16 +68,12 @@ void main(List<String> args) async {
     }
     worker = await startDockerAnalysis(payload);
   } else {
-    worker = await Process.start(
-      Platform.resolvedExecutable,
-      [
-        'run',
-        if (argResults['observe'] == true) '--observe',
-        'pub_worker',
-        json.encode(payload),
-      ],
-      mode: ProcessStartMode.inheritStdio,
-    );
+    worker = await Process.start(Platform.resolvedExecutable, [
+      'run',
+      if (argResults['observe'] == true) '--observe',
+      'pub_worker',
+      json.encode(payload),
+    ], mode: ProcessStartMode.inheritStdio);
   }
   try {
     print('Starting worker');

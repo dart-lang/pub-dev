@@ -24,7 +24,8 @@ Stream<ArchiveIssue> scanArchiveSurface(
   // compressed file size check
   if (file.lengthSync() > maxArchiveSize) {
     yield ArchiveIssue(
-        'Package archive is too large (size > $maxArchiveSize).');
+      'Package archive is too large (size > $maxArchiveSize).',
+    );
     return;
   }
 
@@ -44,7 +45,8 @@ Stream<ArchiveIssue> scanArchiveSurface(
     return;
   } else if (uncompressedLength > maxArchiveSize) {
     yield ArchiveIssue(
-        'Uncompressed package archive is too large (size > $maxArchiveSize).');
+      'Uncompressed package archive is too large (size > $maxArchiveSize).',
+    );
     return;
   }
 }

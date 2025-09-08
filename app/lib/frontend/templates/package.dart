@@ -50,8 +50,9 @@ d.Node renderPkgInfoBox(PackagePageData data) {
     final uri = urls.parseValidUrl(href);
     if (uri == null) return;
 
-    final problemCode =
-        urlProblems?.firstWhereOrNull((p) => p.url == uri.toString())?.problem;
+    final problemCode = urlProblems
+        ?.firstWhereOrNull((p) => p.url == uri.toString())
+        ?.problem;
     if (detectServiceProvider && problemCode == null) {
       final providerName = urls.inferServiceProviderName(href);
       if (providerName != null) {
@@ -76,8 +77,11 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
     addLink(packageLinks.homepageUrl, 'Homepage');
   }
-  addLink(packageLinks.repositoryUrl, 'Repository',
-      detectServiceProvider: true);
+  addLink(
+    packageLinks.repositoryUrl,
+    'Repository',
+    detectServiceProvider: true,
+  );
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
   addLink(packageLinks.contributingUrl, 'Contributing');
 
@@ -118,10 +122,12 @@ d.Node renderPkgHeader(PackagePageData data) {
     publisherId: package.publisherId,
     published: data.version.created!,
     isNullSafe: isNullSafe,
-    isDart3Compatible:
-        pkgView.tags.contains(PackageVersionTags.isDart3Compatible),
-    isDart3Incompatible:
-        pkgView.tags.contains(PackageVersionTags.isDart3Incompatible),
+    isDart3Compatible: pkgView.tags.contains(
+      PackageVersionTags.isDart3Compatible,
+    ),
+    isDart3Incompatible: pkgView.tags.contains(
+      PackageVersionTags.isDart3Incompatible,
+    ),
     releases: showReleases ? data.latestReleases : null,
   );
 
@@ -135,8 +141,9 @@ d.Node renderPkgHeader(PackagePageData data) {
       likeCount: package.likes,
       isLiked: data.isLiked,
     ),
-    isFlutterFavorite:
-        (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
+    isFlutterFavorite: (package.assignedTags ?? []).contains(
+      PackageTags.isFlutterFavorite,
+    ),
     metadataNode: metadataNode,
     tagsNode: tagsNodeFromPackageView(
       package: pkgView,
@@ -151,10 +158,7 @@ d.Node renderPkgHeader(PackagePageData data) {
 String renderPkgShowPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      readmeTab: _readmeTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, readmeTab: _readmeTab(data)),
     pkgPageTab: urls.PkgPageTab.readme,
   );
 }
@@ -163,10 +167,7 @@ String renderPkgShowPage(PackagePageData data) {
 String renderPkgChangelogPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      changelogTab: _changelogTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, changelogTab: _changelogTab(data)),
     pkgPageTab: urls.PkgPageTab.changelog,
   );
 }
@@ -175,10 +176,7 @@ String renderPkgChangelogPage(PackagePageData data) {
 String renderPkgExamplePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      exampleTab: _exampleTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, exampleTab: _exampleTab(data)),
     pkgPageTab: urls.PkgPageTab.example,
   );
 }
@@ -187,10 +185,7 @@ String renderPkgExamplePage(PackagePageData data) {
 String renderPkgInstallPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      installingTab: _installTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, installingTab: _installTab(data)),
     pkgPageTab: urls.PkgPageTab.install,
   );
 }
@@ -199,10 +194,7 @@ String renderPkgInstallPage(PackagePageData data) {
 String renderPkgLicensePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      licenseTab: _licenseTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, licenseTab: _licenseTab(data)),
     pkgPageTab: urls.PkgPageTab.license,
   );
 }
@@ -211,10 +203,7 @@ String renderPkgLicensePage(PackagePageData data) {
 String renderPkgPubspecPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      pubspecTab: _pubspecTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, pubspecTab: _pubspecTab(data)),
     pkgPageTab: urls.PkgPageTab.pubspec,
   );
 }
@@ -223,10 +212,7 @@ String renderPkgPubspecPage(PackagePageData data) {
 String renderPkgScorePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(
-      data: data,
-      scoreTab: _scoreTab(data),
-    ),
+    tabs: buildPackageTabs(data: data, scoreTab: _scoreTab(data)),
     pkgPageTab: urls.PkgPageTab.score,
   );
 }
@@ -276,7 +262,8 @@ String _renderPkgPage({
     includeHost: true,
     pkgPageTab: pkgPageTab,
   );
-  final noIndex = pkgPageTab == urls.PkgPageTab.install ||
+  final noIndex =
+      pkgPageTab == urls.PkgPageTab.install ||
       pkgPageTab == urls.PkgPageTab.score ||
       card.hasNoTaskStatus ||
       (card.grantedPubPoints == 0) ||
@@ -318,13 +305,11 @@ PageData pkgPageData(
 }
 
 Tab _readmeTab(PackagePageData data) {
-  final content = data.hasReadme &&
+  final content =
+      data.hasReadme &&
           data.asset != null &&
           data.asset!.kind == AssetKind.readme
-      ? renderFile(
-          data.asset!,
-          urlResolverFn: data.urlResolverFn,
-        )
+      ? renderFile(data.asset!, urlResolverFn: data.urlResolverFn)
       : d.text('');
   return Tab.withContent(
     id: 'readme',
@@ -399,34 +384,21 @@ Tab _installTab(PackagePageData data) {
 
 Tab _licenseTab(PackagePageData data) {
   final license = data.hasLicense
-      ? renderFile(
-          data.asset!,
-          urlResolverFn: data.urlResolverFn,
-        )
+      ? renderFile(data.asset!, urlResolverFn: data.urlResolverFn)
       : d.text('No license file found.');
   return Tab.withContent(
     id: 'license',
     title: 'License',
-    contentNode: d.fragment([
-      d.h2(text: 'License'),
-      license,
-    ]),
+    contentNode: d.fragment([d.h2(text: 'License'), license]),
     isMarkdown: true,
   );
 }
 
 Tab _pubspecTab(PackagePageData data) {
   final content = data.hasPubspec
-      ? renderFile(
-          data.asset!,
-          urlResolverFn: data.urlResolverFn,
-        )
+      ? renderFile(data.asset!, urlResolverFn: data.urlResolverFn)
       : d.text('No pubspec file found.');
-  return Tab.withContent(
-    id: 'pubspec',
-    title: 'Pubspec',
-    contentNode: content,
-  );
+  return Tab.withContent(id: 'pubspec', title: 'Pubspec', contentNode: content);
 }
 
 Tab _scoreTab(PackagePageData data) {
@@ -457,7 +429,7 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     'dateCreated': p.created!.toIso8601String(),
     'dateModified': pv.created!.toIso8601String(),
     'programmingLanguage': 'Dart',
-    'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png'
+    'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png',
   };
   if (data.hasLicense) {
     map['license'] = urls.pkgLicenseUrl(

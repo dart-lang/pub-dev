@@ -118,11 +118,7 @@ class AdminUserEntry {
   final String? email;
 
   // json_serializable boiler-plate
-  AdminUserEntry({
-    required this.userId,
-    required this.email,
-    this.oauthUserId,
-  });
+  AdminUserEntry({required this.userId, required this.email, this.oauthUserId});
   factory AdminUserEntry.fromJson(Map<String, dynamic> json) =>
       _$AdminUserEntryFromJson(json);
   Map<String, dynamic> toJson() => _$AdminUserEntryToJson(this);

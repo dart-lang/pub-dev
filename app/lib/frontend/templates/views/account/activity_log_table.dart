@@ -12,12 +12,14 @@ d.Node activityLogNode({
   String? forEntity,
 }) {
   return d.fragment([
-    d.p(children: [
-      d.text('List of activities relevant to $forCategory'),
-      if (forEntity != null) ...[d.text(' '), d.code(text: forEntity)],
-      d.text('. '),
-      d.text('Events other than package publication expire after 2 months.'),
-    ]),
+    d.p(
+      children: [
+        d.text('List of activities relevant to $forCategory'),
+        if (forEntity != null) ...[d.text(' '), d.code(text: forEntity)],
+        d.text('. '),
+        d.text('Events other than package publication expire after 2 months.'),
+      ],
+    ),
     _activityLogTableNode(activities),
     if (activities.hasNextPage)
       _nextPageNode(baseUrl, activities.nextTimestamp!),
@@ -25,22 +27,27 @@ d.Node activityLogNode({
 }
 
 d.Node _activityLogTableNode(AuditLogRecordPage activities) {
-  final lastShortTermIndex =
-      activities.records.lastIndexWhere((r) => r.isKeptShortTerm);
-  final shortTermRecords =
-      activities.records.take(lastShortTermIndex + 1).toList();
-  final longTermRecords =
-      activities.records.skip(lastShortTermIndex + 1).toList();
+  final lastShortTermIndex = activities.records.lastIndexWhere(
+    (r) => r.isKeptShortTerm,
+  );
+  final shortTermRecords = activities.records
+      .take(lastShortTermIndex + 1)
+      .toList();
+  final longTermRecords = activities.records
+      .skip(lastShortTermIndex + 1)
+      .toList();
   final displaySeparator =
       shortTermRecords.isNotEmpty && longTermRecords.isNotEmpty;
 
   return d.table(
     classes: ['activity-log-table'],
     head: [
-      d.tr(children: [
-        d.th(classes: ['acdate'], text: ''),
-        d.th(classes: ['summary'], text: 'Summary'),
-      ]),
+      d.tr(
+        children: [
+          d.th(classes: ['acdate'], text: ''),
+          d.th(classes: ['summary'], text: 'Summary'),
+        ],
+      ),
     ],
     body: [
       ...shortTermRecords.map(_recordNode),
@@ -67,10 +74,7 @@ d.Node _recordNode(AuditLogRecord a) {
       d.td(
         classes: ['summary'],
         children: [
-          d.div(
-            classes: ['markdown-body'],
-            child: d.markdown(a.summary!),
-          ),
+          d.div(classes: ['markdown-body'], child: d.markdown(a.summary!)),
         ],
       ),
     ],
@@ -78,9 +82,9 @@ d.Node _recordNode(AuditLogRecord a) {
 }
 
 d.Node _nextPageNode(String baseUrl, String nextTimestamp) {
-  final nextUri = Uri.parse(baseUrl).replace(
-    queryParameters: {'before': nextTimestamp},
-  );
+  final nextUri = Uri.parse(
+    baseUrl,
+  ).replace(queryParameters: {'before': nextTimestamp});
   return d.p(
     child: d.a(href: nextUri.toString(), text: 'More...'),
   );

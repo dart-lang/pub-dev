@@ -36,15 +36,17 @@ class DownloadCountsBackend {
 
   DownloadCountsBackend(this._db) {
     _thirtyDaysTotals = CachedValue<Map<String, int>>(
-        name: 'thirtyDaysTotalDownloadCounts',
-        maxAge: Duration(days: 14),
-        interval: Duration(minutes: 30),
-        updateFn: _updateThirtyDaysTotals);
+      name: 'thirtyDaysTotalDownloadCounts',
+      maxAge: Duration(days: 14),
+      interval: Duration(minutes: 30),
+      updateFn: _updateThirtyDaysTotals,
+    );
     _trendScores = CachedValue<Map<String, double>>(
-        name: 'trendScores',
-        maxAge: Duration(days: 14),
-        interval: Duration(minutes: 30),
-        updateFn: _updateTrendScores);
+      name: 'trendScores',
+      maxAge: Duration(days: 14),
+      interval: Duration(minutes: 30),
+      updateFn: _updateTrendScores,
+    );
   }
 
   Future<Map<String, int>> _updateThirtyDaysTotals() async {
@@ -69,7 +71,7 @@ class DownloadCountsBackend {
     required String fileName,
     required ({Map<String, V> data, String etag}) currentCachedData,
     required void Function(({Map<String, V> data, String etag}) newData)
-        updateCache,
+    updateCache,
     required String errorContext,
   }) async {
     try {
@@ -102,7 +104,10 @@ class DownloadCountsBackend {
     } on DetailedApiRequestError catch (e, st) {
       if (e.status != 404) {
         logger.severe(
-            'Failed to load $fileName ($errorContext), error : $e', e, st);
+          'Failed to load $fileName ($errorContext), error : $e',
+          e,
+          st,
+        );
       }
       rethrow;
     } on TypeError catch (e, st) {
@@ -113,21 +118,25 @@ class DownloadCountsBackend {
 
   Map<String, V> _parseJsonToMapStringV<V>(dynamic rawJson, String fileName) {
     if (rawJson is! Map) {
-      throw FormatException('Expected JSON for $fileName to be a Map, but got'
-          ' ${rawJson.runtimeType}');
+      throw FormatException(
+        'Expected JSON for $fileName to be a Map, but got'
+        ' ${rawJson.runtimeType}',
+      );
     }
 
     final Map<String, V> result = {};
     for (final entry in rawJson.entries) {
       if (entry.key is! String) {
         throw FormatException(
-            'Expected map keys for $fileName to be String, but found'
-            ' ${entry.key.runtimeType}');
+          'Expected map keys for $fileName to be String, but found'
+          ' ${entry.key.runtimeType}',
+        );
       }
       if (entry.value is! V) {
         throw FormatException(
-            'Expected map value for key "${entry.key}" in $fileName to be'
-            ' ${V.runtimeType}, but got ${entry.value.runtimeType}');
+          'Expected map value for key "${entry.key}" in $fileName to be'
+          ' ${V.runtimeType}, but got ${entry.value.runtimeType}',
+        );
       }
       result[entry.key as String] = entry.value as V;
     }
@@ -179,9 +188,7 @@ class DownloadCountsBackend {
         ..id = pkg
         ..countData = countData;
 
-      tx.queueMutations(
-        inserts: [newDownloadCounts],
-      );
+      tx.queueMutations(inserts: [newDownloadCounts]);
       return newDownloadCounts;
     });
     await cache.downloadCounts(pkg).purge();

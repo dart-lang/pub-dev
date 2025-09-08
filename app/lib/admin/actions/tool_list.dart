@@ -15,11 +15,7 @@ command.
   options: {},
   invoke: (options) async {
     return {
-      'tools': availableTools.keys
-          .map((k) => {
-                'tool': k,
-              })
-          .toList(),
+      'tools': availableTools.keys.map((k) => {'tool': k}).toList(),
     };
   },
 );

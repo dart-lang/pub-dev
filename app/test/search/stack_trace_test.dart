@@ -15,29 +15,30 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'stack_trace',
-          version: '1.9.3',
-          description: compactDescription(
-              'A package for manipulating stack traces and printing them readably.'),
-        ),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(
+            package: 'stack_trace',
+            version: '1.9.3',
+            description: compactDescription(
+              'A package for manipulating stack traces and printing them readably.',
+            ),
+          ),
+        ],
+      );
     });
 
     // should find full word
     test('stacktrace', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'stacktrace', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(query: 'stacktrace', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {
-            'package': 'stack_trace',
-            'score': 0.99,
-          },
+          {'package': 'stack_trace', 'score': 0.99},
         ],
       });
     });

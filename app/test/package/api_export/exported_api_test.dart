@@ -49,342 +49,379 @@ void main() {
         archiveUrl: '-',
         archiveSha256: '-',
         published: clock.now(),
-      )
+      ),
     ],
   );
 
-  final retryAdvisoryData1 = ListAdvisoriesResponse(
-    advisories: [],
+  final retryAdvisoryData1 = ListAdvisoriesResponse(advisories: []);
+
+  testWithProfile(
+    'ExportedApi.package().versions/advisories',
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
+
+      // Check that we can write JSON files
+      await exportedApi.package('retry').versions.write(retryPkgData1);
+      await exportedApi.package('retry').advisories.write(retryAdvisoryData1);
+
+      // Check contents of the files
+      expect(
+        await bucket.readGzippedJson('latest/api/packages/retry'),
+        json.decode(json.encode(retryPkgData1.toJson())),
+      );
+      expect(
+        await bucket.readGzippedJson('latest/api/packages/retry/advisories'),
+        json.decode(json.encode(retryAdvisoryData1.toJson())),
+      );
+
+      // Check that we can update JSON files
+      await exportedApi.package('retry').versions.write(retryPkgData2);
+      expect(
+        await bucket.readGzippedJson('latest/api/packages/retry'),
+        json.decode(json.encode(retryPkgData2.toJson())),
+      );
+
+      // CHeck that we can delete files
+      await exportedApi.package('retry').versions.delete();
+      await exportedApi.package('retry').advisories.delete();
+      expect(await bucket.readGzippedJson('latest/api/packages/retry'), isNull);
+      expect(
+        await bucket.readGzippedJson('latest/api/packages/retry/advisories'),
+        isNull,
+      );
+    },
   );
 
-  testWithProfile('ExportedApi.package().versions/advisories', fn: () async {
-    await storageService.createBucket('exported-api');
-    final bucket = storageService.bucket('exported-api');
-    final exportedApi = ExportedApi(storageService, bucket);
+  testWithProfile(
+    'ExportedApi.package().tarball().write/copyFrom',
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
 
-    // Check that we can write JSON files
-    await exportedApi.package('retry').versions.write(retryPkgData1);
-    await exportedApi.package('retry').advisories.write(retryAdvisoryData1);
+      // Check that we can write tarballs
+      await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 3]);
+      // Check that we can copy tarballs
+      await exportedApi
+          .package('retry')
+          .tarball('1.2.4')
+          .copyFrom(
+            SourceObjectInfo.fromObjectInfo(
+              bucket,
+              await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
+            ),
+          );
 
-    // Check contents of the files
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      json.decode(json.encode(retryPkgData1.toJson())),
-    );
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry/advisories'),
-      json.decode(json.encode(retryAdvisoryData1.toJson())),
-    );
+      // Check files created
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
 
-    // Check that we can update JSON files
-    await exportedApi.package('retry').versions.write(retryPkgData2);
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      json.decode(json.encode(retryPkgData2.toJson())),
-    );
+      // Check that we can update tarballs, but writing or copying
+      await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 4]);
+      await exportedApi
+          .package('retry')
+          .tarball('1.2.4')
+          .copyFrom(
+            SourceObjectInfo.fromObjectInfo(
+              bucket,
+              await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
+            ),
+          );
 
-    // CHeck that we can delete files
-    await exportedApi.package('retry').versions.delete();
-    await exportedApi.package('retry').advisories.delete();
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      isNull,
-    );
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry/advisories'),
-      isNull,
-    );
-  });
+      // Check files are updated
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'), [
+        1,
+        2,
+        4,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'), [
+        1,
+        2,
+        4,
+      ]);
 
-  testWithProfile('ExportedApi.package().tarball().write/copyFrom',
-      fn: () async {
-    await storageService.createBucket('exported-api');
-    final bucket = storageService.bucket('exported-api');
-    final exportedApi = ExportedApi(storageService, bucket);
-
-    // Check that we can write tarballs
-    await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 3]);
-    // Check that we can copy tarballs
-    await exportedApi.package('retry').tarball('1.2.4').copyFrom(
-          SourceObjectInfo.fromObjectInfo(
-            bucket,
-            await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
-          ),
-        );
-
-    // Check files created
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
-      [1, 2, 3],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
-      [1, 2, 3],
-    );
-
-    // Check that we can update tarballs, but writing or copying
-    await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 4]);
-    await exportedApi.package('retry').tarball('1.2.4').copyFrom(
-          SourceObjectInfo.fromObjectInfo(
-            bucket,
-            await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
-          ),
-        );
-
-    // Check files are updated
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
-      [1, 2, 4],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
-      [1, 2, 4],
-    );
-
-    // Check that we can delete files
-    await exportedApi.package('retry').tarball('1.2.3').delete();
-    await exportedApi.package('retry').tarball('1.2.4').delete();
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
-      isNull,
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
-      isNull,
-    );
-  });
-
-  testWithProfile('ExportedApi.package().tarball() version encoding',
-      fn: () async {
-    await storageService.createBucket('exported-api');
-    final bucket = storageService.bucket('exported-api');
-    final exportedApi = ExportedApi(storageService, bucket);
-
-    await exportedApi.package('_foo').tarball('1.2.3').write([1, 2, 3]);
-    await exportedApi.package('_foo').tarball('1.2.3-dev+2').copyFrom(
-          SourceObjectInfo.fromObjectInfo(
-            bucket,
-            await bucket.info('latest/api/archives/_foo-1.2.3.tar.gz'),
-          ),
-        );
-    await exportedApi.package('_foo').tarball('1.2.3-d.tar.gz').write([42]);
-    await exportedApi.package('_foo').tarball('1.2.3-d+4.tar.gz').write([42]);
-
-    expect(
-      await bucket.readBytes('latest/api/archives/_foo-1.2.3.tar.gz'),
-      [1, 2, 3],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/_foo-1.2.3-dev+2.tar.gz'),
-      [1, 2, 3],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/_foo-1.2.3-d.tar.gz.tar.gz'),
-      [42],
-    );
-    expect(
-      await bucket
-          .readBytes('latest/api/archives/_foo-1.2.3-d+4.tar.gz.tar.gz'),
-      [42],
-    );
-  });
-
-  testWithProfile('ExportedApi.garbageCollect()', fn: () async {
-    await storageService.createBucket('exported-api');
-    final bucket = storageService.bucket('exported-api');
-    final exportedApi = ExportedApi(storageService, bucket);
-
-    // Test that deletion works when bucket is empty
-    await exportedApi.package('retry').delete();
-
-    // Test that GC works when bucket is empty
-    await exportedApi.garbageCollect({});
-
-    await exportedApi.package('retry').versions.write(retryPkgData1);
-
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      json.decode(json.encode(retryPkgData1.toJson())),
-    );
-
-    // Check that GC after 10 mins won't delete a package we don't recognize
-    clockControl.elapseSync(minutes: 10);
-    await exportedApi.garbageCollect({});
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      isNotNull,
-    );
-
-    // Check that GC after 2 days won't delete a package we know
-    clockControl.elapseSync(days: 2);
-    await exportedApi.garbageCollect({'retry'});
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      isNotNull,
-    );
-
-    // Check retry after 2 days will delete a package we don't know.
-    await exportedApi.garbageCollect({});
-    expect(
-      await bucket.readGzippedJson('latest/api/packages/retry'),
-      isNull,
-    );
-
-    // Check that stray files in old-runtimeVersions will be GC'ed
-    final oldFiles = [
-      '2023.08.10/api/packages/retry',
-      '2023.08.10/api/stray-file1',
-      '2023.08.10/stray-file2',
-    ];
-    for (final f in oldFiles) {
-      await bucket.writeBytes(f, [0]);
+      // Check that we can delete files
+      await exportedApi.package('retry').tarball('1.2.3').delete();
+      await exportedApi.package('retry').tarball('1.2.4').delete();
       expect(
-        await bucket.readBytes(f),
+        await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
+        isNull,
+      );
+      expect(
+        await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
+        isNull,
+      );
+    },
+  );
+
+  testWithProfile(
+    'ExportedApi.package().tarball() version encoding',
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
+
+      await exportedApi.package('_foo').tarball('1.2.3').write([1, 2, 3]);
+      await exportedApi
+          .package('_foo')
+          .tarball('1.2.3-dev+2')
+          .copyFrom(
+            SourceObjectInfo.fromObjectInfo(
+              bucket,
+              await bucket.info('latest/api/archives/_foo-1.2.3.tar.gz'),
+            ),
+          );
+      await exportedApi.package('_foo').tarball('1.2.3-d.tar.gz').write([42]);
+      await exportedApi.package('_foo').tarball('1.2.3-d+4.tar.gz').write([42]);
+
+      expect(await bucket.readBytes('latest/api/archives/_foo-1.2.3.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+      expect(
+        await bucket.readBytes('latest/api/archives/_foo-1.2.3-dev+2.tar.gz'),
+        [1, 2, 3],
+      );
+      expect(
+        await bucket.readBytes(
+          'latest/api/archives/_foo-1.2.3-d.tar.gz.tar.gz',
+        ),
+        [42],
+      );
+      expect(
+        await bucket.readBytes(
+          'latest/api/archives/_foo-1.2.3-d+4.tar.gz.tar.gz',
+        ),
+        [42],
+      );
+    },
+  );
+
+  testWithProfile(
+    'ExportedApi.garbageCollect()',
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
+
+      // Test that deletion works when bucket is empty
+      await exportedApi.package('retry').delete();
+
+      // Test that GC works when bucket is empty
+      await exportedApi.garbageCollect({});
+
+      await exportedApi.package('retry').versions.write(retryPkgData1);
+
+      expect(
+        await bucket.readGzippedJson('latest/api/packages/retry'),
+        json.decode(json.encode(retryPkgData1.toJson())),
+      );
+
+      // Check that GC after 10 mins won't delete a package we don't recognize
+      clockControl.elapseSync(minutes: 10);
+      await exportedApi.garbageCollect({});
+      expect(
+        await bucket.readGzippedJson('latest/api/packages/retry'),
         isNotNull,
       );
-    }
 
-    // Run GC to delete all stray files
-    await exportedApi.garbageCollect({});
-
-    for (final f in oldFiles) {
+      // Check that GC after 2 days won't delete a package we know
+      clockControl.elapseSync(days: 2);
+      await exportedApi.garbageCollect({'retry'});
       expect(
-        await bucket.readBytes(f),
-        isNull,
-        reason: 'expected "$f" to be GCed',
+        await bucket.readGzippedJson('latest/api/packages/retry'),
+        isNotNull,
       );
-    }
-  });
 
-  testWithProfile('ExportedApi.package().synchronizeTarballs()', fn: () async {
-    await storageService.createBucket('exported-api');
-    final bucket = storageService.bucket('exported-api');
-    final exportedApi = ExportedApi(storageService, bucket);
+      // Check retry after 2 days will delete a package we don't know.
+      await exportedApi.garbageCollect({});
+      expect(await bucket.readGzippedJson('latest/api/packages/retry'), isNull);
 
-    await storageService.createBucket('canonical-packages');
-    final canonical = storageService.bucket('canonical-packages');
+      // Check that stray files in old-runtimeVersions will be GC'ed
+      final oldFiles = [
+        '2023.08.10/api/packages/retry',
+        '2023.08.10/api/stray-file1',
+        '2023.08.10/stray-file2',
+      ];
+      for (final f in oldFiles) {
+        await bucket.writeBytes(f, [0]);
+        expect(await bucket.readBytes(f), isNotNull);
+      }
 
-    final src1 = SourceObjectInfo.fromObjectInfo(
-      canonical,
-      await canonical.writeBytes('packages/retry-1.0.0.tar.gz', [1, 0, 0]),
-    );
-    final src2 = SourceObjectInfo.fromObjectInfo(
-      canonical,
-      await canonical.writeBytes('packages/retry-2.0.0.tar.gz', [2, 0, 0]),
-    );
-    final src3 = SourceObjectInfo.fromObjectInfo(
-      canonical,
-      await canonical.writeBytes('packages/retry-3.0.0+1.tar.gz', [3, 0, 0]),
-    );
+      // Run GC to delete all stray files
+      await exportedApi.garbageCollect({});
 
-    await exportedApi.package('retry').tarball('1.0.0').copyFrom(src1);
-    await exportedApi.package('retry').tarball('1.0.5').copyFrom(src2);
-
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.0.0.tar.gz'),
-      [1, 0, 0],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.0.5.tar.gz'),
-      [2, 0, 0],
-    );
-
-    await exportedApi.package('retry').synchronizeTarballs({
-      '1.0.0': src1,
-      '2.0.0': src2,
-      '3.0.0+1': src3,
-    });
-
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.0.0.tar.gz'),
-      [1, 0, 0],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.0.5.tar.gz'),
-      [2, 0, 0],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-2.0.0.tar.gz'),
-      [2, 0, 0],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-3.0.0+1.tar.gz'),
-      [3, 0, 0],
-    );
-
-    clockControl.elapseSync(days: 2);
-
-    await exportedApi.package('retry').synchronizeTarballs({
-      '1.0.0': src1,
-      '2.0.0': src2,
-      '3.0.0+1': src3,
-    });
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.0.0.tar.gz'),
-      [1, 0, 0],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.0.5.tar.gz'),
-      isNull,
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-2.0.0.tar.gz'),
-      [2, 0, 0],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-3.0.0+1.tar.gz'),
-      [3, 0, 0],
-    );
-  });
-
-  testWithProfile('ExportedApi.package().garbageCollect()', fn: () async {
-    await storageService.createBucket('exported-api');
-    final bucket = storageService.bucket('exported-api');
-    final exportedApi = ExportedApi(storageService, bucket);
-
-    await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 3]);
-
-    await exportedApi.package('retry').tarball('1.2.4').copyFrom(
-          SourceObjectInfo.fromObjectInfo(
-            bucket,
-            await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
-          ),
+      for (final f in oldFiles) {
+        expect(
+          await bucket.readBytes(f),
+          isNull,
+          reason: 'expected "$f" to be GCed',
         );
+      }
+    },
+  );
 
-    // Files are present
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
-      [1, 2, 3],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
-      [1, 2, 3],
-    );
+  testWithProfile(
+    'ExportedApi.package().synchronizeTarballs()',
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
 
-    // Nothing is GC'ed after 10 mins
-    clockControl.elapseSync(minutes: 10);
-    await exportedApi.package('retry').garbageCollect({'1.2.3'});
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
-      [1, 2, 3],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
-      [1, 2, 3],
-    );
+      await storageService.createBucket('canonical-packages');
+      final canonical = storageService.bucket('canonical-packages');
 
-    // Something is GC'ed after 2 days
-    clockControl.elapseSync(days: 2);
-    await exportedApi.package('retry').garbageCollect({'1.2.3'});
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'),
-      [1, 2, 3],
-    );
-    expect(
-      await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
-      isNull,
-    );
-  });
+      final src1 = SourceObjectInfo.fromObjectInfo(
+        canonical,
+        await canonical.writeBytes('packages/retry-1.0.0.tar.gz', [1, 0, 0]),
+      );
+      final src2 = SourceObjectInfo.fromObjectInfo(
+        canonical,
+        await canonical.writeBytes('packages/retry-2.0.0.tar.gz', [2, 0, 0]),
+      );
+      final src3 = SourceObjectInfo.fromObjectInfo(
+        canonical,
+        await canonical.writeBytes('packages/retry-3.0.0+1.tar.gz', [3, 0, 0]),
+      );
+
+      await exportedApi.package('retry').tarball('1.0.0').copyFrom(src1);
+      await exportedApi.package('retry').tarball('1.0.5').copyFrom(src2);
+
+      expect(await bucket.readBytes('latest/api/archives/retry-1.0.0.tar.gz'), [
+        1,
+        0,
+        0,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-1.0.5.tar.gz'), [
+        2,
+        0,
+        0,
+      ]);
+
+      await exportedApi.package('retry').synchronizeTarballs({
+        '1.0.0': src1,
+        '2.0.0': src2,
+        '3.0.0+1': src3,
+      });
+
+      expect(await bucket.readBytes('latest/api/archives/retry-1.0.0.tar.gz'), [
+        1,
+        0,
+        0,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-1.0.5.tar.gz'), [
+        2,
+        0,
+        0,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-2.0.0.tar.gz'), [
+        2,
+        0,
+        0,
+      ]);
+      expect(
+        await bucket.readBytes('latest/api/archives/retry-3.0.0+1.tar.gz'),
+        [3, 0, 0],
+      );
+
+      clockControl.elapseSync(days: 2);
+
+      await exportedApi.package('retry').synchronizeTarballs({
+        '1.0.0': src1,
+        '2.0.0': src2,
+        '3.0.0+1': src3,
+      });
+      expect(await bucket.readBytes('latest/api/archives/retry-1.0.0.tar.gz'), [
+        1,
+        0,
+        0,
+      ]);
+      expect(
+        await bucket.readBytes('latest/api/archives/retry-1.0.5.tar.gz'),
+        isNull,
+      );
+      expect(await bucket.readBytes('latest/api/archives/retry-2.0.0.tar.gz'), [
+        2,
+        0,
+        0,
+      ]);
+      expect(
+        await bucket.readBytes('latest/api/archives/retry-3.0.0+1.tar.gz'),
+        [3, 0, 0],
+      );
+    },
+  );
+
+  testWithProfile(
+    'ExportedApi.package().garbageCollect()',
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
+
+      await exportedApi.package('retry').tarball('1.2.3').write([1, 2, 3]);
+
+      await exportedApi
+          .package('retry')
+          .tarball('1.2.4')
+          .copyFrom(
+            SourceObjectInfo.fromObjectInfo(
+              bucket,
+              await bucket.info('latest/api/archives/retry-1.2.3.tar.gz'),
+            ),
+          );
+
+      // Files are present
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+
+      // Nothing is GC'ed after 10 mins
+      clockControl.elapseSync(minutes: 10);
+      await exportedApi.package('retry').garbageCollect({'1.2.3'});
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+
+      // Something is GC'ed after 2 days
+      clockControl.elapseSync(days: 2);
+      await exportedApi.package('retry').garbageCollect({'1.2.3'});
+      expect(await bucket.readBytes('latest/api/archives/retry-1.2.3.tar.gz'), [
+        1,
+        2,
+        3,
+      ]);
+      expect(
+        await bucket.readBytes('latest/api/archives/retry-1.2.4.tar.gz'),
+        isNull,
+      );
+    },
+  );
 }
 
 extension on Bucket {

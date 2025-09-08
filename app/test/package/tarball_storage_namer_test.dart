@@ -13,19 +13,28 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Object names', () {
-    testWithProfile('namer', fn: () async {
-      await storageService.createBucket('some-pub-bucket');
-      final bucket = storageService.bucket('some-pub-bucket');
-      expect(bucket.objectUrl('path/file.txt'),
-          '${activeConfiguration.storageBaseUrl}/some-pub-bucket/path/file.txt');
+    testWithProfile(
+      'namer',
+      fn: () async {
+        await storageService.createBucket('some-pub-bucket');
+        final bucket = storageService.bucket('some-pub-bucket');
+        expect(
+          bucket.objectUrl('path/file.txt'),
+          '${activeConfiguration.storageBaseUrl}/some-pub-bucket/path/file.txt',
+        );
 
-      expect((await packageBackend.downloadUrl('oxygen', '1.0.0')).toString(),
-          '${activeConfiguration.storageBaseUrl}/fake-public-packages/packages/oxygen-1.0.0.tar.gz');
-    });
+        expect(
+          (await packageBackend.downloadUrl('oxygen', '1.0.0')).toString(),
+          '${activeConfiguration.storageBaseUrl}/fake-public-packages/packages/oxygen-1.0.0.tar.gz',
+        );
+      },
+    );
 
     test('helper methods', () {
-      expect(tarballObjectName('foobar', '0.1.0'),
-          equals('packages/foobar-0.1.0.tar.gz'));
+      expect(
+        tarballObjectName('foobar', '0.1.0'),
+        equals('packages/foobar-0.1.0.tar.gz'),
+      );
       expect(tmpObjectName('guid'), equals('tmp/guid'));
     });
   });

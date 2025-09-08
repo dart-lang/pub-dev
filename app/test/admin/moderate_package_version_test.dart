@@ -33,15 +33,15 @@ import '../shared/test_services.dart';
 void main() {
   group('Moderate package version', () {
     Future<ModerationCase> _report(String package, String version) async {
-      await withRetryPubApiClient(
-        (client) async {
-          await client.postReport(ReportForm(
+      await withRetryPubApiClient((client) async {
+        await client.postReport(
+          ReportForm(
             email: 'user@pub.dev',
             subject: 'package-version:$package/$version',
             message: 'Huston, we have a problem.',
-          ));
-        },
-      );
+          ),
+        );
+      });
       final list = await dbService.query<ModerationCase>().run().toList();
       return list.reduce((a, b) => a.opened.isAfter(b.opened) ? a : b);
     }
@@ -55,389 +55,462 @@ void main() {
       final api = createPubApiClient(authToken: siteAdminToken);
       return await api.adminInvokeAction(
         'moderate-package-version',
-        AdminInvokeActionArguments(arguments: {
-          'case': caseId,
-          'package': package,
-          'version': version,
-          if (state != null) 'state': state.toString(),
-        }),
+        AdminInvokeActionArguments(
+          arguments: {
+            'case': caseId,
+            'package': package,
+            'version': version,
+            if (state != null) 'state': state.toString(),
+          },
+        ),
       );
     }
 
-    testWithProfile('update state', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-    ], fn: () async {
-      final mc = await _report('oxygen', '1.0.0');
-      final r1 = await _moderate('oxygen', '1.0.0');
-      expect(r1.output, {
-        'package': 'oxygen',
-        'version': '1.0.0',
-        'before': {'isModerated': false, 'moderatedAt': null},
-      });
+    testWithProfile(
+      'update state',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        final mc = await _report('oxygen', '1.0.0');
+        final r1 = await _moderate('oxygen', '1.0.0');
+        expect(r1.output, {
+          'package': 'oxygen',
+          'version': '1.0.0',
+          'before': {'isModerated': false, 'moderatedAt': null},
+        });
 
-      final r2 =
-          await _moderate('oxygen', '1.0.0', caseId: mc.caseId, state: true);
-      expect(r2.output, {
-        'package': 'oxygen',
-        'version': '1.0.0',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
-      });
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      expect(p1!.isModerated, isFalse);
-      final pv2 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-      expect(pv2!.isModerated, isTrue);
+        final r2 = await _moderate(
+          'oxygen',
+          '1.0.0',
+          caseId: mc.caseId,
+          state: true,
+        );
+        expect(r2.output, {
+          'package': 'oxygen',
+          'version': '1.0.0',
+          'before': {'isModerated': false, 'moderatedAt': null},
+          'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        });
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        expect(p1!.isModerated, isFalse);
+        final pv2 = await packageBackend.lookupPackageVersion(
+          'oxygen',
+          '1.0.0',
+        );
+        expect(pv2!.isModerated, isTrue);
 
-      // cannot redact this version
-      await expectApiException(
-        (await createFakeAuthPubApiClient(email: adminAtPubDevEmail))
-            .setVersionOptions(
-                'oxygen', '1.0.0', VersionOptions(isRetracted: true)),
-        code: 'NotFound',
-        status: 404,
-        message: 'PackageVersion \"oxygen\" \"1.0.0\" has been moderated.',
-      );
+        // cannot redact this version
+        await expectApiException(
+          (await createFakeAuthPubApiClient(
+            email: adminAtPubDevEmail,
+          )).setVersionOptions(
+            'oxygen',
+            '1.0.0',
+            VersionOptions(isRetracted: true),
+          ),
+          code: 'NotFound',
+          status: 404,
+          message: 'PackageVersion \"oxygen\" \"1.0.0\" has been moderated.',
+        );
 
-      // can redact other version
-      final optionsUpdates =
-          await (await createFakeAuthPubApiClient(email: adminAtPubDevEmail))
-              .setVersionOptions(
-                  'oxygen', '1.2.0', VersionOptions(isRetracted: true));
-      expect(optionsUpdates.isRetracted, true);
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.latestVersion, '2.0.0-dev');
+        // can redact other version
+        final optionsUpdates =
+            await (await createFakeAuthPubApiClient(
+              email: adminAtPubDevEmail,
+            )).setVersionOptions(
+              'oxygen',
+              '1.2.0',
+              VersionOptions(isRetracted: true),
+            );
+        expect(optionsUpdates.isRetracted, true);
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.latestVersion, '2.0.0-dev');
 
-      final mc2 = await adminBackend.lookupModerationCase(mc.caseId);
-      expect(mc2!.getActionLog().entries, hasLength(1));
-    });
-
-    testWithProfile('clear moderation flag', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-    ], fn: () async {
-      final r1 = await _moderate('oxygen', '1.0.0', state: true);
-      expect(r1.output, {
-        'package': 'oxygen',
-        'version': '1.0.0',
-        'before': {'isModerated': false, 'moderatedAt': null},
-        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
-      });
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      expect(p1!.isModerated, isFalse);
-      final pv1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-      expect(pv1!.isModerated, isTrue);
-
-      // clear flag
-      final r2 = await _moderate('oxygen', '1.0.0', state: false);
-      expect(r2.output, {
-        'package': 'oxygen',
-        'version': '1.0.0',
-        'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
-        'after': {'isModerated': false, 'moderatedAt': null},
-      });
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.isModerated, isFalse);
-      final pv2 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-      expect(pv2!.isModerated, isFalse);
-
-      // can redact this version
-      final optionsUpdates =
-          await (await createFakeAuthPubApiClient(email: adminAtPubDevEmail))
-              .setVersionOptions(
-                  'oxygen', '1.0.0', VersionOptions(isRetracted: true));
-      expect(optionsUpdates.isRetracted, true);
-    });
-
-    testWithProfile('cannot moderate last visible version',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-        ], fn: () async {
-      await _moderate('oxygen', '1.2.0', state: true);
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      expect(p1!.latestVersion, '1.0.0');
-      expect(p1.latestPrereleaseVersion, '2.0.0-dev');
-      expect(p1.latestPreviewVersion, '1.0.0');
-
-      await _moderate('oxygen', '2.0.0-dev', state: true);
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.latestVersion, '1.0.0');
-      expect(p2.latestPrereleaseVersion, '1.0.0');
-      expect(p2.latestPreviewVersion, '1.0.0');
-
-      await expectApiException(
-        _moderate('oxygen', '1.0.0', state: true),
-        code: 'NotAcceptable',
-        status: 406,
-        message: 'No visible versions left.',
-      );
-    });
-
-    testWithProfile('can publish new version', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-    ], fn: () async {
-      await _moderate('oxygen', '1.0.0', state: true);
-
-      final pubspecContent = generatePubspecYaml('oxygen', '3.0.0');
-      final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
-      final message = await createPubApiClient(authToken: adminClientToken)
-          .uploadPackageBytes(bytes);
-      expect(message.success.message, contains('Successfully uploaded'));
-    });
-
-    testWithProfile('cannot re-publish moderated version',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        ], fn: () async {
-      await _moderate('oxygen', '1.0.0', state: true);
-
-      final pubspecContent = generatePubspecYaml('oxygen', '1.0.0');
-      final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
-      await expectApiException(
-        createPubApiClient(authToken: adminClientToken)
-            .uploadPackageBytes(bytes),
-        code: 'PackageRejected',
-        status: 400,
-        message: 'Version 1.0.0 of package oxygen already exists.',
-      );
-    });
-
-    testWithProfile('archive file is removed from public buckets',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        ], fn: () async {
-      Future<Uint8List?> expectStatusCode(int statusCode,
-          {String version = '1.0.0'}) async {
-        final publicUrls = [
-          '${activeConfiguration.storageBaseUrl}'
-              '/${activeConfiguration.publicPackagesBucketName}'
-              '/packages/oxygen-$version.tar.gz',
-          '${activeConfiguration.storageBaseUrl}'
-              '/${activeConfiguration.exportedApiBucketName}'
-              '/latest/api/archives/oxygen-$version.tar.gz',
-          '${activeConfiguration.storageBaseUrl}'
-              '/${activeConfiguration.exportedApiBucketName}'
-              '/$runtimeVersion/api/archives/oxygen-$version.tar.gz',
-        ];
-
-        final rs = await Future.wait(
-            publicUrls.map((url) => http.get(Uri.parse(url))));
-        for (final r in rs) {
-          expect(r.statusCode, statusCode);
-          expect(r.bodyBytes, rs.first.bodyBytes);
-        }
-        return rs.first.bodyBytes;
-      }
-
-      final bytes = await expectStatusCode(200);
-
-      await _moderate('oxygen', '1.0.0', state: true);
-      await expectStatusCode(404);
-      await expectStatusCode(200, version: '1.2.0');
-
-      // another check after background tasks are running
-      await packageBackend.tarballStorage.updatePublicArchiveBucket();
-      await expectStatusCode(404);
-      await expectStatusCode(200, version: '1.2.0');
-
-      await _moderate('oxygen', '1.0.0', state: false);
-      await expectStatusCode(200);
-      await packageBackend.tarballStorage.updatePublicArchiveBucket();
-      final restoredBytes = await expectStatusCode(200);
-      expect(restoredBytes, bytes);
-    });
-
-    testWithProfile('versions file is updated in exported bucket',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        ], fn: () async {
-      Future<void> expectIncluded(String version, bool isIncluded) async {
-        final prefixes = ['latest', runtimeVersion];
-        for (final prefix in prefixes) {
-          final url = '${activeConfiguration.storageBaseUrl}'
-              '/${activeConfiguration.exportedApiBucketName}'
-              '/$prefix/api/packages/oxygen';
-          final rs = await http.get(Uri.parse(url));
-          expect(rs.statusCode, 200);
-          final data =
-              json.decode(utf8.decode(rs.bodyBytes)) as Map<String, dynamic>;
-          final versions = (data['versions'] as List)
-              .map((i) => (i as Map)['version'])
-              .toSet();
-          expect(versions.contains(version), isIncluded);
-        }
-      }
-
-      await expectIncluded('1.0.0', true);
-      await _moderate('oxygen', '1.0.0', state: true);
-      await expectIncluded('1.0.0', false);
-      await _moderate('oxygen', '1.0.0', state: false);
-      await expectIncluded('1.0.0', true);
-    });
-
-    testWithProfile('search is updated with new version', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-    ], fn: () async {
-      await searchBackend.doCreateAndUpdateSnapshot(
-        FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
-        concurrency: 2,
-        sleepDuration: Duration(milliseconds: 300),
-      );
-      final docs = await searchBackend.fetchSnapshotDocuments();
-      expect(docs!.firstWhere((d) => d.package == 'oxygen').version, '1.2.0');
-
-      await _moderate('oxygen', '1.2.0', state: true);
-      final minimumIndex =
-          await searchBackend.loadMinimumPackageIndex().toList();
-      expect(minimumIndex.firstWhere((d) => d.package == 'oxygen').version,
-          '1.0.0');
-
-      await searchBackend.doCreateAndUpdateSnapshot(
-        FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
-        concurrency: 2,
-        sleepDuration: Duration(milliseconds: 300),
-      );
-      final docs2 = await searchBackend.fetchSnapshotDocuments();
-      expect(docs2!.firstWhere((d) => d.package == 'oxygen').version, '1.0.0');
-
-      await _moderate('oxygen', '1.2.0', state: false);
-
-      final minimumIndex2 =
-          await searchBackend.loadMinimumPackageIndex().toList();
-      expect(minimumIndex2.firstWhere((d) => d.package == 'oxygen').version,
-          '1.2.0');
-
-      await searchBackend.doCreateAndUpdateSnapshot(
-        FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
-        concurrency: 2,
-        sleepDuration: Duration(milliseconds: 300),
-      );
-      final docs3 = await searchBackend.fetchSnapshotDocuments();
-      expect(docs3!.firstWhere((d) => d.package == 'oxygen').version, '1.2.0');
-    });
+        final mc2 = await adminBackend.lookupModerationCase(mc.caseId);
+        expect(mc2!.getActionLog().entries, hasLength(1));
+      },
+    );
 
     testWithProfile(
-        'moderated version is not visible in API (other version is)',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        ], fn: () async {
-      await _moderate('oxygen', '1.0.0', state: true);
-      final rs1 = await packageBackend.listVersionsCached('oxygen');
-      expect(rs1.latest.version, '1.2.0');
-      expect(rs1.versions.where((v) => v.version == '1.0.0'), isEmpty);
-      expect(rs1.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
-
-      await _moderate('oxygen', '1.0.0', state: false);
-      final rs2 = await packageBackend.listVersionsCached('oxygen');
-      expect(rs2.latest.version, '1.2.0');
-      expect(rs2.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
-      expect(rs2.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
-
-      await _moderate('oxygen', '1.2.0', state: true);
-      final rs3 = await packageBackend.listVersionsCached('oxygen');
-      expect(rs3.latest.version, '1.0.0');
-      expect(rs3.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
-      expect(rs3.versions.where((v) => v.version == '1.2.0'), isEmpty);
-
-      await _moderate('oxygen', '1.2.0', state: false);
-      final rs4 = await packageBackend.listVersionsCached('oxygen');
-      expect(rs4.latest.version, '1.2.0');
-      expect(rs4.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
-      expect(rs4.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
-    });
-
-    testWithProfile('moderated versions are not displayed on versions tab',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        ], fn: () async {
-      await _moderate('oxygen', '1.2.0', state: true);
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen/versions'),
-        absent: ['1.2.0'],
-        present: ['1.0.0'],
-      );
-      await _moderate('oxygen', '1.2.0', state: false);
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen/versions'),
-        present: ['1.0.0', '1.2.0'],
-      );
-    });
-
-    testWithProfile('moderated version pages are not displayed',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        ], fn: () async {
-      List<String> pagePaths(String version) {
-        return [
-          '/packages/oxygen/versions/$version',
-          '/packages/oxygen/versions/$version/changelog',
-          '/packages/oxygen/versions/$version/install',
-          '/packages/oxygen/versions/$version/score',
-          '/packages/oxygen/versions/$version/pubspec',
-          '/packages/oxygen/versions/$version/license',
-        ];
-      }
-
-      for (final path in pagePaths('1.0.0')) {
-        await expectHtmlResponse(
-          await issueGet(path),
-          absent: ['moderated'],
-          present: ['1.2.0'],
+      'clear moderation flag',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        final r1 = await _moderate('oxygen', '1.0.0', state: true);
+        expect(r1.output, {
+          'package': 'oxygen',
+          'version': '1.0.0',
+          'before': {'isModerated': false, 'moderatedAt': null},
+          'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+        });
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        expect(p1!.isModerated, isFalse);
+        final pv1 = await packageBackend.lookupPackageVersion(
+          'oxygen',
+          '1.0.0',
         );
-      }
-      for (final path in pagePaths('1.2.0')) {
-        await expectHtmlResponse(
-          await issueGet(path),
-          absent: ['moderated'],
-          present: ['1.2.0'],
-        );
-      }
+        expect(pv1!.isModerated, isTrue);
 
-      await _moderate('oxygen', '1.2.0', state: true);
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen'),
-        absent: [
+        // clear flag
+        final r2 = await _moderate('oxygen', '1.0.0', state: false);
+        expect(r2.output, {
+          'package': 'oxygen',
+          'version': '1.0.0',
+          'before': {'isModerated': true, 'moderatedAt': isNotEmpty},
+          'after': {'isModerated': false, 'moderatedAt': null},
+        });
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.isModerated, isFalse);
+        final pv2 = await packageBackend.lookupPackageVersion(
+          'oxygen',
+          '1.0.0',
+        );
+        expect(pv2!.isModerated, isFalse);
+
+        // can redact this version
+        final optionsUpdates =
+            await (await createFakeAuthPubApiClient(
+              email: adminAtPubDevEmail,
+            )).setVersionOptions(
+              'oxygen',
+              '1.0.0',
+              VersionOptions(isRetracted: true),
+            );
+        expect(optionsUpdates.isRetracted, true);
+      },
+    );
+
+    testWithProfile(
+      'cannot moderate last visible version',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ],
+      fn: () async {
+        await _moderate('oxygen', '1.2.0', state: true);
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        expect(p1!.latestVersion, '1.0.0');
+        expect(p1.latestPrereleaseVersion, '2.0.0-dev');
+        expect(p1.latestPreviewVersion, '1.0.0');
+
+        await _moderate('oxygen', '2.0.0-dev', state: true);
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.latestVersion, '1.0.0');
+        expect(p2.latestPrereleaseVersion, '1.0.0');
+        expect(p2.latestPreviewVersion, '1.0.0');
+
+        await expectApiException(
+          _moderate('oxygen', '1.0.0', state: true),
+          code: 'NotAcceptable',
+          status: 406,
+          message: 'No visible versions left.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'can publish new version',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        await _moderate('oxygen', '1.0.0', state: true);
+
+        final pubspecContent = generatePubspecYaml('oxygen', '3.0.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        final message = await createPubApiClient(
+          authToken: adminClientToken,
+        ).uploadPackageBytes(bytes);
+        expect(message.success.message, contains('Successfully uploaded'));
+      },
+    );
+
+    testWithProfile(
+      'cannot re-publish moderated version',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        await _moderate('oxygen', '1.0.0', state: true);
+
+        final pubspecContent = generatePubspecYaml('oxygen', '1.0.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        await expectApiException(
+          createPubApiClient(
+            authToken: adminClientToken,
+          ).uploadPackageBytes(bytes),
+          code: 'PackageRejected',
+          status: 400,
+          message: 'Version 1.0.0 of package oxygen already exists.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'archive file is removed from public buckets',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        Future<Uint8List?> expectStatusCode(
+          int statusCode, {
+          String version = '1.0.0',
+        }) async {
+          final publicUrls = [
+            '${activeConfiguration.storageBaseUrl}'
+                '/${activeConfiguration.publicPackagesBucketName}'
+                '/packages/oxygen-$version.tar.gz',
+            '${activeConfiguration.storageBaseUrl}'
+                '/${activeConfiguration.exportedApiBucketName}'
+                '/latest/api/archives/oxygen-$version.tar.gz',
+            '${activeConfiguration.storageBaseUrl}'
+                '/${activeConfiguration.exportedApiBucketName}'
+                '/$runtimeVersion/api/archives/oxygen-$version.tar.gz',
+          ];
+
+          final rs = await Future.wait(
+            publicUrls.map((url) => http.get(Uri.parse(url))),
+          );
+          for (final r in rs) {
+            expect(r.statusCode, statusCode);
+            expect(r.bodyBytes, rs.first.bodyBytes);
+          }
+          return rs.first.bodyBytes;
+        }
+
+        final bytes = await expectStatusCode(200);
+
+        await _moderate('oxygen', '1.0.0', state: true);
+        await expectStatusCode(404);
+        await expectStatusCode(200, version: '1.2.0');
+
+        // another check after background tasks are running
+        await packageBackend.tarballStorage.updatePublicArchiveBucket();
+        await expectStatusCode(404);
+        await expectStatusCode(200, version: '1.2.0');
+
+        await _moderate('oxygen', '1.0.0', state: false);
+        await expectStatusCode(200);
+        await packageBackend.tarballStorage.updatePublicArchiveBucket();
+        final restoredBytes = await expectStatusCode(200);
+        expect(restoredBytes, bytes);
+      },
+    );
+
+    testWithProfile(
+      'versions file is updated in exported bucket',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        Future<void> expectIncluded(String version, bool isIncluded) async {
+          final prefixes = ['latest', runtimeVersion];
+          for (final prefix in prefixes) {
+            final url =
+                '${activeConfiguration.storageBaseUrl}'
+                '/${activeConfiguration.exportedApiBucketName}'
+                '/$prefix/api/packages/oxygen';
+            final rs = await http.get(Uri.parse(url));
+            expect(rs.statusCode, 200);
+            final data =
+                json.decode(utf8.decode(rs.bodyBytes)) as Map<String, dynamic>;
+            final versions = (data['versions'] as List)
+                .map((i) => (i as Map)['version'])
+                .toSet();
+            expect(versions.contains(version), isIncluded);
+          }
+        }
+
+        await expectIncluded('1.0.0', true);
+        await _moderate('oxygen', '1.0.0', state: true);
+        await expectIncluded('1.0.0', false);
+        await _moderate('oxygen', '1.0.0', state: false);
+        await expectIncluded('1.0.0', true);
+      },
+    );
+
+    testWithProfile(
+      'search is updated with new version',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      ],
+      fn: () async {
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+        final docs = await searchBackend.fetchSnapshotDocuments();
+        expect(docs!.firstWhere((d) => d.package == 'oxygen').version, '1.2.0');
+
+        await _moderate('oxygen', '1.2.0', state: true);
+        final minimumIndex = await searchBackend
+            .loadMinimumPackageIndex()
+            .toList();
+        expect(
+          minimumIndex.firstWhere((d) => d.package == 'oxygen').version,
+          '1.0.0',
+        );
+
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+        final docs2 = await searchBackend.fetchSnapshotDocuments();
+        expect(
+          docs2!.firstWhere((d) => d.package == 'oxygen').version,
+          '1.0.0',
+        );
+
+        await _moderate('oxygen', '1.2.0', state: false);
+
+        final minimumIndex2 = await searchBackend
+            .loadMinimumPackageIndex()
+            .toList();
+        expect(
+          minimumIndex2.firstWhere((d) => d.package == 'oxygen').version,
           '1.2.0',
-          'moderated',
-        ],
-        present: ['1.0.0'],
-      );
-      for (final path in pagePaths('1.0.0')) {
-        await expectHtmlResponse(
-          await issueGet(path),
-          absent: ['moderated', '1.2.0'],
         );
-      }
-      for (final path in pagePaths('1.2.0')) {
-        await expectHtmlResponse(
-          await issueGet(path),
-          present: ['moderated'],
-          status: 404,
-        );
-      }
 
-      await _moderate('oxygen', '1.2.0', state: false);
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen'),
-        absent: [
-          'moderated',
-        ],
-        present: ['1.2.0'],
-      );
-      for (final path in pagePaths('1.0.0')) {
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+        final docs3 = await searchBackend.fetchSnapshotDocuments();
+        expect(
+          docs3!.firstWhere((d) => d.package == 'oxygen').version,
+          '1.2.0',
+        );
+      },
+    );
+
+    testWithProfile(
+      'moderated version is not visible in API (other version is)',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      ],
+      fn: () async {
+        await _moderate('oxygen', '1.0.0', state: true);
+        final rs1 = await packageBackend.listVersionsCached('oxygen');
+        expect(rs1.latest.version, '1.2.0');
+        expect(rs1.versions.where((v) => v.version == '1.0.0'), isEmpty);
+        expect(rs1.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
+
+        await _moderate('oxygen', '1.0.0', state: false);
+        final rs2 = await packageBackend.listVersionsCached('oxygen');
+        expect(rs2.latest.version, '1.2.0');
+        expect(rs2.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
+        expect(rs2.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
+
+        await _moderate('oxygen', '1.2.0', state: true);
+        final rs3 = await packageBackend.listVersionsCached('oxygen');
+        expect(rs3.latest.version, '1.0.0');
+        expect(rs3.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
+        expect(rs3.versions.where((v) => v.version == '1.2.0'), isEmpty);
+
+        await _moderate('oxygen', '1.2.0', state: false);
+        final rs4 = await packageBackend.listVersionsCached('oxygen');
+        expect(rs4.latest.version, '1.2.0');
+        expect(rs4.versions.where((v) => v.version == '1.0.0'), isNotEmpty);
+        expect(rs4.versions.where((v) => v.version == '1.2.0'), isNotEmpty);
+      },
+    );
+
+    testWithProfile(
+      'moderated versions are not displayed on versions tab',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      ],
+      fn: () async {
+        await _moderate('oxygen', '1.2.0', state: true);
         await expectHtmlResponse(
-          await issueGet(path),
+          await issueGet('/packages/oxygen/versions'),
+          absent: ['1.2.0'],
+          present: ['1.0.0'],
+        );
+        await _moderate('oxygen', '1.2.0', state: false);
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen/versions'),
+          present: ['1.0.0', '1.2.0'],
+        );
+      },
+    );
+
+    testWithProfile(
+      'moderated version pages are not displayed',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+      ],
+      fn: () async {
+        List<String> pagePaths(String version) {
+          return [
+            '/packages/oxygen/versions/$version',
+            '/packages/oxygen/versions/$version/changelog',
+            '/packages/oxygen/versions/$version/install',
+            '/packages/oxygen/versions/$version/score',
+            '/packages/oxygen/versions/$version/pubspec',
+            '/packages/oxygen/versions/$version/license',
+          ];
+        }
+
+        for (final path in pagePaths('1.0.0')) {
+          await expectHtmlResponse(
+            await issueGet(path),
+            absent: ['moderated'],
+            present: ['1.2.0'],
+          );
+        }
+        for (final path in pagePaths('1.2.0')) {
+          await expectHtmlResponse(
+            await issueGet(path),
+            absent: ['moderated'],
+            present: ['1.2.0'],
+          );
+        }
+
+        await _moderate('oxygen', '1.2.0', state: true);
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen'),
+          absent: ['1.2.0', 'moderated'],
+          present: ['1.0.0'],
+        );
+        for (final path in pagePaths('1.0.0')) {
+          await expectHtmlResponse(
+            await issueGet(path),
+            absent: ['moderated', '1.2.0'],
+          );
+        }
+        for (final path in pagePaths('1.2.0')) {
+          await expectHtmlResponse(
+            await issueGet(path),
+            present: ['moderated'],
+            status: 404,
+          );
+        }
+
+        await _moderate('oxygen', '1.2.0', state: false);
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen'),
           absent: ['moderated'],
           present: ['1.2.0'],
         );
-      }
-      for (final path in pagePaths('1.2.0')) {
-        await expectHtmlResponse(
-          await issueGet(path),
-          absent: ['moderated'],
-        );
-      }
-    });
+        for (final path in pagePaths('1.0.0')) {
+          await expectHtmlResponse(
+            await issueGet(path),
+            absent: ['moderated'],
+            present: ['1.2.0'],
+          );
+        }
+        for (final path in pagePaths('1.2.0')) {
+          await expectHtmlResponse(await issueGet(path), absent: ['moderated']);
+        }
+      },
+    );
 
     testWithProfile(
       'moderated version trigger new analysis',
@@ -446,8 +519,10 @@ void main() {
         'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
       ],
       fn: () async {
-        final score1 =
-            await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
+        final score1 = await scoreCardBackend.getScoreCardData(
+          'oxygen',
+          '1.2.0',
+        );
         expect(score1.grantedPubPoints, greaterThan(40));
 
         await _moderate('oxygen', '1.2.0', state: true);
@@ -481,8 +556,10 @@ void main() {
         );
         // latest stable has score
         expect(
-          (await scoreCardBackend.getScoreCardData('oxygen', '1.0.0'))
-              .grantedPubPoints,
+          (await scoreCardBackend.getScoreCardData(
+            'oxygen',
+            '1.0.0',
+          )).grantedPubPoints,
           greaterThan(30),
         );
 
@@ -490,65 +567,80 @@ void main() {
         await _moderate('oxygen', '1.2.0', state: false);
         await processTasksWithFakePanaAndDartdoc();
 
-        final score3 =
-            await scoreCardBackend.getScoreCardData('oxygen', '1.2.0');
+        final score3 = await scoreCardBackend.getScoreCardData(
+          'oxygen',
+          '1.2.0',
+        );
         expect(score3.grantedPubPoints, greaterThan(40));
       },
     );
 
     testWithProfile(
-        'cleanup deletes datastore entities and canonical archive file',
-        expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        ], fn: () async {
-      // canonical file is present
-      expect(
-        await packageBackend.tarballStorage
-            .getCanonicalBucketArchiveInfo('oxygen', '1.0.0'),
-        isNotNull,
-      );
+      'cleanup deletes datastore entities and canonical archive file',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+      ],
+      fn: () async {
+        // canonical file is present
+        expect(
+          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
+            'oxygen',
+            '1.0.0',
+          ),
+          isNotNull,
+        );
 
-      // moderate and cleanup
-      await _moderate('oxygen', '1.0.0', state: true);
-      await withClock(Clock.fixed(clock.fromNow(days: 3 * 366)),
-          () => adminBackend.deleteModeratedSubjects());
+        // moderate and cleanup
+        await _moderate('oxygen', '1.0.0', state: true);
+        await withClock(
+          Clock.fixed(clock.fromNow(days: 3 * 366)),
+          () => adminBackend.deleteModeratedSubjects(),
+        );
 
-      // package exists
-      final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.deletedVersions, contains('1.0.0'));
+        // package exists
+        final p = await packageBackend.lookupPackage('oxygen');
+        expect(p!.deletedVersions, contains('1.0.0'));
 
-      // version and assets are no longer there
-      expect(
-        await packageBackend.lookupPackageVersion('oxygen', '1.0.0'),
-        isNull,
-      );
-      expect(
-        await packageBackend.lookupPackageVersionInfo('oxygen', '1.0.0'),
-        isNull,
-      );
-      expect(
-        await packageBackend.lookupPackageVersionAsset(
-            'oxygen', '1.0.0', 'readme'),
-        isNull,
-      );
+        // version and assets are no longer there
+        expect(
+          await packageBackend.lookupPackageVersion('oxygen', '1.0.0'),
+          isNull,
+        );
+        expect(
+          await packageBackend.lookupPackageVersionInfo('oxygen', '1.0.0'),
+          isNull,
+        );
+        expect(
+          await packageBackend.lookupPackageVersionAsset(
+            'oxygen',
+            '1.0.0',
+            'readme',
+          ),
+          isNull,
+        );
 
-      // canonical file is not present
-      expect(
-        await packageBackend.tarballStorage
-            .getCanonicalBucketArchiveInfo('oxygen', '1.0.0'),
-        isNull,
-      );
+        // canonical file is not present
+        expect(
+          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
+            'oxygen',
+            '1.0.0',
+          ),
+          isNull,
+        );
 
-      // other versions exist
-      expect(
-        await packageBackend.lookupPackageVersion('oxygen', '1.2.0'),
-        isNotNull,
-      );
-      expect(
-        await packageBackend.tarballStorage
-            .getCanonicalBucketArchiveInfo('oxygen', '1.2.0'),
-        isNotNull,
-      );
-    });
+        // other versions exist
+        expect(
+          await packageBackend.lookupPackageVersion('oxygen', '1.2.0'),
+          isNotNull,
+        );
+        expect(
+          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
+            'oxygen',
+            '1.2.0',
+          ),
+          isNotNull,
+        );
+      },
+    );
   });
 }

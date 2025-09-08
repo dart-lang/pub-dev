@@ -26,50 +26,48 @@ void main() {
 
   group('integer from bytes', () {
     test('encode small number', () {
-      expect(
-        encodeIntegerFromBytes([0x11, 0x22, 0x33]),
-        [0x02, 0x03, 0x11, 0x22, 0x33],
-      );
+      expect(encodeIntegerFromBytes([0x11, 0x22, 0x33]), [
+        0x02,
+        0x03,
+        0x11,
+        0x22,
+        0x33,
+      ]);
     });
 
     test('padding', () {
-      expect(
-        encodeIntegerFromBytes([0x8f]),
-        [0x02, 0x02, 0x00, 0x8f],
-      );
+      expect(encodeIntegerFromBytes([0x8f]), [0x02, 0x02, 0x00, 0x8f]);
     });
   });
 
   group('sequence', () {
     test('small sequence', () {
       expect(
-          encodeSequence([
-            encodeIntegerFromBytes([0x11]),
-            encodeIntegerFromBytes([0x22]),
-            encodeIntegerFromBytes([0x33]),
-          ]),
-          <int>[
-            0x30, // sequence
-            0x09, // length
-            0x02, // 0x11
-            0x01,
-            0x11,
-            0x02, // 0x22
-            0x01,
-            0x22,
-            0x02, // 0x33
-            0x01,
-            0x33,
-          ]);
+        encodeSequence([
+          encodeIntegerFromBytes([0x11]),
+          encodeIntegerFromBytes([0x22]),
+          encodeIntegerFromBytes([0x33]),
+        ]),
+        <int>[
+          0x30, // sequence
+          0x09, // length
+          0x02, // 0x11
+          0x01,
+          0x11,
+          0x02, // 0x22
+          0x01,
+          0x22,
+          0x02, // 0x33
+          0x01,
+          0x33,
+        ],
+      );
     });
   });
 
   group('bit string', () {
     test('bits', () {
-      expect(
-        encodeBitString([0x11, 0x12]),
-        [0x03, 0x03, 0x00, 0x11, 0x12],
-      );
+      expect(encodeBitString([0x11, 0x12]), [0x03, 0x03, 0x00, 0x11, 0x12]);
     });
   });
 }

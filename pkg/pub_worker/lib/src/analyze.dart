@@ -75,14 +75,18 @@ Future<void> analyze(Payload payload) async {
 
       void warnTaskAborted(Exception e, StackTrace st) {
         _log.warning(
-            'Task was aborted when uploading ${payload.package} / ${p.version}',
-            e,
-            st);
+          'Task was aborted when uploading ${payload.package} / ${p.version}',
+          e,
+          st,
+        );
       }
 
       void shoutTaskError(Object e, StackTrace st) {
         _log.shout(
-            'failed to process ${payload.package} / ${p.version}', e, st);
+          'failed to process ${payload.package} / ${p.version}',
+          e,
+          st,
+        );
       }
 
       try {
@@ -163,17 +167,12 @@ Future<void> _analyzePackage(
     // Run the analysis
     {
       log.writeln('### Starting pana');
-      final panaWrapper = await Isolate.resolvePackageUri(Uri.parse(
-        'package:pub_worker/src/bin/pana_wrapper.dart',
-      ));
+      final panaWrapper = await Isolate.resolvePackageUri(
+        Uri.parse('package:pub_worker/src/bin/pana_wrapper.dart'),
+      );
       final pana = await Process.start(
         Platform.resolvedExecutable,
-        [
-          panaWrapper!.toFilePath(),
-          outDir.path,
-          package,
-          version,
-        ],
+        [panaWrapper!.toFilePath(), outDir.path, package, version],
         workingDirectory: outDir.path,
         includeParentEnvironment: true,
         environment: {
@@ -304,15 +303,16 @@ Future<void> _reportPackageSkipped(
   final output = await BlobIndexPair.build(r.blobId, (addFile) async {
     await addFile(
       'log.txt',
-      Stream.value([
-        '## Skipping analysis for "$package" version "$version"',
-        'date-time: ${clock.now().toUtc().toIso8601String()}',
-        '',
-        'reason:',
-        reason,
-        '', // always end with a newline
-      ].join('\n'))
-          .transform(utf8.fuse(gzip).encoder),
+      Stream.value(
+        [
+          '## Skipping analysis for "$package" version "$version"',
+          'date-time: ${clock.now().toUtc().toIso8601String()}',
+          '',
+          'reason:',
+          reason,
+          '', // always end with a newline
+        ].join('\n'),
+      ).transform(utf8.fuse(gzip).encoder),
     );
   });
 
@@ -351,21 +351,23 @@ extension on Process {
   Future<int> exitOrTimeout(
     Duration timeout, [
     void Function()? onTimeout,
-  ]) async =>
-      exitCode.timeout(timeout, onTimeout: () async {
-        if (onTimeout != null) {
-          onTimeout();
-        }
-        // Send SIGTERM
-        kill(ProcessSignal.sigterm);
+  ]) async => exitCode.timeout(
+    timeout,
+    onTimeout: () async {
+      if (onTimeout != null) {
+        onTimeout();
+      }
+      // Send SIGTERM
+      kill(ProcessSignal.sigterm);
 
-        // Wait 30s and then SIGKILL
-        return await exitCode.timeout(
-          Duration(seconds: 30),
-          onTimeout: () async {
-            kill(ProcessSignal.sigkill);
-            return exitCode;
-          },
-        );
-      });
+      // Wait 30s and then SIGKILL
+      return await exitCode.timeout(
+        Duration(seconds: 30),
+        onTimeout: () async {
+          kill(ProcessSignal.sigkill);
+          return exitCode;
+        },
+      );
+    },
+  );
 }

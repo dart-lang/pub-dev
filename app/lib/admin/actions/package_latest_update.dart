@@ -25,15 +25,12 @@ When no package is specified, all packages will be updated.
 
     if (package != null) {
       final updated = await packageBackend.updatePackageVersions(package);
-      return {
-        'updated': updated,
-      };
+      return {'updated': updated};
     } else {
       final stat = await packageBackend.updateAllPackageVersions(
-          concurrency: concurrency);
-      return {
-        'updatedCount': stat,
-      };
+        concurrency: concurrency,
+      );
+      return {'updatedCount': stat};
     }
   },
 );

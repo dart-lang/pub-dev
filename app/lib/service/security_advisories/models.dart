@@ -50,7 +50,7 @@ class SecurityAdvisory extends db.Model<String> {
 
 class OSVProperty extends db.Property {
   const OSVProperty({super.propertyName, super.required = false})
-      : super(indexed: false);
+    : super(indexed: false);
 
   @override
   Object? decodePrimitiveValue(db.ModelDB db, Object? value) {
@@ -59,8 +59,11 @@ class OSVProperty extends db.Property {
   }
 
   @override
-  Object? encodeValue(db.ModelDB db, Object? value,
-      {bool forComparison = false}) {
+  Object? encodeValue(
+    db.ModelDB db,
+    Object? value, {
+    bool forComparison = false,
+  }) {
     return json.encode(value);
   }
 

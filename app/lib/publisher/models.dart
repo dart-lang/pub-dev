@@ -10,10 +10,7 @@ import '../shared/datastore.dart' as db;
 part 'models.g.dart';
 
 /// The type of the package lists of a publisher.
-enum PublisherPackagesPageKind {
-  listed,
-  unlisted,
-}
+enum PublisherPackagesPageKind { listed, unlisted }
 
 /// Canonical publisher data.
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
@@ -170,9 +167,7 @@ class PublisherMember extends db.ExpandoModel<String> {
 class PublisherPage {
   final List<PublisherSummary>? publishers;
 
-  PublisherPage({
-    required this.publishers,
-  });
+  PublisherPage({required this.publishers});
 
   factory PublisherPage.fromJson(Map<String, dynamic> json) =>
       _$PublisherPageFromJson(json);
@@ -184,10 +179,7 @@ class PublisherSummary {
   final String publisherId;
   final DateTime created;
 
-  PublisherSummary({
-    required this.publisherId,
-    required this.created,
-  });
+  PublisherSummary({required this.publisherId, required this.created});
 
   factory PublisherSummary.fromJson(Map<String, dynamic> json) =>
       _$PublisherSummaryFromJson(json);

@@ -22,20 +22,17 @@ void main() {
     test('start and work with local index', () async {
       await withTempDirectory((tempDir) async {
         final snapshotPath = p.join(tempDir.path, 'snapshot.json.gz');
-        await saveInMemoryPackageIndexToFile(
-          [
-            PackageDocument(
-              package: 'json_annotation',
-              description: 'Annotation metadata for JSON serialization.',
-              tags: ['sdk:dart'],
-            ),
-            PackageDocument(
-              package: 'other_pkg',
-              description: 'Some awesome package',
-            ),
-          ],
-          snapshotPath,
-        );
+        await saveInMemoryPackageIndexToFile([
+          PackageDocument(
+            package: 'json_annotation',
+            description: 'Annotation metadata for JSON serialization.',
+            tags: ['sdk:dart'],
+          ),
+          PackageDocument(
+            package: 'other_pkg',
+            description: 'Some awesome package',
+          ),
+        ], snapshotPath);
 
         runner = await startSearchIsolate(snapshot: snapshotPath);
 
@@ -44,29 +41,28 @@ void main() {
         expect(await searchIndex.isReady(), true);
 
         // text query - result from package index
-        final rs =
-            await searchIndex.search(ServiceSearchQuery.parse(query: 'json'));
+        final rs = await searchIndex.search(
+          ServiceSearchQuery.parse(query: 'json'),
+        );
         expect(rs.toJson(), {
           'timestamp': isNotEmpty,
           'totalCount': 1,
           'sdkLibraryHits': [],
           'packageHits': [
-            {
-              'package': 'json_annotation',
-              'score': greaterThan(0.5),
-            },
+            {'package': 'json_annotation', 'score': greaterThan(0.5)},
           ],
         });
 
         // packages-based filtering works
         final rs2 = await searchIndex.search(
-            ServiceSearchQuery(SearchRequestData(packages: ['other_pkg'])));
+          ServiceSearchQuery(SearchRequestData(packages: ['other_pkg'])),
+        );
         expect(rs2.toJson(), {
           'timestamp': isNotEmpty,
           'totalCount': 1,
           'sdkLibraryHits': [],
           'packageHits': [
-            {'package': 'other_pkg', 'score': isNotNull}
+            {'package': 'other_pkg', 'score': isNotNull},
           ],
         });
       });

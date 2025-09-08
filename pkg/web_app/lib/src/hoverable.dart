@@ -167,8 +167,9 @@ void _setupCopyAndFeedbackButton({
 void _updateXAgoLabels() {
   document.querySelectorAll('a.-x-ago').toElementList().forEach((e) {
     final timestampMillisAttr = e.getAttribute('data-timestamp');
-    final timestampMillisValue =
-        timestampMillisAttr == null ? null : int.tryParse(timestampMillisAttr);
+    final timestampMillisValue = timestampMillisAttr == null
+        ? null
+        : int.tryParse(timestampMillisAttr);
     if (timestampMillisValue == null) {
       return;
     }

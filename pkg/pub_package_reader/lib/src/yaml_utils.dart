@@ -14,8 +14,9 @@ bool yamlContainsAliases(String yamlString) {
       return true;
     }
     if (node is YamlMap) {
-      return node.nodes.entries
-          .any((e) => hasAliases(e.key as YamlNode?) || hasAliases(e.value));
+      return node.nodes.entries.any(
+        (e) => hasAliases(e.key as YamlNode?) || hasAliases(e.value),
+      );
     }
     if (node is YamlList) {
       return node.nodes.any(hasAliases);

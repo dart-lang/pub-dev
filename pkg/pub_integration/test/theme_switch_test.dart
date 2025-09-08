@@ -26,16 +26,18 @@ void main() {
     test('bulk tests', () async {
       final origin = fakeTestScenario.pubHostedUrl;
       // Importing one package + local analysis
-      await httpClient.post(Uri.parse('$origin/fake-test-profile'),
-          body: json.encode({
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {'name': 'oxygen'}
-              ],
-            },
-            'analysis': 'local',
-          }));
+      await httpClient.post(
+        Uri.parse('$origin/fake-test-profile'),
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'oxygen'},
+            ],
+          },
+          'analysis': 'local',
+        }),
+      );
 
       final user = await fakeTestScenario.createAnonymousTestUser();
 

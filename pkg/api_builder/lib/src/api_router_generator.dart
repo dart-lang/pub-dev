@@ -22,15 +22,16 @@ class ApiRouterGenerator extends EndPointGenerator {
     Map<ClassElement, List<Handler>> classes,
   ) async {
     // Build library and emit code with all generate methods.
-    final methods = classes.entries.map((e) => _buildRouterMethod(
-          classElement: e.key,
-          handlers: e.value,
-        ));
+    final methods = classes.entries.map(
+      (e) => _buildRouterMethod(classElement: e.key, handlers: e.value),
+    );
     return code.Library((b) => b.body.addAll(methods))
-        .accept(code.DartEmitter(
-          allocator: code.Allocator.simplePrefixing(),
-          orderDirectives: true,
-        ))
+        .accept(
+          code.DartEmitter(
+            allocator: code.Allocator.simplePrefixing(),
+            orderDirectives: true,
+          ),
+        )
         .toString();
   }
 }
@@ -40,30 +41,31 @@ class ApiRouterGenerator extends EndPointGenerator {
 code.Method _buildRouterMethod({
   required ClassElement classElement,
   required List<Handler> handlers,
-}) =>
-    code.Method(
-      (b) => b
-        ..name = '_\$${classElement.name}Router'
-        ..requiredParameters.add(
-          code.Parameter((b) => b
-            ..name = 'service'
-            ..type = code.refer(classElement.name)),
-        )
-        ..returns = code.refer('Router')
-        ..body = code.Block.of([
-          code
-              .declareFinal('router')
-              .assign(code.refer('Router').newInstance([]))
-              .statement,
-          for (final h in handlers)
-            _buildAddHandlerCode(
-              router: code.refer('router'),
-              service: code.refer('service'),
-              handler: h,
-            ),
-          code.refer('router').returned.statement,
-        ]),
-    );
+}) => code.Method(
+  (b) => b
+    ..name = '_\$${classElement.name}Router'
+    ..requiredParameters.add(
+      code.Parameter(
+        (b) => b
+          ..name = 'service'
+          ..type = code.refer(classElement.name),
+      ),
+    )
+    ..returns = code.refer('Router')
+    ..body = code.Block.of([
+      code
+          .declareFinal('router')
+          .assign(code.refer('Router').newInstance([]))
+          .statement,
+      for (final h in handlers)
+        _buildAddHandlerCode(
+          router: code.refer('router'),
+          service: code.refer('service'),
+          handler: h,
+        ),
+      code.refer('router').returned.statement,
+    ]),
+);
 
 /// Generate the code statement that adds [handler] from [service] to [router].
 code.Code _buildAddHandlerCode({
@@ -104,12 +106,14 @@ code.Code _buildAddHandlerCode({
         ..body = code.Block.of([
           Code('try {'),
           Code(
-              'final _\$result = await ${service.symbol}.${handler.element.name}('),
+            'final _\$result = await ${service.symbol}.${handler.element.name}(',
+          ),
           Code('request,'),
           for (final param in handler.routeParameters) Code('$param,'),
           if (handler.hasPayload)
             Code(
-                'await \$utilities.decodeJson<${handler.payloadType!.element!.name}>(request, (o) => ${handler.payloadType!.element!.name}.fromJson(o)),'),
+              'await \$utilities.decodeJson<${handler.payloadType!.element!.name}>(request, (o) => ${handler.payloadType!.element!.name}.fromJson(o)),',
+            ),
           for (final param in handler.queryParameters)
             Code(
               '${param.name}: '

@@ -18,11 +18,9 @@ void main() {
       [],
       fallbackPubHostedUrl: 'https://pub.dev',
     );
-    setUpAll(
-      () async {
-        await server.start();
-      },
-    );
+    setUpAll(() async {
+      await server.start();
+    });
 
     tearDownAll(() async {
       await server.stop();
@@ -42,19 +40,15 @@ void main() {
       final payload = Payload(
         package: package,
         pubHostedUrl: '${server.baseUrl}',
-        versions: [
-          VersionTokenPair(
-            version: version,
-            token: 'secret-token',
-          ),
-        ],
+        versions: [VersionTokenPair(version: version, token: 'secret-token')],
       );
 
       final p = await startDockerAnalysis(payload);
       final exitCode = await p.exitCode;
       if (exitCode != 0) {
         throw Exception(
-            'Failed to analyze $package $version with exitCode $exitCode');
+          'Failed to analyze $package $version with exitCode $exitCode',
+        );
       }
 
       return version;
@@ -67,8 +61,9 @@ void main() {
         await buildDockerImage();
 
         final packages = ['retry', 'url_launcher'];
-        final versions =
-            await Future.wait(packages.map((p) => analyzePackage(p)));
+        final versions = await Future.wait(
+          packages.map((p) => analyzePackage(p)),
+        );
 
         for (var i = 0; i < packages.length; i++) {
           final package = packages[i];
@@ -81,14 +76,18 @@ void main() {
               : utf8.decode(gzip.decode(logTxtBytes));
 
           final docIndex = result.index.lookup('doc/index.html');
-          expect(docIndex, isNotNull,
-              reason: '$package must have documentation, see log:\n$logTxt');
+          expect(
+            docIndex,
+            isNotNull,
+            reason: '$package must have documentation, see log:\n$logTxt',
+          );
 
           final panaSummaryBytes = result.lookup('summary.json');
           expect(panaSummaryBytes, isNotNull);
           final summary = Summary.fromJson(
-              json.decode(utf8.decode(gzip.decode(panaSummaryBytes!)))
-                  as Map<String, dynamic>);
+            json.decode(utf8.decode(gzip.decode(panaSummaryBytes!)))
+                as Map<String, dynamic>,
+          );
           final report = summary.report!;
           expect(report.maxPoints, greaterThan(100));
 
@@ -98,12 +97,14 @@ void main() {
               .join('\n');
           // allow points drop due to lints and other temporary issues
           var expectedDrop = 10;
-          if (failingReportSections
-              .contains("Issue tracker URL doesn't exist.")) {
+          if (failingReportSections.contains(
+            "Issue tracker URL doesn't exist.",
+          )) {
             expectedDrop += 10;
           }
-          if (failingReportSections
-              .contains("is deprecated and shouldn't be used")) {
+          if (failingReportSections.contains(
+            "is deprecated and shouldn't be used",
+          )) {
             expectedDrop += 10;
           }
           expect(

@@ -73,38 +73,31 @@ class Tab {
     this.isMarkdown = false,
   }) : href = null;
 
-  Tab.withLink({
-    required this.id,
-    required this.title,
-    required this.href,
-  })  : contentNode = null,
-        isMarkdown = false;
+  Tab.withLink({required this.id, required this.title, required this.href})
+    : contentNode = null,
+      isMarkdown = false;
 
   bool get isPrivate =>
       id == 'admin' || id == 'activity-log' || id.startsWith('my-');
 
   List<String> get titleClasses => <String>[
-        'detail-tab',
-        contentNode == null ? 'tab-link' : 'tab-button',
-        'detail-tab-$id-title',
-        if (isActive) '-active',
-        if (isPrivate) '-private',
-      ];
+    'detail-tab',
+    contentNode == null ? 'tab-link' : 'tab-button',
+    'detail-tab-$id-title',
+    if (isActive) '-active',
+    if (isPrivate) '-private',
+  ];
 
   d.Node get titleNode => href == null
       ? d.text(title)
-      : d.a(
-          href: href,
-          text: title,
-          attributes: {'role': 'button'},
-        );
+      : d.a(href: href, text: title, attributes: {'role': 'button'});
 
   bool get hasContent => contentNode != null;
 
   List<String> get contentClasses => <String>[
-        'tab-content',
-        'detail-tab-$id-content',
-        if (isActive) '-active',
-        if (isMarkdown) 'markdown-body',
-      ];
+    'tab-content',
+    'detail-tab-$id-content',
+    if (isActive) '-active',
+    if (isMarkdown) 'markdown-body',
+  ];
 }

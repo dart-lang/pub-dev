@@ -9,11 +9,9 @@ import 'package:lcov_dart/lcov_dart.dart';
 Map<String, Map<int, int>> _lineExecCounts = <String, Map<int, int>>{};
 
 Future main() async {
-  final files = await Directory('build/lcov')
-      .list(recursive: true)
-      .where((f) => f is File)
-      .cast<File>()
-      .toList();
+  final files = await Directory(
+    'build/lcov',
+  ).list(recursive: true).where((f) => f is File).cast<File>().toList();
   for (final file in files) {
     final coverage = await file.readAsString();
     if (coverage.isEmpty) {
@@ -48,22 +46,27 @@ Future main() async {
     _tree['app/lib'],
     ..._tree.values
         .where(
-            (e) => e.key.startsWith('pkg/') && e.depth == 2 && e.leaf != 'test')
-        .where((e) =>
-            !e.key.startsWith('pkg/api_builder/') &&
-            !e.key.startsWith('pkg/code_coverage/') &&
-            !e.key.startsWith('pkg/fake_gcloud/') &&
-            !e.key.startsWith('pkg/pub_integration/'))
+          (e) => e.key.startsWith('pkg/') && e.depth == 2 && e.leaf != 'test',
+        )
+        .where(
+          (e) =>
+              !e.key.startsWith('pkg/api_builder/') &&
+              !e.key.startsWith('pkg/code_coverage/') &&
+              !e.key.startsWith('pkg/fake_gcloud/') &&
+              !e.key.startsWith('pkg/pub_integration/'),
+        ),
   ].nonNulls;
   final pubDevEntry = Entry('pub-dev')
     ..covered = libEntries.map((e) => e.covered).fold(0, (a, b) => a + b)
     ..total = libEntries.map((e) => e.total).fold(0, (a, b) => a + b);
-  output.writeln([
-    pubDevEntry.formatted('pub-dev'),
-    _tree['app/lib']?.formatted('app'),
-    _tree['pkg/web_app/lib']?.formatted('pkg/web_app'),
-    _tree['pkg/web_css/lib']?.formatted('pkg/web_css'),
-  ].join(', '));
+  output.writeln(
+    [
+      pubDevEntry.formatted('pub-dev'),
+      _tree['app/lib']?.formatted('app'),
+      _tree['pkg/web_app/lib']?.formatted('pkg/web_app'),
+      _tree['pkg/web_css/lib']?.formatted('pkg/web_css'),
+    ].join(', '),
+  );
 
   final keys = _tree.keys.toList()..sort();
   for (final key in keys) {
@@ -81,15 +84,20 @@ Future main() async {
 
   await File('build/report.txt').writeAsString(output.toString());
 
-  final uncoveredRanges = _lineExecCounts.keys
-      .map((path) => _topUncoveredRange(path, _lineExecCounts[path]!))
-      .nonNulls
-      .where((u) => u.codeLineCount > 0)
-      .toList()
-    ..sort((a, b) => -a.codeLineCount.compareTo(b.codeLineCount));
-  await File('build/uncovered-ranges.txt').writeAsString(uncoveredRanges
-      .map((r) => '${r.path} ${r.startLine}-${r.endLine} (${r.codeLineCount})')
-      .join('\n'));
+  final uncoveredRanges =
+      _lineExecCounts.keys
+          .map((path) => _topUncoveredRange(path, _lineExecCounts[path]!))
+          .nonNulls
+          .where((u) => u.codeLineCount > 0)
+          .toList()
+        ..sort((a, b) => -a.codeLineCount.compareTo(b.codeLineCount));
+  await File('build/uncovered-ranges.txt').writeAsString(
+    uncoveredRanges
+        .map(
+          (r) => '${r.path} ${r.startLine}-${r.endLine} (${r.codeLineCount})',
+        )
+        .join('\n'),
+  );
 }
 
 final _tree = <String, Entry>{};
@@ -152,5 +160,9 @@ _UncoveredRange? _topUncoveredRange(String path, Map<int, int> counts) {
   if (maxEndIndex == -1) return null;
   final maxStartIndex = maxEndIndex - maxUncovered + 1;
   return _UncoveredRange(
-      path, lines[maxStartIndex], lines[maxEndIndex], maxUncovered);
+    path,
+    lines[maxStartIndex],
+    lines[maxEndIndex],
+    maxUncovered,
+  );
 }

@@ -21,151 +21,160 @@ import '_utils.dart';
 
 void main() {
   group('editor api', () {
-    testWithProfile('/api/packages', fn: () async {
-      await expectJsonResponse(
-        await issueGet('/api/packages', host: urls.legacyHost),
-        body: {
-          'next_url': null,
-          'packages': [
-            {
-              'name': 'oxygen',
-              'latest': {
-                'version': '1.2.0',
-                'pubspec': {
-                  'name': 'oxygen',
+    testWithProfile(
+      '/api/packages',
+      fn: () async {
+        await expectJsonResponse(
+          await issueGet('/api/packages', host: urls.legacyHost),
+          body: {
+            'next_url': null,
+            'packages': [
+              {
+                'name': 'oxygen',
+                'latest': {
                   'version': '1.2.0',
-                  'description': 'oxygen is awesome',
-                  'homepage': 'https://oxygen.example.com/',
-                  'repository': 'https://github.com/example/oxygen',
-                  'environment': {'sdk': isNotEmpty},
-                  'dependencies': {},
-                  'screenshots': [
-                    {
-                      'path': 'static.webp',
-                      'description': 'This is an awesome screenshot'
-                    }
-                  ],
-                  'funding': isNotEmpty,
-                  'topics': ['chemical-element'],
-                },
-                'archive_url':
-                    '${activeConfiguration.primaryApiUri}/api/archives/oxygen-1.2.0.tar.gz',
-                'package_url':
-                    '${activeConfiguration.primaryApiUri}/api/packages/oxygen',
-                'url':
-                    '${activeConfiguration.primaryApiUri}/api/packages/oxygen/versions/1.2.0'
-              }
-            },
-            {
-              'name': 'flutter_titanium',
-              'latest': {
-                'version': '1.10.0',
-                'pubspec': {
-                  'name': 'flutter_titanium',
-                  'version': '1.10.0',
-                  'description': 'flutter_titanium is awesome',
-                  'homepage': 'https://flutter_titanium.example.com/',
-                  'repository': 'https://github.com/example/flutter_titanium',
-                  'environment': {'sdk': isNotEmpty},
-                  'dependencies': {
-                    'flutter': {'sdk': 'flutter'}
+                  'pubspec': {
+                    'name': 'oxygen',
+                    'version': '1.2.0',
+                    'description': 'oxygen is awesome',
+                    'homepage': 'https://oxygen.example.com/',
+                    'repository': 'https://github.com/example/oxygen',
+                    'environment': {'sdk': isNotEmpty},
+                    'dependencies': {},
+                    'screenshots': [
+                      {
+                        'path': 'static.webp',
+                        'description': 'This is an awesome screenshot',
+                      },
+                    ],
+                    'funding': isNotEmpty,
+                    'topics': ['chemical-element'],
                   },
-                  'screenshots': [
-                    {
-                      'path': 'static.webp',
-                      'description': 'This is an awesome screenshot'
-                    }
-                  ],
-                  'funding': isNotEmpty,
-                  'topics': ['chemical-element'],
+                  'archive_url':
+                      '${activeConfiguration.primaryApiUri}/api/archives/oxygen-1.2.0.tar.gz',
+                  'package_url':
+                      '${activeConfiguration.primaryApiUri}/api/packages/oxygen',
+                  'url':
+                      '${activeConfiguration.primaryApiUri}/api/packages/oxygen/versions/1.2.0',
                 },
-                'archive_url':
-                    '${activeConfiguration.primaryApiUri}/api/archives/flutter_titanium-1.10.0.tar.gz',
-                'package_url':
-                    '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium',
-                'url':
-                    '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium/versions/1.10.0'
-              }
-            },
-            {
-              'name': 'neon',
-              'latest': {
-                'version': '1.0.0',
-                'pubspec': {
-                  'name': 'neon',
+              },
+              {
+                'name': 'flutter_titanium',
+                'latest': {
+                  'version': '1.10.0',
+                  'pubspec': {
+                    'name': 'flutter_titanium',
+                    'version': '1.10.0',
+                    'description': 'flutter_titanium is awesome',
+                    'homepage': 'https://flutter_titanium.example.com/',
+                    'repository': 'https://github.com/example/flutter_titanium',
+                    'environment': {'sdk': isNotEmpty},
+                    'dependencies': {
+                      'flutter': {'sdk': 'flutter'},
+                    },
+                    'screenshots': [
+                      {
+                        'path': 'static.webp',
+                        'description': 'This is an awesome screenshot',
+                      },
+                    ],
+                    'funding': isNotEmpty,
+                    'topics': ['chemical-element'],
+                  },
+                  'archive_url':
+                      '${activeConfiguration.primaryApiUri}/api/archives/flutter_titanium-1.10.0.tar.gz',
+                  'package_url':
+                      '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium',
+                  'url':
+                      '${activeConfiguration.primaryApiUri}/api/packages/flutter_titanium/versions/1.10.0',
+                },
+              },
+              {
+                'name': 'neon',
+                'latest': {
                   'version': '1.0.0',
-                  'description': 'neon is awesome',
-                  'homepage': 'https://neon.example.com/',
-                  'repository': 'https://github.com/example/neon',
-                  'environment': {'sdk': isNotEmpty},
-                  'dependencies': {},
-                  'screenshots': [
-                    {
-                      'path': 'static.webp',
-                      'description': 'This is an awesome screenshot'
-                    }
-                  ],
-                  'funding': isNotEmpty,
-                  'topics': ['chemical-element'],
+                  'pubspec': {
+                    'name': 'neon',
+                    'version': '1.0.0',
+                    'description': 'neon is awesome',
+                    'homepage': 'https://neon.example.com/',
+                    'repository': 'https://github.com/example/neon',
+                    'environment': {'sdk': isNotEmpty},
+                    'dependencies': {},
+                    'screenshots': [
+                      {
+                        'path': 'static.webp',
+                        'description': 'This is an awesome screenshot',
+                      },
+                    ],
+                    'funding': isNotEmpty,
+                    'topics': ['chemical-element'],
+                  },
+                  'archive_url':
+                      '${activeConfiguration.primaryApiUri}/api/archives/neon-1.0.0.tar.gz',
+                  'package_url':
+                      '${activeConfiguration.primaryApiUri}/api/packages/neon',
+                  'url':
+                      '${activeConfiguration.primaryApiUri}/api/packages/neon/versions/1.0.0',
                 },
-                'archive_url':
-                    '${activeConfiguration.primaryApiUri}/api/archives/neon-1.0.0.tar.gz',
-                'package_url':
-                    '${activeConfiguration.primaryApiUri}/api/packages/neon',
-                'url':
-                    '${activeConfiguration.primaryApiUri}/api/packages/neon/versions/1.0.0'
-              }
-            }
-          ]
-        },
-      );
-    });
+              },
+            ],
+          },
+        );
+      },
+    );
 
-    testWithProfile('/api/package-names', fn: () async {
-      final rs = await http.get(activeConfiguration.primaryApiUri!
-          .replace(path: '/api/package-names'));
-      await expectJsonResponse(
-        shelf.Response(rs.statusCode, body: rs.body, headers: rs.headers),
-        body: {
-          'packages': containsAll([
-            'neon',
-            'oxygen',
-          ]),
-          'nextUrl': null,
-        },
-      );
-    });
+    testWithProfile(
+      '/api/package-names',
+      fn: () async {
+        final rs = await http.get(
+          activeConfiguration.primaryApiUri!.replace(
+            path: '/api/package-names',
+          ),
+        );
+        await expectJsonResponse(
+          shelf.Response(rs.statusCode, body: rs.body, headers: rs.headers),
+          body: {
+            'packages': containsAll(['neon', 'oxygen']),
+            'nextUrl': null,
+          },
+        );
+      },
+    );
 
-    testWithProfile('/api/package-names - only valid packages', fn: () async {
-      final rs1 = await http.get(activeConfiguration.primaryApiUri!
-          .replace(path: '/api/package-names'));
-      await expectJsonResponse(
-        shelf.Response(rs1.statusCode, body: rs1.body, headers: rs1.headers),
-        body: {
-          'packages': contains('neon'),
-          'nextUrl': null,
-        },
-      );
-      final p = await packageBackend.lookupPackage('neon');
-      p!.updateIsModerated(isModerated: true);
-      expect(p.isVisible, isFalse);
-      await dbService.commit(inserts: [p]);
-      await nameTracker.reloadFromDatastore();
-      await cache.packageNamesDataJsonGz().purge();
-      final rs2 = await http.get(activeConfiguration.primaryApiUri!
-          .replace(path: '/api/package-names'));
-      await expectJsonResponse(
-        shelf.Response(rs2.statusCode, body: rs2.body, headers: rs2.headers),
-        body: {
-          'packages': isNot(contains('neon')),
-          'nextUrl': null,
-        },
-      );
+    testWithProfile(
+      '/api/package-names - only valid packages',
+      fn: () async {
+        final rs1 = await http.get(
+          activeConfiguration.primaryApiUri!.replace(
+            path: '/api/package-names',
+          ),
+        );
+        await expectJsonResponse(
+          shelf.Response(rs1.statusCode, body: rs1.body, headers: rs1.headers),
+          body: {'packages': contains('neon'), 'nextUrl': null},
+        );
+        final p = await packageBackend.lookupPackage('neon');
+        p!.updateIsModerated(isModerated: true);
+        expect(p.isVisible, isFalse);
+        await dbService.commit(inserts: [p]);
+        await nameTracker.reloadFromDatastore();
+        await cache.packageNamesDataJsonGz().purge();
+        final rs2 = await http.get(
+          activeConfiguration.primaryApiUri!.replace(
+            path: '/api/package-names',
+          ),
+        );
+        await expectJsonResponse(
+          shelf.Response(rs2.statusCode, body: rs2.body, headers: rs2.headers),
+          body: {'packages': isNot(contains('neon')), 'nextUrl': null},
+        );
 
-      // reverting to make sure integrity check is passing
-      p.updateIsModerated(isModerated: false);
-      await dbService.commit(inserts: [p]);
-    });
+        // reverting to make sure integrity check is passing
+        p.updateIsModerated(isModerated: false);
+        await dbService.commit(inserts: [p]);
+      },
+    );
   });
 
   group('score API', () {

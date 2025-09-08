@@ -16,7 +16,9 @@ SearchRequestData _$SearchRequestDataFromJson(Map<String, dynamic> json) =>
       offset: (json['offset'] as num?)?.toInt(),
       limit: (json['limit'] as num?)?.toInt(),
       textMatchExtent: $enumDecodeNullable(
-          _$TextMatchExtentEnumMap, json['textMatchExtent']),
+        _$TextMatchExtentEnumMap,
+        json['textMatchExtent'],
+      ),
       packages: (json['packages'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),

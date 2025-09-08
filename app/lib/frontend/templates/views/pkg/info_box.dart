@@ -63,46 +63,51 @@ d.Node packageInfoBoxNode({
   final screenshotDescriptions = <String>[];
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = imageStorage.getImageUrl(
-        package.name!, version.version!, screenshots.first.webp190Thumbnail);
+      package.name!,
+      version.version!,
+      screenshots.first.webp190Thumbnail,
+    );
     for (final screenshot in screenshots) {
-      screenshotUrls.add(imageStorage.getImageUrl(
-          package.name!, version.version!, screenshot.webpImage));
+      screenshotUrls.add(
+        imageStorage.getImageUrl(
+          package.name!,
+          version.version!,
+          screenshot.webpImage,
+        ),
+      );
       screenshotDescriptions.add(screenshot.description);
     }
   }
   return d.fragment([
     labeledScores,
     if (thumbnailUrl != null)
-      d.div(classes: [
-        'detail-screenshot-thumbnail'
-      ], children: [
-        screenshotThumbnailNode(
+      d.div(
+        classes: ['detail-screenshot-thumbnail'],
+        children: [
+          screenshotThumbnailNode(
             thumbnailUrl: thumbnailUrl,
             screenshotUrls: screenshotUrls,
-            screenshotDescriptions: screenshotDescriptions),
-        collectionsIcon(),
-      ]),
+            screenshotDescriptions: screenshotDescriptions,
+          ),
+          collectionsIcon(),
+        ],
+      ),
     _publisher(package.publisherId),
     if (data.weeklyDownloadCounts != null)
       _downloadsChart(data.weeklyDownloadCounts!),
-    _metadata(
-      description: version.pubspec!.description,
-      metaLinks: metaLinks,
-    ),
+    _metadata(description: version.pubspec!.description, metaLinks: metaLinks),
     if (topics != null) _block('Topics', topics),
     if (docLinks.isNotEmpty)
       _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
     if (fundingLinks.isNotEmpty)
       _block(
         'Funding',
-        d.fragment(
-          [
-            d.text('Consider supporting this project:'),
-            d.br(),
-            d.br(),
-            ...fundingLinks.map(_linkAndBr),
-          ],
-        ),
+        d.fragment([
+          d.text('Consider supporting this project:'),
+          d.br(),
+          d.br(),
+          ...fundingLinks.map(_linkAndBr),
+        ]),
       ),
     if (license != null) _block('License', license),
     if (dependencies != null) _block('Dependencies', dependencies),
@@ -115,13 +120,16 @@ d.Node packageInfoBoxNode({
 
 d.Node _downloadsChart(WeeklyDownloadCounts wdc) {
   final container = d.div(
-      classes: ['weekly-downloads-sparkline'],
-      id: '-weekly-downloads-sparkline',
-      attributes: {
-        'data-widget': 'weekly-sparkline',
-        'data-weekly-sparkline-points':
-            _encodeForWeeklySparkline(wdc.weeklyDownloads, wdc.newestDate),
-      });
+    classes: ['weekly-downloads-sparkline'],
+    id: '-weekly-downloads-sparkline',
+    attributes: {
+      'data-widget': 'weekly-sparkline',
+      'data-weekly-sparkline-points': _encodeForWeeklySparkline(
+        wdc.weeklyDownloads,
+        wdc.newestDate,
+      ),
+    },
+  );
 
   return d.fragment([
     d.h3(classes: ['title'], text: 'Weekly Downloads'),
@@ -178,7 +186,8 @@ d.Node _more(String packageName, {required bool showImplementsLink}) {
         d.br(),
         d.a(
           href: urls.searchUrl(
-              q: PackageVersionTags.implementsFederatedPlugin(packageName)),
+            q: PackageVersionTags.implementsFederatedPlugin(packageName),
+          ),
           rel: 'nofollow',
           text: 'Packages that implement $packageName',
         ),
@@ -260,8 +269,9 @@ d.Node? _dependencyListNode(Map<String, pubspek.Dependency>? dependencies) {
       href = urls.pkgPageUrl(p);
       constraint = dep.version.toString();
     }
-    final node =
-        href == null ? d.text(p) : d.a(href: href, title: constraint, text: p);
+    final node = href == null
+        ? d.text(p)
+        : d.a(href: href, title: constraint, text: p);
     nodes.add(node);
   }
   return d.fragment(nodes);

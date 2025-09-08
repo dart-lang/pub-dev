@@ -17,9 +17,11 @@ possible to call them with arguments that contain comma.
     'args': 'comma separated list of arguments',
   },
   invoke: (options) async {
-    final toolName = options['tool'] ??
+    final toolName =
+        options['tool'] ??
         (throw InvalidInputException('Missing --tool argument'));
-    final argsOption = options['args'] ??
+    final argsOption =
+        options['args'] ??
         (throw InvalidInputException('Missing --args argument'));
     final args = argsOption.split(',');
     InvalidInputException.check(toolName.isNotEmpty, 'tool must given');

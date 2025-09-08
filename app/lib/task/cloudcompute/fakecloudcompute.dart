@@ -24,7 +24,7 @@ final class FakeCloudCompute extends CloudCompute {
   final InstanceRunner _instanceRunner;
 
   FakeCloudCompute({InstanceRunner? instanceRunner})
-      : _instanceRunner = instanceRunner ?? _defaultInstanceRunner;
+    : _instanceRunner = instanceRunner ?? _defaultInstanceRunner;
 
   @override
   final List<String> zones = const ['zone-a', 'zone-b'];
@@ -96,8 +96,9 @@ final class FakeCloudCompute extends CloudCompute {
     final removed = _instances
         .where((i) => i.instanceName == instanceName && i.zone == zone)
         .toList();
-    _instances
-        .removeWhere((i) => i.instanceName == instanceName && i.zone == zone);
+    _instances.removeWhere(
+      (i) => i.instanceName == instanceName && i.zone == zone,
+    );
 
     for (final i in removed) {
       scheduleMicrotask(() => _onDeletedController.add(i));
@@ -254,16 +255,15 @@ final class FakeCloudInstance extends CloudInstance {
     String? dockerImage,
     List<String>? arguments,
     String? description,
-  }) =>
-      FakeCloudInstance._(
-        instanceName: instanceName ?? this.instanceName,
-        zone: zone ?? this.zone,
-        created: created ?? this.created,
-        state: state ?? this.state,
-        dockerImage: dockerImage ?? this.dockerImage,
-        arguments: arguments ?? this.arguments,
-        description: description ?? this.description,
-      );
+  }) => FakeCloudInstance._(
+    instanceName: instanceName ?? this.instanceName,
+    zone: zone ?? this.zone,
+    created: created ?? this.created,
+    state: state ?? this.state,
+    dockerImage: dockerImage ?? this.dockerImage,
+    arguments: arguments ?? this.arguments,
+    description: description ?? this.description,
+  );
 
   FakeCloudInstance._({
     required this.instanceName,
@@ -276,13 +276,6 @@ final class FakeCloudInstance extends CloudInstance {
   });
 
   @override
-  String toString() => 'FakeCloudInstance(${[
-        'name: $instanceName',
-        'zone: $zone',
-        'created: $created',
-        'state: $state',
-        'image: $dockerImage',
-        'arguments: ${arguments.join(' ')}',
-        'description: $description',
-      ].join(',')})';
+  String toString() =>
+      'FakeCloudInstance(${['name: $instanceName', 'zone: $zone', 'created: $created', 'state: $state', 'image: $dockerImage', 'arguments: ${arguments.join(' ')}', 'description: $description'].join(',')})';
 }

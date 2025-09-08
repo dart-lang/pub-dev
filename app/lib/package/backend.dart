@@ -61,15 +61,21 @@ final maxAssetContentLength = 256 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
-final _validGitHubUserOrRepoRegExp =
-    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
+final _validGitHubUserOrRepoRegExp = RegExp(
+  r'^[a-z0-9\-\._]+$',
+  caseSensitive: false,
+);
 // NOTE: The `/` character is allowed inside the tag pattern because we are
 //       not splitting the `refs/tags/` prefix. A change of that parsing
 //       should specifically test the presence of `/`.
-final _validGitHubVersionPattern =
-    RegExp(r'^[a-z0-9\-._/]+$', caseSensitive: false);
-final _validGitHubEnvironment =
-    RegExp(r'^[a-z0-9\-\._]+$', caseSensitive: false);
+final _validGitHubVersionPattern = RegExp(
+  r'^[a-z0-9\-._/]+$',
+  caseSensitive: false,
+);
+final _validGitHubEnvironment = RegExp(
+  r'^[a-z0-9\-\._]+$',
+  caseSensitive: false,
+);
 
 /// Sets the package backend service.
 void registerPackageBackend(PackageBackend backend) =>
@@ -102,14 +108,19 @@ class PackageBackend {
     this._incomingBucket,
     Bucket canonicalBucket,
     Bucket publicBucket,
-  ) : tarballStorage =
-            TarballStorage(db, _storage, canonicalBucket, publicBucket);
+  ) : tarballStorage = TarballStorage(
+        db,
+        _storage,
+        canonicalBucket,
+        publicBucket,
+      );
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
     return (await cache.packageVisible(package).get(() async {
-      final p = await db
-          .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
+      final p = await db.lookupOrNull<Package>(
+        db.emptyKey.append(Package, id: package),
+      );
       return p != null && p.isVisible;
     }))!;
   }
@@ -124,7 +135,9 @@ class PackageBackend {
   Stream<Package> sitemapPackageNames() {
     final query = db.query<Package>()
       ..filter(
-          'updated >', clock.now().toUtc().subtract(robotsVisibilityMaxAge));
+        'updated >',
+        clock.now().toUtc().subtract(robotsVisibilityMaxAge),
+      );
     return query
         .run()
         .where((p) => p.isVisible)
@@ -133,8 +146,10 @@ class PackageBackend {
   }
 
   /// Retrieves package versions ordered by their published date descending.
-  Future<List<PackageVersion>> latestPackageVersions(
-      {int offset = 0, required int limit}) async {
+  Future<List<PackageVersion>> latestPackageVersions({
+    int offset = 0,
+    required int limit,
+  }) async {
     final query = db.query<PackageVersion>()
       ..order('-created')
       ..offset(offset)
@@ -152,8 +167,9 @@ class PackageBackend {
   /// Returns the latest stable version of a package.
   Future<String?> getLatestVersion(String package) async {
     return cache.packageLatestVersion(package).get(() async {
-      final p = await db
-          .lookupOrNull<Package>(db.emptyKey.append(Package, id: package));
+      final p = await db.lookupOrNull<Package>(
+        db.emptyKey.append(Package, id: package),
+      );
       return p?.latestVersion;
     });
   }
@@ -184,10 +200,9 @@ class PackageBackend {
 
   /// Looks up a package by name.
   Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
-    return (await db.lookup(packageNames
-            .map((p) => db.emptyKey.append(Package, id: p))
-            .toList()))
-        .cast();
+    return (await db.lookup(
+      packageNames.map((p) => db.emptyKey.append(Package, id: p)).toList(),
+    )).cast();
   }
 
   /// List all packages where the [userId] is an uploader.
@@ -234,7 +249,9 @@ class PackageBackend {
   /// Returns null if the version is not a semantic version or if the version
   /// entity does not exists in the datastore.
   Future<PackageVersion?> lookupPackageVersion(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final canonicalVersion = canonicalizeVersion(version);
     if (canonicalVersion == null) return null;
     final packageVersionKey = db.emptyKey
@@ -248,13 +265,18 @@ class PackageBackend {
   /// Returns null if the [version] is not a semantic version or if the info
   /// entity does not exists in the datastore.
   Future<PackageVersionInfo?> lookupPackageVersionInfo(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final canonicalVersion = canonicalizeVersion(version);
     if (canonicalVersion == null) return null;
-    final qvk =
-        QualifiedVersionKey(package: package, version: canonicalVersion);
+    final qvk = QualifiedVersionKey(
+      package: package,
+      version: canonicalVersion,
+    );
     return await db.lookupOrNull<PackageVersionInfo>(
-        db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion));
+      db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion),
+    );
   }
 
   /// Looks up a specific package version's asset object.
@@ -262,23 +284,32 @@ class PackageBackend {
   /// Returns null if the [version] is not a semantic version or if the asset
   /// entity does not exists in the Datastore.
   Future<PackageVersionAsset?> lookupPackageVersionAsset(
-      String package, String version, String assetKind) async {
+    String package,
+    String version,
+    String assetKind,
+  ) async {
     final canonicalVersion = canonicalizeVersion(version);
     if (canonicalVersion == null) return null;
-    final qvk =
-        QualifiedVersionKey(package: package, version: canonicalVersion);
+    final qvk = QualifiedVersionKey(
+      package: package,
+      version: canonicalVersion,
+    );
     return await db.lookupOrNull<PackageVersionAsset>(
-        db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)));
+      db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)),
+    );
   }
 
   /// Looks up the qualified [versions].
   Future<List<PackageVersion?>> lookupVersions(
-      Iterable<QualifiedVersionKey> versions) async {
+    Iterable<QualifiedVersionKey> versions,
+  ) async {
     return await db.lookup<PackageVersion>(
       versions
-          .map((k) => db.emptyKey
-              .append(Package, id: k.package)
-              .append(PackageVersion, id: k.version))
+          .map(
+            (k) => db.emptyKey
+                .append(Package, id: k.package)
+                .append(PackageVersion, id: k.version),
+          )
           .toList(),
     );
   }
@@ -312,23 +343,30 @@ class PackageBackend {
     bool Function(PackageVersion pv)? where,
   }) async {
     final packageKey = db.emptyKey.append(Package, id: package);
-    final query = db.query<PackageVersion>(ancestorKey: packageKey)
-      ..filter(
-          'created >=', clock.now().toUtc().subtract(Duration(days: days)));
+    final query = db.query<PackageVersion>(
+      ancestorKey: packageKey,
+    )..filter('created >=', clock.now().toUtc().subtract(Duration(days: days)));
     return await query.run().where((pv) => where == null || where(pv)).toList();
   }
 
   /// List retractable versions.
   Future<List<PackageVersion>> listRetractableVersions(String package) async {
-    return await _listVersionsFromPastDays(package,
-        days: 7, where: (pv) => pv.canBeRetracted);
+    return await _listVersionsFromPastDays(
+      package,
+      days: 7,
+      where: (pv) => pv.canBeRetracted,
+    );
   }
 
   /// List versions that are retracted and the retraction is recent, it can be undone.
   Future<List<PackageVersion>> listRecentlyRetractedVersions(
-      String package) async {
-    return await _listVersionsFromPastDays(package,
-        days: 14, where: (pv) => pv.canUndoRetracted);
+    String package,
+  ) async {
+    return await _listVersionsFromPastDays(
+      package,
+      days: 14,
+      where: (pv) => pv.canUndoRetracted,
+    );
   }
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
@@ -352,15 +390,17 @@ class PackageBackend {
     _logger.info("Checking Package's versions fields for package `$package`.");
     final pkgKey = db.emptyKey.append(Package, id: package);
     dartSdkVersion ??= (await getCachedDartSdkVersion(
-            lastKnownStable: toolStableDartSdkVersion))
-        .semanticVersion;
+      lastKnownStable: toolStableDartSdkVersion,
+    )).semanticVersion;
     flutterSdkVersion ??= (await getCachedFlutterSdkVersion(
-            lastKnownStable: toolStableFlutterSdkVersion))
-        .semanticVersion;
+      lastKnownStable: toolStableFlutterSdkVersion,
+    )).semanticVersion;
 
     // ordered version list by publish date
-    final versions =
-        await db.query<PackageVersion>(ancestorKey: pkgKey).run().toList();
+    final versions = await db
+        .query<PackageVersion>(ancestorKey: pkgKey)
+        .run()
+        .toList();
 
     final updated = await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupOrNull<Package>(pkgKey);
@@ -396,16 +436,20 @@ class PackageBackend {
   /// Updates the stable, prerelease and preview versions of all package.
   ///
   /// Return the number of updated packages.
-  Future<int> updateAllPackageVersions(
-      {Version? dartSdkVersion, int? concurrency}) async {
+  Future<int> updateAllPackageVersions({
+    Version? dartSdkVersion,
+    int? concurrency,
+  }) async {
     final pool = Pool(concurrency ?? 1);
     var count = 0;
     final futures = <Future>[];
     await for (final p in db.query<Package>().run()) {
       final package = p.name!;
       final f = pool.withResource(() async {
-        final updated = await updatePackageVersions(package,
-            dartSdkVersion: dartSdkVersion);
+        final updated = await updatePackageVersions(
+          package,
+          dartSdkVersion: dartSdkVersion,
+        );
         if (updated) count++;
       });
       futures.add(f);
@@ -435,17 +479,25 @@ class PackageBackend {
     final user = authenticatedUser.user;
     // Validate replacedBy parameter
     final replacedBy = options.replacedBy?.trim() ?? '';
-    InvalidInputException.check(package != replacedBy,
-        '"replacedBy" must point to a different package.');
+    InvalidInputException.check(
+      package != replacedBy,
+      '"replacedBy" must point to a different package.',
+    );
     if (replacedBy.isNotEmpty) {
-      InvalidInputException.check(options.isDiscontinued == true,
-          '"replacedBy" must be set only with "isDiscontinued": true.');
+      InvalidInputException.check(
+        options.isDiscontinued == true,
+        '"replacedBy" must be set only with "isDiscontinued": true.',
+      );
 
       final rp = await lookupPackage(replacedBy);
-      InvalidInputException.check(rp != null && rp.isVisible,
-          'Package specified by "replaceBy" does not exists.');
-      InvalidInputException.check(rp != null && !rp.isDiscontinued,
-          'Package specified by "replaceBy" must not be discontinued.');
+      InvalidInputException.check(
+        rp != null && rp.isVisible,
+        'Package specified by "replaceBy" does not exists.',
+      );
+      InvalidInputException.check(
+        rp != null && !rp.isDiscontinued,
+        'Package specified by "replaceBy" must not be discontinued.',
+      );
     }
 
     final pkg = await _requirePackageAdmin(package, user.userId);
@@ -476,16 +528,20 @@ class PackageBackend {
       }
 
       p.updated = clock.now().toUtc();
-      _logger.info('Updating $package options: '
-          'isDiscontinued: ${p.isDiscontinued} '
-          'isUnlisted: ${p.isUnlisted}');
+      _logger.info(
+        'Updating $package options: '
+        'isDiscontinued: ${p.isDiscontinued} '
+        'isUnlisted: ${p.isUnlisted}',
+      );
       tx.insert(p);
-      tx.insert(await AuditLogRecord.packageOptionsUpdated(
-        agent: authenticatedUser,
-        package: p.name!,
-        publisherId: p.publisherId,
-        options: optionsChanges,
-      ));
+      tx.insert(
+        await AuditLogRecord.packageOptionsUpdated(
+          agent: authenticatedUser,
+          package: p.name!,
+          publisherId: p.publisherId,
+          options: optionsChanges,
+        ),
+      );
     });
     triggerPackagePostUpdates(package, skipVersionsExport: true);
   }
@@ -515,25 +571,39 @@ class PackageBackend {
       if (options.isRetracted != null &&
           options.isRetracted != pv.isRetracted) {
         if (options.isRetracted!) {
-          InvalidInputException.check(pv.canBeRetracted,
-              'Can\'t retract package "$package" version "$version".');
+          InvalidInputException.check(
+            pv.canBeRetracted,
+            'Can\'t retract package "$package" version "$version".',
+          );
         } else {
-          InvalidInputException.check(pv.canUndoRetracted,
-              'Can\'t undo retraction of package "$package" version "$version".');
+          InvalidInputException.check(
+            pv.canUndoRetracted,
+            'Can\'t undo retraction of package "$package" version "$version".',
+          );
         }
         await doUpdateRetractedStatus(
-            authenticatedUser, tx, p, pv, options.isRetracted!);
+          authenticatedUser,
+          tx,
+          p,
+          pv,
+          options.isRetracted!,
+        );
       }
     });
-    await purgeScorecardData(package, version,
-        isLatest: pkg.latestVersion == version);
+    await purgeScorecardData(
+      package,
+      version,
+      isLatest: pkg.latestVersion == version,
+    );
     triggerPackagePostUpdates(package);
   }
 
   /// Verifies an update to the credential-less publishing settings and
   /// updates the Datastore entity if everything is valid.
   Future<api.AutomatedPublishingConfig> setAutomatedPublishing(
-      String package, api.AutomatedPublishingConfig body) async {
+    String package,
+    api.AutomatedPublishingConfig body,
+  ) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     final pkg = await _requirePackageAdmin(package, user.userId);
@@ -545,9 +615,10 @@ class PackageBackend {
         final isEnabled = githubConfig.isEnabled;
 
         InvalidInputException.check(
-            githubConfig.isPushEventEnabled ||
-                githubConfig.isWorkflowDispatchEventEnabled,
-            'At least one of the events (`push` or `workflow_dispatch`) must be enabled.');
+          githubConfig.isPushEventEnabled ||
+              githubConfig.isWorkflowDispatchEventEnabled,
+          'At least one of the events (`push` or `workflow_dispatch`) must be enabled.',
+        );
 
         // normalize input values
         final repository = githubConfig.repository?.trim() ?? '';
@@ -558,27 +629,34 @@ class PackageBackend {
         final environment = githubConfig.environment?.trim() ?? '';
         githubConfig.environment = environment.isEmpty ? null : environment;
 
-        InvalidInputException.check(!isEnabled || repository.isNotEmpty,
-            'The `repository` field must not be empty when enabled.');
+        InvalidInputException.check(
+          !isEnabled || repository.isNotEmpty,
+          'The `repository` field must not be empty when enabled.',
+        );
 
         if (repository.isNotEmpty) {
           final parts = repository.split('/');
-          InvalidInputException.check(parts.length == 2,
-              'The `repository` field must follow the `<owner>/<repository>` pattern.');
           InvalidInputException.check(
-              _validGitHubUserOrRepoRegExp.hasMatch(parts[0]) &&
-                  _validGitHubUserOrRepoRegExp.hasMatch(parts[1]),
-              'The `repository` field has invalid characters.');
+            parts.length == 2,
+            'The `repository` field must follow the `<owner>/<repository>` pattern.',
+          );
+          InvalidInputException.check(
+            _validGitHubUserOrRepoRegExp.hasMatch(parts[0]) &&
+                _validGitHubUserOrRepoRegExp.hasMatch(parts[1]),
+            'The `repository` field has invalid characters.',
+          );
         }
 
         InvalidInputException.check(
-            !githubConfig.requireEnvironment || environment.isNotEmpty,
-            'The `environment` field must not be empty when enabled.');
+          !githubConfig.requireEnvironment || environment.isNotEmpty,
+          'The `environment` field must not be empty when enabled.',
+        );
 
         if (environment.isNotEmpty) {
           InvalidInputException.check(
-              _validGitHubEnvironment.hasMatch(environment),
-              'The `environment` field has invalid characters.');
+            _validGitHubEnvironment.hasMatch(environment),
+            'The `environment` field has invalid characters.',
+          );
         }
       }
       if (gcpConfig != null) {
@@ -588,12 +666,15 @@ class PackageBackend {
         gcpConfig.serviceAccountEmail = serviceAccountEmail;
 
         InvalidInputException.check(
-            !isEnabled || serviceAccountEmail.isNotEmpty,
-            'The service account email field must not be empty when enabled.');
+          !isEnabled || serviceAccountEmail.isNotEmpty,
+          'The service account email field must not be empty when enabled.',
+        );
 
         if (serviceAccountEmail.isNotEmpty) {
-          InvalidInputException.check(isValidEmail(serviceAccountEmail),
-              'The service account email is not valid: `$serviceAccountEmail`.');
+          InvalidInputException.check(
+            isValidEmail(serviceAccountEmail),
+            'The service account email is not valid: `$serviceAccountEmail`.',
+          );
 
           InvalidInputException.check(
             serviceAccountEmail.endsWith('.gserviceaccount.com'),
@@ -608,14 +689,14 @@ class PackageBackend {
       final current = p.automatedPublishing;
       final githubChanged =
           (githubConfig?.isEnabled != current?.githubConfig?.isEnabled) ||
-              (githubConfig?.repository != current?.githubConfig?.repository);
+          (githubConfig?.repository != current?.githubConfig?.repository);
       if (githubChanged) {
         p.automatedPublishing?.githubLock = null;
       }
       final gcpChanged =
           (gcpConfig?.isEnabled != current?.gcpConfig?.isEnabled) ||
-              (gcpConfig?.serviceAccountEmail !=
-                  current?.gcpConfig?.serviceAccountEmail);
+          (gcpConfig?.serviceAccountEmail !=
+              current?.gcpConfig?.serviceAccountEmail);
       if (gcpChanged) {
         p.automatedPublishing?.gcpLock = null;
       }
@@ -627,11 +708,13 @@ class PackageBackend {
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(await AuditLogRecord.packagePublicationAutomationUpdated(
-        package: p.name!,
-        publisherId: p.publisherId,
-        user: user,
-      ));
+      tx.insert(
+        await AuditLogRecord.packagePublicationAutomationUpdated(
+          package: p.name!,
+          publisherId: p.publisherId,
+          user: user,
+        ),
+      );
       return api.AutomatedPublishingConfig(
         github: p.automatedPublishing!.githubConfig,
         gcp: p.automatedPublishing!.gcpConfig,
@@ -644,20 +727,23 @@ class PackageBackend {
   /// This is a helper method, and should be used only after appropriate
   /// input validation.
   Future<void> doUpdateRetractedStatus(
-      AuthenticatedAgent agent,
-      TransactionWrapper tx,
-      Package p,
-      PackageVersion pv,
-      bool isRetracted) async {
+    AuthenticatedAgent agent,
+    TransactionWrapper tx,
+    Package p,
+    PackageVersion pv,
+    bool isRetracted,
+  ) async {
     pv.isRetracted = isRetracted;
     pv.retracted = isRetracted ? clock.now() : null;
 
     // Update references to latest versions.
     final versions = await tx.query<PackageVersion>(p.key).run().toList();
     final currentDartSdk = await getCachedDartSdkVersion(
-        lastKnownStable: toolStableDartSdkVersion);
+      lastKnownStable: toolStableDartSdkVersion,
+    );
     final currentFlutterSdk = await getCachedFlutterSdkVersion(
-        lastKnownStable: toolStableFlutterSdkVersion);
+      lastKnownStable: toolStableFlutterSdkVersion,
+    );
     p.updateVersions(
       versions,
       dartSdkVersion: currentDartSdk.semanticVersion,
@@ -669,17 +755,20 @@ class PackageBackend {
     p.updated = clock.now().toUtc();
 
     _logger.info(
-        'Updating ${p.name} ${pv.version} options: isRetracted: $isRetracted');
+      'Updating ${p.name} ${pv.version} options: isRetracted: $isRetracted',
+    );
 
     tx.insert(p);
     tx.insert(pv);
-    tx.insert(await AuditLogRecord.packageVersionOptionsUpdated(
-      agent: agent,
-      package: p.name!,
-      version: pv.version!,
-      publisherId: p.publisherId,
-      options: ['retracted'],
-    ));
+    tx.insert(
+      await AuditLogRecord.packageVersionOptionsUpdated(
+        agent: agent,
+        package: p.name!,
+        version: pv.version!,
+        publisherId: p.publisherId,
+        options: ['retracted'],
+      ),
+    );
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
@@ -716,7 +805,8 @@ class PackageBackend {
 
   /// Returns the number of likes of a given package.
   Future<account_api.PackageLikesCount> getPackageLikesCount(
-      String packageName) async {
+    String packageName,
+  ) async {
     checkPackageVersionParams(packageName);
     final key = db.emptyKey.append(Package, id: packageName);
     final package = await db.lookupOrNull<Package>(key);
@@ -724,12 +814,16 @@ class PackageBackend {
       throw NotFoundException.resource('package "$packageName"');
     }
     return account_api.PackageLikesCount(
-        package: packageName, likes: package.likes);
+      package: packageName,
+      likes: package.likes,
+    );
   }
 
   /// Sets/updates the publisher of a package.
   Future<api.PackagePublisherInfo> setPublisher(
-      String packageName, api.PackagePublisherInfo request) async {
+    String packageName,
+    api.PackagePublisherInfo request,
+  ) async {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
@@ -742,10 +836,12 @@ class PackageBackend {
       return _asPackagePublisherInfo(preTxPackage);
     }
 
-    final preTxUploaderEmails =
-        await _listAdminNotificationEmailsForPackage(preTxPackage);
-    final newPublisherAdminEmails =
-        await publisherBackend.getAdminMemberEmails(request.publisherId!);
+    final preTxUploaderEmails = await _listAdminNotificationEmailsForPackage(
+      preTxPackage,
+    );
+    final newPublisherAdminEmails = await publisherBackend.getAdminMemberEmails(
+      request.publisherId!,
+    );
     final allAdminEmails = <String>{
       ...preTxUploaderEmails,
       ...newPublisherAdminEmails.nonNulls,
@@ -765,21 +861,26 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(await AuditLogRecord.packageTransferred(
-        user: user,
-        package: package.name!,
-        fromPublisherId: currentPublisherId,
-        toPublisherId: package.publisherId!,
-      ));
+      tx.insert(
+        await AuditLogRecord.packageTransferred(
+          user: user,
+          package: package.name!,
+          fromPublisherId: currentPublisherId,
+          toPublisherId: package.publisherId!,
+        ),
+      );
 
-      email = emailBackend.prepareEntity(createPackageTransferEmail(
-        packageName: packageName,
-        activeUserEmail: user.email!,
-        oldPublisherId: currentPublisherId,
-        newPublisherId: package.publisherId!,
-        authorizedAdmins:
-            allAdminEmails.map((email) => EmailAddress(email)).toList(),
-      ));
+      email = emailBackend.prepareEntity(
+        createPackageTransferEmail(
+          packageName: packageName,
+          activeUserEmail: user.email!,
+          oldPublisherId: currentPublisherId,
+          newPublisherId: package.publisherId!,
+          authorizedAdmins: allAdminEmails
+              .map((email) => EmailAddress(email))
+              .toList(),
+        ),
+      );
       tx.insert(email!);
       return _asPackagePublisherInfo(package);
     });
@@ -808,14 +909,15 @@ class PackageBackend {
     if (pkg == null || pkg.isNotVisible) {
       throw NotFoundException.resource('package "$package"');
     }
-    final packageVersions = (await packageBackend.versionsOfPackage(package))
-        .where((v) => v.isVisible)
-        .toList();
+    final packageVersions = (await packageBackend.versionsOfPackage(
+      package,
+    )).where((v) => v.isVisible).toList();
     if (packageVersions.isEmpty) {
       throw NotFoundException.resource('package "$package"');
     }
-    packageVersions
-        .sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
+    packageVersions.sort(
+      (a, b) => a.semanticVersion.compareTo(b.semanticVersion),
+    );
     final latest = packageVersions.firstWhere(
       (pv) => pv.version == pkg.latestVersion,
       orElse: () => packageVersions.last,
@@ -850,7 +952,8 @@ class PackageBackend {
   Future<api.PackageData> listVersionsCached(String package) async {
     final data = await listVersionsGzCachedBytes(package);
     return api.PackageData.fromJson(
-        utf8JsonDecoder.convert(gzip.decode(data)) as Map<String, dynamic>);
+      utf8JsonDecoder.convert(gzip.decode(data)) as Map<String, dynamic>,
+    );
   }
 
   /// Lookup and return the API's version info object.
@@ -895,8 +998,9 @@ class PackageBackend {
 
     final url = redirectUrl.resolve('?upload_id=$guid');
 
-    _logger
-        .info('Redirecting pub client to google cloud storage (uuid: $guid)');
+    _logger.info(
+      'Redirecting pub client to google cloud storage (uuid: $guid)',
+    );
     return uploadSigner.buildUpload(
       bucket,
       object,
@@ -937,33 +1041,40 @@ class PackageBackend {
       } catch (e, st) {
         _logger.warning('Failed to copy uploaded file to work object.', e, st);
         throw InvalidInputException(
-            'Failed to copy uploaded file (uuid:$uploadGuid).');
+          'Failed to copy uploaded file (uuid:$uploadGuid).',
+        );
       }
 
       // Check the file size is within limits.
       if (info!.length > UploadSignerService.maxUploadSize) {
         throw PackageRejectedException.archiveTooLarge(
-            UploadSignerService.maxUploadSize);
+          UploadSignerService.maxUploadSize,
+        );
       }
 
       final filename = '${dir.absolute.path}/tarball.tar.gz';
       await _incomingBucket.readWithRetry(
-          workObjectName, (input) => _saveTarballToFS(input, filename));
+        workObjectName,
+        (input) => _saveTarballToFS(input, filename),
+      );
       _logger.info('Examining tarball content ($uploadGuid).');
       final sw = Stopwatch()..start();
       final file = File(filename);
       final fileLength = await file.length();
       if (fileLength != info.length) {
         _logger.warning(
-            'Saved file length mismatch ($fileLength != ${info.length}).');
+          'Saved file length mismatch ($fileLength != ${info.length}).',
+        );
         throw InvalidInputException(
-            'Failed to save uploaded file: length mismatch.');
+          'Failed to save uploaded file: length mismatch.',
+        );
       }
       final md5Hash = (await file.openRead().transform(md5).single).bytes;
       if (!md5Hash.byteToByteEquals(info.md5Hash)) {
         _logger.warning('Saved file md5 mismatch.');
         throw InvalidInputException(
-            'Failed to save uploaded file: md5 mismatch.');
+          'Failed to save uploaded file: md5 mismatch.',
+        );
       }
       final sha256Hash = (await file.openRead().transform(sha256).single).bytes;
       final archive = await summarizePackageArchive(
@@ -978,10 +1089,7 @@ class PackageBackend {
       }
 
       final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
-      await _verifyPackageName(
-        name: pubspec.name,
-        agent: agent,
-      );
+      await _verifyPackageName(name: pubspec.name, agent: agent);
 
       // Check if new packages are allowed to be uploaded.
       if (restriction == UploadRestrictionStatus.onlyUpdates &&
@@ -993,24 +1101,25 @@ class PackageBackend {
       final versionString = canonicalizeVersion(pubspec.nonCanonicalVersion);
       if (versionString == null) {
         throw InvalidInputException.canonicalizeVersionError(
-            pubspec.nonCanonicalVersion);
+          pubspec.nonCanonicalVersion,
+        );
       }
       // TODO: check this in pkg/pub_package_reader too
       if (versionString != pubspec.nonCanonicalVersion) {
         throw InvalidInputException.nonCanonicalVersion(
-            pubspec.nonCanonicalVersion, versionString);
+          pubspec.nonCanonicalVersion,
+          versionString,
+        );
       }
 
       // Check canonical archive.
-      final canonicalContentMatch =
-          await tarballStorage.matchArchiveContentInCanonical(
-        pubspec.name,
-        versionString,
-        file,
-      );
+      final canonicalContentMatch = await tarballStorage
+          .matchArchiveContentInCanonical(pubspec.name, versionString, file);
       if (canonicalContentMatch == ContentMatchStatus.different) {
         throw PackageRejectedException.versionExists(
-            pubspec.name, versionString);
+          pubspec.name,
+          versionString,
+        );
       }
 
       // check existences of referenced packages
@@ -1040,8 +1149,12 @@ class PackageBackend {
       }
 
       sw.reset();
-      final entities = await _createUploadEntities(db, agent, archive,
-          sha256Hash: sha256Hash);
+      final entities = await _createUploadEntities(
+        db,
+        agent,
+        archive,
+        sha256Hash: sha256Hash,
+      );
       final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
         agent: agent,
@@ -1098,11 +1211,16 @@ class PackageBackend {
     if (conflictingName != null && !isExempted) {
       final visible = await isPackageVisible(conflictingName);
       if (visible) {
-        throw PackageRejectedException.similarToActive(name, conflictingName,
-            urls.pkgPageUrl(conflictingName, includeHost: true));
+        throw PackageRejectedException.similarToActive(
+          name,
+          conflictingName,
+          urls.pkgPageUrl(conflictingName, includeHost: true),
+        );
       } else {
         throw PackageRejectedException.similarToModerated(
-            name, conflictingName);
+          name,
+          conflictingName,
+        );
       }
     }
 
@@ -1141,7 +1259,10 @@ class PackageBackend {
     final isNew = existingPackage == null;
     // check authorizations before the transaction
     await _requireUploadAuthorization(
-        agent, existingPackage, newVersion.version!);
+      agent,
+      existingPackage,
+      newVersion.version!,
+    );
 
     // query admin notification emails before the transaction
     List<String> uploaderEmails;
@@ -1153,13 +1274,15 @@ class PackageBackend {
         uploaderEmails = [];
       }
     } else {
-      uploaderEmails =
-          await _listAdminNotificationEmailsForPackage(existingPackage);
+      uploaderEmails = await _listAdminNotificationEmailsForPackage(
+        existingPackage,
+      );
     }
     if (uploaderEmails.isEmpty) {
       // should not happen
       throw AssertionError(
-          'Package "${newVersion.package}" has no admin email to notify.');
+        'Package "${newVersion.package}" has no admin email to notify.',
+      );
     }
     // check rate limits before the transaction
     await verifyPackageUploadRateLimit(
@@ -1178,8 +1301,9 @@ class PackageBackend {
       changelogContent: entities.changelogAsset?.textContent,
     );
     if (changelogExcerpt != null && changelogExcerpt.isNotEmpty) {
-      additionalEmailMessages
-          .add('Excerpt of the changelog:\n```\n$changelogExcerpt\n```');
+      additionalEmailMessages.add(
+        'Excerpt of the changelog:\n```\n$changelogExcerpt\n```',
+      );
     }
 
     // Add the new package to the repository by storing the tarball and
@@ -1202,7 +1326,8 @@ class PackageBackend {
 
       if (isNew) {
         final reservedPackage = await tx.lookupOrNull<ReservedPackage>(
-            db.emptyKey.append(ReservedPackage, id: newVersion.package));
+          db.emptyKey.append(ReservedPackage, id: newVersion.package),
+        );
         if (reservedPackage != null) {
           tx.delete(reservedPackage.key);
         }
@@ -1210,10 +1335,14 @@ class PackageBackend {
 
       // If the version already exists, we fail.
       if (version != null) {
-        _logger.info('Version ${version.version} of package '
-            '${version.package} already exists, rolling transaction back.');
+        _logger.info(
+          'Version ${version.version} of package '
+          '${version.package} already exists, rolling transaction back.',
+        );
         throw PackageRejectedException.versionExists(
-            version.package, version.version!);
+          version.package,
+          version.version!,
+        );
       }
 
       // If the package does not exist, then we create a new package.
@@ -1222,12 +1351,15 @@ class PackageBackend {
         package = Package.fromVersion(newVersion);
       }
 
-      final maxVersionCount = maxVersionsPerPackageOverrides[package!.name] ??
+      final maxVersionCount =
+          maxVersionsPerPackageOverrides[package!.name] ??
           maxVersionsPerPackage;
       final remainingVersionCount = maxVersionCount - package!.versionCount;
       if (remainingVersionCount <= 0) {
         throw PackageRejectedException.maxVersionCountReached(
-            newVersion.package, maxVersionCount);
+          newVersion.package,
+          maxVersionCount,
+        );
       }
       if (remainingVersionCount <= 100) {
         // We need to decrease the remaining version count as the newly uploaded
@@ -1235,15 +1367,18 @@ class PackageBackend {
         final limitAfterUpload = remainingVersionCount - 1;
         final s = limitAfterUpload == 1 ? '' : 's';
         uploadMessages.add(
-            'The package "${package!.name!}" has $limitAfterUpload version$s left '
-            'before reaching the limit of $maxVersionCount. '
-            'Please contact support@pub.dev');
+          'The package "${package!.name!}" has $limitAfterUpload version$s left '
+          'before reaching the limit of $maxVersionCount. '
+          'Please contact support@pub.dev',
+        );
       }
 
       if (package!.deletedVersions != null &&
           package!.deletedVersions!.contains(newVersion.version!)) {
         throw PackageRejectedException.versionDeleted(
-            package!.name!, newVersion.version!);
+          package!.name!,
+          newVersion.version!,
+        );
       }
 
       // Store the publisher of the package at the time of the upload.
@@ -1266,25 +1401,26 @@ class PackageBackend {
       if (!hasCanonicalArchiveObject) {
         // Copy archive to canonical bucket.
         await tarballStorage.copyFromTempToCanonicalBucket(
-          sourceAbsoluteObjectName:
-              _incomingBucket.absoluteObjectName(objectName),
+          sourceAbsoluteObjectName: _incomingBucket.absoluteObjectName(
+            objectName,
+          ),
           package: newVersion.package,
           version: newVersion.version!,
         );
       }
       await tarballStorage.copyArchiveFromCanonicalToPublicBucket(
-          newVersion.package, newVersion.version!);
+        newVersion.package,
+        newVersion.version!,
+      );
 
       final email = createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version!,
         displayId: agent.displayId,
-        authorizedUploaders:
-            uploaderEmails.map((email) => EmailAddress(email)).toList(),
-        uploadMessages: [
-          ...uploadMessages,
-          ...additionalEmailMessages,
-        ],
+        authorizedUploaders: uploaderEmails
+            .map((email) => EmailAddress(email))
+            .toList(),
+        uploadMessages: [...uploadMessages, ...additionalEmailMessages],
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 
@@ -1325,8 +1461,9 @@ class PackageBackend {
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
     // automatically.
-    asyncQueue
-        .addAsyncFn(() => _postUploadTasks(package, newVersion, outgoingEmail));
+    asyncQueue.addAsyncFn(
+      () => _postUploadTasks(package, newVersion, outgoingEmail),
+    );
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return (pv, uploadMessages);
@@ -1341,8 +1478,9 @@ class PackageBackend {
     }
     try {
       final parsed = ChangelogParser().parseMarkdownText(changelogContent);
-      final version = parsed.releases
-          .firstWhereOrNull((r) => r.version == versionKey.version);
+      final version = parsed.releases.firstWhereOrNull(
+        (r) => r.version == versionKey.version,
+      );
       if (version == null) {
         return null;
       }
@@ -1352,26 +1490,35 @@ class PackageBackend {
       final lines = text.split('\n');
       final excerpt = lines
           // prevent accidental HTML-tag creation
-          .map((line) => line
-              .replaceAll('<', '[')
-              .replaceAll('>', ']')
-              .replaceAll('&', ' ')
-              .trim())
+          .map(
+            (line) => line
+                .replaceAll('<', '[')
+                .replaceAll('>', ']')
+                .replaceAll('&', ' ')
+                .trim(),
+          )
           // filter empty or decorative lines to maximalize usefulness
-          .where((line) =>
-              line.isNotEmpty &&
-              line != '-' && // empty list item
-              line != '1.' && // empty list item
-              !line.startsWith('```') && // also removes the need to escape it
-              !line.startsWith('---'))
+          .where(
+            (line) =>
+                line.isNotEmpty &&
+                line != '-' && // empty list item
+                line != '1.' && // empty list item
+                !line.startsWith('```') && // also removes the need to escape it
+                !line.startsWith('---'),
+          )
           .take(10)
-          .map((line) =>
-              line.length < 76 ? line : '${line.substring(0, 70)}[...]')
+          .map(
+            (line) => line.length < 76 ? line : '${line.substring(0, 70)}[...]',
+          )
           .join('\n');
       return excerpt;
     } catch (e, st) {
-      _logger.pubNoticeShout('changelog-parse-error',
-          'Unable to parse changelog for $versionKey', e, st);
+      _logger.pubNoticeShout(
+        'changelog-parse-error',
+        'Unable to parse changelog for $versionKey',
+        e,
+        st,
+      );
       return null;
     }
   }
@@ -1391,7 +1538,9 @@ class PackageBackend {
           emailBackend.trySendOutgoingEmail(outgoingEmail),
         apiExporter.synchronizeAllPackagesAtomFeed(),
         tarballStorage.updateContentDispositionOnPublicBucket(
-            newVersion.package, newVersion.version!),
+          newVersion.package,
+          newVersion.version!,
+        ),
       ]);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
@@ -1404,7 +1553,10 @@ class PackageBackend {
   /// If [package] is null, this is an attempt to publish a new package, not a new version to an existing package.
   /// If [package] is not null, this is an attempt to publish [newVersion] of existing package.
   Future<void> _requireUploadAuthorization(
-      AuthenticatedAgent agent, Package? package, String newVersion) async {
+    AuthenticatedAgent agent,
+    Package? package,
+    String newVersion,
+  ) async {
     // new package
     if (package == null) {
       if (agent is AuthenticatedUser) {
@@ -1430,20 +1582,28 @@ class PackageBackend {
       return;
     }
 
-    _logger.info('User ${agent.agentId} (${agent.displayId}) '
-        'is not an uploader for package ${package.name}, rolling transaction back.');
+    _logger.info(
+      'User ${agent.agentId} (${agent.displayId}) '
+      'is not an uploader for package ${package.name}, rolling transaction back.',
+    );
     throw AuthorizationException.userCannotUploadNewVersion(
-        agent.displayId, package.name!);
+      agent.displayId,
+      package.name!,
+    );
   }
 
-  Future<void> _checkGitHubActionAllowed(AuthenticatedGitHubAction agent,
-      Package package, String newVersion) async {
+  Future<void> _checkGitHubActionAllowed(
+    AuthenticatedGitHubAction agent,
+    Package package,
+    String newVersion,
+  ) async {
     final githubConfig = package.automatedPublishing?.githubConfig;
     final githubLock = package.automatedPublishing?.githubLock;
 
     if (githubConfig?.isEnabled != true) {
       throw AuthorizationException.githubActionIssue(
-          'publishing from github is not enabled');
+        'publishing from github is not enabled',
+      );
     }
 
     // verify that fields are configured
@@ -1460,27 +1620,32 @@ class PackageBackend {
     // Repository must match the action's repository.
     if (repository != agent.payload.repository) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository');
+        'publishing is not enabled for the "${agent.payload.repository}" repository, it may be enabled for another repository',
+      );
     }
 
     final eventName = agent.payload.eventName;
     if (eventName == 'push' && !githubConfig.isPushEventEnabled) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is not allowed from "push" events');
+        'publishing is not allowed from "push" events',
+      );
     }
     if (eventName == 'workflow_dispatch' &&
         !githubConfig.isWorkflowDispatchEventEnabled) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is not allowed from "workflow_dispath" events');
+        'publishing is not allowed from "workflow_dispath" events',
+      );
     }
     if (eventName != 'push' && eventName != 'workflow_dispatch') {
       throw AuthorizationException.githubActionIssue(
-          'publishing is only allowed from "push" or "workflow_dispatch" events, this token originates from a "${agent.payload.eventName}" event');
+        'publishing is only allowed from "push" or "workflow_dispatch" events, this token originates from a "${agent.payload.eventName}" event',
+      );
     }
 
     if (agent.payload.refType != 'tag') {
       throw AuthorizationException.githubActionIssue(
-          'publishing is only allowed from "tag" refType, this token has "${agent.payload.refType}" refType');
+        'publishing is only allowed from "tag" refType, this token has "${agent.payload.refType}" refType',
+      );
     }
     verifyTagPatternWithRef(
       tagPattern: githubConfig.tagPattern ?? '',
@@ -1491,25 +1656,28 @@ class PackageBackend {
     // When environment is configured, it must match the action's environment.
     if (requireEnvironment && environment != agent.payload.environment) {
       throw AuthorizationException.githubActionIssue(
-          'publishing is configured to only be allowed from actions with an environment, '
-          'this token originates from an action running in environment "${agent.payload.environment}" '
-          'for which publishing is not allowed');
+        'publishing is configured to only be allowed from actions with an environment, '
+        'this token originates from an action running in environment "${agent.payload.environment}" '
+        'for which publishing is not allowed',
+      );
     }
 
     if (githubLock != null) {
       final lockMatches =
           githubLock.repositoryId == agent.payload.repositoryId &&
-              githubLock.repositoryOwnerId == agent.payload.repositoryOwnerId;
+          githubLock.repositoryOwnerId == agent.payload.repositoryOwnerId;
       if (!lockMatches) {
         _logger.info(
-            'Disabled automated publishing using GitHub Actions for package:${package.name} because account identifier changed.');
+          'Disabled automated publishing using GitHub Actions for package:${package.name} because account identifier changed.',
+        );
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.automatedPublishing!.githubConfig!.isEnabled = false;
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
-            'GitHub repository identifiers changed, disabling automated publishing');
+          'GitHub repository identifiers changed, disabling automated publishing',
+        );
       }
     }
   }
@@ -1523,7 +1691,8 @@ class PackageBackend {
     final gcpLock = package.automatedPublishing?.gcpLock;
     if (gcpConfig?.isEnabled != true) {
       throw AuthorizationException.serviceAccountPublishingIssue(
-          'publishing with service account is not enabled');
+        'publishing with service account is not enabled',
+      );
     }
 
     // verify that fields are configured
@@ -1535,21 +1704,24 @@ class PackageBackend {
     // the service account email must be set and matching the agent's email.
     if (serviceAccountEmail != agent.payload.email) {
       throw AuthorizationException.serviceAccountPublishingIssue(
-          'publishing is not enabled for the "${agent.payload.email}" service account');
+        'publishing is not enabled for the "${agent.payload.email}" service account',
+      );
     }
 
     if (gcpLock != null) {
       final lockMatches = gcpLock.oauthUserId == agent.payload.sub;
       if (!lockMatches) {
         _logger.info(
-            'Disabled automated publishing using GCP service account for package:${package.name} because account identifier changed.');
+          'Disabled automated publishing using GCP service account for package:${package.name} because account identifier changed.',
+        );
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.automatedPublishing!.gcpConfig!.isEnabled = false;
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
-            'Google Cloud Service account identifiers changed, disabling automated publishing');
+          'Google Cloud Service account identifiers changed, disabling automated publishing',
+        );
       }
     }
   }
@@ -1560,7 +1732,8 @@ class PackageBackend {
   /// - Returns either the uploader emails of the publisher's admin member emails.
   ///   Throws exception if the list is empty, we should be able to notify somebody.
   Future<List<String>> _listAdminNotificationEmailsForPackage(
-      Package package) async {
+    Package package,
+  ) async {
     final emails = package.publisherId == null
         ? await accountBackend.getEmailsOfUserIds(package.uploaders!)
         : await publisherBackend.getAdminMemberEmails(package.publisherId!);
@@ -1568,7 +1741,8 @@ class PackageBackend {
     if (existingEmails.isEmpty) {
       // should not happen
       throw AssertionError(
-          'Package "${package.name}" has no admin email to notify.');
+        'Package "${package.name}" has no admin email to notify.',
+      );
     }
     return existingEmails;
   }
@@ -1576,7 +1750,9 @@ class PackageBackend {
   // Uploaders support.
 
   Future<account_api.InviteStatus> inviteUploader(
-      String packageName, api.InviteUploaderRequest invite) async {
+    String packageName,
+    api.InviteUploaderRequest invite,
+  ) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
     final uploaderEmail = invite.email.toLowerCase();
     final authenticatedUser = await requireAuthenticatedWebUser();
@@ -1588,18 +1764,26 @@ class PackageBackend {
     // Don't send invites for publisher-owned packages.
     if (package!.publisherId != null) {
       throw OperationForbiddenException.publisherOwnedPackageNoUploader(
-          packageName, package.publisherId!);
+        packageName,
+        package.publisherId!,
+      );
     }
 
     InvalidInputException.check(
-        isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
+      isValidEmail(uploaderEmail),
+      'Not a valid email: `$uploaderEmail`.',
+    );
 
-    final uploaderUsers =
-        await accountBackend.lookupUsersById(package.uploaders!);
-    final isNotUploaderYet =
-        !uploaderUsers.any((u) => u!.email == uploaderEmail);
+    final uploaderUsers = await accountBackend.lookupUsersById(
+      package.uploaders!,
+    );
+    final isNotUploaderYet = !uploaderUsers.any(
+      (u) => u!.email == uploaderEmail,
+    );
     InvalidInputException.check(
-        isNotUploaderYet, '`$uploaderEmail` is already an uploader.');
+      isNotUploaderYet,
+      '`$uploaderEmail` is already an uploader.',
+    );
 
     final status = await consentBackend.invitePackageUploader(
       agent: authenticatedUser,
@@ -1639,13 +1823,18 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(await AuditLogRecord.uploaderInviteAccepted(
-        user: uploader,
-        package: packageName,
-      ));
+      tx.insert(
+        await AuditLogRecord.uploaderInviteAccepted(
+          user: uploader,
+          package: packageName,
+        ),
+      );
     });
-    triggerPackagePostUpdates(packageName,
-        skipReanalysis: true, skipExport: true);
+    triggerPackagePostUpdates(
+      packageName,
+      skipReanalysis: true,
+      skipExport: true,
+    );
   }
 
   Future<void> _validatePackageUploader(
@@ -1681,8 +1870,9 @@ class PackageBackend {
       await _validatePackageUploader(packageName, package, user.userId);
 
       // Fail if the uploader we want to remove does not exist.
-      final uploaderUsers =
-          await accountBackend.lookupUsersById(package.uploaders!);
+      final uploaderUsers = await accountBackend.lookupUsersById(
+        package.uploaders!,
+      );
       final uploadersWithEmail = <User>[];
       for (final u in uploaderUsers) {
         final email = await accountBackend.getEmailOfUserId(u!.userId);
@@ -1693,7 +1883,8 @@ class PackageBackend {
       }
       if (uploadersWithEmail.length > 1) {
         throw NotAcceptableException(
-            'Multiple uploaders with email: $uploaderEmail');
+          'Multiple uploaders with email: $uploaderEmail',
+        );
       }
       final uploader = uploadersWithEmail.single;
 
@@ -1715,22 +1906,30 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(await AuditLogRecord.uploaderRemoved(
-        agent: authenticatedUser,
-        package: packageName,
-        uploaderUser: uploader,
-      ));
+      tx.insert(
+        await AuditLogRecord.uploaderRemoved(
+          agent: authenticatedUser,
+          package: packageName,
+          uploaderUser: uploader,
+        ),
+      );
     });
-    triggerPackagePostUpdates(packageName,
-        skipReanalysis: true, skipExport: true);
+    triggerPackagePostUpdates(
+      packageName,
+      skipReanalysis: true,
+      skipExport: true,
+    );
     return api.SuccessMessage(
-        success: api.Message(
-            message:
-                '$uploaderEmail has been removed as an uploader for this package.'));
+      success: api.Message(
+        message:
+            '$uploaderEmail has been removed as an uploader for this package.',
+      ),
+    );
   }
 
   Future<UploadRestrictionStatus> getUploadRestrictionStatus() async {
-    final value = await secretBackend.lookup(
+    final value =
+        await secretBackend.lookup(
           SecretKey.uploadRestriction,
           maxAge: Duration(minutes: 5),
         ) ??
@@ -1756,7 +1955,9 @@ class PackageBackend {
   }
 
   void _updatePackageAutomatedPublishingLock(
-      Package package, AuthenticatedAgent agent) {
+    Package package,
+    AuthenticatedAgent agent,
+  ) {
     final current = package.automatedPublishing;
     if (current == null) {
       if (agent is AuthenticatedGitHubAction ||
@@ -1855,13 +2056,16 @@ Future<void> purgePackageCache(String package) async {
 @visibleForTesting
 void verifyTagPattern({required String tagPattern}) {
   final tagPatternParts = tagPattern.split('{{version}}');
-  InvalidInputException.check(tagPatternParts.length == 2,
-      'The `tagPattern` field must contain a single `{{version}}` part.');
   InvalidInputException.check(
-      tagPatternParts
-          .where((e) => e.isNotEmpty)
-          .every(_validGitHubVersionPattern.hasMatch),
-      'The `tagPattern` field has invalid characters.');
+    tagPatternParts.length == 2,
+    'The `tagPattern` field must contain a single `{{version}}` part.',
+  );
+  InvalidInputException.check(
+    tagPatternParts
+        .where((e) => e.isNotEmpty)
+        .every(_validGitHubVersionPattern.hasMatch),
+    'The `tagPattern` field has invalid characters.',
+  );
 }
 
 /// Verifies the user-settings [tagPattern] with the authentication-provided
@@ -1875,15 +2079,17 @@ void verifyTagPatternWithRef({
 }) {
   if (!tagPattern.contains('{{version}}')) {
     throw AssertionError(
-        'Configured tag pattern does not include `{{version}}`');
+      'Configured tag pattern does not include `{{version}}`',
+    );
   }
-// NOTE: The `/` character is allowed inside the tag pattern because we are
-//       not splitting the `refs/tags/` prefix. A change of this parsing
-//       should specifically test the presence of `/`.
+  // NOTE: The `/` character is allowed inside the tag pattern because we are
+  //       not splitting the `refs/tags/` prefix. A change of this parsing
+  //       should specifically test the presence of `/`.
   final expectedRefStart = 'refs/tags/';
   if (!ref.startsWith(expectedRefStart)) {
     throw AuthorizationException.githubActionIssue(
-        'publishing is only allowed from "refs/tags/*" ref, this token has "$ref" ref');
+      'publishing is only allowed from "refs/tags/*" ref, this token has "$ref" ref',
+    );
   }
   final expectedTagValue = tagPattern.replaceFirst('{{version}}', newVersion);
   if (ref != 'refs/tags/$expectedTagValue') {
@@ -1895,9 +2101,10 @@ void verifyTagPatternWithRef({
     // With the current access level, an attacker would have access to past tags, and
     // figuring out the tag pattern from those should be straightforward anyway.
     throw AuthorizationException.githubActionIssue(
-        'publishing is configured to only be allowed from actions with specific ref pattern, '
-        'this token has "$ref" ref for which publishing is not allowed. '
-        'Expected tag "$expectedTagValue". Check that the version in the tag matches the version in "pubspec.yaml"');
+      'publishing is configured to only be allowed from actions with specific ref pattern, '
+      'this token has "$ref" ref for which publishing is not allowed. '
+      'Expected tag "$expectedTagValue". Check that the version in the tag matches the version in "pubspec.yaml"',
+    );
   }
 }
 
@@ -1936,7 +2143,8 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
       } else {
         await sink.close();
         throw PackageRejectedException.archiveTooLarge(
-            UploadSignerService.maxUploadSize);
+          UploadSignerService.maxUploadSize,
+        );
       }
     }
     await sink.flush();
@@ -1954,24 +2162,18 @@ class _UploadEntities {
   final PackageVersionInfo packageVersionInfo;
   final List<PackageVersionAsset> assets;
 
-  _UploadEntities(
-    this.packageVersion,
-    this.packageVersionInfo,
-    this.assets,
-  );
+  _UploadEntities(this.packageVersion, this.packageVersionInfo, this.assets);
 
-  late final changelogAsset =
-      assets.firstWhereOrNull((e) => e.kind == AssetKind.changelog);
+  late final changelogAsset = assets.firstWhereOrNull(
+    (e) => e.kind == AssetKind.changelog,
+  );
 }
 
 class DerivedPackageVersionEntities {
   final PackageVersionInfo packageVersionInfo;
   final List<PackageVersionAsset> assets;
 
-  DerivedPackageVersionEntities(
-    this.packageVersionInfo,
-    this.assets,
-  );
+  DerivedPackageVersionEntities(this.packageVersionInfo, this.assets);
 }
 
 /// Creates entities from [archive] summary.
@@ -2012,7 +2214,9 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 }) {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final key = QualifiedVersionKey(
-      package: pubspec.name, version: pubspec.canonicalVersion);
+    package: pubspec.name,
+    version: pubspec.canonicalVersion,
+  );
 
   String? capContent(String? text) {
     if (text == null) return text;
@@ -2088,8 +2292,12 @@ void checkPackageVersionParams(String package, [String? version]) {
   InvalidInputException.checkPackageName(package);
   if (version != null) {
     InvalidInputException.check(version.trim() == version, 'Invalid version.');
-    InvalidInputException.checkStringLength(version, 'version',
-        minimum: 1, maximum: 64);
+    InvalidInputException.checkStringLength(
+      version,
+      'version',
+      minimum: 1,
+      maximum: 64,
+    );
     if (version != 'latest') {
       InvalidInputException.checkSemanticVersion(version);
     }
@@ -2128,7 +2336,8 @@ final class _PackageDataAccess {
   }
 
   Stream<({String name, DateTime updated})> listUpdatedSince(
-      DateTime since) async* {
+    DateTime since,
+  ) async* {
     final query = _db.query<Package>()
       ..filter('updated >', since)
       ..order('-updated');
@@ -2167,6 +2376,7 @@ class _VersionTransactionDataAcccess {
 /// wait for the updates before yielding its response.
 ({Future future}) triggerPackagePostUpdates(
   String package, {
+
   /// Skip trigger a new analysis on the package.
   bool skipReanalysis = false,
 
@@ -2191,16 +2401,20 @@ class _VersionTransactionDataAcccess {
   final futures = [
     add(() => purgePackageCache(package)),
     if (!skipReanalysis)
-      add(() => taskBackend.trackPackage(
-            package,
-            updateDependents: taskUpdateDependents,
-          )),
+      add(
+        () => taskBackend.trackPackage(
+          package,
+          updateDependents: taskUpdateDependents,
+        ),
+      ),
     if (!skipExport)
-      add(() => apiExporter.synchronizePackage(
-            package,
-            forceDelete: exportForceDelete,
-            // TODO: implement and use [skipVersionsExport]
-          )),
+      add(
+        () => apiExporter.synchronizePackage(
+          package,
+          forceDelete: exportForceDelete,
+          // TODO: implement and use [skipVersionsExport]
+        ),
+      ),
   ];
 
   return (future: Future.wait(futures));

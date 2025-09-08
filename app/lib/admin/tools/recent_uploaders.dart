@@ -18,8 +18,11 @@ import 'package:pub_dev/shared/datastore.dart';
 
 Future<String> executeRecentUploaders(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('max-age',
-        defaultsTo: '7', help: 'The maximum age of the package in days.')
+    ..addOption(
+      'max-age',
+      defaultsTo: '7',
+      help: 'The maximum age of the package in days.',
+    )
     ..addOption('output', help: 'The report output file (or stdout otherwise)');
   final argv = parser.parse(args);
   final maxAgeDays = int.parse(argv['max-age'] as String);
@@ -39,8 +42,9 @@ Future<String> executeRecentUploaders(List<String> args) async {
             .putIfAbsent(p.publisherId!, () => <String>[])
             .add(p.name ?? '');
       } else {
-        final uploaderEmails =
-            await accountBackend.getEmailsOfUserIds(p.uploaders!);
+        final uploaderEmails = await accountBackend.getEmailsOfUserIds(
+          p.uploaders!,
+        );
         uploaderEmails.forEach((email) {
           byUploaders
               .putIfAbsent(email ?? '', () => <String>[])

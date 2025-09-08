@@ -13,8 +13,10 @@ void main() {
     });
 
     test('render link id and class', () {
-      expect(markdownToHtml('# ABC def'),
-          '<h1 id="abc-def" class="hash-header">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n');
+      expect(
+        markdownToHtml('# ABC def'),
+        '<h1 id="abc-def" class="hash-header">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n',
+      );
     });
 
     test('task list', () {
@@ -30,7 +32,9 @@ void main() {
 
     test('named anchor', () {
       expect(
-          markdownToHtml('<a name="abc"></a>'), '<p><a name="abc"></a></p>\n');
+        markdownToHtml('<a name="abc"></a>'),
+        '<p><a name="abc"></a></p>\n',
+      );
     });
 
     test('named anchor with other content', () {
@@ -44,75 +48,106 @@ void main() {
     final urlResolverFn = Repository.parseUrl(baseUrl).resolveUrl;
 
     test('relative link within page', () {
-      expect(markdownToHtml('[text](#relative)'),
-          '<p><a href="#relative">text</a></p>\n');
-      expect(markdownToHtml('[text](#relative)', urlResolverFn: urlResolverFn),
-          '<p><a href="#relative">text</a></p>\n');
+      expect(
+        markdownToHtml('[text](#relative)'),
+        '<p><a href="#relative">text</a></p>\n',
+      );
+      expect(
+        markdownToHtml('[text](#relative)', urlResolverFn: urlResolverFn),
+        '<p><a href="#relative">text</a></p>\n',
+      );
     });
 
     test('absolute link URL', () {
-      expect(markdownToHtml('[text](http://dartlang.org/)'),
-          '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n');
       expect(
-          markdownToHtml('[text](http://dartlang.org/)',
-              urlResolverFn: urlResolverFn),
-          '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n');
+        markdownToHtml('[text](http://dartlang.org/)'),
+        '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n',
+      );
+      expect(
+        markdownToHtml(
+          '[text](http://dartlang.org/)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n',
+      );
     });
 
     test('absolute image URL', () {
-      expect(markdownToHtml('![text](http://dartlang.org/image.png)'),
-          '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n');
       expect(
-          markdownToHtml('![text](http://dartlang.org/image.png)',
-              urlResolverFn: urlResolverFn),
-          '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n');
+        markdownToHtml('![text](http://dartlang.org/image.png)'),
+        '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n',
+      );
+      expect(
+        markdownToHtml(
+          '![text](http://dartlang.org/image.png)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n',
+      );
     });
 
     test('sibling link within site', () {
       expect(markdownToHtml('[text](README.md)'), '<p>text</p>\n');
-      expect(markdownToHtml('[text](README.md)', urlResolverFn: urlResolverFn),
-          '<p><a href="https://github.com/example/project/blob/master/README.md" rel="ugc">text</a></p>\n');
+      expect(
+        markdownToHtml('[text](README.md)', urlResolverFn: urlResolverFn),
+        '<p><a href="https://github.com/example/project/blob/master/README.md" rel="ugc">text</a></p>\n',
+      );
     });
 
     test('sibling image within site', () {
       expect(markdownToHtml('![text](image.png)'), '<p>[text]</p>\n');
-      expect(markdownToHtml('![text](image.png)', urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text"></p>\n');
+      expect(
+        markdownToHtml('![text](image.png)', urlResolverFn: urlResolverFn),
+        '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text"></p>\n',
+      );
     });
 
     test('sibling image inside a relative directory', () {
       expect(
-          markdownToHtml('![text](image.png)',
-              relativeFrom: 'example/README.md'),
-          '<p>[text]</p>\n');
+        markdownToHtml('![text](image.png)', relativeFrom: 'example/README.md'),
+        '<p>[text]</p>\n',
+      );
       expect(
-          markdownToHtml('![text](image.png)',
-              urlResolverFn: urlResolverFn, relativeFrom: 'example/README.md'),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
+        markdownToHtml(
+          '![text](image.png)',
+          urlResolverFn: urlResolverFn,
+          relativeFrom: 'example/README.md',
+        ),
+        '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n',
+      );
     });
 
     test('sibling link plus relative link', () {
       expect(markdownToHtml('[text](README.md#section)'), '<p>text</p>\n');
       expect(
-          markdownToHtml('[text](README.md#section)',
-              urlResolverFn: urlResolverFn),
-          '<p><a href="https://github.com/example/project/blob/master/README.md#section" rel="ugc">text</a></p>\n');
+        markdownToHtml(
+          '[text](README.md#section)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><a href="https://github.com/example/project/blob/master/README.md#section" rel="ugc">text</a></p>\n',
+      );
     });
 
     test('child link within site', () {
       expect(markdownToHtml('[text](example/README.md)'), '<p>text</p>\n');
       expect(
-          markdownToHtml('[text](example/README.md)',
-              urlResolverFn: urlResolverFn),
-          '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n');
+        markdownToHtml(
+          '[text](example/README.md)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n',
+      );
     });
 
     test('child image within site', () {
       expect(markdownToHtml('![text](example/image.png)'), '<p>[text]</p>\n');
       expect(
-          markdownToHtml('![text](example/image.png)',
-              urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
+        markdownToHtml(
+          '![text](example/image.png)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n',
+      );
     });
 
     test('relative image using html tag', () {
@@ -138,26 +173,37 @@ void main() {
     test('root link within site', () {
       expect(markdownToHtml('[text](/README.md)'), '<p>text</p>\n');
       expect(
-          markdownToHtml('[text](/example/README.md)',
-              urlResolverFn: urlResolverFn),
-          '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n');
+        markdownToHtml(
+          '[text](/example/README.md)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><a href="https://github.com/example/project/blob/master/example/README.md" rel="ugc">text</a></p>\n',
+      );
     });
 
     test('root image within site', () {
       expect(markdownToHtml('![text](/image.png)'), '<p>[text]</p>\n');
       expect(
-          markdownToHtml('![text](/example/image.png)',
-              urlResolverFn: urlResolverFn),
-          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n');
+        markdownToHtml(
+          '![text](/example/image.png)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text"></p>\n',
+      );
     });
 
     test('email', () {
-      expect(markdownToHtml('[me](mailto:email@example.com)'),
-          '<p><a href="mailto:email@example.com">me</a></p>\n');
       expect(
-          markdownToHtml('[me](mailto:email@example.com)',
-              urlResolverFn: urlResolverFn),
-          '<p><a href="mailto:email@example.com">me</a></p>\n');
+        markdownToHtml('[me](mailto:email@example.com)'),
+        '<p><a href="mailto:email@example.com">me</a></p>\n',
+      );
+      expect(
+        markdownToHtml(
+          '[me](mailto:email@example.com)',
+          urlResolverFn: urlResolverFn,
+        ),
+        '<p><a href="mailto:email@example.com">me</a></p>\n',
+      );
       expect(
         markdownToHtml('mail to email@example.com.'),
         '<p>mail to <a href="mailto:email@example.com">email@example.com</a>.</p>\n',
@@ -173,20 +219,24 @@ void main() {
 
   group('Bad markdown', () {
     test('bad link, keeping link text', () {
-      expect(markdownToHtml('[my illegal url](http://illegal@@thing)'),
-          '<p>my illegal url</p>\n');
+      expect(
+        markdownToHtml('[my illegal url](http://illegal@@thing)'),
+        '<p>my illegal url</p>\n',
+      );
     });
 
     test('complex link inside a quote, keeping link content', () {
       expect(
-          markdownToHtml(
-              '> [**awesome**](href="https://github.com/a/b/c.gif")'),
-          '<blockquote>\n<p><strong>awesome</strong></p>\n</blockquote>\n');
+        markdownToHtml('> [**awesome**](href="https://github.com/a/b/c.gif")'),
+        '<blockquote>\n<p><strong>awesome</strong></p>\n</blockquote>\n',
+      );
     });
 
     test('bad image link with attribute', () {
-      expect(markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
-          '<p>[demo]</p>\n');
+      expect(
+        markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
+        '<p>[demo]</p>\n',
+      );
     });
   });
 
@@ -263,94 +313,103 @@ void main() {
   group('GitHub rewrites', () {
     test('absolute url: http://[..]/blob/master/[path].gif', () {
       expect(
-          markdownToHtml(
-              '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)'),
-          '<p><img src="https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text"></p>\n');
+        markdownToHtml(
+          '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)',
+        ),
+        '<p><img src="https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text"></p>\n',
+      );
     });
 
     test('root path: /[..]/blob/master/[path].gif', () {
       expect(
-          markdownToHtml(
-            '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
-            urlResolverFn:
-                Repository.parseUrl('https://github.com/rcpassos/progress_hud')
-                    .resolveUrl,
-          ),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text"></p>\n');
+        markdownToHtml(
+          '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
+          urlResolverFn: Repository.parseUrl(
+            'https://github.com/rcpassos/progress_hud',
+          ).resolveUrl,
+        ),
+        '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/rcpassos/progress_hud/blob/master/progress_hud.gif" alt="text"></p>\n',
+      );
     });
 
     test('relative path: [path].gif', () {
       expect(
-          markdownToHtml(
-            '![text](progress_hud.gif)',
-            urlResolverFn:
-                Repository.parseUrl('https://github.com/rcpassos/progress_hud')
-                    .resolveUrl,
-          ),
-          '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text"></p>\n');
+        markdownToHtml(
+          '![text](progress_hud.gif)',
+          urlResolverFn: Repository.parseUrl(
+            'https://github.com/rcpassos/progress_hud',
+          ).resolveUrl,
+        ),
+        '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text"></p>\n',
+      );
     });
   });
 
   group('changelog', () {
     test('no structure', () {
       expect(
-          markdownToHtml(
-              'a\n\n'
-              'b\n\n'
-              'c',
-              isChangelog: true),
-          '<p>a</p>\n'
-          '<p>b</p>\n'
-          '<p>c</p>\n');
+        markdownToHtml(
+          'a\n\n'
+          'b\n\n'
+          'c',
+          isChangelog: true,
+        ),
+        '<p>a</p>\n'
+        '<p>b</p>\n'
+        '<p>c</p>\n',
+      );
     });
 
     test('single entry', () {
       expect(
-          markdownToHtml(
-              '# Changelog\n\n'
-              '## 1.0.0\n'
-              '\n'
-              '- change1',
-              isChangelog: true),
-          '<h1 id="changelog" class="hash-header">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
-          '<div class="changelog-entry">\n'
-          '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>\n'
-          '<div class="changelog-content">\n'
-          '<ul>\n'
-          '<li>change1</li>\n'
-          '</ul>'
-          '</div>'
-          '</div>\n');
+        markdownToHtml(
+          '# Changelog\n\n'
+          '## 1.0.0\n'
+          '\n'
+          '- change1',
+          isChangelog: true,
+        ),
+        '<h1 id="changelog" class="hash-header">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
+        '<div class="changelog-entry">\n'
+        '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>\n'
+        '<div class="changelog-content">\n'
+        '<ul>\n'
+        '<li>change1</li>\n'
+        '</ul>'
+        '</div>'
+        '</div>\n',
+      );
     });
 
     test('multiple entries', () {
       expect(
-          markdownToHtml(
-              '# Changelog\n\n'
-              '## 1.0.0\n\n- change1\n\n- change2\n\n'
-              '## 0.9.0\n\nMostly refactoring',
-              isChangelog: true),
-          '<h1 id="changelog" class="hash-header">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
-          '<div class="changelog-entry">\n'
-          '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>\n'
-          '<div class="changelog-content">\n'
-          '<ul>\n'
-          '<li>\n<p>change1</p>\n</li>\n'
-          '<li>\n<p>change2</p>\n</li>\n'
-          '</ul>\n'
-          '</div>'
-          '</div>'
-          '<div class="changelog-entry">\n'
-          '<h2 class="changelog-version hash-header" id="090">0.9.0 <a href="#090" class="hash-link">#</a></h2>\n'
-          '<div class="changelog-content">\n'
-          '<p>Mostly refactoring</p>'
-          '</div>'
-          '</div>\n');
+        markdownToHtml(
+          '# Changelog\n\n'
+          '## 1.0.0\n\n- change1\n\n- change2\n\n'
+          '## 0.9.0\n\nMostly refactoring',
+          isChangelog: true,
+        ),
+        '<h1 id="changelog" class="hash-header">Changelog <a href="#changelog" class="hash-link">#</a></h1>\n'
+        '<div class="changelog-entry">\n'
+        '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>\n'
+        '<div class="changelog-content">\n'
+        '<ul>\n'
+        '<li>\n<p>change1</p>\n</li>\n'
+        '<li>\n<p>change2</p>\n</li>\n'
+        '</ul>\n'
+        '</div>'
+        '</div>'
+        '<div class="changelog-entry">\n'
+        '<h2 class="changelog-version hash-header" id="090">0.9.0 <a href="#090" class="hash-link">#</a></h2>\n'
+        '<div class="changelog-content">\n'
+        '<p>Mostly refactoring</p>'
+        '</div>'
+        '</div>\n',
+      );
     });
 
     test('zebras', () {
-      final output = markdownToHtml(
-        '''# 2.1.0
+      final output = markdownToHtml('''# 2.1.0
  * Zebras can now encode bar-codes
 ## Upgrading from
 ### 1.0.0
@@ -367,9 +426,7 @@ void main() {
 -------
 
 # 1.0.0
- * Take care to feed lion before releasing mice.''',
-        isChangelog: true,
-      );
+ * Take care to feed lion before releasing mice.''', isChangelog: true);
       final lines = output.split('\n');
 
       // Only 2.1.0, 2.0.0 and 1.0.0 should be recognized as versions.
@@ -382,11 +439,12 @@ void main() {
 
     test('extra text after version', () {
       final output = markdownToHtml(
-          '# Changelog\n\n'
-          '## 1.0.0 (retracted)\n'
-          '\n'
-          '- change1',
-          isChangelog: true);
+        '# Changelog\n\n'
+        '## 1.0.0 (retracted)\n'
+        '\n'
+        '- change1',
+        isChangelog: true,
+      );
       final lines = output
           .split('\n')
           .where((l) => l.contains('changelog-version'))
@@ -402,11 +460,12 @@ void main() {
 
     test('fancy format', () {
       final output = markdownToHtml(
-          '# Changelog\n\n'
-          '## [1.0.0] - 2022-05-30\n'
-          '\n'
-          '- change1',
-          isChangelog: true);
+        '# Changelog\n\n'
+        '## [1.0.0] - 2022-05-30\n'
+        '\n'
+        '- change1',
+        isChangelog: true,
+      );
       final lines = output
           .split('\n')
           .where((l) => l.contains('changelog-version'))
@@ -428,8 +487,10 @@ void main() {
       expect(
         output,
         allOf([
-          contains('<h2 class="changelog-version hash-header" id="100">'
-              '1.0.0 <a href="#100" class="hash-link">#</a></h2>'),
+          contains(
+            '<h2 class="changelog-version hash-header" id="100">'
+            '1.0.0 <a href="#100" class="hash-link">#</a></h2>',
+          ),
           contains('<div class="changelog-content"><hr><ul><li>a</li></ul>'),
         ]),
       );

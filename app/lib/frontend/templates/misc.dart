@@ -29,10 +29,9 @@ final _securityMarkdown = _readDocContent('security.md');
 /// - `help-search.md` -> (title: 'Search', content: ...)
 final _helpArticles = () {
   final docDir = io.Directory(static_files.resolveDocDirPath());
-  final files = docDir
-      .listSync()
-      .whereType<io.File>()
-      .where((f) => f.path.endsWith('.md'));
+  final files = docDir.listSync().whereType<io.File>().where(
+    (f) => f.path.endsWith('.md'),
+  );
   final results = <String, ({String? title, d.Node content})>{};
   for (final file in files) {
     final basename = p.basename(file.path);
@@ -83,10 +82,7 @@ String? renderHelpPage({String? article}) {
   }
   return renderLayoutPage(
     PageType.standalone,
-    standalonePageNode(
-      page.content,
-      sideImage: _sideImage,
-    ),
+    standalonePageNode(page.content, sideImage: _sideImage),
     title: [page.title, 'Help', 'Dart packages'].nonNulls.toSet().join(' | '),
     canonicalUrl: article == null ? '/help' : '/help/$article',
   );
@@ -95,10 +91,7 @@ String? renderHelpPage({String? article}) {
 String renderTopicsPage(Map<String, int> topics) {
   return renderLayoutPage(
     PageType.standalone,
-    standalonePageNode(
-      renderTopicsList(topics),
-      sideImage: _sideImage,
-    ),
+    standalonePageNode(renderTopicsList(topics), sideImage: _sideImage),
     title: 'Topics',
     canonicalUrl: '/topics',
   );
@@ -175,15 +168,17 @@ d.Node renderFatalError({
   final message = d.fragment([
     d.h1(text: title),
     d.p(child: d.b(text: 'Fatal package site error.')),
-    d.p(children: [
-      d.text('Please open an issue: '),
-      d.a(href: issueUrl, text: issueUrl),
-      d.p(text: 'Add these details to help us fix the issue:'),
-      d.codeSnippet(
-        language: 'text',
-        text: 'Requested URL: $requestedUri\nRequest ID: $traceId',
-      ),
-    ]),
+    d.p(
+      children: [
+        d.text('Please open an issue: '),
+        d.a(href: issueUrl, text: issueUrl),
+        d.p(text: 'Add these details to help us fix the issue:'),
+        d.codeSnippet(
+          language: 'text',
+          text: 'Requested URL: $requestedUri\nRequest ID: $traceId',
+        ),
+      ],
+    ),
   ]);
   return message;
 }

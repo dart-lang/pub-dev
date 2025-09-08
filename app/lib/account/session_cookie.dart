@@ -45,15 +45,15 @@ Map<String, Object> createClientSessionCookie({
 
 /// Parses the cookie values and returns the status of client session cookies.
 ClientSessionCookieStatus parseClientSessionCookies(
-    Map<String, String> cookies) {
+  Map<String, String> cookies,
+) {
   final lax = cookies[clientSessionLaxCookieName]?.trim() ?? '';
   final strict = cookies[clientSessionStrictCookieName]?.trim() ?? '';
-  final needsReset = (lax.isEmpty && strict.isNotEmpty) ||
+  final needsReset =
+      (lax.isEmpty && strict.isNotEmpty) ||
       (lax.isNotEmpty && strict.isNotEmpty && lax != strict);
   if (needsReset) {
-    throw AuthenticationException.cookieInvalid(
-      headers: clearSessionCookies(),
-    );
+    throw AuthenticationException.cookieInvalid(headers: clearSessionCookies());
   }
   if (lax.isEmpty) {
     return ClientSessionCookieStatus.missing();
@@ -92,14 +92,9 @@ class ClientSessionCookieStatus {
   final bool isStrict;
   final String? sessionId;
 
-  ClientSessionCookieStatus.missing()
-      : isStrict = false,
-        sessionId = null;
+  ClientSessionCookieStatus.missing() : isStrict = false, sessionId = null;
 
-  ClientSessionCookieStatus({
-    required this.sessionId,
-    required this.isStrict,
-  });
+  ClientSessionCookieStatus({required this.sessionId, required this.isStrict});
 
   bool get isPresent => sessionId?.isNotEmpty ?? false;
 }

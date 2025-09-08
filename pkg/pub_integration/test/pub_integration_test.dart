@@ -8,30 +8,34 @@ import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Integration test using pkg/fake_pub_server', () {
-    late final TestContextProvider fakeTestScenario;
-    final httpClient = http.Client();
+  group(
+    'Integration test using pkg/fake_pub_server',
+    () {
+      late final TestContextProvider fakeTestScenario;
+      final httpClient = http.Client();
 
-    setUpAll(() async {
-      fakeTestScenario = await TestContextProvider.start();
-    });
+      setUpAll(() async {
+        fakeTestScenario = await TestContextProvider.start();
+      });
 
-    tearDownAll(() async {
-      await fakeTestScenario.close();
-      httpClient.close();
-    });
+      tearDownAll(() async {
+        await fakeTestScenario.close();
+        httpClient.close();
+      });
 
-    test('standard integration', () async {
-      await verifyPub(
-        pubHostedUrl: fakeTestScenario.pubHostedUrl,
-        adminUser: await fakeTestScenario.createTestUser(
-          email: 'user@example.com',
-        ),
-        invitedUser: await fakeTestScenario.createTestUser(
-          email: 'dev@example.com',
-        ),
-        expectLiveSite: false,
-      );
-    });
-  }, timeout: Timeout.factor(testTimeoutFactor));
+      test('standard integration', () async {
+        await verifyPub(
+          pubHostedUrl: fakeTestScenario.pubHostedUrl,
+          adminUser: await fakeTestScenario.createTestUser(
+            email: 'user@example.com',
+          ),
+          invitedUser: await fakeTestScenario.createTestUser(
+            email: 'dev@example.com',
+          ),
+          expectLiveSite: false,
+        );
+      });
+    },
+    timeout: Timeout.factor(testTimeoutFactor),
+  );
 }

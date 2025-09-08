@@ -118,8 +118,9 @@ abstract class EmailSenderBase implements EmailSender {
       // PersistentConnection needs to be created in its designated zone, as its
       // internal message subscription starts inside the constructor.
       final connectionZone = _CatchAllZone(_parentZone);
-      final connection =
-          await connectionZone._zone.run(() async => connect(sender));
+      final connection = await connectionZone._zone.run(
+        () async => connect(sender),
+      );
       return _ZonedConnection(connectionZone, connection);
     });
     _connectionsBySender[sender] = newConnectionFuture;
@@ -130,11 +131,7 @@ abstract class EmailSenderBase implements EmailSender {
 EmailSender createGmailRelaySender(
   String serviceAccountEmail,
   http.Client authClient,
-) =>
-    _GmailSmtpRelay(
-      serviceAccountEmail,
-      authClient,
-    );
+) => _GmailSmtpRelay(serviceAccountEmail, authClient);
 
 class _LoggingEmailSender extends EmailSenderBase {
   @override
@@ -155,8 +152,10 @@ class _LoggingEmailSenderConnection extends EmailSenderConnection {
         .allMatches(message.bodyText)
         .map((e) => e.group(0))
         .toList();
-    _logger.info('Not sending email (SMTP not configured): '
-        '${message.debugInfo}\n${urls.map((e) => '\n$e').join('')}');
+    _logger.info(
+      'Not sending email (SMTP not configured): '
+      '${message.debugInfo}\n${urls.map((e) => '\n$e').join('')}',
+    );
   }
 
   @override
@@ -221,8 +220,9 @@ Address? _toAddress(EmailAddress? input) =>
 /// [3]: https://developers.google.com/identity/protocols/oauth2/service-account
 /// [4]: https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signJwt
 class _GmailSmtpRelay extends EmailSenderBase {
-  static final _googleOauth2TokenUrl =
-      Uri.parse('https://oauth2.googleapis.com/token');
+  static final _googleOauth2TokenUrl = Uri.parse(
+    'https://oauth2.googleapis.com/token',
+  );
   static const _scopes = ['https://mail.google.com/'];
 
   final String _serviceAccountEmail;
@@ -231,17 +231,16 @@ class _GmailSmtpRelay extends EmailSenderBase {
   DateTime _accessTokenRefreshed = DateTime(0);
   Future<String>? _accessToken;
 
-  _GmailSmtpRelay(
-    this._serviceAccountEmail,
-    this._authClient,
-  );
+  _GmailSmtpRelay(this._serviceAccountEmail, this._authClient);
 
   @override
   Future<EmailSenderConnection> connect(String senderEmail) async {
-    return _GmailConnection(PersistentConnection(
-      await _getSmtpServer(senderEmail),
-      timeout: Duration(seconds: 15),
-    ));
+    return _GmailConnection(
+      PersistentConnection(
+        await _getSmtpServer(senderEmail),
+        timeout: Duration(seconds: 15),
+      ),
+    );
   }
 
   @override
@@ -269,18 +268,20 @@ class _GmailSmtpRelay extends EmailSenderBase {
     final iat = clock.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
     try {
-      jwtResponse = await retry(() => iam.projects.serviceAccounts.signJwt(
-            iam_credentials.SignJwtRequest()
-              ..payload = json.encode({
-                'iss': _serviceAccountEmail,
-                'scope': _scopes.join(' '),
-                'aud': _googleOauth2TokenUrl.toString(),
-                'exp': iat + 3600,
-                'iat': iat,
-                'sub': sender,
-              }),
-            'projects/-/serviceAccounts/$_serviceAccountEmail',
-          ));
+      jwtResponse = await retry(
+        () => iam.projects.serviceAccounts.signJwt(
+          iam_credentials.SignJwtRequest()
+            ..payload = json.encode({
+              'iss': _serviceAccountEmail,
+              'scope': _scopes.join(' '),
+              'aud': _googleOauth2TokenUrl.toString(),
+              'exp': iat + 3600,
+              'iat': iat,
+              'sub': sender,
+            }),
+          'projects/-/serviceAccounts/$_serviceAccountEmail',
+        ),
+      );
     } on Exception catch (e, st) {
       _logger.severe(
         'Signing JWT for sending email failed, '
@@ -298,10 +299,13 @@ class _GmailSmtpRelay extends EmailSenderBase {
       // Send a POST request with:
       // Content-Type: application/x-www-form-urlencoded; charset=utf-8
       return await retry(() async {
-        final r = await client.post(_googleOauth2TokenUrl, body: {
-          'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-          'assertion': jwtResponse.signedJwt,
-        });
+        final r = await client.post(
+          _googleOauth2TokenUrl,
+          body: {
+            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion': jwtResponse.signedJwt,
+          },
+        );
         if (r.statusCode != 200) {
           throw SmtpClientAuthenticationException(
             'statusCode=${r.statusCode} from $_googleOauth2TokenUrl '
@@ -324,12 +328,14 @@ class _CatchAllZone {
 
   bool get hasUncaughtError => _uncaughtError != null;
 
-  late final _zone = _parentZone.fork(specification: ZoneSpecification(
-    handleUncaughtError: (self, parent, zone, error, stackTrace) {
-      _uncaughtError = error;
-      _logger.severe('Uncaught error while sending email', error, stackTrace);
-    },
-  ));
+  late final _zone = _parentZone.fork(
+    specification: ZoneSpecification(
+      handleUncaughtError: (self, parent, zone, error, stackTrace) {
+        _uncaughtError = error;
+        _logger.severe('Uncaught error while sending email', error, stackTrace);
+      },
+    ),
+  );
 
   Future<R> runAsync<R>(Future<R> Function() fn) async {
     final completer = Completer<R>();
@@ -358,8 +364,8 @@ class _ZonedConnection {
   var _sentCount = 0;
 
   _ZonedConnection(this._zone, this._connection)
-      : created = clock.now(),
-        _lastUsed = clock.now();
+    : created = clock.now(),
+      _lastUsed = clock.now();
 
   bool get isExpired {
     // The connection is in an unknown state, better not use it.

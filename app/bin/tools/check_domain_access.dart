@@ -43,8 +43,10 @@ Future<void> _checkHosts() async {
     for (final type in [InternetAddressType.IPv4, InternetAddressType.IPv6]) {
       final typeStr = type == InternetAddressType.IPv4 ? 'IPv4' : 'IPv6';
       try {
-        final addresses =
-            await InternetAddress.lookup(host, type: type).timeout(timeLimit);
+        final addresses = await InternetAddress.lookup(
+          host,
+          type: type,
+        ).timeout(timeLimit);
         final failed = <InternetAddress>[];
         for (final address in addresses) {
           try {
@@ -56,7 +58,8 @@ Future<void> _checkHosts() async {
         }
         final successCount = addresses.length - failed.length;
         print(
-            '- $host $typeStr resolve and connect succeeded: $successCount / ${addresses.length}');
+          '- $host $typeStr resolve and connect succeeded: $successCount / ${addresses.length}',
+        );
       } catch (e) {
         print('- $host $typeStr lookup failed: $e');
       }

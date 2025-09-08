@@ -11,54 +11,61 @@ import '../shared/test_services.dart';
 
 void main() {
   group('package version admin actions', () {
-    testWithProfile('info request', fn: () async {
-      final client = createPubApiClient(authToken: siteAdminToken);
-      final rs = await client.adminInvokeAction(
-        'package-version-info',
-        AdminInvokeActionArguments(arguments: {
-          'package': 'oxygen',
-          'version': '1.2.0',
-        }),
-      );
-      expect(rs.output, {
-        'package-version': {
-          'package': 'oxygen',
-          'version': '1.2.0',
-          'created': isNotEmpty,
-          'isModerated': false,
-          'isAdminDeleted': false,
-        }
-      });
-    });
+    testWithProfile(
+      'info request',
+      fn: () async {
+        final client = createPubApiClient(authToken: siteAdminToken);
+        final rs = await client.adminInvokeAction(
+          'package-version-info',
+          AdminInvokeActionArguments(
+            arguments: {'package': 'oxygen', 'version': '1.2.0'},
+          ),
+        );
+        expect(rs.output, {
+          'package-version': {
+            'package': 'oxygen',
+            'version': '1.2.0',
+            'created': isNotEmpty,
+            'isModerated': false,
+            'isAdminDeleted': false,
+          },
+        });
+      },
+    );
 
-    testWithProfile('package-version-retraction', fn: () async {
-      final latest = await packageBackend.getLatestVersion('oxygen');
+    testWithProfile(
+      'package-version-retraction',
+      fn: () async {
+        final latest = await packageBackend.getLatestVersion('oxygen');
 
-      final api = createPubApiClient(authToken: siteAdminToken);
-      final result = await api.adminInvokeAction(
-        'package-version-retraction',
-        AdminInvokeActionArguments(arguments: {
-          'package': 'oxygen',
-          'version': latest!,
-          'set-retracted': 'true',
-        }),
-      );
+        final api = createPubApiClient(authToken: siteAdminToken);
+        final result = await api.adminInvokeAction(
+          'package-version-retraction',
+          AdminInvokeActionArguments(
+            arguments: {
+              'package': 'oxygen',
+              'version': latest!,
+              'set-retracted': 'true',
+            },
+          ),
+        );
 
-      expect(result.output, {
-        'before': {
-          'package': 'oxygen',
-          'version': latest,
-          'isRetracted': false,
-        },
-        'after': {
-          'package': 'oxygen',
-          'version': latest,
-          'isRetracted': true,
-        },
-      });
+        expect(result.output, {
+          'before': {
+            'package': 'oxygen',
+            'version': latest,
+            'isRetracted': false,
+          },
+          'after': {
+            'package': 'oxygen',
+            'version': latest,
+            'isRetracted': true,
+          },
+        });
 
-      final newLatest = await packageBackend.getLatestVersion('oxygen');
-      expect(newLatest != latest, isTrue);
-    });
+        final newLatest = await packageBackend.getLatestVersion('oxygen');
+        expect(newLatest != latest, isTrue);
+      },
+    );
   });
 }

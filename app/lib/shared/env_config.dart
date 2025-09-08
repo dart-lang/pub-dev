@@ -59,9 +59,7 @@ class _EnvConfig {
   /// Ensure that we're running in the right environment, or is running locally.
   void checkServiceEnvironment(String name) {
     if (_gaeService != null && _gaeService != name) {
-      throw StateError(
-        'Cannot start "$name" in "$_gaeService" environment.',
-      );
+      throw StateError('Cannot start "$name" in "$_gaeService" environment.');
     }
   }
 
@@ -71,8 +69,9 @@ class _EnvConfig {
       'GAE_VERSION': _gaeVersion ?? '-',
       'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
       if (includeInstanceHash)
-        'instanceHash':
-            sha256.convert(utf8.encode(_gaeInstance ?? '-')).toString(),
+        'instanceHash': sha256
+            .convert(utf8.encode(_gaeInstance ?? '-'))
+            .toString(),
     };
   }
 }

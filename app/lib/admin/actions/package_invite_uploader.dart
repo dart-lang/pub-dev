@@ -20,10 +20,12 @@ Sends an invite to <email> to become uploader of <package>.
     'email': 'email to send invitation to',
   },
   invoke: (options) async {
-    final packageName = options['package'] ??
+    final packageName =
+        options['package'] ??
         (throw InvalidInputException('Missing --package argument.'));
 
-    final invitedEmail = options['email'] ??
+    final invitedEmail =
+        options['email'] ??
         (throw InvalidInputException('Missing --email argument.'));
 
     final package = await packageBackend.lookupPackage(packageName);
@@ -32,22 +34,30 @@ Sends an invite to <email> to become uploader of <package>.
     }
     if (package.publisherId != null) {
       throw OperationForbiddenException.publisherOwnedPackageNoUploader(
-          packageName, package.publisherId!);
+        packageName,
+        package.publisherId!,
+      );
     }
-    final authenticatedAgent =
-        await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+    final authenticatedAgent = await requireAuthenticatedAdmin(
+      AdminPermission.invokeAction,
+    );
 
     final inviteStatus = await consentBackend.invitePackageUploader(
-        packageName: packageName,
-        uploaderEmail: invitedEmail,
-        agent: authenticatedAgent);
+      packageName: packageName,
+      uploaderEmail: invitedEmail,
+      agent: authenticatedAgent,
+    );
 
-    final uploaderUsers =
-        await accountBackend.lookupUsersById(package.uploaders!);
-    final isNotUploaderYet =
-        !uploaderUsers.any((u) => u!.email == invitedEmail);
+    final uploaderUsers = await accountBackend.lookupUsersById(
+      package.uploaders!,
+    );
+    final isNotUploaderYet = !uploaderUsers.any(
+      (u) => u!.email == invitedEmail,
+    );
     InvalidInputException.check(
-        isNotUploaderYet, '`$invitedEmail` is already an uploader.');
+      isNotUploaderYet,
+      '`$invitedEmail` is already an uploader.',
+    );
 
     return {
       'message': 'Invited user',

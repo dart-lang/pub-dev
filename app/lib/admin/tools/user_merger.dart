@@ -16,14 +16,21 @@ import 'package:pub_dev/shared/exceptions.dart';
 final _logger = Logger('user_merger');
 
 final _argParser = ArgParser()
-  ..addOption('concurrency',
-      abbr: 'c', defaultsTo: '10', help: 'Number of concurrent processing.')
+  ..addOption(
+    'concurrency',
+    abbr: 'c',
+    defaultsTo: '10',
+    help: 'Number of concurrent processing.',
+  )
   ..addOption('oauth-user-id', help: 'The specific OAuthUserId object to fix.')
-  ..addOption('from-user-id',
-      help: 'The User that will be removed. (must be in pair with to-user-id)')
-  ..addOption('to-user-id',
-      help:
-          'The User that will be extended. (must be in pair with from-user-id)')
+  ..addOption(
+    'from-user-id',
+    help: 'The User that will be removed. (must be in pair with to-user-id)',
+  )
+  ..addOption(
+    'to-user-id',
+    help: 'The User that will be extended. (must be in pair with from-user-id)',
+  )
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
 int? concurrency;
@@ -68,9 +75,9 @@ class UserMerger {
     required DatastoreDB db,
     int? concurrency = 1,
     bool? omitEmailCheck,
-  })  : _db = db,
-        _concurrency = concurrency,
-        _omitEmailCheck = omitEmailCheck ?? false;
+  }) : _db = db,
+       _concurrency = concurrency,
+       _omitEmailCheck = omitEmailCheck ?? false;
 
   /// Fixes all OAuthUserID issues.
   Future<int> fixAll() async {
@@ -104,7 +111,8 @@ class UserMerger {
     _logger.info('Users: ${users.map((u) => u.userId).join(', ')}');
 
     final mapping = await _db.lookupValue<OAuthUserID>(
-        _db.emptyKey.append(OAuthUserID, id: oauthUserId));
+      _db.emptyKey.append(OAuthUserID, id: oauthUserId),
+    );
     _logger.info('Primary User: ${mapping.userId}');
     if (!users.any((u) => u.userId == mapping.userId)) {
       throw StateError('Primary User is missing!');
@@ -118,7 +126,8 @@ class UserMerger {
       for (int i = 1; i < users.length; i++) {
         if (users[0].email != users[i].email) {
           throw StateError(
-              'User e-mail does not match: ${users[0].email} != ${users[i].email}');
+            'User e-mail does not match: ${users[0].email} != ${users[i].email}',
+          );
         }
       }
     }
@@ -141,11 +150,13 @@ class UserMerger {
     final fromUserMapping = fromUser!.oauthUserId == null
         ? null
         : await _db.lookupOrNull<OAuthUserID>(
-            _db.emptyKey.append(OAuthUserID, id: fromUser.oauthUserId));
+            _db.emptyKey.append(OAuthUserID, id: fromUser.oauthUserId),
+          );
     final toUserMapping = toUser!.oauthUserId == null
         ? null
         : await _db.lookupOrNull<OAuthUserID>(
-            _db.emptyKey.append(OAuthUserID, id: toUser.oauthUserId));
+            _db.emptyKey.append(OAuthUserID, id: toUser.oauthUserId),
+          );
 
     // Package
     await _processConcurrently(
@@ -177,17 +188,16 @@ class UserMerger {
     );
 
     // Like
-    await _processConcurrently(
-      _db.query<Like>(ancestorKey: fromUserKey),
-      (Like like) async {
-        await withRetryTransaction(_db, (tx) async {
-          tx.queueMutations(
-            inserts: [like.changeParentUser(toUserKey)],
-            deletes: [like.key],
-          );
-        });
-      },
-    );
+    await _processConcurrently(_db.query<Like>(ancestorKey: fromUserKey), (
+      Like like,
+    ) async {
+      await withRetryTransaction(_db, (tx) async {
+        tx.queueMutations(
+          inserts: [like.changeParentUser(toUserKey)],
+          deletes: [like.key],
+        );
+      });
+    });
 
     // UserSession
     await _processConcurrently(
@@ -235,32 +245,40 @@ class UserMerger {
 
     // AuditLogRecord: agent
     await _processConcurrently(
-        _db.query<AuditLogRecord>()..filter('agent =', fromUserId),
-        (AuditLogRecord alr) async {
-      await withRetryTransaction(_db, (tx) async {
-        final r = await _db.lookupValue<AuditLogRecord>(alr.key);
-        r.agent = toUserId;
-        r.data = r.data?.map((key, value) => MapEntry<String, dynamic>(
-            key, value == fromUserId ? toUserId : value));
-        tx.insert(r);
-      });
-    });
+      _db.query<AuditLogRecord>()..filter('agent =', fromUserId),
+      (AuditLogRecord alr) async {
+        await withRetryTransaction(_db, (tx) async {
+          final r = await _db.lookupValue<AuditLogRecord>(alr.key);
+          r.agent = toUserId;
+          r.data = r.data?.map(
+            (key, value) => MapEntry<String, dynamic>(
+              key,
+              value == fromUserId ? toUserId : value,
+            ),
+          );
+          tx.insert(r);
+        });
+      },
+    );
 
     // AuditLogRecord: users
     await _processConcurrently(
-        _db.query<AuditLogRecord>()..filter('users =', fromUserId),
-        (AuditLogRecord alr) async {
-      await withRetryTransaction(_db, (tx) async {
-        final r = await _db.lookupValue<AuditLogRecord>(alr.key);
-        r.users!.remove(fromUserId);
-        r.users!.add(toUserId);
-        r.data = r.data?.map(
-          (key, value) => MapEntry<String, dynamic>(
-              key, value == fromUserId ? toUserId : value),
-        );
-        tx.insert(r);
-      });
-    });
+      _db.query<AuditLogRecord>()..filter('users =', fromUserId),
+      (AuditLogRecord alr) async {
+        await withRetryTransaction(_db, (tx) async {
+          final r = await _db.lookupValue<AuditLogRecord>(alr.key);
+          r.users!.remove(fromUserId);
+          r.users!.add(toUserId);
+          r.data = r.data?.map(
+            (key, value) => MapEntry<String, dynamic>(
+              key,
+              value == fromUserId ? toUserId : value,
+            ),
+          );
+          tx.insert(r);
+        });
+      },
+    );
 
     await withRetryTransaction(_db, (tx) async {
       final u = await _db.lookupValue<User>(toUserKey);
@@ -285,7 +303,9 @@ class UserMerger {
   }
 
   Future<void> _processConcurrently<T extends Model>(
-      Query<T> query, Future<void> Function(T) fn) async {
+    Query<T> query,
+    Future<void> Function(T) fn,
+  ) async {
     final pool = Pool(_concurrency!);
     final futures = <Future>[];
     await for (final m in query.run()) {

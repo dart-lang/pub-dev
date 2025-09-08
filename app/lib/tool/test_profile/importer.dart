@@ -40,12 +40,14 @@ Future<void> importProfile({
   // expand profile with resolved version information
   profile = normalize(profile);
 
-  if (profile.importedPackages
-      .any((p) => p.uploaders != null && p.uploaders!.length > 1)) {
+  if (profile.importedPackages.any(
+    (p) => p.uploaders != null && p.uploaders!.length > 1,
+  )) {
     throw UnimplementedError('More than one uploader is not implemented.');
   }
-  if (profile.generatedPackages
-      .any((p) => p.uploaders != null && p.uploaders!.length > 1)) {
+  if (profile.generatedPackages.any(
+    (p) => p.uploaders != null && p.uploaders!.length > 1,
+  )) {
     throw UnimplementedError('More than one uploader is not implemented.');
   }
 
@@ -69,7 +71,8 @@ Future<void> importProfile({
         for (final _ in p.members.skip(1)) {
           // TODO: explore implementation options how to add this
           throw UnimplementedError(
-              'More than one publisher members is not implemented (${p.name}).');
+            'More than one publisher members is not implemented (${p.name}).',
+          );
         }
       },
     );
@@ -102,23 +105,30 @@ Future<void> importProfile({
         if (importedVersions.contains(rv)) {
           bytes = await source.getPubDevArchiveBytes(rv.package, rv.version);
         } else {
-          final gp = profile.generatedPackages
-              .firstWhereOrNull((p) => p.name == rv.package);
-          final gv =
-              gp?.versions?.firstWhereOrNull((v) => v.version == rv.version);
+          final gp = profile.generatedPackages.firstWhereOrNull(
+            (p) => p.name == rv.package,
+          );
+          final gv = gp?.versions?.firstWhereOrNull(
+            (v) => v.version == rv.version,
+          );
           var template = gp?.template;
           template =
               template?.overrideWith(gv?.template) ?? gv?.template ?? template;
           bytes = await source.getGeneratedArchiveBytes(
-              rv.package, rv.version, template);
+            rv.package,
+            rv.version,
+            template,
+          );
         }
       }
       bytes = await _mayCleanupTarModeBits(bytes);
       try {
         // TODO: use the created field with fake clock header to set the published timestamp
         await withRetryPubApiClient(
-          authToken: createFakeAuthTokenForEmail(uploaderEmail,
-              audience: activeConfiguration.pubClientAudience),
+          authToken: createFakeAuthTokenForEmail(
+            uploaderEmail,
+            audience: activeConfiguration.pubClientAudience,
+          ),
           pubHostedUrl: pubHostedUrl,
           (client) => client.uploadPackageBytes(bytes!),
         );
@@ -134,8 +144,9 @@ Future<void> importProfile({
   }
   if (pending.isNotEmpty) {
     throw Exception(
-        'Unable to publish ${pending.length} packages (first: ${pending.first.toJson()}).'
-        '\n$lastException\n$lastStackTrace');
+      'Unable to publish ${pending.length} packages (first: ${pending.first.toJson()}).'
+      '\n$lastException\n$lastStackTrace',
+    );
   }
 
   Future<void> updatePackage(TestPackage testPackage) async {
@@ -156,17 +167,21 @@ Future<void> importProfile({
 
         // update options - sending null is a no-op
         await client.setPackageOptions(
-            packageName,
-            PkgOptions(
-              isDiscontinued: testPackage.isDiscontinued,
-              replacedBy: testPackage.replacedBy,
-              isUnlisted: testPackage.isUnlisted,
-            ));
+          packageName,
+          PkgOptions(
+            isDiscontinued: testPackage.isDiscontinued,
+            replacedBy: testPackage.replacedBy,
+            isUnlisted: testPackage.isUnlisted,
+          ),
+        );
 
         if (testPackage.retractedVersions != null) {
           for (final version in testPackage.retractedVersions!) {
             await client.setVersionOptions(
-                packageName, version, VersionOptions(isRetracted: true));
+              packageName,
+              version,
+              VersionOptions(isRetracted: true),
+            );
           }
         }
       },
@@ -174,8 +189,9 @@ Future<void> importProfile({
 
     if (testPackage.isFlutterFavorite ?? false) {
       await withRetryPubApiClient(
-        authToken:
-            createFakeServiceAccountToken(email: adminUserEmail ?? activeEmail),
+        authToken: createFakeServiceAccountToken(
+          email: adminUserEmail ?? activeEmail,
+        ),
         pubHostedUrl: pubHostedUrl,
         (client) async {
           await client.adminPostAssignedTags(
@@ -246,8 +262,8 @@ Future<void> importProfile({
 }
 
 List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
-  final testPackage = profile.importedPackages
-          .firstWhereOrNull((p) => p.name == packageName) ??
+  final testPackage =
+      profile.importedPackages.firstWhereOrNull((p) => p.name == packageName) ??
       profile.generatedPackages.firstWhereOrNull((p) => p.name == packageName);
 
   if (testPackage == null) {
@@ -272,8 +288,9 @@ List<String> _potentialActiveEmails(TestProfile profile, String packageName) {
 /// bits corrected.
 Future<List<int>> _mayCleanupTarModeBits(List<int> bytes) async {
   final archiveBuilder = ArchiveBuilder();
-  final tarReader =
-      TarReader(Stream.fromIterable([bytes]).transform(gzip.decoder));
+  final tarReader = TarReader(
+    Stream.fromIterable([bytes]).transform(gzip.decoder),
+  );
   var needsUpdate = false;
   while (await tarReader.moveNext()) {
     final current = tarReader.current;
@@ -282,7 +299,9 @@ Future<List<int>> _mayCleanupTarModeBits(List<int> bytes) async {
       needsUpdate = true;
     }
     archiveBuilder.addFileBytes(
-        current.name, await current.contents.foldBytes());
+      current.name,
+      await current.contents.foldBytes(),
+    );
   }
   return needsUpdate ? archiveBuilder.toTarGzBytes() : bytes;
 }

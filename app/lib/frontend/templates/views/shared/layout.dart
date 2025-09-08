@@ -96,11 +96,14 @@ d.Node pageLayoutNode({
             // https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html
             d.meta(rel: 'apple-touch-icon', href: appleTouchIconUrl),
             d.meta(
-                rel: 'apple-touch-icon-precomposed', href: appleTouchIconUrl),
+              rel: 'apple-touch-icon-precomposed',
+              href: appleTouchIconUrl,
+            ),
 
             d.link(
-                rel: 'stylesheet',
-                href: 'https://www.gstatic.com/glue/v25_0/ccb.min.css'),
+              rel: 'stylesheet',
+              href: 'https://www.gstatic.com/glue/v25_0/ccb.min.css',
+            ),
             d.link(
               rel: 'search',
               type: 'application/opensearchdescription+xml',
@@ -127,8 +130,9 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'stylesheet',
               type: 'text/css',
-              href:
-                  staticUrls.getAssetUrl('/static/material/bundle/styles.css'),
+              href: staticUrls.getAssetUrl(
+                '/static/material/bundle/styles.css',
+              ),
             ),
             d.link(
               rel: 'stylesheet',
@@ -136,8 +140,9 @@ d.Node pageLayoutNode({
               href: staticUrls.getAssetUrl('/static/css/style.css'),
             ),
             d.script(
-              src: staticUrls
-                  .getAssetUrl('/static/material/bundle/script.min.js'),
+              src: staticUrls.getAssetUrl(
+                '/static/material/bundle/script.min.js',
+              ),
               defer: true,
             ),
             d.script(
@@ -162,16 +167,18 @@ d.Node pageLayoutNode({
               ),
               d.link(
                 rel: 'preload',
-                href: staticUrls
-                    .getAssetUrl('/static/img/square-bg-full-2x.webp'),
+                href: staticUrls.getAssetUrl(
+                  '/static/img/square-bg-full-2x.webp',
+                ),
                 as: 'image',
               ),
             ],
             if (includeHighlightJs)
               d.link(
                 rel: 'preload',
-                href: staticUrls
-                    .getAssetUrl('/static/highlight/highlight-with-init.js'),
+                href: staticUrls.getAssetUrl(
+                  '/static/highlight/highlight-with-init.js',
+                ),
                 as: 'script',
               ),
           ],
@@ -184,9 +191,7 @@ d.Node pageLayoutNode({
                 ? 'dark-theme'
                 : 'light-theme',
           ],
-          attributes: {
-            if (activeConfiguration.isStaging) 'data-staging': '1',
-          },
+          attributes: {if (activeConfiguration.isStaging) 'data-staging': '1'},
           children: [
             // The initialization of dark theme must be in a synchronous, blocking
             // script execution, as otherwise users may see flash of unstyled content
@@ -260,7 +265,8 @@ d.Node pageLayoutNode({
                         d.img(
                           image: d.Image(
                             src: staticUrls.getAssetUrl(
-                                '/static/img/supported-by-google-2x.png'),
+                              '/static/img/supported-by-google-2x.png',
+                            ),
                             alt: 'Supported by Google',
                             width: 218,
                             height: 36,
@@ -279,15 +285,16 @@ d.Node pageLayoutNode({
             if (includeHighlightJs)
               d.fragment([
                 d.script(
-                  src: staticUrls
-                      .getAssetUrl('/static/highlight/highlight-with-init.js'),
+                  src: staticUrls.getAssetUrl(
+                    '/static/highlight/highlight-with-init.js',
+                  ),
                   defer: true,
                 ),
               ]),
             if (schemaOrgSearchActionJson != null)
               d.ldJson(schemaOrgSearchActionJson),
           ],
-        )
+        ),
       ],
     ),
   ]);
@@ -305,16 +312,15 @@ d.Node _siteFooterNode({
       d.a(classes: ['link', if (sep) 'sep'], href: href, text: label);
 
   d.Node icon(
-          String linkHref, List<String> classes, d.Image icon, String title) =>
-      d.a(
-        classes: ['link', 'icon', ...classes],
-        href: linkHref,
-        child: d.img(
-          classes: ['inline-icon'],
-          title: title,
-          image: icon,
-        ),
-      );
+    String linkHref,
+    List<String> classes,
+    d.Image icon,
+    String title,
+  ) => d.a(
+    classes: ['link', 'icon', ...classes],
+    href: linkHref,
+    child: d.img(classes: ['inline-icon'], title: title, image: icon),
+  );
 
   final moderationNode = () {
     if (moderationSubject == null || moderationUrl == null) {
@@ -322,19 +328,13 @@ d.Node _siteFooterNode({
     }
     if (moderationSubject.package != null) {
       return link(
-        urls.reportPage(
-          subject: moderationSubject.fqn,
-          url: moderationUrl,
-        ),
+        urls.reportPage(subject: moderationSubject.fqn, url: moderationUrl),
         'Report package',
       );
     }
     if (moderationSubject.publisherId != null) {
       return link(
-        urls.reportPage(
-          subject: moderationSubject.fqn,
-          url: moderationUrl,
-        ),
+        urls.reportPage(subject: moderationSubject.fqn, url: moderationUrl),
         'Report publisher',
       );
     }

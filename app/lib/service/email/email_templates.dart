@@ -13,7 +13,8 @@ final _lenientEmailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 /// Strict regular expression used in <input type="email" />
 /// https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
 final _strictEmailRegExp = RegExp(
-    r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''');
+  r'''[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$''',
+);
 
 /// Matches the local part of the email's message-id field, with relaxed rules:
 /// - checks that only valid characters are present
@@ -209,8 +210,11 @@ EmailMessage createPackageUploadedEmail({
   required List<EmailAddress> authorizedUploaders,
   required List<String> uploadMessages,
 }) {
-  final url =
-      pkgPageUrl(packageName, version: packageVersion, includeHost: true);
+  final url = pkgPageUrl(
+    packageName,
+    version: packageVersion,
+    includeHost: true,
+  );
   final subject = 'Package uploaded: $packageName $packageVersion';
   final paragraphs = [
     'Dear package maintainer,',
@@ -220,8 +224,12 @@ EmailMessage createPackageUploadedEmail({
     _footer('package'),
   ];
 
-  return EmailMessage(_notificationsFrom, authorizedUploaders, subject,
-      paragraphs.join('\n\n'));
+  return EmailMessage(
+    _notificationsFrom,
+    authorizedUploaders,
+    subject,
+    paragraphs.join('\n\n'),
+  );
 }
 
 /// Creates the [EmailMessage] that will be sent to users about new invitations
@@ -232,7 +240,8 @@ EmailMessage createInviteEmail({
   required String inviteText,
   required String consentUrl,
 }) {
-  final bodyText = '''Dear Dart developer,
+  final bodyText =
+      '''Dear Dart developer,
 
 $inviteText
 
@@ -244,7 +253,11 @@ If you don’t want to accept it, simply ignore this email.
 ${_footer('invitation')}
 ''';
   return EmailMessage(
-      _invitesFrom, [EmailAddress(invitedEmail)], subject, bodyText);
+    _invitesFrom,
+    [EmailAddress(invitedEmail)],
+    subject,
+    bodyText,
+  );
 }
 
 /// Creates the [EmailMessage] that we be sent on package transfer to a new publisher.
@@ -263,7 +276,8 @@ EmailMessage createPackageTransferEmail({
     if (oldPublisherId != null) 'from the publisher $oldPublisherId',
     'to the publisher $newPublisherId.',
   ].join(' ');
-  final bodyText = '''Dear package maintainer,  
+  final bodyText =
+      '''Dear package maintainer,  
 
 $actionLine
 

@@ -8,16 +8,24 @@ import 'tags.dart';
 const int resultsPerPage = 10;
 
 final RegExp _whitespacesRegExp = RegExp(r'\s+');
-final RegExp _packageRegexp =
-    RegExp('package:([_a-z0-9]+)', caseSensitive: false);
-final RegExp _refDependencyRegExp =
-    RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
-final RegExp _allDependencyRegExp =
-    RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
+final RegExp _packageRegexp = RegExp(
+  'package:([_a-z0-9]+)',
+  caseSensitive: false,
+);
+final RegExp _refDependencyRegExp = RegExp(
+  'dependency:([_a-z0-9]+)',
+  caseSensitive: false,
+);
+final RegExp _allDependencyRegExp = RegExp(
+  r'dependency\*:([_a-z0-9]+)',
+  caseSensitive: false,
+);
 final _sortRegExp = RegExp('sort:([a-z]+)');
 final _updatedRegExp = RegExp('updated:([0-9][0-9a-z]*)');
-final _tagRegExp =
-    RegExp(r'([\+|\-]?[a-z0-9\-]+:[a-z0-9\-_\.]+)', caseSensitive: false);
+final _tagRegExp = RegExp(
+  r'([\+|\-]?[a-z0-9\-]+:[a-z0-9\-_\.]+)',
+  caseSensitive: false,
+);
 
 /// The tag prefixes that we can detect in the user-provided search query.
 final _detectedTagPrefixes = <String>{
@@ -94,7 +102,8 @@ Duration? parseTime(String duration) {
   }
   // Return parsed values
   final d = Duration(
-    days: (365 * (int.tryParse(match.namedGroup('years') ?? '0') ?? 0) +
+    days:
+        (365 * (int.tryParse(match.namedGroup('years') ?? '0') ?? 0) +
         31 * (int.tryParse(match.namedGroup('months') ?? '0') ?? 0) +
         7 * (int.tryParse(match.namedGroup('weeks') ?? '0') ?? 0) +
         (int.tryParse(match.namedGroup('days') ?? '0') ?? 0)),
@@ -110,8 +119,10 @@ class TagsPredicate {
 
   TagsPredicate._(this._values);
 
-  factory TagsPredicate(
-      {List<String>? requiredTags, List<String>? prohibitedTags}) {
+  factory TagsPredicate({
+    List<String>? requiredTags,
+    List<String>? prohibitedTags,
+  }) {
     final values = <String, bool>{};
     requiredTags?.forEach((tag) => values[tag] = true);
     prohibitedTags?.forEach((tag) => values[tag] = false);
@@ -121,12 +132,12 @@ class TagsPredicate {
   /// Pre-populates the predicate with the default tags for regular search (e.g.
   /// typing in the search box on the landing page).
   factory TagsPredicate.regularSearch() => TagsPredicate(
-        prohibitedTags: [
-          PackageTags.isDiscontinued,
-          PackageTags.isUnlisted,
-          PackageVersionTags.isLegacy,
-        ],
-      );
+    prohibitedTags: [
+      PackageTags.isDiscontinued,
+      PackageTags.isUnlisted,
+      PackageVersionTags.isLegacy,
+    ],
+  );
 
   bool get isEmpty => _values.isEmpty;
   bool get isNotEmpty => _values.isNotEmpty;
@@ -268,11 +279,13 @@ class ParsedQueryText {
     final List<String> dependencies = extractRegExp(_refDependencyRegExp);
     final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
     final orderValues = extractRegExp(_sortRegExp);
-    final order =
-        orderValues.isEmpty ? null : parseSearchOrder(orderValues.last);
+    final order = orderValues.isEmpty
+        ? null
+        : parseSearchOrder(orderValues.last);
     final updatedValue = extractRegExp(_updatedRegExp);
-    final updatedDuration =
-        updatedValue.isEmpty ? null : parseTime(updatedValue.last);
+    final updatedDuration = updatedValue.isEmpty
+        ? null
+        : parseTime(updatedValue.last);
 
     final tagValues = extractRegExp(
       _tagRegExp,
@@ -296,9 +309,7 @@ class ParsedQueryText {
     );
   }
 
-  ParsedQueryText change({
-    TagsPredicate? tagsPredicate,
-  }) {
+  ParsedQueryText change({TagsPredicate? tagsPredicate}) {
     return ParsedQueryText._(
       text,
       packagePrefix,
@@ -356,12 +367,7 @@ class SearchForm {
   /// The number of search results per page.
   final int? pageSize;
 
-  SearchForm._({
-    this.query,
-    this.order,
-    this.currentPage,
-    this.pageSize,
-  });
+  SearchForm._({this.query, this.order, this.currentPage, this.pageSize});
 
   factory SearchForm({
     String? query,
@@ -415,7 +421,8 @@ class SearchForm {
       return change(
         query: parsedQuery
             .change(
-                tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag))
+              tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
+            )
             .toString(),
       );
     }

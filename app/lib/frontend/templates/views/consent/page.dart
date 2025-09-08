@@ -6,10 +6,7 @@ import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
 
 /// Render consent page content.
-d.Node consentPageNode({
-  required String title,
-  required d.Node description,
-}) {
+d.Node consentPageNode({required String title, required d.Node description}) {
   return d.fragment([
     d.h1(id: '-admin-consent-title', text: title),
     d.div(id: '-admin-consent-content', child: description),
@@ -26,6 +23,6 @@ d.Node consentPageNode({
           label: 'Accept',
         ),
       ],
-    )
+    ),
   ]);
 }

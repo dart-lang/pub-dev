@@ -11,8 +11,9 @@ import 'package:yaml/yaml.dart' as yaml;
 
 void main() {
   test('Foo config from yaml file', () async {
-    final config =
-        Configuration.fromYamlFile('test/shared/test_data/foo_config.yaml');
+    final config = Configuration.fromYamlFile(
+      'test/shared/test_data/foo_config.yaml',
+    );
     final expectedValue = 'foo';
     expect(config.projectId, expectedValue);
     expect(config.canonicalPackagesBucketName, expectedValue);
@@ -21,18 +22,24 @@ void main() {
     expect(config.downloadCountsBucketName, expectedValue);
     expect(config.admins![0].email, 'foo@foo.foo');
     expect(config.admins![0].oauthUserId, '42');
-    expect(config.admins![0].permissions.contains(AdminPermission.listUsers),
-        isTrue);
+    expect(
+      config.admins![0].permissions.contains(AdminPermission.listUsers),
+      isTrue,
+    );
   });
 
   test('content replacement success', () {
-    expect(Configuration.replaceEnvVariables('a{{B}}c{{B}}d', {'B': 'bb'}),
-        'abbcbbd');
+    expect(
+      Configuration.replaceEnvVariables('a{{B}}c{{B}}d', {'B': 'bb'}),
+      'abbcbbd',
+    );
   });
 
   test('content replacement failed', () {
-    expect(() => Configuration.replaceEnvVariables('a{{B}}c', {'C': 'bb'}),
-        throwsA(isArgumentError));
+    expect(
+      () => Configuration.replaceEnvVariables('a{{B}}c', {'C': 'bb'}),
+      throwsA(isArgumentError),
+    );
   });
 
   test('configuration files content', () async {
@@ -51,16 +58,19 @@ void main() {
         'GAE_SERVICE': 'service',
         'GAE_VERSION': '1234',
       });
-      final jsonContent =
-          json.decode(json.encode(yaml.loadYaml(replacedContent)));
-      final config =
-          Configuration.fromJson(jsonContent as Map<String, dynamic>);
+      final jsonContent = json.decode(
+        json.encode(yaml.loadYaml(replacedContent)),
+      );
+      final config = Configuration.fromJson(
+        jsonContent as Map<String, dynamic>,
+      );
       final serialized = json.decode(json.encode(config.toJson()));
       expect(serialized, jsonContent);
 
       // rate limit rules
-      final modelFileContent =
-          await File('lib/audit/models.dart').readAsString();
+      final modelFileContent = await File(
+        'lib/audit/models.dart',
+      ).readAsString();
       final rateLimits = config.rateLimits ?? <RateLimit>[];
       for (final limit in rateLimits) {
         expect(
@@ -70,8 +80,10 @@ void main() {
         );
       }
       // no duplicate rules
-      expect(rateLimits.map((e) => '${e.operation}/${e.scope}').toSet().length,
-          rateLimits.length);
+      expect(
+        rateLimits.map((e) => '${e.operation}/${e.scope}').toSet().length,
+        rateLimits.length,
+      );
       // some rules for prod config
       if (config.isProduction) {
         expect(rateLimits, hasLength(greaterThan(10)));

@@ -49,14 +49,15 @@ class GcpServiceAccountJwtPayload {
   };
 
   GcpServiceAccountJwtPayload._(Map<String, dynamic> map)
-      : email = parseAsString(map, 'email'),
-        sub = parseAsString(map, 'sub');
+    : email = parseAsString(map, 'email'),
+      sub = parseAsString(map, 'sub');
 
   factory GcpServiceAccountJwtPayload(JwtPayload payload) {
     final missing = requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
-          'JWT from Google Cloud is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
+        'JWT from Google Cloud is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.',
+      );
     }
     return GcpServiceAccountJwtPayload._(payload);
   }

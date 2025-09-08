@@ -43,11 +43,13 @@ class NeatTaskStatus extends db.ExpandoModel<String> {
   NeatTaskStatus();
 
   NeatTaskStatus.init(String name, {required bool isRuntimeVersioned})
-      // ignore: prefer_initializing_formals
-      : name = name,
-        runtimeVersion =
-            _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned),
-        updated = clock.now().toUtc() {
+    // ignore: prefer_initializing_formals
+    : name = name,
+      runtimeVersion = _runtimeVersion(
+        name,
+        isRuntimeVersioned: isRuntimeVersioned,
+      ),
+      updated = clock.now().toUtc() {
     // Not in initializer list as id is declared in a super class.
     id = _compositeId(name, isRuntimeVersioned: isRuntimeVersioned);
   }
@@ -58,8 +60,10 @@ String _runtimeVersion(String name, {required bool isRuntimeVersioned}) {
 }
 
 String _compositeId(String name, {required bool isRuntimeVersioned}) {
-  final runtimeVersion =
-      _runtimeVersion(name, isRuntimeVersioned: isRuntimeVersioned);
+  final runtimeVersion = _runtimeVersion(
+    name,
+    isRuntimeVersioned: isRuntimeVersioned,
+  );
   return '$runtimeVersion/$name';
 }
 
@@ -73,7 +77,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
   String? _etag;
 
   DatastoreStatusProvider._(this._db, this._name, this._isRuntimeVersioned)
-      : _id = _compositeId(_name, isRuntimeVersioned: _isRuntimeVersioned);
+    : _id = _compositeId(_name, isRuntimeVersioned: _isRuntimeVersioned);
 
   static NeatStatusProvider create(
     db.DatastoreDB db,
@@ -81,7 +85,8 @@ class DatastoreStatusProvider extends NeatStatusProvider {
     required bool isRuntimeVersioned,
   }) {
     return NeatStatusProvider.withRetry(
-        DatastoreStatusProvider._(db, name, isRuntimeVersioned));
+      DatastoreStatusProvider._(db, name, isRuntimeVersioned),
+    );
   }
 
   @override
@@ -97,9 +102,10 @@ class DatastoreStatusProvider extends NeatStatusProvider {
           return;
         }
         tx.insert(
-            NeatTaskStatus.init(_name, isRuntimeVersioned: _isRuntimeVersioned)
-              ..etag = Ulid().toCanonical()
-              ..statusBase64 = base64.encode(<int>[]));
+          NeatTaskStatus.init(_name, isRuntimeVersioned: _isRuntimeVersioned)
+            ..etag = Ulid().toCanonical()
+            ..statusBase64 = base64.encode(<int>[]),
+        );
       });
       e ??= await _db.lookupOrNull<NeatTaskStatus>(key);
     }
@@ -149,5 +155,6 @@ Future<void> deleteOldNeatTaskStatuses(
     },
   );
   _logger.info(
-      'delete-old-neat-task-statuses cleared $count entries (${versions.runtimeVersion}).');
+    'delete-old-neat-task-statuses cleared $count entries (${versions.runtimeVersion}).',
+  );
 }

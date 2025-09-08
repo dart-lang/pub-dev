@@ -33,10 +33,16 @@ final _log = Logger('pub.handlers.misc');
 
 /// Handles requests for /.well-known/security.txt
 Future<shelf.Response> wellKnownSecurityTxtHandler(
-    shelf.Request request) async {
-  final expiresDate =
-      clock.now().add(Duration(days: 31)).toIso8601String().split('T').first;
-  final content = 'Contact: https://goo.gl/vulnz\n'
+  shelf.Request request,
+) async {
+  final expiresDate = clock
+      .now()
+      .add(Duration(days: 31))
+      .toIso8601String()
+      .split('T')
+      .first;
+  final content =
+      'Contact: https://goo.gl/vulnz\n'
       'Policy: https://pub.dev/security\n'
       'Preferred-Languages: en\n'
       'Expires: ${expiresDate}T00:00:00z\n';
@@ -72,10 +78,7 @@ Future<shelf.Response> securityPageHandler(shelf.Request request) async {
 /// Handles requests for /readiness_check
 Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   if (nameTracker.isReady) {
-    return htmlResponse(
-      'OK',
-      headers: CacheControl.explicitlyPrivate.headers,
-    );
+    return htmlResponse('OK', headers: CacheControl.explicitlyPrivate.headers);
   } else {
     return htmlResponse(
       'Service Unavailable',
@@ -116,13 +119,15 @@ Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
   final uri = request.requestedUri;
   final sitemapUri = uri.replace(path: 'sitemap.txt');
   final sitemap2Uri = uri.replace(path: 'sitemap-2.txt');
-  return shelf.Response(200,
-      body: [
-        'User-agent: *',
-        'Sitemap: $sitemapUri',
-        'Sitemap: $sitemap2Uri',
-        'Disallow: /packages?q=',
-      ].join('\n'));
+  return shelf.Response(
+    200,
+    body: [
+      'User-agent: *',
+      'Sitemap: $sitemapUri',
+      'Sitemap: $sitemap2Uri',
+      'Disallow: /packages?q=',
+    ].join('\n'),
+  );
 }
 
 /// Handles requests for /sitemap.txt
@@ -136,11 +141,7 @@ Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
     // the count is closer to ~1,500
 
     final items = <String>[];
-    final pages = [
-      '/',
-      '/help',
-      '/publishers',
-    ];
+    final pages = ['/', '/help', '/publishers'];
     items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
     final now = clock.now();
@@ -170,7 +171,8 @@ Future<shelf.Response> sitemapTxtHandler(shelf.Request request) async {
 
 /// Handles requests for /sitemap-2.txt
 Future<shelf.Response> sitemapPublishersTxtHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   final uri = request.requestedUri;
   final content = await cache.sitemap(uri.toString()).get(() async {
     final page = await publisherBackend.listPublishers();
@@ -194,8 +196,9 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
       return shelf.Response.notModified();
     }
     final acceptsGzipEncoding = request.acceptsGzipEncoding();
-    final bytes =
-        acceptsGzipEncoding ? staticFile.gzippedBytes : staticFile.bytes;
+    final bytes = acceptsGzipEncoding
+        ? staticFile.gzippedBytes
+        : staticFile.bytes;
     final headers = <String, String>{
       if (acceptsGzipEncoding) HttpHeaders.contentEncodingHeader: 'gzip',
       'Vary': 'Accept-Encoding',
@@ -214,22 +217,27 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
 
 /// Handles requests for /experimental
 Future<shelf.Response> experimentalHandler(shelf.Request request) async {
-  final flags = requestContext.experimentalFlags
-      .combineWithQueryParams(request.requestedUri.queryParameters);
+  final flags = requestContext.experimentalFlags.combineWithQueryParams(
+    request.requestedUri.queryParameters,
+  );
 
   final clearUri = Uri(
-      path: '/experimental', queryParameters: flags.urlParametersForToggle());
+    path: '/experimental',
+    queryParameters: flags.urlParametersForToggle(),
+  );
   final clearLink = flags.isEmpty ? '' : '(<a href="$clearUri">clear all</a>).';
-  final publicBlock = '''
+  final publicBlock =
+      '''
 <ul>
   ${ExperimentalFlags.publicFlags.map((f) {
-    final change = flags.isEnabled(f.name) ? '0' : '1';
-    final uri = Uri(path: '/experimental', queryParameters: {f.name: change});
-    return '<li><b>${f.description}</b> <a href="$uri">(toggle)</a>';
-  }).join()}
+        final change = flags.isEnabled(f.name) ? '0' : '1';
+        final uri = Uri(path: '/experimental', queryParameters: {f.name: change});
+        return '<li><b>${f.description}</b> <a href="$uri">(toggle)</a>';
+      }).join()}
 </ul>
 ''';
-  return htmlResponse('''
+  return htmlResponse(
+    '''
 <!doctype html>
 <html>
 <head>
@@ -262,14 +270,16 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
     <p>
       After enabling experiments go back to <a href="/">pub.dev</a>.
 </body>
-</html>''', headers: {
-    HttpHeaders.setCookieHeader: buildSetCookieValue(
-      name: experimentalCookieName,
-      value: flags.encodedAsCookie(),
-      maxAge: experimentalCookieDuration,
-    ),
-    ...CacheControl.explicitlyPrivate.headers,
-  });
+</html>''',
+    headers: {
+      HttpHeaders.setCookieHeader: buildSetCookieValue(
+        name: experimentalCookieName,
+        value: flags.encodedAsCookie(),
+        maxAge: experimentalCookieDuration,
+      ),
+      ...CacheControl.explicitlyPrivate.headers,
+    },
+  );
 }
 
 /// Renders a formatted response when the request points to a missing or invalid path.
@@ -278,10 +288,12 @@ shelf.Response formattedNotFoundHandler(shelf.Request request) {
   String? searchQuery;
 
   // Extract unidentified text from the request URI.
-  final shouldSuggest = request.requestedUri.queryParameters.isEmpty &&
+  final shouldSuggest =
+      request.requestedUri.queryParameters.isEmpty &&
       request.requestedUri.pathSegments.length == 1;
-  var unidentifiedText =
-      shouldSuggest ? request.requestedUri.pathSegments.single.trim() : '';
+  var unidentifiedText = shouldSuggest
+      ? request.requestedUri.pathSegments.single.trim()
+      : '';
 
   // may render additional content
   if (unidentifiedText.isNotEmpty) {

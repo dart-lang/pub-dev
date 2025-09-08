@@ -20,31 +20,46 @@ void main() {
           client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
     );
 
-    testWithProfile('no package', fn: () async {
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      await expectApiException(
-        client.setAutomatedPublishing(
-            'no_such_package', AutomatedPublishingConfig()),
-        status: 404,
-        code: 'NotFound',
-      );
-    });
+    testWithProfile(
+      'no package',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        await expectApiException(
+          client.setAutomatedPublishing(
+            'no_such_package',
+            AutomatedPublishingConfig(),
+          ),
+          status: 404,
+          code: 'NotFound',
+        );
+      },
+    );
 
-    testWithProfile('not admin', fn: () async {
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      await expectApiException(
-        client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
-        status: 403,
-        code: 'InsufficientPermissions',
-        message:
-            'Insufficient permissions to perform administrative actions on package `oxygen`.',
-      );
-    });
+    testWithProfile(
+      'not admin',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        await expectApiException(
+          client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
+          status: 403,
+          code: 'InsufficientPermissions',
+          message:
+              'Insufficient permissions to perform administrative actions on package `oxygen`.',
+        );
+      },
+    );
 
-    testWithProfile('successful update with GitHub', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = await client.setAutomatedPublishing(
+    testWithProfile(
+      'successful update with GitHub',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
             github: GitHubPublishingConfig(
@@ -52,75 +67,85 @@ void main() {
               repository: 'dart-lang/pub-dev',
               tagPattern: '{{version}}',
             ),
-          ));
-      expect(rs.toJson(), {
-        'github': {
-          'isEnabled': true,
-          'repository': 'dart-lang/pub-dev',
-          'tagPattern': '{{version}}',
-          'requireEnvironment': false,
-          'isPushEventEnabled': true,
-          'isWorkflowDispatchEventEnabled': false,
-        },
-      });
-      final p = await packageBackend.lookupPackage('oxygen');
-      expect(
-          p!.automatedPublishing!.githubConfig!.toJson(), rs.github!.toJson());
-      expect(p.automatedPublishing!.gcpConfig, isNull);
-      final audits = await auditBackend.listRecordsForPackage('oxygen');
-      // check audit log record exists
-      final record = audits.records.firstWhere((e) =>
-          e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated);
-      expect(record.created, isNotNull);
-      expect(record.summary,
-          '`admin@pub.dev` updated the publication automation config of package `oxygen`.');
-    });
+          ),
+        );
+        expect(rs.toJson(), {
+          'github': {
+            'isEnabled': true,
+            'repository': 'dart-lang/pub-dev',
+            'tagPattern': '{{version}}',
+            'requireEnvironment': false,
+            'isPushEventEnabled': true,
+            'isWorkflowDispatchEventEnabled': false,
+          },
+        });
+        final p = await packageBackend.lookupPackage('oxygen');
+        expect(
+          p!.automatedPublishing!.githubConfig!.toJson(),
+          rs.github!.toJson(),
+        );
+        expect(p.automatedPublishing!.gcpConfig, isNull);
+        final audits = await auditBackend.listRecordsForPackage('oxygen');
+        // check audit log record exists
+        final record = audits.records.firstWhere(
+          (e) =>
+              e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated,
+        );
+        expect(record.created, isNotNull);
+        expect(
+          record.summary,
+          '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+        );
+      },
+    );
 
-    testWithProfile('successful update with Google Cloud Service account',
-        fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = await client.setAutomatedPublishing(
+    testWithProfile(
+      'successful update with Google Cloud Service account',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = await client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
             gcp: GcpPublishingConfig(
               isEnabled: true,
               serviceAccountEmail: 'project-id@cloudbuild.gserviceaccount.com',
             ),
-          ));
-      expect(rs.toJson(), {
-        'gcp': {
-          'isEnabled': true,
-          'serviceAccountEmail': 'project-id@cloudbuild.gserviceaccount.com',
-        },
-      });
-      final p = await packageBackend.lookupPackage('oxygen');
-      expect(p!.automatedPublishing!.gcpConfig!.toJson(), rs.gcp!.toJson());
-      expect(p.automatedPublishing!.githubConfig, isNull);
-      final audits = await auditBackend.listRecordsForPackage('oxygen');
-      // check audit log record exists
-      final record = audits.records.firstWhere((e) =>
-          e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated);
-      expect(record.created, isNotNull);
-      expect(record.summary,
-          '`admin@pub.dev` updated the publication automation config of package `oxygen`.');
-    });
+          ),
+        );
+        expect(rs.toJson(), {
+          'gcp': {
+            'isEnabled': true,
+            'serviceAccountEmail': 'project-id@cloudbuild.gserviceaccount.com',
+          },
+        });
+        final p = await packageBackend.lookupPackage('oxygen');
+        expect(p!.automatedPublishing!.gcpConfig!.toJson(), rs.gcp!.toJson());
+        expect(p.automatedPublishing!.githubConfig, isNull);
+        final audits = await auditBackend.listRecordsForPackage('oxygen');
+        // check audit log record exists
+        final record = audits.records.firstWhere(
+          (e) =>
+              e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated,
+        );
+        expect(record.created, isNotNull);
+        expect(
+          record.summary,
+          '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+        );
+      },
+    );
 
-    testWithProfile('GitHub Actions: bad project path', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final badPaths = [
-        '',
-        '/',
-        'a/',
-        '/b',
-        '//',
-        'a/b/c',
-        'a /b',
-        '(/b',
-      ];
-      for (final repository in badPaths) {
-        final rs = client.setAutomatedPublishing(
+    testWithProfile(
+      'GitHub Actions: bad project path',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final badPaths = ['', '/', 'a/', '/b', '//', 'a/b/c', 'a /b', '(/b'];
+        for (final repository in badPaths) {
+          final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
               github: GitHubPublishingConfig(
@@ -128,27 +153,32 @@ void main() {
                 repository: repository,
                 tagPattern: '{{version}}',
               ),
-            ));
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'InvalidInput',
-          message: 'repository',
-        );
-      }
-    });
+            ),
+          );
+          await expectApiException(
+            rs,
+            status: 400,
+            code: 'InvalidInput',
+            message: 'repository',
+          );
+        }
+      },
+    );
 
-    testWithProfile('GitHub Actions: bad tag pattern', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final badPatterns = [
-        '',
-        'v',
-        'v {{version}}',
-        '{{version}}{{version}}',
-      ];
-      for (final pattern in badPatterns) {
-        final rs = client.setAutomatedPublishing(
+    testWithProfile(
+      'GitHub Actions: bad tag pattern',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final badPatterns = [
+          '',
+          'v',
+          'v {{version}}',
+          '{{version}}{{version}}',
+        ];
+        for (final pattern in badPatterns) {
+          final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
               github: GitHubPublishingConfig(
@@ -156,25 +186,27 @@ void main() {
                 repository: 'abcd/efgh',
                 tagPattern: pattern,
               ),
-            ));
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'InvalidInput',
-          message: 'tag',
-        );
-      }
-    });
+            ),
+          );
+          await expectApiException(
+            rs,
+            status: 400,
+            code: 'InvalidInput',
+            message: 'tag',
+          );
+        }
+      },
+    );
 
-    testWithProfile('GitHub Actions: bad environment pattern', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final badPatterns = [
-        '',
-        'e nvironment',
-      ];
-      for (final pattern in badPatterns) {
-        final rs = client.setAutomatedPublishing(
+    testWithProfile(
+      'GitHub Actions: bad environment pattern',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final badPatterns = ['', 'e nvironment'];
+        for (final pattern in badPatterns) {
+          final rs = client.setAutomatedPublishing(
             'oxygen',
             AutomatedPublishingConfig(
               github: GitHubPublishingConfig(
@@ -184,20 +216,25 @@ void main() {
                 requireEnvironment: true,
                 environment: pattern,
               ),
-            ));
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'InvalidInput',
-          message: 'environment',
-        );
-      }
-    });
+            ),
+          );
+          await expectApiException(
+            rs,
+            status: 400,
+            code: 'InvalidInput',
+            message: 'environment',
+          );
+        }
+      },
+    );
 
-    testWithProfile('GitHub Actions: no events enabled', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = client.setAutomatedPublishing(
+    testWithProfile(
+      'GitHub Actions: no events enabled',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
             github: GitHubPublishingConfig(
@@ -205,31 +242,62 @@ void main() {
               repository: 'abcd/efgh',
               isPushEventEnabled: false,
             ),
-          ));
-      await expectApiException(
-        rs,
-        status: 400,
-        code: 'InvalidInput',
-        message: 'one of the events',
-      );
-    });
+          ),
+        );
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message: 'one of the events',
+        );
+      },
+    );
 
-    testWithProfile('Google Cloud: bad service account email', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final badValues = [
-        '',
-        'not.an.email',
-        'mailto:user@example.com',
-        '@example.com',
-      ];
-      for (final value in badValues) {
+    testWithProfile(
+      'Google Cloud: bad service account email',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final badValues = [
+          '',
+          'not.an.email',
+          'mailto:user@example.com',
+          '@example.com',
+        ];
+        for (final value in badValues) {
+          final rs = client.setAutomatedPublishing(
+            'oxygen',
+            AutomatedPublishingConfig(
+              gcp: GcpPublishingConfig(
+                isEnabled: value.isEmpty,
+                serviceAccountEmail: value,
+              ),
+            ),
+          );
+          await expectApiException(
+            rs,
+            status: 400,
+            code: 'InvalidInput',
+            message: 'service account email',
+            reason: value,
+          );
+        }
+      },
+    );
+
+    testWithProfile(
+      'Google Cloud: email outside .gserviceaccount.com',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
         final rs = client.setAutomatedPublishing(
           'oxygen',
           AutomatedPublishingConfig(
             gcp: GcpPublishingConfig(
-              isEnabled: value.isEmpty,
-              serviceAccountEmail: value,
+              isEnabled: true,
+              serviceAccountEmail: 'user@pub.dev',
             ),
           ),
         );
@@ -237,31 +305,9 @@ void main() {
           rs,
           status: 400,
           code: 'InvalidInput',
-          message: 'service account email',
-          reason: value,
+          message: 'email must end with',
         );
-      }
-    });
-
-    testWithProfile('Google Cloud: email outside .gserviceaccount.com',
-        fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = client.setAutomatedPublishing(
-        'oxygen',
-        AutomatedPublishingConfig(
-          gcp: GcpPublishingConfig(
-            isEnabled: true,
-            serviceAccountEmail: 'user@pub.dev',
-          ),
-        ),
-      );
-      await expectApiException(
-        rs,
-        status: 400,
-        code: 'InvalidInput',
-        message: 'email must end with',
-      );
-    });
+      },
+    );
   });
 }

@@ -22,11 +22,9 @@ class _WrapAsCodec<S, T> extends Codec<S, T> {
   final Converter<S, T> _encoder;
   final Converter<T, S> _decoder;
 
-  _WrapAsCodec({
-    required T Function(S) encode,
-    required S Function(T) decode,
-  })  : _encoder = _WrapAsConverter(encode),
-        _decoder = _WrapAsConverter(decode);
+  _WrapAsCodec({required T Function(S) encode, required S Function(T) decode})
+    : _encoder = _WrapAsConverter(encode),
+      _decoder = _WrapAsConverter(decode);
 
   @override
   Converter<S, T> get encoder => _encoder;
@@ -38,8 +36,4 @@ class _WrapAsCodec<S, T> extends Codec<S, T> {
 Codec<S, T> wrapAsCodec<S, T>({
   required T Function(S) encode,
   required S Function(T) decode,
-}) =>
-    _WrapAsCodec(
-      encode: encode,
-      decode: decode,
-    );
+}) => _WrapAsCodec(encode: encode, decode: decode);

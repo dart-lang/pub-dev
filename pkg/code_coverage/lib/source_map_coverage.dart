@@ -20,8 +20,9 @@ Future<void> main() async {
       .where((e) => e.endsWith('.js.map'))
       .map((e) => e.substring(5, e.length - 4))
       .toList();
-  final coverageFiles =
-      Directory('build/puppeteer').listSync(recursive: true).whereType<File>();
+  final coverageFiles = Directory(
+    'build/puppeteer',
+  ).listSync(recursive: true).whereType<File>();
   for (final coverageFile in coverageFiles) {
     if (coverageFile.path.endsWith('.js.json')) {
       final name = basename(coverageFile.path);
@@ -49,10 +50,12 @@ Future<void> _process({
   required List<String> staticPaths,
 }) async {
   // load coverages
-  final origCoverageRoot = json.decode(File(coveragePath).readAsStringSync())
-      as Map<String, dynamic>;
-  final coverageRoot = origCoverageRoot
-      .map((k, v) => MapEntry(k.replaceAll(_pathHashRegexp, '/static/'), v));
+  final origCoverageRoot =
+      json.decode(File(coveragePath).readAsStringSync())
+          as Map<String, dynamic>;
+  final coverageRoot = origCoverageRoot.map(
+    (k, v) => MapEntry(k.replaceAll(_pathHashRegexp, '/static/'), v),
+  );
 
   // source line coverage counter
   final sourceCoverage = <String, Map<int, int>>{};
@@ -64,8 +67,9 @@ Future<void> _process({
     final sm = parse(File(mapPath).readAsStringSync()) as SingleMapping;
 
     // Maps line numbers ot their TargetLineEntry objects.
-    final smLineIndex =
-        Map.fromEntries(sm.lines.mapIndexed((i, e) => MapEntry(e.line, e)));
+    final smLineIndex = Map.fromEntries(
+      sm.lines.mapIndexed((i, e) => MapEntry(e.line, e)),
+    );
 
     // Initialize line counts with 0 for all the known lines.
     for (final e in sm.lines.expand((l) => l.entries)) {
@@ -96,8 +100,8 @@ Future<void> _process({
     // Returns the compiled code source position for [offset].
     _Position _compiledPosition(int offset) {
       int line = 0;
-      while (
-          line < compiledLines.length && offset > compiledLines[line].length) {
+      while (line < compiledLines.length &&
+          offset > compiledLines[line].length) {
         offset -= compiledLines[line].length + 1;
         line++;
       }
@@ -109,26 +113,27 @@ Future<void> _process({
         .toList();
     for (final coverageKey in coverageKeys) {
       final coverage = coverageRoot[coverageKey] as Map<String, dynamic>;
-      final rangesList =
-          (coverage['ranges'] as List).cast<Map<String, dynamic>>();
+      final rangesList = (coverage['ranges'] as List)
+          .cast<Map<String, dynamic>>();
 
       // process coverages
       rangesList
           .map((r) => _Range(r['start'] as int, r['end'] as int))
           .expand(
-              (r) => List<int>.generate(r.end - r.start, (i) => i + r.start))
+            (r) => List<int>.generate(r.end - r.start, (i) => i + r.start),
+          )
           .map(_compiledPosition)
           .map((s) => _sourceLines(s.line, s.column))
           .where((e) => e != null && e.sourceUrlId != null)
-          .forEach(
-        (e) {
-          final sourceUrl = sm.urls[e!.sourceUrlId!];
-          if (sourceUrl.startsWith('org-dartlang-sdk:')) return;
-          final counts =
-              sourceCoverage.putIfAbsent(sourceUrl, () => <int, int>{});
-          counts[e.sourceLine!] = 1;
-        },
-      );
+          .forEach((e) {
+            final sourceUrl = sm.urls[e!.sourceUrlId!];
+            if (sourceUrl.startsWith('org-dartlang-sdk:')) return;
+            final counts = sourceCoverage.putIfAbsent(
+              sourceUrl,
+              () => <int, int>{},
+            );
+            counts[e.sourceLine!] = 1;
+          });
     }
   }
 

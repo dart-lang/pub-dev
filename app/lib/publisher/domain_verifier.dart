@@ -54,7 +54,8 @@ class DomainVerifier {
         retryIf: (e) => e is! auth.AccessDeniedException,
       );
       _logger.info(
-          'Received valid response with ${sites.siteEntry?.length} entries.');
+        'Received valid response with ${sites.siteEntry?.length} entries.',
+      );
       if (sites.siteEntry == null) {
         return false;
       }
@@ -62,9 +63,11 @@ class DomainVerifier {
       // Note. domains are prefixed 'sc-domain:' and 'siteOwner' is the only
       //       permission that ensures the user actually did DNS verification.
       final matchedDomains = sites.siteEntry!
-          .where((s) =>
-              s.siteUrl != null &&
-              s.siteUrl!.toLowerCase() == 'sc-domain:$domain')
+          .where(
+            (s) =>
+                s.siteUrl != null &&
+                s.siteUrl!.toLowerCase() == 'sc-domain:$domain',
+          )
           .toList();
       _logger.info('${matchedDomains.length} matching domain entries.');
       return matchedDomains.any(

@@ -40,7 +40,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final detectedPath = docFilePath.path;
   if (detectedPath == null) {
     return redirectResponse(
-        pkgDocUrl(docFilePath.package, version: docFilePath.version));
+      pkgDocUrl(docFilePath.package, version: docFilePath.version),
+    );
   }
   // 8.3.0 dartdoc links to directories without an ending slash.
   // This breaks base-uri, sidebar does not load, links do not work.
@@ -74,11 +75,13 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     );
   }
   if (version != resolved.urlSegment) {
-    return redirectResponse(pkgDocUrl(
-      package,
-      version: resolved.urlSegment,
-      relativePath: detectedPath,
-    ));
+    return redirectResponse(
+      pkgDocUrl(
+        package,
+        version: resolved.urlSegment,
+        relativePath: detectedPath,
+      ),
+    );
   } else {
     return await handleDartDoc(request, package, resolved, detectedPath);
   }
@@ -122,8 +125,10 @@ DocFilePath? parseRequestUri(Uri uri) {
     return DocFilePath(package, version, null);
   }
 
-  final relativeSegments =
-      uri.pathSegments.skip(3).where((s) => s.isNotEmpty).toList();
+  final relativeSegments = uri.pathSegments
+      .skip(3)
+      .where((s) => s.isNotEmpty)
+      .toList();
   var pathSegments = relativeSegments;
   if (_expandToIndexHtml(relativeSegments)) {
     pathSegments = [...relativeSegments, 'index.html'];
@@ -144,13 +149,7 @@ DocFilePath? parseRequestUri(Uri uri) {
   return DocFilePath(package, version, path);
 }
 
-const _nonExpandedExtensions = {
-  '.html',
-  '.json',
-  '.gz',
-  '.png',
-  '.svg',
-};
+const _nonExpandedExtensions = {'.html', '.json', '.gz', '.png', '.svg'};
 // NOTE: This is a best-effort detection on the segments.
 //       Instead, we should rather check if the file (or the updated path)
 //       is in the generated output, and base the decision on the file list.
@@ -187,38 +186,46 @@ bool _isValidVersion(String version) {
 ///
 /// Returns empty version and URL segment when there is no displayable version found.
 Future<ResolvedDocUrlVersion> _resolveDocUrlVersion(
-    String package, String version) async {
+  String package,
+  String version,
+) async {
   return await cache.resolvedDocUrlVersion(package, version).get(() async {
-    // Keep the `/latest/` URL if the latest finished is the latest version,
-    // otherwise redirect to the latest finished version.
-    if (version == 'latest') {
-      final latestFinished = await taskBackend.latestFinishedVersion(package);
-      if (latestFinished == null) {
-        return ResolvedDocUrlVersion.empty(
-            message: 'Analysis has not started yet.');
-      }
-      final latestVersion = await packageBackend.getLatestVersion(package);
-      return ResolvedDocUrlVersion(
-        version: latestFinished,
-        urlSegment: latestFinished == latestVersion ? 'latest' : latestFinished,
-      );
-    }
+        // Keep the `/latest/` URL if the latest finished is the latest version,
+        // otherwise redirect to the latest finished version.
+        if (version == 'latest') {
+          final latestFinished = await taskBackend.latestFinishedVersion(
+            package,
+          );
+          if (latestFinished == null) {
+            return ResolvedDocUrlVersion.empty(
+              message: 'Analysis has not started yet.',
+            );
+          }
+          final latestVersion = await packageBackend.getLatestVersion(package);
+          return ResolvedDocUrlVersion(
+            version: latestFinished,
+            urlSegment: latestFinished == latestVersion
+                ? 'latest'
+                : latestFinished,
+          );
+        }
 
-    // Do not resolve if package version does not exists.
-    final pv = await packageBackend.lookupPackageVersion(package, version);
-    if (pv == null) {
-      return ResolvedDocUrlVersion.empty(message: 'Not found.');
-    }
+        // Do not resolve if package version does not exists.
+        final pv = await packageBackend.lookupPackageVersion(package, version);
+        if (pv == null) {
+          return ResolvedDocUrlVersion.empty(message: 'Not found.');
+        }
 
-    // Select the closest version (may be the same as version) that has a finished analysis.
-    final closest = await taskBackend.closestFinishedVersion(
-      package,
-      version,
-      preferDocsCompleted: true,
-    );
-    return ResolvedDocUrlVersion(
-      version: closest ?? version,
-      urlSegment: closest ?? version,
-    );
-  }) as ResolvedDocUrlVersion;
+        // Select the closest version (may be the same as version) that has a finished analysis.
+        final closest = await taskBackend.closestFinishedVersion(
+          package,
+          version,
+          preferDocsCompleted: true,
+        );
+        return ResolvedDocUrlVersion(
+          version: closest ?? version,
+          urlSegment: closest ?? version,
+        );
+      })
+      as ResolvedDocUrlVersion;
 }

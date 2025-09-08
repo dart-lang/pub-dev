@@ -17,48 +17,65 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('Adjust like counts', () {
-    testWithProfile('no need to change like counts #1', fn: () async {
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      expect(await updatePackageLikes(), 0);
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.likes, p1!.likes);
-    });
+    testWithProfile(
+      'no need to change like counts #1',
+      fn: () async {
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        expect(await updatePackageLikes(), 0);
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.likes, p1!.likes);
+      },
+    );
 
-    testWithProfile('no need to change like counts #2', fn: () async {
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      await client.likePackage('oxygen');
-      expect(await updatePackageLikes(), 0);
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.likes, p1!.likes + 1);
-    });
+    testWithProfile(
+      'no need to change like counts #2',
+      fn: () async {
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        await client.likePackage('oxygen');
+        expect(await updatePackageLikes(), 0);
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.likes, p1!.likes + 1);
+      },
+    );
 
-    testWithProfile('missing like', fn: () async {
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      await withRetryTransaction(dbService, (tx) async {
-        final p = await tx.lookupValue<Package>(
-            dbService.emptyKey.append(Package, id: 'oxygen'));
-        p.likes++;
-        tx.insert(p);
-      });
-      expect(await updatePackageLikes(), 1);
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.likes, p1!.likes);
-    });
+    testWithProfile(
+      'missing like',
+      fn: () async {
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        await withRetryTransaction(dbService, (tx) async {
+          final p = await tx.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'oxygen'),
+          );
+          p.likes++;
+          tx.insert(p);
+        });
+        expect(await updatePackageLikes(), 1);
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.likes, p1!.likes);
+      },
+    );
 
-    testWithProfile('extra like', fn: () async {
-      final p1 = await packageBackend.lookupPackage('oxygen');
-      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-      await dbService.commit(inserts: [
-        Like()
-          ..parentKey = user.key
-          ..id = 'oxygen'
-          ..packageName = 'oxygen'
-          ..created = clock.now()
-      ]);
-      expect(await updatePackageLikes(), 1);
-      final p2 = await packageBackend.lookupPackage('oxygen');
-      expect(p2!.likes, p1!.likes + 1);
-    });
+    testWithProfile(
+      'extra like',
+      fn: () async {
+        final p1 = await packageBackend.lookupPackage('oxygen');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+        await dbService.commit(
+          inserts: [
+            Like()
+              ..parentKey = user.key
+              ..id = 'oxygen'
+              ..packageName = 'oxygen'
+              ..created = clock.now(),
+          ],
+        );
+        expect(await updatePackageLikes(), 1);
+        final p2 = await packageBackend.lookupPackage('oxygen');
+        expect(p2!.likes, p1!.likes + 1);
+      },
+    );
   });
 }

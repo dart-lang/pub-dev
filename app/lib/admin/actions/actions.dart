@@ -71,9 +71,8 @@ final class AdminAction {
   /// Returns a JSON response, a failed invocation should throw a
   /// [ResponseException].
   /// Any other exception will be considered an internal error.
-  final Future<Map<String, Object?>> Function(
-    Map<String, String?> arguments,
-  ) invoke;
+  final Future<Map<String, Object?>> Function(Map<String, String?> arguments)
+  invoke;
 
   AdminAction({
     required this.name,
@@ -87,8 +86,9 @@ final class AdminAction {
       throw ArgumentError.value(name, 'name');
     }
     // Check that the keys for options works as command-line options
-    if (options.keys
-        .any((k) => !RegExp(r'^[a-z][a-z0-9-]{0,128}$').hasMatch(k))) {
+    if (options.keys.any(
+      (k) => !RegExp(r'^[a-z][a-z0-9-]{0,128}$').hasMatch(k),
+    )) {
       throw ArgumentError.value(options, 'options');
     }
   }

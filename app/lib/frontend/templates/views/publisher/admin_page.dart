@@ -52,7 +52,8 @@ d.Node publisherAdminPageNode({
     d.h2(text: 'Members'),
     if (members.length == 1)
       d.p(
-        text: 'This publisher only has a single member. '
+        text:
+            'This publisher only has a single member. '
             'Consider adding more members to protect against losing control of the publisher.',
         classes: ['warning'],
       ),
@@ -75,10 +76,7 @@ d.Node publisherAdminPageNode({
           headerClasses: ['icons-header'],
           renderCell: (api.PublisherMember m) => d.a(
             classes: ['-pub-remove-user-button'],
-            attributes: {
-              'data-user-id': m.userId,
-              'data-email': m.email,
-            },
+            attributes: {'data-user-id': m.userId, 'data-email': m.email},
             title: 'Remove member',
             text: '×',
           ),
@@ -99,15 +97,16 @@ d.Node publisherAdminPageNode({
       classes: ['modal-content-hidden'],
       children: [
         d.p(
-          text: 'You can invite new members to this verified publisher. '
+          text:
+              'You can invite new members to this verified publisher. '
               'Once new members accept the invitation, they have full administrative rights, with the following abilities:',
         ),
         d.ul(
           children: [
             d.li(text: 'Transfer packages to and from this publisher'),
             d.li(
-                text:
-                    'Upload new versions of packages owned by this publisher'),
+              text: 'Upload new versions of packages owned by this publisher',
+            ),
             d.li(text: 'Add and remove members of this publisher'),
           ],
         ),

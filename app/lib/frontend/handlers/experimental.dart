@@ -31,7 +31,7 @@ class ExperimentalFlags {
 
   @visibleForTesting
   ExperimentalFlags(Set<String> enabled)
-      : _enabled = enabled.intersection(_allFlags);
+    : _enabled = enabled.intersection(_allFlags);
 
   static final List<PublicFlag> publicFlags = _publicFlags.toList()
     ..sort((a, b) => a.name.compareTo(b.name));

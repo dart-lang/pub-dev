@@ -23,18 +23,22 @@ void main() {
         'w_transport',
         'sass_transformer',
       ];
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'travis',
-          version: '0.0.1-dev',
-          description: compactDescription(
-              'A starting point for Dart libraries or applications.'),
-        ),
-        ...packageNames.map((packageName) => PackageDocument(
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(
+            package: 'travis',
+            version: '0.0.1-dev',
+            description: compactDescription(
+              'A starting point for Dart libraries or applications.',
+            ),
+          ),
+          ...packageNames.map(
+            (packageName) => PackageDocument(
               package: packageName,
               version: '1.0.0',
-              description:
-                  compactDescription('$packageName a package for $packageName'),
+              description: compactDescription(
+                '$packageName a package for $packageName',
+              ),
               readme: compactReadme('''
 # $packageName
 
@@ -45,13 +49,16 @@ void main() {
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 '''),
-            )),
-      ]);
+            ),
+          ),
+        ],
+      );
     });
 
     test('travis', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'travis', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'travis', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,

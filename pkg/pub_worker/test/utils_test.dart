@@ -21,70 +21,78 @@ void main() {
   });
 
   test('needs newer SDK', () {
+    expect(sdkMatchesConstraint(sdkVersion: null, constraint: null), true);
+
     expect(
-      sdkMatchesConstraint(sdkVersion: null, constraint: null),
+      sdkMatchesConstraint(
+        sdkVersion: null,
+        constraint: VersionConstraint.parse('^3.0.0'),
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: null, constraint: VersionConstraint.parse('^3.0.0')),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: null,
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'), constraint: null),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.parse('^3.0.0'),
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.parse('^3.0.0')),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.parse('^2.12.0'),
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.parse('^2.12.0')),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.parse('^1.0.0'),
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.parse('^1.0.0')),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.parse('>=0.0.0 <1.0.0'),
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.parse('>=0.0.0 <1.0.0')),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.parse('>=0.0.0 <4.0.0'),
+      ),
       true,
     );
 
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.parse('>=0.0.0 <4.0.0')),
-      true,
-    );
-
-    expect(
-      sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.any),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.any,
+      ),
       true,
     );
 
     // requires newer SDK
     expect(
       sdkMatchesConstraint(
-          sdkVersion: Version.parse('3.0.0'),
-          constraint: VersionConstraint.parse('^3.0.1')),
+        sdkVersion: Version.parse('3.0.0'),
+        constraint: VersionConstraint.parse('^3.0.1'),
+      ),
       false,
     );
   });

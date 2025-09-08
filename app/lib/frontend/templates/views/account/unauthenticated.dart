@@ -8,9 +8,13 @@ final unauthenticatedNode = d.fragment([
   d.h1(text: 'Authentication required'),
   d.p(text: 'You need to be logged in to view this page.'),
   d.p(
-      text: 'You can sign in using your Google account '
-          'by clicking on the top-right "Sign in" menu.'),
+    text:
+        'You can sign in using your Google account '
+        'by clicking on the top-right "Sign in" menu.',
+  ),
   d.p(
-      text: 'If you have not signed in on pub.dev before, '
-          'a pub.dev profile will be automatically created upon sign in.'),
+    text:
+        'If you have not signed in on pub.dev before, '
+        'a pub.dev profile will be automatically created upon sign in.',
+  ),
 ]);

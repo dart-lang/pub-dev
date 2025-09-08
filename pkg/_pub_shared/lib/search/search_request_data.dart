@@ -29,8 +29,8 @@ class SearchRequestData {
     this.limit,
     this.textMatchExtent,
     this.packages,
-  })  : query = _trimToNull(query),
-        publisherId = _trimToNull(publisherId);
+  }) : query = _trimToNull(query),
+       publisherId = _trimToNull(publisherId);
 
   factory SearchRequestData.fromJson(Map<String, dynamic> json) =>
       _$SearchRequestDataFromJson(json);
@@ -125,8 +125,7 @@ enum TextMatchExtent {
   readme,
 
   /// Text search is on names, descriptions, topic tags, readme content and API symbols.
-  api,
-  ;
+  api;
 
   /// Text search is on package names.
   bool shouldMatchName() => index >= name.index;

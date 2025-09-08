@@ -42,5 +42,7 @@ bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
 d.Node _renderDartCode(String text) =>
     d.codeSnippet(language: 'dart', text: text.trim());
 
-d.Node _renderPlainText(String text) =>
-    d.div(classes: ['highlight'], child: d.pre(text: text));
+d.Node _renderPlainText(String text) => d.div(
+  classes: ['highlight'],
+  child: d.pre(text: text),
+);

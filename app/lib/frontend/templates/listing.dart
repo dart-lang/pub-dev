@@ -107,9 +107,7 @@ class PageLinks {
 
   PageLinks(this.searchForm, this.count);
 
-  PageLinks.empty()
-      : searchForm = SearchForm(),
-        count = 1;
+  PageLinks.empty() : searchForm = SearchForm(), count = 1;
 
   int get leftmostPage => max(currentPage! - maxPageLinks ~/ 2, 1);
 

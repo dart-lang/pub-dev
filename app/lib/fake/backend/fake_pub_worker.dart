@@ -61,10 +61,7 @@ Future<void> processTasksLocallyWithPubWorker() async {
   await instancesDeleted;
 
   // Stop the task backend, and instance execution
-  await Future.wait([
-    taskBackend.stop(),
-    cloud.stopInstanceExecution(),
-  ]);
+  await Future.wait([taskBackend.stop(), cloud.stopInstanceExecution()]);
 }
 
 /// Process analysis tasks locally, using either:
@@ -101,8 +98,10 @@ Future<void> _fakeAnalysis(Payload payload) async {
     try {
       final api = PubApiClient(payload.pubHostedUrl, client: client);
       await withTempDirectory((tempDir) async {
-        final packageStatus =
-            await scoreCardBackend.getPackageStatus(payload.package, v.version);
+        final packageStatus = await scoreCardBackend.getPackageStatus(
+          payload.package,
+          v.version,
+        );
 
         final random = Random('${payload.package}/${v.version}'.hashCode);
         final documented = random.nextInt(21);
@@ -132,8 +131,9 @@ Future<void> _fakeAnalysis(Payload payload) async {
         final builder = IndexedBlobBuilder(blobFile.openWrite());
 
         Future<void> addFileAsStringGzipped(String path, String content) async {
-          final stream =
-              Stream.fromIterable([gzip.encode(utf8.encode(content))]);
+          final stream = Stream.fromIterable([
+            gzip.encode(utf8.encode(content)),
+          ]);
           await builder.addFile(path, stream);
         }
 
@@ -141,7 +141,9 @@ Future<void> _fakeAnalysis(Payload payload) async {
           await addFileAsStringGzipped('doc/${e.key}', e.value);
         }
         await addFileAsStringGzipped(
-            'summary.json', json.encode(summary.toJson()));
+          'summary.json',
+          json.encode(summary.toJson()),
+        );
         await addFileAsStringGzipped('log.txt', 'started\nstopped\n');
         final index = await builder.buildIndex(r.blobId);
 
@@ -198,7 +200,8 @@ Future<void> _analyzeWorker() async {
       final exitCode = await p.exitCode;
       if (exitCode != 0) {
         throw Exception(
-            'Failed to analyze ${payload.package} with exitCode $exitCode');
+          'Failed to analyze ${payload.package} with exitCode $exitCode',
+        );
       }
     });
   });
@@ -206,7 +209,8 @@ Future<void> _analyzeWorker() async {
 
 Future<void> fakeCloudComputeInstanceRunner(FakeCloudInstance instance) async {
   final payload = Payload.fromJson(
-      json.decode(instance.arguments.first) as Map<String, dynamic>);
+    json.decode(instance.arguments.first) as Map<String, dynamic>,
+  );
   await _fakeAnalysis(payload);
 }
 
@@ -217,43 +221,44 @@ Map<String, String> _fakeDartdocFiles(
   required int total,
 }) {
   final pubData = {
-    'coverage': {
-      'documented': documented,
-      'total': total,
-    },
+    'coverage': {'documented': documented, 'total': total},
     'apiElements': [
       // TODO: add fake library elements
     ],
   };
   return {
-    'index.html': json.encode(DartDocPage(
-      title: 'index',
-      description: 'index description',
-      breadcrumbs: [],
-      content: 'content',
-      left: 'left',
-      right: 'right',
-      baseHref: null,
-      usingBaseHref: null,
-      aboveSidebarUrl: null,
-      belowSidebarUrl: null,
-      redirectPath: null,
-    ).toJson()),
+    'index.html': json.encode(
+      DartDocPage(
+        title: 'index',
+        description: 'index description',
+        breadcrumbs: [],
+        content: 'content',
+        left: 'left',
+        right: 'right',
+        baseHref: null,
+        usingBaseHref: null,
+        aboveSidebarUrl: null,
+        belowSidebarUrl: null,
+        redirectPath: null,
+      ).toJson(),
+    ),
     'index.json': '{}',
     'pub-data.json': json.encode(pubData),
-    'search.html': json.encode(DartDocPage(
-      title: 'search',
-      description: 'search description',
-      breadcrumbs: [],
-      content: 'content',
-      left: 'left',
-      right: 'right',
-      baseHref: null,
-      usingBaseHref: null,
-      aboveSidebarUrl: null,
-      belowSidebarUrl: null,
-      redirectPath: null,
-    ).toJson()),
+    'search.html': json.encode(
+      DartDocPage(
+        title: 'search',
+        description: 'search description',
+        breadcrumbs: [],
+        content: 'content',
+        left: 'left',
+        right: 'right',
+        baseHref: null,
+        usingBaseHref: null,
+        aboveSidebarUrl: null,
+        belowSidebarUrl: null,
+        redirectPath: null,
+      ).toJson(),
+    ),
   };
 }
 
@@ -270,39 +275,40 @@ Future<void> _upload(
   int length, {
   required String filename,
   String contentType = 'application/octet-stream',
-}) async =>
-    await retry(() async {
-      final req = MultipartRequest('POST', Uri.parse(destination.url))
-        ..fields.addAll(destination.fields ?? {})
-        ..followRedirects = false
-        ..files.add(MultipartFile(
-          'file',
-          content(),
-          length,
-          filename: filename,
-          contentType: MediaType.parse(contentType),
-        ));
-      final res = await Response.fromStream(await client.send(req));
+}) async => await retry(() async {
+  final req = MultipartRequest('POST', Uri.parse(destination.url))
+    ..fields.addAll(destination.fields ?? {})
+    ..followRedirects = false
+    ..files.add(
+      MultipartFile(
+        'file',
+        content(),
+        length,
+        filename: filename,
+        contentType: MediaType.parse(contentType),
+      ),
+    );
+  final res = await Response.fromStream(await client.send(req));
 
-      if (400 <= res.statusCode && res.statusCode < 500) {
-        throw UploadException(
-          'HTTP error, status = ${res.statusCode}, body: ${res.body}',
-        );
-      }
-      if (500 <= res.statusCode && res.statusCode < 600) {
-        throw IntermittentUploadException(
-          'HTTP intermittent error, status = ${res.statusCode}, body: ${res.body}',
-        );
-      }
-      if (200 <= res.statusCode && res.statusCode < 300) {
-        return;
-      }
+  if (400 <= res.statusCode && res.statusCode < 500) {
+    throw UploadException(
+      'HTTP error, status = ${res.statusCode}, body: ${res.body}',
+    );
+  }
+  if (500 <= res.statusCode && res.statusCode < 600) {
+    throw IntermittentUploadException(
+      'HTTP intermittent error, status = ${res.statusCode}, body: ${res.body}',
+    );
+  }
+  if (200 <= res.statusCode && res.statusCode < 300) {
+    return;
+  }
 
-      // Unhandled response code -> retry
-      throw UploadException(
-        'Unhandled HTTP status = ${res.statusCode}, body: ${res.body}',
-      );
-    }, retryIf: (e) => e is IOException || e is IntermittentUploadException);
+  // Unhandled response code -> retry
+  throw UploadException(
+    'Unhandled HTTP status = ${res.statusCode}, body: ${res.body}',
+  );
+}, retryIf: (e) => e is IOException || e is IntermittentUploadException);
 
 final class UploadException implements Exception {
   final String message;

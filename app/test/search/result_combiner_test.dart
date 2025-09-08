@@ -39,7 +39,7 @@ void main() {
             'href': 'dart-core/dart-core-library.html',
             'kind': 8,
             'overriddenDepth': 0,
-            'packageName': 'Dart'
+            'packageName': 'Dart',
           },
           {
             'name': 'String',
@@ -48,7 +48,7 @@ void main() {
             'kind': 3,
             'overriddenDepth': 0,
             'packageName': 'Dart',
-            'enclosedBy': {'name': 'dart:core', 'kind': 8}
+            'enclosedBy': {'name': 'dart:core', 'kind': 8},
           },
           {
             'name': 'substring',
@@ -57,7 +57,7 @@ void main() {
             'kind': 9,
             'overriddenDepth': 0,
             'packageName': 'Dart',
-            'enclosedBy': {'name': 'String', 'kind': 3}
+            'enclosedBy': {'name': 'String', 'kind': 3},
           },
           {
             // fake method for checking the package name matches
@@ -67,7 +67,7 @@ void main() {
             'kind': 9,
             'overriddenDepth': 0,
             'packageName': 'Dart',
-            'enclosedBy': {'name': 'String', 'kind': 3}
+            'enclosedBy': {'name': 'String', 'kind': 3},
           },
         ]),
         flutterIndex: DartdocIndex([]),
@@ -75,8 +75,9 @@ void main() {
     );
 
     test('non-text ranking', () async {
-      final results = await combiner
-          .search(ServiceSearchQuery.parse(order: SearchOrder.downloads));
+      final results = await combiner.search(
+        ServiceSearchQuery.parse(order: SearchOrder.downloads),
+      );
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -88,8 +89,9 @@ void main() {
     });
 
     test('no actual text query', () async {
-      final results =
-          await combiner.search(ServiceSearchQuery.parse(query: 'package:s'));
+      final results = await combiner.search(
+        ServiceSearchQuery.parse(query: 'package:s'),
+      );
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -101,8 +103,9 @@ void main() {
     });
 
     test('search: substring', () async {
-      final results =
-          await combiner.search(ServiceSearchQuery.parse(query: 'substring'));
+      final results = await combiner.search(
+        ServiceSearchQuery.parse(query: 'substring'),
+      );
       expect(json.decode(json.encode(results.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -116,12 +119,12 @@ void main() {
               {
                 'path': 'dart-core/String/substring.html',
                 'url': contains('substring.html'),
-              }
-            ]
+              },
+            ],
           },
         ],
         'packageHits': [
-          {'package': 'stringutils', 'score': closeTo(0.67, 0.01)}
+          {'package': 'stringutils', 'score': closeTo(0.67, 0.01)},
         ],
       });
     });

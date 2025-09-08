@@ -17,9 +17,11 @@ void setupIssues() {
 void _guardReportIssue() {
   for (final bugLink in document.querySelectorAll('a.github_issue')) {
     bugLink.onClick.listen((event) {
-      if (!window.confirm('This link is for reporting issues for the pub site. '
-          'If you would like to report a problem with a package, please visit '
-          'its homepage or contact its developers.')) {
+      if (!window.confirm(
+        'This link is for reporting issues for the pub site. '
+        'If you would like to report a problem with a package, please visit '
+        'its homepage or contact its developers.',
+      )) {
         event.preventDefault();
       }
     });
@@ -33,7 +35,7 @@ void _fixIssueLinks() {
     final lines = <String>[
       'URL: ${window.location.href}',
       '',
-      '<Describe your issue or suggestion here>'
+      '<Describe your issue or suggestion here>',
     ];
 
     final issueLabels = ['Area: site feedback'];
@@ -50,7 +52,7 @@ void _fixIssueLinks() {
     final queryParams = {
       'body': lines.join('\n'),
       'title': bugTitle,
-      'labels': issueLabels.join(',')
+      'labels': issueLabels.join(','),
     };
 
     url = url.replace(queryParameters: queryParams);

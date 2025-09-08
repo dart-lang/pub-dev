@@ -36,15 +36,19 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   if (feedback != null) {
     switch (feedback) {
       case 'report-submitted':
-        return htmlResponse(renderReportFeedback(
-          title: 'Report submitted',
-          message: 'The report has been submitted successfully.',
-        ));
+        return htmlResponse(
+          renderReportFeedback(
+            title: 'Report submitted',
+            message: 'The report has been submitted successfully.',
+          ),
+        );
       case 'appeal-submitted':
-        return htmlResponse(renderReportFeedback(
-          title: 'Appeal submitted',
-          message: 'The appeal has been submitted successfully.',
-        ));
+        return htmlResponse(
+          renderReportFeedback(
+            title: 'Appeal submitted',
+            message: 'The appeal has been submitted successfully.',
+          ),
+        );
     }
     return notFoundHandler(request);
   }
@@ -66,12 +70,12 @@ Future<shelf.Response> reportPageHandler(shelf.Request request) async {
   _verifyUrl(url);
 
   final kind = caseId == null ? 'report' : 'appeal';
-  final onSuccessGotoUrl = request.requestedUri.replace(
-    path: '/report',
-    queryParameters: {
-      'feedback': '$kind-submitted',
-    },
-  ).toString();
+  final onSuccessGotoUrl = request.requestedUri
+      .replace(
+        path: '/report',
+        queryParameters: {'feedback': '$kind-submitted'},
+      )
+      .toString();
 
   return htmlResponse(
     renderReportPage(
@@ -98,7 +102,8 @@ Future<void> verifyModerationSubjectExists(ModerationSubject? subject) async {
       final pv = await packageBackend.lookupPackageVersion(package, version);
       if (pv == null) {
         throw NotFoundException(
-            'Package version "$package/$version" does not exist.');
+          'Package version "$package/$version" does not exist.',
+        );
       }
     }
   }
@@ -114,7 +119,9 @@ Future<void> verifyModerationSubjectExists(ModerationSubject? subject) async {
   final email = subject?.email;
   if (email != null) {
     InvalidInputException.check(
-        isValidEmail(email), '"$email" is not a valid email.');
+      isValidEmail(email),
+      '"$email" is not a valid email.',
+    );
 
     // NOTE: We are not going to lookup and reject the requests based on the
     //       email address, as it would leak the existence of user accounts.
@@ -143,22 +150,31 @@ Future<ModerationCase?> _loadAndVerifyCase(String? caseId) async {
   if (mc == null) {
     throw NotFoundException.resource('case_id "$caseId"');
   }
-  InvalidInputException.check(mc.status != ModerationStatus.pending,
-      'The reported case is not closed yet.');
+  InvalidInputException.check(
+    mc.status != ModerationStatus.pending,
+    'The reported case is not closed yet.',
+  );
   return mc;
 }
 
 Future<void> _verifyCaseSubject(
-    ModerationCase mc, ModerationSubject subject) async {
-  final hasSubject = mc.subject == subject.fqn ||
+  ModerationCase mc,
+  ModerationSubject subject,
+) async {
+  final hasSubject =
+      mc.subject == subject.fqn ||
       mc.getActionLog().entries.any((e) => e.subject == subject.fqn);
-  InvalidInputException.check(hasSubject,
-      'The reported case has no resolution on subject "${subject.fqn}".');
+  InvalidInputException.check(
+    hasSubject,
+    'The reported case has no resolution on subject "${subject.fqn}".',
+  );
 }
 
 /// Handles POST /api/report
 Future<Message> processReportPageHandler(
-    shelf.Request request, ReportForm form) async {
+  shelf.Request request,
+  ReportForm form,
+) async {
   final sourceIp = request.sourceIp;
   if (sourceIp != null) {
     await verifyRequestCounts(
@@ -213,7 +229,8 @@ Future<Message> processReportPageHandler(
     );
     if (appealExists) {
       throw InvalidInputException(
-          'You have previously appealed this incident, we are unable to accept another appeal.');
+        'You have previously appealed this incident, we are unable to accept another appeal.',
+      );
     }
   }
 
@@ -257,12 +274,14 @@ Future<Message> processReportPageHandler(
     'This $kind will be processed by the moderation team.',
   ].join('\n\n');
 
-  await emailSender.sendMessage(createReportPageAdminEmail(
-    caseId: caseId,
-    kindLabel: kindLabel,
-    userEmail: userEmail!,
-    bodyText: bodyText,
-  ));
+  await emailSender.sendMessage(
+    createReportPageAdminEmail(
+      caseId: caseId,
+      kindLabel: kindLabel,
+      userEmail: userEmail!,
+      bodyText: bodyText,
+    ),
+  );
 
   return Message(message: 'The $kind was submitted successfully.');
 }

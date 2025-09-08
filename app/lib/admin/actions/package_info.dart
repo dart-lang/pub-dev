@@ -13,9 +13,7 @@ final packageInfo = AdminAction(
   description: '''
 Loads and displays the package information.
 ''',
-  options: {
-    'package': 'The package to be loaded.',
-  },
+  options: {'package': 'The package to be loaded.'},
   invoke: (options) async {
     final package = options['package'];
     InvalidInputException.check(
@@ -31,9 +29,9 @@ Loads and displays the package information.
     final uploaderIds = p.uploaders;
     List<String>? uploaderEmails;
     if (uploaderIds != null) {
-      uploaderEmails = (await accountBackend.getEmailsOfUserIds(uploaderIds))
-          .nonNulls
-          .toList();
+      uploaderEmails = (await accountBackend.getEmailsOfUserIds(
+        uploaderIds,
+      )).nonNulls.toList();
     }
 
     return {

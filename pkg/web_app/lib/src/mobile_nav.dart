@@ -65,16 +65,16 @@ void _setEventForDetailMetadataToggle() {
       // state to activate  the view
       if (!isVisible) {
         await toggle();
-        window.history.replaceState({
-          'type': 'detail-metadata',
-          'url': currentUrl,
-          'visible': false,
-        }, '', null);
-        window.history.pushState({
-          'type': 'detail-metadata',
-          'url': currentUrl,
-          'visible': true,
-        }, currentTitle ?? '', null);
+        window.history.replaceState(
+          {'type': 'detail-metadata', 'url': currentUrl, 'visible': false},
+          '',
+          null,
+        );
+        window.history.pushState(
+          {'type': 'detail-metadata', 'url': currentUrl, 'visible': true},
+          currentTitle ?? '',
+          null,
+        );
       } else {
         window.history.back();
       }

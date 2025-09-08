@@ -19,9 +19,7 @@ class ClientSessionRequest {
   ///  * obtained from the OAuth2 flow used on the pub.dev website.
   final String? accessToken;
 
-  ClientSessionRequest({
-    required this.accessToken,
-  });
+  ClientSessionRequest({required this.accessToken});
 
   factory ClientSessionRequest.fromJson(Map<String, dynamic> json) =>
       _$ClientSessionRequestFromJson(json);
@@ -35,17 +33,15 @@ class ClientSessionStatus {
   final DateTime? expires;
   final DateTime? authenticatedAt;
 
-  ClientSessionStatus({
-    required this.expires,
-    required this.authenticatedAt,
-  });
+  ClientSessionStatus({required this.expires, required this.authenticatedAt});
 
   factory ClientSessionStatus.fromJson(Map<String, dynamic> json) =>
       _$ClientSessionStatusFromJson(json);
 
   factory ClientSessionStatus.fromBytes(List<int> bytes) =>
       ClientSessionStatus.fromJson(
-          json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
+        json.decode(utf8.decode(bytes)) as Map<String, dynamic>,
+      );
 
   Map<String, dynamic> toJson() => _$ClientSessionStatusToJson(this);
 
@@ -73,8 +69,11 @@ class PackageLikeResponse {
   bool? liked;
   DateTime? created;
 
-  PackageLikeResponse(
-      {required this.package, required this.liked, this.created});
+  PackageLikeResponse({
+    required this.package,
+    required this.liked,
+    this.created,
+  });
 
   factory PackageLikeResponse.fromJson(Map<String, dynamic> json) =>
       _$PackageLikeResponseFromJson(json);
@@ -104,9 +103,7 @@ class PackageLikesCount {
 class AccountPkgOptions {
   final bool? isAdmin;
 
-  AccountPkgOptions({
-    required this.isAdmin,
-  });
+  AccountPkgOptions({required this.isAdmin});
 
   factory AccountPkgOptions.fromJson(Map<String, dynamic> json) =>
       _$AccountPkgOptionsFromJson(json);
@@ -119,9 +116,7 @@ class AccountPkgOptions {
 class AccountPublisherOptions {
   final bool? isAdmin;
 
-  AccountPublisherOptions({
-    required this.isAdmin,
-  });
+  AccountPublisherOptions({required this.isAdmin});
 
   factory AccountPublisherOptions.fromJson(Map<String, dynamic> json) =>
       _$AccountPublisherOptionsFromJson(json);
@@ -137,10 +132,7 @@ class Consent {
   /// The description of the consent request, in HTML format.
   final String descriptionHtml;
 
-  Consent({
-    required this.titleText,
-    required this.descriptionHtml,
-  });
+  Consent({required this.titleText, required this.descriptionHtml});
 
   factory Consent.fromJson(Map<String, dynamic> json) =>
       _$ConsentFromJson(json);
@@ -170,10 +162,7 @@ class InviteStatus {
   /// send a new message before this timestamp.
   final DateTime nextNotification;
 
-  InviteStatus({
-    required this.emailSent,
-    required this.nextNotification,
-  });
+  InviteStatus({required this.emailSent, required this.nextNotification});
   factory InviteStatus.fromJson(Map<String, dynamic> json) =>
       _$InviteStatusFromJson(json);
   Map<String, dynamic> toJson() => _$InviteStatusToJson(this);

@@ -52,8 +52,9 @@ Future<shelf.Response> handleDartDoc(
   String path,
 ) async {
   InvalidInputException.checkPackageName(package);
-  final version =
-      InvalidInputException.checkSemanticVersion(resolvedDocUrlVersion.version);
+  final version = InvalidInputException.checkSemanticVersion(
+    resolvedDocUrlVersion.version,
+  );
 
   final isSearch = path == 'search.html';
   String? searchQueryParameter;
@@ -62,19 +63,17 @@ Future<shelf.Response> handleDartDoc(
     // are further parameters than `q`.
     final paramKeys = request.requestedUri.queryParameters.keys.toList();
     if (paramKeys.isEmpty || paramKeys.length > 1 || paramKeys.single != 'q') {
-      return redirectResponse(pkgDocUrl(
-        package,
-        version: resolvedDocUrlVersion.urlSegment,
-      ));
+      return redirectResponse(
+        pkgDocUrl(package, version: resolvedDocUrlVersion.urlSegment),
+      );
     }
 
     // Redirect to documentation root when the query parameter is empty.
     searchQueryParameter = request.requestedUri.queryParameters['q']!.trim();
     if (searchQueryParameter.isEmpty) {
-      return redirectResponse(pkgDocUrl(
-        package,
-        version: resolvedDocUrlVersion.urlSegment,
-      ));
+      return redirectResponse(
+        pkgDocUrl(package, version: resolvedDocUrlVersion.urlSegment),
+      );
     }
   }
 
@@ -84,8 +83,11 @@ Future<shelf.Response> handleDartDoc(
   final isHtml = ext == 'html';
   if (isHtml) {
     // try cached bytes first
-    final htmlBytesCacheEntry =
-        cache.dartdocHtmlBytes(package, resolvedDocUrlVersion.urlSegment, path);
+    final htmlBytesCacheEntry = cache.dartdocHtmlBytes(
+      package,
+      resolvedDocUrlVersion.urlSegment,
+      path,
+    );
     final htmlBytes = await htmlBytesCacheEntry.get();
     if (htmlBytes != null) {
       return htmlBytesResponse(htmlBytes);
@@ -93,16 +95,21 @@ Future<shelf.Response> handleDartDoc(
 
     // check cached status for redirect or missing pages
     final statusCacheEntry = cache.dartdocPageStatus(
-        package, resolvedDocUrlVersion.urlSegment, path);
+      package,
+      resolvedDocUrlVersion.urlSegment,
+      path,
+    );
     final cachedStatus = await statusCacheEntry.get();
     final cachedStatusCode = cachedStatus?.code;
 
     shelf.Response redirectPathResponse(String redirectPath) {
-      final newPath = p.normalize(p.joinAll([
-        p.dirname(path),
-        redirectPath,
-        if (!redirectPath.endsWith('.html')) 'index.html',
-      ]));
+      final newPath = p.normalize(
+        p.joinAll([
+          p.dirname(path),
+          redirectPath,
+          if (!redirectPath.endsWith('.html')) 'index.html',
+        ]),
+      );
       final newDocUrl = pkgDocUrl(
         package,
         version: resolvedDocUrlVersion.urlSegment,
@@ -112,11 +119,15 @@ Future<shelf.Response> handleDartDoc(
       // Sanity check to prevent redirecting outside of the generated document content,
       // as it shouldn't happen under normal operations. It may be a dartdoc bug or the
       // worker may have been compromised.
-      final docUrlRoot =
-          pkgDocUrl(package, version: resolvedDocUrlVersion.urlSegment);
+      final docUrlRoot = pkgDocUrl(
+        package,
+        version: resolvedDocUrlVersion.urlSegment,
+      );
       if (!newDocUrl.startsWith(docUrlRoot)) {
-        _logger.shout('$package ${resolvedDocUrlVersion.version} file $path '
-            'redirects outside of the documentation root: $newDocUrl');
+        _logger.shout(
+          '$package ${resolvedDocUrlVersion.version} file $path '
+          'redirects outside of the documentation root: $newDocUrl',
+        );
         return notFoundHandler(request);
       }
 
@@ -133,8 +144,10 @@ Future<shelf.Response> handleDartDoc(
     }
 
     if (cachedStatusCode == DocPageStatusCode.missing) {
-      return notFoundHandler(request,
-          body: cachedStatus!.errorMessage ?? 'Documentation page not found.');
+      return notFoundHandler(
+        request,
+        body: cachedStatus!.errorMessage ?? 'Documentation page not found.',
+      );
     }
 
     // try loading bytes;
@@ -157,8 +170,9 @@ Future<shelf.Response> handleDartDoc(
       try {
         final dataJson = gzippedUtf8JsonCodec.decode(dataGz);
         if (path.endsWith('-sidebar.html')) {
-          final sidebar =
-              DartDocSidebar.fromJson(dataJson as Map<String, dynamic>);
+          final sidebar = DartDocSidebar.fromJson(
+            dataJson as Map<String, dynamic>,
+          );
           return (DocPageStatus.ok(), utf8.encode(sidebar.content));
         }
 
@@ -172,18 +186,23 @@ Future<shelf.Response> handleDartDoc(
           return (DocPageStatus.redirect(redirectPath), null);
         }
 
-        final html = page.render(DartDocPageOptions(
-          package: package,
-          version: version,
-          urlSegment: resolvedDocUrlVersion.urlSegment,
-          isLatestStable: resolvedDocUrlVersion.isLatestStable,
-          path: path,
-          searchQueryParameter: searchQueryParameter,
-        ));
+        final html = page.render(
+          DartDocPageOptions(
+            package: package,
+            version: version,
+            urlSegment: resolvedDocUrlVersion.urlSegment,
+            isLatestStable: resolvedDocUrlVersion.isLatestStable,
+            path: path,
+            searchQueryParameter: searchQueryParameter,
+          ),
+        );
         return (DocPageStatus.ok(), utf8.encode(html.toString()));
       } on FormatException catch (e, st) {
         _logger.shout(
-            'Unable to parse dartdoc page for $package $version', e, st);
+          'Unable to parse dartdoc page for $package $version',
+          e,
+          st,
+        );
         return (DocPageStatus.missing('Unable to render page.'), null);
       }
     }();
@@ -196,8 +215,10 @@ Future<shelf.Response> handleDartDoc(
       case DocPageStatusCode.redirect:
         return redirectPathResponse(status.redirectPath!);
       case DocPageStatusCode.missing:
-        return notFoundHandler(request,
-            body: status.errorMessage ?? 'Documentation page not found.');
+        return notFoundHandler(
+          request,
+          body: status.errorMessage ?? 'Documentation page not found.',
+        );
     }
   }
 

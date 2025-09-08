@@ -34,7 +34,8 @@ final _jsonUtf8Base64 = json.fuse(utf8).fuse(base64Url);
 ///
 /// TODO: use a strict pattern to only allow Base64Url encoding without padding.
 final _jwtPattern = RegExp(
-    r'^[a-zA-Z0-9+/=_-]{4,}\.[a-zA-Z0-9+/=_-]{4,}\.[a-zA-Z0-9+/=_-]{4,}$');
+  r'^[a-zA-Z0-9+/=_-]{4,}\.[a-zA-Z0-9+/=_-]{4,}\.[a-zA-Z0-9+/=_-]{4,}$',
+);
 
 /// Representation of a JWT as defined by [RFC7519][1].
 ///
@@ -164,9 +165,9 @@ class JwtHeader extends UnmodifiableMapView<String, dynamic> {
   final String? kid;
 
   JwtHeader._(super.map)
-      : alg = parseAsStringOrNull(map, 'alg'),
-        typ = parseAsStringOrNull(map, 'typ'),
-        kid = parseAsStringOrNull(map, 'kid');
+    : alg = parseAsStringOrNull(map, 'alg'),
+      typ = parseAsStringOrNull(map, 'typ'),
+      kid = parseAsStringOrNull(map, 'kid');
 
   factory JwtHeader(Map<String, dynamic> values) {
     try {
@@ -198,11 +199,11 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   final List<String> aud;
 
   JwtPayload._(super.map)
-      : iat = _parseIntAsSecondsOrNull(map, 'iat'),
-        nbf = _parseIntAsSecondsOrNull(map, 'nbf'),
-        exp = _parseIntAsSecondsOrNull(map, 'exp'),
-        iss = parseAsStringOrNull(map, 'iss'),
-        aud = parseAsStringListOrNull(map, 'aud') ?? const <String>[];
+    : iat = _parseIntAsSecondsOrNull(map, 'iat'),
+      nbf = _parseIntAsSecondsOrNull(map, 'nbf'),
+      exp = _parseIntAsSecondsOrNull(map, 'exp'),
+      iss = parseAsStringOrNull(map, 'iss'),
+      aud = parseAsStringListOrNull(map, 'aud') ?? const <String>[];
 
   factory JwtPayload(Map<String, dynamic> map) {
     try {
@@ -222,10 +223,7 @@ class JwtPayload extends UnmodifiableMapView<String, dynamic> {
   ///
   /// Returns `false` if the current timestamp is outside of the allowed range.
   /// If the timestamp is missing, we treat it as if it were expired/invalid.
-  bool isTimely({
-    DateTime? now,
-    Duration threshold = Duration.zero,
-  }) {
+  bool isTimely({DateTime? now, Duration threshold = Duration.zero}) {
     now ??= clock.now();
 
     // JWT must have iat field, and it must be in the past.

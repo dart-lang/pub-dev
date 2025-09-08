@@ -10,22 +10,24 @@ import 'package:pub_dev/shared/env_config.dart';
 import 'openid_models.dart';
 
 /// Fetches the OpenID configuration and then the JSON Web Key list from the given endpoint.
-Future<OpenIdData> fetchOpenIdData({
-  required String configurationUrl,
-}) async {
+Future<OpenIdData> fetchOpenIdData({required String configurationUrl}) async {
   final configUri = Uri.parse(configurationUrl);
   if (!envConfig.isRunningLocally && configUri.scheme != 'https') {
     throw AssertionError(
-        'OpenID configuration URL must use `https` protocol, was: `$configurationUrl`.');
+      'OpenID configuration URL must use `https` protocol, was: `$configurationUrl`.',
+    );
   }
-  final providerBody =
-      await httpGetWithRetry(configUri, responseFn: (rs) => rs.body);
+  final providerBody = await httpGetWithRetry(
+    configUri,
+    responseFn: (rs) => rs.body,
+  );
   final providerData = json.decode(providerBody) as Map<String, dynamic>;
   final provider = OpenIdProvider.fromJson(providerData);
   final jwksUri = Uri.parse(provider.jwksUri);
   if (!envConfig.isRunningLocally && jwksUri.scheme != 'https') {
     throw AssertionError(
-        'JWKS URL must use `https` protocol, was: `$jwksUri`.');
+      'JWKS URL must use `https` protocol, was: `$jwksUri`.',
+    );
   }
   final jwksBody = await httpGetWithRetry(jwksUri, responseFn: (rs) => rs.body);
   final jwksData = json.decode(jwksBody) as Map<String, dynamic>;

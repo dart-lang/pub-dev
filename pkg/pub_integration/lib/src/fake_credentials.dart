@@ -10,15 +10,16 @@ String fakeCredentialsFileContent() {
 }
 
 /// The JSON Object of the fake credentials.json that can be used against fake_pub_server.
-Map<String, Object?> fakeCredentialsMap({
-  required String email,
-}) {
+Map<String, Object?> fakeCredentialsMap({required String email}) {
   return <String, Object?>{
-    'accessToken': base64Url.encode(utf8.encode(Uri(
-        path: email.replaceAll('@', '-at-').replaceAll('.', '-dot-'),
-        queryParameters: {
-          'aud': 'fake-client-audience',
-        }).toString())),
+    'accessToken': base64Url.encode(
+      utf8.encode(
+        Uri(
+          path: email.replaceAll('@', '-at-').replaceAll('.', '-dot-'),
+          queryParameters: {'aud': 'fake-client-audience'},
+        ).toString(),
+      ),
+    ),
     'refreshToken': 'refresh-token',
     'tokenEndpoint': 'http://localhost:9999/o/oauth2/token',
     'scopes': ['email', 'openid'],

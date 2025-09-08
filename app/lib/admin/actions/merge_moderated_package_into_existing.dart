@@ -30,16 +30,21 @@ Fails if that package has no existing Package entity.
         'The name of ModeratedPackage to merge into its existing Package.',
   },
   invoke: (args) async {
-    final packageName = args['package'] ??
+    final packageName =
+        args['package'] ??
         (throw InvalidInputException('Missing --package argument.'));
 
     await withRetryTransaction(dbService, (tx) async {
       // check ModeratedPackage existence
-      final mpKey =
-          dbService.emptyKey.append(ModeratedPackage, id: packageName);
+      final mpKey = dbService.emptyKey.append(
+        ModeratedPackage,
+        id: packageName,
+      );
       final mp = await tx.lookupOrNull<ModeratedPackage>(mpKey);
       InvalidInputException.check(
-          mp != null, 'ModeratedPackage does not exists.');
+        mp != null,
+        'ModeratedPackage does not exists.',
+      );
 
       // check Package existence
       final pKey = dbService.emptyKey.append(Package, id: packageName);
@@ -64,9 +69,6 @@ Fails if that package has no existing Package entity.
     });
     await triggerPackagePostUpdates(packageName).future;
 
-    return {
-      'package': packageName,
-      'merged': true,
-    };
+    return {'package': packageName, 'merged': true};
   },
 );

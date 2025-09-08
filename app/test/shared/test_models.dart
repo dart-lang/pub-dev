@@ -8,9 +8,7 @@ import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 
-final emptyTestProfile = TestProfile(
-  defaultUser: 'admin@pub.dev',
-);
+final emptyTestProfile = TestProfile(defaultUser: 'admin@pub.dev');
 
 final defaultTestProfile = TestProfile(
   defaultUser: 'admin@pub.dev',
@@ -37,25 +35,23 @@ final defaultTestProfile = TestProfile(
     ),
   ],
   users: [
-    TestUser(
-      email: 'admin@pub.dev',
-      likes: [],
-    ),
-    TestUser(
-      email: 'user@pub.dev',
-      likes: [],
-    ),
+    TestUser(email: 'admin@pub.dev', likes: []),
+    TestUser(email: 'user@pub.dev', likes: []),
   ],
 );
 
 const userAtPubDevEmail = 'user@pub.dev';
 const adminAtPubDevEmail = 'admin@pub.dev';
-String get adminClientToken => createFakeAuthTokenForEmail('admin@pub.dev',
-    audience: 'fake-client-audience');
+String get adminClientToken => createFakeAuthTokenForEmail(
+  'admin@pub.dev',
+  audience: 'fake-client-audience',
+);
 String get siteAdminToken =>
     createFakeServiceAccountToken(email: 'admin@pub.dev');
-String get userClientToken => createFakeAuthTokenForEmail('user@pub.dev',
-    audience: 'fake-client-audience');
+String get userClientToken => createFakeAuthTokenForEmail(
+  'user@pub.dev',
+  audience: 'fake-client-audience',
+);
 
 final String foobarReadmeContent = '''
 Test Package
@@ -96,12 +92,13 @@ dependencies:
 ''';
 
 PublisherMember publisherMember(
-        String? userId, String publisherId, String role) =>
-    PublisherMember()
-      ..parentKey =
-          Key.emptyKey(Partition(null)).append(Publisher, id: publisherId)
-      ..id = userId
-      ..userId = userId
-      ..created = DateTime(2019, 07, 16)
-      ..updated = DateTime(2019, 07, 16)
-      ..role = role;
+  String? userId,
+  String publisherId,
+  String role,
+) => PublisherMember()
+  ..parentKey = Key.emptyKey(Partition(null)).append(Publisher, id: publisherId)
+  ..id = userId
+  ..userId = userId
+  ..created = DateTime(2019, 07, 16)
+  ..updated = DateTime(2019, 07, 16)
+  ..role = role;

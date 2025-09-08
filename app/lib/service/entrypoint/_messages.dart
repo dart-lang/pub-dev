@@ -68,7 +68,8 @@ sealed class Message {
     if (value is Map) {
       if (value.keys.length != 1) {
         throw FormatException(
-            'Expected only a single key, got "${value.keys.join(', ')}"');
+          'Expected only a single key, got "${value.keys.join(', ')}"',
+        );
       }
       final key = value.keys.single;
       final inner = value[key] as Map<String, dynamic>;
@@ -114,16 +115,12 @@ class EntryMessage extends Message {
   /// is needed.
   final SendPort protocolSendPort;
 
-  EntryMessage({
-    required this.protocolSendPort,
-  });
+  EntryMessage({required this.protocolSendPort});
 
   @override
   Map<String, dynamic> encodeAsJson() {
     return {
-      'entry': {
-        'protocolSendPort': protocolSendPort,
-      },
+      'entry': {'protocolSendPort': protocolSendPort},
     };
   }
 }
@@ -134,16 +131,12 @@ class EntryMessage extends Message {
 class ReadyMessage extends Message {
   final SendPort? requestSendPort;
 
-  ReadyMessage({
-    this.requestSendPort,
-  });
+  ReadyMessage({this.requestSendPort});
 
   @override
   Map<String, dynamic> encodeAsJson() {
     return {
-      'ready': {
-        'requestSendPort': requestSendPort,
-      },
+      'ready': {'requestSendPort': requestSendPort},
     };
   }
 }
@@ -164,10 +157,7 @@ class RequestMessage extends Message {
   @override
   Map<String, dynamic> encodeAsJson() {
     return {
-      'request': {
-        'payload': payload,
-        'replyPort': replyPort,
-      },
+      'request': {'payload': payload, 'replyPort': replyPort},
     };
   }
 }
@@ -177,16 +167,9 @@ class ReplyMessage extends Message {
   final String? error;
   final Object? result;
 
-  ReplyMessage._({
-    required this.error,
-    required this.result,
-  });
-  ReplyMessage.error(String message)
-      : error = message,
-        result = null;
-  ReplyMessage.result(Object value)
-      : result = value,
-        error = null;
+  ReplyMessage._({required this.error, required this.result});
+  ReplyMessage.error(String message) : error = message, result = null;
+  ReplyMessage.result(Object value) : result = value, error = null;
 
   bool get isError => error != null;
 
@@ -196,7 +179,7 @@ class ReplyMessage extends Message {
       'reply': {
         if (error != null) 'error': error,
         if (result != null) 'result': result,
-      }
+      },
     };
   }
 }
@@ -210,9 +193,7 @@ class DebugMessage extends Message {
   @override
   Map<String, dynamic> encodeAsJson() {
     return {
-      'debug': {
-        'text': text,
-      },
+      'debug': {'text': text},
     };
   }
 }

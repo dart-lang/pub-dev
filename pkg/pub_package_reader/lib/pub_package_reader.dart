@@ -73,6 +73,7 @@ class PackageSummary {
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(
   String archivePath, {
+
   /// The maximum length of the extracted content text.
   int maxContentLength = 256 * 1024,
 
@@ -98,8 +99,11 @@ Future<PackageSummary> summarizePackageArchive(
 
   // Run scans before tar parsing...
   issues.addAll(
-      await scanArchiveSurface(archivePath, maxArchiveSize: maxArchiveSize)
-          .toList());
+    await scanArchiveSurface(
+      archivePath,
+      maxArchiveSize: maxArchiveSize,
+    ).toList(),
+  );
   if (issues.isNotEmpty) {
     return PackageSummary(issues: issues);
   }
@@ -114,7 +118,8 @@ Future<PackageSummary> summarizePackageArchive(
   } on TarException catch (e, st) {
     _logger.info('Failed to scan tar archive.', e, st);
     return PackageSummary.fail(
-        ArchiveIssue('Failed to scan tar archive. ($e)'));
+      ArchiveIssue('Failed to scan tar archive. ($e)'),
+    );
   } catch (e, st) {
     _logger.info('Failed to scan tar archive.', e, st);
     return PackageSummary.fail(ArchiveIssue('Failed to scan tar archive.'));
@@ -125,8 +130,11 @@ Future<PackageSummary> summarizePackageArchive(
   if (brokenSymlinks.isNotEmpty) {
     final from = brokenSymlinks.keys.first;
     final to = brokenSymlinks[from];
-    return PackageSummary.fail(ArchiveIssue(
-        'Package archive contains a broken symlink: `$from` -> `$to`.'));
+    return PackageSummary.fail(
+      ArchiveIssue(
+        'Package archive contains a broken symlink: `$from` -> `$to`.',
+      ),
+    );
   }
 
   // processing pubspec.yaml
@@ -150,10 +158,12 @@ Future<PackageSummary> summarizePackageArchive(
   // Reject packages using aliases in `pubspec.yaml`, these are poorly supported
   // when transcoding to json.
   if (yamlContainsAliases(pubspecContent)) {
-    issues.add(ArchiveIssue(
-      'pubspec.yaml may not use references (alias/anchors), '
-      'only the subset of YAML that can be encoded as JSON is allowed.',
-    ));
+    issues.add(
+      ArchiveIssue(
+        'pubspec.yaml may not use references (alias/anchors), '
+        'only the subset of YAML that can be encoded as JSON is allowed.',
+      ),
+    );
     return PackageSummary(issues: issues);
   }
 
@@ -189,11 +199,15 @@ Future<PackageSummary> summarizePackageArchive(
     final lower = file.toLowerCase();
     lowerCaseFiles.putIfAbsent(lower, () => <String>[]).add(file);
   }
-  final fileNameCollisions =
-      lowerCaseFiles.values.firstWhereOrNull((l) => l.length > 1);
+  final fileNameCollisions = lowerCaseFiles.values.firstWhereOrNull(
+    (l) => l.length > 1,
+  );
   if (fileNameCollisions != null) {
-    issues.add(ArchiveIssue(
-        'Filename collision on case-preserving file systems: ${fileNameCollisions.join(' vs. ')}.'));
+    issues.add(
+      ArchiveIssue(
+        'Filename collision on case-preserving file systems: ${fileNameCollisions.join(' vs. ')}.',
+      ),
+    );
   }
 
   if (pubspec.name.trim().isEmpty) {
@@ -207,8 +221,9 @@ Future<PackageSummary> summarizePackageArchive(
 
   String? readmePath = tar.firstMatchingFileNameOrNull(readmeFileNames);
   String? changelogPath = tar.firstMatchingFileNameOrNull(changelogFileNames);
-  String? examplePath =
-      tar.firstMatchingFileNameOrNull(exampleFileCandidates(pubspec.name));
+  String? examplePath = tar.firstMatchingFileNameOrNull(
+    exampleFileCandidates(pubspec.name),
+  );
   String? licensePath = tar.firstMatchingFileNameOrNull(licenseFileNames);
 
   final contentBytes = await tar.scanAndReadFiles(
@@ -221,8 +236,11 @@ Future<PackageSummary> summarizePackageArchive(
     final bytes = contentBytes[contentPath];
     if (bytes == null) return null;
     if (bytes.length > maxContentLength) {
-      issues.add(ArchiveIssue(
-          '`$contentPath` exceeds the maximum content length ($maxContentLength bytes).'));
+      issues.add(
+        ArchiveIssue(
+          '`$contentPath` exceeds the maximum content length ($maxContentLength bytes).',
+        ),
+      );
     }
     String content = utf8.decode(bytes, allowMalformed: true);
     if (content.length > maxContentLength) {
@@ -264,8 +282,9 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
   issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(syntaxCheckUrl(pubspec.documentation, 'documentation'));
-  issues
-      .addAll(syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'));
+  issues.addAll(
+    syntaxCheckUrl(pubspec.issueTracker?.toString(), 'issueTracker'),
+  );
   issues.addAll(validateEnvironmentKeys(pubspec));
   issues.addAll(validateDependencies(pubspec));
   issues.addAll(forbidGitDependencies(pubspec));
@@ -274,10 +293,9 @@ Future<PackageSummary> summarizePackageArchive(
   issues.addAll(validateKnownTemplateReadme(readmePath, readmeContent));
   issues.addAll(checkFunding(pubspecContent));
   issues.addAll(checkTopics(pubspecContent));
-  issues.addAll(checkHooks(
-    _minVersion(pubspec.environment['sdk']),
-    tar.fileNames,
-  ));
+  issues.addAll(
+    checkHooks(_minVersion(pubspec.environment['sdk']), tar.fileNames),
+  );
 
   return PackageSummary(
     issues: issues,
@@ -299,15 +317,18 @@ Future<PackageSummary> summarizePackageArchive(
 Iterable<ArchiveIssue> validatePackageName(String name) sync* {
   if (!identifierExpr.hasMatch(name)) {
     yield ArchiveIssue(
-        'Package name may only contain letters, numbers, and underscores.');
+      'Package name may only contain letters, numbers, and underscores.',
+    );
   }
   if (!startsWithLetterOrUnderscore.hasMatch(name)) {
     yield ArchiveIssue('Package name must begin with a letter or underscore.');
   }
 
   if (name.length > 64) {
-    yield ArchiveIssue('Package name must not exceed 64 characters. '
-        '(Please file an issue if you think you have a good reason for a longer name.)');
+    yield ArchiveIssue(
+      'Package name must not exceed 64 characters. '
+      '(Please file an issue if you think you have a good reason for a longer name.)',
+    );
   }
 }
 
@@ -337,8 +358,10 @@ Iterable<ArchiveIssue> validateNewPackageName(String name) sync* {
 /// Sanity checks for the package's version.
 Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
   if (version.toString().length > 64) {
-    yield ArchiveIssue('Package version must not exceed 64 characters. '
-        '(Please file an issue if you think you have a good reason for a longer version.)');
+    yield ArchiveIssue(
+      'Package version must not exceed 64 characters. '
+      '(Please file an issue if you think you have a good reason for a longer version.)',
+    );
   }
 }
 
@@ -362,15 +385,18 @@ Iterable<ArchiveIssue> validateDescription(String? description) sync* {
   }
   if (description.length > 512) {
     yield ArchiveIssue(
-        '`description` is too long, maximum length allowed: 512 characters.');
+      '`description` is too long, maximum length allowed: 512 characters.',
+    );
   }
   if (description.split(' ').any((part) => part.length > 64)) {
     yield ArchiveIssue(
-        '`description` uses too long phrases, maximum world length allowed: 64 characters.');
+      '`description` uses too long phrases, maximum world length allowed: 64 characters.',
+    );
   }
   if (hasEmojiCharacter(description)) {
     yield ArchiveIssue(
-        '`description` is not allowed to have emoji characters.');
+      '`description` is not allowed to have emoji characters.',
+    );
   }
   yield* validateKnownTemplateDescription(description);
 }
@@ -404,16 +430,18 @@ Iterable<ArchiveIssue> checkAuthors(String pubspecContent) sync* {
   final map = loadYaml(pubspecContent);
   if (map is Map && map.containsKey('author') && map.containsKey('authors')) {
     yield ArchiveIssue(
-        'Do not specify both `author` and `authors` in `pubspec.yaml`.');
+      'Do not specify both `author` and `authors` in `pubspec.yaml`.',
+    );
   }
 }
 
-final _strictRegExp = RegExp(r'^' // Start at beginning.
-    r'(\d+)\.(\d+)\.(\d+)' // Version number.
-    r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
-    r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
-    r'$' // End of string.
-    );
+final _strictRegExp = RegExp(
+  r'^' // Start at beginning.
+  r'(\d+)\.(\d+)\.(\d+)' // Version number.
+  r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
+  r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Build.
+  r'$', // End of string.
+);
 
 /// Checks if all version constraints follow a stricter pattern.
 Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
@@ -443,8 +471,11 @@ Iterable<ArchiveIssue> checkStrictVersions(Pubspec pubspec) sync* {
 
   yield* versions.nonNulls
       .where((v) => _strictRegExp.matchAsPrefix(v.toString()) == null)
-      .map((v) => ArchiveIssue(
-          'Version value `$v` does not follow strict version pattern.'));
+      .map(
+        (v) => ArchiveIssue(
+          'Version value `$v` does not follow strict version pattern.',
+        ),
+      );
 }
 
 final _preDart4 = VersionConstraint.parse('<4.0.0');
@@ -463,7 +494,8 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
       sdk.max == null ||
       sdk.max!.isAny) {
     yield ArchiveIssue(
-        'Dart SDK constraint with min and max range must be specified.');
+      'Dart SDK constraint with min and max range must be specified.',
+    );
     return;
   }
 
@@ -475,15 +507,17 @@ Iterable<ArchiveIssue> checkSdkVersionRange(Pubspec pubspec) sync* {
   // Dart 3 version accepted with valid upper constraint.
   if (sdk.allows(_firstDart4Pre)) {
     yield ArchiveIssue(
-        'The SDK constraint allows Dart 4.0.0, this is not allowed because Dart 4 does not exist.');
+      'The SDK constraint allows Dart 4.0.0, this is not allowed because Dart 4 does not exist.',
+    );
   }
 
   if (!sdk.intersect(_preNullSafety).isEmpty &&
       !sdk.intersect(_postDart3).isEmpty) {
     yield ArchiveIssue(
-        'An SDK lower bound constraint less than 2.12.0 is not compatible with Dart 3.\n'
-        'Either bump the lower bound SDK constraint to `>=2.12.0`, or\n'
-        'lower the upper bound SDK constraint to `<3.0.0`.');
+      'An SDK lower bound constraint less than 2.12.0 is not compatible with Dart 3.\n'
+      'Either bump the lower bound SDK constraint to `>=2.12.0`, or\n'
+      'lower the upper bound SDK constraint to `<3.0.0`.',
+    );
   }
 }
 
@@ -504,7 +538,8 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String? url, String name) sync* {
   final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
   if (!hasValidScheme) {
     yield ArchiveIssue(
-        'Use http:// or https:// URL schemes for $name URL: $url');
+      'Use http:// or https:// URL schemes for $name URL: $url',
+    );
   }
   if (uri.host.isEmpty ||
       !uri.host.contains('.') ||
@@ -517,7 +552,7 @@ Iterable<ArchiveIssue> syntaxCheckUrl(String? url, String name) sync* {
 const _knownEnvironmentKeys = <String>{
   'sdk', // the Dart SDK
   'flutter',
-  'fuchsia'
+  'fuchsia',
 };
 
 /// Validates that keys referenced in the `environment` section are
@@ -528,8 +563,10 @@ Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
     if (_knownEnvironmentKeys.contains(key)) {
       continue;
     }
-    yield ArchiveIssue('Unknown `environment` key in `pubspec.yaml`: `$key`.\n'
-        'Please check https://dart.dev/tools/pub/pubspec#sdk-constraints');
+    yield ArchiveIssue(
+      'Unknown `environment` key in `pubspec.yaml`: `$key`.\n'
+      'Please check https://dart.dev/tools/pub/pubspec#sdk-constraints',
+    );
   }
 }
 
@@ -541,13 +578,13 @@ Iterable<ArchiveIssue> validateEnvironmentKeys(Pubspec pubspec) sync* {
 Iterable<ArchiveIssue> validateDependencies(Pubspec pubspec) sync* {
   // This is not an inherently hard limit, it's merely a sanity limitation.
   if (pubspec.dependencies.length > 100) {
-    yield ArchiveIssue('Package must not exceed 100 direct dependencies. '
-        '(Please file an issue if you think you have a good reason for more dependencies.)');
+    yield ArchiveIssue(
+      'Package must not exceed 100 direct dependencies. '
+      '(Please file an issue if you think you have a good reason for more dependencies.)',
+    );
   }
 
-  final names = <String>{
-    ...pubspec.dependencies.keys,
-  };
+  final names = <String>{...pubspec.dependencies.keys};
   for (final name in names) {
     final issues = validatePackageName(name).toList();
     if (issues.isNotEmpty) {
@@ -607,7 +644,8 @@ Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
     json.decode(json.encode(map)) as Map<String, dynamic>?;
   } on JsonUnsupportedObjectError catch (_) {
     yield ArchiveIssue(
-        'pubspec.yaml contains values that can\'t be converted to JSON.');
+      'pubspec.yaml contains values that can\'t be converted to JSON.',
+    );
   } on Exception catch (e, st) {
     _logger.warning('Error while converting pubspec.yaml to JSON', e, st);
   }
@@ -640,20 +678,23 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
 
   if (usesOldPluginFormat && usesNewPluginFormat) {
     yield ArchiveIssue(
-        'In pubspec.yaml the flutter.plugin.platforms key cannot be '
-        'used in combination with the old '
-        'flutter.plugin.{androidPackage,iosPrefix,pluginClass} keys.\n\n'
-        'See $_pluginDocsUrl');
+      'In pubspec.yaml the flutter.plugin.platforms key cannot be '
+      'used in combination with the old '
+      'flutter.plugin.{androidPackage,iosPrefix,pluginClass} keys.\n\n'
+      'See $_pluginDocsUrl',
+    );
   }
 
   if (usesNewPluginFormat &&
       (pubspec.environment['flutter'] == null ||
-          pubspec.environment['flutter']!.allowsAny(VersionRange(
-            min: Version.parse('0.0.0'),
-            max: Version.parse('1.10.0'),
-            includeMin: true,
-            includeMax: false,
-          )))) {
+          pubspec.environment['flutter']!.allowsAny(
+            VersionRange(
+              min: Version.parse('0.0.0'),
+              max: Version.parse('1.10.0'),
+              includeMin: true,
+              includeMax: false,
+            ),
+          ))) {
     yield ArchiveIssue(
       'pubspec.yaml allows Flutter SDK version 1.9.x, which does '
       'not support the flutter.plugin.platforms key.\n'
@@ -680,26 +721,32 @@ Iterable<ArchiveIssue> requireIosFolderOrFlutter2_20(
 
   if (usesNewPluginFormat &&
       (pubspec.environment['flutter'] == null ||
-          pubspec.environment['flutter']!.allowsAny(VersionRange(
-            min: Version.parse('0.0.0'),
-            max: Version.parse('1.20.0'),
-            includeMin: true,
-            includeMax: false,
-          ))) &&
+          pubspec.environment['flutter']!.allowsAny(
+            VersionRange(
+              min: Version.parse('0.0.0'),
+              max: Version.parse('1.20.0'),
+              includeMin: true,
+              includeMax: false,
+            ),
+          )) &&
       !files.any((f) => f.startsWith('ios/'))) {
     yield ArchiveIssue(
-        'pubspec.yaml allows Flutter SDK version prior to 1.20.0, which does '
-        'not support having no `ios/` folder.\n'
-        'Please consider increasing the Flutter SDK requirement to '
-        '^1.20.0 or higher (environment.sdk.flutter) or create an `ios/` folder.\n\nSee $_pluginDocsUrl');
+      'pubspec.yaml allows Flutter SDK version prior to 1.20.0, which does '
+      'not support having no `ios/` folder.\n'
+      'Please consider increasing the Flutter SDK requirement to '
+      '^1.20.0 or higher (environment.sdk.flutter) or create an `ios/` folder.\n\nSee $_pluginDocsUrl',
+    );
   }
 }
 
 Iterable<ArchiveIssue> requireNonEmptyLicense(
-    String? path, String? content) sync* {
+  String? path,
+  String? content,
+) sync* {
   if (path == null || path != 'LICENSE') {
     yield ArchiveIssue(
-        '`LICENSE` file not found. All packages on pub.dev must contain a `LICENSE` file.');
+      '`LICENSE` file not found. All packages on pub.dev must contain a `LICENSE` file.',
+    );
     return;
   }
   if (content == null || content.trim().isEmpty) {
@@ -713,14 +760,17 @@ Iterable<ArchiveIssue> requireNonEmptyLicense(
 }
 
 Iterable<ArchiveIssue> checkScreenshots(
-    Pubspec pubspec, Iterable<String> files) sync* {
+  Pubspec pubspec,
+  Iterable<String> files,
+) sync* {
   if (pubspec.screenshots == null) return;
   for (final s in pubspec.screenshots!) {
     // check path
     final normalizedPath = p.normalize(s.path);
     if (normalizedPath != s.path) {
       yield ArchiveIssue(
-          'Screenshot `${s.path}` is not normalized, should be `$normalizedPath`.');
+        'Screenshot `${s.path}` is not normalized, should be `$normalizedPath`.',
+      );
     }
     if (!files.contains(normalizedPath)) {
       yield ArchiveIssue('Screenshot `${s.path}` is missing from archive.');
@@ -735,11 +785,13 @@ Iterable<ArchiveIssue> checkScreenshots(
     final textLength = s.description.trim().length;
     if (textLength < 10) {
       yield ArchiveIssue(
-          'Screenshot description for `${s.path}` is too short. Should be at least 10 characters.');
+        'Screenshot description for `${s.path}` is too short. Should be at least 10 characters.',
+      );
     }
     if (textLength > 200) {
       yield ArchiveIssue(
-          'Screenshot description for `${s.path}` is too long (over 200 characters).');
+        'Screenshot description for `${s.path}` is too long (over 200 characters).',
+      );
     }
     yield* validateZalgo('screenshot description', s.description);
   }
@@ -753,24 +805,28 @@ Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
   final funding = map['funding'];
   if (funding == null || funding is! List || funding.isEmpty) {
     yield ArchiveIssue(
-        '`pubspec.yaml` has invalid `funding`: only a list of URLs are allowed.');
+      '`pubspec.yaml` has invalid `funding`: only a list of URLs are allowed.',
+    );
     return;
   }
   for (final item in funding) {
     if (item is! String || item.trim().isEmpty) {
       yield ArchiveIssue(
-          'Invalid `funding` value (`$item`): only URLs are allowed.');
+        'Invalid `funding` value (`$item`): only URLs are allowed.',
+      );
       continue;
     }
     final uri = Uri.tryParse(item.trim());
     if (uri == null || uri.scheme != 'https') {
       yield ArchiveIssue(
-          'Invalid `funding` value (`$item`): only `https` URLs are allowed.');
+        'Invalid `funding` value (`$item`): only `https` URLs are allowed.',
+      );
       continue;
     }
     if (item.length > 255) {
       yield ArchiveIssue(
-          'Invalid `funding` value (`$item`): maximum URL length is 255 characters.');
+        'Invalid `funding` value (`$item`): maximum URL length is 255 characters.',
+      );
     }
   }
 }
@@ -783,51 +839,59 @@ Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
   final topics = map['topics'];
   if (topics == null || topics is! List || topics.isEmpty) {
     yield ArchiveIssue(
-        '`pubspec.yaml` has invalid `topics`: only a list of topic names are allowed.');
+      '`pubspec.yaml` has invalid `topics`: only a list of topic names are allowed.',
+    );
     return;
   }
   if (topics.length > 5) {
     yield ArchiveIssue(
-        '`pubspec.yaml` has invalid `topics`: at most 5 topics are allowed.');
+      '`pubspec.yaml` has invalid `topics`: at most 5 topics are allowed.',
+    );
     return;
   }
 
   for (var item in topics) {
     if (item is! String) {
       yield ArchiveIssue(
-          'Invalid `topics` value (`$item`): only strings are allowed.');
+        'Invalid `topics` value (`$item`): only strings are allowed.',
+      );
       continue;
     }
     item = item.trim();
     if (item.length < 2) {
       yield ArchiveIssue(
-          'Invalid `topics` value (`$item`): name is too short (less than 2 characters).');
+        'Invalid `topics` value (`$item`): name is too short (less than 2 characters).',
+      );
       continue;
     }
 
     if (item.length > 32) {
       yield ArchiveIssue(
-          'Invalid `topics` value (`$item`): name is too long (over 32 characters).');
+        'Invalid `topics` value (`$item`): name is too long (over 32 characters).',
+      );
       continue;
     }
 
     if (topics.where((x) => x == item).length > 1) {
       yield ArchiveIssue(
-          'Invalid `topics` value (`$item`): name must only be present once.');
+        'Invalid `topics` value (`$item`): name must only be present once.',
+      );
       continue;
     }
 
-    final RegExp regExp = RegExp(r'^' // Start at beginning.
-        r'[a-z]' // Start with alphabetic character.
-        r'([a-z0-9]|\-(?=[^\-]))*' // Can contain alphanumeric or dash but no double dash.
-        r'[a-z0-9]' // Must end with alphanumeric character.
-        r'$' // End of string.
-        );
+    final RegExp regExp = RegExp(
+      r'^' // Start at beginning.
+      r'[a-z]' // Start with alphabetic character.
+      r'([a-z0-9]|\-(?=[^\-]))*' // Can contain alphanumeric or dash but no double dash.
+      r'[a-z0-9]' // Must end with alphanumeric character.
+      r'$', // End of string.
+    );
     if (!regExp.hasMatch(item)) {
       yield ArchiveIssue(
-          'Invalid `topics` value (`$item`): must consist of lowercase '
-          'alphanumerical characters or dash (but no double dash), starting '
-          'with a-z and ending with a-z or 0-9.');
+        'Invalid `topics` value (`$item`): must consist of lowercase '
+        'alphanumerical characters or dash (but no double dash), starting '
+        'with a-z and ending with a-z or 0-9.',
+      );
       continue;
     }
   }
@@ -856,19 +920,22 @@ Iterable<ArchiveIssue> checkHooks(
   Version? minimumSdkConstraint,
   Set<String> fileNames,
 ) sync* {
-  final hookFiles =
-      fileNames.where((f) => f.startsWith('hook/') && f.endsWith('.dart'));
+  final hookFiles = fileNames.where(
+    (f) => f.startsWith('hook/') && f.endsWith('.dart'),
+  );
   for (final hookFile in hookFiles) {
     if (!_allowedHookFiles.containsKey(hookFile)) {
       yield ArchiveIssue(
-          'Hook files are experimental and `$hookFile` is not allowed yet.');
+        'Hook files are experimental and `$hookFile` is not allowed yet.',
+      );
       continue;
     }
     final hookLowerConstraint = _allowedHookFiles[hookFile]!;
     if (minimumSdkConstraint == null ||
         minimumSdkConstraint.compareTo(hookLowerConstraint) < 0) {
       yield ArchiveIssue(
-          '`$hookFile` is allowed only with a minimum SDK constraint of `$hookLowerConstraint`.');
+        '`$hookFile` is allowed only with a minimum SDK constraint of `$hookLowerConstraint`.',
+      );
     }
   }
 }

@@ -28,9 +28,9 @@ String? get _csrfMetaContent => document.head
 class _AuthenticatedClient extends _BrowserClient {
   @override
   Future<Map<String, String>> get _sendHeaders async => {
-        if (_csrfMetaContent case final csrfToken? when csrfToken.isNotEmpty)
-          'x-pub-csrf-token': csrfToken,
-      };
+    if (_csrfMetaContent case final csrfToken? when csrfToken.isNotEmpty)
+      'x-pub-csrf-token': csrfToken,
+  };
 }
 
 /// An [Client] which updates the headers for each request.
@@ -61,12 +61,9 @@ class _RequestImpl extends BaseRequest {
   _RequestImpl.fromRequest(
     BaseRequest request, {
     required Map<String, String> updateHeaders,
-  })  : _stream = request.finalize(),
-        super(request.method, request.url) {
-    final newKeys = <String>{
-      ...request.headers.keys,
-      ...updateHeaders.keys,
-    };
+  }) : _stream = request.finalize(),
+       super(request.method, request.url) {
+    final newKeys = <String>{...request.headers.keys, ...updateHeaders.keys};
     for (final key in newKeys) {
       final newValue = updateHeaders[key] ?? request.headers[key];
       if (newValue != null) {

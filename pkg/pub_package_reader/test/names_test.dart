@@ -9,8 +9,11 @@ import 'package:test/test.dart';
 void main() {
   group('Reserved words', () {
     test('matching grammar file', () async {
-      final rs = await http.get(Uri.parse(
-          'https://raw.githubusercontent.com/dart-lang/sdk/main/tools/spec_parser/Dart.g'));
+      final rs = await http.get(
+        Uri.parse(
+          'https://raw.githubusercontent.com/dart-lang/sdk/main/tools/spec_parser/Dart.g',
+        ),
+      );
       if (rs.statusCode != 200) {
         throw Exception('Unexpected status code: ${rs.statusCode}.');
       }

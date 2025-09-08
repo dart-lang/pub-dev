@@ -11,7 +11,8 @@ import '_tar_writer.dart';
 
 void main() {
   final minimalTextFiles = {
-    'pubspec.yaml': 'name: abc\n'
+    'pubspec.yaml':
+        'name: abc\n'
         'version: 1.0.0\n'
         'description: abc is awesome\n'
         'environment:\n  sdk: \'>=2.10.0 <3.0.0\'\n',
@@ -22,7 +23,8 @@ void main() {
 
   group('File count', () {
     final archiveFile = File(
-        '${Directory.systemTemp.path}/${DateTime.now().microsecondsSinceEpoch}.tar.gz');
+      '${Directory.systemTemp.path}/${DateTime.now().microsecondsSinceEpoch}.tar.gz',
+    );
 
     tearDownAll(() async {
       if (!await archiveFile.exists()) {
@@ -31,9 +33,7 @@ void main() {
     });
 
     Future<void> _writeWithFiles(int count) async {
-      final files = {
-        ...minimalTextFiles,
-      };
+      final files = {...minimalTextFiles};
       while (files.length < count) {
         files['lib/f${files.length}.dart'] = '// no-op';
       }
@@ -42,17 +42,23 @@ void main() {
 
     test('below the limit', () async {
       await _writeWithFiles(1024);
-      final summary =
-          await summarizePackageArchive(archiveFile.path, maxFileCount: 1024);
+      final summary = await summarizePackageArchive(
+        archiveFile.path,
+        maxFileCount: 1024,
+      );
       expect(summary.hasIssues, isFalse);
     });
 
     test('above the limit', () async {
       await _writeWithFiles(1025);
-      final summary =
-          await summarizePackageArchive(archiveFile.path, maxFileCount: 1024);
-      expect(summary.issues.single.message,
-          'Failed to scan tar archive. (Maximum file count reached: 1024.)');
+      final summary = await summarizePackageArchive(
+        archiveFile.path,
+        maxFileCount: 1024,
+      );
+      expect(
+        summary.issues.single.message,
+        'Failed to scan tar archive. (Maximum file count reached: 1024.)',
+      );
     });
   });
 }

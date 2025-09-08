@@ -48,10 +48,7 @@ final class ExportedApi {
   final Pool _pool = Pool(80);
   final Storage _storage;
   final Bucket _bucket;
-  final List<String> _prefixes = [
-    'latest',
-    runtimeVersion,
-  ];
+  final List<String> _prefixes = ['latest', runtimeVersion];
 
   ExportedApi(this._storage, this._bucket);
 
@@ -98,9 +95,7 @@ final class ExportedApi {
       ..._prefixes.map((prefix) => _gcPrefix(prefix, allPackageNames)),
     ]);
     // Check if there are any stray files left after we've done a full GC cycle.
-    await Future.wait([
-      ..._prefixes.map((prefix) => _findStrayFiles(prefix)),
-    ]);
+    await Future.wait([..._prefixes.map((prefix) => _findStrayFiles(prefix))]);
     _log.info('Garbage collection completed.');
   }
 
@@ -136,8 +131,10 @@ final class ExportedApi {
         final BucketDirectoryEntry _ => throw AssertionError('unreachable'),
         final BucketObjectEntry item => item,
       };
-      final packageName =
-          item.name.without(prefix: archivePrefix).split('-').first;
+      final packageName = item.name
+          .without(prefix: archivePrefix)
+          .split('-')
+          .first;
       if (!allPackageNames.contains(packageName) &&
           item.updated.isBefore(gcFilesBefore)) {
         // Only delete the item if it's older than _minGarbageAge
@@ -157,42 +154,44 @@ final class ExportedApi {
       () async =>
           await _bucket.listAllItemsWithRetry(prefix: '', delimiter: '/'),
     );
-    await Future.wait(topLevelprefixes.map((entry) async {
-      if (entry.isObject) {
-        _log.pubNoticeShout(
-          'stray-file',
-          'Found stray top-level file "${entry.name}" in ExportedApi',
-        );
-        return; // ignore top-level files
-      }
+    await Future.wait(
+      topLevelprefixes.map((entry) async {
+        if (entry.isObject) {
+          _log.pubNoticeShout(
+            'stray-file',
+            'Found stray top-level file "${entry.name}" in ExportedApi',
+          );
+          return; // ignore top-level files
+        }
 
-      final topLevelPrefix = entry.name.without(suffix: '/');
-      if (_prefixes.contains(topLevelPrefix)) {
-        return; // Don't GC prefixes we are writing to
-      }
+        final topLevelPrefix = entry.name.without(suffix: '/');
+        if (_prefixes.contains(topLevelPrefix)) {
+          return; // Don't GC prefixes we are writing to
+        }
 
-      if (!runtimeVersionPattern.hasMatch(topLevelPrefix)) {
-        _log.pubNoticeShout(
-          'stray-file',
-          'Found stray top-level prefix "${entry.name}" in ExportedApi',
-        );
-        return; // Don't GC non-runtimeVersions
-      }
+        if (!runtimeVersionPattern.hasMatch(topLevelPrefix)) {
+          _log.pubNoticeShout(
+            'stray-file',
+            'Found stray top-level prefix "${entry.name}" in ExportedApi',
+          );
+          return; // Don't GC non-runtimeVersions
+        }
 
-      if (shouldGCVersion(topLevelPrefix)) {
-        _log.info(
-          'Garbage collecting old prefix "$topLevelPrefix/" '
-          '(removing all objects under it)',
-        );
+        if (shouldGCVersion(topLevelPrefix)) {
+          _log.info(
+            'Garbage collecting old prefix "$topLevelPrefix/" '
+            '(removing all objects under it)',
+          );
 
-        assert(entry.name.endsWith('/'));
-        await _listBucket(
-          prefix: entry.name,
-          delimiter: '',
-          (entry) async => await _bucket.deleteWithRetry(entry.name),
-        );
-      }
-    }));
+          assert(entry.name.endsWith('/'));
+          await _listBucket(
+            prefix: entry.name,
+            delimiter: '',
+            (entry) async => await _bucket.deleteWithRetry(entry.name),
+          );
+        }
+      }),
+    );
   }
 
   /// Search for stray files in [prefix]
@@ -235,19 +234,24 @@ final class ExportedApi {
     required String prefix,
     required String delimiter,
   }) async {
-    var p = await _pool.withResource(() async => await _bucket.pageWithRetry(
-          prefix: prefix,
-          delimiter: delimiter,
-          pageSize: 1000,
-        ));
+    var p = await _pool.withResource(
+      () async => await _bucket.pageWithRetry(
+        prefix: prefix,
+        delimiter: delimiter,
+        pageSize: 1000,
+      ),
+    );
     while (true) {
-      await Future.wait(p.items.map((item) async {
-        await _pool.withResource(() async => await each(item));
-      }));
+      await Future.wait(
+        p.items.map((item) async {
+          await _pool.withResource(() async => await each(item));
+        }),
+      );
 
       if (p.isLast) break;
-      p = await _pool
-          .withResource(() async => await p.nextWithRetry(pageSize: 1000));
+      p = await _pool.withResource(
+        () async => await p.nextWithRetry(pageSize: 1000),
+      );
     }
   }
 }
@@ -260,10 +264,10 @@ final class ExportedPackage {
   ExportedPackage._(this._owner, this._package);
 
   ExportedJsonFile<T> _suffix<T>(String suffix) => ExportedJsonFile<T>._(
-        _owner,
-        '/api/packages/$_package$suffix',
-        Duration(minutes: 2),
-      );
+    _owner,
+    '/api/packages/$_package$suffix',
+    Duration(minutes: 2),
+  );
 
   /// Interface for writing `/api/packages/<package>`.
   ///
@@ -290,19 +294,19 @@ final class ExportedPackage {
 
   /// Interface for writing `/api/packages/<package>/feed.atom`
   ExportedAtomFeedFile get feedAtomFile => ExportedAtomFeedFile._(
-        _owner,
-        '/api/packages/$_package/feed.atom',
-        Duration(hours: 12),
-      );
+    _owner,
+    '/api/packages/$_package/feed.atom',
+    Duration(hours: 12),
+  );
 
   /// Interace for writing `/api/archives/<package>-<version>.tar.gz`.
   ExportedBlob tarball(String version) => ExportedBlob._(
-        _owner,
-        '/api/archives/$_package-$version.tar.gz',
-        '$_package-$version.tar.gz',
-        'application/octet',
-        Duration(hours: 2),
-      );
+    _owner,
+    '/api/archives/$_package-$version.tar.gz',
+    '$_package-$version.tar.gz',
+    'application/octet',
+    Duration(hours: 2),
+  );
 
   /// Synchronize tarballs from [versions].
   ///
@@ -345,11 +349,9 @@ final class ExportedPackage {
 
           final info = versions[version];
           if (info != null && !forceWrite) {
-            await tarball(version)._copyToPrefixFromIfNotContentEquals(
-              prefix,
-              info,
-              item,
-            );
+            await tarball(
+              version,
+            )._copyToPrefixFromIfNotContentEquals(prefix, info, item);
             // This version needs not be uploaded again
             versionsForUpload.remove(version);
 
@@ -367,16 +369,18 @@ final class ExportedPackage {
         });
 
         // Upload missing versions
-        await Future.wait(versionsForUpload.map((v) async {
-          await _owner._pool.withResource(() async {
-            await tarball(v)._copyToPrefixFromIfNotContentEquals(
-              prefix,
-              versions[v]!,
-              null,
-              forceWrite: forceWrite,
-            );
-          });
-        }));
+        await Future.wait(
+          versionsForUpload.map((v) async {
+            await _owner._pool.withResource(() async {
+              await tarball(v)._copyToPrefixFromIfNotContentEquals(
+                prefix,
+                versions[v]!,
+                null,
+                forceWrite: forceWrite,
+              );
+            });
+          }),
+        );
       }),
     ]);
   }
@@ -471,11 +475,13 @@ sealed class ExportedObject {
 
   /// Delete this file.
   Future<void> delete() async {
-    await Future.wait(_owner._prefixes.map((prefix) async {
-      await _owner._pool.withResource(() async {
-        await _owner._bucket.deleteWithRetry(prefix + _objectName);
-      });
-    }));
+    await Future.wait(
+      _owner._prefixes.map((prefix) async {
+        await _owner._pool.withResource(() async {
+          await _owner._bucket.deleteWithRetry(prefix + _objectName);
+        });
+      }),
+    );
   }
 }
 
@@ -514,20 +520,14 @@ final class ExportedJsonFile<T> extends ExportedObject {
   static final _jsonGzip = json.fuse(utf8).fuse(gzip);
   final Duration _maxAge;
 
-  ExportedJsonFile._(
-    super._owner,
-    super._objectName,
-    this._maxAge,
-  ) : super._();
+  ExportedJsonFile._(super._owner, super._objectName, this._maxAge) : super._();
 
   ObjectMetadata _metadata() {
     return ObjectMetadata(
       contentType: 'application/json; charset="utf-8"',
       contentEncoding: 'gzip',
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
-      custom: {
-        _validatedCustomHeader: clock.now().toIso8601String(),
-      },
+      custom: {_validatedCustomHeader: clock.now().toIso8601String()},
     );
   }
 
@@ -539,16 +539,18 @@ final class ExportedJsonFile<T> extends ExportedObject {
     final gzipped = _jsonGzip.encode(data);
     final metadata = _metadata();
 
-    await Future.wait(_owner._prefixes.map((prefix) async {
-      await _owner._pool.withResource(() async {
-        await _owner._bucket.writeBytesIfDifferent(
-          prefix + _objectName,
-          gzipped,
-          metadata,
-          forceWrite: forceWrite,
-        );
-      });
-    }));
+    await Future.wait(
+      _owner._prefixes.map((prefix) async {
+        await _owner._pool.withResource(() async {
+          await _owner._bucket.writeBytesIfDifferent(
+            prefix + _objectName,
+            gzipped,
+            metadata,
+            forceWrite: forceWrite,
+          );
+        });
+      }),
+    );
   }
 }
 
@@ -561,20 +563,15 @@ final class ExportedJsonFile<T> extends ExportedObject {
 final class ExportedAtomFeedFile<T> extends ExportedObject {
   final Duration _maxAge;
 
-  ExportedAtomFeedFile._(
-    super._owner,
-    super._objectName,
-    this._maxAge,
-  ) : super._();
+  ExportedAtomFeedFile._(super._owner, super._objectName, this._maxAge)
+    : super._();
 
   ObjectMetadata _metadata() {
     return ObjectMetadata(
       contentType: 'application/atom+xml; charset="utf-8"',
       contentEncoding: 'gzip',
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
-      custom: {
-        _validatedCustomHeader: clock.now().toIso8601String(),
-      },
+      custom: {_validatedCustomHeader: clock.now().toIso8601String()},
     );
   }
 
@@ -586,16 +583,18 @@ final class ExportedAtomFeedFile<T> extends ExportedObject {
     final gzipped = gzip.encode(utf8.encode(content));
     final metadata = _metadata();
 
-    await Future.wait(_owner._prefixes.map((prefix) async {
-      await _owner._pool.withResource(() async {
-        await _owner._bucket.writeBytesIfDifferent(
-          prefix + _objectName,
-          gzipped,
-          metadata,
-          forceWrite: forceWrite,
-        );
-      });
-    }));
+    await Future.wait(
+      _owner._prefixes.map((prefix) async {
+        await _owner._pool.withResource(() async {
+          await _owner._bucket.writeBytesIfDifferent(
+            prefix + _objectName,
+            gzipped,
+            metadata,
+            forceWrite: forceWrite,
+          );
+        });
+      }),
+    );
   }
 }
 
@@ -623,9 +622,7 @@ final class ExportedBlob extends ExportedObject {
       contentType: _contentType,
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
       contentDisposition: 'attachment; filename="$_filename"',
-      custom: {
-        _validatedCustomHeader: clock.now().toIso8601String(),
-      },
+      custom: {_validatedCustomHeader: clock.now().toIso8601String()},
     );
   }
 
@@ -635,16 +632,18 @@ final class ExportedBlob extends ExportedObject {
   /// existing file, or if [forceWrite] is given.
   Future<void> write(List<int> data, {bool forceWrite = false}) async {
     final metadata = _metadata();
-    await Future.wait(_owner._prefixes.map((prefix) async {
-      await _owner._pool.withResource(() async {
-        await _owner._bucket.writeBytesIfDifferent(
-          prefix + _objectName,
-          data,
-          metadata,
-          forceWrite: forceWrite,
-        );
-      });
-    }));
+    await Future.wait(
+      _owner._prefixes.map((prefix) async {
+        await _owner._pool.withResource(() async {
+          await _owner._bucket.writeBytesIfDifferent(
+            prefix + _objectName,
+            data,
+            metadata,
+            forceWrite: forceWrite,
+          );
+        });
+      }),
+    );
   }
 
   /// Copy binary blob from [SourceObjectInfo] to this file.
@@ -660,18 +659,20 @@ final class ExportedBlob extends ExportedObject {
     SourceObjectInfo source, {
     bool forceWrite = false,
   }) async {
-    await Future.wait(_owner._prefixes.map((prefix) async {
-      await _owner._pool.withResource(() async {
-        final dst = prefix + _objectName;
+    await Future.wait(
+      _owner._prefixes.map((prefix) async {
+        await _owner._pool.withResource(() async {
+          final dst = prefix + _objectName;
 
-        await _copyToPrefixFromIfNotContentEquals(
-          prefix,
-          source,
-          await _owner._bucket.tryInfo(dst),
-          forceWrite: forceWrite,
-        );
-      });
-    }));
+          await _copyToPrefixFromIfNotContentEquals(
+            prefix,
+            source,
+            await _owner._bucket.tryInfo(dst),
+            forceWrite: forceWrite,
+          );
+        });
+      }),
+    );
   }
 
   /// Copy from [source] to [prefix] if required by [destinationInfo].
@@ -744,8 +745,9 @@ extension on Bucket {
     if (!forceWrite) {
       if (await tryInfo(name) case final info?) {
         if (info.isSameContent(bytes)) {
-          if (info.metadata.validated
-              .isBefore(clock.agoBy(_updateValidatedAfter))) {
+          if (info.metadata.validated.isBefore(
+            clock.agoBy(_updateValidatedAfter),
+          )) {
             try {
               await updateMetadataWithRetry(name, metadata);
             } catch (e, st) {

@@ -45,14 +45,16 @@ class SearchCommand extends Command {
         logger: _logger,
         kind: 'sdk',
         spawnUri: Uri.parse(
-            'package:pub_dev/service/entrypoint/sdk_isolate_index.dart'),
+          'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
+        ),
       );
       registerScopeExitCallback(sdkIsolate.close);
 
       registerSearchIndex(
         SearchResultCombiner(
-          primaryIndex:
-              LatencyAwareSearchIndex(IsolateSearchIndex(packageIsolate)),
+          primaryIndex: LatencyAwareSearchIndex(
+            IsolateSearchIndex(packageIsolate),
+          ),
           sdkIndex: SdkIsolateIndex(sdkIsolate),
         ),
       );
@@ -60,8 +62,10 @@ class SearchCommand extends Command {
       void scheduleRenew() {
         scheduleMicrotask(() async {
           // 12 - 17 minutes delay
-          final delay =
-              Duration(minutes: 12, seconds: delayDrift + _random.nextInt(240));
+          final delay = Duration(
+            minutes: 12,
+            seconds: delayDrift + _random.nextInt(240),
+          );
           await Future.delayed(delay);
 
           // create a new index and handover with a 2-minute maximum wait

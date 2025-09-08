@@ -17,10 +17,7 @@ void _pushMap(Map<String, Object?> data) {
 }
 
 /// Records a GTM [action] with within a [category].
-void gtmCustomEvent({
-  required String category,
-  required String action,
-}) {
+void gtmCustomEvent({required String category, required String action}) {
   _pushMap({
     'event': 'custom-event', // hardcoded, used in GTM Trigger
     'customEventCategory': category,

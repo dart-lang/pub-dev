@@ -35,12 +35,12 @@ void main() {
     group('List users', () {
       setupTestsWithAdminTokenIssues((client) => client.adminListUsers());
 
-      testWithProfile('OK', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final rs = await client.adminListUsers();
-        expect(
-          _json(rs.toJson()),
-          {
+      testWithProfile(
+        'OK',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          final rs = await client.adminListUsers();
+          expect(_json(rs.toJson()), {
             'users': [
               {
                 'userId': isNotNull,
@@ -53,106 +53,121 @@ void main() {
                 'email': isNotNull,
               },
             ],
-            'continuationToken': null
-          },
-        );
-        expect(rs.users.map((u) => u.email).toSet(), <String>{
-          'admin@pub.dev',
-          'user@pub.dev',
-        });
-      });
-
-      testWithProfile('pagination', fn: () async {
-        await accountBackend.withBearerToken(siteAdminToken, () async {
-          final page1 = await adminBackend.listUsers(limit: 1);
-          expect(
-            _json(page1.toJson()),
-            {
-              'users': [isNotNull],
-              'continuationToken': isNotNull,
-            },
-          );
-
-          final page2 = await adminBackend.listUsers(
-              continuationToken: page1.continuationToken);
-          expect(
-            _json(page2.toJson()),
-            {
-              'users': [isNotNull],
-              'continuationToken': null,
-            },
-          );
-
-          expect({
-            page1.users.single.email,
-            page2.users.single.email
-          }, {
+            'continuationToken': null,
+          });
+          expect(rs.users.map((u) => u.email).toSet(), <String>{
             'admin@pub.dev',
             'user@pub.dev',
           });
-        });
-      });
+        },
+      );
 
-      testWithProfile('lookup by email - not found', fn: () async {
-        await accountBackend.withBearerToken(siteAdminToken, () async {
-          final page = await adminBackend.listUsers(email: 'no@such.email');
-          expect(_json(page.toJson()), {
-            'users': [],
-            'continuationToken': null,
+      testWithProfile(
+        'pagination',
+        fn: () async {
+          await accountBackend.withBearerToken(siteAdminToken, () async {
+            final page1 = await adminBackend.listUsers(limit: 1);
+            expect(_json(page1.toJson()), {
+              'users': [isNotNull],
+              'continuationToken': isNotNull,
+            });
+
+            final page2 = await adminBackend.listUsers(
+              continuationToken: page1.continuationToken,
+            );
+            expect(_json(page2.toJson()), {
+              'users': [isNotNull],
+              'continuationToken': null,
+            });
+
+            expect(
+              {page1.users.single.email, page2.users.single.email},
+              {'admin@pub.dev', 'user@pub.dev'},
+            );
           });
-        });
-      });
+        },
+      );
 
-      testWithProfile('lookup by email - found', fn: () async {
-        await accountBackend.withBearerToken(siteAdminToken, () async {
-          final page = await adminBackend.listUsers(email: 'user@pub.dev');
-          expect(_json(page.toJson()), {
-            'users': [
-              {
-                'userId': isNotNull,
-                'oauthUserId': isNotNull,
-                'email': 'user@pub.dev',
-              },
-            ],
-            'continuationToken': null,
+      testWithProfile(
+        'lookup by email - not found',
+        fn: () async {
+          await accountBackend.withBearerToken(siteAdminToken, () async {
+            final page = await adminBackend.listUsers(email: 'no@such.email');
+            expect(_json(page.toJson()), {
+              'users': [],
+              'continuationToken': null,
+            });
           });
-        });
-      });
+        },
+      );
 
-      testWithProfile('lookup by oauthUserId - not found', fn: () async {
-        await accountBackend.withBearerToken(siteAdminToken, () async {
-          final page = await adminBackend.listUsers(oauthUserId: 'no-such-id');
-          expect(_json(page.toJson()), {
-            'users': [],
-            'continuationToken': null,
+      testWithProfile(
+        'lookup by email - found',
+        fn: () async {
+          await accountBackend.withBearerToken(siteAdminToken, () async {
+            final page = await adminBackend.listUsers(email: 'user@pub.dev');
+            expect(_json(page.toJson()), {
+              'users': [
+                {
+                  'userId': isNotNull,
+                  'oauthUserId': isNotNull,
+                  'email': 'user@pub.dev',
+                },
+              ],
+              'continuationToken': null,
+            });
           });
-        });
-      });
+        },
+      );
 
-      testWithProfile('lookup by oauthUserId - found', fn: () async {
-        await accountBackend.withBearerToken(siteAdminToken, () async {
-          final page =
-              await adminBackend.listUsers(oauthUserId: 'admin-pub-dev');
-          expect(_json(page.toJson()), {
-            'users': [
-              {
-                'userId': isNotNull,
-                'oauthUserId': 'admin-pub-dev',
-                'email': 'admin@pub.dev',
-              },
-            ],
-            'continuationToken': null,
+      testWithProfile(
+        'lookup by oauthUserId - not found',
+        fn: () async {
+          await accountBackend.withBearerToken(siteAdminToken, () async {
+            final page = await adminBackend.listUsers(
+              oauthUserId: 'no-such-id',
+            );
+            expect(_json(page.toJson()), {
+              'users': [],
+              'continuationToken': null,
+            });
           });
-        });
-      });
+        },
+      );
 
-      testWithProfile('lookup by multiple attribute', fn: () async {
-        await accountBackend.withBearerToken(siteAdminToken, () async {
-          final rs =
-              adminBackend.listUsers(email: 'x', oauthUserId: 'no-such-id');
-          await expectLater(rs, throwsA(isA<InvalidInputException>()));
-        });
-      });
+      testWithProfile(
+        'lookup by oauthUserId - found',
+        fn: () async {
+          await accountBackend.withBearerToken(siteAdminToken, () async {
+            final page = await adminBackend.listUsers(
+              oauthUserId: 'admin-pub-dev',
+            );
+            expect(_json(page.toJson()), {
+              'users': [
+                {
+                  'userId': isNotNull,
+                  'oauthUserId': 'admin-pub-dev',
+                  'email': 'admin@pub.dev',
+                },
+              ],
+              'continuationToken': null,
+            });
+          });
+        },
+      );
+
+      testWithProfile(
+        'lookup by multiple attribute',
+        fn: () async {
+          await accountBackend.withBearerToken(siteAdminToken, () async {
+            final rs = adminBackend.listUsers(
+              email: 'x',
+              oauthUserId: 'no-such-id',
+            );
+            await expectLater(rs, throwsA(isA<InvalidInputException>()));
+          });
+        },
+      );
     });
 
     group('Delete package', () {
@@ -163,160 +178,183 @@ void main() {
         ),
       );
 
-      testWithProfile('mark and revert', expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-      ], fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
-        final package = await dbService.lookupValue<Package>(pkgKey);
-        expect(package, isNotNull);
+      testWithProfile(
+        'mark and revert',
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        ],
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
+          final package = await dbService.lookupValue<Package>(pkgKey);
+          expect(package, isNotNull);
 
-        // mark for deletion
-        await client.adminInvokeAction(
-          'package-delete',
-          AdminInvokeActionArguments(arguments: {
+          // mark for deletion
+          await client.adminInvokeAction(
+            'package-delete',
+            AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'state': 'true'},
+            ),
+          );
+
+          // repeated call updates the timestamp
+          final rsAgain = await client.adminInvokeAction(
+            'package-delete',
+            AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'state': 'true'},
+            ),
+          );
+          expect(rsAgain.output, {
             'package': 'oxygen',
-            'state': 'true',
-          }),
-        );
+            'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+            'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+          });
+          expect(
+            (rsAgain.output['before'] as Map)['adminDeletedAt'] ==
+                (rsAgain.output['after'] as Map)['adminDeletedAt'],
+            isFalse,
+          );
 
-        // repeated call updates the timestamp
-        final rsAgain = await client.adminInvokeAction(
-          'package-delete',
-          AdminInvokeActionArguments(arguments: {
+          // package is no longer visible
+          final pkgAfterMarked = await dbService.lookupOrNull<Package>(pkgKey);
+          expect(pkgAfterMarked!.isVisible, false);
+          final archiveAfterMarked = await packageBackend.tarballStorage
+              .getPublicBucketArchiveInfo('oxygen', '1.2.0');
+          expect(archiveAfterMarked, isNull);
+          await expectLater(
+            () => packageBackend.listVersions('oxygen'),
+            throwsA(isA<NotFoundException>()),
+          );
+
+          // revert
+          final rsRevert = await client.adminInvokeAction(
+            'package-delete',
+            AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'state': 'false'},
+            ),
+          );
+          expect(rsRevert.output, {
             'package': 'oxygen',
-            'state': 'true',
-          }),
-        );
-        expect(rsAgain.output, {
-          'package': 'oxygen',
-          'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
-          'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
-        });
-        expect(
-          (rsAgain.output['before'] as Map)['adminDeletedAt'] ==
-              (rsAgain.output['after'] as Map)['adminDeletedAt'],
-          isFalse,
-        );
+            'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+            'after': {'isAdminDeleted': false, 'adminDeletedAt': null},
+          });
 
-        // package is no longer visible
-        final pkgAfterMarked = await dbService.lookupOrNull<Package>(pkgKey);
-        expect(pkgAfterMarked!.isVisible, false);
-        final archiveAfterMarked = await packageBackend.tarballStorage
-            .getPublicBucketArchiveInfo('oxygen', '1.2.0');
-        expect(archiveAfterMarked, isNull);
-        await expectLater(() => packageBackend.listVersions('oxygen'),
-            throwsA(isA<NotFoundException>()));
+          // package is visible again
+          final pkgAfterReverted = await dbService.lookupOrNull<Package>(
+            pkgKey,
+          );
+          expect(pkgAfterReverted!.isVisible, true);
+          final archiveAfterReverted = await packageBackend.tarballStorage
+              .getPublicBucketArchiveInfo('oxygen', '1.2.0');
+          expect(archiveAfterReverted, isNotNull);
+          final versionsAfterReverted = await packageBackend.listVersions(
+            'oxygen',
+          );
+          expect(versionsAfterReverted, isNotNull);
+        },
+      );
 
-        // revert
-        final rsRevert = await client.adminInvokeAction(
-          'package-delete',
-          AdminInvokeActionArguments(
-            arguments: {
-              'package': 'oxygen',
-              'state': 'false',
-            },
-          ),
-        );
-        expect(rsRevert.output, {
-          'package': 'oxygen',
-          'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
-          'after': {'isAdminDeleted': false, 'adminDeletedAt': null},
-        });
+      testWithProfile(
+        'OK',
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        ],
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
 
-        // package is visible again
-        final pkgAfterReverted = await dbService.lookupOrNull<Package>(pkgKey);
-        expect(pkgAfterReverted!.isVisible, true);
-        final archiveAfterReverted = await packageBackend.tarballStorage
-            .getPublicBucketArchiveInfo('oxygen', '1.2.0');
-        expect(archiveAfterReverted, isNotNull);
-        final versionsAfterReverted =
-            await packageBackend.listVersions('oxygen');
-        expect(versionsAfterReverted, isNotNull);
-      });
+          final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
+          final package = await dbService.lookupValue<Package>(pkgKey);
+          expect(package, isNotNull);
 
-      testWithProfile('OK', expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-      ], fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
+          final versionsQuery = dbService.query<PackageVersion>(
+            ancestorKey: pkgKey,
+          );
+          final versions = await versionsQuery.run().toList();
+          expect(versions.map((v) => v.version), [
+            '1.0.0',
+            '1.2.0',
+            '2.0.0-dev',
+          ]);
 
-        final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
-        final package = await dbService.lookupValue<Package>(pkgKey);
-        expect(package, isNotNull);
+          final userClient = await createFakeAuthPubApiClient(
+            email: userAtPubDevEmail,
+          );
+          await userClient.likePackage('oxygen');
 
-        final versionsQuery =
-            dbService.query<PackageVersion>(ancestorKey: pkgKey);
-        final versions = await versionsQuery.run().toList();
-        expect(versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
+          late Key likeKey;
+          await withFakeAuthRequestContext(userAtPubDevEmail, () async {
+            final user = await requireAuthenticatedWebUser();
+            likeKey = dbService.emptyKey
+                .append(User, id: user.userId)
+                .append(Like, id: 'oxygen');
+            final like = await dbService.lookupOrNull<Like>(likeKey);
+            expect(like, isNotNull);
+          });
 
-        final userClient =
-            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-        await userClient.likePackage('oxygen');
+          final moderatedPkgKey = dbService.emptyKey.append(
+            ModeratedPackage,
+            id: 'oxygen',
+          );
+          var moderatedPkg = await dbService.lookupOrNull<ModeratedPackage>(
+            moderatedPkgKey,
+          );
+          expect(moderatedPkg, isNull);
 
-        late Key likeKey;
-        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
-          final user = await requireAuthenticatedWebUser();
-          likeKey = dbService.emptyKey
-              .append(User, id: user.userId)
-              .append(Like, id: 'oxygen');
-          final like = await dbService.lookupOrNull<Like>(likeKey);
-          expect(like, isNotNull);
-        });
-
-        final moderatedPkgKey =
-            dbService.emptyKey.append(ModeratedPackage, id: 'oxygen');
-        var moderatedPkg =
-            await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
-        expect(moderatedPkg, isNull);
-
-        final timeBeforeRemoval = clock.now().toUtc();
-        final rs = await client.adminInvokeAction(
-          'package-delete',
-          AdminInvokeActionArguments(arguments: {
+          final timeBeforeRemoval = clock.now().toUtc();
+          final rs = await client.adminInvokeAction(
+            'package-delete',
+            AdminInvokeActionArguments(
+              arguments: {'package': 'oxygen', 'state': 'true'},
+            ),
+          );
+          expect(rs.output, {
             'package': 'oxygen',
-            'state': 'true',
-          }),
-        );
-        expect(rs.output, {
-          'package': 'oxygen',
-          'before': {'isAdminDeleted': false, 'adminDeletedAt': null},
-          'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
-        });
+            'before': {'isAdminDeleted': false, 'adminDeletedAt': null},
+            'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
+          });
 
-        // trigger removal after 60+ days
-        await withClock(Clock.fixed(clock.daysFromNow(63)),
-            () => adminBackend.deleteAdminDeletedEntities());
+          // trigger removal after 60+ days
+          await withClock(
+            Clock.fixed(clock.daysFromNow(63)),
+            () => adminBackend.deleteAdminDeletedEntities(),
+          );
 
-        // checks after actual removal
-        final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
-        expect(pkgAfterRemoval, isNull);
+          // checks after actual removal
+          final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
+          expect(pkgAfterRemoval, isNull);
 
-        final versionsAfterRemoval = await versionsQuery.run().toList();
-        expect(versionsAfterRemoval, isEmpty);
+          final versionsAfterRemoval = await versionsQuery.run().toList();
+          expect(versionsAfterRemoval, isEmpty);
 
-        final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
-        expect(likeAfterRemoval, isNull);
+          final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
+          expect(likeAfterRemoval, isNull);
 
-        moderatedPkg =
-            await dbService.lookupValue<ModeratedPackage>(moderatedPkgKey);
-        expect(moderatedPkg, isNotNull);
-        expect(moderatedPkg.name, package.name);
-        expect(moderatedPkg.moderated.isAfter(timeBeforeRemoval), isTrue);
-        expect(moderatedPkg.uploaders, package.uploaders);
-        expect(moderatedPkg.publisherId, package.publisherId);
-        expect(moderatedPkg.versions, ['1.0.0', '1.2.0', '2.0.0-dev']);
-      });
+          moderatedPkg = await dbService.lookupValue<ModeratedPackage>(
+            moderatedPkgKey,
+          );
+          expect(moderatedPkg, isNotNull);
+          expect(moderatedPkg.name, package.name);
+          expect(moderatedPkg.moderated.isAfter(timeBeforeRemoval), isTrue);
+          expect(moderatedPkg.uploaders, package.uploaders);
+          expect(moderatedPkg.publisherId, package.publisherId);
+          expect(moderatedPkg.versions, ['1.0.0', '1.2.0', '2.0.0-dev']);
+        },
+      );
     });
 
     group('Delete package version', () {
-      setupTestsWithAdminTokenIssues((client) => client.adminInvokeAction(
+      setupTestsWithAdminTokenIssues(
+        (client) => client.adminInvokeAction(
           'package-version-delete',
           AdminInvokeActionArguments(
-              arguments: {'package': 'oxygen', 'version': '1.2.0'})));
+            arguments: {'package': 'oxygen', 'version': '1.2.0'},
+          ),
+        ),
+      );
 
       testWithProfile(
         'marking and reverting',
@@ -364,16 +402,20 @@ void main() {
 
           // version is no longer visible
           final pvAfterMarked = await packageBackend.lookupPackageVersion(
-              'oxygen', removeVersion);
+            'oxygen',
+            removeVersion,
+          );
           expect(pvAfterMarked!.isVisible, false);
           final archiveAfterMarked = await packageBackend.tarballStorage
               .getPublicBucketArchiveInfo('oxygen', removeVersion);
           expect(archiveAfterMarked, isNull);
-          final versionsAfterMarked =
-              await packageBackend.listVersions('oxygen');
+          final versionsAfterMarked = await packageBackend.listVersions(
+            'oxygen',
+          );
           expect(
-            versionsAfterMarked.versions
-                .where((v) => v.version == removeVersion),
+            versionsAfterMarked.versions.where(
+              (v) => v.version == removeVersion,
+            ),
             isEmpty,
           );
 
@@ -397,145 +439,179 @@ void main() {
 
           // version is visible again
           final pvAfterReverted = await packageBackend.lookupPackageVersion(
-              'oxygen', removeVersion);
+            'oxygen',
+            removeVersion,
+          );
           expect(pvAfterReverted!.isVisible, true);
           final archiveAfterReverted = await packageBackend.tarballStorage
               .getPublicBucketArchiveInfo('oxygen', removeVersion);
           expect(archiveAfterReverted, isNotNull);
-          final versionsAfterReverted =
-              await packageBackend.listVersions('oxygen');
+          final versionsAfterReverted = await packageBackend.listVersions(
+            'oxygen',
+          );
           expect(
-            versionsAfterReverted.versions
-                .where((v) => v.version == removeVersion),
+            versionsAfterReverted.versions.where(
+              (v) => v.version == removeVersion,
+            ),
             isNotEmpty,
           );
         },
       );
 
-      testWithProfile('OK',
-          processJobsWithFakeRunners: true,
-          expectedLogMessages: [
-            'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-          ], fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final removeVersion = '1.2.0';
+      testWithProfile(
+        'OK',
+        processJobsWithFakeRunners: true,
+        expectedLogMessages: [
+          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        ],
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          final removeVersion = '1.2.0';
 
-        // pre-delete check: latest scorecard is on the removed version
-        final sc1 =
-            await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
-        expect(sc1.packageVersion, removeVersion);
+          // pre-delete check: latest scorecard is on the removed version
+          final sc1 = await scoreCardBackend.getLatestFinishedScoreCardData(
+            'oxygen',
+          );
+          expect(sc1.packageVersion, removeVersion);
 
-        final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
-        final package = await dbService.lookupValue<Package>(pkgKey);
-        expect(package, isNotNull);
-        expect(package.deletedVersions ?? [], isEmpty);
+          final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
+          final package = await dbService.lookupValue<Package>(pkgKey);
+          expect(package, isNotNull);
+          expect(package.deletedVersions ?? [], isEmpty);
 
-        final versionsQuery =
-            dbService.query<PackageVersion>(ancestorKey: pkgKey);
-        final versions = await versionsQuery.run().toList();
-        expect(versions.map((v) => v.version), ['1.0.0', '1.2.0', '2.0.0-dev']);
+          final versionsQuery = dbService.query<PackageVersion>(
+            ancestorKey: pkgKey,
+          );
+          final versions = await versionsQuery.run().toList();
+          expect(versions.map((v) => v.version), [
+            '1.0.0',
+            '1.2.0',
+            '2.0.0-dev',
+          ]);
 
-        final userClient =
-            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-        await userClient.likePackage('oxygen');
+          final userClient = await createFakeAuthPubApiClient(
+            email: userAtPubDevEmail,
+          );
+          await userClient.likePackage('oxygen');
 
-        late Key likeKey;
-        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
-          final user = await requireAuthenticatedWebUser();
-          likeKey = dbService.emptyKey
-              .append(User, id: user.userId)
-              .append(Like, id: 'oxygen');
-          final like = await dbService.lookupOrNull<Like>(likeKey);
-          expect(like, isNotNull);
-        });
+          late Key likeKey;
+          await withFakeAuthRequestContext(userAtPubDevEmail, () async {
+            final user = await requireAuthenticatedWebUser();
+            likeKey = dbService.emptyKey
+                .append(User, id: user.userId)
+                .append(Like, id: 'oxygen');
+            final like = await dbService.lookupOrNull<Like>(likeKey);
+            expect(like, isNotNull);
+          });
 
-        final moderatedPkgKey =
-            dbService.emptyKey.append(ModeratedPackage, id: 'oxygen');
-        var moderatedPkg =
-            await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
-        expect(moderatedPkg, isNull);
+          final moderatedPkgKey = dbService.emptyKey.append(
+            ModeratedPackage,
+            id: 'oxygen',
+          );
+          var moderatedPkg = await dbService.lookupOrNull<ModeratedPackage>(
+            moderatedPkgKey,
+          );
+          expect(moderatedPkg, isNull);
 
-        final timeBeforeRemoval = clock.now().toUtc();
-        final rs = await client.adminInvokeAction(
-          'package-version-delete',
-          AdminInvokeActionArguments(
-            arguments: {
-              'package': 'oxygen',
-              'version': removeVersion,
-              'state': 'true',
-            },
-          ),
-        );
+          final timeBeforeRemoval = clock.now().toUtc();
+          final rs = await client.adminInvokeAction(
+            'package-version-delete',
+            AdminInvokeActionArguments(
+              arguments: {
+                'package': 'oxygen',
+                'version': removeVersion,
+                'state': 'true',
+              },
+            ),
+          );
 
-        expect(rs.output, {
-          'package': 'oxygen',
-          'version': '1.2.0',
-          'before': {'isAdminDeleted': false, 'adminDeletedAt': null},
-          'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotEmpty},
-        });
+          expect(rs.output, {
+            'package': 'oxygen',
+            'version': '1.2.0',
+            'before': {'isAdminDeleted': false, 'adminDeletedAt': null},
+            'after': {'isAdminDeleted': true, 'adminDeletedAt': isNotEmpty},
+          });
 
-        // entity is present, but public archive is not accessible
-        final pvAfterMarked =
-            await packageBackend.lookupPackageVersion('oxygen', removeVersion);
-        expect(pvAfterMarked!.isVisible, false);
-        final archiveAfterMarked = await packageBackend.tarballStorage
-            .getPublicBucketArchiveInfo('oxygen', removeVersion);
-        expect(archiveAfterMarked, isNull);
-        final versionsAfterMarked = await packageBackend.listVersions('oxygen');
-        expect(
-          versionsAfterMarked.versions.where((v) => v.version == removeVersion),
-          isEmpty,
-        );
+          // entity is present, but public archive is not accessible
+          final pvAfterMarked = await packageBackend.lookupPackageVersion(
+            'oxygen',
+            removeVersion,
+          );
+          expect(pvAfterMarked!.isVisible, false);
+          final archiveAfterMarked = await packageBackend.tarballStorage
+              .getPublicBucketArchiveInfo('oxygen', removeVersion);
+          expect(archiveAfterMarked, isNull);
+          final versionsAfterMarked = await packageBackend.listVersions(
+            'oxygen',
+          );
+          expect(
+            versionsAfterMarked.versions.where(
+              (v) => v.version == removeVersion,
+            ),
+            isEmpty,
+          );
 
-        // trigger removal after 60+ days
-        await withClock(Clock.fixed(clock.daysFromNow(63)),
-            () => adminBackend.deleteAdminDeletedEntities());
+          // trigger removal after 60+ days
+          await withClock(
+            Clock.fixed(clock.daysFromNow(63)),
+            () => adminBackend.deleteAdminDeletedEntities(),
+          );
 
-        // checks after actual removal
-        final pkgAfter1stRemoval =
-            await dbService.lookupOrNull<Package>(pkgKey);
-        expect(pkgAfter1stRemoval, isNotNull);
-        expect(Version.parse(pkgAfter1stRemoval!.latestVersion!),
-            lessThan(Version.parse(removeVersion)));
-        expect(pkgAfter1stRemoval.updated!.isAfter(timeBeforeRemoval), isTrue);
-        expect(pkgAfter1stRemoval.versionCount, package.versionCount - 1);
-        expect(pkgAfter1stRemoval.deletedVersions, [removeVersion]);
+          // checks after actual removal
+          final pkgAfter1stRemoval = await dbService.lookupOrNull<Package>(
+            pkgKey,
+          );
+          expect(pkgAfter1stRemoval, isNotNull);
+          expect(
+            Version.parse(pkgAfter1stRemoval!.latestVersion!),
+            lessThan(Version.parse(removeVersion)),
+          );
+          expect(
+            pkgAfter1stRemoval.updated!.isAfter(timeBeforeRemoval),
+            isTrue,
+          );
+          expect(pkgAfter1stRemoval.versionCount, package.versionCount - 1);
+          expect(pkgAfter1stRemoval.deletedVersions, [removeVersion]);
 
-        final versionsAfterRemoval = await versionsQuery.run().toList();
-        final missingVersion = versions
-            .map((pv) => pv.version)
-            .where((version) =>
-                !versionsAfterRemoval.any((v) => v.version == version))
-            .single;
-        expect(versionsAfterRemoval, hasLength(versions.length - 1));
-        expect(missingVersion, removeVersion);
+          final versionsAfterRemoval = await versionsQuery.run().toList();
+          final missingVersion = versions
+              .map((pv) => pv.version)
+              .where(
+                (version) =>
+                    !versionsAfterRemoval.any((v) => v.version == version),
+              )
+              .single;
+          expect(versionsAfterRemoval, hasLength(versions.length - 1));
+          expect(missingVersion, removeVersion);
 
-        final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
-        expect(likeAfterRemoval, isNotNull);
+          final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
+          expect(likeAfterRemoval, isNotNull);
 
-        moderatedPkg =
-            await dbService.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
-        expect(moderatedPkg, isNull);
+          moderatedPkg = await dbService.lookupOrNull<ModeratedPackage>(
+            moderatedPkgKey,
+          );
+          expect(moderatedPkg, isNull);
 
-        // sanity check that scorecard is being loaded
-        final sc2 =
-            await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
-        expect(sc2.packageVersion, isNotEmpty);
-        await processTasksWithFakePanaAndDartdoc();
+          // sanity check that scorecard is being loaded
+          final sc2 = await scoreCardBackend.getLatestFinishedScoreCardData(
+            'oxygen',
+          );
+          expect(sc2.packageVersion, isNotEmpty);
+          await processTasksWithFakePanaAndDartdoc();
 
-        final sc3 =
-            await scoreCardBackend.getLatestFinishedScoreCardData('oxygen');
-        expect(sc3.packageVersion, '1.0.0');
-      });
+          final sc3 = await scoreCardBackend.getLatestFinishedScoreCardData(
+            'oxygen',
+          );
+          expect(sc3.packageVersion, '1.0.0');
+        },
+      );
     });
 
     group('Delete user', () {
-      setupTestsWithAdminTokenIssues(
-        (client) async {
-          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-          await client.adminRemoveUser(user.userId);
-        },
-      );
+      setupTestsWithAdminTokenIssues((client) async {
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+        await client.adminRemoveUser(user.userId);
+      });
 
       testWithProfile(
         'OK',
@@ -552,8 +628,9 @@ void main() {
           expect(oxygen.uploaders, []);
           expect(oxygen.isDiscontinued, true);
 
-          final publisher =
-              await publisherBackend.lookupPublisher('example.com');
+          final publisher = await publisherBackend.lookupPublisher(
+            'example.com',
+          );
           expect(publisher!.contactEmail, isNull);
           expect(publisher.isAbandoned, isTrue);
 
@@ -565,32 +642,36 @@ void main() {
         },
       );
 
-      testWithProfile('Likes are cleaned up on user deletion', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
+      testWithProfile(
+        'Likes are cleaned up on user deletion',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
 
-        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-        final userClient =
-            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-        await userClient.likePackage('oxygen');
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+          final userClient = await createFakeAuthPubApiClient(
+            email: userAtPubDevEmail,
+          );
+          await userClient.likePackage('oxygen');
 
-        final r2 = await client.getPackageLikes('oxygen');
-        expect(r2.likes, 1);
+          final r2 = await client.getPackageLikes('oxygen');
+          expect(r2.likes, 1);
 
-        final likeKey = dbService.emptyKey
-            .append(User, id: user.userId)
-            .append(Like, id: 'oxygen');
+          final likeKey = dbService.emptyKey
+              .append(User, id: user.userId)
+              .append(Like, id: 'oxygen');
 
-        Like? like = await dbService.lookupOrNull<Like>(likeKey);
-        expect(like, isNotNull);
+          Like? like = await dbService.lookupOrNull<Like>(likeKey);
+          expect(like, isNotNull);
 
-        await client.adminRemoveUser(user.userId);
+          await client.adminRemoveUser(user.userId);
 
-        final r3 = await client.getPackageLikes('oxygen');
-        expect(r3.likes, 0);
+          final r3 = await client.getPackageLikes('oxygen');
+          expect(r3.likes, 0);
 
-        like = await dbService.lookupOrNull<Like>(likeKey);
-        expect(like, null);
-      });
+          like = await dbService.lookupOrNull<Like>(likeKey);
+          expect(like, null);
+        },
+      );
 
       // TODO: delete with multiple uploaders
       // TODO: delete with multiple members (contact email not changed)
@@ -599,13 +680,17 @@ void main() {
 
     group('get assignedTags', () {
       setupTestsWithAdminTokenIssues(
-          (client) => client.adminGetAssignedTags('oxygen'));
+        (client) => client.adminGetAssignedTags('oxygen'),
+      );
 
-      testWithProfile('get assignedTags', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final result = await client.adminGetAssignedTags('oxygen');
-        expect(result.assignedTags, isNot(contains('is:featured')));
-      });
+      testWithProfile(
+        'get assignedTags',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          final result = await client.adminGetAssignedTags('oxygen');
+          expect(result.assignedTags, isNot(contains('is:featured')));
+        },
+      );
     });
 
     group('set assignedTags', () {
@@ -616,199 +701,273 @@ void main() {
         ),
       );
 
-      testWithProfile('set assignedTags', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
+      testWithProfile(
+        'set assignedTags',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
 
-        // Is initially not featured
-        final r1 = await client.adminGetAssignedTags('oxygen');
-        expect(r1.assignedTags, isNot(contains('is:featured')));
+          // Is initially not featured
+          final r1 = await client.adminGetAssignedTags('oxygen');
+          expect(r1.assignedTags, isNot(contains('is:featured')));
 
-        // Set updating with no change, should have no effect
-        await client.adminPostAssignedTags(
-          'oxygen',
-          PatchAssignedTags(assignedTagsAdded: r1.assignedTags),
-        );
-        final r2 = await client.adminGetAssignedTags('oxygen');
-        expect(r2.assignedTags, isNot(contains('is:featured')));
+          // Set updating with no change, should have no effect
+          await client.adminPostAssignedTags(
+            'oxygen',
+            PatchAssignedTags(assignedTagsAdded: r1.assignedTags),
+          );
+          final r2 = await client.adminGetAssignedTags('oxygen');
+          expect(r2.assignedTags, isNot(contains('is:featured')));
 
-        // Check that we can set is:featured
-        await client.adminPostAssignedTags(
-          'oxygen',
-          PatchAssignedTags(assignedTagsAdded: ['is:featured']),
-        );
-        final r3 = await client.adminGetAssignedTags('oxygen');
-        expect(r3.assignedTags, contains('is:featured'));
+          // Check that we can set is:featured
+          await client.adminPostAssignedTags(
+            'oxygen',
+            PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+          );
+          final r3 = await client.adminGetAssignedTags('oxygen');
+          expect(r3.assignedTags, contains('is:featured'));
 
-        // Check that we can set is:featured (again)
-        await client.adminPostAssignedTags(
-          'oxygen',
-          PatchAssignedTags(assignedTagsAdded: ['is:featured']),
-        );
-        final r4 = await client.adminGetAssignedTags('oxygen');
-        expect(r4.assignedTags, contains('is:featured'));
+          // Check that we can set is:featured (again)
+          await client.adminPostAssignedTags(
+            'oxygen',
+            PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+          );
+          final r4 = await client.adminGetAssignedTags('oxygen');
+          expect(r4.assignedTags, contains('is:featured'));
 
-        // Check that we can remove the tag.
-        await client.adminPostAssignedTags(
-          'oxygen',
-          PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
-        );
-        final r5 = await client.adminGetAssignedTags('oxygen');
-        expect(r5.assignedTags, isNot(contains('is:featured')));
+          // Check that we can remove the tag.
+          await client.adminPostAssignedTags(
+            'oxygen',
+            PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
+          );
+          final r5 = await client.adminGetAssignedTags('oxygen');
+          expect(r5.assignedTags, isNot(contains('is:featured')));
 
-        // Check that we can remove the tag (again).
-        await client.adminPostAssignedTags(
-          'oxygen',
-          PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
-        );
-        final r6 = await client.adminGetAssignedTags('oxygen');
-        expect(r6.assignedTags, isNot(contains('is:featured')));
-      });
+          // Check that we can remove the tag (again).
+          await client.adminPostAssignedTags(
+            'oxygen',
+            PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
+          );
+          final r6 = await client.adminGetAssignedTags('oxygen');
+          expect(r6.assignedTags, isNot(contains('is:featured')));
+        },
+      );
     });
 
     group('package uploaders', () {
       void setupTestsWithPackageFailures(
         Future Function(PubApiClient client, String package) fn,
       ) {
-        testWithProfile('missing package', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = fn(client, 'missing_package');
-          await expectLater(
+        testWithProfile(
+          'missing package',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = fn(client, 'missing_package');
+            await expectLater(
               rs,
-              throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
-                  'body', contains('Could not find `missing_package`.'))));
-        });
+              throwsA(
+                isA<RequestException>().having(
+                  (e) => e.bodyAsString(),
+                  'body',
+                  contains('Could not find `missing_package`.'),
+                ),
+              ),
+            );
+          },
+        );
 
-        testWithProfile('invalid package with publisher', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = fn(client, 'neon');
-          await expectLater(
+        testWithProfile(
+          'invalid package with publisher',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = fn(client, 'neon');
+            await expectLater(
               rs,
-              throwsA(isA<RequestException>().having((e) => e.bodyAsString(),
-                  'body', contains('Package must not be under a publisher.'))));
-        });
+              throwsA(
+                isA<RequestException>().having(
+                  (e) => e.bodyAsString(),
+                  'body',
+                  contains('Package must not be under a publisher.'),
+                ),
+              ),
+            );
+          },
+        );
       }
 
       group('get', () {
         setupTestsWithAdminTokenIssues(
-            (client) => client.adminGetPackageUploaders('oxygen'));
+          (client) => client.adminGetPackageUploaders('oxygen'),
+        );
         setupTestsWithPackageFailures(
-            (client, package) => client.adminGetPackageUploaders(package));
+          (client, package) => client.adminGetPackageUploaders(package),
+        );
 
-        testWithProfile('reading uploaders', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = await client.adminGetPackageUploaders('oxygen');
-          expect(rs.uploaders.single.toJson(), {
-            'userId': isNotNull,
-            'oauthUserId': isNotNull,
-            'email': 'admin@pub.dev',
-          });
-        });
+        testWithProfile(
+          'reading uploaders',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = await client.adminGetPackageUploaders('oxygen');
+            expect(rs.uploaders.single.toJson(), {
+              'userId': isNotNull,
+              'oauthUserId': isNotNull,
+              'email': 'admin@pub.dev',
+            });
+          },
+        );
       });
 
       group('add', () {
-        setupTestsWithAdminTokenIssues((client) =>
-            client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'));
-        setupTestsWithPackageFailures((client, package) =>
-            client.adminAddPackageUploader(package, 'someuser@pub.dev'));
+        setupTestsWithAdminTokenIssues(
+          (client) =>
+              client.adminAddPackageUploader('oxygen', 'someuser@pub.dev'),
+        );
+        setupTestsWithPackageFailures(
+          (client, package) =>
+              client.adminAddPackageUploader(package, 'someuser@pub.dev'),
+        );
 
-        testWithProfile('adding existing uploader', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs =
-              await client.adminAddPackageUploader('oxygen', 'admin@pub.dev');
-          expect(rs.uploaders.single.toJson(), {
-            'userId': isNotNull,
-            'oauthUserId': isNotNull,
-            'email': 'admin@pub.dev',
-          });
-        });
+        testWithProfile(
+          'adding existing uploader',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = await client.adminAddPackageUploader(
+              'oxygen',
+              'admin@pub.dev',
+            );
+            expect(rs.uploaders.single.toJson(), {
+              'userId': isNotNull,
+              'oauthUserId': isNotNull,
+              'email': 'admin@pub.dev',
+            });
+          },
+        );
 
-        testWithProfile('adding new uploader', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          await client.adminAddPackageUploader('oxygen', 'someuser@pub.dev');
+        testWithProfile(
+          'adding new uploader',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            await client.adminAddPackageUploader('oxygen', 'someuser@pub.dev');
 
-          final records1 = await auditBackend.listRecordsForPackage('oxygen');
-          final inviteAuditRecord = records1.records
-              .firstWhere((e) => e.kind == AuditLogRecordKind.uploaderInvited);
-          expect(inviteAuditRecord.summary,
-              '`support@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.');
+            final records1 = await auditBackend.listRecordsForPackage('oxygen');
+            final inviteAuditRecord = records1.records.firstWhere(
+              (e) => e.kind == AuditLogRecordKind.uploaderInvited,
+            );
+            expect(
+              inviteAuditRecord.summary,
+              '`support@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.',
+            );
 
-          final consentRow = await dbService.query<Consent>().run().single;
-          expect(consentRow.args, ['oxygen']);
+            final consentRow = await dbService.query<Consent>().run().single;
+            expect(consentRow.args, ['oxygen']);
 
-          await (await createFakeAuthPubApiClient(email: 'someuser@pub.dev'))
-              .resolveConsent(
-            consentRow.consentId,
-            account_api.ConsentResult(granted: true),
-          );
+            await (await createFakeAuthPubApiClient(
+              email: 'someuser@pub.dev',
+            )).resolveConsent(
+              consentRow.consentId,
+              account_api.ConsentResult(granted: true),
+            );
 
-          final records2 = await auditBackend.listRecordsForPackage('oxygen');
-          final acceptedAuditRecord = records2.records.firstWhere(
-              (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted);
-          expect(acceptedAuditRecord.summary,
-              '`someuser@pub.dev` accepted uploader invite for package `oxygen`.');
+            final records2 = await auditBackend.listRecordsForPackage('oxygen');
+            final acceptedAuditRecord = records2.records.firstWhere(
+              (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted,
+            );
+            expect(
+              acceptedAuditRecord.summary,
+              '`someuser@pub.dev` accepted uploader invite for package `oxygen`.',
+            );
 
-          final uploaders = await client.adminGetPackageUploaders('oxygen');
-          expect(uploaders.uploaders.map((u) => u.email).toSet(), {
-            'admin@pub.dev',
-            'someuser@pub.dev',
-          });
-        });
+            final uploaders = await client.adminGetPackageUploaders('oxygen');
+            expect(uploaders.uploaders.map((u) => u.email).toSet(), {
+              'admin@pub.dev',
+              'someuser@pub.dev',
+            });
+          },
+        );
       });
 
       group('remove', () {
-        setupTestsWithAdminTokenIssues((client) =>
-            client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'));
+        setupTestsWithAdminTokenIssues(
+          (client) =>
+              client.adminRemovePackageUploader('oxygen', 'admin@pub.dev'),
+        );
 
-        setupTestsWithPackageFailures((client, package) =>
-            client.adminRemovePackageUploader(package, 'admin@pub.dev'));
+        setupTestsWithPackageFailures(
+          (client, package) =>
+              client.adminRemovePackageUploader(package, 'admin@pub.dev'),
+        );
 
-        testWithProfile('removing non-existing user', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs =
-              client.adminRemovePackageUploader('oxygen', 'someuser@pub.dev');
-          await expectLater(
+        testWithProfile(
+          'removing non-existing user',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = client.adminRemovePackageUploader(
+              'oxygen',
+              'someuser@pub.dev',
+            );
+            await expectLater(
               rs,
-              throwsA(isA<RequestException>().having(
+              throwsA(
+                isA<RequestException>().having(
                   (e) => e.bodyAsString(),
                   'body',
-                  contains('No users found for email: `someuser@pub.dev`.'))));
-        });
+                  contains('No users found for email: `someuser@pub.dev`.'),
+                ),
+              ),
+            );
+          },
+        );
 
-        testWithProfile('removing non-uploader user', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs =
-              await client.adminRemovePackageUploader('oxygen', 'user@pub.dev');
-          expect(rs.uploaders.single.toJson(), {
-            'userId': isNotNull,
-            'oauthUserId': isNotNull,
-            'email': 'admin@pub.dev',
-          });
-        });
+        testWithProfile(
+          'removing non-uploader user',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = await client.adminRemovePackageUploader(
+              'oxygen',
+              'user@pub.dev',
+            );
+            expect(rs.uploaders.single.toJson(), {
+              'userId': isNotNull,
+              'oauthUserId': isNotNull,
+              'email': 'admin@pub.dev',
+            });
+          },
+        );
 
-        testWithProfile('removing an uploader', fn: () async {
-          final userAtPubDev =
-              (await accountBackend.lookupUsersByEmail('user@pub.dev')).single;
-          final someUser = await withFakeAuthRequestContext(
-            'someuser@pub.dev',
-            () => requireAuthenticatedWebUser(),
-          );
+        testWithProfile(
+          'removing an uploader',
+          fn: () async {
+            final userAtPubDev = (await accountBackend.lookupUsersByEmail(
+              'user@pub.dev',
+            )).single;
+            final someUser = await withFakeAuthRequestContext(
+              'someuser@pub.dev',
+              () => requireAuthenticatedWebUser(),
+            );
 
-          final pkg = await packageBackend.lookupPackage('oxygen');
-          pkg!.uploaders = [userAtPubDev.userId, someUser.userId];
-          await dbService.commit(inserts: [pkg]);
+            final pkg = await packageBackend.lookupPackage('oxygen');
+            pkg!.uploaders = [userAtPubDev.userId, someUser.userId];
+            await dbService.commit(inserts: [pkg]);
 
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = await client.adminRemovePackageUploader(
-              'oxygen', 'someuser@pub.dev');
-          expect(rs.uploaders.single.email, 'user@pub.dev');
-        });
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = await client.adminRemovePackageUploader(
+              'oxygen',
+              'someuser@pub.dev',
+            );
+            expect(rs.uploaders.single.email, 'user@pub.dev');
+          },
+        );
 
-        testWithProfile('removing last uploader', fn: () async {
-          final client = createPubApiClient(authToken: siteAdminToken);
-          final rs = await client.adminRemovePackageUploader(
-              'oxygen', 'admin@pub.dev');
-          expect(rs.uploaders, isEmpty);
-        });
+        testWithProfile(
+          'removing last uploader',
+          fn: () async {
+            final client = createPubApiClient(authToken: siteAdminToken);
+            final rs = await client.adminRemovePackageUploader(
+              'oxygen',
+              'admin@pub.dev',
+            );
+            expect(rs.uploaders, isEmpty);
+          },
+        );
       });
     });
 
@@ -821,100 +980,133 @@ void main() {
         ),
       );
 
-      testWithProfile('bad retraction value', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        await expectApiException(
-          client.adminUpdateVersionOptions(
+      testWithProfile(
+        'bad retraction value',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          await expectApiException(
+            client.adminUpdateVersionOptions(
+              'oxygen',
+              '1.0.0',
+              VersionOptions(),
+            ),
+            status: 400,
+            code: 'InvalidInput',
+          );
+        },
+      );
+
+      testWithProfile(
+        'missing package',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          await expectApiException(
+            client.adminUpdateVersionOptions(
+              'no_such_package',
+              '1.0.0',
+              VersionOptions(isRetracted: true),
+            ),
+            status: 404,
+            code: 'NotFound',
+          );
+        },
+      );
+
+      testWithProfile(
+        'missing version',
+        fn: () async {
+          final client = createPubApiClient(authToken: siteAdminToken);
+          await expectApiException(
+            client.adminUpdateVersionOptions(
+              'oxygen',
+              '1.0.0-no-such-version',
+              VersionOptions(isRetracted: true),
+            ),
+            status: 404,
+            code: 'NotFound',
+          );
+        },
+      );
+
+      testWithProfile(
+        'no change',
+        fn: () async {
+          final v1 = await packageBackend.lookupPackageVersion(
             'oxygen',
             '1.0.0',
-            VersionOptions(),
-          ),
-          status: 400,
-          code: 'InvalidInput',
-        );
-      });
+          );
+          expect(v1!.isRetracted, false);
+          expect(v1.retracted, null);
+          final client = createPubApiClient(authToken: siteAdminToken);
+          final rs = await client.adminUpdateVersionOptions(
+            'oxygen',
+            '1.0.0',
+            VersionOptions(isRetracted: false),
+          );
+          final v2 = await packageBackend.lookupPackageVersion(
+            'oxygen',
+            '1.0.0',
+          );
+          expect(v2!.isRetracted, false);
+          expect(v2.retracted, null);
+          expect(rs.isRetracted, v2.isRetracted);
+        },
+      );
 
-      testWithProfile('missing package', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        await expectApiException(
-          client.adminUpdateVersionOptions(
-            'no_such_package',
+      testWithProfile(
+        'update value and revert',
+        fn: () async {
+          final v1 = await packageBackend.lookupPackageVersion(
+            'oxygen',
+            '1.0.0',
+          );
+          expect(v1!.isRetracted, false);
+          expect(v1.retracted, null);
+          final client = createPubApiClient(authToken: siteAdminToken);
+
+          // retract
+          final rs1 = await client.adminUpdateVersionOptions(
+            'oxygen',
             '1.0.0',
             VersionOptions(isRetracted: true),
-          ),
-          status: 404,
-          code: 'NotFound',
-        );
-      });
-
-      testWithProfile('missing version', fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        await expectApiException(
-          client.adminUpdateVersionOptions(
+          );
+          final v2 = await packageBackend.lookupPackageVersion(
             'oxygen',
-            '1.0.0-no-such-version',
+            '1.0.0',
+          );
+          expect(v2!.isRetracted, true);
+          expect(v2.retracted, isNotNull);
+          expect(rs1.isRetracted, v2.isRetracted);
+
+          // retract again
+          final rs2 = await client.adminUpdateVersionOptions(
+            'oxygen',
+            '1.0.0',
             VersionOptions(isRetracted: true),
-          ),
-          status: 404,
-          code: 'NotFound',
-        );
-      });
+          );
+          final v3 = await packageBackend.lookupPackageVersion(
+            'oxygen',
+            '1.0.0',
+          );
+          expect(v3!.isRetracted, true);
+          expect(v3.retracted, v2.retracted);
+          expect(rs2.isRetracted, v3.isRetracted);
 
-      testWithProfile('no change', fn: () async {
-        final v1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        expect(v1!.isRetracted, false);
-        expect(v1.retracted, null);
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final rs = await client.adminUpdateVersionOptions(
-          'oxygen',
-          '1.0.0',
-          VersionOptions(isRetracted: false),
-        );
-        final v2 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        expect(v2!.isRetracted, false);
-        expect(v2.retracted, null);
-        expect(rs.isRetracted, v2.isRetracted);
-      });
-
-      testWithProfile('update value and revert', fn: () async {
-        final v1 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        expect(v1!.isRetracted, false);
-        expect(v1.retracted, null);
-        final client = createPubApiClient(authToken: siteAdminToken);
-
-        // retract
-        final rs1 = await client.adminUpdateVersionOptions(
-          'oxygen',
-          '1.0.0',
-          VersionOptions(isRetracted: true),
-        );
-        final v2 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        expect(v2!.isRetracted, true);
-        expect(v2.retracted, isNotNull);
-        expect(rs1.isRetracted, v2.isRetracted);
-
-        // retract again
-        final rs2 = await client.adminUpdateVersionOptions(
-          'oxygen',
-          '1.0.0',
-          VersionOptions(isRetracted: true),
-        );
-        final v3 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        expect(v3!.isRetracted, true);
-        expect(v3.retracted, v2.retracted);
-        expect(rs2.isRetracted, v3.isRetracted);
-
-        // revert
-        final rs3 = await client.adminUpdateVersionOptions(
-          'oxygen',
-          '1.0.0',
-          VersionOptions(isRetracted: false),
-        );
-        final v4 = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        expect(v4!.isRetracted, false);
-        expect(v4.retracted, null);
-        expect(rs3.isRetracted, v4.isRetracted);
-      });
+          // revert
+          final rs3 = await client.adminUpdateVersionOptions(
+            'oxygen',
+            '1.0.0',
+            VersionOptions(isRetracted: false),
+          );
+          final v4 = await packageBackend.lookupPackageVersion(
+            'oxygen',
+            '1.0.0',
+          );
+          expect(v4!.isRetracted, false);
+          expect(v4.retracted, null);
+          expect(rs3.isRetracted, v4.isRetracted);
+        },
+      );
     });
   });
 }

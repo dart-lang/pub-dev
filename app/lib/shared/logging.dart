@@ -45,13 +45,15 @@ void setupDebugEnvBasedLogging() {
 
     return _LoggerNamePattern(
       negated,
-      RegExp('^' +
-          pattern.splitMapJoin(
-            '*',
-            onMatch: (m) => '.*',
-            onNonMatch: RegExp.escape,
-          ) +
-          '\$'),
+      RegExp(
+        '^' +
+            pattern.splitMapJoin(
+              '*',
+              onMatch: (m) => '.*',
+              onNonMatch: RegExp.escape,
+            ) +
+            '\$',
+      ),
     );
   }).toList();
 

@@ -36,10 +36,8 @@ class PubSiteService {
   // ****
 
   @Route.get('/liveness_check')
-  Future<Response> livenessCheck(Request request) async => htmlResponse(
-        'OK',
-        headers: CacheControl.explicitlyPrivate.headers,
-      );
+  Future<Response> livenessCheck(Request request) async =>
+      htmlResponse('OK', headers: CacheControl.explicitlyPrivate.headers);
 
   @Route.get('/readiness_check')
   Future<Response> readinessCheck(Request request) async =>
@@ -94,43 +92,59 @@ class PubSiteService {
 
   @Route.get('/packages/<package>/versions/<version>/changelog')
   Future<Response> packageVersionChangelog(
-          Request request, String package, String version) =>
-      packageChangelogHandler(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageChangelogHandler(request, package, versionName: version);
 
   @Route.get('/packages/<package>/versions/<version>/example')
   Future<Response> packageVersionExample(
-          Request request, String package, String version) =>
-      packageExampleHandler(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageExampleHandler(request, package, versionName: version);
 
   @Route.get('/packages/<package>/versions/<version>/install')
   Future<Response> packageVersionInstall(
-          Request request, String package, String version) =>
-      packageInstallHandler(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageInstallHandler(request, package, versionName: version);
 
   @Route.get('/packages/<package>/versions/<version>/license')
   Future<Response> packageVersionLicense(
-          Request request, String package, String version) =>
-      packageLicenseHandler(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageLicenseHandler(request, package, versionName: version);
 
   @Route.get('/packages/<package>/versions/<version>/pubspec')
   Future<Response> packageVersionPubspec(
-          Request request, String package, String version) =>
-      packagePubspecHandler(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packagePubspecHandler(request, package, versionName: version);
 
   @Route.get('/packages/<package>/versions/<version>/score')
   Future<Response> packageVersionScore(
-          Request request, String package, String version) =>
-      packageScoreHandler(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageScoreHandler(request, package, versionName: version);
 
   @Route.get('/packages/<package>/versions/<version>/score/log.txt')
   Future<Response> packageVersionScoreLogTxt(
-          Request request, String package, String version) =>
-      packageScoreLogTxtHandler(request, package, version: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageScoreLogTxtHandler(request, package, version: version);
 
   @Route.get('/packages/<package>/versions/<version>')
   Future<Response> packageVersion(
-          Request request, String package, String version) =>
-      packageVersionHandlerHtml(request, package, versionName: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageVersionHandlerHtml(request, package, versionName: version);
 
   @Route.get('/packages/<package>/admin')
   Future<Response> packageAdmin(Request request, String package) =>
@@ -186,8 +200,7 @@ class PubSiteService {
     String package,
     String version,
     String path,
-  ) =>
-      handleTaskResource(request, package, version, path);
+  ) => handleTaskResource(request, package, version, path);
 
   // ****
   // **** Documentation
@@ -195,14 +208,21 @@ class PubSiteService {
 
   @Route.get('/documentation/<package>/<version>/<path|[^]*>')
   Future<Response> documentation(
-          Request request, String package, String version, String path) =>
+    Request request,
+    String package,
+    String version,
+    String path,
+  ) =>
       // TODO: pass in the [package] and [version] parameters, and maybe also the rest of the path.
       documentationHandler(request);
 
   @Route.get('/documentation/<package>/<version>')
   @Route.get('/documentation/<package>/<version>/')
   Future<Response> documentationVersion(
-          Request request, String package, String version) =>
+    Request request,
+    String package,
+    String version,
+  ) =>
       // TODO: pass in the [package] and [version] parameters, and maybe also the rest of the path.
       documentationHandler(request);
 
@@ -234,15 +254,22 @@ class PubSiteService {
   /// Renders the publisher's packages page.
   @Route.get('/publishers/<publisherId>/packages')
   Future<Response> publisherPackagesPage(Request request, String publisherId) =>
-      publisherPackagesPageHandler(request, publisherId,
-          kind: PublisherPackagesPageKind.listed);
+      publisherPackagesPageHandler(
+        request,
+        publisherId,
+        kind: PublisherPackagesPageKind.listed,
+      );
 
   /// Renders the publisher's packages page.
   @Route.get('/publishers/<publisherId>/unlisted-packages')
   Future<Response> publisherUnlistedPackagesPage(
-          Request request, String publisherId) =>
-      publisherPackagesPageHandler(request, publisherId,
-          kind: PublisherPackagesPageKind.unlisted);
+    Request request,
+    String publisherId,
+  ) => publisherPackagesPageHandler(
+    request,
+    publisherId,
+    kind: PublisherPackagesPageKind.unlisted,
+  );
 
   /// Renders the publisher's admin page.
   @Route.get('/publishers/<publisherId>/admin')
@@ -252,8 +279,9 @@ class PubSiteService {
   /// Renders the publisher's activity log page.
   @Route.get('/publishers/<publisherId>/activity-log')
   Future<Response> publisherActivityLogPage(
-          Request request, String publisherId) =>
-      publisherActivityLogPageHandler(request, publisherId);
+    Request request,
+    String publisherId,
+  ) => publisherActivityLogPageHandler(request, publisherId);
 
   // ****
   // **** Site content and metadata
@@ -372,7 +400,10 @@ class PubSiteService {
 
   @Route.get('/experimental/task-summary/<package>/<version>/')
   Future<Response> taskSummary(
-      Request request, String package, String version) async {
+    Request request,
+    String package,
+    String version,
+  ) async {
     checkPackageVersionParams(package, version);
 
     InvalidInputException.checkPackageName(package);

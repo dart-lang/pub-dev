@@ -62,17 +62,21 @@ class PublishingScript {
       // too large asset files are rejected
       await _createDummyPkg(oversized: true);
 
-      await dart.publish(_dummyDir.path,
-          expectedErrorContains:
-              '`CHANGELOG.md` exceeds the maximum content length');
+      await dart.publish(
+        _dummyDir.path,
+        expectedErrorContains:
+            '`CHANGELOG.md` exceeds the maximum content length',
+      );
       await _dummyDir.delete(recursive: true);
 
       // upload package
       await _createDummyPkg(oversized: false);
       await dart.getDependencies(_dummyDir.path);
-      await dart.publish(_dummyDir.path,
-          expectedOutputContains:
-              'Successfully uploaded https://pub.dev/packages/_dummy_pkg version $_newDummyVersion');
+      await dart.publish(
+        _dummyDir.path,
+        expectedOutputContains:
+            'Successfully uploaded https://pub.dev/packages/_dummy_pkg version $_newDummyVersion',
+      );
       // On appengine we may experience a longer cache period for the public API.
       // Waiting for up to 150 seconds for the version to be updated.
       for (var i = 1; i <= 50; i++) {
@@ -85,9 +89,11 @@ class PublishingScript {
       await _verifyDummyPkg();
 
       // upload the same version again
-      await dart.publish(_dummyDir.path,
-          expectedErrorContains:
-              'Version $_newDummyVersion of package _dummy_pkg already exists.');
+      await dart.publish(
+        _dummyDir.path,
+        expectedErrorContains:
+            'Version $_newDummyVersion of package _dummy_pkg already exists.',
+      );
 
       // run example
       await dart.getDependencies(_dummyExampleDir.path);
@@ -97,8 +103,9 @@ class PublishingScript {
         // invite uploader
         // TODO: use page.invitePackageAdmin instead
         await adminUser.withBrowserPage((page) async {
-          final emails =
-              await page.listPackageUploaderEmails(package: '_dummy_pkg');
+          final emails = await page.listPackageUploaderEmails(
+            package: '_dummy_pkg',
+          );
           if (emails.contains(invitedUser.email)) {
             throw Exception('"${invitedUser.email}" is already an uploader.');
           }
@@ -114,11 +121,13 @@ class PublishingScript {
         // accepting it with the good user
         await invitedUser.withBrowserPage((page) async {
           await page.acceptConsent(consentId: consentId);
-          final emails =
-              await page.listPackageUploaderEmails(package: '_dummy_pkg');
+          final emails = await page.listPackageUploaderEmails(
+            package: '_dummy_pkg',
+          );
           if (!emails.contains(invitedUser.email)) {
             throw Exception(
-                '"${invitedUser.email}" has not become an uploader.');
+              '"${invitedUser.email}" has not become an uploader.',
+            );
           }
         });
 
@@ -130,8 +139,9 @@ class PublishingScript {
             package: '_dummy_pkg',
             email: invitedUser.email,
           );
-          final emails =
-              await page.listPackageUploaderEmails(package: '_dummy_pkg');
+          final emails = await page.listPackageUploaderEmails(
+            package: '_dummy_pkg',
+          );
           if (emails.contains(invitedUser.email)) {
             throw Exception('"${invitedUser.email}" is still an uploader.');
           }
@@ -156,18 +166,27 @@ class PublishingScript {
 
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     final v = Version.parse(dv ?? '0.0.1');
-    final build =
-        List.generate(5, (i) => _random.nextInt(36).toRadixString(36)).join();
-    _newDummyVersion =
-        Version(v.major, v.minor, v.patch + 1, build: build).toString();
+    final build = List.generate(
+      5,
+      (i) => _random.nextInt(36).toRadixString(36),
+    ).join();
+    _newDummyVersion = Version(
+      v.major,
+      v.minor,
+      v.patch + 1,
+      build: build,
+    ).toString();
   }
 
   Future<void> _createDummyPkg({required bool oversized}) async {
     _dummyDir = Directory(path.join(_temp.path, 'pkg', '_dummy_pkg'));
     _dummyExampleDir = Directory(path.join(_dummyDir.path, 'example'));
     await _dummyDir.create(recursive: true);
-    await createDummyPkg(_dummyDir.path, _newDummyVersion,
-        changelogContentSizeInKB: oversized ? 257 : 4);
+    await createDummyPkg(
+      _dummyDir.path,
+      _newDummyVersion,
+      changelogContentSizeInKB: oversized ? 257 : 4,
+    );
   }
 
   Future<void> _createFakeRetryPkg() async {
@@ -180,7 +199,8 @@ class PublishingScript {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != _newDummyVersion) {
       throw Exception(
-          'Expected version does not match: $dv != $_newDummyVersion');
+        'Expected version does not match: $dv != $_newDummyVersion',
+      );
     }
 
     final tabs = [
@@ -193,14 +213,17 @@ class PublishingScript {
       'versions',
     ];
     for (final tab in tabs) {
-      final pageHtml =
-          (await _pubHttpClient.getLatestVersionPage('_dummy_pkg', tab: tab))!;
+      final pageHtml = (await _pubHttpClient.getLatestVersionPage(
+        '_dummy_pkg',
+        tab: tab,
+      ))!;
       if (!pageHtml.contains(_newDummyVersion!)) {
         throw Exception('New version is not to be found on package page.');
       }
       if (pageHtml.contains('developer@example.com')) {
         throw Exception(
-            'pubspec author field must not be found on package page.');
+          'pubspec author field must not be found on package page.',
+        );
       }
     }
   }

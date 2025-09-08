@@ -35,7 +35,8 @@ import 'package:pub_dev/shared/versions.dart'
         gcBeforeRuntimeVersion,
         shouldGCVersion,
         acceptedRuntimeVersions;
-import 'package:pub_dev/shared/versions.dart' as shared_versions
+import 'package:pub_dev/shared/versions.dart'
+    as shared_versions
     show runtimeVersion;
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
@@ -166,8 +167,12 @@ class TaskBackend {
           // kill overdue VMs.
           try {
             await lock.withClaim((claim) async {
-              await schedule(claim, taskWorkerCloudCompute, _db,
-                  abort: aborted);
+              await schedule(
+                claim,
+                taskWorkerCloudCompute,
+                _db,
+                abort: aborted,
+              );
             }, abort: aborted);
           } catch (e, st) {
             // Log this as very bad, and then move on. Nothing good can come
@@ -191,10 +196,7 @@ class TaskBackend {
 
     scheduleMicrotask(() async {
       // Wait for background process to finish
-      await Future.wait([
-        _doneScanning.future,
-        _doneScheduling.future,
-      ]);
+      await Future.wait([_doneScanning.future, _doneScheduling.future]);
 
       // Report background processes as stopped
       stopped.complete();
@@ -351,8 +353,10 @@ class TaskBackend {
       seen.removeWhere((_, updated) => updated.isBefore(since));
 
       // Wait until aborted or 10 minutes before scanning again!
-      await abort.future
-          .timeoutWithClock(Duration(minutes: 10), onTimeout: () => null);
+      await abort.future.timeoutWithClock(
+        Duration(minutes: 10),
+        onTimeout: () => null,
+      );
     }
   }
 
@@ -365,8 +369,9 @@ class TaskBackend {
     final changed = await withRetryTransaction(_db, (tx) async {
       // Lookup Package and PackageVersion in the same transaction.
       final packageFuture = tx.packages.lookupOrNull(packageName);
-      final packageVersionsFuture =
-          tx.versions.listVersionsOfPackage(packageName);
+      final packageVersionsFuture = tx.versions.listVersionsOfPackage(
+        packageName,
+      );
       final stateFuture = tx.tasks.lookupOrNull(packageName);
       // Ensure we await all futures!
       await Future.wait([packageFuture, packageVersionsFuture, stateFuture]);
@@ -385,8 +390,10 @@ class TaskBackend {
 
       // If package is not visible, we should remove it!
       if (package.isNotVisible) {
-        await tx.tasks
-            .deleteAllStates(packageName, currentRuntimeKey: state?.key);
+        await tx.tasks.deleteAllStates(
+          packageName,
+          currentRuntimeKey: state?.key,
+        );
         return true;
       }
 
@@ -563,8 +570,10 @@ class TaskBackend {
       // and logs any failures before always releasing the [r].
       scheduleMicrotask(() async {
         try {
-          final changed = await _db.tasks
-              .updateDependencyChanged(state.package, publishedAt);
+          final changed = await _db.tasks.updateDependencyChanged(
+            state.package,
+            publishedAt,
+          );
           if (changed) {
             await _purgeCache(state.package);
           }
@@ -603,12 +612,17 @@ class TaskBackend {
     if (state == null) {
       throw NotFoundException.resource('$package/$version');
     }
-    final versionState =
-        _authorizeWorkerCallback(package, version, state, token);
+    final versionState = _authorizeWorkerCallback(
+      package,
+      version,
+      state,
+      token,
+    );
 
     // Set expiration of signed URLs to remaining execution time + 5 min to
     // allow for clock skew.
-    final expiration = maxTaskExecutionTime -
+    final expiration =
+        maxTaskExecutionTime -
         (clock.now().difference(versionState.scheduled)) +
         Duration(minutes: 5);
 
@@ -631,7 +645,7 @@ class TaskBackend {
         expiration,
         // Allow up to 64 MB just a sanity limit!
         maxUploadSize: 64 * 1024 * 1024,
-      )
+      ),
     ]);
 
     return api.UploadTaskResultResponse(
@@ -674,8 +688,12 @@ class TaskBackend {
       if (state == null) {
         throw NotFoundException.resource('$package/$version');
       }
-      final versionState =
-          _authorizeWorkerCallback(package, version, state, token);
+      final versionState = _authorizeWorkerCallback(
+        package,
+        version,
+        state,
+        token,
+      );
 
       // Update dependencies, if pana summary has dependencies
       if (summary != null && summary.allDependencies != null) {
@@ -756,7 +774,9 @@ class TaskBackend {
   }) async {
     try {
       return await _bucket.readAsBytes(
-        path, offset: offset, length: length,
+        path,
+        offset: offset,
+        length: length,
         maxSize: blobContentSizeLimit, // sanity limit
       );
     } on DetailedApiRequestError catch (e) {
@@ -787,25 +807,23 @@ class TaskBackend {
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
   Future<BlobIndex?> _taskResultIndex(String package, String version) async {
-    return await cache.taskResultIndex(package, version).get(
-      () async {
-        // Don't try to load index if we don't consider the version for analysis.
-        final status = await packageStatus(package);
-        if (!status.versions.containsKey(version)) {
-          return BlobIndex.empty(blobId: '');
-        }
-        final versionStatus = status.versions[version]!.status;
-        // if analysis has failed, don't try to load results
-        if (versionStatus == PackageVersionStatus.failed) {
-          return BlobIndex.empty(blobId: '');
-        }
-        return await _loadTaskResultIndex(
-          package: package,
-          version: version,
-          runtimeVersion: status.runtimeVersion,
-        );
-      },
-    );
+    return await cache.taskResultIndex(package, version).get(() async {
+      // Don't try to load index if we don't consider the version for analysis.
+      final status = await packageStatus(package);
+      if (!status.versions.containsKey(version)) {
+        return BlobIndex.empty(blobId: '');
+      }
+      final versionStatus = status.versions[version]!.status;
+      // if analysis has failed, don't try to load results
+      if (versionStatus == PackageVersionStatus.failed) {
+        return BlobIndex.empty(blobId: '');
+      }
+      return await _loadTaskResultIndex(
+        package: package,
+        version: version,
+        runtimeVersion: status.runtimeVersion,
+      );
+    });
   }
 
   Future<BlobIndex> _loadTaskResultIndex({
@@ -832,7 +850,8 @@ class TaskBackend {
     }
     if (bytes.length > 1024 * 1024) {
       _log.info(
-          '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}');
+        '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}',
+      );
     }
     return index;
   }
@@ -878,7 +897,9 @@ class TaskBackend {
     // blobId that is the path to the blob within the task-result bucket.
     final length = range.end - range.start;
     if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache.gzippedTaskResult(range.blobId, path).get(
+      return cache
+          .gzippedTaskResult(range.blobId, path)
+          .get(
             () => _readFromBucket(
               range.blobId,
               offset: range.start,
@@ -886,11 +907,7 @@ class TaskBackend {
             ),
           );
     } else {
-      return _readFromBucket(
-        range.blobId,
-        offset: range.start,
-        length: length,
-      );
+      return _readFromBucket(range.blobId, offset: range.start, length: length);
     }
   }
 
@@ -900,11 +917,7 @@ class TaskBackend {
     String version,
     String path,
   ) async {
-    return await gzippedTaskResult(
-      package,
-      version,
-      'doc/$path',
-    );
+    return await gzippedTaskResult(package, version, 'doc/$path');
   }
 
   /// Return [Summary] from pana or `null` if not available.
@@ -924,7 +937,10 @@ class TaskBackend {
   }
 
   Summary? _panaSummaryFromGzippedBytes(
-      String package, String version, List<int>? data) {
+    String package,
+    String version,
+    List<int>? data,
+  ) {
     if (data == null) {
       return null;
     }
@@ -1032,8 +1048,7 @@ class TaskBackend {
   ///
   /// Returns `null` if no such version exists.
   Future<String?> latestFinishedVersion(String package) async {
-    final cachedValue =
-        await cache.latestFinishedVersion(package).get(() async {
+    final cachedValue = await cache.latestFinishedVersion(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final state = await _db.tasks.lookupOrNull(package, runtimeVersion: rt);
         // skip states where the entry was created, but no analysis has not finished yet
@@ -1047,7 +1062,9 @@ class TaskBackend {
         if (bestVersion != null) {
           // sanity check: the version is not deleted
           final pv = await packageBackend.lookupPackageVersion(
-              package, bestVersion.toString());
+            package,
+            bestVersion.toString(),
+          );
           if (pv != null) {
             return bestVersion.toString();
           }
@@ -1072,49 +1089,54 @@ class TaskBackend {
     String version, {
     bool preferDocsCompleted = false,
   }) async {
-    final cachedValue =
-        await cache.closestFinishedVersion(package, version).get(() async {
-      final semanticVersion = Version.parse(version);
-      for (final rt in acceptedRuntimeVersions) {
-        final state = await _db.tasks.lookupOrNull(package, runtimeVersion: rt);
-        // Skip states where the entry was created, but the analysis has not finished yet.
-        if (state == null || state.hasNeverFinished) {
-          continue;
-        }
-        List<Version>? candidates;
-        if (preferDocsCompleted) {
-          final finishedDocCandidates = state.versions?.entries
-              .where((e) => e.value.docs)
+    final cachedValue = await cache.closestFinishedVersion(package, version).get(
+      () async {
+        final semanticVersion = Version.parse(version);
+        for (final rt in acceptedRuntimeVersions) {
+          final state = await _db.tasks.lookupOrNull(
+            package,
+            runtimeVersion: rt,
+          );
+          // Skip states where the entry was created, but the analysis has not finished yet.
+          if (state == null || state.hasNeverFinished) {
+            continue;
+          }
+          List<Version>? candidates;
+          if (preferDocsCompleted) {
+            final finishedDocCandidates = state.versions?.entries
+                .where((e) => e.value.docs)
+                .map((e) => Version.parse(e.key))
+                .toList();
+            if (finishedDocCandidates != null &&
+                finishedDocCandidates.isNotEmpty) {
+              candidates = finishedDocCandidates;
+            }
+          }
+
+          candidates ??= state.versions?.entries
+              .where((e) => e.value.finished)
               .map((e) => Version.parse(e.key))
               .toList();
-          if (finishedDocCandidates != null &&
-              finishedDocCandidates.isNotEmpty) {
-            candidates = finishedDocCandidates;
+          if (candidates == null || candidates.isEmpty) {
+            continue;
           }
+          if (candidates.contains(semanticVersion)) {
+            return version;
+          }
+          final newerCandidates = candidates
+              .where((e) => isNewer(semanticVersion, e))
+              .toList();
+          if (newerCandidates.isNotEmpty) {
+            // Return the earliest finished that is newer than [version].
+            return newerCandidates
+                .reduce((a, b) => isNewer(a, b) ? a : b)
+                .toString();
+          }
+          return candidates.latestVersion!.toString();
         }
-
-        candidates ??= state.versions?.entries
-            .where((e) => e.value.finished)
-            .map((e) => Version.parse(e.key))
-            .toList();
-        if (candidates == null || candidates.isEmpty) {
-          continue;
-        }
-        if (candidates.contains(semanticVersion)) {
-          return version;
-        }
-        final newerCandidates =
-            candidates.where((e) => isNewer(semanticVersion, e)).toList();
-        if (newerCandidates.isNotEmpty) {
-          // Return the earliest finished that is newer than [version].
-          return newerCandidates
-              .reduce((a, b) => isNewer(a, b) ? a : b)
-              .toString();
-        }
-        return candidates.latestVersion!.toString();
-      }
-      return '';
-    });
+        return '';
+      },
+    );
     return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
   }
 }
@@ -1186,11 +1208,12 @@ List<Version> _versionsToTrack(
       .where((pv) => pv.isVisible)
       .map((pv) => pv.semanticVersion)
       .toSet();
-  final visibleStableVersions = visibleVersions
-      // Ignore prerelease versions
-      .where((v) => !v.isPreRelease)
-      .toList()
-    ..sort((a, b) => -a.compareTo(b));
+  final visibleStableVersions =
+      visibleVersions
+          // Ignore prerelease versions
+          .where((v) => !v.isPreRelease)
+          .toList()
+        ..sort((a, b) => -a.compareTo(b));
   return {
     // Always analyze latest version (may be non-stable if package has only prerelease versions).
     package.latestSemanticVersion,
@@ -1214,7 +1237,7 @@ List<Version> _versionsToTrack(
         .values
         .sorted(Comparable.compare)
         .reversed
-        .take(5)
+        .take(5),
   }.nonNulls.where(visibleVersions.contains).toList();
 }
 
@@ -1283,8 +1306,11 @@ final class _TaskDataAccess {
     String package, {
     String? runtimeVersion,
   }) async {
-    final key = PackageState.createKey(_db.emptyKey,
-        runtimeVersion ?? shared_versions.runtimeVersion, package);
+    final key = PackageState.createKey(
+      _db.emptyKey,
+      runtimeVersion ?? shared_versions.runtimeVersion,
+      package,
+    );
     return await _db.lookupOrNull<PackageState>(key);
   }
 
@@ -1314,7 +1340,9 @@ final class _TaskDataAccess {
   }
 
   Stream<({String package})> listDependenciesOfPackage(
-      String package, DateTime publishedAt) async* {
+    String package,
+    DateTime publishedAt,
+  ) async* {
     final query = _db.query<PackageState>()
       ..filter('dependencies =', package)
       ..filter('lastDependencyChanged <', publishedAt);
@@ -1325,12 +1353,15 @@ final class _TaskDataAccess {
 
   /// Returns whether the entry has been updated.
   Future<bool> updateDependencyChanged(
-      String package, DateTime publishedAt) async {
+    String package,
+    DateTime publishedAt,
+  ) async {
     return await withRetryTransaction(_db, (tx) async {
       // Reload [state] within a transaction to avoid overwriting changes
       // made by others trying to update state for another package.
       final s = await tx.lookupOrNull<PackageState>(
-          PackageState.createKey(_db.emptyKey, runtimeVersion, package));
+        PackageState.createKey(_db.emptyKey, runtimeVersion, package),
+      );
       if (s == null) {
         // No entry has been created yet, probably because of a new deployment rolling out.
         // We can ignore it for now.
@@ -1350,8 +1381,11 @@ final class _TaskDataAccess {
 
   Future<void> bumpPriority(String packageName) async {
     await withRetryTransaction(_db, (tx) async {
-      final stateKey =
-          PackageState.createKey(_db.emptyKey, runtimeVersion, packageName);
+      final stateKey = PackageState.createKey(
+        _db.emptyKey,
+        runtimeVersion,
+        packageName,
+      );
       final state = await tx.lookupOrNull<PackageState>(stateKey);
       if (state != null) {
         state.pendingAt = initialTimestamp;
@@ -1366,10 +1400,15 @@ class _TaskTransactionDataAcccess {
 
   _TaskTransactionDataAcccess(this._tx);
 
-  Future<PackageState?> lookupOrNull(String name,
-      {String? runtimeVersion}) async {
+  Future<PackageState?> lookupOrNull(
+    String name, {
+    String? runtimeVersion,
+  }) async {
     final key = PackageState.createKey(
-        _tx.emptyKey, runtimeVersion ?? shared_versions.runtimeVersion, name);
+      _tx.emptyKey,
+      runtimeVersion ?? shared_versions.runtimeVersion,
+      name,
+    );
     return await _tx.lookupOrNull<PackageState>(key);
   }
 
@@ -1378,8 +1417,9 @@ class _TaskTransactionDataAcccess {
       _tx.delete(currentRuntimeKey);
     }
     // also delete earlier runtime versions
-    for (final rv
-        in acceptedRuntimeVersions.where((rv) => rv != runtimeVersion)) {
+    for (final rv in acceptedRuntimeVersions.where(
+      (rv) => rv != runtimeVersion,
+    )) {
       final s = await lookupOrNull(name, runtimeVersion: rv);
       if (s != null) {
         _tx.delete(s.key);

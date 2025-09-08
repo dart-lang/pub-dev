@@ -10,9 +10,7 @@ part 'completion.g.dart';
 class CompletionData {
   final List<CompletionRule> completions;
 
-  CompletionData({
-    required this.completions,
-  });
+  CompletionData({required this.completions});
 
   factory CompletionData.fromJson(Map<String, dynamic> json) =>
       _$CompletionDataFromJson(json);

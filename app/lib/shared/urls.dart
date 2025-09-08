@@ -82,11 +82,7 @@ String pkgChangelogUrl(String package, {String? version}) =>
 String pkgExampleUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.example);
 
-String pkgLicenseUrl(
-  String package, {
-  String? version,
-  bool? includeHost,
-}) =>
+String pkgLicenseUrl(String package, {String? version, bool? includeHost}) =>
     pkgPageUrl(
       package,
       version: version,
@@ -110,15 +106,11 @@ String pkgScoreLogTxtUrl(String package, {String? version}) {
 String pkgPubspecUrl(String package, {String? version}) =>
     pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.pubspec);
 
-String pkgAdminUrl(
-  String package, {
-  bool? includeHost,
-}) =>
-    pkgPageUrl(
-      package,
-      pkgPageTab: PkgPageTab.admin,
-      includeHost: includeHost ?? false,
-    );
+String pkgAdminUrl(String package, {bool? includeHost}) => pkgPageUrl(
+  package,
+  pkgPageTab: PkgPageTab.admin,
+  includeHost: includeHost ?? false,
+);
 
 String pkgActivityLogUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.activityLog);
@@ -147,10 +139,9 @@ String pkgDocUrl(
 }) {
   final relativePathSegments = relativePath == null
       ? const <String>[]
-      : Uri.parse(relativePath)
-          .pathSegments
-          .where((e) => e.isNotEmpty)
-          .toList();
+      : Uri.parse(
+          relativePath,
+        ).pathSegments.where((e) => e.isNotEmpty).toList();
 
   var forceEndingSlash = relativePathSegments.isEmpty;
   if (relativePathSegments.isNotEmpty &&
@@ -173,10 +164,7 @@ String pkgDocUrl(
   return baseUri.resolveUri(Uri(pathSegments: segments)).toString();
 }
 
-String publisherUrl(
-  String publisherId, {
-  bool includeHost = false,
-}) {
+String publisherUrl(String publisherId, {bool includeHost = false}) {
   final path = '/publishers/$publisherId';
   if (includeHost) {
     return _siteRootUri.resolve(path).toString();
@@ -196,10 +184,7 @@ String publisherAdminUrl(String publisherId) =>
 String publisherActivityLogUrl(String publisherId) =>
     publisherUrl(publisherId) + '/activity-log';
 
-String searchUrl({
-  String? q,
-  int? page,
-}) {
+String searchUrl({String? q, int? page}) {
   return SearchForm(query: q).toSearchLink(page: page);
 }
 
@@ -216,14 +201,11 @@ String dartSdkMainUrl(String version) {
   return '$url/';
 }
 
-String reportPage({
-  required String subject,
-  required String? url,
-}) {
-  return Uri(path: '/report', queryParameters: {
-    'subject': subject,
-    if (url != null) 'url': url,
-  }).toString();
+String reportPage({required String subject, required String? url}) {
+  return Uri(
+    path: '/report',
+    queryParameters: {'subject': subject, if (url != null) 'url': url},
+  ).toString();
 }
 
 /// Parses GitHub and GitLab urls, and returns the root of the repository.
@@ -246,8 +228,11 @@ String? inferRepositoryUrl(String? baseUrl) {
     if (segments.length != 2) {
       return null;
     }
-    return Uri(scheme: uri.scheme, host: uri.host, pathSegments: segments)
-        .toString();
+    return Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      pathSegments: segments,
+    ).toString();
   }
   return null;
 }
@@ -327,9 +312,9 @@ String? displayableUrl(String? url) {
 }
 
 String myPackagesUrl({String? next}) => Uri(
-      path: '/my-packages',
-      queryParameters: next == null ? null : {'next': next},
-    ).toString();
+  path: '/my-packages',
+  queryParameters: next == null ? null : {'next': next},
+).toString();
 String myLikedPackagesUrl() => '/my-liked-packages';
 String myPublishersUrl() => '/my-publishers';
 String myActivityLogUrl() => '/my-activity-log';

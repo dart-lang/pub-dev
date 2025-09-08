@@ -28,19 +28,18 @@ void main() {
     test('bulk tests', () async {
       final origin = fakeTestScenario.pubHostedUrl;
       // Importing one package + local analysis
-      await httpClient.post(Uri.parse('$origin/fake-test-profile'),
-          body: json.encode({
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {
-                  'name': 'oxygen',
-                  'publisher': 'example.com',
-                },
-              ],
-            },
-            'analysis': 'local',
-          }));
+      await httpClient.post(
+        Uri.parse('$origin/fake-test-profile'),
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'oxygen', 'publisher': 'example.com'},
+            ],
+          },
+          'analysis': 'local',
+        }),
+      );
 
       final user = await fakeTestScenario.createAnonymousTestUser();
 
@@ -49,7 +48,9 @@ void main() {
         await page.keyboard.type('is:un');
         await Future.delayed(Duration(milliseconds: 200));
         await page.takeScreenshots(
-            selector: 'body', prefix: 'landing-page/search-completion');
+          selector: 'body',
+          prefix: 'landing-page/search-completion',
+        );
         await page.keyboard.press(Key.enter);
         await Future.delayed(Duration(milliseconds: 200));
         await page.keyboard.press(Key.enter);
@@ -66,7 +67,9 @@ void main() {
         await page.keyboard.press(Key.arrowDown);
         await page.keyboard.type(' -sdk:fl');
         await page.takeScreenshots(
-            selector: 'body', prefix: 'listing-page/search-completion');
+          selector: 'body',
+          prefix: 'listing-page/search-completion',
+        );
         await Future.delayed(Duration(milliseconds: 200));
         await page.keyboard.press(Key.enter);
         await Future.delayed(Duration(milliseconds: 200));

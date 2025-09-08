@@ -11,91 +11,121 @@ import '_utils.dart';
 
 void main() {
   group('ui', () {
-    testWithProfile('/packages/oxygen - found', fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen'),
-        present: [
-          'oxygen 1.2.0',
-          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
-          RegExp(
-              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
-        ],
-        absent: [
-          'data-name="-admin-tab-"',
-        ],
-      );
-    });
+    testWithProfile(
+      '/packages/oxygen - found',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen'),
+          present: [
+            'oxygen 1.2.0',
+            RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+            RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>',
+            ),
+          ],
+          absent: ['data-name="-admin-tab-"'],
+        );
+      },
+    );
 
-    testWithProfile('package name and version redirects', fn: () async {
-      await expectRedirectResponse(
-          await issueGet('/packages/oxYgen'), '/packages/oxygen');
-      await expectRedirectResponse(await issueGet('/packages/oxYgen/changelog'),
-          '/packages/oxygen/changelog');
-      await expectRedirectResponse(await issueGet('/packages/oxYgen/versions'),
-          '/packages/oxygen/versions');
-      await expectRedirectResponse(
+    testWithProfile(
+      'package name and version redirects',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/packages/oxYgen'),
+          '/packages/oxygen',
+        );
+        await expectRedirectResponse(
+          await issueGet('/packages/oxYgen/changelog'),
+          '/packages/oxygen/changelog',
+        );
+        await expectRedirectResponse(
+          await issueGet('/packages/oxYgen/versions'),
+          '/packages/oxygen/versions',
+        );
+        await expectRedirectResponse(
           await issueGet('/packages/oxYgen/versions/1.2.0/changelog'),
-          '/packages/oxygen/versions/1.2.0/changelog');
-      await expectRedirectResponse(
+          '/packages/oxygen/versions/1.2.0/changelog',
+        );
+        await expectRedirectResponse(
           await issueGet('/packages/oxygen/versions/1.2.00/changelog'),
-          '/packages/oxygen/versions/1.2.0/changelog');
-    });
+          '/packages/oxygen/versions/1.2.0/changelog',
+        );
+      },
+    );
 
-    testWithProfile('/packages/foobar_not_found - not found', fn: () async {
-      await expectNotFoundResponse(
-          await issueGet('/packages/foobar_not_found'));
-    });
+    testWithProfile(
+      '/packages/foobar_not_found - not found',
+      fn: () async {
+        await expectNotFoundResponse(
+          await issueGet('/packages/foobar_not_found'),
+        );
+      },
+    );
 
-    testWithProfile('/packages/oxygen/versions - found', fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen/versions'),
-        present: [
-          'oxygen 1.2.0',
-          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
-          RegExp(
-              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
-        ],
-      );
-    });
+    testWithProfile(
+      '/packages/oxygen/versions - found',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen/versions'),
+          present: [
+            'oxygen 1.2.0',
+            RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+            RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>',
+            ),
+          ],
+        );
+      },
+    );
 
     testWithProfile(
       '/packages/foobar_not_found/versions - not found',
       fn: () async {
         await expectNotFoundResponse(
-            await issueGet('/packages/foobar_not_found/versions'));
+          await issueGet('/packages/foobar_not_found/versions'),
+        );
       },
     );
 
-    testWithProfile('/packages/oxygen/versions/1.0.0 - found', fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen/versions/1.0.0'),
-        present: [
-          'oxygen 1.0.0',
-          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
-          RegExp(
-              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
-        ],
-      );
-    });
+    testWithProfile(
+      '/packages/oxygen/versions/1.0.0 - found',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen/versions/1.0.0'),
+          present: [
+            'oxygen 1.0.0',
+            RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+            RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>',
+            ),
+          ],
+        );
+      },
+    );
 
-    testWithProfile('/packages/oxygen/versions/2.0.0%2Ddev - found',
-        fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/packages/oxygen/versions/2.0.0%2Ddev'),
-        present: [
-          'oxygen 2.0.0-dev',
-          RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
-          RegExp(
-              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>'),
-        ],
-      );
-    });
+    testWithProfile(
+      '/packages/oxygen/versions/2.0.0%2Ddev - found',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen/versions/2.0.0%2Ddev'),
+          present: [
+            'oxygen 2.0.0-dev',
+            RegExp(r'<a href="/packages/oxygen" title=".*">1.2.0</a>'),
+            RegExp(
+              r'<a href="/packages/oxygen/versions/2.0.0-dev" title=".*">2.0.0-dev</a>',
+            ),
+          ],
+        );
+      },
+    );
 
     testWithProfile(
       '/packages/oxygen/versions/0.1.2 - not found',
       fn: () async {
         await expectNotFoundResponse(
-            await issueGet('/packages/oxygen/versions/0.1.2'));
+          await issueGet('/packages/oxygen/versions/0.1.2'),
+        );
       },
     );
 
@@ -125,12 +155,15 @@ void main() {
       'package pages without homepage',
       testProfile: TestProfile(
         generatedPackages: [
-          GeneratedTestPackage(name: 'pkg', versions: [
-            GeneratedTestVersion(
-              version: '1.0.0',
-              template: TestArchiveTemplate(homepage: ''),
-            ),
-          ]),
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(
+                version: '1.0.0',
+                template: TestArchiveTemplate(homepage: ''),
+              ),
+            ],
+          ),
         ],
         defaultUser: 'admin@pub.dev',
       ),
@@ -149,9 +182,7 @@ void main() {
           await expectHtmlResponse(
             await issueGet(url),
             present: [],
-            absent: [
-              'Homepage',
-            ],
+            absent: ['Homepage'],
           );
         }
       },

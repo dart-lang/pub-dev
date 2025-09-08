@@ -22,26 +22,25 @@ void main() {
     });
   });
 
-  group(
-    'generator',
-    () {
-      final sequences = _UnicodeEmojiSequences();
+  group('generator', () {
+    final sequences = _UnicodeEmojiSequences();
 
-      setUpAll(() async {
-        await sequences.fetchAndParse();
-      });
+    setUpAll(() async {
+      await sequences.fetchAndParse();
+    });
 
-      test('basic values', () {
-        // Uncomment the following line to print basic ranges:
-        // print(sequences.getBasicRanges(mergeThreshold: 4).map((e) => '$e,\n').join());
-        for (final v in sequences.basicValues) {
-          expect(hasEmojiCharacter(String.fromCharCode(v)), isTrue,
-              reason: '$v is not detected.');
-        }
-      });
-    },
-    tags: ['sanity'],
-  );
+    test('basic values', () {
+      // Uncomment the following line to print basic ranges:
+      // print(sequences.getBasicRanges(mergeThreshold: 4).map((e) => '$e,\n').join());
+      for (final v in sequences.basicValues) {
+        expect(
+          hasEmojiCharacter(String.fromCharCode(v)),
+          isTrue,
+          reason: '$v is not detected.',
+        );
+      }
+    });
+  }, tags: ['sanity']);
 }
 
 class _UnicodeEmojiSequences {
@@ -49,7 +48,8 @@ class _UnicodeEmojiSequences {
 
   Future<void> fetchAndParse() async {
     final rs = await http.get(
-        Uri.parse('https://unicode.org/Public/emoji/14.0/emoji-sequences.txt'));
+      Uri.parse('https://unicode.org/Public/emoji/14.0/emoji-sequences.txt'),
+    );
     if (rs.statusCode != 200) {
       throw Exception('Unable to fetch sequences data.');
     }
@@ -64,14 +64,15 @@ class _UnicodeEmojiSequences {
     basicValues = basicLines
         .map((l) => l.split(';').first.trim())
         .where((l) => !l.contains(' '))
-        .expand(
-      (v) {
-        final parts =
-            v.split('..').map((e) => int.parse(e, radix: 16)).toList();
-        if (parts.length == 1) return parts;
-        return List.generate(parts[1] - parts[0] + 1, (i) => parts[0] + i);
-      },
-    ).toList();
+        .expand((v) {
+          final parts = v
+              .split('..')
+              .map((e) => int.parse(e, radix: 16))
+              .toList();
+          if (parts.length == 1) return parts;
+          return List.generate(parts[1] - parts[0] + 1, (i) => parts[0] + i);
+        })
+        .toList();
     basicValues.sort();
   }
 

@@ -30,8 +30,9 @@ d.Node landingPageNode({
         title: 'Flutter Favorites',
         info: _ffInfo,
         content: miniListNode('flutter-favorites', ffPackages!),
-        viewAllUrl:
-            SearchForm(query: PackageTags.isFlutterFavorite).toSearchLink(),
+        viewAllUrl: SearchForm(
+          query: PackageTags.isFlutterFavorite,
+        ).toSearchLink(),
         viewAllEvent: 'landing-flutter-favorites-view-all',
         viewAllTitle: 'Search Flutter Favorites packages',
       ),
@@ -59,8 +60,9 @@ d.Node landingPageNode({
           height: 240,
         ),
         title: 'Most popular packages',
-        info: d
-            .text('Some of the most downloaded packages over the past 30 days'),
+        info: d.text(
+          'Some of the most downloaded packages over the past 30 days',
+        ),
         content: miniListNode('most-popular', mostPopularPackages!),
         viewAllUrl: urls.listingByDownloadCounts(),
         viewAllEvent: 'landing-most-popular-view-all',
@@ -77,7 +79,8 @@ d.Node landingPageNode({
         imageGoesAfterContent: true,
         title: 'Top Flutter packages',
         info: d.text(
-            'Some of the top packages that extend Flutter with new features'),
+          'Some of the top packages that extend Flutter with new features',
+        ),
         content: miniListNode('top-flutter', topFlutterPackages!),
         viewAllUrl: SearchForm(query: SdkTag.sdkFlutter).toSearchLink(),
         viewAllEvent: 'landing-top-flutter-view-all',
@@ -92,8 +95,9 @@ d.Node landingPageNode({
           height: 240,
         ),
         title: 'Top Dart packages',
-        info: d
-            .text('Some of the top packages for any Dart-based app or program'),
+        info: d.text(
+          'Some of the top packages for any Dart-based app or program',
+        ),
         content: miniListNode('top-dart', topDartPackages!),
         viewAllUrl: SearchForm(query: SdkTag.sdkDart).toSearchLink(),
         viewAllEvent: 'landing-top-dart-view-all',
@@ -103,8 +107,10 @@ d.Node landingPageNode({
       _block(
         shortId: 'pow',
         title: 'Package of the Week',
-        info: d.text('Package of the Week is a series of quick, '
-            'animated videos, each of which covers a particular package'),
+        info: d.text(
+          'Package of the Week is a series of quick, '
+          'animated videos, each of which covers a particular package',
+        ),
         content: videoListNode(topPoWVideos!),
         viewAllUrl:
             'https://www.youtube.com/playlist?list=PLjxrf2q8roU1quF6ny8oFHJ2gBdrYN_AK',

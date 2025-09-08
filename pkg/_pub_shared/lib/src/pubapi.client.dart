@@ -25,13 +25,8 @@ export 'package:api_builder/_client_utils.dart' show RequestException;
 /// structure result in a method that returns the response body
 /// as bytes
 class PubApiClient {
-  PubApiClient(
-    String baseUrl, {
-    _i1.Client? client,
-  }) : _client = _i2.Client(
-          baseUrl,
-          client: client,
-        );
+  PubApiClient(String baseUrl, {_i1.Client? client})
+    : _client = _i2.Client(baseUrl, client: client);
 
   final _i2.Client _client;
 
@@ -46,10 +41,12 @@ class PubApiClient {
     String package,
     String version,
   ) async {
-    return _i3.VersionInfo.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/versions/$version',
-    ));
+    return _i3.VersionInfo.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/versions/$version',
+      ),
+    );
   }
 
   Future<List<int>> redirectToFetchPackage(
@@ -62,10 +59,7 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> fetchPackage(
-    String package,
-    String version,
-  ) async {
+  Future<List<int>> fetchPackage(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/archives/$package-$version.tar.gz',
@@ -73,63 +67,77 @@ class PubApiClient {
   }
 
   Future<_i3.UploadInfo> getPackageUploadUrl() async {
-    return _i3.UploadInfo.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/versions/new',
-    ));
+    return _i3.UploadInfo.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/versions/new',
+      ),
+    );
   }
 
   Future<_i3.SuccessMessage> packageUploadCallback() async {
-    return _i3.SuccessMessage.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/versions/newUploadFinish',
-    ));
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/versions/newUploadFinish',
+      ),
+    );
   }
 
   Future<_i3.SuccessMessage> finishPackageUpload(String uploadId) async {
-    return _i3.SuccessMessage.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/versions/newUploadFinish/$uploadId',
-    ));
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/versions/newUploadFinish/$uploadId',
+      ),
+    );
   }
 
   Future<_i3.SuccessMessage> addUploader(String package) async {
-    return _i3.SuccessMessage.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/packages/$package/uploaders',
-    ));
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/packages/$package/uploaders',
+      ),
+    );
   }
 
   Future<_i3.SuccessMessage> removeUploader(
     String package,
     String email,
   ) async {
-    return _i3.SuccessMessage.fromJson(await _client.requestJson(
-      verb: 'delete',
-      path: '/api/packages/$package/uploaders/$email',
-    ));
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'delete',
+        path: '/api/packages/$package/uploaders/$email',
+      ),
+    );
   }
 
   Future<_i3.SuccessMessage> removeUploaderFromUI(
     String package,
     _i3.RemoveUploaderRequest payload,
   ) async {
-    return _i3.SuccessMessage.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/packages/$package/remove-uploader',
-      body: payload.toJson(),
-    ));
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/packages/$package/remove-uploader',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i4.InviteStatus> invitePackageUploader(
     String package,
     _i3.InviteUploaderRequest payload,
   ) async {
-    return _i4.InviteStatus.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/packages/$package/invite-uploader',
-      body: payload.toJson(),
-    ));
+    return _i4.InviteStatus.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/packages/$package/invite-uploader',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<List<int>> packageAtomFeed(String package) async {
@@ -140,56 +148,68 @@ class PubApiClient {
   }
 
   Future<_i5.PublisherInfo> createPublisher(String publisherId) async {
-    return _i5.PublisherInfo.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/publishers/$publisherId',
-    ));
+    return _i5.PublisherInfo.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/publishers/$publisherId',
+      ),
+    );
   }
 
   Future<_i5.PublisherInfo> publisherInfo(String publisherId) async {
-    return _i5.PublisherInfo.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/publishers/$publisherId',
-    ));
+    return _i5.PublisherInfo.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/publishers/$publisherId',
+      ),
+    );
   }
 
   Future<_i5.PublisherInfo> updatePublisher(
     String publisherId,
     _i5.UpdatePublisherRequest payload,
   ) async {
-    return _i5.PublisherInfo.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/publishers/$publisherId',
-      body: payload.toJson(),
-    ));
+    return _i5.PublisherInfo.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/publishers/$publisherId',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i4.InviteStatus> invitePublisherMember(
     String publisherId,
     _i5.InviteMemberRequest payload,
   ) async {
-    return _i4.InviteStatus.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/publishers/$publisherId/invite-member',
-      body: payload.toJson(),
-    ));
+    return _i4.InviteStatus.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/publishers/$publisherId/invite-member',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i5.PublisherMembers> listPublisherMembers(String publisherId) async {
-    return _i5.PublisherMembers.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/publishers/$publisherId/members',
-    ));
+    return _i5.PublisherMembers.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/publishers/$publisherId/members',
+      ),
+    );
   }
 
   Future<_i5.PublisherMember> publisherMemberInfo(
     String publisherId,
     String userId,
   ) async {
-    return _i5.PublisherMember.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/publishers/$publisherId/members/$userId',
-    ));
+    return _i5.PublisherMember.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/publishers/$publisherId/members/$userId',
+      ),
+    );
   }
 
   Future<_i5.PublisherMember> updatePublisherMember(
@@ -197,11 +217,13 @@ class PubApiClient {
     String userId,
     _i5.UpdatePublisherMemberRequest payload,
   ) async {
-    return _i5.PublisherMember.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/publishers/$publisherId/members/$userId',
-      body: payload.toJson(),
-    ));
+    return _i5.PublisherMember.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/publishers/$publisherId/members/$userId',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<List<int>> removePublisherMember(
@@ -215,28 +237,31 @@ class PubApiClient {
   }
 
   Future<_i4.Consent> consentInfo(String consentId) async {
-    return _i4.Consent.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/account/consent/$consentId',
-    ));
+    return _i4.Consent.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/account/consent/$consentId',
+      ),
+    );
   }
 
   Future<_i4.ConsentResult> resolveConsent(
     String consentId,
     _i4.ConsentResult payload,
   ) async {
-    return _i4.ConsentResult.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/account/consent/$consentId',
-      body: payload.toJson(),
-    ));
+    return _i4.ConsentResult.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/account/consent/$consentId',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i4.ClientSessionStatus> getAccountSession() async {
-    return _i4.ClientSessionStatus.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/account/session',
-    ));
+    return _i4.ClientSessionStatus.fromJson(
+      await _client.requestJson(verb: 'get', path: '/api/account/session'),
+    );
   }
 
   Future<List<int>> invalidateSession() async {
@@ -247,39 +272,47 @@ class PubApiClient {
   }
 
   Future<_i4.AccountPkgOptions> accountPackageOptions(String package) async {
-    return _i4.AccountPkgOptions.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/account/options/packages/$package',
-    ));
+    return _i4.AccountPkgOptions.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/account/options/packages/$package',
+      ),
+    );
   }
 
   Future<_i4.AccountPublisherOptions> accountPublisherOptions(
-      String publisherId) async {
-    return _i4.AccountPublisherOptions.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/account/options/publishers/$publisherId',
-    ));
+    String publisherId,
+  ) async {
+    return _i4.AccountPublisherOptions.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/account/options/publishers/$publisherId',
+      ),
+    );
   }
 
   Future<_i4.LikedPackagesResponse> listPackageLikes() async {
-    return _i4.LikedPackagesResponse.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/account/likes',
-    ));
+    return _i4.LikedPackagesResponse.fromJson(
+      await _client.requestJson(verb: 'get', path: '/api/account/likes'),
+    );
   }
 
   Future<_i4.PackageLikeResponse> getLikePackage(String package) async {
-    return _i4.PackageLikeResponse.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/account/likes/$package',
-    ));
+    return _i4.PackageLikeResponse.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/account/likes/$package',
+      ),
+    );
   }
 
   Future<_i4.PackageLikeResponse> likePackage(String package) async {
-    return _i4.PackageLikeResponse.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/account/likes/$package',
-    ));
+    return _i4.PackageLikeResponse.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/account/likes/$package',
+      ),
+    );
   }
 
   Future<List<int>> unlikePackage(String package) async {
@@ -297,17 +330,11 @@ class PubApiClient {
   }
 
   Future<List<int>> listPackages() async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/api/packages',
-    );
+    return await _client.requestBytes(verb: 'get', path: '/api/packages');
   }
 
   Future<List<int>> packageNames() async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/api/package-names',
-    );
+    return await _client.requestBytes(verb: 'get', path: '/api/package-names');
   }
 
   Future<List<int>> packageNameCompletionData() async {
@@ -325,10 +352,12 @@ class PubApiClient {
   }
 
   Future<_i3.PkgOptions> packageOptions(String package) async {
-    return _i3.PkgOptions.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/options',
-    ));
+    return _i3.PkgOptions.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/options',
+      ),
+    );
   }
 
   Future<List<int>> topicNameCompletionData() async {
@@ -349,32 +378,38 @@ class PubApiClient {
     String package,
     _i3.PkgOptions payload,
   ) async {
-    return _i3.PkgOptions.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/packages/$package/options',
-      body: payload.toJson(),
-    ));
+    return _i3.PkgOptions.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/packages/$package/options',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i3.AutomatedPublishingConfig> setAutomatedPublishing(
     String package,
     _i3.AutomatedPublishingConfig payload,
   ) async {
-    return _i3.AutomatedPublishingConfig.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/packages/$package/automated-publishing',
-      body: payload.toJson(),
-    ));
+    return _i3.AutomatedPublishingConfig.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/packages/$package/automated-publishing',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i3.VersionOptions> getVersionOptions(
     String package,
     String version,
   ) async {
-    return _i3.VersionOptions.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/versions/$version/options',
-    ));
+    return _i3.VersionOptions.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/versions/$version/options',
+      ),
+    );
   }
 
   Future<_i3.VersionOptions> setVersionOptions(
@@ -382,74 +417,77 @@ class PubApiClient {
     String version,
     _i3.VersionOptions payload,
   ) async {
-    return _i3.VersionOptions.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/packages/$package/versions/$version/options',
-      body: payload.toJson(),
-    ));
+    return _i3.VersionOptions.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/packages/$package/versions/$version/options',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i3.PackagePublisherInfo> getPackagePublisher(String package) async {
-    return _i3.PackagePublisherInfo.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/publisher',
-    ));
+    return _i3.PackagePublisherInfo.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/publisher',
+      ),
+    );
   }
 
   Future<_i4.PackageLikesCount> getPackageLikes(String package) async {
-    return _i4.PackageLikesCount.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/likes',
-    ));
+    return _i4.PackageLikesCount.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/likes',
+      ),
+    );
   }
 
   Future<_i3.PackagePublisherInfo> setPackagePublisher(
     String package,
     _i3.PackagePublisherInfo payload,
   ) async {
-    return _i3.PackagePublisherInfo.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/packages/$package/publisher',
-      body: payload.toJson(),
-    ));
+    return _i3.PackagePublisherInfo.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/packages/$package/publisher',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i3.VersionScore> packageScore(String package) async {
-    return _i3.VersionScore.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/score',
-    ));
+    return _i3.VersionScore.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/score',
+      ),
+    );
   }
 
   Future<_i3.VersionScore> packageVersionScore(
     String package,
     String version,
   ) async {
-    return _i3.VersionScore.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/versions/$version/score',
-    ));
+    return _i3.VersionScore.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/versions/$version/score',
+      ),
+    );
   }
 
   Future<List<int>> search() async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/api/search',
-    );
+    return await _client.requestBytes(verb: 'get', path: '/api/search');
   }
 
   Future<List<int>> debug() async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/debug',
-    );
+    return await _client.requestBytes(verb: 'get', path: '/debug');
   }
 
   Future<List<int>> packages() async {
-    return await _client.requestBytes(
-      verb: 'get',
-      path: '/packages.json',
-    );
+    return await _client.requestBytes(verb: 'get', path: '/packages.json');
   }
 
   Future<List<int>> packageJson(String package) async {
@@ -463,26 +501,22 @@ class PubApiClient {
     String package,
     String version,
   ) async {
-    return _i6.UploadTaskResultResponse.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/tasks/$package/$version/upload',
-    ));
+    return _i6.UploadTaskResultResponse.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/tasks/$package/$version/upload',
+      ),
+    );
   }
 
-  Future<List<int>> taskUploadFinished(
-    String package,
-    String version,
-  ) async {
+  Future<List<int>> taskUploadFinished(String package, String version) async {
     return await _client.requestBytes(
       verb: 'post',
       path: '/api/tasks/$package/$version/finished',
     );
   }
 
-  Future<List<int>> adminExecuteTool(
-    String tool,
-    String args,
-  ) async {
+  Future<List<int>> adminExecuteTool(String tool, String args) async {
     return await _client.requestBytes(
       verb: 'post',
       path: '/api/admin/tools/$tool/$args',
@@ -490,21 +524,22 @@ class PubApiClient {
   }
 
   Future<_i7.AdminListActionsResponse> adminListActions() async {
-    return _i7.AdminListActionsResponse.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/admin/actions',
-    ));
+    return _i7.AdminListActionsResponse.fromJson(
+      await _client.requestJson(verb: 'get', path: '/api/admin/actions'),
+    );
   }
 
   Future<_i7.AdminInvokeActionResponse> adminInvokeAction(
     String action,
     _i7.AdminInvokeActionArguments payload,
   ) async {
-    return _i7.AdminInvokeActionResponse.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/admin/actions/$action',
-      body: payload.toJson(),
-    ));
+    return _i7.AdminInvokeActionResponse.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/admin/actions/$action',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i7.AdminListUsersResponse> adminListUsers({
@@ -512,17 +547,19 @@ class PubApiClient {
     String? ouid,
     String? ct,
   }) async {
-    return _i7.AdminListUsersResponse.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/admin/users',
-      query: email != null || ouid != null || ct != null
-          ? <String, String>{
-              if (email != null) 'email': email,
-              if (ouid != null) 'ouid': ouid,
-              if (ct != null) 'ct': ct
-            }
-          : null,
-    ));
+    return _i7.AdminListUsersResponse.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/admin/users',
+        query: email != null || ouid != null || ct != null
+            ? <String, String>{
+                if (email != null) 'email': email,
+                if (ouid != null) 'ouid': ouid,
+                if (ct != null) 'ct': ct,
+              }
+            : null,
+      ),
+    );
   }
 
   Future<List<int>> adminRemoveUser(String userId) async {
@@ -537,71 +574,88 @@ class PubApiClient {
     String version,
     _i3.VersionOptions payload,
   ) async {
-    return _i3.VersionOptions.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/admin/packages/$package/versions/$version/options',
-      body: payload.toJson(),
-    ));
+    return _i3.VersionOptions.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/admin/packages/$package/versions/$version/options',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i7.AssignedTags> adminGetAssignedTags(String package) async {
-    return _i7.AssignedTags.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/admin/packages/$package/assigned-tags',
-    ));
+    return _i7.AssignedTags.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/admin/packages/$package/assigned-tags',
+      ),
+    );
   }
 
   Future<_i7.AssignedTags> adminPostAssignedTags(
     String package,
     _i7.PatchAssignedTags payload,
   ) async {
-    return _i7.AssignedTags.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/admin/packages/$package/assigned-tags',
-      body: payload.toJson(),
-    ));
+    return _i7.AssignedTags.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/admin/packages/$package/assigned-tags',
+        body: payload.toJson(),
+      ),
+    );
   }
 
   Future<_i7.PackageUploaders> adminGetPackageUploaders(String package) async {
-    return _i7.PackageUploaders.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/admin/packages/$package/uploaders',
-    ));
+    return _i7.PackageUploaders.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/admin/packages/$package/uploaders',
+      ),
+    );
   }
 
   Future<_i7.PackageUploaders> adminAddPackageUploader(
     String package,
     String email,
   ) async {
-    return _i7.PackageUploaders.fromJson(await _client.requestJson(
-      verb: 'put',
-      path: '/api/admin/packages/$package/uploaders/$email',
-    ));
+    return _i7.PackageUploaders.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/admin/packages/$package/uploaders/$email',
+      ),
+    );
   }
 
   Future<_i7.PackageUploaders> adminRemovePackageUploader(
     String package,
     String email,
   ) async {
-    return _i7.PackageUploaders.fromJson(await _client.requestJson(
-      verb: 'delete',
-      path: '/api/admin/packages/$package/uploaders/$email',
-    ));
+    return _i7.PackageUploaders.fromJson(
+      await _client.requestJson(
+        verb: 'delete',
+        path: '/api/admin/packages/$package/uploaders/$email',
+      ),
+    );
   }
 
   Future<_i8.ListAdvisoriesResponse> getPackageAdvisories(
-      String package) async {
-    return _i8.ListAdvisoriesResponse.fromJson(await _client.requestJson(
-      verb: 'get',
-      path: '/api/packages/$package/advisories',
-    ));
+    String package,
+  ) async {
+    return _i8.ListAdvisoriesResponse.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/advisories',
+      ),
+    );
   }
 
   Future<_i3.Message> postReport(_i4.ReportForm payload) async {
-    return _i3.Message.fromJson(await _client.requestJson(
-      verb: 'post',
-      path: '/api/report',
-      body: payload.toJson(),
-    ));
+    return _i3.Message.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/report',
+        body: payload.toJson(),
+      ),
+    );
   }
 }

@@ -18,10 +18,7 @@ class UploadInfo {
   /// The fields the uploader should add to the multipart upload.
   final Map<String, String>? fields;
 
-  UploadInfo({
-    required this.url,
-    required this.fields,
-  });
+  UploadInfo({required this.url, required this.fields});
 
   factory UploadInfo.fromJson(Map<String, dynamic> json) =>
       _$UploadInfoFromJson(json);
@@ -36,11 +33,7 @@ class PkgOptions {
   final String? replacedBy;
   final bool? isUnlisted;
 
-  PkgOptions({
-    this.isDiscontinued,
-    this.replacedBy,
-    this.isUnlisted,
-  });
+  PkgOptions({this.isDiscontinued, this.replacedBy, this.isUnlisted});
 
   factory PkgOptions.fromJson(Map<String, dynamic> json) =>
       _$PkgOptionsFromJson(json);
@@ -54,10 +47,7 @@ class AutomatedPublishingConfig {
   final GitHubPublishingConfig? github;
   final GcpPublishingConfig? gcp;
 
-  AutomatedPublishingConfig({
-    this.github,
-    this.gcp,
-  });
+  AutomatedPublishingConfig({this.github, this.gcp});
 
   factory AutomatedPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$AutomatedPublishingConfigFromJson(json);
@@ -122,10 +112,7 @@ class GcpPublishingConfig {
   bool isEnabled;
   String? serviceAccountEmail;
 
-  GcpPublishingConfig({
-    this.isEnabled = false,
-    this.serviceAccountEmail,
-  });
+  GcpPublishingConfig({this.isEnabled = false, this.serviceAccountEmail});
 
   factory GcpPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$GcpPublishingConfigFromJson(json);
@@ -137,9 +124,7 @@ class GcpPublishingConfig {
 class VersionOptions {
   final bool? isRetracted;
 
-  VersionOptions({
-    this.isRetracted,
-  });
+  VersionOptions({this.isRetracted});
 
   factory VersionOptions.fromJson(Map<String, dynamic> json) =>
       _$VersionOptionsFromJson(json);
@@ -154,9 +139,7 @@ class PackagePublisherInfo {
   /// is not owned by a publisher.
   final String? publisherId;
 
-  PackagePublisherInfo({
-    this.publisherId,
-  });
+  PackagePublisherInfo({this.publisherId});
 
   factory PackagePublisherInfo.fromJson(Map<String, dynamic> json) =>
       _$PackagePublisherInfoFromJson(json);

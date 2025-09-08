@@ -35,7 +35,9 @@ import 'cache_control.dart';
 
 /// Handles requests for `/api/documentation/<package>`.
 Future<shelf.Response> apiDocumentationHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   checkPackageVersionParams(package);
   if (isSdkPackage(package)) {
     return jsonResponse({}, status: 404);
@@ -49,16 +51,19 @@ Future<shelf.Response> apiDocumentationHandler(
   return jsonResponse({
     'name': package,
     'versions': status.versions.entries
-        .map((e) => {
-              'version': e.key,
-              'status': e.value.status == PackageVersionStatus.pending ||
-                      e.value.status == PackageVersionStatus.running
-                  ? 'pending'
-                  : (e.value.status == PackageVersionStatus.failed
+        .map(
+          (e) => {
+            'version': e.key,
+            'status':
+                e.value.status == PackageVersionStatus.pending ||
+                    e.value.status == PackageVersionStatus.running
+                ? 'pending'
+                : (e.value.status == PackageVersionStatus.failed
                       ? 'failed'
                       : 'completed'),
-              'hasDocumentation': e.value.docs,
-            })
+            'hasDocumentation': e.value.docs,
+          },
+        )
         .toList(),
   });
 }
@@ -78,17 +83,20 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
 
   final bytes = await cache.packageNamesDataJsonGz().get(() async {
     final packageNames = await nameTracker.getVisiblePackageNames();
-    return gzip.encode(jsonUtf8Encoder.convert({
-      'packages': packageNames,
-      // pagination is off for now
-      'nextUrl': null,
-    }));
+    return gzip.encode(
+      jsonUtf8Encoder.convert({
+        'packages': packageNames,
+        // pagination is off for now
+        'nextUrl': null,
+      }),
+    );
   });
 
-  return shelf.Response(200, body: bytes, headers: {
-    ...jsonResponseHeaders,
-    'Content-Encoding': 'gzip',
-  });
+  return shelf.Response(
+    200,
+    body: bytes,
+    headers: {...jsonResponseHeaders, 'Content-Encoding': 'gzip'},
+  );
 }
 
 /// Handles requests for
@@ -96,26 +104,33 @@ Future<shelf.Response> apiPackageNamesHandler(shelf.Request request) async {
 ///
 /// NOTE: we don't require the `Accept: application/json` header for this request.
 Future<shelf.Response> apiPackageNameCompletionDataHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   // only accept requests which allow gzip content encoding
   if (!request.acceptsGzipEncoding()) {
     throw NotAcceptableException(
-        'Client must send "Accept-Encoding: gzip" header');
+      'Client must send "Accept-Encoding: gzip" header',
+    );
   }
 
   final bytes = await searchBackend.getPackageNameCompletionDataJsonGz();
-  return shelf.Response(200, body: bytes, headers: {
-    ...jsonResponseHeaders,
-    'Content-Encoding': 'gzip',
-    ...CacheControl.completionData.headers,
-  });
+  return shelf.Response(
+    200,
+    body: bytes,
+    headers: {
+      ...jsonResponseHeaders,
+      'Content-Encoding': 'gzip',
+      ...CacheControl.completionData.headers,
+    },
+  );
 }
 
 /// Handles request for `/api/packages?page=<num>`.
 Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   final int pageSize = 100;
-  final int page =
-      extractPageFromUrlParameters(request.requestedUri.queryParameters);
+  final int page = extractPageFromUrlParameters(
+    request.requestedUri.queryParameters,
+  );
 
   // Check that we're not at last page (abuse -1 as special index in cache)
   final lastPageCacheEntry = cache.apiPackagesListPage(-1);
@@ -131,8 +146,10 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     final allPackages = nameTracker.visiblePackagesOrderedByLastPublished;
     final packages = allPackages.skip(offset).take(pageSize).toList();
     final pageVersions = await packageBackend.lookupVersions(
-      packages.map((p) =>
-          QualifiedVersionKey(package: p.package, version: p.latestVersion)),
+      packages.map(
+        (p) =>
+            QualifiedVersionKey(package: p.package, version: p.latestVersion),
+      ),
     );
 
     final packagesJson = [];
@@ -143,10 +160,13 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
       final packageString = Uri.encodeComponent(version.package);
 
       final apiArchiveUrl = urls.pkgArchiveDownloadUrl(
-          version.package, version.version!,
-          baseUri: uri);
-      final apiPackageUrl =
-          uri!.resolve('/api/packages/$packageString').toString();
+        version.package,
+        version.version!,
+        baseUri: uri,
+      );
+      final apiPackageUrl = uri!
+          .resolve('/api/packages/$packageString')
+          .toString();
       final apiPackageVersionUrl = uri
           .resolve('/api/packages/$packageString/versions/$versionString')
           .toString();
@@ -194,17 +214,16 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 
 /// Handles requests for `/api/packages/<package>/metrics`.
 Future<shelf.Response> apiPackageMetricsHandler(
-    shelf.Request request, String packageName) async {
+  shelf.Request request,
+  String packageName,
+) async {
   final packageVersion = request.requestedUri.queryParameters['version'];
   checkPackageVersionParams(packageName, packageVersion);
   final data = packageVersion == null
       ? await scoreCardBackend.getLatestFinishedScoreCardData(packageName)
       : await scoreCardBackend.getScoreCardData(packageName, packageVersion);
   final score = await packageVersionScoreHandler(request, packageName);
-  final result = {
-    'score': score.toJson(),
-    'scorecard': data.toJson(),
-  };
+  final result = {'score': score.toJson(), 'scorecard': data.toJson()};
   return jsonResponse(result);
 }
 
@@ -213,8 +232,10 @@ Future<shelf.Response> apiPackageMetricsHandler(
 /// - `/api/packages/<package>/score`
 /// - `/api/packages/<package>/versions/<version>/score`
 Future<VersionScore> packageVersionScoreHandler(
-    shelf.Request request, String package,
-    {String? version}) async {
+  shelf.Request request,
+  String package, {
+  String? version,
+}) async {
   checkPackageVersionParams(package, version);
   return (await cache.versionScore(package, version).get(() async {
     return await scoreCardBackend.getVersionScore(package, version: version);
@@ -224,16 +245,19 @@ Future<VersionScore> packageVersionScoreHandler(
 /// Handles requests for
 /// - /api/topic-name-completion-data
 Future<shelf.Response> apiTopicNameCompletionDataHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   // only accept requests which allow gzip content encoding
   if (!request.acceptsGzipEncoding()) {
     throw NotAcceptableException(
-        'Client must send "Accept-Encoding: gzip" header.');
+      'Client must send "Accept-Encoding: gzip" header.',
+    );
   }
 
   if (!request.acceptsJsonContent()) {
     throw NotAcceptableException(
-        'Client must send "Accept: application/json" header.');
+      'Client must send "Accept: application/json" header.',
+    );
   }
 
   final bytes = await cache.topicNameCompletionDataJsonGz().get(() async {
@@ -244,11 +268,15 @@ Future<shelf.Response> apiTopicNameCompletionDataHandler(
     return gzip.encode(data);
   });
 
-  return shelf.Response(200, body: bytes, headers: {
-    ...jsonResponseHeaders,
-    'Content-Encoding': 'gzip',
-    ...CacheControl.completionData.headers
-  });
+  return shelf.Response(
+    200,
+    body: bytes,
+    headers: {
+      ...jsonResponseHeaders,
+      'Content-Encoding': 'gzip',
+      ...CacheControl.completionData.headers,
+    },
+  );
 }
 
 /// Handles requests for
@@ -269,10 +297,11 @@ Future<shelf.Response> apiSearchInputCompletionDataHandler(
         .readAsBytes(topicsJsonFileName);
     final topicsMap = json.decode(utf8.decode(topicsJson));
     final topics = (topicsMap as Map<String, Object?>).keys.toList();
-    return gzip.encode(utf8.encode(completionDataJson(
-      topics: topics,
-      licenses: _commonLicenses,
-    )));
+    return gzip.encode(
+      utf8.encode(
+        completionDataJson(topics: topics, licenses: _commonLicenses),
+      ),
+    );
   });
 
   if (!request.acceptsGzipEncoding()) {
@@ -280,17 +309,22 @@ Future<shelf.Response> apiSearchInputCompletionDataHandler(
     // Note: We must handle non-gzipped response, as we can't set the
     //       Content-Encoding header in the browser.
     //       Though, all browsers will allow gzip :D
-    return shelf.Response(200, body: gzip.decode(bytes!), headers: {
-      ...jsonResponseHeaders,
-      ...CacheControl.completionData.headers
-    });
+    return shelf.Response(
+      200,
+      body: gzip.decode(bytes!),
+      headers: {...jsonResponseHeaders, ...CacheControl.completionData.headers},
+    );
   }
 
-  return shelf.Response(200, body: bytes, headers: {
-    ...jsonResponseHeaders,
-    'Content-Encoding': 'gzip',
-    ...CacheControl.completionData.headers
-  });
+  return shelf.Response(
+    200,
+    body: bytes,
+    headers: {
+      ...jsonResponseHeaders,
+      'Content-Encoding': 'gzip',
+      ...CacheControl.completionData.headers,
+    },
+  );
 }
 
 /// A hardcoded list of common licenses.
@@ -431,8 +465,9 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   if (hasNextPage) {
     final newParams = {...request.requestedUri.queryParameters};
     newParams['page'] = (searchForm.currentPage! + 1).toString();
-    final nextPageUrl =
-        request.requestedUri.replace(queryParameters: newParams).toString();
+    final nextPageUrl = request.requestedUri
+        .replace(queryParameters: newParams)
+        .toString();
     result['next'] = nextPageUrl;
   }
   return jsonResponse(result, indentJson: requestContext.indentJson);
@@ -467,9 +502,7 @@ Future<VersionOptions> getVersionOptionsHandler(
   if (pv == null) {
     throw NotFoundException.resource('$package $version');
   }
-  return VersionOptions(
-    isRetracted: pv.isRetracted,
-  );
+  return VersionOptions(isRetracted: pv.isRetracted);
 }
 
 /// Handles `PUT /api/packages/<package>/versions/<version>/options`.

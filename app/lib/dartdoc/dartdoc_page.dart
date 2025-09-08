@@ -86,241 +86,260 @@ extension DartDocPageRender on DartDocPage {
     return true;
   }
 
-  d.Node _renderHead(DartDocPageOptions options) =>
-      d.element('head', children: [
-        // HACK: noindex logic is pub.dev specific
-        if (!_allowsRobotsIndexing(options))
-          d.meta(name: 'robots', content: 'noindex'),
-        d.script(
-            type: 'text/javascript',
-            async: true,
-            src: 'https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9'),
-        d.script(type: 'text/javascript', src: staticUrls.gtmJs),
-        d.meta(charset: 'utf-8'),
-        d.meta(httpEquiv: 'X-UA-Compatible', content: 'IE=edge'),
-        d.meta(
-            name: 'viewport',
-            content:
-                'width=device-width, height=device-height, initial-scale=1, user-scalable=no'),
-        d.meta(name: 'generator', content: 'made with love by dartdoc'),
-        d.meta(name: 'description', content: description),
-        d.element('title', text: _pageTitle(options)),
-        d.link(rel: 'canonical', href: options.canonicalUrl),
-        // HACK: Inject alternate link, if not is latest stable version
-        if (!options.isLatestStable)
-          d.meta(rel: 'alternate', href: options.latestStableDocumentationUrl),
-        d.link(rel: 'preconnect', href: 'https://fonts.gstatic.com'),
-        d.link(
-          rel: 'stylesheet',
-          href:
-              'https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap',
-        ),
-        d.link(
-          rel: 'stylesheet',
-          href:
-              'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
-        ),
+  d.Node _renderHead(DartDocPageOptions options) => d.element(
+    'head',
+    children: [
+      // HACK: noindex logic is pub.dev specific
+      if (!_allowsRobotsIndexing(options))
+        d.meta(name: 'robots', content: 'noindex'),
+      d.script(
+        type: 'text/javascript',
+        async: true,
+        src: 'https://www.googletagmanager.com/gtm.js?id=GTM-MX6DBN9',
+      ),
+      d.script(type: 'text/javascript', src: staticUrls.gtmJs),
+      d.meta(charset: 'utf-8'),
+      d.meta(httpEquiv: 'X-UA-Compatible', content: 'IE=edge'),
+      d.meta(
+        name: 'viewport',
+        content:
+            'width=device-width, height=device-height, initial-scale=1, user-scalable=no',
+      ),
+      d.meta(name: 'generator', content: 'made with love by dartdoc'),
+      d.meta(name: 'description', content: description),
+      d.element('title', text: _pageTitle(options)),
+      d.link(rel: 'canonical', href: options.canonicalUrl),
+      // HACK: Inject alternate link, if not is latest stable version
+      if (!options.isLatestStable)
+        d.meta(rel: 'alternate', href: options.latestStableDocumentationUrl),
+      d.link(rel: 'preconnect', href: 'https://fonts.gstatic.com'),
+      d.link(
+        rel: 'stylesheet',
+        href:
+            'https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap',
+      ),
+      d.link(
+        rel: 'stylesheet',
+        href:
+            'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
+      ),
 
-        d.link(rel: 'stylesheet', href: staticUrls.dartdocCss),
-        d.link(rel: 'icon', href: staticUrls.smallDartFavicon),
-      ]);
+      d.link(rel: 'stylesheet', href: staticUrls.dartdocCss),
+      d.link(rel: 'icon', href: staticUrls.smallDartFavicon),
+    ],
+  );
 
   // HACK: Breadcrumbs are different from what dartdoc produces!
   List<Breadcrumb> _breadcrumbs(DartDocPageOptions options) => [
-        // Prepend a '<name> package' breadcrumb leading back to pub.dev
-        Breadcrumb(
-          title: '${options.package} package',
-          href: options.pubPackagePageUrl,
-        ),
-        // Change the title of the first breadcrumb to be 'documentation'
-        if (breadcrumbs.firstOrNull != null)
-          Breadcrumb(
-            title: 'documentation',
-            href: breadcrumbs.first.href,
-          ),
-        ...breadcrumbs.skip(1),
-      ];
+    // Prepend a '<name> package' breadcrumb leading back to pub.dev
+    Breadcrumb(
+      title: '${options.package} package',
+      href: options.pubPackagePageUrl,
+    ),
+    // Change the title of the first breadcrumb to be 'documentation'
+    if (breadcrumbs.firstOrNull != null)
+      Breadcrumb(title: 'documentation', href: breadcrumbs.first.href),
+    ...breadcrumbs.skip(1),
+  ];
 
-  d.Node _renderHeader(DartDocPageOptions options) =>
-      d.element('header', id: 'title', children: [
-        d.span(
-          id: 'sidenav-left-toggle',
-          classes: ['material-symbols-outlined'],
-          attributes: {'role': 'button', 'tabindex': '0'},
-          text: 'menu',
-        ),
-        d.a(
-          href: '/',
-          classes: ['hidden-xs'],
-          child: d.img(
-            attributes: {
-              'aria-label': 'Go to the landing page of pub.dev',
-              // TODO: Move this into a class
-              'style': 'height: 30px; margin-right: 1em;',
-            },
-            image: d.Image.decorative(
-              src: staticUrls.dartLogoSvg,
-              height: 30,
-              width: 30,
-            ),
+  d.Node _renderHeader(DartDocPageOptions options) => d.element(
+    'header',
+    id: 'title',
+    children: [
+      d.span(
+        id: 'sidenav-left-toggle',
+        classes: ['material-symbols-outlined'],
+        attributes: {'role': 'button', 'tabindex': '0'},
+        text: 'menu',
+      ),
+      d.a(
+        href: '/',
+        classes: ['hidden-xs'],
+        child: d.img(
+          attributes: {
+            'aria-label': 'Go to the landing page of pub.dev',
+            // TODO: Move this into a class
+            'style': 'height: 30px; margin-right: 1em;',
+          },
+          image: d.Image.decorative(
+            src: staticUrls.dartLogoSvg,
+            height: 30,
+            width: 30,
           ),
         ),
-        d.element(
-          'ol',
-          classes: ['breadcrumbs', 'gt-separated', 'dark', 'hidden-xs'],
-          children: [
-            ..._breadcrumbs(options).map((crumb) => crumb.href != null
-                ? d.li(child: d.a(text: crumb.title, href: crumb.href))
-                : d.li(text: crumb.title, classes: ['self-crumb']))
-          ],
+      ),
+      d.element(
+        'ol',
+        classes: ['breadcrumbs', 'gt-separated', 'dark', 'hidden-xs'],
+        children: [
+          ..._breadcrumbs(options).map(
+            (crumb) => crumb.href != null
+                ? d.li(
+                    child: d.a(text: crumb.title, href: crumb.href),
+                  )
+                : d.li(text: crumb.title, classes: ['self-crumb']),
+          ),
+        ],
+      ),
+      d.div(classes: ['self-name'], text: breadcrumbs.lastOrNull?.title ?? ''),
+      d.form(
+        classes: ['search', 'navbar-right'],
+        attributes: {'role': 'search'},
+        child: d.input(
+          type: 'text',
+          id: 'search-box',
+          autocomplete: 'off',
+          disabled: false,
+          classes: ['form-control typeahead'],
+          placeholder: 'Loading search...',
         ),
-        d.div(
-          classes: ['self-name'],
-          text: breadcrumbs.lastOrNull?.title ?? '',
-        ),
-        d.form(
-          classes: ['search', 'navbar-right'],
+      ),
+      d.button(
+        id: 'theme-button',
+        classes: ['toggle'],
+        ariaLabel: 'Light and dark mode toggle',
+        attributes: {'title': 'Toggle between light and dark mode'},
+        children: [
+          d.span(
+            id: 'dark-theme-button',
+            classes: ['material-symbols-outlined'],
+            attributes: {'aria-hidden': 'true'},
+            text: 'dark_mode',
+          ),
+          d.span(
+            id: 'light-theme-button',
+            classes: ['material-symbols-outlined'],
+            attributes: {'aria-hidden': 'true'},
+            text: 'light_mode',
+          ),
+        ],
+      ),
+    ],
+  );
+
+  d.Node _renderMainContent(DartDocPageOptions options) => d.div(
+    id: 'dartdoc-main-content',
+    classes: ['main-content'],
+    attributes: {
+      if (aboveSidebarUrl != null) 'data-above-sidebar': aboveSidebarUrl!,
+      if (belowSidebarUrl != null) 'data-below-sidebar': belowSidebarUrl!,
+    },
+    child: _content,
+  );
+
+  d.Node _renderLeftSideBar(DartDocPageOptions options) => d.div(
+    id: 'dartdoc-sidebar-left',
+    classes: ['sidebar', 'sidebar-offcanvas-left'],
+    children: [
+      d.element(
+        'header',
+        id: 'header-search-sidebar',
+        classes: ['hidden-l'],
+        child: d.form(
+          classes: ['search-sidebar'],
           attributes: {'role': 'search'},
           child: d.input(
+            id: 'search-sidebar',
             type: 'text',
-            id: 'search-box',
             autocomplete: 'off',
             disabled: false,
-            classes: ['form-control typeahead'],
+            classes: ['form-control', 'typeahead'],
             placeholder: 'Loading search...',
           ),
         ),
-        d.button(
-          id: 'theme-button',
-          classes: ['toggle'],
-          ariaLabel: 'Light and dark mode toggle',
-          attributes: {'title': 'Toggle between light and dark mode'},
-          children: [
-            d.span(
-              id: 'dark-theme-button',
-              classes: ['material-symbols-outlined'],
-              attributes: {'aria-hidden': 'true'},
-              text: 'dark_mode',
-            ),
-            d.span(
-              id: 'light-theme-button',
-              classes: ['material-symbols-outlined'],
-              attributes: {'aria-hidden': 'true'},
-              text: 'light_mode',
-            ),
-          ],
-        ),
-      ]);
-
-  d.Node _renderMainContent(DartDocPageOptions options) => d.div(
-        id: 'dartdoc-main-content',
-        classes: ['main-content'],
-        attributes: {
-          if (aboveSidebarUrl != null) 'data-above-sidebar': aboveSidebarUrl!,
-          if (belowSidebarUrl != null) 'data-below-sidebar': belowSidebarUrl!,
-        },
-        child: _content,
-      );
-
-  d.Node _renderLeftSideBar(DartDocPageOptions options) => d.div(
-        id: 'dartdoc-sidebar-left',
-        classes: ['sidebar', 'sidebar-offcanvas-left'],
+      ),
+      d.element(
+        'ol',
+        id: 'sidebar-nav',
+        classes: ['breadcrumbs', 'gt-separated', 'dark', 'hidden-l'],
         children: [
-          d.element(
-            'header',
-            id: 'header-search-sidebar',
-            classes: ['hidden-l'],
-            child: d.form(
-              classes: ['search-sidebar'],
-              attributes: {'role': 'search'},
-              child: d.input(
-                id: 'search-sidebar',
-                type: 'text',
-                autocomplete: 'off',
-                disabled: false,
-                classes: ['form-control', 'typeahead'],
-                placeholder: 'Loading search...',
-              ),
-            ),
-          ),
-          d.element(
-            'ol',
-            id: 'sidebar-nav',
-            classes: ['breadcrumbs', 'gt-separated', 'dark', 'hidden-l'],
-            children: [
-              ..._breadcrumbs(options).map((crumb) => crumb.href != null
-                  ? d.li(
-                      child: d.a(
+          ..._breadcrumbs(options).map(
+            (crumb) => crumb.href != null
+                ? d.li(
+                    child: d.a(
                       text: crumb.titleWithoutDotDart,
                       href: crumb.href,
-                    ))
-                  : d.li(text: crumb.title, classes: ['self-crumb']))
-            ],
+                    ),
+                  )
+                : d.li(text: crumb.title, classes: ['self-crumb']),
           ),
-          _left,
         ],
-      );
+      ),
+      _left,
+    ],
+  );
 
   d.Node _renderRightSideBar(DartDocPageOptions options) => d.div(
-        id: 'dartdoc-sidebar-right',
-        classes: ['sidebar', 'sidebar-offcanvas-right'],
-        child: _right,
-      );
+    id: 'dartdoc-sidebar-right',
+    classes: ['sidebar', 'sidebar-offcanvas-right'],
+    child: _right,
+  );
 
-  d.Node _renderMain(DartDocPageOptions options) =>
-      d.element('main', children: [
-        _renderMainContent(options),
-        _renderLeftSideBar(options),
-        _renderRightSideBar(options),
-      ]);
+  d.Node _renderMain(DartDocPageOptions options) => d.element(
+    'main',
+    children: [
+      _renderMainContent(options),
+      _renderLeftSideBar(options),
+      _renderRightSideBar(options),
+    ],
+  );
 
-  d.Node _renderFooter(DartDocPageOptions options) =>
-      d.element('footer', children: [
-        d.span(
-          classes: ['no-break'],
-          text: '${options.package} ${options.version}',
-        ),
-      ]);
+  d.Node _renderFooter(DartDocPageOptions options) => d.element(
+    'footer',
+    children: [
+      d.span(
+        classes: ['no-break'],
+        text: '${options.package} ${options.version}',
+      ),
+    ],
+  );
 
   d.Node _renderBody(DartDocPageOptions options) {
     final dataBaseHref = p.relative('', from: p.dirname(options.path));
-    return d.element('body', classes: [
-      'light-theme',
-    ], attributes: {
-      'data-base-href':
-          baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
-      'data-using-base-href': usingBaseHref ?? 'false',
-      if (activeConfiguration.isStaging) 'data-staging': '1',
-    }, children: [
-      if (activeConfiguration.isStaging)
-        d.div(classes: ['staging-ribbon'], text: 'staging'),
-      d.element('noscript',
-          child: d.element('iframe', attributes: {
-            'src': 'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
-            'height': '0',
-            'width': '0',
-            'style': 'display:none;visibility:hidden',
-          })),
-      // NOTE: dartdoc's own initialization will still run, but it is not in conflict
-      //       with the current script.
-      d.script(src: staticUrls.getAssetUrl('/static/js/dark-init.js')),
-      d.div(id: 'overlay-under-drawer'),
-      _renderHeader(options),
-      _renderMain(options),
-      _renderFooter(options),
-      // TODO: Consider using highlightjs we also use on pub.dev
-      d.script(src: staticUrls.dartdochighlightJs),
-      d.script(src: staticUrls.dartdocScriptJs),
-    ]);
+    return d.element(
+      'body',
+      classes: ['light-theme'],
+      attributes: {
+        'data-base-href':
+            baseHref ?? (dataBaseHref == '.' ? '' : '$dataBaseHref/'),
+        'data-using-base-href': usingBaseHref ?? 'false',
+        if (activeConfiguration.isStaging) 'data-staging': '1',
+      },
+      children: [
+        if (activeConfiguration.isStaging)
+          d.div(classes: ['staging-ribbon'], text: 'staging'),
+        d.element(
+          'noscript',
+          child: d.element(
+            'iframe',
+            attributes: {
+              'src': 'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
+              'height': '0',
+              'width': '0',
+              'style': 'display:none;visibility:hidden',
+            },
+          ),
+        ),
+        // NOTE: dartdoc's own initialization will still run, but it is not in conflict
+        //       with the current script.
+        d.script(src: staticUrls.getAssetUrl('/static/js/dark-init.js')),
+        d.div(id: 'overlay-under-drawer'),
+        _renderHeader(options),
+        _renderMain(options),
+        _renderFooter(options),
+        // TODO: Consider using highlightjs we also use on pub.dev
+        d.script(src: staticUrls.dartdochighlightJs),
+        d.script(src: staticUrls.dartdocScriptJs),
+      ],
+    );
   }
 
   d.Node render(DartDocPageOptions options) => d.fragment([
-        d.unsafeRawHtml('<!DOCTYPE html>\n'),
-        d.element('html', attributes: {
-          'lang': 'en'
-        }, children: [
-          _renderHead(options),
-          _renderBody(options),
-        ]),
-      ]);
+    d.unsafeRawHtml('<!DOCTYPE html>\n'),
+    d.element(
+      'html',
+      attributes: {'lang': 'en'},
+      children: [_renderHead(options), _renderBody(options)],
+    ),
+  ]);
 }

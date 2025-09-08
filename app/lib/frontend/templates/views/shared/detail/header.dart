@@ -37,8 +37,9 @@ d.Node detailHeaderNode({
                     'displayed-in-light-theme',
                   ],
                   image: d.Image.decorative(
-                    src: staticUrls
-                        .getAssetUrl('/static/img/ff-banner-desktop-2x.png'),
+                    src: staticUrls.getAssetUrl(
+                      '/static/img/ff-banner-desktop-2x.png',
+                    ),
                     width: 150,
                     height: 218,
                   ),
@@ -51,7 +52,8 @@ d.Node detailHeaderNode({
                   ],
                   image: d.Image.decorative(
                     src: staticUrls.getAssetUrl(
-                        '/static/img/ff-banner-desktop-dark-2x.png'),
+                      '/static/img/ff-banner-desktop-dark-2x.png',
+                    ),
                     width: 150,
                     height: 218,
                   ),
@@ -63,8 +65,9 @@ d.Node detailHeaderNode({
                     'displayed-in-light-theme',
                   ],
                   image: d.Image.decorative(
-                    src: staticUrls
-                        .getAssetUrl('/static/img/ff-banner-mobile-2x.png'),
+                    src: staticUrls.getAssetUrl(
+                      '/static/img/ff-banner-mobile-2x.png',
+                    ),
                     width: 94,
                     height: 116,
                   ),
@@ -77,7 +80,8 @@ d.Node detailHeaderNode({
                   ],
                   image: d.Image.decorative(
                     src: staticUrls.getAssetUrl(
-                        '/static/img/ff-banner-mobile-dark-2x.png'),
+                      '/static/img/ff-banner-mobile-dark-2x.png',
+                    ),
                     width: 94,
                     height: 116,
                   ),
@@ -87,10 +91,7 @@ d.Node detailHeaderNode({
         ],
       ),
     d.div(
-      classes: [
-        'detail-header',
-        if (isLoose) '-is-loose',
-      ],
+      classes: ['detail-header', if (isLoose) '-is-loose'],
       child: d.div(
         classes: ['detail-container'],
         child: d.div(
@@ -99,10 +100,7 @@ d.Node detailHeaderNode({
             if (image != null)
               d.div(
                 classes: ['detail-header-image-block'],
-                child: d.img(
-                  classes: ['detail-header-image'],
-                  image: image,
-                ),
+                child: d.img(classes: ['detail-header-image'], image: image),
               ),
             d.div(
               classes: ['detail-header-content-block'],

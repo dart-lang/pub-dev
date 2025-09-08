@@ -8,55 +8,39 @@ import 'package:web_app/src/widget/completion/suggest.dart';
 
 void main() {
   group('Completion suggest', () {
-    final data = CompletionData(completions: [
-      CompletionRule(
-        match: {'', '-'},
-        terminal: false,
-        forcedOnly: true,
-        options: [
-          'has:',
-          'is:',
-        ],
-      ),
-      CompletionRule(
-        match: {'is:', '-is:'},
-        options: [
-          'dart3-compatible',
-          'flutter-favorite',
-          'legacy',
-          'null-safe',
-          'plugin',
-          'unlisted',
-          'wasm-ready',
-        ],
-      ),
-      CompletionRule(
-        match: {'has:', '-has:'},
-        options: [
-          'executable',
-          'screenshot',
-        ],
-      ),
-    ]);
+    final data = CompletionData(
+      completions: [
+        CompletionRule(
+          match: {'', '-'},
+          terminal: false,
+          forcedOnly: true,
+          options: ['has:', 'is:'],
+        ),
+        CompletionRule(
+          match: {'is:', '-is:'},
+          options: [
+            'dart3-compatible',
+            'flutter-favorite',
+            'legacy',
+            'null-safe',
+            'plugin',
+            'unlisted',
+            'wasm-ready',
+          ],
+        ),
+        CompletionRule(
+          match: {'has:', '-has:'},
+          options: ['executable', 'screenshot'],
+        ),
+      ],
+    );
 
     test('no suggestion', () {
       final rs = suggest(data, 'zzzzzz', 5);
       expect(rs.trigger, false);
       expect(rs.suggestions.map((e) => e.toJson()).toList(), [
-        {
-          'start': 0,
-          'end': 6,
-          'value': 'is:',
-          'html': 'is:',
-          'score': 0.0,
-        },
-        {
-          'start': 0,
-          'end': 6,
-          'value': 'has:',
-          'html': 'has:',
-          'score': 0.0,
-        },
+        {'start': 0, 'end': 6, 'value': 'is:', 'html': 'is:', 'score': 0.0},
+        {'start': 0, 'end': 6, 'value': 'has:', 'html': 'has:', 'score': 0.0},
       ]);
     });
 
@@ -100,7 +84,7 @@ void main() {
           'end': 5,
           'value': 'is:plugin ',
           'html': '<span class="completion-overlap">is:</span>plugin',
-          'score': 0.0
+          'score': 0.0,
         },
         {
           'start': 0,

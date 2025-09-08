@@ -28,20 +28,21 @@ class TopPackages {
     'top-packages-flutter-favorites',
     query: PackageTags.isFlutterFavorite,
   );
-  final _mostPopular =
-      _cachedValue('top-packages-most-popular', order: SearchOrder.downloads);
-  final _trending =
-      _cachedValue('top-packages-trending', order: SearchOrder.trending);
+  final _mostPopular = _cachedValue(
+    'top-packages-most-popular',
+    order: SearchOrder.downloads,
+  );
+  final _trending = _cachedValue(
+    'top-packages-trending',
+    order: SearchOrder.trending,
+  );
   final _topDart = _cachedValue('top-packages-top-dart', query: SdkTag.sdkDart);
-  final _topFlutter =
-      _cachedValue('top-packages-top-flutter', query: SdkTag.sdkFlutter);
+  final _topFlutter = _cachedValue(
+    'top-packages-top-flutter',
+    query: SdkTag.sdkFlutter,
+  );
 
-  late final _values = [
-    _flutterFavorites,
-    _mostPopular,
-    _topDart,
-    _topFlutter,
-  ];
+  late final _values = [_flutterFavorites, _mostPopular, _topDart, _topFlutter];
 
   bool _running = false;
   bool _closing = false;
@@ -100,7 +101,9 @@ class TopPackages {
   }
 
   List<PackageView> _randomSelection(
-      CachedValue<List<PackageView>> cachedValue, int count) {
+    CachedValue<List<PackageView>> cachedValue,
+    int count,
+  ) {
     if (!cachedValue.isAvailable) {
       return <PackageView>[];
     }
@@ -140,11 +143,7 @@ CachedValue<List<PackageView>> _cachedValue(
     interval: Duration(minutes: 15),
     maxAge: Duration(hours: 24),
     updateFn: () async {
-      final form = SearchForm(
-        query: query,
-        order: order,
-        pageSize: 100,
-      );
+      final form = SearchForm(query: query, order: order, pageSize: 100);
       final page = await searchAdapter.search(
         form,
         // Do not apply rate limit here.

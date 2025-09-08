@@ -145,19 +145,23 @@ final class ApiExporter {
     final allPackageNames = <String>{};
     final packageQuery = _db.query<Package>();
     var errCount = 0;
-    await packageQuery.run().parallelForEach(_concurrency, (pkg) async {
-      final name = pkg.name!;
-      if (pkg.isNotVisible) {
-        return;
-      }
-      allPackageNames.add(name);
+    await packageQuery.run().parallelForEach(
+      _concurrency,
+      (pkg) async {
+        final name = pkg.name!;
+        if (pkg.isNotVisible) {
+          return;
+        }
+        allPackageNames.add(name);
 
-      // TODO: Consider retries around all this logic
-      await synchronizePackage(name, forceWrite: forceWrite);
-    }, onError: (e, st) {
-      _log.warning('synchronizePackage() failed', e, st);
-      errCount++;
-    });
+        // TODO: Consider retries around all this logic
+        await synchronizePackage(name, forceWrite: forceWrite);
+      },
+      onError: (e, st) {
+        _log.warning('synchronizePackage() failed', e, st);
+        errCount++;
+      },
+    );
 
     await synchronizePackageNameCompletionData(forceWrite: forceWrite);
     await synchronizeAllPackagesAtomFeed(forceWrite: forceWrite);
@@ -233,36 +237,53 @@ final class ApiExporter {
       (version, _) => !versionListing.versions.any((v) => v.version == version),
     );
 
-    await _api.package(package).synchronizeTarballs(
+    await _api
+        .package(package)
+        .synchronizeTarballs(
           versions,
           forceWrite: forceWrite,
           forceDelete: forceDelete,
         );
-    await _api.package(package).advisories.write(
-          advisories,
-          forceWrite: forceWrite,
-        );
-    await _api.package(package).versions.write(
-          versionListing,
-          forceWrite: forceWrite,
-        );
-    await _api.package(package).likes.write(
+    await _api
+        .package(package)
+        .advisories
+        .write(advisories, forceWrite: forceWrite);
+    await _api
+        .package(package)
+        .versions
+        .write(versionListing, forceWrite: forceWrite);
+    await _api
+        .package(package)
+        .likes
+        .write(
           await packageBackend.getPackageLikesCount(package),
           forceWrite: forceWrite,
         );
-    await _api.package(package).options.write(
+    await _api
+        .package(package)
+        .options
+        .write(
           await packageBackend.getPackageOptions(package),
           forceWrite: forceWrite,
         );
-    await _api.package(package).publisher.write(
+    await _api
+        .package(package)
+        .publisher
+        .write(
           await packageBackend.getPublisherInfo(package),
           forceWrite: forceWrite,
         );
-    await _api.package(package).score.write(
+    await _api
+        .package(package)
+        .score
+        .write(
           await scoreCardBackend.getVersionScore(package),
           forceWrite: forceWrite,
         );
-    await _api.package(package).feedAtomFile.write(
+    await _api
+        .package(package)
+        .feedAtomFile
+        .write(
           await buildPackageAtomFeedContent(package),
           forceWrite: forceWrite,
         );
@@ -326,15 +347,15 @@ final class ApiExporter {
       seen.removeWhere((_, updated) => updated.isBefore(since));
 
       // Wait until aborted or 10 minutes before scanning again!
-      await abort.future
-          .timeoutWithClock(Duration(minutes: 10), onTimeout: () => null);
+      await abort.future.timeoutWithClock(
+        Duration(minutes: 10),
+        onTimeout: () => null,
+      );
     }
   }
 
   /// Synchronize the `/feed.atom` file into [ExportedApi].
-  Future<void> synchronizeAllPackagesAtomFeed({
-    bool forceWrite = false,
-  }) async {
+  Future<void> synchronizeAllPackagesAtomFeed({bool forceWrite = false}) async {
     await _api.allPackagesFeedAtomFile.write(
       await buildAllPackagesAtomFeedContent(),
       forceWrite: forceWrite,

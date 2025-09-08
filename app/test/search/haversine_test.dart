@@ -15,14 +15,17 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'haversine',
-          version: '0.0.2',
-          description: compactDescription(
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(
+            package: 'haversine',
+            version: '0.0.2',
+            description: compactDescription(
               'Calculate geographic distance on earth having a pair of '
-              'Latitude/Longitude points using the Haversine formula.'),
-          readme: compactReadme(r'''# haversine.dart
+              'Latitude/Longitude points using the Haversine formula.',
+            ),
+            readme: compactReadme(
+              r'''# haversine.dart
 
 Simple [Haversine formula](https://en.wikipedia.org/wiki/Haversine_formula) implementation to calculate geographic distance on earth having a pair of Latitude/Longitude points.
 
@@ -31,15 +34,17 @@ The formula in this library works on the basis of a spherical earth, which is ac
 
 `Disclaimer`: The earth is not quite a sphere. This means that errors from assuming spherical geometry might be considerable depending on the points, so: `don't trust your life on this value`.
 
-Check [this](https://gis.stackexchange.com/questions/25494/how-accurate-is-approximating-the-earth-as-a-sphere#25580) detailed information.'''),
-        ),
-        PackageDocument(
+Check [this](https://gis.stackexchange.com/questions/25494/how-accurate-is-approximating-the-earth-as-a-sphere#25580) detailed information.''',
+            ),
+          ),
+          PackageDocument(
             package: 'latlong',
             version: '0.3.4',
             description: compactDescription(
-                'Lightweight library for common latitude and longitude calculation'),
+              'Lightweight library for common latitude and longitude calculation',
+            ),
             readme: compactReadme(
-                '''# LatLong provides a lightweight library for common latitude and longitude calculation.
+              '''# LatLong provides a lightweight library for common latitude and longitude calculation.
 
 This library supports both, the "Haversine" and the "Vincenty" algorithm.
 
@@ -120,13 +125,16 @@ Please file feature requests and bugs at the [issue tracker](https://github.com/
 
 If this plugin is helpful for you - please [(Circle)](http://gplus.mikemitterer.at/) me
 or **star** this repo here on GitHub
-''')),
-        PackageDocument(
-          package: 'great_circle_distance',
-          version: '0.0.3',
-          description: compactDescription(
-              'Calculate the great-circle distance on the Earth having a pair of Latitude/Longitude points.'),
-          readme: compactReadme(r'''# Great-circle distance
+''',
+            ),
+          ),
+          PackageDocument(
+            package: 'great_circle_distance',
+            version: '0.0.3',
+            description: compactDescription(
+              'Calculate the great-circle distance on the Earth having a pair of Latitude/Longitude points.',
+            ),
+            readme: compactReadme(r'''# Great-circle distance
 
 Calculate the great-circle distance on the Earth having a pair of Latitude/Longitude points
 
@@ -158,13 +166,14 @@ print('Distance from location 1 to 2 using the Vincenty`s formula is: ${gcd.vinc
 
 Check Wikipedia for detailed description on [Great-circle distance](https://en.wikipedia.org/wiki/Great-circle_distance)
           '''),
-        ),
-        PackageDocument(
-          package: 'version',
-          version: '1.0.2',
-          description: compactDescription(
-              'Provides a simple class for parsing and comparing semantic versions as defined by http://semver.org/'),
-          readme: compactReadme('''# version
+          ),
+          PackageDocument(
+            package: 'version',
+            version: '1.0.2',
+            description: compactDescription(
+              'Provides a simple class for parsing and comparing semantic versions as defined by http://semver.org/',
+            ),
+            readme: compactReadme('''# version
 [![version 1.0.2](https://img.shields.io/badge/pub-1.0.2-brightgreen.svg)](https://pub.dartlang.org/packages/version)
 [![build status](https://api.travis-ci.org/dartalog/version_dart.svg)](https://travis-ci.org/dartalog/version_dart)
 
@@ -205,13 +214,14 @@ A simple usage example:
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dartalog/version_dart/issues'''),
-        ),
-        PackageDocument(
-          package: 'reversi',
-          version: '0.1.1',
-          description: compactDescription(
-              'This package implements the core algorithm for Reversi (Othello). You have to code your own UI to program a Reversi game. This package bundles with a Reversi console program for demo purpose.'),
-          readme: compactReadme(r'''# Reversi in Dart
+          ),
+          PackageDocument(
+            package: 'reversi',
+            version: '0.1.1',
+            description: compactDescription(
+              'This package implements the core algorithm for Reversi (Othello). You have to code your own UI to program a Reversi game. This package bundles with a Reversi console program for demo purpose.',
+            ),
+            readme: compactReadme(r'''# Reversi in Dart
 
 This repo implements the core algorithm for Reversi. No UI part.
 
@@ -370,43 +380,37 @@ class MyBot implements Bot {
 ## License
 
 MIT'''),
-        ),
-      ]);
+          ),
+        ],
+      );
     });
 
     test('haversine', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'haversine', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(query: 'haversine', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'haversine', 'score': 1.0},
-          {
-            'package': 'great_circle_distance',
-            'score': closeTo(0.72, 0.01),
-          },
-          {
-            'package': 'latlong',
-            'score': closeTo(0.71, 0.01),
-          },
+          {'package': 'great_circle_distance', 'score': closeTo(0.72, 0.01)},
+          {'package': 'latlong', 'score': closeTo(0.71, 0.01)},
         ],
       });
     });
 
     test('type: hoversine', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'hoversine', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(query: 'hoversine', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {
-            'package': 'haversine',
-            'score': closeTo(0.72, 0.01),
-          },
+          {'package': 'haversine', 'score': closeTo(0.72, 0.01)},
         ],
       });
     });

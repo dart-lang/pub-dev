@@ -34,38 +34,40 @@ class FakeSearchService {
     required Configuration configuration,
   }) async {
     await withFakeServices(
-        configuration: configuration,
-        datastore: _datastore,
-        storage: _storage,
-        cloudCompute: _cloudCompute,
-        fn: () async {
-          registerSdkIndex(await createSdkMemIndex());
-          final handler = wrapHandler(_logger, searchServiceHandler);
-          final server = await IOServer.bind('localhost', port);
-          serveRequests(server.server, (request) async {
-            return (await ss.fork(() async {
-              if (request.requestedUri.path == '/fake-update-all') {
-                _logger.info('Triggered update all...');
-                // ignore: invalid_use_of_visible_for_testing_member
-                await indexUpdater.updateAllPackages();
-                _logger.info('Completed update all...');
-                return shelf.Response.ok('');
-              }
-              return await handler(request);
-            }) as shelf.Response?)!;
-          });
-          _logger.info('running on port $port');
-
-          await generateFakeDownloadCountsInDatastore();
-          // ignore: invalid_use_of_visible_for_testing_member
-          await indexUpdater.updateAllPackages();
-
-          await ProcessSignal.sigint.watch().first;
-
-          _logger.info('shutting down');
-          await server.close();
-          _logger.info('closing');
+      configuration: configuration,
+      datastore: _datastore,
+      storage: _storage,
+      cloudCompute: _cloudCompute,
+      fn: () async {
+        registerSdkIndex(await createSdkMemIndex());
+        final handler = wrapHandler(_logger, searchServiceHandler);
+        final server = await IOServer.bind('localhost', port);
+        serveRequests(server.server, (request) async {
+          return (await ss.fork(() async {
+                if (request.requestedUri.path == '/fake-update-all') {
+                  _logger.info('Triggered update all...');
+                  // ignore: invalid_use_of_visible_for_testing_member
+                  await indexUpdater.updateAllPackages();
+                  _logger.info('Completed update all...');
+                  return shelf.Response.ok('');
+                }
+                return await handler(request);
+              })
+              as shelf.Response?)!;
         });
+        _logger.info('running on port $port');
+
+        await generateFakeDownloadCountsInDatastore();
+        // ignore: invalid_use_of_visible_for_testing_member
+        await indexUpdater.updateAllPackages();
+
+        await ProcessSignal.sigint.watch().first;
+
+        _logger.info('shutting down');
+        await server.close();
+        _logger.info('closing');
+      },
+    );
     _logger.info('closed');
   }
 }

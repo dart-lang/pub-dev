@@ -88,7 +88,7 @@ class SearchBackend {
   final VersionedJsonStorage _snapshotStorage;
 
   SearchBackend(this._db, Bucket snapshotBucket)
-      : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
+    : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
 
   /// Runs a forever loop and tries to get a global lock.
   ///
@@ -114,7 +114,11 @@ class SearchBackend {
         });
       } catch (e, st) {
         _logger.pubNoticeShout(
-            'snapshot-building', 'Snapshot update failed.', e, st);
+          'snapshot-building',
+          'Snapshot update failed.',
+          e,
+          st,
+        );
         // Force waiting at least an hour before we rethrow the exception,
         // otherwise we could get into a reboot loop that doesn't get much
         // real work done on the other tasks.
@@ -239,7 +243,8 @@ class SearchBackend {
   }
 
   Future<Map<String, DateTime>> _queryRecentlyUpdated(
-      DateTime lastQueryStarted) async {
+    DateTime lastQueryStarted,
+  ) async {
     final updatedThreshold = lastQueryStarted.subtract(Duration(minutes: 5));
     final results = <String, DateTime>{};
     void addResult(String pkg, DateTime updated) {
@@ -277,16 +282,18 @@ class SearchBackend {
       throw RemovedPackageException();
     }
     if (p.publisherId != null) {
-      final publisherVisible =
-          await publisherBackend.isPublisherVisible(p.publisherId!);
+      final publisherVisible = await publisherBackend.isPublisherVisible(
+        p.publisherId!,
+      );
       if (!publisherVisible) {
         throw RemovedPackageException();
       }
     }
 
     // Get the scorecard with the latest version available with finished analysis.
-    final scoreCard =
-        await scoreCardBackend.getLatestFinishedScoreCardData(packageName);
+    final scoreCard = await scoreCardBackend.getLatestFinishedScoreCardData(
+      packageName,
+    );
 
     // Load the version with the analysis above, or the latest version if no analysis
     // has been finished yet.
@@ -299,14 +306,21 @@ class SearchBackend {
       throw RemovedPackageException();
     }
     final readmeAsset = await packageBackend.lookupPackageVersionAsset(
-        packageName, pv.version!, AssetKind.readme);
+      packageName,
+      pv.version!,
+      AssetKind.readme,
+    );
 
     // Find tags from latest prerelease and/or preview (if there one).
     Future<Iterable<String>> loadFutureTags(String version) async {
-      final futureVersion =
-          await packageBackend.lookupPackageVersion(packageName, version);
-      final futureVersionAnalysis =
-          await scoreCardBackend.getScoreCardData(packageName, version);
+      final futureVersion = await packageBackend.lookupPackageVersion(
+        packageName,
+        version,
+      );
+      final futureVersionAnalysis = await scoreCardBackend.getScoreCardData(
+        packageName,
+        version,
+      );
       final futureTags = <String>{
         ...?futureVersion?.getTags(),
         ...?futureVersionAnalysis.panaReport?.derivedTags,
@@ -340,7 +354,10 @@ class SearchBackend {
     List<ApiDocPage>? apiDocPages;
     try {
       final pubDataBytes = await taskBackend.gzippedTaskResult(
-          packageName, pv.version!, 'doc/pub-data.json');
+        packageName,
+        pv.version!,
+        'doc/pub-data.json',
+      );
       final pubDataContent = pubDataBytes == null
           ? null
           : utf8.decode(gzip.decode(pubDataBytes), allowMalformed: true);
@@ -359,10 +376,7 @@ class SearchBackend {
     ].join(' ');
 
     // select the latest entity updated timestamp (when available)
-    final sourceUpdated = [
-      p.updated,
-      scoreCard.updated,
-    ].nonNulls.maxOrNull;
+    final sourceUpdated = [p.updated, scoreCard.updated].nonNulls.maxOrNull;
 
     return PackageDocument(
       package: pv.package,
@@ -385,7 +399,9 @@ class SearchBackend {
   }
 
   Future<Map<String, String>> _buildDependencies(
-      Pubspec pubspec, ScoreCardData? view) async {
+    Pubspec pubspec,
+    ScoreCardData? view,
+  ) async {
     final dependencies = <String, String>{};
     for (final p in view?.panaReport?.allDependencies ?? <String>[]) {
       if (await packageBackend.isPackageVisible(p)) {
@@ -421,8 +437,9 @@ class SearchBackend {
     await for (final p in query.run()) {
       if (p.isNotVisible) continue;
       if (p.publisherId != null) {
-        final publisherVisible =
-            await publisherBackend.isPublisherVisible(p.publisherId!);
+        final publisherVisible = await publisherBackend.isPublisherVisible(
+          p.publisherId!,
+        );
         if (!publisherVisible) continue;
       }
       final releases = await packageBackend.latestReleases(p);
@@ -461,9 +478,11 @@ class SearchBackend {
   /// than half a year old).
   Future<void> deleteOldData() async {
     final counts = await _snapshotStorage.deleteOldData(
-        minAgeThreshold: Duration(days: 182));
+      minAgeThreshold: Duration(days: 182),
+    );
     _logger.info(
-        'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)');
+      'delete-old-search-snapshots cleared $counts entries ($runtimeVersion)',
+    );
   }
 
   /// Creates the content for the /api/package-name-completion-data endpoint.
@@ -479,9 +498,7 @@ class SearchBackend {
       // Do not apply rate limit here.
       sourceIp: null,
     );
-    return {
-      'packages': rs.packageHits.map((p) => p.package).toList(),
-    };
+    return {'packages': rs.packageHits.map((p) => p.package).toList()};
   }
 
   /// Creates the gzipped byte content for the /api/package-name-completion-data endpoint.
@@ -519,21 +536,24 @@ SearchForm? canonicalizeSearchForm(SearchForm form) {
     return form.change(query: query.change(tagsPredicate: newTags).toString());
   }
 
-  final newQueryText = form.parsedQuery.text?.split(' ').map((p) {
-    if (p.startsWith('#') && p.length > 1) {
-      final topic = p.substring(1);
-      // Checking the surface format, and skipping the change if the
-      // text would be an invalid topic.
-      if (!isValidTopicFormat(topic)) {
+  final newQueryText = form.parsedQuery.text
+      ?.split(' ')
+      .map((p) {
+        if (p.startsWith('#') && p.length > 1) {
+          final topic = p.substring(1);
+          // Checking the surface format, and skipping the change if the
+          // text would be an invalid topic.
+          if (!isValidTopicFormat(topic)) {
+            return p;
+          }
+          // NOTE: We don't know if this topic exists or spelled correctly.
+          //       We should consider restricting the updates to existing
+          //       topics only (TBD).
+          return 'topic:$topic';
+        }
         return p;
-      }
-      // NOTE: We don't know if this topic exists or spelled correctly.
-      //       We should consider restricting the updates to existing
-      //       topics only (TBD).
-      return 'topic:$topic';
-    }
-    return p;
-  }).join(' ');
+      })
+      .join(' ');
   if (newQueryText != form.parsedQuery.text) {
     return form.change(query: newQueryText);
   }
@@ -571,7 +591,10 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
     if (isTopLevelApiElement(apiElement)) {
       pathMap[apiElement.qualifiedName] = apiElement.href;
       update(
-          apiElement.qualifiedName, apiElement.name, apiElement.documentation);
+        apiElement.qualifiedName,
+        apiElement.name,
+        apiElement.documentation,
+      );
     } else if (apiElement.parent != null &&
         isTopLevelApiElement(nameToApiElementMap[apiElement.parent])) {
       update(apiElement.parent!, apiElement.name, apiElement.documentation);
@@ -581,10 +604,7 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   final results = pathMap.keys.where(symbolMap.containsKey).map((key) {
     final path = pathMap[key]!;
     final symbols = symbolMap[key]!.toList()..sort();
-    return ApiDocPage(
-      relativePath: path,
-      symbols: symbols,
-    );
+    return ApiDocPage(relativePath: path, symbols: symbols);
   }).toList();
   results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
   return results;

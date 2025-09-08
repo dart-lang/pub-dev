@@ -21,9 +21,7 @@ final _logger = Logger('listing_page');
 final _searchOverallLatencyTracker = DurationTracker();
 
 Map searchDebugStats() {
-  return {
-    'overall_latency': _searchOverallLatencyTracker.toShortStat(),
-  };
+  return {'overall_latency': _searchOverallLatencyTracker.toShortStat()};
 }
 
 /// Handles /packages - package listing
@@ -32,17 +30,17 @@ Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
 
 /// Handles /dart/packages
 Future<shelf.Response> dartPackagesHandlerHtml(shelf.Request request) async {
-  final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
-      .toggleRequiredTag(SdkTag.sdkDart)
-      .toSearchLink();
+  final newUrl = SearchForm(
+    query: request.requestedUri.queryParameters['q'],
+  ).toggleRequiredTag(SdkTag.sdkDart).toSearchLink();
   return redirectResponse(newUrl);
 }
 
 /// Handles /flutter/packages
 Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) async {
-  final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
-      .toggleRequiredTag(SdkTag.sdkFlutter)
-      .toSearchLink();
+  final newUrl = SearchForm(
+    query: request.requestedUri.queryParameters['q'],
+  ).toggleRequiredTag(SdkTag.sdkFlutter).toSearchLink();
   return redirectResponse(newUrl);
 }
 
@@ -50,17 +48,17 @@ Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) async {
 Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
   shelf.Request request,
 ) async {
-  final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
-      .toggleRequiredTag(PackageTags.isFlutterFavorite)
-      .toSearchLink();
+  final newUrl = SearchForm(
+    query: request.requestedUri.queryParameters['q'],
+  ).toggleRequiredTag(PackageTags.isFlutterFavorite).toSearchLink();
   return redirectResponse(newUrl);
 }
 
 /// Handles /web/packages
 Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
-  final newUrl = SearchForm(query: request.requestedUri.queryParameters['q'])
-      .toggleRequiredTag(PlatformTag.platformWeb)
-      .toSearchLink();
+  final newUrl = SearchForm(
+    query: request.requestedUri.queryParameters['q'],
+  ).toggleRequiredTag(PlatformTag.platformWeb).toSearchLink();
   return redirectResponse(newUrl);
 }
 
@@ -68,8 +66,9 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// - /packages - package listing
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   final sw = Stopwatch()..start();
-  final openSections =
-      request.requestedUri.queryParameters['open-sections']?.split(' ').toSet();
+  final openSections = request.requestedUri.queryParameters['open-sections']
+      ?.split(' ')
+      .toSet();
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   final canonicalForm = canonicalizeSearchForm(searchForm);
   if (canonicalForm != null) {
@@ -102,8 +101,9 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> packagesHandler(shelf.Request request) async {
-  final int page =
-      extractPageFromUrlParameters(request.requestedUri.queryParameters);
+  final int page = extractPageFromUrlParameters(
+    request.requestedUri.queryParameters,
+  );
   final path = request.requestedUri.path;
   if (path.endsWith('.json')) {
     return _packagesHandlerJson(request, page, true);
@@ -116,7 +116,10 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
 
 /// Handles requests for /packages - JSON
 Future<shelf.Response> _packagesHandlerJson(
-    shelf.Request request, int page, bool dotJsonResponse) async {
+  shelf.Request request,
+  int page,
+  bool dotJsonResponse,
+) async {
   final pageSize = 50;
 
   final offset = pageSize * (page - 1);
@@ -126,8 +129,9 @@ Future<shelf.Response> _packagesHandlerJson(
 
   Uri? nextPageUrl;
   if (allPackages.length > offset + pageSize) {
-    nextPageUrl =
-        request.requestedUri.resolve('/packages.json?page=${page + 1}');
+    nextPageUrl = request.requestedUri.resolve(
+      '/packages.json?page=${page + 1}',
+    );
   }
 
   final postfix = dotJsonResponse ? '.json' : '';

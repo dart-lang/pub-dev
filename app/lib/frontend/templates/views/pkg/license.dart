@@ -10,13 +10,11 @@ d.Node? packageListMetadataLicense(List<String>? spdxIdentifiers) {
     return null;
   }
   final label = spdxIdentifiers.join(', ');
-  return d.fragment(
-    [
-      d.img(
-        classes: ['inline-icon-img', 'filter-invert-on-dark'],
-        image: licenseIconImage(),
-      ),
-      d.text(label),
-    ],
-  );
+  return d.fragment([
+    d.img(
+      classes: ['inline-icon-img', 'filter-invert-on-dark'],
+      image: licenseIconImage(),
+    ),
+    d.text(label),
+  ]);
 }

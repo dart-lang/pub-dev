@@ -14,24 +14,13 @@ import 'package:web_app/src/web_util.dart';
 
 import 'computations.dart';
 
-const colors = [
-  'blue',
-  'red',
-  'green',
-  'purple',
-  'orange',
-  'turquoise',
-];
+const colors = ['blue', 'red', 'green', 'purple', 'orange', 'turquoise'];
 
 String strokeColorClass(int i) => 'downloads-chart-stroke-${colors[i]}';
 String fillColorClass(int i) => 'downloads-chart-fill-${colors[i]}';
 String squareColorClass(int i) => 'downloads-chart-square-${colors[i]}';
 
-enum DisplayMode {
-  stacked,
-  unstacked,
-  percentage,
-}
+enum DisplayMode { stacked, unstacked, percentage }
 
 void create(HTMLElement element, Map<String, String> options) {
   final dataPoints = options['points'];
@@ -62,12 +51,15 @@ void create(HTMLElement element, Map<String, String> options) {
     ..setAttribute('class', 'downloads-chart-tooltip');
   document.body!.appendChild(toolTip);
 
-  final data = WeeklyVersionDownloadCounts.fromJson((utf8.decoder
-      .fuse(json.decoder)
-      .convert(base64Decode(dataPoints)) as Map<String, dynamic>));
+  final data = WeeklyVersionDownloadCounts.fromJson(
+    (utf8.decoder.fuse(json.decoder).convert(base64Decode(dataPoints))
+        as Map<String, dynamic>),
+  );
   final weeksToDisplay = math.min(47, data.totalWeeklyDownloads.length);
-  final totals =
-      data.totalWeeklyDownloads.sublist(0, weeksToDisplay).reversed.toList();
+  final totals = data.totalWeeklyDownloads
+      .sublist(0, weeksToDisplay)
+      .reversed
+      .toList();
 
   final majorDisplayLists = prepareWeekLists(
     data.totalWeeklyDownloads,
@@ -93,7 +85,7 @@ void create(HTMLElement element, Map<String, String> options) {
   final versionModesLists = {
     'major': majorDisplayLists,
     'minor': minorDisplayLists,
-    'patch': patchDisplayLists
+    'patch': patchDisplayLists,
   };
 
   final versionModes = document.getElementsByName(versionsRadio).toList();
@@ -172,9 +164,10 @@ void create(HTMLElement element, Map<String, String> options) {
   }
 
   final resizeObserver = ResizeObserver(
-      (JSArray<ResizeObserverEntry> a, ResizeObserverBoxOptions b) {
-    resize(a.toDart[0].contentRect.width);
-  }.toJS);
+    (JSArray<ResizeObserverEntry> a, ResizeObserverBoxOptions b) {
+      resize(a.toDart[0].contentRect.width);
+    }.toJS,
+  );
 
   drawChart(
     svg,
@@ -189,13 +182,14 @@ void create(HTMLElement element, Map<String, String> options) {
 }
 
 void drawChart(
-    Element svg,
-    double width,
-    HTMLDivElement toolTip,
-    ({List<String> ranges, List<List<int>> weekLists}) displayLists,
-    DateTime newestDate,
-    List<int> totals,
-    {DisplayMode displayMode = DisplayMode.unstacked}) {
+  Element svg,
+  double width,
+  HTMLDivElement toolTip,
+  ({List<String> ranges, List<List<int>> weekLists}) displayLists,
+  DateTime newestDate,
+  List<int> totals, {
+  DisplayMode displayMode = DisplayMode.unstacked,
+}) {
   final ranges = displayLists.ranges;
   final values = displayLists.weekLists;
   final displayAreas = displayMode != DisplayMode.unstacked;
@@ -212,20 +206,28 @@ void drawChart(
   final toolTipOffsetFromMouse = 15;
 
   DateTime computeDateForWeekNumber(
-      DateTime newestDate, int totalWeeks, int weekIndex) {
+    DateTime newestDate,
+    int totalWeeks,
+    int weekIndex,
+  ) {
     return newestDate.copyWith(
-        day: newestDate.day - 7 * (totalWeeks - weekIndex - 1));
+      day: newestDate.day - 7 * (totalWeeks - weekIndex - 1),
+    );
   }
 
   /// Computes max value on y-axis such that we get a nice division for the
   /// interval length between the numbers shown by the ticks on the y axis.
   (int maxY, int interval) computeMaxYAndInterval(List<List<int>> values) {
     final maxDownloads = switch (displayMode) {
-      DisplayMode.unstacked =>
-        values.fold<int>(1, (a, b) => math.max<int>(a, b.reduce(math.max))),
+      DisplayMode.unstacked => values.fold<int>(
+        1,
+        (a, b) => math.max<int>(a, b.reduce(math.max)),
+      ),
       DisplayMode.stacked => values.fold<int>(
-          1, (a, b) => math.max<int>(a, b.reduce((x, y) => x + y))),
-      _ => 100 // percentage
+        1,
+        (a, b) => math.max<int>(a, b.reduce((x, y) => x + y)),
+      ),
+      _ => 100, // percentage
     };
 
     final digits = maxDownloads.toString().length;
@@ -252,7 +254,8 @@ void drawChart(
   (double, double) computeCoordinates(DateTime date, num downloads) {
     final duration = date.difference(firstDate);
     // We don't risk division by 0 here, since `xAxisSpan` is a non-zero duration.
-    final x = leftPadding +
+    final x =
+        leftPadding +
         chartWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
 
     final y = topPadding + (chartHeight - chartHeight * (downloads / maxY));
@@ -297,11 +300,15 @@ void drawChart(
 
     if (week % 8 == 0) {
       // We skip every other label on small screens.
-      tickLabel.setAttribute('class',
-          'downloads-chart-tick-label  downloads-chart-anchored-tick-label-x');
+      tickLabel.setAttribute(
+        'class',
+        'downloads-chart-tick-label  downloads-chart-anchored-tick-label-x',
+      );
     } else {
       tickLabel.setAttribute(
-          'class', 'downloads-chart-tick-label  downloads-chart-tick-label-x');
+        'class',
+        'downloads-chart-tick-label  downloads-chart-tick-label-x',
+      );
     }
     tickLabel.textContent = formatAbbrMonthDay(date);
     tickLabel.setAttribute('y', '$tickLabelYCoordinate');
@@ -317,7 +324,9 @@ void drawChart(
 
     final tickLabel = SVGTextElement();
     tickLabel.setAttribute(
-        'class', 'downloads-chart-tick-label  downloads-chart-tick-label-y');
+      'class',
+      'downloads-chart-tick-label  downloads-chart-tick-label-y',
+    );
     final suffix = displayMode == DisplayMode.percentage
         ? '%'
         : compactFormat(i * interval).suffix;
@@ -358,8 +367,8 @@ void drawChart(
     for (int week = 0; week < values.length; week++) {
       final value = displayMode == DisplayMode.percentage
           ? (totals[week] == 0
-              ? 0 //Avoid division by zero, and return zero
-              : values[week][versionRange] * 100 / totals[week])
+                ? 0 //Avoid division by zero, and return zero
+                : values[week][versionRange] * 100 / totals[week])
           : values[week][versionRange];
 
       if (displayMode == DisplayMode.unstacked) {
@@ -369,8 +378,9 @@ void drawChart(
       }
 
       final (x, y) = computeCoordinates(
-          computeDateForWeekNumber(newestDate, values.length, week),
-          latestDownloads[week]);
+        computeDateForWeekNumber(newestDate, values.length, week),
+        latestDownloads[week],
+      );
       lineCoordinates.add((x, y));
     }
     lines.add(lineCoordinates);
@@ -414,7 +424,9 @@ void drawChart(
     final line = computeLinePath(lines[i]);
     final path = SVGPathElement();
     path.setAttribute(
-        'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+      'class',
+      '${strokeColorClass(colorIndex(i))} downloads-chart-line',
+    );
     path.setAttribute('d', '$line');
     path.setAttribute('clip-path', 'url(#clipRect)');
     linePaths.add(path);
@@ -424,7 +436,9 @@ void drawChart(
       final areaPath = computeLinePath(areas[i]);
       final area = SVGPathElement();
       area.setAttribute(
-          'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
+        'class',
+        '${fillColorClass(colorIndex(i))} downloads-chart-area',
+      );
       area.setAttribute('d', '$areaPath');
       area.setAttribute('clip-path', 'url(#clipRect)');
       areaPaths.add(area);
@@ -432,8 +446,10 @@ void drawChart(
     }
 
     final legend = SVGRectElement();
-    legend.setAttribute('class',
-        'downloads-chart-legend ${fillColorClass(colorIndex(i))} ${strokeColorClass(colorIndex(i))}');
+    legend.setAttribute(
+      'class',
+      'downloads-chart-legend ${fillColorClass(colorIndex(i))} ${strokeColorClass(colorIndex(i))}',
+    );
     legend.setAttribute('height', '$legendHeight');
     legend.setAttribute('width', '$legendWidth');
 
@@ -468,12 +484,16 @@ void drawChart(
       final l = linePaths[i];
       l.removeAttribute('class');
       l.setAttribute(
-          'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+        'class',
+        '${strokeColorClass(colorIndex(i))} downloads-chart-line',
+      );
 
       if (displayAreas) {
         areaPaths[i].removeAttribute('class');
         areaPaths[i].setAttribute(
-            'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
+          'class',
+          '${fillColorClass(colorIndex(i))} downloads-chart-area',
+        );
       }
       legends[i].$2.removeAttribute('class');
       legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
@@ -494,29 +514,42 @@ void drawChart(
 
       if (highlightRangeIndices.contains(i)) {
         linePaths[i].setAttribute(
-            'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+          'class',
+          '${strokeColorClass(colorIndex(i))} downloads-chart-line',
+        );
         if (displayAreas) {
           areaPaths[i].setAttribute(
-              'class', '${fillColorClass(colorIndex(i))} downloads-chart-area');
+            'class',
+            '${fillColorClass(colorIndex(i))} downloads-chart-area',
+          );
         }
-        legends[i]
-            .$2
-            .setAttribute('class', 'downloads-chart-legend-label-highlight');
+        legends[i].$2.setAttribute(
+          'class',
+          'downloads-chart-legend-label-highlight',
+        );
       } else if (highlightRangeIndices.isNotEmpty) {
-        linePaths[i].setAttribute('class',
-            '${strokeColorClass(colorIndex(i))} downloads-chart-line-faded');
+        linePaths[i].setAttribute(
+          'class',
+          '${strokeColorClass(colorIndex(i))} downloads-chart-line-faded',
+        );
         if (displayAreas) {
-          areaPaths[i].setAttribute('class',
-              '${fillColorClass(colorIndex(i))} downloads-chart-area-faded');
+          areaPaths[i].setAttribute(
+            'class',
+            '${fillColorClass(colorIndex(i))} downloads-chart-area-faded',
+          );
         }
 
         legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
       } else {
         linePaths[i].setAttribute(
-            'class', '${strokeColorClass(colorIndex(i))} downloads-chart-line');
+          'class',
+          '${strokeColorClass(colorIndex(i))} downloads-chart-line',
+        );
         if (displayAreas) {
-          areaPaths[i].setAttribute('class',
-              '${fillColorClass(colorIndex(i))} downloads-chart-area ');
+          areaPaths[i].setAttribute(
+            'class',
+            '${fillColorClass(colorIndex(i))} downloads-chart-area ',
+          );
         }
         legends[i].$2.setAttribute('class', 'downloads-chart-tick-label');
       }
@@ -545,7 +578,8 @@ void drawChart(
     legendLabel.setAttribute('x', '${legendX + marginPadding + legendWidth}');
 
     // Update x coordinate for next legend
-    legendX += legendWidth +
+    legendX +=
+        legendWidth +
         marginPadding +
         legendLabel.getBBox().width +
         labelPadding;
@@ -588,8 +622,11 @@ void drawChart(
 
     final pointPercentage = (xPosition - xZero) / chartWidth;
     final nearestIndex = ((values.length - 1) * pointPercentage).round();
-    final selectedDay =
-        computeDateForWeekNumber(newestDate, values.length, nearestIndex);
+    final selectedDay = computeDateForWeekNumber(
+      newestDate,
+      values.length,
+      nearestIndex,
+    );
 
     // Show cursor
 
@@ -623,14 +660,18 @@ void drawChart(
     final startDay = selectedDay.subtract(Duration(days: 7));
     final horizontalPosition =
         e.x + toolTip.getBoundingClientRect().width > width
-            ? 'left:${e.x - toolTip.getBoundingClientRect().width}px;'
-            : 'left:${e.x}px;';
-    toolTip.setAttribute('style',
-        'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;$horizontalPosition');
-    toolTip.replaceChildren(HTMLDivElement()
-      ..setAttribute('class', 'downloads-chart-tooltip-date')
-      ..textContent =
-          '${formatAbbrMonthDay(startDay)} - ${formatAbbrMonthDay(selectedDay)}');
+        ? 'left:${e.x - toolTip.getBoundingClientRect().width}px;'
+        : 'left:${e.x}px;';
+    toolTip.setAttribute(
+      'style',
+      'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;$horizontalPosition',
+    );
+    toolTip.replaceChildren(
+      HTMLDivElement()
+        ..setAttribute('class', 'downloads-chart-tooltip-date')
+        ..textContent =
+            '${formatAbbrMonthDay(startDay)} - ${formatAbbrMonthDay(selectedDay)}',
+    );
 
     final downloads = values[nearestIndex];
     for (int i = ranges.length - 1; i >= 0; i--) {
@@ -639,8 +680,10 @@ void drawChart(
       if (downloads[i] > 0) {
         // We only show the exact download count in the tooltip if it is non-zero.
         final square = HTMLDivElement()
-          ..setAttribute('class',
-              'downloads-chart-tooltip-square ${squareColorClass(colorIndex(i))}');
+          ..setAttribute(
+            'class',
+            'downloads-chart-tooltip-square ${squareColorClass(colorIndex(i))}',
+          );
         final rangeText = HTMLSpanElement()..textContent = '${ranges[i]}: ';
         final suffix = (displayMode == DisplayMode.percentage)
             ? ' (${(downloads[i] * 100 / totals[nearestIndex]).toStringAsPrecision(2)}%)'
@@ -663,7 +706,9 @@ void drawChart(
         if (highlightRangeIndices.contains(i)) {
           rangeText.setAttribute('class', 'downloads-chart-tooltip-highlight');
           downloadsText.setAttribute(
-              'class', 'downloads-chart-tooltip-highlight');
+            'class',
+            'downloads-chart-tooltip-highlight',
+          );
         }
         toolTip.append(tooltipRow);
       }

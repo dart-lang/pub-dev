@@ -23,7 +23,7 @@ able to claim it.
 ''',
   options: {
     'package': 'The package name to be reserved.',
-    'emails': 'The list of email addresses, separated by comma.'
+    'emails': 'The list of email addresses, separated by comma.',
   },
   invoke: (options) async {
     final package = options['package'];
@@ -44,7 +44,8 @@ able to claim it.
 
     final entry = await withRetryTransaction(dbService, (tx) async {
       final existing = await tx.lookupOrNull<ReservedPackage>(
-          dbService.emptyKey.append(ReservedPackage, id: package));
+        dbService.emptyKey.append(ReservedPackage, id: package),
+      );
       final entry = existing ?? ReservedPackage.init(package);
       entry.emails = <String>{...?emails}.toList();
       tx.insert(entry);

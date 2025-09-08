@@ -17,7 +17,7 @@ String formatAbbrMonthDay(DateTime date) {
     9 => 'Sep',
     10 => 'Oct',
     11 => 'Nov',
-    _ => 'Dec'
+    _ => 'Dec',
   };
 
   return '$month ${date.day}';

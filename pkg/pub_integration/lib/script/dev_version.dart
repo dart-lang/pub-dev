@@ -28,23 +28,23 @@ class DevVersionScript {
   /// Publish and verify dev and stable versions.
   Future<void> verify(bool stableFirst) async {
     _pubToolClient = await DartToolClient.withServer(
-        pubHostedUrl: pubHostedUrl,
-        credentialsFileContent: credentialsFileContent);
+      pubHostedUrl: pubHostedUrl,
+      credentialsFileContent: credentialsFileContent,
+    );
     _temp = await Directory.systemTemp.createTemp();
     try {
       _pubCacheDir = Directory(p.join(_temp.path, 'pub-cache'));
       await _pubCacheDir.create(recursive: true);
-      await File(p.join(_pubCacheDir.path, 'credentials.json'))
-          .writeAsString(credentialsFileContent);
+      await File(
+        p.join(_pubCacheDir.path, 'credentials.json'),
+      ).writeAsString(credentialsFileContent);
 
       await _createFakeRetryPkg();
       if (stableFirst) {
         await _publishVersion('0.9.0');
         _expectContent(
           await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
-          present: [
-            '_dummy_pkg 0.9.0',
-          ],
+          present: ['_dummy_pkg 0.9.0'],
           absent: [
             '<a href="/packages/_dummy_pkg">0.9.0</a>',
             '<a href="/packages/_dummy_pkg/versions/0.9.0">0.9.0</a>',
@@ -55,9 +55,7 @@ class DevVersionScript {
         await _publishVersion('1.0.0-beta');
         _expectContent(
           await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
-          present: [
-            '_dummy_pkg 1.0.0-beta',
-          ],
+          present: ['_dummy_pkg 1.0.0-beta'],
           absent: [
             '<a href="/packages/_dummy_pkg">1.0.0-beta</a>',
             '<a href="/packages/_dummy_pkg/versions/1.0.0-beta">1.0.0-beta</a>',
@@ -122,9 +120,7 @@ class DevVersionScript {
       await _publishVersion('1.0.0');
       _expectContent(
         await _pubHttpClient.getLatestVersionPage('_dummy_pkg'),
-        present: [
-          '_dummy_pkg 1.0.0',
-        ],
+        present: ['_dummy_pkg 1.0.0'],
         absent: [
           '<a href="/packages/_dummy_pkg">0.9.0</a>',
           '<a href="/packages/_dummy_pkg">0.9.1</a>',
@@ -173,8 +169,11 @@ class DevVersionScript {
     await dir.delete(recursive: true);
   }
 
-  void _expectContent(String? content,
-      {List<Pattern>? present, List<Pattern>? absent}) {
+  void _expectContent(
+    String? content, {
+    List<Pattern>? present,
+    List<Pattern>? absent,
+  }) {
     // removing title attributes to keep patterns simple
     content = content!.replaceAll(RegExp(' title=".*?"'), '');
     for (final p in present ?? const <Pattern>[]) {

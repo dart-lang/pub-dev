@@ -85,7 +85,9 @@ class ConsentBackend {
 
   /// Resolves the consent.
   Future<api.ConsentResult> resolveConsent(
-      String consentId, api.ConsentResult result) async {
+    String consentId,
+    api.ConsentResult result,
+  ) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
@@ -143,7 +145,9 @@ class ConsentBackend {
           return await _sendNotification(activeAgent.displayId, existing);
         } else {
           return api.InviteStatus(
-              emailSent: false, nextNotification: existing.nextNotification);
+            emailSent: false,
+            nextNotification: existing.nextNotification,
+          );
         }
       }
       // Create a new entry.
@@ -153,10 +157,7 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      await _db.commit(inserts: [
-        consent,
-        auditLogRecord,
-      ]);
+      await _db.commit(inserts: [consent, auditLogRecord]);
       await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent);
     });
@@ -194,7 +195,10 @@ class ConsentBackend {
       kind: ConsentKind.publisherContact,
       args: [publisherId, contactEmail],
       auditLogRecord: await AuditLogRecord.publisherContactInvited(
-          user: user, publisherId: publisherId, contactEmail: contactEmail),
+        user: user,
+        publisherId: publisherId,
+        contactEmail: contactEmail,
+      ),
     );
   }
 
@@ -218,15 +222,19 @@ class ConsentBackend {
   }
 
   Future<api.InviteStatus> _sendNotification(
-      String activeUserEmail, Consent consent) async {
+    String activeUserEmail,
+    Consent consent,
+  ) async {
     final invitedEmail = consent.email!;
     final action = _actions[consent.kind]!;
-    final email = emailBackend.prepareEntity(createInviteEmail(
-      invitedEmail: invitedEmail,
-      subject: action.renderEmailSubject(consent.args!),
-      inviteText: action.renderInviteText(activeUserEmail, consent.args!),
-      consentUrl: consentUrl(consent.consentId),
-    ));
+    final email = emailBackend.prepareEntity(
+      createInviteEmail(
+        invitedEmail: invitedEmail,
+        subject: action.renderEmailSubject(consent.args!),
+        inviteText: action.renderInviteText(activeUserEmail, consent.args!),
+        consentUrl: consentUrl(consent.consentId),
+      ),
+    );
     final status = await withRetryTransaction(_db, (tx) async {
       final c = await tx.lookupValue<Consent>(consent.key);
       c.notificationCount++;
@@ -234,7 +242,9 @@ class ConsentBackend {
       tx.insert(c);
       tx.insert(email);
       return api.InviteStatus(
-          emailSent: true, nextNotification: c.nextNotification);
+        emailSent: true,
+        nextNotification: c.nextNotification,
+      );
     });
     await emailBackend.trySendOutgoingEmail(email);
     return status;
@@ -249,7 +259,9 @@ class ConsentBackend {
         await _delete(entry, (a) => a.onExpire(entry));
       } catch (e) {
         _logger.shout(
-            'Delete failed: ${entry.consentId} ${entry.kind} ${entry.args}', e);
+          'Delete failed: ${entry.consentId} ${entry.kind} ${entry.args}',
+          e,
+        );
       }
     }
   }
@@ -264,8 +276,9 @@ class ConsentBackend {
     final action = _actions[c.kind]!;
     if (!action.permitConfirmationWithOtherEmail && c.email != null) {
       InvalidInputException.check(
-          c.email?.toLowerCase() == user.email?.toLowerCase(),
-          'This invitation is not for the user account currently logged in.');
+        c.email?.toLowerCase() == user.email?.toLowerCase(),
+        'This invitation is not for the user account currently logged in.',
+      );
     }
     return c;
   }
@@ -275,16 +288,13 @@ class ConsentBackend {
     Future Function(ConsentAction action) fn,
   ) async {
     final action = _actions[consent.kind];
-    await retry(
-      () async {
-        if (action != null) await fn(action);
-        await withRetryTransaction(_db, (tx) async {
-          final c = await tx.lookupOrNull<Consent>(consent.key);
-          if (c != null) tx.delete(c.key);
-        });
-      },
-      maxAttempts: 3,
-    );
+    await retry(() async {
+      if (action != null) await fn(action);
+      await withRetryTransaction(_db, (tx) async {
+        final c = await tx.lookupOrNull<Consent>(consent.key);
+        if (c != null) tx.delete(c.key);
+      });
+    }, maxAttempts: 3);
   }
 }
 
@@ -339,7 +349,8 @@ class _PackageUploaderAction extends ConsentAction {
     final currentUser = await requireAuthenticatedWebUser();
     if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
       throw NotAcceptableException(
-          'Current user and consent user does not match.');
+        'Current user and consent user does not match.',
+      );
     }
 
     await packageBackend.confirmUploader(
@@ -353,12 +364,14 @@ class _PackageUploaderAction extends ConsentAction {
   Future<void> onReject(Consent consent, User? user) async {
     final packageName = consent.args![0];
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(await AuditLogRecord.uploaderInviteRejected(
-        fromAgent: consent.fromAgent,
-        package: packageName,
-        uploaderEmail: user?.email ?? consent.email!,
-        userId: user?.userId,
-      ));
+      tx.insert(
+        await AuditLogRecord.uploaderInviteRejected(
+          fromAgent: consent.fromAgent,
+          package: packageName,
+          uploaderEmail: user?.email ?? consent.email!,
+          userId: user?.userId,
+        ),
+      );
     });
   }
 
@@ -366,11 +379,13 @@ class _PackageUploaderAction extends ConsentAction {
   Future<void> onExpire(Consent consent) async {
     final packageName = consent.args![0];
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(await AuditLogRecord.uploaderInviteExpired(
-        fromAgent: consent.fromAgent,
-        package: packageName,
-        uploaderEmail: consent.email!,
-      ));
+      tx.insert(
+        await AuditLogRecord.uploaderInviteExpired(
+          fromAgent: consent.fromAgent,
+          package: packageName,
+          uploaderEmail: consent.email!,
+        ),
+      );
     });
   }
 
@@ -421,13 +436,15 @@ class _PublisherContactAction extends ConsentAction {
   Future<void> onReject(Consent consent, User? user) async {
     final publisherId = consent.args![0];
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(await AuditLogRecord.publisherContactInviteRejected(
-        fromAgent: consent.fromAgent,
-        publisherId: publisherId,
-        contactEmail: consent.email!,
-        userEmail: user?.email,
-        userId: user?.userId,
-      ));
+      tx.insert(
+        await AuditLogRecord.publisherContactInviteRejected(
+          fromAgent: consent.fromAgent,
+          publisherId: publisherId,
+          contactEmail: consent.email!,
+          userEmail: user?.email,
+          userId: user?.userId,
+        ),
+      );
     });
   }
 
@@ -435,11 +452,13 @@ class _PublisherContactAction extends ConsentAction {
   Future<void> onExpire(Consent consent) async {
     final publisherId = consent.args![0];
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(await AuditLogRecord.publisherContactInviteExpired(
-        fromAgent: consent.fromAgent,
-        publisherId: publisherId,
-        contactEmail: consent.email!,
-      ));
+      tx.insert(
+        await AuditLogRecord.publisherContactInviteExpired(
+          fromAgent: consent.fromAgent,
+          publisherId: publisherId,
+          contactEmail: consent.email!,
+        ),
+      );
     });
   }
 
@@ -503,12 +522,14 @@ class _PublisherMemberAction extends ConsentAction {
   Future<void> onReject(Consent consent, User? user) async {
     final publisherId = consent.args![0];
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(await AuditLogRecord.publisherMemberInviteRejected(
-        fromAgent: consent.fromAgent,
-        publisherId: publisherId,
-        memberEmail: user?.email ?? consent.email!,
-        userId: user?.userId,
-      ));
+      tx.insert(
+        await AuditLogRecord.publisherMemberInviteRejected(
+          fromAgent: consent.fromAgent,
+          publisherId: publisherId,
+          memberEmail: user?.email ?? consent.email!,
+          userId: user?.userId,
+        ),
+      );
     });
   }
 
@@ -516,11 +537,13 @@ class _PublisherMemberAction extends ConsentAction {
   Future<void> onExpire(Consent consent) async {
     final publisherId = consent.args![0];
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(await AuditLogRecord.publisherMemberInviteExpired(
-        fromAgent: consent.fromAgent,
-        publisherId: publisherId,
-        memberEmail: consent.email!,
-      ));
+      tx.insert(
+        await AuditLogRecord.publisherMemberInviteExpired(
+          fromAgent: consent.fromAgent,
+          publisherId: publisherId,
+          memberEmail: consent.email!,
+        ),
+      );
     });
   }
 

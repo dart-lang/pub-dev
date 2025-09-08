@@ -34,9 +34,7 @@ Output is on this form:
 }
 ```
 ''',
-  options: {
-    'user': 'The user-id or the email of the user to inspect',
-  },
+  options: {'user': 'The user-id or the email of the user to inspect'},
   invoke: (options) async {
     final userIdOrEmail = options['user'];
     InvalidInputException.check(
@@ -56,8 +54,9 @@ Output is on this form:
     }
     final result = <dynamic>[];
     for (final user in users) {
-      final publishers =
-          await publisherBackend.listPublishersForUser(user.userId);
+      final publishers = await publisherBackend.listPublishersForUser(
+        user.userId,
+      );
 
       final packages = await packageBackend
           .streamPackagesWhereUserIsUploader(user.userId)
@@ -67,8 +66,9 @@ Output is on this form:
         'userId': user.userId,
         'email': user.email,
         'packages': packages,
-        'publishers':
-            (publishers.publishers ?? []).map((d) => d.publisherId).toList(),
+        'publishers': (publishers.publishers ?? [])
+            .map((d) => d.publisherId)
+            .toList(),
         'moderated': user.isModerated,
         if (user.isModerated) 'moderatedAt': user.moderatedAt,
         'created': user.created?.toIso8601String(),

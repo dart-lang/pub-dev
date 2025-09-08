@@ -51,8 +51,7 @@ class PubApi {
     Request request,
     String package,
     String version,
-  ) async =>
-      await packageBackend.lookupVersion(package, version);
+  ) async => await packageBackend.lookupVersion(package, version);
 
   /// Older endpoint for downloading package.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#download-a-specific-version-of-a-package
@@ -154,11 +153,11 @@ class PubApi {
 
   @EndPoint.get('/api/packages/versions/newUploadFinish/<uploadId>')
   Future<SuccessMessage> finishPackageUpload(
-      Request request, String uploadId) async {
+    Request request,
+    String uploadId,
+  ) async {
     final messages = await packageBackend.publishUploadedBlob(uploadId);
-    return SuccessMessage(
-      success: Message(message: messages.join('\n')),
-    );
+    return SuccessMessage(success: Message(message: messages.join('\n')));
   }
 
   /// Adding a new uploader
@@ -174,7 +173,8 @@ class PubApi {
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<SuccessMessage> addUploader(Request request, String package) async {
     throw OperationForbiddenException.pubToolUploaderNotSupported(
-        adminPageUrl: urls.pkgAdminUrl(package, includeHost: true));
+      adminPageUrl: urls.pkgAdminUrl(package, includeHost: true),
+    );
   }
 
   /// Removing an existing uploader.
@@ -192,7 +192,8 @@ class PubApi {
     String email,
   ) async {
     throw OperationForbiddenException.pubToolUploaderNotSupported(
-        adminPageUrl: urls.pkgAdminUrl(package, includeHost: true));
+      adminPageUrl: urls.pkgAdminUrl(package, includeHost: true),
+    );
   }
 
   /// Remove an existing uploader.
@@ -204,8 +205,7 @@ class PubApi {
     Request request,
     String package,
     RemoveUploaderRequest payload,
-  ) async =>
-      await packageBackend.removeUploader(package, payload.email);
+  ) async => await packageBackend.removeUploader(package, payload.email);
 
   /// Returns a uploader's invitation status in a JSON form.
   @EndPoint.post('/api/packages/<package>/invite-uploader')
@@ -213,8 +213,7 @@ class PubApi {
     Request request,
     String package,
     InviteUploaderRequest invite,
-  ) async =>
-      await packageBackend.inviteUploader(package, invite);
+  ) async => await packageBackend.inviteUploader(package, invite);
 
   /// Renders the Atom XML feed for the package.
   @EndPoint.get('/api/packages/<package>/feed.atom')
@@ -227,10 +226,7 @@ class PubApi {
 
   /// Starts publisher creation flow.
   @EndPoint.post('/api/publishers/<publisherId>')
-  Future<PublisherInfo> createPublisher(
-    Request request,
-    String publisherId,
-  ) =>
+  Future<PublisherInfo> createPublisher(Request request, String publisherId) =>
       publisherBackend.createPublisher(publisherId);
 
   /// Returns publisher data in a JSON form.
@@ -241,20 +237,25 @@ class PubApi {
   /// Updates publisher data.
   @EndPoint.put('/api/publishers/<publisherId>')
   Future<PublisherInfo> updatePublisher(
-          Request request, String publisherId, UpdatePublisherRequest update) =>
-      publisherBackend.updatePublisher(publisherId, update);
+    Request request,
+    String publisherId,
+    UpdatePublisherRequest update,
+  ) => publisherBackend.updatePublisher(publisherId, update);
 
   /// Returns a publisher's member data and role in a JSON form.
   @EndPoint.post('/api/publishers/<publisherId>/invite-member')
   Future<InviteStatus> invitePublisherMember(
-          Request request, String publisherId, InviteMemberRequest invite) =>
-      publisherBackend.invitePublisherMember(publisherId, invite);
+    Request request,
+    String publisherId,
+    InviteMemberRequest invite,
+  ) => publisherBackend.invitePublisherMember(publisherId, invite);
 
   /// Returns publisher members data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>/members')
   Future<PublisherMembers> listPublisherMembers(
-          Request request, String publisherId) =>
-      publisherBackend.handleListPublisherMembers(publisherId);
+    Request request,
+    String publisherId,
+  ) => publisherBackend.handleListPublisherMembers(publisherId);
 
   /// Returns a publisher's member data and role in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>/members/<userId>')
@@ -262,8 +263,7 @@ class PubApi {
     Request request,
     String publisherId,
     String userId,
-  ) =>
-      publisherBackend.publisherMemberInfo(publisherId, userId);
+  ) => publisherBackend.publisherMemberInfo(publisherId, userId);
 
   /// Updates a publisher's member data and role.
   @EndPoint.put('/api/publishers/<publisherId>/members/<userId>')
@@ -272,8 +272,7 @@ class PubApi {
     String publisherId,
     String userId,
     UpdatePublisherMemberRequest update,
-  ) =>
-      publisherBackend.updatePublisherMember(publisherId, userId, update);
+  ) => publisherBackend.updatePublisherMember(publisherId, userId, update);
 
   /// Deletes a publisher's member.
   @EndPoint.delete('/api/publishers/<publisherId>/members/<userId>')
@@ -298,8 +297,10 @@ class PubApi {
   /// Accepts or declines the consent.
   @EndPoint.put('/api/account/consent/<consentId>')
   Future<ConsentResult> resolveConsent(
-          Request request, String consentId, ConsentResult result) =>
-      consentBackend.resolveConsent(consentId, result);
+    Request request,
+    String consentId,
+    ConsentResult result,
+  ) => consentBackend.resolveConsent(consentId, result);
 
   /// Gets the current session information.
   @EndPoint.get('/api/account/session')
@@ -323,13 +324,15 @@ class PubApi {
 
   @EndPoint.get('/api/account/options/packages/<package>')
   Future<AccountPkgOptions> accountPackageOptions(
-          Request request, String package) =>
-      accountPkgOptionsHandler(request, package);
+    Request request,
+    String package,
+  ) => accountPkgOptionsHandler(request, package);
 
   @EndPoint.get('/api/account/options/publishers/<publisherId>')
   Future<AccountPublisherOptions> accountPublisherOptions(
-          Request request, String publisherId) =>
-      accountPublisherOptionsHandler(request, publisherId);
+    Request request,
+    String publisherId,
+  ) => accountPublisherOptionsHandler(request, publisherId);
 
   @EndPoint.get('/api/account/likes')
   Future<LikedPackagesResponse> listPackageLikes(Request request) =>
@@ -392,36 +395,41 @@ class PubApi {
 
   @EndPoint.put('/api/packages/<package>/options')
   Future<PkgOptions> setPackageOptions(
-          Request request, String package, PkgOptions body) =>
-      putPackageOptionsHandler(request, package, body);
+    Request request,
+    String package,
+    PkgOptions body,
+  ) => putPackageOptionsHandler(request, package, body);
 
   @EndPoint.put('/api/packages/<package>/automated-publishing')
   Future<AutomatedPublishingConfig> setAutomatedPublishing(
-          Request request, String package, AutomatedPublishingConfig body) =>
-      packageBackend.setAutomatedPublishing(package, body);
+    Request request,
+    String package,
+    AutomatedPublishingConfig body,
+  ) => packageBackend.setAutomatedPublishing(package, body);
 
   @EndPoint.get('/api/packages/<package>/versions/<version>/options')
   Future<VersionOptions> getVersionOptions(
-          Request request, String package, String version) =>
-      getVersionOptionsHandler(request, package, version);
+    Request request,
+    String package,
+    String version,
+  ) => getVersionOptionsHandler(request, package, version);
 
   @EndPoint.put('/api/packages/<package>/versions/<version>/options')
-  Future<VersionOptions> setVersionOptions(Request request, String package,
-          String version, VersionOptions body) =>
-      putVersionOptionsHandler(request, package, version, body);
+  Future<VersionOptions> setVersionOptions(
+    Request request,
+    String package,
+    String version,
+    VersionOptions body,
+  ) => putVersionOptionsHandler(request, package, version, body);
 
   @EndPoint.get('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> getPackagePublisher(
     Request request,
     String package,
-  ) =>
-      packageBackend.getPublisherInfo(package);
+  ) => packageBackend.getPublisherInfo(package);
 
   @EndPoint.get('/api/packages/<package>/likes')
-  Future<PackageLikesCount> getPackageLikes(
-    Request request,
-    String package,
-  ) =>
+  Future<PackageLikesCount> getPackageLikes(Request request, String package) =>
       packageBackend.getPackageLikesCount(package);
 
   @EndPoint.put('/api/packages/<package>/publisher')
@@ -429,8 +437,7 @@ class PubApi {
     Request request,
     String package,
     PackagePublisherInfo body,
-  ) =>
-      packageBackend.setPublisher(package, body);
+  ) => packageBackend.setPublisher(package, body);
 
   @EndPoint.get('/api/packages/<package>/score')
   Future<VersionScore> packageScore(Request request, String package) =>
@@ -438,17 +445,19 @@ class PubApi {
 
   @EndPoint.get('/api/packages/<package>/versions/<version>/score')
   Future<VersionScore> packageVersionScore(
-          Request request, String package, String version) =>
-      packageVersionScoreHandler(request, package, version: version);
+    Request request,
+    String package,
+    String version,
+  ) => packageVersionScoreHandler(request, package, version: version);
 
   @EndPoint.get('/api/search')
   Future<Response> search(Request request) => apiSearchHandler(request);
 
   @EndPoint.get('/debug')
   Future<Response> debug(Request request) async => debugResponse({
-        'package': packageDebugStats(),
-        'search': searchDebugStats(),
-      });
+    'package': packageDebugStats(),
+    'search': searchDebugStats(),
+  });
 
   @EndPoint.get('/packages.json')
   Future<Response> packages(Request request) => packagesHandler(request);
@@ -466,24 +475,14 @@ class PubApi {
     Request request,
     String package,
     String version,
-  ) =>
-      taskBackend.handleUploadResult(
-        request,
-        package,
-        version,
-      );
+  ) => taskBackend.handleUploadResult(request, package, version);
 
   @EndPoint.post('/api/tasks/<package>/<version>/finished')
   Future<Response> taskUploadFinished(
     Request request,
     String package,
     String version,
-  ) =>
-      taskBackend.handleUploadFinished(
-        request,
-        package,
-        version,
-      );
+  ) => taskBackend.handleUploadFinished(request, package, version);
 
   // ****
   // **** Admin API
@@ -491,7 +490,10 @@ class PubApi {
 
   @EndPoint.post('/api/admin/tools/<tool>/<args|[^]*>')
   Future<Response> adminExecuteTool(
-      Request request, String tool, String args) async {
+    Request request,
+    String tool,
+    String args,
+  ) async {
     final parsedArgs = request.requestedUri.pathSegments.skip(4).toList();
     return Response.ok(await adminBackend.executeTool(tool, parsedArgs));
   }
@@ -531,17 +533,18 @@ class PubApi {
   }
 
   @EndPoint.put('/api/admin/packages/<package>/versions/<version>/options')
-  Future<VersionOptions> adminUpdateVersionOptions(Request request,
-      String package, String version, VersionOptions options) async {
+  Future<VersionOptions> adminUpdateVersionOptions(
+    Request request,
+    String package,
+    String version,
+    VersionOptions options,
+  ) async {
     await adminBackend.updateVersionOptions(package, version, options);
     return getVersionOptionsHandler(request, package, version);
   }
 
   @EndPoint.get('/api/admin/packages/<package>/assigned-tags')
-  Future<AssignedTags> adminGetAssignedTags(
-    Request request,
-    String package,
-  ) =>
+  Future<AssignedTags> adminGetAssignedTags(Request request, String package) =>
       adminBackend.handleGetAssignedTags(package);
 
   @EndPoint.post('/api/admin/packages/<package>/assigned-tags')
@@ -549,32 +552,33 @@ class PubApi {
     Request request,
     String package,
     PatchAssignedTags body,
-  ) =>
-      adminBackend.handlePostAssignedTags(package, body);
+  ) => adminBackend.handlePostAssignedTags(package, body);
 
   @EndPoint.get('/api/admin/packages/<package>/uploaders')
   Future<PackageUploaders> adminGetPackageUploaders(
     Request request,
     String package,
-  ) =>
-      adminBackend.handleGetPackageUploaders(package);
+  ) => adminBackend.handleGetPackageUploaders(package);
 
   @EndPoint.put('/api/admin/packages/<package>/uploaders/<email>')
   Future<PackageUploaders> adminAddPackageUploader(
-          Request request, String package, String email) =>
-      adminBackend.handleAddPackageUploader(package, email);
+    Request request,
+    String package,
+    String email,
+  ) => adminBackend.handleAddPackageUploader(package, email);
 
   @EndPoint.delete('/api/admin/packages/<package>/uploaders/<email>')
   Future<PackageUploaders> adminRemovePackageUploader(
-          Request request, String package, String email) =>
-      adminBackend.handleRemovePackageUploader(package, email);
+    Request request,
+    String package,
+    String email,
+  ) => adminBackend.handleRemovePackageUploader(package, email);
 
   @EndPoint.get('/api/packages/<package>/advisories')
   Future<ListAdvisoriesResponse> getPackageAdvisories(
     Request request,
     String package,
-  ) =>
-      listAdvisoriesForPackage(request, package);
+  ) => listAdvisoriesForPackage(request, package);
 
   @EndPoint.post('/api/report')
   Future<Message> postReport(Request request, ReportForm body) async {

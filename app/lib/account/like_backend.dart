@@ -57,8 +57,9 @@ class LikeBackend {
         throw NotFoundException.resource(package);
       }
 
-      final key =
-          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+      final key = _db.emptyKey
+          .append(User, id: user.id)
+          .append(Like, id: package);
       final oldLike = await tx.lookupOrNull<Like>(key);
 
       if (oldLike != null) {
@@ -90,8 +91,9 @@ class LikeBackend {
         throw NotFoundException.resource(package);
       }
 
-      final likeKey =
-          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+      final likeKey = _db.emptyKey
+          .append(User, id: user.id)
+          .append(Like, id: package);
       final like = await tx.lookupOrNull<Like>(likeKey);
 
       if (like == null) {

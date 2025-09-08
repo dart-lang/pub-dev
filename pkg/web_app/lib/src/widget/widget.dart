@@ -23,10 +23,8 @@ import 'weekly_sparkline/widget.dart' as weekly_sparkline;
 /// Hence, a widget called `completion` is created on an element by adding
 /// `data-widget="completion"`. And option `src` is specified with:
 /// `data-completion-src="$value"`.
-typedef _WidgetFn = FutureOr<void> Function(
-  HTMLElement element,
-  Map<String, String> options,
-);
+typedef _WidgetFn =
+    FutureOr<void> Function(HTMLElement element, Map<String, String> options);
 
 /// Function for loading a widget.
 typedef _WidgetLoaderFn = FutureOr<_WidgetFn> Function();
@@ -54,36 +52,42 @@ void setupWidgets() async {
       .groupListsBy((element) => element.getAttribute('data-widget') ?? '');
 
   // For each (widget, elements) load widget and create widgets
-  await Future.wait(widgetAndElements.entries.map((entry) async {
-    // Get widget name and elements which it should be created for
-    final MapEntry(key: name, value: elements) = entry;
+  await Future.wait(
+    widgetAndElements.entries.map((entry) async {
+      // Get widget name and elements which it should be created for
+      final MapEntry(key: name, value: elements) = entry;
 
-    // Find the widget and load it
-    final widget = await (_widgets[name] ?? _noSuchWidget)();
+      // Find the widget and load it
+      final widget = await (_widgets[name] ?? _noSuchWidget)();
 
-    // Create widget for each element
-    await Future.wait(elements.map((element) async {
-      try {
-        final prefix = 'data-$name-';
-        final options = Map.fromEntries(element
-            .getAttributeNames()
-            .iterable
-            .where((attr) => attr.startsWith(prefix))
-            .map((attr) {
-          return MapEntry(
-            attr.substring(prefix.length),
-            element.getAttribute(attr) ?? '',
-          );
-        }));
+      // Create widget for each element
+      await Future.wait(
+        elements.map((element) async {
+          try {
+            final prefix = 'data-$name-';
+            final options = Map.fromEntries(
+              element
+                  .getAttributeNames()
+                  .iterable
+                  .where((attr) => attr.startsWith(prefix))
+                  .map((attr) {
+                    return MapEntry(
+                      attr.substring(prefix.length),
+                      element.getAttribute(attr) ?? '',
+                    );
+                  }),
+            );
 
-        await widget(element, options);
-      } catch (e, st) {
-        console.error('Failed to initialize data-widget="$name"'.toJS);
-        console.error('Triggered by element:'.toJS);
-        console.error(element);
-        console.error(e.toString().toJS);
-        console.error(st.toString().toJS);
-      }
-    }));
-  }));
+            await widget(element, options);
+          } catch (e, st) {
+            console.error('Failed to initialize data-widget="$name"'.toJS);
+            console.error('Triggered by element:'.toJS);
+            console.error(element);
+            console.error(e.toString().toJS);
+            console.error(st.toString().toJS);
+          }
+        }),
+      );
+    }),
+  );
 }

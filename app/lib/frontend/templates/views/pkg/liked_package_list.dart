@@ -13,10 +13,12 @@ import '../../../static_files.dart' show staticUrls;
 
 /// Renders the package list of /my-liked-packages page.
 d.Node likedPackageListNode(List<LikeData> likes) {
-  final thumbUpOutlinedUrl =
-      staticUrls.getAssetUrl('/static/img/thumb-up-24px.svg');
-  final thumbUpFilledUrl =
-      staticUrls.getAssetUrl('/static/img/thumb-up-filled-24px.svg');
+  final thumbUpOutlinedUrl = staticUrls.getAssetUrl(
+    '/static/img/thumb-up-24px.svg',
+  );
+  final thumbUpFilledUrl = staticUrls.getAssetUrl(
+    '/static/img/thumb-up-filled-24px.svg',
+  );
   return d.div(
     classes: ['packages', '-compact'],
     children: likes.map(
@@ -67,8 +69,11 @@ d.Node likedPackageListNode(List<LikeData> likes) {
   );
 }
 
-d.Node renderLikeButtonAndLabel(
-    {required String package, required int likeCount, required bool isLiked}) {
+d.Node renderLikeButtonAndLabel({
+  required String package,
+  required int likeCount,
+  required bool isLiked,
+}) {
   return d.div(
     classes: ['like-button-and-label'],
     children: [
@@ -84,8 +89,11 @@ d.Node renderLikeButtonAndLabel(
   );
 }
 
-d.Node renderLikeButton(String package,
-    {required int likeCount, required bool isLiked}) {
+d.Node renderLikeButton(
+  String package, {
+  required int likeCount,
+  required bool isLiked,
+}) {
   return material.iconButton(
     classes: ['like-button-and-label--button'],
     isOn: isLiked,

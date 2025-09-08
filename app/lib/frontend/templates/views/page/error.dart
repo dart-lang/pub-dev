@@ -4,12 +4,6 @@
 
 import '../../../dom/dom.dart' as d;
 
-d.Node errorPageNode({
-  required String title,
-  required d.Node content,
-}) {
-  return d.fragment([
-    d.h2(text: title),
-    content,
-  ]);
+d.Node errorPageNode({required String title, required d.Node content}) {
+  return d.fragment([d.h2(text: title), content]);
 }

@@ -11,11 +11,10 @@ final publisherMembersList = AdminAction(
   description: '''
 Get information about a publisher and list all its members.
 ''',
-  options: {
-    'publisher': 'Publisher for which to list members, eg `dart.dev`',
-  },
+  options: {'publisher': 'Publisher for which to list members, eg `dart.dev`'},
   invoke: (options) async {
-    final publisherId = options['publisher'] ??
+    final publisherId =
+        options['publisher'] ??
         (throw InvalidInputException('Missing --publisher argument.'));
 
     final publisher = await publisherBackend.lookupPublisher(publisherId);
@@ -31,11 +30,7 @@ Get information about a publisher and list all its members.
       'contact': publisher.contactEmail,
       'created': publisher.created?.toIso8601String(),
       'members': members
-          .map((m) => {
-                'email': m.email,
-                'role': m.role,
-                'userId': m.userId,
-              })
+          .map((m) => {'email': m.email, 'role': m.role, 'userId': m.userId})
           .toList(),
     };
   },

@@ -24,7 +24,7 @@ void main() {
             name: 'retry',
             versions: [TestVersion(version: '3.1.0')],
             publisher: 'example.com',
-          )
+          ),
         ],
       ),
       fn: () async {
@@ -110,16 +110,10 @@ void main() {
       'fill in likes',
       testProfile: TestProfile(
         generatedPackages: [
-          GeneratedTestPackage(
-            name: 'sample',
-            likeCount: 10,
-          ),
+          GeneratedTestPackage(name: 'sample', likeCount: 10),
         ],
         users: [
-          TestUser(
-            email: 'admin@pub.dev',
-            likes: ['sample'],
-          ),
+          TestUser(email: 'admin@pub.dev', likes: ['sample']),
         ],
         defaultUser: 'admin@pub.dev',
       ),
@@ -134,8 +128,10 @@ void main() {
 
         // All of the is liking the package.
         for (final user in users) {
-          final status =
-              await likeBackend.getPackageLikeStatus(user.userId, 'sample');
+          final status = await likeBackend.getPackageLikeStatus(
+            user.userId,
+            'sample',
+          );
           expect(status, isNotNull);
         }
       },

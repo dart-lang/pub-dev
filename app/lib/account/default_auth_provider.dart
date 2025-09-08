@@ -52,31 +52,35 @@ class DefaultAuthProvider extends BaseAuthProvider {
   }
 
   @override
-  Future<http.Response> callTokenInfoWithIdToken(
-      {required String idToken}) async {
+  Future<http.Response> callTokenInfoWithIdToken({
+    required String idToken,
+  }) async {
     // Hit the token-info end-point documented at:
     // https://developers.google.com/identity/sign-in/web/backend-auth
     // Note: ideally, we would verify these JWTs locally, but unfortunately
     //       we don't have a solid RSA implementation available in Dart.
-    final u =
-        _tokenInfoEndPoint.replace(queryParameters: {'id_token': idToken});
+    final u = _tokenInfoEndPoint.replace(
+      queryParameters: {'id_token': idToken},
+    );
     return await _httpClient.get(u, headers: {'accept': 'application/json'});
   }
 
   @override
-  Future<oauth2_v2.Userinfo> callGetUserinfo(
-      {required String accessToken}) async {
+  Future<oauth2_v2.Userinfo> callGetUserinfo({
+    required String accessToken,
+  }) async {
     final authClient = auth.authenticatedClient(
-        _httpClient,
-        auth.AccessCredentials(
-          auth.AccessToken(
-            'Bearer',
-            accessToken,
-            clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
-          ),
-          null,
-          [],
-        ));
+      _httpClient,
+      auth.AccessCredentials(
+        auth.AccessToken(
+          'Bearer',
+          accessToken,
+          clock.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+        ),
+        null,
+        [],
+      ),
+    );
 
     final oauth2 = oauth2_v2.Oauth2Api(authClient);
     return await oauth2.userinfo.get();
@@ -228,16 +232,19 @@ abstract class BaseAuthProvider extends AuthProvider {
     JsonWebToken idToken, {
     required Future<OpenIdData> Function() openIdDataFetch,
   }) async {
-    final isValidTimestamp =
-        idToken.payload.isTimely(threshold: Duration(minutes: 2));
+    final isValidTimestamp = idToken.payload.isTimely(
+      threshold: Duration(minutes: 2),
+    );
     if (!isValidTimestamp) {
       throw AuthenticationException.tokenInvalid('invalid timestamps');
     }
-    final aud =
-        idToken.payload.aud.length == 1 ? idToken.payload.aud.single : null;
+    final aud = idToken.payload.aud.length == 1
+        ? idToken.payload.aud.single
+        : null;
     if (aud != activeConfiguration.externalServiceAudience) {
       throw AuthenticationException.tokenInvalid(
-          'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"');
+        'audience "${idToken.payload.aud}" does not match "${activeConfiguration.externalServiceAudience}"',
+      );
     }
     final signatureMatches = await verifyTokenSignature(
       token: idToken,
@@ -268,12 +275,14 @@ abstract class BaseAuthProvider extends AuthProvider {
     if (_isLikelyAccessToken(token)) {
       // If this is most likely an access_token, we try access_token first,
       // and if not a valid access_token we try it as a JWT:
-      result = await _tryAuthenticateAccessToken(token) ??
+      result =
+          await _tryAuthenticateAccessToken(token) ??
           await _tryAuthenticateJwt(token);
     } else {
       // If this is not likely to be an access_token, we try JWT first,
       // and if not valid JWT we try it as access_token:
-      result = await _tryAuthenticateJwt(token) ??
+      result =
+          await _tryAuthenticateJwt(token) ??
           await _tryAuthenticateAccessToken(token);
     }
 
@@ -304,8 +313,10 @@ abstract class BaseAuthProvider extends AuthProvider {
 
       final audience = info.audience;
       if (audience == null) {
-        _logger.warning('OAuth2 access attempted with invalid audience, '
-            'for email: "${info.email}", audience: "${info.audience}"');
+        _logger.warning(
+          'OAuth2 access attempted with invalid audience, '
+          'for email: "${info.email}", audience: "${info.audience}"',
+        );
         return null;
       }
 

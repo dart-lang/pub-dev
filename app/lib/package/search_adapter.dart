@@ -46,8 +46,10 @@ class SearchAdapter {
       result.totalCount,
       nameMatches: result.nameMatches,
       sdkLibraryHits: result.sdkLibraryHits,
-      packageHits:
-          result.packageHits.map((h) => views[h.package]).nonNulls.toList(),
+      packageHits: result.packageHits
+          .map((h) => views[h.package])
+          .nonNulls
+          .toList(),
       errorMessage: result.errorMessage,
       statusCode: result.statusCode ?? 200,
     );
@@ -93,12 +95,13 @@ class SearchAdapter {
       );
     }
 
-    final names = await nameTracker
-        .getVisiblePackageNames()
-        .timeout(Duration(seconds: 5));
+    final names = await nameTracker.getVisiblePackageNames().timeout(
+      Duration(seconds: 5),
+    );
     final text = (form.query ?? '').trim().toLowerCase();
-    List<PackageHit> packageHits =
-        names.where((s) => s.contains(text)).map((pkgName) {
+    List<PackageHit> packageHits = names.where((s) => s.contains(text)).map((
+      pkgName,
+    ) {
       if (pkgName == text) {
         return PackageHit(package: pkgName, score: 1.0);
       } else if (pkgName.startsWith(text)) {
@@ -110,8 +113,10 @@ class SearchAdapter {
     packageHits.sort((a, b) => -a.score!.compareTo(b.score!));
 
     final totalCount = packageHits.length;
-    packageHits =
-        packageHits.skip(form.offset).take(form.pageSize ?? 10).toList();
+    packageHits = packageHits
+        .skip(form.offset)
+        .take(form.pageSize ?? 10)
+        .toList();
     return PackageSearchResult(
       timestamp: clock.now().toUtc(),
       packageHits: packageHits,
@@ -123,9 +128,11 @@ class SearchAdapter {
   }
 
   Future<Map<String, PackageView>> _getPackageViewsFromHits(
-      List<PackageHit> hits) async {
-    final views = await scoreCardBackend
-        .getPackageViews(hits.map((h) => h.package).toList());
+    List<PackageHit> hits,
+  ) async {
+    final views = await scoreCardBackend.getPackageViews(
+      hits.map((h) => h.package).toList(),
+    );
     final results = <String, PackageView>{};
     for (var i = 0; i < hits.length; i++) {
       final view = views[i];
@@ -169,8 +176,8 @@ class SearchResultPage {
     List<PackageView>? packageHits,
     this.errorMessage,
     this.statusCode = 200,
-  })  : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
-        packageHits = packageHits ?? <PackageView>[];
+  }) : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],
+       packageHits = packageHits ?? <PackageView>[];
 
   bool get hasNoHit => sdkLibraryHits.isEmpty && packageHits.isEmpty;
   bool get hasHit => !hasNoHit;

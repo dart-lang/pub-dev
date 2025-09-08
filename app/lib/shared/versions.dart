@@ -65,10 +65,12 @@ final String runtimeSdkVersion = '3.9.0';
 final String toolStableDartSdkVersion = '3.9.2';
 final String toolStableFlutterSdkVersion = '3.35.3';
 
-final semanticToolStableDartSdkVersion =
-    Version.parse(toolStableDartSdkVersion);
-final semanticToolStableFlutterSdkVersion =
-    Version.parse(toolStableFlutterSdkVersion);
+final semanticToolStableDartSdkVersion = Version.parse(
+  toolStableDartSdkVersion,
+);
+final semanticToolStableFlutterSdkVersion = Version.parse(
+  toolStableFlutterSdkVersion,
+);
 
 // Value comes from package:pana.
 final String panaVersion = pana.packageVersion;

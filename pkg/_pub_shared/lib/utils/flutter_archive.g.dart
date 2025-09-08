@@ -12,7 +12,8 @@ FlutterArchive _$FlutterArchiveFromJson(Map<String, dynamic> json) =>
       currentRelease: json['current_release'] == null
           ? null
           : FlutterCurrentRelease.fromJson(
-              json['current_release'] as Map<String, dynamic>),
+              json['current_release'] as Map<String, dynamic>,
+            ),
       releases: (json['releases'] as List<dynamic>?)
           ?.map((e) => FlutterRelease.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -28,20 +29,20 @@ Map<String, dynamic> _$FlutterArchiveToJson(FlutterArchive instance) =>
     };
 
 FlutterCurrentRelease _$FlutterCurrentReleaseFromJson(
-        Map<String, dynamic> json) =>
-    FlutterCurrentRelease(
-      beta: json['beta'] as String?,
-      dev: json['dev'] as String?,
-      stable: json['stable'] as String?,
-    );
+  Map<String, dynamic> json,
+) => FlutterCurrentRelease(
+  beta: json['beta'] as String?,
+  dev: json['dev'] as String?,
+  stable: json['stable'] as String?,
+);
 
 Map<String, dynamic> _$FlutterCurrentReleaseToJson(
-        FlutterCurrentRelease instance) =>
-    <String, dynamic>{
-      if (instance.beta case final value?) 'beta': value,
-      if (instance.dev case final value?) 'dev': value,
-      if (instance.stable case final value?) 'stable': value,
-    };
+  FlutterCurrentRelease instance,
+) => <String, dynamic>{
+  if (instance.beta case final value?) 'beta': value,
+  if (instance.dev case final value?) 'dev': value,
+  if (instance.stable case final value?) 'stable': value,
+};
 
 FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) =>
     FlutterRelease(

@@ -38,9 +38,7 @@ class FakeAuthProvider extends BaseAuthProvider {
   Future<void> close() async {}
 
   @override
-  Future<oauth2_v2.Userinfo> callGetUserinfo({
-    required String accessToken,
-  }) {
+  Future<oauth2_v2.Userinfo> callGetUserinfo({required String accessToken}) {
     // Since we don't use getAccountProfile from the base class, this method
     // won't get called.
     throw AssertionError();
@@ -53,10 +51,13 @@ class FakeAuthProvider extends BaseAuthProvider {
     final token = JsonWebToken.tryParse(accessToken);
     if (token == null) {
       throw oauth2_v2.ApiRequestError(
-          'Unable to parse access token: $accessToken');
+        'Unable to parse access token: $accessToken',
+      );
     }
     final goodSignature = await verifyTokenSignature(
-        token: token, openIdDataFetch: () async => throw AssertionError());
+      token: token,
+      openIdDataFetch: () async => throw AssertionError(),
+    );
     if (!goodSignature) {
       throw oauth2_v2.ApiRequestError(null);
     }
@@ -77,17 +78,16 @@ class FakeAuthProvider extends BaseAuthProvider {
       return http.Response(json.encode({}), 400);
     }
     final goodSignature = await verifyTokenSignature(
-        token: token, openIdDataFetch: () async => throw AssertionError());
+      token: token,
+      openIdDataFetch: () async => throw AssertionError(),
+    );
     if (!goodSignature) {
       return http.Response(json.encode({}), 400);
     }
     return http.Response(
-        json.encode({
-          ...token.header,
-          ...token.payload,
-          'email_verified': true,
-        }),
-        200);
+      json.encode({...token.header, ...token.payload, 'email_verified': true}),
+      200,
+    );
   }
 
   @override
@@ -141,13 +141,13 @@ class FakeAuthProvider extends BaseAuthProvider {
     final email = authResult.email;
 
     // using the user part as name
-    final name =
-        email.split('@').first.replaceAll('-', ' ').replaceAll('.', ' ');
+    final name = email
+        .split('@')
+        .first
+        .replaceAll('-', ' ')
+        .replaceAll('.', ' ');
 
-    return AccountProfile(
-      name: name,
-      imageUrl: staticUrls.defaultProfilePng,
-    );
+    return AccountProfile(name: name, imageUrl: staticUrls.defaultProfilePng);
   }
 
   @override
@@ -167,17 +167,12 @@ class FakeAuthProvider extends BaseAuthProvider {
       email: email,
       audience: activeConfiguration.pubServerAudience!,
       signature: null,
-      extraPayload: {
-        'nonce': nonce,
-      },
+      extraPayload: {'nonce': nonce},
       scope: includeScopes?.join(' '),
     );
-    return Uri.parse(getOauthRedirectUri()).replace(
-      queryParameters: {
-        'state': encodeState(state),
-        'code': token,
-      },
-    );
+    return Uri.parse(
+      getOauthRedirectUri(),
+    ).replace(queryParameters: {'state': encodeState(state), 'code': token});
   }
 
   @override
@@ -194,8 +189,11 @@ class FakeAuthProvider extends BaseAuthProvider {
     }
     final email = token.payload['email'] as String;
     // using the user part as name
-    final name =
-        email.split('@').first.replaceAll('-', ' ').replaceAll('.', ' ');
+    final name = email
+        .split('@')
+        .first
+        .replaceAll('-', ' ')
+        .replaceAll('.', ' ');
 
     return AuthResult(
       oauthUserId: token.payload['sub'] as String,
@@ -214,13 +212,11 @@ class FakeAuthProvider extends BaseAuthProvider {
 }
 
 @visibleForTesting
-String createFakeAuthTokenForEmail(
-  String email, {
-  String? audience,
-}) {
+String createFakeAuthTokenForEmail(String email, {String? audience}) {
   return Uri(
-      path: email.replaceAll('.', '-dot-').replaceAll('@', '-at-'),
-      queryParameters: {'aud': audience ?? 'fake-site-audience'}).toString();
+    path: email.replaceAll('.', '-dot-').replaceAll('@', '-at-'),
+    queryParameters: {'aud': audience ?? 'fake-site-audience'},
+  ).toString();
 }
 
 @visibleForTesting
@@ -246,10 +242,7 @@ String _createGcpToken({
   String? scope,
 }) {
   final token = JsonWebToken(
-    header: {
-      'alg': 'RS256',
-      'typ': 'JWT',
-    },
+    header: {'alg': 'RS256', 'typ': 'JWT'},
     payload: {
       'email': email,
       'sub': fakeOauthUserIdFromEmail(email),
@@ -287,16 +280,14 @@ String createFakeGitHubActionToken({
     refType = refType.substring(0, refType.length - 1);
   }
   final token = JsonWebToken(
-    header: {
-      'alg': 'RS256',
-      'typ': 'JWT',
-    },
+    header: {'alg': 'RS256', 'typ': 'JWT'},
     payload: {
       'aud': audience ?? 'https://pub.dev',
       'repository': repository,
       'repository_id': repositoryId ?? repository.hashCode.abs().toString(),
       'repository_owner': repository.split('/').first,
-      'repository_owner_id': repositoryOwnerId ??
+      'repository_owner_id':
+          repositoryOwnerId ??
           repository.split('/').first.hashCode.abs().toString(),
       'event_name': eventName ?? 'push',
       'ref': ref,
@@ -332,24 +323,27 @@ Future<String> _acquireFakeSessionId({
   String? pubHostedUrl,
   List<String>? scopes,
 }) async {
-  final baseUri =
-      Uri.parse(pubHostedUrl ?? activeConfiguration.primarySiteUri.toString());
+  final baseUri = Uri.parse(
+    pubHostedUrl ?? activeConfiguration.primarySiteUri.toString(),
+  );
   final client = http.Client();
   try {
-    final rs = await client.send(http.Request(
-      'GET',
-      Uri(
-        scheme: baseUri.scheme,
-        host: baseUri.host,
-        port: baseUri.port,
-        path: '/sign-in',
-        queryParameters: {
-          'fake-email': email,
-          'go': '/help',
-          if (scopes != null) 'scope': scopes.join(' '),
-        },
-      ),
-    )..followRedirects = false);
+    final rs = await client.send(
+      http.Request(
+        'GET',
+        Uri(
+          scheme: baseUri.scheme,
+          host: baseUri.host,
+          port: baseUri.port,
+          path: '/sign-in',
+          queryParameters: {
+            'fake-email': email,
+            'go': '/help',
+            if (scopes != null) 'scope': scopes.join(' '),
+          },
+        ),
+      )..followRedirects = false,
+    );
     if (rs.statusCode != 303) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
@@ -382,20 +376,24 @@ Future<String> _acquireCsrfToken({
   required String sessionId,
   String? pubHostedUrl,
 }) async {
-  final baseUri =
-      Uri.parse(pubHostedUrl ?? activeConfiguration.primarySiteUri.toString());
+  final baseUri = Uri.parse(
+    pubHostedUrl ?? activeConfiguration.primarySiteUri.toString(),
+  );
   final client = http.Client();
   try {
-    final rs = await client.send(http.Request(
-      'GET',
-      Uri(
-        scheme: baseUri.scheme,
-        host: baseUri.host,
-        port: baseUri.port,
-        path: '/my-liked-packages',
-      ),
-    )..headers['cookie'] =
-        '$clientSessionLaxCookieName=$sessionId; $clientSessionStrictCookieName=$sessionId');
+    final rs = await client.send(
+      http.Request(
+          'GET',
+          Uri(
+            scheme: baseUri.scheme,
+            host: baseUri.host,
+            port: baseUri.port,
+            path: '/my-liked-packages',
+          ),
+        )
+        ..headers['cookie'] =
+            '$clientSessionLaxCookieName=$sessionId; $clientSessionStrictCookieName=$sessionId',
+    );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}.');
     }
@@ -460,10 +458,7 @@ Future<PubApiClient> createFakeAuthPubApiClient({
     sessionId: sessionId,
     pubHostedUrl: pubHostedUrl,
   );
-  return createPubApiClient(
-    sessionId: sessionId,
-    csrfToken: csrfToken,
-  );
+  return createPubApiClient(sessionId: sessionId, csrfToken: csrfToken);
 }
 
 /// Creates a request context scope with the provided [email] using the fake
@@ -478,15 +473,18 @@ Future<R> withFakeAuthRequestContext<R>(
   final sessionData = await accountBackend.getSessionData(sessionId);
   final experimentalFlags = requestContext.experimentalFlags;
   return await ss.fork(() async {
-    registerRequestContext(RequestContext(
-      clientSessionCookieStatus: ClientSessionCookieStatus(
-        sessionId: sessionId,
-        isStrict: true,
-      ),
-      sessionData: sessionData,
-      csrfToken: csrfToken,
-      experimentalFlags: experimentalFlags,
-    ));
-    return await fn();
-  }) as R;
+        registerRequestContext(
+          RequestContext(
+            clientSessionCookieStatus: ClientSessionCookieStatus(
+              sessionId: sessionId,
+              isStrict: true,
+            ),
+            sessionData: sessionData,
+            csrfToken: csrfToken,
+            experimentalFlags: experimentalFlags,
+          ),
+        );
+        return await fn();
+      })
+      as R;
 }

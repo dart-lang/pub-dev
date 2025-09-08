@@ -14,16 +14,15 @@ CompletionData _$CompletionDataFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$CompletionDataToJson(CompletionData instance) =>
-    <String, dynamic>{
-      'completions': instance.completions,
-    };
+    <String, dynamic>{'completions': instance.completions};
 
 CompletionRule _$CompletionRuleFromJson(Map<String, dynamic> json) =>
     CompletionRule(
       match:
           (json['match'] as List<dynamic>?)?.map((e) => e as String).toSet() ??
-              const <String>{},
-      options: (json['options'] as List<dynamic>?)
+          const <String>{},
+      options:
+          (json['options'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const <String>[],

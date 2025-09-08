@@ -22,9 +22,7 @@ import 'views/publisher/header_metadata.dart';
 import 'views/publisher/publisher_list.dart';
 
 /// Renders the create publisher page.
-String renderCreatePublisherPage({
-  required String? domain,
-}) {
+String renderCreatePublisherPage({required String? domain}) {
   return renderLayoutPage(
     PageType.standalone,
     createPublisherPageNode(domain: domain),
@@ -66,9 +64,10 @@ String renderPublisherPackagesPage({
     ),
     if (kind == PublisherPackagesPageKind.unlisted)
       d.markdown(
-          '**Remark:** Unlisted packages are not included in search results by default, '
-          'however, unlisted packages are still publicly available. Unlisted packages '
-          'can also be discovered through search using the `show:unlisted` term.'),
+        '**Remark:** Unlisted packages are not included in search results by default, '
+        'however, unlisted packages are still publicly available. Unlisted packages '
+        'can also be discovered through search using the `show:unlisted` term.',
+      ),
     if (searchResultPage.hasHit) packageList(searchResultPage),
     paginationNode(pageLinks),
   ]);
@@ -113,17 +112,17 @@ String renderPublisherPackagesPage({
   );
 
   return renderLayoutPage(
-    PageType.publisher, mainContent,
+    PageType.publisher,
+    mainContent,
     title: title,
     pageData: PageData(
-      publisher: PublisherData(
-        publisherId: publisher.publisherId,
-      ),
+      publisher: PublisherData(publisherId: publisher.publisherId),
     ),
     searchForm: searchForm,
     canonicalUrl: canonicalUrl,
     // index only the first listed page, if it has packages displayed without search query
-    noIndex: publisher.isUnlisted ||
+    noIndex:
+        publisher.isUnlisted ||
         kind == PublisherPackagesPageKind.unlisted ||
         searchResultPage.hasNoHit ||
         pageLinks.currentPage! > 1,
@@ -160,15 +159,14 @@ String renderPublisherAdminPage({
     content,
     title: 'Publisher administration: ${publisher.publisherId}',
     pageData: PageData(
-      publisher: PublisherData(
-        publisherId: publisher.publisherId,
-      ),
+      publisher: PublisherData(publisherId: publisher.publisherId),
       sessionAware: true,
     ),
     canonicalUrl: urls.publisherAdminUrl(publisher.publisherId),
     noIndex: true,
-    searchForm: SearchForm()
-        .toggleRequiredTag(PackageTags.publisherTag(publisher.publisherId)),
+    searchForm: SearchForm().toggleRequiredTag(
+      PackageTags.publisherTag(publisher.publisherId),
+    ),
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
@@ -205,14 +203,13 @@ String renderPublisherActivityLogPage({
     content,
     title: 'Publisher activity log: ${publisher.publisherId}',
     pageData: PageData(
-      publisher: PublisherData(
-        publisherId: publisher.publisherId,
-      ),
+      publisher: PublisherData(publisherId: publisher.publisherId),
     ),
     canonicalUrl: urls.publisherActivityLogUrl(publisher.publisherId),
     noIndex: true,
-    searchForm: SearchForm()
-        .toggleRequiredTag(PackageTags.publisherTag(publisher.publisherId)),
+    searchForm: SearchForm().toggleRequiredTag(
+      PackageTags.publisherTag(publisher.publisherId),
+    ),
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }
@@ -225,25 +222,25 @@ d.Node _renderDetailHeader(Publisher publisher) {
 }
 
 Tab _packagesLinkTab(String publisherId) => Tab.withLink(
-      id: 'packages',
-      title: 'Packages',
-      href: urls.publisherPackagesUrl(publisherId),
-    );
+  id: 'packages',
+  title: 'Packages',
+  href: urls.publisherPackagesUrl(publisherId),
+);
 
 Tab _unlistedPackagesLinkTab(String publisherId) => Tab.withLink(
-      id: 'unlisted-packages',
-      title: 'Unlisted packages',
-      href: urls.publisherUnlistedPackagesUrl(publisherId),
-    );
+  id: 'unlisted-packages',
+  title: 'Unlisted packages',
+  href: urls.publisherUnlistedPackagesUrl(publisherId),
+);
 
 Tab _adminLinkTab(String publisherId) => Tab.withLink(
-      id: 'admin',
-      title: 'Admin',
-      href: urls.publisherAdminUrl(publisherId),
-    );
+  id: 'admin',
+  title: 'Admin',
+  href: urls.publisherAdminUrl(publisherId),
+);
 
 Tab _activityLogLinkTab(String publisherId) => Tab.withLink(
-      id: 'activity-log',
-      title: 'Activity log',
-      href: urls.publisherActivityLogUrl(publisherId),
-    );
+  id: 'activity-log',
+  title: 'Activity log',
+  href: urls.publisherActivityLogUrl(publisherId),
+);

@@ -37,8 +37,10 @@ void main() {
     });
 
     test('invalid agents', () {
-      expect(looksLikeUserIdOrServiceAgent(createUuid().replaceAll('-', '')),
-          isFalse);
+      expect(
+        looksLikeUserIdOrServiceAgent(createUuid().replaceAll('-', '')),
+        isFalse,
+      );
       expect(looksLikeUserIdOrServiceAgent('service:x'), isFalse);
       expect(looksLikeUserIdOrServiceAgent('x'), isFalse);
     });

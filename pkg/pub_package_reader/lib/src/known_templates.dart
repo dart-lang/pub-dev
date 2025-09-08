@@ -37,17 +37,21 @@ const _knownTemplateReadmes = <String>{
 
 /// Validates the `description` field in the `pubspec.yaml`.
 Iterable<ArchiveIssue> validateKnownTemplateDescription(
-    String description) sync* {
+  String description,
+) sync* {
   final lower = description.toLowerCase();
   for (final text in _knownTemplateDescriptions) {
     final firstIndex = lower.indexOf(text);
     if (firstIndex >= 0) {
-      final origText =
-          description.substring(firstIndex, firstIndex + text.length);
+      final origText = description.substring(
+        firstIndex,
+        firstIndex + text.length,
+      );
       yield ArchiveIssue(
-          '`description` contains a generic text fragment coming from package templates (`$origText`).\n'
-          'Please follow the guides to describe your package:\n'
-          'https://dart.dev/tools/pub/pubspec#description');
+        '`description` contains a generic text fragment coming from package templates (`$origText`).\n'
+        'Please follow the guides to describe your package:\n'
+        'https://dart.dev/tools/pub/pubspec#description',
+      );
       break;
     }
   }
@@ -56,7 +60,9 @@ Iterable<ArchiveIssue> validateKnownTemplateDescription(
 /// Validates that `README.md` at [path] inside the package archive with [content] does
 /// not contain a `TODO` instruction from a known template.
 Iterable<ArchiveIssue> validateKnownTemplateReadme(
-    String? path, String? content) sync* {
+  String? path,
+  String? content,
+) sync* {
   if (path == null || content == null) {
     return;
   }
@@ -66,9 +72,10 @@ Iterable<ArchiveIssue> validateKnownTemplateReadme(
     if (firstIndex >= 0) {
       final origText = content.substring(firstIndex, firstIndex + text.length);
       yield ArchiveIssue(
-          '`$path` contains a generic text fragment coming from package templates (`$origText`).\n'
-          'Please follow the guides to write great package pages:\n'
-          'https://dart.dev/guides/libraries/writing-package-pages');
+        '`$path` contains a generic text fragment coming from package templates (`$origText`).\n'
+        'Please follow the guides to write great package pages:\n'
+        'https://dart.dev/guides/libraries/writing-package-pages',
+      );
       break;
     }
   }

@@ -12,8 +12,12 @@ extension LoggerExt on Logger {
   /// detect and remedy, should they occur frequently.
   ///
   /// [code] should be a hardcoded string to keep dimensionality manageable.
-  void pubNoticeWarning(String code, String message,
-      [Object? error, StackTrace? st]) {
+  void pubNoticeWarning(
+    String code,
+    String message, [
+    Object? error,
+    StackTrace? st,
+  ]) {
     warning('[pub-notice:$code] $message', error, st);
   }
 
@@ -24,8 +28,12 @@ extension LoggerExt on Logger {
   /// detect and remedy, should they occur frequently.
   ///
   /// [code] should be a hardcoded string to keep dimensionality manageable.
-  void pubNoticeShout(String code, String message,
-      [Object? error, StackTrace? st]) {
+  void pubNoticeShout(
+    String code,
+    String message, [
+    Object? error,
+    StackTrace? st,
+  ]) {
     shout('[pub-notice:$code] $message', error, st);
   }
 }

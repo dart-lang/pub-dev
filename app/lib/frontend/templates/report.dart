@@ -17,16 +17,10 @@ const _subjectKindLabels = {
 };
 
 /// Renders the feedback page with a simple paragraph of [message].
-String renderReportFeedback({
-  required String title,
-  required String message,
-}) {
+String renderReportFeedback({required String title, required String message}) {
   return renderLayoutPage(
     PageType.standalone,
-    d.fragment([
-      d.h1(text: title),
-      d.p(text: message),
-    ]),
+    d.fragment([d.h1(text: title), d.p(text: message)]),
     title: title,
     noIndex: true,
   );
@@ -78,34 +72,40 @@ Iterable<d.Node> _report(
   final kindLabel = _subjectKindLabels[subject.kind] ?? 'about';
   final lcpsDeepLink =
       Uri.parse('https://reportcontent.google.com/troubleshooter').replace(
-    queryParameters: {
-      'product': 'dart_pub',
-      'content_id': subject.canonicalUrl,
-      if (url != null) 'url': url,
-    },
-  );
+        queryParameters: {
+          'product': 'dart_pub',
+          'content_id': subject.canonicalUrl,
+          if (url != null) 'url': url,
+        },
+      );
   return [
-    d.p(children: [
-      d.text('Why do you wish to report $kindLabel '),
-      d.code(text: subject.localName),
-      d.text('?'),
-    ]),
+    d.p(
+      children: [
+        d.text('Why do you wish to report $kindLabel '),
+        d.code(text: subject.localName),
+        d.text('?'),
+      ],
+    ),
     d.p(text: ''),
     // illegal content
     if (subject.isPackage)
       _foldableSection(
         title: d.text('I believe the package contains illegal content.'),
         children: [
-          d.markdown('Please report illegal content through the '
-              '[illegal content reporting form here]($lcpsDeepLink).')
+          d.markdown(
+            'Please report illegal content through the '
+            '[illegal content reporting form here]($lcpsDeepLink).',
+          ),
         ],
       )
     else if (subject.isPublisher)
       _foldableSection(
         title: d.text('I believe the publisher contains illegal content.'),
         children: [
-          d.markdown('Please report illegal content through the '
-              '[illegal content reporting form here]($lcpsDeepLink).')
+          d.markdown(
+            'Please report illegal content through the '
+            '[illegal content reporting form here]($lcpsDeepLink).',
+          ),
         ],
       ),
 
@@ -113,32 +113,43 @@ Iterable<d.Node> _report(
     if (subject.isPackage)
       _foldableSection(
         title: d.text(
-            'I have found a bug in the package / I need help using the package.'),
+          'I have found a bug in the package / I need help using the package.',
+        ),
         children: [
-          d.markdown('Please consult the package page: '
-              '[`pub.dev/packages/${subject.package}`](https://pub.dev/packages/${subject.package})'),
-          d.p(
-              text:
-                  'Many packages have issue trackers, support discussion boards or chat rooms. '
-                  'Often these are discoverable from the package source code repository.'),
-          d.p(
-              text: 'Many packages are freely available and package authors '
-                  'are not required to provide support.'),
           d.markdown(
-              'And the Dart team cannot provide support for all packages on pub.dev, '
-              'but it is often possible to get help and talk to other Dart developers through '
-              '[community channels](https://dart.dev/community).')
+            'Please consult the package page: '
+            '[`pub.dev/packages/${subject.package}`](https://pub.dev/packages/${subject.package})',
+          ),
+          d.p(
+            text:
+                'Many packages have issue trackers, support discussion boards or chat rooms. '
+                'Often these are discoverable from the package source code repository.',
+          ),
+          d.p(
+            text:
+                'Many packages are freely available and package authors '
+                'are not required to provide support.',
+          ),
+          d.markdown(
+            'And the Dart team cannot provide support for all packages on pub.dev, '
+            'but it is often possible to get help and talk to other Dart developers through '
+            '[community channels](https://dart.dev/community).',
+          ),
         ],
       )
     else if (subject.isPublisher)
       _foldableSection(
         title: d.text('I want to contact the publisher.'),
         children: [
-          d.markdown('Please consult the publisher page: '
-              '[`pub.dev/publishers/${subject.publisherId}`](https://pub.dev/publishers/${subject.publisherId})'),
+          d.markdown(
+            'Please consult the publisher page: '
+            '[`pub.dev/publishers/${subject.publisherId}`](https://pub.dev/publishers/${subject.publisherId})',
+          ),
           d.p(
-              text: 'All publishers have a contact email. '
-                  'Publishers do not have to provide support and may not respond to your inquiries.'),
+            text:
+                'All publishers have a contact email. '
+                'Publishers do not have to provide support and may not respond to your inquiries.',
+          ),
         ],
       ),
 
@@ -168,9 +179,7 @@ Iterable<d.Node> _report(
         material.raisedButton(
           label: 'Submit',
           id: 'report-submit',
-          attributes: {
-            'data-form-api-button': 'submit',
-          },
+          attributes: {'data-form-api-button': 'submit'},
         ),
       ],
     ),
@@ -179,12 +188,17 @@ Iterable<d.Node> _report(
     _foldableSection(
       title: d.text('I have a problem with the pub.dev website.'),
       children: [
-        d.markdown('Security vulnerabilities may be reported through '
-            '[goo.gl/vulnz](https://goo.gl/vulnz)'),
-        d.markdown('Bugs on the pub.dev website may be reported at '
-            '[github.com/dart-lang/pub-dev/issues](https://github.com/dart-lang/pub-dev/issues)'),
         d.markdown(
-            'Issues with specific accounts may be directed to `support@pub.dev`.'),
+          'Security vulnerabilities may be reported through '
+          '[goo.gl/vulnz](https://goo.gl/vulnz)',
+        ),
+        d.markdown(
+          'Bugs on the pub.dev website may be reported at '
+          '[github.com/dart-lang/pub-dev/issues](https://github.com/dart-lang/pub-dev/issues)',
+        ),
+        d.markdown(
+          'Issues with specific accounts may be directed to `support@pub.dev`.',
+        ),
       ],
     ),
   ];
@@ -196,29 +210,26 @@ Iterable<d.Node> _appeal(
   ModerationSubject subject,
 ) {
   return [
-    d.p(children: [
-      d.text('If wish you to file an appeal for '),
-      d.code(text: caseId),
-      d.text(' on '),
-      d.code(text: subject.localName),
-      d.text(', please explain why the resolution should be reconsidered.'),
-    ]),
     d.p(
-      text: 'If you have additional relevant documentation '
+      children: [
+        d.text('If wish you to file an appeal for '),
+        d.code(text: caseId),
+        d.text(' on '),
+        d.code(text: subject.localName),
+        d.text(', please explain why the resolution should be reconsidered.'),
+      ],
+    ),
+    d.p(
+      text:
+          'If you have additional relevant documentation '
           '(source repositories, screenshots, logs, bug tracker entries, etc) '
           'consider uploading these and sharing a link.',
     ),
-    d.p(
-      child: d.b(text: 'You can appeal at most once per case.'),
-    ),
+    d.p(child: d.b(text: 'You can appeal at most once per case.')),
     if (!(sessionData?.isAuthenticated ?? false))
       d.fragment([
         d.p(text: 'Contact information:'),
-        material.textField(
-          id: 'report-email',
-          name: 'email',
-          label: 'Email',
-        ),
+        material.textField(id: 'report-email', name: 'email', label: 'Email'),
       ]),
     material.textArea(
       id: 'report-message',
@@ -231,9 +242,7 @@ Iterable<d.Node> _appeal(
     material.raisedButton(
       label: 'Submit',
       id: 'report-submit',
-      attributes: {
-        'data-form-api-button': 'submit',
-      },
+      attributes: {'data-form-api-button': 'submit'},
     ),
   ];
 }
@@ -252,8 +261,9 @@ d.Node _foldableSection({
           d.img(
             classes: ['foldable-icon'],
             image: d.Image(
-              src: staticUrls
-                  .getAssetUrl('/static/img/foldable-section-icon.svg'),
+              src: staticUrls.getAssetUrl(
+                '/static/img/foldable-section-icon.svg',
+              ),
               alt: 'trigger folding of the section',
               width: 13,
               height: 6,
@@ -262,10 +272,7 @@ d.Node _foldableSection({
           title,
         ],
       ),
-      d.div(
-        classes: ['foldable-content'],
-        children: children,
-      ),
+      d.div(classes: ['foldable-content'], children: children),
     ],
   );
 }

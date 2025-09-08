@@ -33,10 +33,7 @@ class FakePubServerProcess {
     this._coverageConfig,
   );
 
-  static Future<FakePubServerProcess> start({
-    String? appDir,
-    int? port,
-  }) async {
+  static Future<FakePubServerProcess> start({String? appDir, int? port}) async {
     appDir ??= p.join(Directory.current.path, '../../app');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
@@ -48,8 +45,10 @@ class FakePubServerProcess {
 
     await _runPubGet(appDir);
     final tmpDir = await Directory.systemTemp.createTemp('fake-pub-server');
-    final fakeEmailSenderOutputDir =
-        p.join(tmpDir.path, 'fake-email-sender-output-dir');
+    final fakeEmailSenderOutputDir = p.join(
+      tmpDir.path,
+      'fake-email-sender-output-dir',
+    );
     final process = await Process.start(
       'dart',
       [
@@ -67,12 +66,14 @@ class FakePubServerProcess {
         '--analyzer-port=$analyzerPort',
       ],
       workingDirectory: appDir,
-      environment: {
-        'FAKE_EMAIL_SENDER_OUTPUT_DIR': fakeEmailSenderOutputDir,
-      },
+      environment: {'FAKE_EMAIL_SENDER_OUTPUT_DIR': fakeEmailSenderOutputDir},
     );
-    final instance =
-        FakePubServerProcess._(port, tmpDir.path, process, coverageConfig);
+    final instance = FakePubServerProcess._(
+      port,
+      tmpDir.path,
+      process,
+      coverageConfig,
+    );
     instance._bindListeners();
     return instance;
   }
@@ -105,15 +106,15 @@ class FakePubServerProcess {
         maxAttempts: 2,
         retryIf: (e) => e is TimeoutException,
         () async {
-          final pr1 = await Process.run(
-            'dart',
-            ['pub', 'get'],
-            workingDirectory: appDir,
-          ).timeout(Duration(seconds: 15));
+          final pr1 = await Process.run('dart', [
+            'pub',
+            'get',
+          ], workingDirectory: appDir).timeout(Duration(seconds: 15));
 
           if (pr1.exitCode != 0) {
             throw Exception(
-                'dart pub get failed in app\n${pr1.stdout}\n${pr1.stderr}');
+              'dart pub get failed in app\n${pr1.stdout}\n${pr1.stderr}',
+            );
           }
         },
       );
@@ -126,22 +127,20 @@ class FakePubServerProcess {
     _stdoutListener = _process.stdout
         .transform(utf8.decoder)
         .transform(LineSplitter())
-        .listen(
-      (line) {
-        print(line);
-        if (line.contains('running on port $port')) {
-          _startedCompleter.complete();
-          _startupTimeoutTimer?.cancel();
-          _coverageConfig?.startCollect();
-        }
-      },
-    );
+        .listen((line) {
+          print(line);
+          if (line.contains('running on port $port')) {
+            _startedCompleter.complete();
+            _startupTimeoutTimer?.cancel();
+            _coverageConfig?.startCollect();
+          }
+        });
     _stderrListener = _process.stderr
         .transform(utf8.decoder)
         .transform(LineSplitter())
         .listen((line) {
-      print('[ERR] $line');
-    });
+          print('[ERR] $line');
+        });
     _startupTimeoutTimer = Timer(Duration(seconds: 60), () {
       if (!_startedCompleter.isCompleted) {
         _startedCompleter.completeError('Timeout starting fake_server');
@@ -172,10 +171,13 @@ class FakePubServerProcess {
     }
   }
 
-  late final fakeEmailOutputPath =
-      p.join(_tmpDir, 'fake-email-sender-output-dir');
-  late final fakeEmailReader =
-      FakeEmailReaderFromOutputDirectory(fakeEmailOutputPath);
+  late final fakeEmailOutputPath = p.join(
+    _tmpDir,
+    'fake-email-sender-output-dir',
+  );
+  late final fakeEmailReader = FakeEmailReaderFromOutputDirectory(
+    fakeEmailOutputPath,
+  );
 }
 
 class FakeEmailReaderFromOutputDirectory {
@@ -239,8 +241,11 @@ String extractConsentIdFromEmail(String email) {
   final inviteUrlLogLine = email
       .split('\n')
       .firstWhere((line) => line.contains('https://pub.dev/consent'));
-  final inviteUri = Uri.parse(inviteUrlLogLine
-      .substring(inviteUrlLogLine.indexOf('https://pub.dev/consent')));
+  final inviteUri = Uri.parse(
+    inviteUrlLogLine.substring(
+      inviteUrlLogLine.indexOf('https://pub.dev/consent'),
+    ),
+  );
   final consentId = inviteUri.queryParameters['id']!;
   return consentId;
 }
@@ -261,26 +266,26 @@ class _CoverageConfig {
       sessionName = 'pid-$pid';
     }
 
-    final outputPath =
-        p.join(coverageDir, 'raw', '$sessionName-fake-pub-server-$vmPort.json');
+    final outputPath = p.join(
+      coverageDir,
+      'raw',
+      '$sessionName-fake-pub-server-$vmPort.json',
+    );
     return _CoverageConfig(vmPort, outputPath);
   }
 
   Future<void> startCollect() async {
     await File(outputPath).parent.create(recursive: true);
     print('[collect-$outputPath] starting...');
-    _process = await Process.start(
-      'dart',
-      [
-        'run',
-        'coverage:collect_coverage',
-        '--uri=http://localhost:$vmPort',
-        '-o',
-        outputPath,
-        '--wait-paused',
-        '--resume-isolates',
-      ],
-    );
+    _process = await Process.start('dart', [
+      'run',
+      'coverage:collect_coverage',
+      '--uri=http://localhost:$vmPort',
+      '-o',
+      outputPath,
+      '--wait-paused',
+      '--resume-isolates',
+    ]);
     _writeLogs(_process.stdout, '[collect-$outputPath][OUT]');
     _writeLogs(_process.stderr, '[collect-$outputPath][ERR]');
     final x = _process.exitCode.then((code) {
@@ -296,15 +301,18 @@ class _CoverageConfig {
 }
 
 void _writeLogs(Stream<List<int>> stream, String prefix) {
-  stream.transform(utf8.decoder).transform(LineSplitter()).listen(
-    (s) {
-      s = s.trim();
-      if (s.isNotEmpty) {
-        print('  $prefix ${s.trim()}');
-      }
-    },
-    onDone: () {
-      print('  $prefix[DONE]');
-    },
-  );
+  stream
+      .transform(utf8.decoder)
+      .transform(LineSplitter())
+      .listen(
+        (s) {
+          s = s.trim();
+          if (s.isNotEmpty) {
+            print('  $prefix ${s.trim()}');
+          }
+        },
+        onDone: () {
+          print('  $prefix[DONE]');
+        },
+      );
 }

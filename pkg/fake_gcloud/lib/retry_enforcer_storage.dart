@@ -17,13 +17,16 @@ void _verifyRetryOnStack() {
 
   // The first frame index outside of this file.
   var startFrameIndex = 0;
-  while (_skippedFirstFrames.any((skipped) =>
-      trace.frames[startFrameIndex].uri.toString().contains(skipped))) {
+  while (_skippedFirstFrames.any(
+    (skipped) => trace.frames[startFrameIndex].uri.toString().contains(skipped),
+  )) {
     startFrameIndex++;
   }
 
-  final firstRealFrame =
-      trace.frames.skip(startFrameIndex).firstOrNull?.toString();
+  final firstRealFrame = trace.frames
+      .skip(startFrameIndex)
+      .firstOrNull
+      ?.toString();
   if (firstRealFrame == null) {
     return;
   }
@@ -69,18 +72,18 @@ class RetryEnforcerStorage implements Storage {
     PredefinedAcl? defaultPredefinedObjectAcl,
     Acl? defaultObjectAcl,
   }) {
-    return _RetryEnforcerBucket(_storage.bucket(
-      bucketName,
-      defaultObjectAcl: defaultObjectAcl,
-      defaultPredefinedObjectAcl: defaultPredefinedObjectAcl,
-    ));
+    return _RetryEnforcerBucket(
+      _storage.bucket(
+        bucketName,
+        defaultObjectAcl: defaultObjectAcl,
+        defaultPredefinedObjectAcl: defaultPredefinedObjectAcl,
+      ),
+    );
   }
 
   @override
   Future<bool> bucketExists(String bucketName) async {
-    return await _verifyRetry(
-      () => _storage.bucketExists(bucketName),
-    );
+    return await _verifyRetry(() => _storage.bucketExists(bucketName));
   }
 
   @override
@@ -114,9 +117,7 @@ class RetryEnforcerStorage implements Storage {
 
   @override
   Future deleteBucket(String bucketName) async {
-    return await _verifyRetry(
-      () => _storage.deleteBucket(bucketName),
-    );
+    return await _verifyRetry(() => _storage.deleteBucket(bucketName));
   }
 
   @override
@@ -147,26 +148,19 @@ class _RetryEnforcerBucket implements Bucket {
 
   @override
   Future delete(String name) async {
-    return await _verifyRetry(
-      () async => await _bucket.delete(name),
-    );
+    return await _verifyRetry(() async => await _bucket.delete(name));
   }
 
   @override
   Future<ObjectInfo> info(String name) async {
-    return await _verifyRetry(
-      () async => await _bucket.info(name),
-    );
+    return await _verifyRetry(() async => await _bucket.info(name));
   }
 
   @override
   Stream<BucketEntry> list({String? prefix, String? delimiter}) {
     // TODO: verify retry wrapper here
     _verifyRetryOnStack();
-    return _bucket.list(
-      prefix: prefix,
-      delimiter: delimiter,
-    );
+    return _bucket.list(prefix: prefix, delimiter: delimiter);
   }
 
   @override
@@ -176,11 +170,13 @@ class _RetryEnforcerBucket implements Bucket {
     int pageSize = 50,
   }) async {
     return await _verifyRetry(
-      () async => _RetryEnforcerPage(await _bucket.page(
-        prefix: prefix,
-        delimiter: delimiter,
-        pageSize: pageSize,
-      )),
+      () async => _RetryEnforcerPage(
+        await _bucket.page(
+          prefix: prefix,
+          delimiter: delimiter,
+          pageSize: pageSize,
+        ),
+      ),
     );
   }
 

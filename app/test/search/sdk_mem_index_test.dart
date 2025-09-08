@@ -84,84 +84,75 @@ void main() {
 
     test('AsyncError', () async {
       final rs = index.search('AsyncError');
-      expect(
-        json.decode(json.encode(rs)),
-        [
-          {
-            'sdk': 'dart',
-            'library': 'dart:async',
-            'description': 'async description',
-            'url':
-                'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
-            'score': closeTo(0.98, 0.01),
-            'apiPages': [
-              {
-                'path': 'dart-async/AsyncError-class.html',
-                'url':
-                    'https://api.dart.dev/stable/latest/dart-async/AsyncError-class.html'
-              },
-              {
-                'path': 'dart-async/AsyncError/AsyncError.html',
-                'url':
-                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/AsyncError.html'
-              },
-              {
-                'path': 'dart-async/AsyncError/defaultStackTrace.html',
-                'url':
-                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html'
-              },
-            ]
-          },
-        ],
-      );
+      expect(json.decode(json.encode(rs)), [
+        {
+          'sdk': 'dart',
+          'library': 'dart:async',
+          'description': 'async description',
+          'url':
+              'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
+          'score': closeTo(0.98, 0.01),
+          'apiPages': [
+            {
+              'path': 'dart-async/AsyncError-class.html',
+              'url':
+                  'https://api.dart.dev/stable/latest/dart-async/AsyncError-class.html',
+            },
+            {
+              'path': 'dart-async/AsyncError/AsyncError.html',
+              'url':
+                  'https://api.dart.dev/stable/latest/dart-async/AsyncError/AsyncError.html',
+            },
+            {
+              'path': 'dart-async/AsyncError/defaultStackTrace.html',
+              'url':
+                  'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html',
+            },
+          ],
+        },
+      ]);
     });
 
     test('stack trace', () async {
       final rs = index.search('stack trace');
-      expect(
-        json.decode(json.encode(rs)),
-        [
-          {
-            'sdk': 'dart',
-            'library': 'dart:async',
-            'description': 'async description',
-            'url':
-                'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
-            'score': closeTo(0.28, 0.01),
-            'apiPages': [
-              {
-                'path': 'dart-async/AsyncError/defaultStackTrace.html',
-                'url':
-                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html'
-              },
-            ]
-          },
-        ],
-      );
+      expect(json.decode(json.encode(rs)), [
+        {
+          'sdk': 'dart',
+          'library': 'dart:async',
+          'description': 'async description',
+          'url':
+              'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
+          'score': closeTo(0.28, 0.01),
+          'apiPages': [
+            {
+              'path': 'dart-async/AsyncError/defaultStackTrace.html',
+              'url':
+                  'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html',
+            },
+          ],
+        },
+      ]);
     });
 
     test('defaultStackTrace', () async {
       final rs = index.search('defaultStackTrace');
-      expect(
-        json.decode(json.encode(rs)),
-        [
-          {
-            'sdk': 'dart',
-            'library': 'dart:async',
-            'description': 'async description',
-            'url':
-                'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
-            'score': closeTo(0.98, 0.01),
-            'apiPages': [
-              {
-                'path': 'dart-async/AsyncError/defaultStackTrace.html',
-                'url':
-                    'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html'
-              },
-            ]
-          },
-        ],
-      );
+      expect(json.decode(json.encode(rs)), [
+        {
+          'sdk': 'dart',
+          'library': 'dart:async',
+          'description': 'async description',
+          'url':
+              'https://api.dart.dev/stable/latest/dart-async/dart-async-library.html',
+          'score': closeTo(0.98, 0.01),
+          'apiPages': [
+            {
+              'path': 'dart-async/AsyncError/defaultStackTrace.html',
+              'url':
+                  'https://api.dart.dev/stable/latest/dart-async/AsyncError/defaultStackTrace.html',
+            },
+          ],
+        },
+      ]);
     });
 
     test('reduced score with library', () async {

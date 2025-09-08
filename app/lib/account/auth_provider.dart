@@ -12,9 +12,7 @@ import '../shared/exceptions.dart';
 final webmasterScope = wmx.SearchConsoleApi.webmastersReadonlyScope;
 
 /// The list of scopes that are allowed in the public API request.
-final _allowedScopes = <String>{
-  webmasterScope,
-};
+final _allowedScopes = <String>{webmasterScope};
 
 class AuthResult {
   final String oauthUserId;
@@ -33,9 +31,7 @@ class AuthResult {
     this.accessToken,
   });
 
-  AuthResult withToken({
-    required String accessToken,
-  }) {
+  AuthResult withToken({required String accessToken}) {
     return AuthResult(
       oauthUserId: oauthUserId,
       email: email,
@@ -51,10 +47,7 @@ class AccountProfile {
   final String? name;
   final String? imageUrl;
 
-  AccountProfile({
-    required this.name,
-    required this.imageUrl,
-  });
+  AccountProfile({required this.name, required this.imageUrl});
 }
 
 /// Authenticates bearer tokens from the `'authentication: bearer'` header.
@@ -91,8 +84,9 @@ abstract class AuthProvider {
   });
 
   /// Calls the Google tokeninfo POST endpoint with [accessToken].
-  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken(
-      {required String accessToken});
+  Future<oauth2_v2.Tokeninfo> callTokenInfoWithAccessToken({
+    required String accessToken,
+  });
 
   /// Close resources.
   Future<void> close();
@@ -105,6 +99,8 @@ void verifyIncludeScopes(List<String>? includeScopes) {
   }
   for (final scope in includeScopes) {
     InvalidInputException.check(
-        _allowedScopes.contains(scope), 'Invalid scope: "$scope".');
+      _allowedScopes.contains(scope),
+      'Invalid scope: "$scope".',
+    );
   }
 }

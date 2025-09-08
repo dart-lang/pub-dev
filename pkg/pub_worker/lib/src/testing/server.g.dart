@@ -8,11 +8,7 @@ part of 'server.dart';
 
 Router _$PubWorkerTestServerRouter(PubWorkerTestServer service) {
   final router = Router();
-  router.add(
-    'GET',
-    r'/api/packages/<package>',
-    service._listPackageVersions,
-  );
+  router.add('GET', r'/api/packages/<package>', service._listPackageVersions);
   router.add(
     'GET',
     r'/api/packages/<package>/versions/<version>.tar.gz',

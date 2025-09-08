@@ -26,16 +26,14 @@ void main() {
       // init server data
       await http.post(
         Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
-        body: json.encode(
-          {
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {'name': 'json_pkg', 'description': 'Some JSON utility'},
-              ],
-            },
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'json_pkg', 'description': 'Some JSON utility'},
+            ],
           },
-        ),
+        }),
       );
 
       final anon = await fakeTestScenario.createAnonymousTestUser();
@@ -43,14 +41,11 @@ void main() {
       await anon.withBrowserPage((page) async {
         await page.gotoOrigin('/packages?q=json');
         final info = await listingPageInfo(page);
-        expect(
-          info.packageNames,
-          [
-            'dart:convert', // SDK package
-            'flutter_driver', // SDK package
-            'json_pkg', // regular package
-          ],
-        );
+        expect(info.packageNames, [
+          'dart:convert', // SDK package
+          'flutter_driver', // SDK package
+          'json_pkg', // regular package
+        ]);
       });
     });
   });

@@ -17,7 +17,7 @@ class Asn1RsaPublicKey {
   final Uint8List asDerEncodedBytes;
 
   Asn1RsaPublicKey.fromDerEncodedBytes(List<int> bytes)
-      : asDerEncodedBytes = Uint8List.fromList(bytes);
+    : asDerEncodedBytes = Uint8List.fromList(bytes);
 
   factory Asn1RsaPublicKey({
     required List<int> modulus,
@@ -31,12 +31,15 @@ class Asn1RsaPublicKey {
   /// and returns the parsed public key.
   factory Asn1RsaPublicKey.parsePemString(String input) {
     return Asn1RsaPublicKey.fromDerEncodedBytes(
-        decodePemBlocks(PemLabel.publicKey, input).single);
+      decodePemBlocks(PemLabel.publicKey, input).single,
+    );
   }
 
   /// The PEM-encoded textual format of the public key.
-  late final asPemString =
-      encodePemBlock(PemLabel.publicKey, asDerEncodedBytes);
+  late final asPemString = encodePemBlock(
+    PemLabel.publicKey,
+    asDerEncodedBytes,
+  );
 }
 
 /// Verifies if [signature] is valid for [input], using the RSA public key.
@@ -57,19 +60,16 @@ Future<bool> verifyTextWithRsaSignature({
     await signatureFile.writeAsBytes(signature);
     final publicKeyFile = File(p.join(dir.path, 'public.pem'));
     await publicKeyFile.writeAsString(publicKey.asPemString);
-    final pr = await runConstrained(
-      [
-        'openssl',
-        'dgst',
-        '-sha256',
-        '-verify',
-        publicKeyFile.path,
-        '-signature',
-        signatureFile.path,
-        inputFile.path,
-      ],
-      timeout: Duration(seconds: 10),
-    );
+    final pr = await runConstrained([
+      'openssl',
+      'dgst',
+      '-sha256',
+      '-verify',
+      publicKeyFile.path,
+      '-signature',
+      signatureFile.path,
+      inputFile.path,
+    ], timeout: Duration(seconds: 10));
     final output = pr.stdout.toString().trim();
     if (pr.exitCode == 0) {
       if (output == 'Verified OK') {

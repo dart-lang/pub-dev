@@ -24,159 +24,186 @@ void main() {
       );
     }
 
-    testWithProfile('no update', fn: () async {
-      final changes = await _updatePublicArchiveBucket();
-      expect(changes.isAllZero, isTrue);
-    });
+    testWithProfile(
+      'no update',
+      fn: () async {
+        final changes = await _updatePublicArchiveBucket();
+        expect(changes.isAllZero, isTrue);
+      },
+    );
 
-    testWithProfile('missing file - without package filter', fn: () async {
-      final bucket =
-          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
-      await bucket.delete('packages/oxygen-1.0.0.tar.gz');
+    testWithProfile(
+      'missing file - without package filter',
+      fn: () async {
+        final bucket = storageService.bucket(
+          activeConfiguration.publicPackagesBucketName!,
+        );
+        await bucket.delete('packages/oxygen-1.0.0.tar.gz');
 
-      final changes = await _updatePublicArchiveBucket();
-      expect(changes.archivesUpdated, 1);
-      expect(changes.archivesToBeDeleted, 0);
-      expect(changes.archivesDeleted, 0);
+        final changes = await _updatePublicArchiveBucket();
+        expect(changes.archivesUpdated, 1);
+        expect(changes.archivesToBeDeleted, 0);
+        expect(changes.archivesDeleted, 0);
 
-      final changes2 = await _updatePublicArchiveBucket();
-      expect(changes2.isAllZero, isTrue);
-    });
+        final changes2 = await _updatePublicArchiveBucket();
+        expect(changes2.isAllZero, isTrue);
+      },
+    );
 
-    testWithProfile('missing file - with matching package filter',
-        fn: () async {
-      final bucket =
-          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
-      await bucket.delete('packages/oxygen-1.0.0.tar.gz');
+    testWithProfile(
+      'missing file - with matching package filter',
+      fn: () async {
+        final bucket = storageService.bucket(
+          activeConfiguration.publicPackagesBucketName!,
+        );
+        await bucket.delete('packages/oxygen-1.0.0.tar.gz');
 
-      final changes = await _updatePublicArchiveBucket(package: 'oxygen');
-      expect(changes.archivesUpdated, 1);
-      expect(changes.archivesToBeDeleted, 0);
-      expect(changes.archivesDeleted, 0);
+        final changes = await _updatePublicArchiveBucket(package: 'oxygen');
+        expect(changes.archivesUpdated, 1);
+        expect(changes.archivesToBeDeleted, 0);
+        expect(changes.archivesDeleted, 0);
 
-      final changes2 = await _updatePublicArchiveBucket(package: 'oxygen');
-      expect(changes2.isAllZero, isTrue);
+        final changes2 = await _updatePublicArchiveBucket(package: 'oxygen');
+        expect(changes2.isAllZero, isTrue);
 
-      final changes3 = await _updatePublicArchiveBucket();
-      expect(changes3.isAllZero, isTrue);
-    });
+        final changes3 = await _updatePublicArchiveBucket();
+        expect(changes3.isAllZero, isTrue);
+      },
+    );
 
-    testWithProfile('missing file - with different package filter',
-        fn: () async {
-      final bucket =
-          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
-      await bucket.delete('packages/oxygen-1.0.0.tar.gz');
+    testWithProfile(
+      'missing file - with different package filter',
+      fn: () async {
+        final bucket = storageService.bucket(
+          activeConfiguration.publicPackagesBucketName!,
+        );
+        await bucket.delete('packages/oxygen-1.0.0.tar.gz');
 
-      final changes = await _updatePublicArchiveBucket(package: 'neon');
-      expect(changes.isAllZero, isTrue);
+        final changes = await _updatePublicArchiveBucket(package: 'neon');
+        expect(changes.isAllZero, isTrue);
 
-      final changes2 = await _updatePublicArchiveBucket(package: 'neon');
-      expect(changes2.isAllZero, isTrue);
+        final changes2 = await _updatePublicArchiveBucket(package: 'neon');
+        expect(changes2.isAllZero, isTrue);
 
-      // eventual update
-      final changes3 = await _updatePublicArchiveBucket();
-      expect(changes3.archivesUpdated, 1);
-      expect(changes3.archivesToBeDeleted, 0);
-      expect(changes3.archivesDeleted, 0);
-    });
+        // eventual update
+        final changes3 = await _updatePublicArchiveBucket();
+        expect(changes3.archivesUpdated, 1);
+        expect(changes3.archivesToBeDeleted, 0);
+        expect(changes3.archivesDeleted, 0);
+      },
+    );
 
-    testWithProfile('extra file - without package filter',
-        expectedLogMessages: [
-          'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-0.0.99.tar.gz".',
-        ], fn: () async {
-      final bucket =
-          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
-      await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
+    testWithProfile(
+      'extra file - without package filter',
+      expectedLogMessages: [
+        'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-0.0.99.tar.gz".',
+      ],
+      fn: () async {
+        final bucket = storageService.bucket(
+          activeConfiguration.publicPackagesBucketName!,
+        );
+        await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
 
-      // recent file gets ignored
-      final recent = await _updatePublicArchiveBucket(
-          ageCheckThreshold: Duration(days: 1));
-      expect(recent.isAllZero, isTrue);
+        // recent file gets ignored
+        final recent = await _updatePublicArchiveBucket(
+          ageCheckThreshold: Duration(days: 1),
+        );
+        expect(recent.isAllZero, isTrue);
 
-      // non-recent file will get deleted
-      final changes = await _updatePublicArchiveBucket();
-      expect(changes.archivesUpdated, 0);
-      expect(changes.archivesToBeDeleted, 1);
-      expect(changes.archivesDeleted, 0);
+        // non-recent file will get deleted
+        final changes = await _updatePublicArchiveBucket();
+        expect(changes.archivesUpdated, 0);
+        expect(changes.archivesToBeDeleted, 1);
+        expect(changes.archivesDeleted, 0);
 
-      // non-recent file is deleted
-      final changes2 = await _updatePublicArchiveBucket(
-        deleteIfOlder: Duration.zero,
-      );
-      expect(changes2.archivesUpdated, 0);
-      expect(changes2.archivesToBeDeleted, 0);
-      expect(changes2.archivesDeleted, 1);
+        // non-recent file is deleted
+        final changes2 = await _updatePublicArchiveBucket(
+          deleteIfOlder: Duration.zero,
+        );
+        expect(changes2.archivesUpdated, 0);
+        expect(changes2.archivesToBeDeleted, 0);
+        expect(changes2.archivesDeleted, 1);
 
-      // second round should report 0 deleted
-      final changes3 = await _updatePublicArchiveBucket();
-      expect(changes3.isAllZero, isTrue);
-    });
+        // second round should report 0 deleted
+        final changes3 = await _updatePublicArchiveBucket();
+        expect(changes3.isAllZero, isTrue);
+      },
+    );
 
-    testWithProfile('extra file - with matching package filter',
-        expectedLogMessages: [
-          'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-0.0.99.tar.gz".',
-        ], fn: () async {
-      final bucket =
-          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
-      await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
+    testWithProfile(
+      'extra file - with matching package filter',
+      expectedLogMessages: [
+        'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-0.0.99.tar.gz".',
+      ],
+      fn: () async {
+        final bucket = storageService.bucket(
+          activeConfiguration.publicPackagesBucketName!,
+        );
+        await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
 
-      // recent file gets ignored
-      final recent = await _updatePublicArchiveBucket(
-          ageCheckThreshold: Duration(days: 1));
-      expect(recent.isAllZero, isTrue);
+        // recent file gets ignored
+        final recent = await _updatePublicArchiveBucket(
+          ageCheckThreshold: Duration(days: 1),
+        );
+        expect(recent.isAllZero, isTrue);
 
-      // non-recent file will get deleted
-      final changes = await _updatePublicArchiveBucket(package: 'oxygen');
-      expect(changes.archivesUpdated, 0);
-      expect(changes.archivesToBeDeleted, 1);
-      expect(changes.archivesDeleted, 0);
+        // non-recent file will get deleted
+        final changes = await _updatePublicArchiveBucket(package: 'oxygen');
+        expect(changes.archivesUpdated, 0);
+        expect(changes.archivesToBeDeleted, 1);
+        expect(changes.archivesDeleted, 0);
 
-      // non-recent file is deleted
-      final changes2 = await _updatePublicArchiveBucket(
-        package: 'oxygen',
-        deleteIfOlder: Duration.zero,
-      );
-      expect(changes2.archivesUpdated, 0);
-      expect(changes2.archivesToBeDeleted, 0);
-      expect(changes2.archivesDeleted, 1);
+        // non-recent file is deleted
+        final changes2 = await _updatePublicArchiveBucket(
+          package: 'oxygen',
+          deleteIfOlder: Duration.zero,
+        );
+        expect(changes2.archivesUpdated, 0);
+        expect(changes2.archivesToBeDeleted, 0);
+        expect(changes2.archivesDeleted, 1);
 
-      // second round should report 0 deleted
-      final changes3 = await _updatePublicArchiveBucket(package: 'oxygen');
-      expect(changes3.isAllZero, isTrue);
+        // second round should report 0 deleted
+        final changes3 = await _updatePublicArchiveBucket(package: 'oxygen');
+        expect(changes3.isAllZero, isTrue);
 
-      // no further changes
-      final changes4 = await _updatePublicArchiveBucket();
-      expect(changes4.isAllZero, isTrue);
-    });
+        // no further changes
+        final changes4 = await _updatePublicArchiveBucket();
+        expect(changes4.isAllZero, isTrue);
+      },
+    );
 
-    testWithProfile('extra file - with different package filter',
-        expectedLogMessages: [
-          'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
-        ], fn: () async {
-      final bucket =
-          storageService.bucket(activeConfiguration.publicPackagesBucketName!);
-      await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
+    testWithProfile(
+      'extra file - with different package filter',
+      expectedLogMessages: [
+        'SHOUT Object from public bucket will be deleted: "packages/oxygen-0.0.99.tar.gz".',
+      ],
+      fn: () async {
+        final bucket = storageService.bucket(
+          activeConfiguration.publicPackagesBucketName!,
+        );
+        await bucket.writeBytes('packages/oxygen-0.0.99.tar.gz', [1]);
 
-      // no matching file
-      final recent = await _updatePublicArchiveBucket(package: 'neon');
-      expect(recent.isAllZero, isTrue);
+        // no matching file
+        final recent = await _updatePublicArchiveBucket(package: 'neon');
+        expect(recent.isAllZero, isTrue);
 
-      // no matching files
-      final changes = await _updatePublicArchiveBucket(package: 'neon');
-      expect(changes.isAllZero, isTrue);
-      final changes2 = await _updatePublicArchiveBucket(
-        package: 'neon',
-        deleteIfOlder: Duration.zero,
-      );
-      expect(changes2.isAllZero, isTrue);
-      final changes3 = await _updatePublicArchiveBucket(package: 'neon');
-      expect(changes3.isAllZero, isTrue);
+        // no matching files
+        final changes = await _updatePublicArchiveBucket(package: 'neon');
+        expect(changes.isAllZero, isTrue);
+        final changes2 = await _updatePublicArchiveBucket(
+          package: 'neon',
+          deleteIfOlder: Duration.zero,
+        );
+        expect(changes2.isAllZero, isTrue);
+        final changes3 = await _updatePublicArchiveBucket(package: 'neon');
+        expect(changes3.isAllZero, isTrue);
 
-      // changes will be picked up without filter
-      final changes4 = await _updatePublicArchiveBucket();
-      expect(changes4.isAllZero, isFalse);
-    });
+        // changes will be picked up without filter
+        final changes4 = await _updatePublicArchiveBucket();
+        expect(changes4.isAllZero, isFalse);
+      },
+    );
   });
 }

@@ -35,17 +35,18 @@ Future<void> main(List<String> args, var message) async {
     await servicesWrapperFn(() async {
       final sdkMemIndex = await createSdkMemIndex();
       await runIsolateFunctions(
-          message: message,
-          logger: _logger,
-          fn: (payload) async {
-            final args = payload as List;
-            final rs = sdkMemIndex!.search(
-              args[0] as String,
-              limit: args[1] as int?,
-              skipFlutter: args[2] as bool,
-            );
-            return ReplyMessage.result(rs.map((e) => e.toJson()).toList());
-          });
+        message: message,
+        logger: _logger,
+        fn: (payload) async {
+          final args = payload as List;
+          final rs = sdkMemIndex!.search(
+            args[0] as String,
+            limit: args[1] as int?,
+            skipFlutter: args[2] as bool,
+          );
+          return ReplyMessage.result(rs.map((e) => e.toJson()).toList());
+        },
+      );
     });
   });
 
@@ -66,10 +67,11 @@ class SdkIsolateIndex implements SdkIndex {
     bool skipFlutter = false,
   }) async {
     try {
-      final rs = await _runner.sendRequest(
-        [query, limit, skipFlutter],
-        timeout: Duration(seconds: 2),
-      );
+      final rs = await _runner.sendRequest([
+        query,
+        limit,
+        skipFlutter,
+      ], timeout: Duration(seconds: 2));
       return (rs as List)
           .map((v) => SdkLibraryHit.fromJson(v as Map<String, dynamic>))
           .toList();

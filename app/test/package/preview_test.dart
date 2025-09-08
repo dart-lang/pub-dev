@@ -20,7 +20,8 @@ void main() {
 
     setUpAll(() async {
       final current = await getCachedDartSdkVersion(
-          lastKnownStable: toolStableDartSdkVersion);
+        lastKnownStable: toolStableDartSdkVersion,
+      );
       currentSdkVersion = current.semanticVersion;
     });
 
@@ -34,47 +35,58 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          GeneratedTestPackage(name: 'pkg', versions: [
-            GeneratedTestVersion(version: '1.0.0'),
-            GeneratedTestVersion(
-              version: '1.2.0',
-              template: TestArchiveTemplate(
-                sdkConstraint: futureSdkVersion.toString(),
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(
+                version: '1.2.0',
+                template: TestArchiveTemplate(
+                  sdkConstraint: futureSdkVersion.toString(),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ],
       ),
       fn: () async {
-        final pv1 =
-            (await packageBackend.lookupPackageVersion('pkg', '1.0.0'))!;
+        final pv1 = (await packageBackend.lookupPackageVersion(
+          'pkg',
+          '1.0.0',
+        ))!;
         expect(
-            pv1.pubspec!.isPreviewForCurrentSdk(
-              dartSdkVersion: currentSdkVersion,
-              flutterSdkVersion: Version(3, 20, 0),
-            ),
-            isFalse);
+          pv1.pubspec!.isPreviewForCurrentSdk(
+            dartSdkVersion: currentSdkVersion,
+            flutterSdkVersion: Version(3, 20, 0),
+          ),
+          isFalse,
+        );
         expect(
-            pv1.pubspec!.isPreviewForCurrentSdk(
-              dartSdkVersion: futureSdkVersion,
-              flutterSdkVersion: Version(3, 20, 0),
-            ),
-            isFalse);
+          pv1.pubspec!.isPreviewForCurrentSdk(
+            dartSdkVersion: futureSdkVersion,
+            flutterSdkVersion: Version(3, 20, 0),
+          ),
+          isFalse,
+        );
 
-        final pv2 =
-            (await packageBackend.lookupPackageVersion('pkg', '1.2.0'))!;
+        final pv2 = (await packageBackend.lookupPackageVersion(
+          'pkg',
+          '1.2.0',
+        ))!;
         expect(
-            pv2.pubspec!.isPreviewForCurrentSdk(
-              dartSdkVersion: currentSdkVersion,
-              flutterSdkVersion: Version(3, 20, 0),
-            ),
-            isTrue);
+          pv2.pubspec!.isPreviewForCurrentSdk(
+            dartSdkVersion: currentSdkVersion,
+            flutterSdkVersion: Version(3, 20, 0),
+          ),
+          isTrue,
+        );
         expect(
-            pv2.pubspec!.isPreviewForCurrentSdk(
-              dartSdkVersion: futureSdkVersion,
-              flutterSdkVersion: Version(3, 20, 0),
-            ),
-            isFalse);
+          pv2.pubspec!.isPreviewForCurrentSdk(
+            dartSdkVersion: futureSdkVersion,
+            flutterSdkVersion: Version(3, 20, 0),
+          ),
+          isFalse,
+        );
 
         final p0 = (await packageBackend.lookupPackage('pkg'))!;
         expect(p0.latestVersion, '1.0.0');
@@ -84,7 +96,8 @@ void main() {
         expect(p0.showPreviewVersion, isTrue);
 
         final u1 = await packageBackend.updateAllPackageVersions(
-            dartSdkVersion: currentSdkVersion);
+          dartSdkVersion: currentSdkVersion,
+        );
         expect(u1, 0);
 
         // check that nothing did change
@@ -96,7 +109,8 @@ void main() {
         expect(p1.showPreviewVersion, isTrue);
 
         final u2 = await packageBackend.updateAllPackageVersions(
-            dartSdkVersion: futureSdkVersion);
+          dartSdkVersion: futureSdkVersion,
+        );
         expect(u2, 1);
 
         // check changes
@@ -114,27 +128,32 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          GeneratedTestPackage(name: 'pkg', versions: [
-            GeneratedTestVersion(version: '1.0.0'),
-            GeneratedTestVersion(
-              version: '1.2.0',
-              template: TestArchiveTemplate(
-                sdkConstraint: futureSdkVersion.toString(),
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(
+                version: '1.2.0',
+                template: TestArchiveTemplate(
+                  sdkConstraint: futureSdkVersion.toString(),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ],
       ),
       fn: () async {
         final pkg = await dbService.lookupValue<Package>(
-            dbService.emptyKey.append(Package, id: 'pkg'));
+          dbService.emptyKey.append(Package, id: 'pkg'),
+        );
         pkg.latestPreviewVersionKey = null;
         pkg.latestPreviewPublished = null;
         pkg.lastVersionPublished = pkg.created;
         await dbService.commit(inserts: [pkg]);
 
         final u1 = await packageBackend.updateAllPackageVersions(
-            dartSdkVersion: currentSdkVersion);
+          dartSdkVersion: currentSdkVersion,
+        );
         expect(u1, 1);
 
         // check that fields were updated
@@ -154,24 +173,29 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          GeneratedTestPackage(name: 'pkg', versions: [
-            GeneratedTestVersion(version: '0.1.0-nullsafety.0'),
-            GeneratedTestVersion(version: '0.1.0-nullsafety.1'),
-            GeneratedTestVersion(version: '0.2.0-nullsafety.0'),
-            GeneratedTestVersion(version: '0.2.1-nullsafety.0'),
-          ]),
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(version: '0.1.0-nullsafety.0'),
+              GeneratedTestVersion(version: '0.1.0-nullsafety.1'),
+              GeneratedTestVersion(version: '0.2.0-nullsafety.0'),
+              GeneratedTestVersion(version: '0.2.1-nullsafety.0'),
+            ],
+          ),
         ],
       ),
       fn: () async {
         final pkg = await dbService.lookupValue<Package>(
-            dbService.emptyKey.append(Package, id: 'pkg'));
+          dbService.emptyKey.append(Package, id: 'pkg'),
+        );
         expect(pkg.latestVersion, '0.2.1-nullsafety.0');
         pkg.latestPreviewVersionKey = null;
         pkg.latestPreviewPublished = null;
         await dbService.commit(inserts: [pkg]);
 
         final u1 = await packageBackend.updateAllPackageVersions(
-            dartSdkVersion: currentSdkVersion);
+          dartSdkVersion: currentSdkVersion,
+        );
         expect(u1, 1);
 
         // check that fields were updated
@@ -189,20 +213,24 @@ void main() {
       testProfile: TestProfile(
         defaultUser: 'admin@pub.dev',
         generatedPackages: [
-          GeneratedTestPackage(name: 'pkg', versions: [
-            GeneratedTestVersion(version: '1.0.0'),
-            GeneratedTestVersion(
-              version: '1.2.0',
-              template: TestArchiveTemplate(
-                sdkConstraint: futureSdkVersion.toString(),
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(
+                version: '1.2.0',
+                template: TestArchiveTemplate(
+                  sdkConstraint: futureSdkVersion.toString(),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ],
       ),
       fn: () async {
         final pkg = await dbService.lookupValue<Package>(
-            dbService.emptyKey.append(Package, id: 'pkg'));
+          dbService.emptyKey.append(Package, id: 'pkg'),
+        );
 
         // force-update latest stable to match preview
         expect(pkg.latestVersion, '1.0.0');
@@ -212,7 +240,8 @@ void main() {
 
         // trigger update
         final u1 = await packageBackend.updateAllPackageVersions(
-            dartSdkVersion: currentSdkVersion);
+          dartSdkVersion: currentSdkVersion,
+        );
         expect(u1, 1);
 
         // check that fields were updated

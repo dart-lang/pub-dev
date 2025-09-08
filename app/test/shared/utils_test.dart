@@ -10,20 +10,42 @@ import 'package:test/test.dart';
 void main() {
   group('uuid', () {
     test('format known UUId', () {
-      expect(createUuid(List<int>.filled(16, 0)),
-          '00000000-0000-4000-8000-000000000000');
       expect(
-          createUuid(
-              [11, 111, 22, 222, 33, 3, 44, 4, 55, 5, 66, 6, 77, 7, 88, 8]),
-          '0b6f16de-2103-4c04-b705-42064d075808');
-      expect(createUuid(List<int>.filled(16, 255)),
-          'ffffffff-ffff-4fff-bfff-ffffffffffff');
+        createUuid(List<int>.filled(16, 0)),
+        '00000000-0000-4000-8000-000000000000',
+      );
+      expect(
+        createUuid([
+          11,
+          111,
+          22,
+          222,
+          33,
+          3,
+          44,
+          4,
+          55,
+          5,
+          66,
+          6,
+          77,
+          7,
+          88,
+          8,
+        ]),
+        '0b6f16de-2103-4c04-b705-42064d075808',
+      );
+      expect(
+        createUuid(List<int>.filled(16, 255)),
+        'ffffffff-ffff-4fff-bfff-ffffffffffff',
+      );
     });
 
     test('random uuid', () {
       final uuidRegexp = RegExp(
-          r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[8-9A-B][0-9A-F]{3}-[0-9A-F]{12}$',
-          caseSensitive: false);
+        r'^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[8-9A-B][0-9A-F]{3}-[0-9A-F]{12}$',
+        caseSensitive: false,
+      );
       expect(createUuid(), matches(uuidRegexp));
     });
   });
@@ -46,7 +68,11 @@ void main() {
     test('priority order', () {
       int compare(String a, String b) {
         return compareSemanticVersionsDesc(
-            Version.parse(a), Version.parse(b), true, true);
+          Version.parse(a),
+          Version.parse(b),
+          true,
+          true,
+        );
       }
 
       expect(compare('2.0.0', '1.9.0'), -1);
@@ -62,8 +88,9 @@ void main() {
     DateTime _nowPlus(int seconds) => now.add(Duration(seconds: seconds));
 
     test('decays', () {
-      final tracker =
-          DecayingMaxLatencyTracker(halfLifePeriod: Duration(seconds: 10));
+      final tracker = DecayingMaxLatencyTracker(
+        halfLifePeriod: Duration(seconds: 10),
+      );
       now = clock.now();
       tracker.observe(Duration(seconds: 40), now: now);
       expect(tracker.getLatency(now: now).inMilliseconds, 40000);

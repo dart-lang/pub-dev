@@ -36,17 +36,21 @@ void main() {
 
     test('target="_blank" with rel="noopener"', () {
       expectError(
-          '<html>$defaultHeader<body><a href="x" target="_blank"></a></body></html>');
+        '<html>$defaultHeader<body><a href="x" target="_blank"></a></body></html>',
+      );
       expectError(
-          '<html>$defaultHeader<body><a href="x" target="_blank" rel="noopen"></a></body></html>');
+        '<html>$defaultHeader<body><a href="x" target="_blank" rel="noopen"></a></body></html>',
+      );
     });
 
     test('script with src only', () {
       expectError('<html>$defaultHeader<body><script></script></body></html>');
       expectError(
-          '<html>$defaultHeader<body><script>window.alert("!");</script></body></html>');
+        '<html>$defaultHeader<body><script>window.alert("!");</script></body></html>',
+      );
       expectError(
-          '<html>$defaultHeader<body><script src="x.js">window.alert("!");</script></body></html>');
+        '<html>$defaultHeader<body><script src="x.js">window.alert("!");</script></body></html>',
+      );
     });
 
     test('without canonical url or noindex', () {
@@ -54,35 +58,44 @@ void main() {
     });
 
     test('more than one canonical url', () {
-      expectError('<html><head><link rel="canonical" href="https://pub.dev/" />'
-          '<link rel="canonical" href="https://pub.dev/x" /></head><body></body></html>');
+      expectError(
+        '<html><head><link rel="canonical" href="https://pub.dev/" />'
+        '<link rel="canonical" href="https://pub.dev/x" /></head><body></body></html>',
+      );
     });
 
     test('canonical url on a different domain', () {
       expectError(
-          '<html><head><link rel="canonical" href="https://example.com/" /></head></html>');
+        '<html><head><link rel="canonical" href="https://example.com/" /></head></html>',
+      );
     });
   });
 
   group('valid html', () {
     test('minimal', () {
       parseAndValidateHtml(
-          '<html><head><meta name="robots" content="noindex" /></head><body></body></html>');
+        '<html><head><meta name="robots" content="noindex" /></head><body></body></html>',
+      );
     });
 
     test('pub restrictions used correctly', () {
       parseAndValidateHtml(
-          '<html>$defaultHeader<body><a href="x" target="_blank" rel="x noopener y"></a></body></html>');
+        '<html>$defaultHeader<body><a href="x" target="_blank" rel="x noopener y"></a></body></html>',
+      );
       parseAndValidateHtml(
-          '<html>$defaultHeader<body><script src="x.js"></script></body></html>');
+        '<html>$defaultHeader<body><script src="x.js"></script></body></html>',
+      );
       parseAndValidateHtml(
-          '<html>$defaultHeader<body><script type="application/ld+json">{}</script></body></html>');
+        '<html>$defaultHeader<body><script type="application/ld+json">{}</script></body></html>',
+      );
       parseAndValidateHtml(
-          '<html><head><link rel="canonical" href="https://pub.dev/" /></head><body></body></html>');
+        '<html><head><link rel="canonical" href="https://pub.dev/" /></head><body></body></html>',
+      );
       parseAndValidateHtml(
-          '<html><head><meta name="robots" content="noindex" />'
-          '<link rel="canonical" href="https://pub.dev/" /></head>'
-          '<body></body></html>');
+        '<html><head><meta name="robots" content="noindex" />'
+        '<link rel="canonical" href="https://pub.dev/" /></head>'
+        '<body></body></html>',
+      );
     });
   });
 }

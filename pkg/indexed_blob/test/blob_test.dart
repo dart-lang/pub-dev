@@ -107,11 +107,7 @@ void main() {
     final controller = StreamController<List<int>>();
     final result = controller.stream.toList();
     final b = IndexedBlobBuilder(controller);
-    await b.addFile(
-      'a',
-      Stream.value([0, 1]),
-      skipAfterSize: 3,
-    );
+    await b.addFile('a', Stream.value([0, 1]), skipAfterSize: 3);
     await b.addFile(
       'b',
       Stream.fromIterable([
@@ -120,11 +116,7 @@ void main() {
       ]),
       skipAfterSize: 3,
     );
-    await b.addFile(
-      'c',
-      Stream.value([8, 9]),
-      skipAfterSize: 3,
-    );
+    await b.addFile('c', Stream.value([8, 9]), skipAfterSize: 3);
     final index = await b.buildIndex('1');
     final files = index.files.toList();
     expect(files, hasLength(2));

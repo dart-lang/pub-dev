@@ -20,10 +20,7 @@ class DartToolClient {
   final String _pubHostedUrl;
   final String _tempDir;
 
-  DartToolClient._(
-    this._pubHostedUrl,
-    this._tempDir,
-  );
+  DartToolClient._(this._pubHostedUrl, this._tempDir);
 
   String get _pubCacheDir => p.join(_tempDir, 'pub-cache');
   String get _configHome => p.join(_tempDir, 'config-home');
@@ -66,33 +63,34 @@ class DartToolClient {
     //  - $XDG_CONFIG_HOME/dart/pub-credentials.json
     //  - $APPDATA/dart/pub-credentials.json
     //  - $HOME/Library/Application Support/dart/pub-credentials.json
-    await Future.wait([
-      p.join(tool._configHome, 'dart'),
-      p.join(tool._configHome, 'Library', 'Application Support', 'dart'),
-    ].map((folder) async {
-      final credentialsFile = File(p.join(folder, 'pub-credentials.json'));
-      await credentialsFile.parent.create(recursive: true);
-      await credentialsFile.writeAsString(credentialsFileContent);
+    await Future.wait(
+      [
+        p.join(tool._configHome, 'dart'),
+        p.join(tool._configHome, 'Library', 'Application Support', 'dart'),
+      ].map((folder) async {
+        final credentialsFile = File(p.join(folder, 'pub-credentials.json'));
+        await credentialsFile.parent.create(recursive: true);
+        await credentialsFile.writeAsString(credentialsFileContent);
 
-      // if pubHostedUrl is NOT pub.dev or pub.dartlang.org, then the 'dart pub'
-      // client will refuse to use the oauth credentials from
-      // pub-credentials.json, so instead we use accessToken directly.
-      final tokensFile = File(p.join(folder, 'pub-tokens.json'));
-      await tokensFile.parent.create(recursive: true);
-      await tokensFile.writeAsString(json.encode({
-        'version': 1,
-        'hosted': [
-          {
-            'url': pubHostedUrl,
-            'token': creds.accessToken,
-          },
-        ],
-      }));
-    }));
-    // Also write to legacy location in $PUB_CACHE/credentials.json
-    await File(p.join(tool._pubCacheDir, 'credentials.json')).writeAsString(
-      credentialsFileContent,
+        // if pubHostedUrl is NOT pub.dev or pub.dartlang.org, then the 'dart pub'
+        // client will refuse to use the oauth credentials from
+        // pub-credentials.json, so instead we use accessToken directly.
+        final tokensFile = File(p.join(folder, 'pub-tokens.json'));
+        await tokensFile.parent.create(recursive: true);
+        await tokensFile.writeAsString(
+          json.encode({
+            'version': 1,
+            'hosted': [
+              {'url': pubHostedUrl, 'token': creds.accessToken},
+            ],
+          }),
+        );
+      }),
     );
+    // Also write to legacy location in $PUB_CACHE/credentials.json
+    await File(
+      p.join(tool._pubCacheDir, 'credentials.json'),
+    ).writeAsString(credentialsFileContent);
     return tool;
   }
 

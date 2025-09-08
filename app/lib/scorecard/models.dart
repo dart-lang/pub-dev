@@ -113,8 +113,9 @@ class PanaReport {
 
   static PanaReport? fromBytes(List<int>? bytes) {
     if (bytes == null) return null;
-    final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
-        as Map<String, dynamic>;
+    final map =
+        utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
+            as Map<String, dynamic>;
     return PanaReport.fromJson(map);
   }
 
@@ -122,8 +123,9 @@ class PanaReport {
     Summary? summary, {
     required PackageStatus packageStatus,
   }) {
-    final reportStatus =
-        summary == null ? ReportStatus.aborted : ReportStatus.success;
+    final reportStatus = summary == null
+        ? ReportStatus.aborted
+        : ReportStatus.success;
     return PanaReport(
       timestamp: summary?.createdAt,
       panaRuntimeInfo: summary?.runtimeInfo,
@@ -155,17 +157,16 @@ class PanaReport {
 class DartdocReport {
   final String? reportStatus;
 
-  DartdocReport({
-    required this.reportStatus,
-  });
+  DartdocReport({required this.reportStatus});
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>
       _$DartdocReportFromJson(json);
 
   static DartdocReport? fromBytes(List<int>? bytes) {
     if (bytes == null) return null;
-    final map = utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
-        as Map<String, dynamic>;
+    final map =
+        utf8JsonDecoder.convert(_gzipCodec.decode(bytes))
+            as Map<String, dynamic>;
     return DartdocReport.fromJson(map);
   }
 

@@ -21,9 +21,11 @@ d.Node packageListingNode({
     listingInfo,
     packageList,
     if (pagination != null) pagination,
-    d.markdown('Check our help page for details on '
-        '[search expressions](/help/search#query-expressions) and '
-        '[result ranking](/help/search#ranking).'),
+    d.markdown(
+      'Check our help page for details on '
+      '[search expressions](/help/search#query-expressions) and '
+      '[result ranking](/help/search#ranking).',
+    ),
   ]);
   return _searchFormContainer(
     searchForm: searchForm,
@@ -87,7 +89,8 @@ d.Node _searchFormContainer({
           _filterSection(
             sectionTag: 'sdks',
             label: 'SDKs',
-            isActive: openSections.contains('sdks') ||
+            isActive:
+                openSections.contains('sdks') ||
                 searchForm.parsedQuery.tagsPredicate.hasTagPrefix('sdk:'),
             children: [
               _sdkCheckbox(
@@ -120,7 +123,8 @@ d.Node _searchFormContainer({
           _filterSection(
             sectionTag: 'advanced',
             label: 'Advanced',
-            isActive: openSections.contains('advanced') ||
+            isActive:
+                openSections.contains('advanced') ||
                 searchForm.hasActiveAdvanced,
             children: [
               _tagBasedCheckbox(
@@ -170,10 +174,7 @@ d.Node _searchFormContainer({
           ),
         ],
       ),
-      d.div(
-        classes: ['search-results'],
-        child: innerContent,
-      ),
+      d.div(classes: ['search-results'], child: innerContent),
     ],
   );
 }
@@ -239,9 +240,7 @@ d.Node _formLinkedCheckbox({
 }) {
   return d.div(
     classes: ['search-form-linked-checkbox'],
-    attributes: {
-      if (title != null) 'title': title,
-    },
+    attributes: {if (title != null) 'title': title},
     child: material.checkbox(
       id: id,
       label: label,
@@ -277,8 +276,9 @@ d.Node _filterSection({
           d.img(
             classes: ['foldable-icon'],
             image: d.Image(
-              src: staticUrls
-                  .getAssetUrl('/static/img/search-form-foldable-icon.svg'),
+              src: staticUrls.getAssetUrl(
+                '/static/img/search-form-foldable-icon.svg',
+              ),
               alt: 'fold toggle (up/down arrow)',
               width: 13,
               height: 6,
@@ -286,10 +286,7 @@ d.Node _filterSection({
           ),
         ],
       ),
-      d.div(
-        classes: ['foldable-content'],
-        children: children,
-      ),
+      d.div(classes: ['foldable-content'], children: children),
     ],
   );
 }

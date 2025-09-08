@@ -31,46 +31,51 @@ void main() {
     test('bulk tests', () async {
       // base setup: publish packages
       await httpClient.post(
-          Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
-          body: json.encode({
-            'testProfile': {
-              'defaultUser': 'user@pub.dev',
-              'generatedPackages': [
-                {
-                  'name': 'oxygen',
-                  'versions': ['1.0.0', '1.2.0'],
-                },
-              ],
-            },
-          }));
+        Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'user@pub.dev',
+            'generatedPackages': [
+              {
+                'name': 'oxygen',
+                'versions': ['1.0.0', '1.2.0'],
+              },
+            ],
+          },
+        }),
+      );
 
       final anonReporter = await fakeTestScenario.createAnonymousTestUser();
-      final reporter =
-          await fakeTestScenario.createTestUser(email: 'reporter@pub.dev');
-      final pkgAdminUser =
-          await fakeTestScenario.createTestUser(email: 'user@pub.dev');
-      final adminUser =
-          await fakeTestScenario.createTestUser(email: 'admin@pub.dev');
-      final supportUser =
-          await fakeTestScenario.createTestUser(email: 'support@pub.dev');
+      final reporter = await fakeTestScenario.createTestUser(
+        email: 'reporter@pub.dev',
+      );
+      final pkgAdminUser = await fakeTestScenario.createTestUser(
+        email: 'user@pub.dev',
+      );
+      final adminUser = await fakeTestScenario.createTestUser(
+        email: 'admin@pub.dev',
+      );
+      final supportUser = await fakeTestScenario.createTestUser(
+        email: 'support@pub.dev',
+      );
 
       // visit report page and file a report
-      await anonReporter.withBrowserPage(
-        (page) async {
-          await page.gotoOrigin('/report?subject=package:oxygen');
-          await page.waitAndClick('.report-page-direct-report');
-          await page.takeScreenshots(
-              prefix: 'report-page/direct-report',
-              selector: '#report-page-form');
-          await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
-          await page.waitFocusAndType(
-              '#report-message', 'Huston, we have a problem.');
-          await page.waitAndClick('#report-submit');
-          await page.waitForNavigation();
-          expect(
-              await page.content, contains('has been submitted successfully'));
-        },
-      );
+      await anonReporter.withBrowserPage((page) async {
+        await page.gotoOrigin('/report?subject=package:oxygen');
+        await page.waitAndClick('.report-page-direct-report');
+        await page.takeScreenshots(
+          prefix: 'report-page/direct-report',
+          selector: '#report-page-form',
+        );
+        await page.waitFocusAndType('#report-email', 'reporter@pub.dev');
+        await page.waitFocusAndType(
+          '#report-message',
+          'Huston, we have a problem.',
+        );
+        await page.waitAndClick('#report-submit');
+        await page.waitForNavigation();
+        expect(await page.content, contains('has been submitted successfully'));
+      });
 
       // verify emails
       final reportEmail1 = await reporter.readLatestEmail();
@@ -83,11 +88,7 @@ void main() {
       final caseId = _caseIdExpr.firstMatch(reportEmail2)!.group(0)!;
       final caseData = await adminUser.serverApi.adminInvokeAction(
         'moderation-case-info',
-        AdminInvokeActionArguments(
-          arguments: {
-            'case': caseId,
-          },
-        ),
+        AdminInvokeActionArguments(arguments: {'case': caseId}),
       );
       expect(caseData.output, {
         'caseId': caseId,
@@ -104,28 +105,21 @@ void main() {
         'reason': null,
         'url': null,
         'appealedCaseId': null,
-        'actionLog': {'entries': []}
+        'actionLog': {'entries': []},
       });
 
       // moderate package
       final moderateRs = await adminUser.serverApi.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
-          arguments: {
-            'case': caseId,
-            'package': 'oxygen',
-            'state': 'true',
-          },
+          arguments: {'case': caseId, 'package': 'oxygen', 'state': 'true'},
         ),
       );
-      expect(
-        moderateRs.output,
-        {
-          'package': 'oxygen',
-          'before': {'isModerated': false, 'moderatedAt': null},
-          'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
-        },
-      );
+      expect(moderateRs.output, {
+        'package': 'oxygen',
+        'before': {'isModerated': false, 'moderatedAt': null},
+        'after': {'isModerated': true, 'moderatedAt': isNotEmpty},
+      });
 
       // package page is not accessible
       await anonReporter.withBrowserPage((page) async {
@@ -134,11 +128,11 @@ void main() {
         expect(content, contains('has been moderated'));
       });
 
-      final appealPageUrl =
-          Uri.parse('https://pub.dev/report').replace(queryParameters: {
-        'appeal': caseId,
-        'subject': 'package:oxygen',
-      }).toString();
+      final appealPageUrl = Uri.parse('https://pub.dev/report')
+          .replace(
+            queryParameters: {'appeal': caseId, 'subject': 'package:oxygen'},
+          )
+          .toString();
 
       await adminUser.serverApi.adminInvokeAction(
         'moderation-case-resolve',
@@ -160,7 +154,8 @@ void main() {
             'from': 'support@pub.dev',
             'to': 'reporter@pub.dev',
             'subject': 'Resolution on your report - $caseId',
-            'body': 'Dear reporter,\n\n'
+            'body':
+                'Dear reporter,\n\n'
                 'We have closed the case with the following resolution: ...\n\n'
                 'If you want to appeal this decision, you may use the following URL:\n'
                 '$appealPageUrl\n\n'
@@ -189,11 +184,14 @@ void main() {
 
       // admin appeals
       await pkgAdminUser.withBrowserPage((page) async {
-        await page
-            .gotoOrigin(appealPageUrl.replaceAll('https://pub.dev/', '/'));
+        await page.gotoOrigin(
+          appealPageUrl.replaceAll('https://pub.dev/', '/'),
+        );
 
         await page.waitFocusAndType(
-            '#report-message', 'Huston, I have a different idea.');
+          '#report-message',
+          'Huston, I have a different idea.',
+        );
         await page.waitAndClick('#report-submit');
         await page.waitForNavigation();
         expect(await page.content, contains('has been submitted successfully'));
@@ -207,11 +205,7 @@ void main() {
       // admin closes case without further action
       await adminUser.serverApi.adminInvokeAction(
         'moderation-case-resolve',
-        AdminInvokeActionArguments(
-          arguments: {
-            'case': appealCaseId,
-          },
-        ),
+        AdminInvokeActionArguments(arguments: {'case': appealCaseId}),
       );
 
       // sending email to reporter

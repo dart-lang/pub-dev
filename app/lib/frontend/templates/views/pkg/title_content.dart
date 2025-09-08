@@ -5,10 +5,7 @@
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
 
-d.Node titleContentNode({
-  required String package,
-  required String version,
-}) {
+d.Node titleContentNode({required String package, required String version}) {
   return d.fragment([
     d.text('$package $version '),
     copyIcon(package: package, version: version),

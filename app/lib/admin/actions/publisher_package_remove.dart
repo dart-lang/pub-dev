@@ -12,13 +12,13 @@ import '../../publisher/backend.dart';
 import '../../shared/datastore.dart';
 
 final publisherPackageRemove = AdminAction(
-    name: 'publisher-package-remove',
-    options: {
-      'package': 'name of the package to remove from its current publisher'
-    },
-    summary:
-        'Removes <package> from its current publisher, and makes that publisher\'s owners uploaders',
-    description: '''
+  name: 'publisher-package-remove',
+  options: {
+    'package': 'name of the package to remove from its current publisher',
+  },
+  summary:
+      'Removes <package> from its current publisher, and makes that publisher\'s owners uploaders',
+  description: '''
 Removes <package> from its current publisher, and makes that publisher\'s owners
  uploaders.
 
@@ -32,45 +32,47 @@ the publisher and assign a@example.com and b@example.com as uploaders.
 
 If the publisher has no members, the package will end up without uploaders.
 ''',
-    invoke: (args) async {
-      final packageName = args['package'];
-      if (packageName == null) {
-        throw InvalidInputException('The argument package must be given');
-      }
-      final package = (await packageBackend.lookupPackage(packageName))!;
-      final currentPublisherId = package.publisherId;
-      if (currentPublisherId == null) {
-        throw NotAcceptableException(
-            'Package $packageName is not currently in a publisher');
-      }
-      final currentPublisherMembers =
-          (await publisherBackend.listPublisherMembers(currentPublisherId));
+  invoke: (args) async {
+    final packageName = args['package'];
+    if (packageName == null) {
+      throw InvalidInputException('The argument package must be given');
+    }
+    final package = (await packageBackend.lookupPackage(packageName))!;
+    final currentPublisherId = package.publisherId;
+    if (currentPublisherId == null) {
+      throw NotAcceptableException(
+        'Package $packageName is not currently in a publisher',
+      );
+    }
+    final currentPublisherMembers = (await publisherBackend
+        .listPublisherMembers(currentPublisherId));
 
-      await withRetryTransaction(dbService, (tx) async {
-        final pkg = await tx.lookupValue<Package>(package.key);
-        pkg.publisherId = null;
-        pkg.uploaders = currentPublisherMembers.map((e) => e.userId).toList();
-        pkg.updated = clock.now().toUtc();
-        tx.insert(pkg);
-        tx.insert(
-          await AuditLogRecord.packageRemovedFromPublisher(
-            package: packageName,
-            fromPublisherId: currentPublisherId,
-          ),
-        );
-      });
-      triggerPackagePostUpdates(packageName,
-          skipReanalysis: true, skipVersionsExport: true);
-      await purgePublisherCache(publisherId: currentPublisherId);
-      return {
-        'previousPublisher': currentPublisherId,
-        'package': package.name,
-        'uploaders': [
-          for (final member in currentPublisherMembers)
-            {
-              'email': member.email,
-              'userId': member.userId,
-            }
-        ],
-      };
+    await withRetryTransaction(dbService, (tx) async {
+      final pkg = await tx.lookupValue<Package>(package.key);
+      pkg.publisherId = null;
+      pkg.uploaders = currentPublisherMembers.map((e) => e.userId).toList();
+      pkg.updated = clock.now().toUtc();
+      tx.insert(pkg);
+      tx.insert(
+        await AuditLogRecord.packageRemovedFromPublisher(
+          package: packageName,
+          fromPublisherId: currentPublisherId,
+        ),
+      );
     });
+    triggerPackagePostUpdates(
+      packageName,
+      skipReanalysis: true,
+      skipVersionsExport: true,
+    );
+    await purgePublisherCache(publisherId: currentPublisherId);
+    return {
+      'previousPublisher': currentPublisherId,
+      'package': package.name,
+      'uploaders': [
+        for (final member in currentPublisherMembers)
+          {'email': member.email, 'userId': member.userId},
+      ],
+    };
+  },
+);

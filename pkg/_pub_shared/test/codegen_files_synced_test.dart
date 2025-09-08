@@ -12,14 +12,18 @@ void main() {
   // ./tool/codegen.sh
   test('pubapi.client.dart have been sync', () {
     final root = '../..';
-    final orig = File('$root/app/lib/frontend/handlers/pubapi.client.dart')
-        .readAsStringSync();
-    final clone = File('$root/pkg/_pub_shared/lib/src/pubapi.client.dart')
-        .readAsStringSync();
+    final orig = File(
+      '$root/app/lib/frontend/handlers/pubapi.client.dart',
+    ).readAsStringSync();
+    final clone = File(
+      '$root/pkg/_pub_shared/lib/src/pubapi.client.dart',
+    ).readAsStringSync();
     if (orig != clone) {
-      fail('Expected "pkg/_pub_shared/lib/src/pubapi.client.dart" to match '
-          'app/lib/frontend/handlers/pubapi.client.dart\n\n'
-          'Please run: `./tool/codegen.sh`');
+      fail(
+        'Expected "pkg/_pub_shared/lib/src/pubapi.client.dart" to match '
+        'app/lib/frontend/handlers/pubapi.client.dart\n\n'
+        'Please run: `./tool/codegen.sh`',
+      );
     }
   });
 }

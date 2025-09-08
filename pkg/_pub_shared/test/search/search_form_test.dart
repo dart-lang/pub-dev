@@ -38,10 +38,14 @@ void main() {
     test('query with sdk context', () {
       final form = SearchForm(query: 'sdk:flutter some framework');
       expect(form.toSearchLink(), '/packages?q=sdk%3Aflutter+some+framework');
-      expect(form.toSearchLink(page: 1),
-          '/packages?q=sdk%3Aflutter+some+framework');
-      expect(form.toSearchLink(page: 2),
-          '/packages?q=sdk%3Aflutter+some+framework&page=2');
+      expect(
+        form.toSearchLink(page: 1),
+        '/packages?q=sdk%3Aflutter+some+framework',
+      );
+      expect(
+        form.toSearchLink(page: 2),
+        '/packages?q=sdk%3Aflutter+some+framework&page=2',
+      );
     });
 
     test('query with a single sdk parameter', () {
@@ -49,23 +53,28 @@ void main() {
       // pages
       expect(form.toSearchLink(), '/packages?q=sdk%3Adart+some+framework');
       expect(form.toSearchLink(page: 1), form.toSearchLink());
-      expect(form.toSearchLink(page: 2),
-          '/packages?q=sdk%3Adart+some+framework&page=2');
+      expect(
+        form.toSearchLink(page: 2),
+        '/packages?q=sdk%3Adart+some+framework&page=2',
+      );
       // toggle
-      expect(form.toggleRequiredTag('sdk:flutter').toSearchLink(),
-          '/packages?q=sdk%3Adart+sdk%3Aflutter+some+framework');
-      expect(form.toggleRequiredTag('sdk:dart').toSearchLink(),
-          '/packages?q=some+framework');
+      expect(
+        form.toggleRequiredTag('sdk:flutter').toSearchLink(),
+        '/packages?q=sdk%3Adart+sdk%3Aflutter+some+framework',
+      );
+      expect(
+        form.toggleRequiredTag('sdk:dart').toSearchLink(),
+        '/packages?q=some+framework',
+      );
       // query parameters
       expect(form.parsedQuery.tagsPredicate.toQueryParameters(), ['sdk:dart']);
     });
 
     test('non-standard sdk query parameters', () {
       expect(
-        SearchForm.parse({'q': 'sdk:any'})
-            .parsedQuery
-            .tagsPredicate
-            .toQueryParameters(),
+        SearchForm.parse({
+          'q': 'sdk:any',
+        }).parsedQuery.tagsPredicate.toQueryParameters(),
         ['sdk:any'],
       );
     });
@@ -74,8 +83,9 @@ void main() {
       final form = SearchForm(query: 'license:gpl some framework');
       expect(form.toSearchLink(), '/packages?q=license%3Agpl+some+framework');
       expect(form.parsedQuery.text, 'some framework');
-      expect(
-          form.parsedQuery.tagsPredicate.toQueryParameters(), ['license:gpl']);
+      expect(form.parsedQuery.tagsPredicate.toQueryParameters(), [
+        'license:gpl',
+      ]);
     });
   });
 
@@ -149,8 +159,9 @@ void main() {
     });
 
     test('two dependencies with text blocks', () {
-      final query =
-          SearchForm(query: 'text1 dependency:pkg1 text2 dependency:pkg2');
+      final query = SearchForm(
+        query: 'text1 dependency:pkg1 text2 dependency:pkg2',
+      );
       expect(query.parsedQuery.text, 'text1 text2');
       expect(query.parsedQuery.refDependencies, ['pkg1', 'pkg2']);
       expect(query.parsedQuery.allDependencies, []);
@@ -158,8 +169,9 @@ void main() {
     });
 
     test('two mixed dependencies with text blocks', () {
-      final query =
-          SearchForm(query: 'text1 dependency:pkg1 text2 dependency*:pkg2');
+      final query = SearchForm(
+        query: 'text1 dependency:pkg1 text2 dependency*:pkg2',
+      );
       expect(query.parsedQuery.text, 'text1 text2');
       expect(query.parsedQuery.refDependencies, ['pkg1']);
       expect(query.parsedQuery.allDependencies, ['pkg2']);
@@ -169,48 +181,56 @@ void main() {
     test('only publisher', () {
       final query = SearchForm(query: 'publisher:example.com');
       expect(query.parsedQuery.text, isNull);
-      expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
-          ['publisher:example.com']);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(), [
+        'publisher:example.com',
+      ]);
     });
 
     test('known tag', () {
       final query = SearchForm(query: 'is:legacy');
       expect(query.parsedQuery.text, isNull);
-      expect(
-          query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(), [
+        'is:legacy',
+      ]);
     });
 
     test('complex tag', () {
-      final query =
-          SearchForm(query: 'implements-federated-plugin:url_launcher');
+      final query = SearchForm(
+        query: 'implements-federated-plugin:url_launcher',
+      );
       expect(query.parsedQuery.text, isNull);
-      expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
-          ['implements-federated-plugin:url_launcher']);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(), [
+        'implements-federated-plugin:url_launcher',
+      ]);
     });
 
     test('forbidden known tag', () {
       final query = SearchForm(query: '-is:legacy');
       expect(query.parsedQuery.text, isNull);
-      expect(
-          query.parsedQuery.tagsPredicate.toQueryParameters(), ['-is:legacy']);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(), [
+        '-is:legacy',
+      ]);
     });
 
     test('known tag + package prefix + search text', () {
       final query = SearchForm(query: 'json is:legacy package:foo_');
       expect(query.parsedQuery.text, 'json');
-      expect(
-          query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(), [
+        'is:legacy',
+      ]);
       expect(query.parsedQuery.packagePrefix, 'foo_');
     });
 
     test('publisher + email + text + dependency', () {
-      final query =
-          SearchForm(query: 'publisher:example.com text dependency:pkg1');
+      final query = SearchForm(
+        query: 'publisher:example.com text dependency:pkg1',
+      );
       expect(query.parsedQuery.text, 'text');
       expect(query.parsedQuery.refDependencies, ['pkg1']);
       expect(query.parsedQuery.allDependencies, []);
-      expect(query.parsedQuery.tagsPredicate.toQueryParameters(),
-          ['publisher:example.com']);
+      expect(query.parsedQuery.tagsPredicate.toQueryParameters(), [
+        'publisher:example.com',
+      ]);
     });
   });
 
@@ -231,8 +251,10 @@ void main() {
 
     test('Flutter favorites', () {
       final query = SearchForm(query: PackageTags.isFlutterFavorite);
-      expect(query.toSearchLink(page: 2),
-          '/packages?q=is%3Aflutter-favorite&page=2');
+      expect(
+        query.toSearchLink(page: 2),
+        '/packages?q=is%3Aflutter-favorite&page=2',
+      );
     });
 
     test('package prefix: angular', () {
@@ -243,12 +265,16 @@ void main() {
     });
 
     test('complex search', () {
-      final query =
-          SearchForm(query: 'package:angular widget', order: SearchOrder.top);
+      final query = SearchForm(
+        query: 'package:angular widget',
+        order: SearchOrder.top,
+      );
       expect(query.parsedQuery.text, 'widget');
       expect(query.parsedQuery.packagePrefix, 'angular');
-      expect(query.toSearchLink(),
-          '/packages?q=package%3Aangular+widget&sort=top');
+      expect(
+        query.toSearchLink(),
+        '/packages?q=package%3Aangular+widget&sort=top',
+      );
     });
   });
 }

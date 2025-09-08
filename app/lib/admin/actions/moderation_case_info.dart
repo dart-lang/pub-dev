@@ -12,9 +12,7 @@ final moderationCaseInfo = AdminAction(
   description: '''
 Loads and displays the moderation case information.
 ''',
-  options: {
-    'case': 'The caseId to be loaded.',
-  },
+  options: {'case': 'The caseId to be loaded.'},
   invoke: (options) async {
     final caseId = options['case'];
     InvalidInputException.check(

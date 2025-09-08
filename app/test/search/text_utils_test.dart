@@ -27,11 +27,12 @@ Other useful methods will be added soon...
 ''';
       final text = compactReadme(input);
       expect(
-          text,
-          'Currently supports the following methods: camelize capitalize escape '
-          'isLowerCase isUpperCase join printable reverse startsWithLowerCase '
-          'startsWithUpperCase toUnicode underscore '
-          'Other useful methods will be added soon...');
+        text,
+        'Currently supports the following methods: camelize capitalize escape '
+        'isLowerCase isUpperCase join printable reverse startsWithLowerCase '
+        'startsWithUpperCase toUnicode underscore '
+        'Other useful methods will be added soon...',
+      );
     });
   });
 
@@ -61,14 +62,19 @@ Other useful methods will be added soon...
       expect(extractExactPhrases('123 "abc"'), ['abc']);
       expect(extractExactPhrases('123 "abc" cde'), ['abc']);
       expect(
-          extractExactPhrases(
-              'before "hello world" middle "greet from world" after'),
-          ['hello world', 'greet from world']);
+        extractExactPhrases(
+          'before "hello world" middle "greet from world" after',
+        ),
+        ['hello world', 'greet from world'],
+      );
     });
 
     test('multiple phrases', () {
-      expect(extractExactPhrases('"abc" "cde" "123 456"'),
-          ['abc', 'cde', '123 456']);
+      expect(extractExactPhrases('"abc" "cde" "123 456"'), [
+        'abc',
+        'cde',
+        '123 456',
+      ]);
     });
   });
 
@@ -78,17 +84,16 @@ Other useful methods will be added soon...
     });
 
     test('link', () {
-      expect(compactReadme('some [link](http://example.com) with text'),
-          'some link with text');
+      expect(
+        compactReadme('some [link](http://example.com) with text'),
+        'some link with text',
+      );
     });
   });
 
   group('tokenize', () {
     test('dart:async', () {
-      expect(tokenize('dart:async'), {
-        'dart': 1.0,
-        'async': 1.0,
-      });
+      expect(tokenize('dart:async'), {'dart': 1.0, 'async': 1.0});
     });
 
     test('simple text', () {
@@ -105,10 +110,7 @@ Other useful methods will be added soon...
     });
 
     test('Cased words', () {
-      expect(tokenize('snake_case'), {
-        'snake': 1.0,
-        'case': 1.0,
-      });
+      expect(tokenize('snake_case'), {'snake': 1.0, 'case': 1.0});
 
       expect(tokenize('CamelCase snake_case firstLowerCase'), {
         'camelcase': 1.0,

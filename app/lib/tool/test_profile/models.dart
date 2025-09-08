@@ -35,10 +35,10 @@ class TestProfile {
     List<TestPublisher>? publishers,
     List<TestUser>? users,
     this.defaultUser,
-  })  : importedPackages = importedPackages ?? <TestPackage>[],
-        generatedPackages = generatedPackages ?? <GeneratedTestPackage>[],
-        publishers = publishers ?? <TestPublisher>[],
-        users = users ?? <TestUser>[];
+  }) : importedPackages = importedPackages ?? <TestPackage>[],
+       generatedPackages = generatedPackages ?? <GeneratedTestPackage>[],
+       publishers = publishers ?? <TestPublisher>[],
+       users = users ?? <TestUser>[];
 
   factory TestProfile.fromJson(Map<String, dynamic> json) =>
       _$TestProfileFromJson(json);
@@ -64,7 +64,8 @@ class TestProfile {
   /// - the first entry in the [users] list,
   /// - the first specified member in the [publishers] list,
   /// - the first specfied uploader in the [importedPackages] or the [generatedPackages] list.
-  late final resolvedDefaultUser = defaultUser ??
+  late final resolvedDefaultUser =
+      defaultUser ??
       users.firstOrNull?.email ??
       publishers.expand((p) => p.members).map((m) => m.email).firstOrNull ??
       importedPackages.expand((p) => p.uploaders ?? <String>[]).firstOrNull ??
@@ -109,10 +110,7 @@ class TestVersion {
   final String version;
   final DateTime? created;
 
-  TestVersion({
-    required this.version,
-    this.created,
-  });
+  TestVersion({required this.version, this.created});
 
   factory TestVersion.fromJson(Map<String, dynamic> json) =>
       _$TestVersionFromJson(json);
@@ -166,11 +164,7 @@ Map<String, dynamic> _expandPackageJson(Map<String, dynamic> json) {
 class GeneratedTestVersion extends TestVersion {
   final TestArchiveTemplate? template;
 
-  GeneratedTestVersion({
-    required super.version,
-    super.created,
-    this.template,
-  });
+  GeneratedTestVersion({required super.version, super.created, this.template});
 
   factory GeneratedTestVersion.fromJson(Map<String, dynamic> json) =>
       _$GeneratedTestVersionFromJson(json);
@@ -217,10 +211,8 @@ class TestPublisher {
   final String name;
   final List<TestMember> members;
 
-  TestPublisher({
-    required this.name,
-    required List<TestMember>? members,
-  }) : members = members ?? <TestMember>[];
+  TestPublisher({required this.name, required List<TestMember>? members})
+    : members = members ?? <TestMember>[];
 
   factory TestPublisher.fromJson(Map<String, dynamic> json) =>
       _$TestPublisherFromJson(json);
@@ -233,10 +225,7 @@ class TestMember {
   final String email;
   final String role;
 
-  TestMember({
-    required this.email,
-    required this.role,
-  });
+  TestMember({required this.email, required this.role});
 
   factory TestMember.fromJson(Map<String, dynamic> json) =>
       _$TestMemberFromJson(json);
@@ -251,10 +240,8 @@ class TestUser {
   /// The list of package names that the user liked.
   final List<String> likes;
 
-  TestUser({
-    required this.email,
-    required List<String>? likes,
-  }) : likes = likes ?? <String>[];
+  TestUser({required this.email, required List<String>? likes})
+    : likes = likes ?? <String>[];
 
   factory TestUser.fromJson(Map<String, dynamic> json) =>
       _$TestUserFromJson(json);

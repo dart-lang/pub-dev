@@ -12,37 +12,44 @@ d.Node publisherContactInviteNode({
   required String contactEmail,
 }) {
   return d.fragment([
-    d.p(children: [
-      d.code(text: invitingUserEmail),
-      d.text(' has requested to use '),
-      d.code(text: contactEmail),
-      d.text(' as the contact email of the '),
-      d.a(
-        href: 'https://dart.dev/tools/pub/verified-publishers',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        text: 'verified publisher',
-      ),
-      d.text(' '),
-      d.a(
-        href: urls.publisherUrl(publisherId),
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        child: d.code(text: publisherId),
-      ),
-      d.text('.'),
-    ]),
-    d.p(text: 'Accepting the use of the contact email means:'),
-    d.ul(children: [
-      d.li(children: [
-        d.text('the email will be publicly listed on the '),
+    d.p(
+      children: [
+        d.code(text: invitingUserEmail),
+        d.text(' has requested to use '),
+        d.code(text: contactEmail),
+        d.text(' as the contact email of the '),
         d.a(
-            href: urls.publisherUrl(publisherId),
-            target: '_blank',
-            rel: 'noopener noreferrer',
-            text: 'publisher page'),
+          href: 'https://dart.dev/tools/pub/verified-publishers',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          text: 'verified publisher',
+        ),
+        d.text(' '),
+        d.a(
+          href: urls.publisherUrl(publisherId),
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          child: d.code(text: publisherId),
+        ),
         d.text('.'),
-      ]),
-    ]),
+      ],
+    ),
+    d.p(text: 'Accepting the use of the contact email means:'),
+    d.ul(
+      children: [
+        d.li(
+          children: [
+            d.text('the email will be publicly listed on the '),
+            d.a(
+              href: urls.publisherUrl(publisherId),
+              target: '_blank',
+              rel: 'noopener noreferrer',
+              text: 'publisher page',
+            ),
+            d.text('.'),
+          ],
+        ),
+      ],
+    ),
   ]);
 }

@@ -11,7 +11,8 @@ import '_tar_writer.dart';
 
 void main() {
   final minimalTextFiles = {
-    'pubspec.yaml': 'name: abc\n'
+    'pubspec.yaml':
+        'name: abc\n'
         'version: 1.0.0\n'
         'description: abc is awesome\n'
         'environment:\n  sdk: \'>=2.10.0 <3.0.0\'\n',
@@ -22,7 +23,8 @@ void main() {
 
   group('Symlink', () {
     final archiveFile = File(
-        '${Directory.systemTemp.path}/${DateTime.now().microsecondsSinceEpoch}.tar.gz');
+      '${Directory.systemTemp.path}/${DateTime.now().microsecondsSinceEpoch}.tar.gz',
+    );
 
     tearDownAll(() async {
       if (!await archiveFile.exists()) {
@@ -52,8 +54,10 @@ void main() {
         );
 
         final summary = await summarizePackageArchive(archiveFile.path);
-        expect(summary.issues.single.message,
-            'Package archive contains a broken symlink: `$from` -> `$to`.');
+        expect(
+          summary.issues.single.message,
+          'Package archive contains a broken symlink: `$from` -> `$to`.',
+        );
       });
     }
 
@@ -69,7 +73,8 @@ void main() {
 
   group('Duplicate entries', () {
     final archiveFile = File(
-        '${Directory.systemTemp.path}/${DateTime.now().microsecondsSinceEpoch}.tar.gz');
+      '${Directory.systemTemp.path}/${DateTime.now().microsecondsSinceEpoch}.tar.gz',
+    );
 
     tearDownAll(() async {
       if (!await archiveFile.exists()) {
@@ -85,8 +90,10 @@ void main() {
       );
 
       final summary = await summarizePackageArchive(archiveFile.path);
-      expect(summary.issues.single.message,
-          'Failed to scan tar archive. (Duplicate tar entry: `README.md`.)');
+      expect(
+        summary.issues.single.message,
+        'Failed to scan tar archive. (Duplicate tar entry: `README.md`.)',
+      );
     });
   });
 }

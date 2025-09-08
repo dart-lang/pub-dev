@@ -8,7 +8,8 @@ import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pub_package_reader/pub_package_reader.dart'
     show checkStrictVersions;
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec_parse/pubspec_parse.dart' as pubspek
+import 'package:pubspec_parse/pubspec_parse.dart'
+    as pubspek
     show Dependency, Pubspec;
 import 'package:yaml/yaml.dart';
 
@@ -37,8 +38,9 @@ class Pubspec {
       Pubspec._(pubspek.Pubspec.parse(jsonString, lenient: true), jsonString);
 
   factory Pubspec.fromYaml(String yamlString) => Pubspec._(
-      pubspek.Pubspec.parse(yamlString, lenient: true),
-      json.encode(_loadYaml(yamlString)));
+    pubspek.Pubspec.parse(yamlString, lenient: true),
+    json.encode(_loadYaml(yamlString)),
+  );
 
   factory Pubspec.fromJson(Map<String, dynamic> map) =>
       Pubspec._(pubspek.Pubspec.fromJson(map, lenient: true), json.encode(map));
@@ -55,7 +57,8 @@ class Pubspec {
       _canonicalVersion = canonicalizeVersion(nonCanonicalVersion);
       if (_canonicalVersion == null) {
         throw AssertionError(
-            'Unable to canonicalize the version: $nonCanonicalVersion');
+          'Unable to canonicalize the version: $nonCanonicalVersion',
+        );
       }
     }
     return _canonicalVersion!;
@@ -136,7 +139,8 @@ class Pubspec {
 
   late final _dartSdkConstraint = _inner.environment['sdk'];
   late final _flutterSdkConstraint = _inner.environment['flutter'];
-  late final _hasDartSdkConstraint = _dartSdkConstraint != null &&
+  late final _hasDartSdkConstraint =
+      _dartSdkConstraint != null &&
       !_dartSdkConstraint.isAny &&
       !_dartSdkConstraint.isEmpty;
 
@@ -152,10 +156,10 @@ class Pubspec {
 
   late final isDart3Incompatible =
       !supportsOnlyLegacySdk && // do not mix is:legacy with is:dart3-incompatible
-          _hasDartSdkConstraint &&
-          !_dartSdkConstraint!
-              .intersect(VersionConstraint.parse('<2.12.0-0'))
-              .isEmpty;
+      _hasDartSdkConstraint &&
+      !_dartSdkConstraint!
+          .intersect(VersionConstraint.parse('<2.12.0-0'))
+          .isEmpty;
 
   late final _flutterPluginMap = () {
     final flutter = _json['flutter'];
@@ -247,15 +251,18 @@ class MinSdkVersion {
 
 class PubspecProperty extends StringProperty {
   const PubspecProperty({super.propertyName, super.required = false})
-      : super(indexed: false);
+    : super(indexed: false);
 
   @override
   bool validate(ModelDB db, Object? value) =>
       (!required || value != null) && (value == null || value is Pubspec);
 
   @override
-  String? encodeValue(ModelDB db, Object? pubspec,
-      {bool forComparison = false}) {
+  String? encodeValue(
+    ModelDB db,
+    Object? pubspec, {
+    bool forComparison = false,
+  }) {
     if (pubspec is Pubspec) {
       return pubspec.jsonString;
     }

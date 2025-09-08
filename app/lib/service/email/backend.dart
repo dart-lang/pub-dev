@@ -51,9 +51,7 @@ class EmailBackend {
   /// the planned time window.
   ///
   /// Returns the number of successfully sent emails.
-  Future<int> trySendAllOutgoingEmails({
-    Duration? stopAfter,
-  }) async {
+  Future<int> trySendAllOutgoingEmails({Duration? stopAfter}) async {
     final sw = Stopwatch()..start();
     final query = _db.query<OutgoingEmail>()..order('-created');
     var successful = 0;
@@ -101,8 +99,9 @@ class EmailBackend {
       // retry after a random delay in the next 2-6 hours, if and only if,
       // o.claimId has been cleared. We never retry sending emails if we don't know
       // if the email was sent or not (because we don't want to send it multiple times)
-      o.pendingAt =
-          now.add(Duration(hours: 2, minutes: _random.nextInt(4 * 60)));
+      o.pendingAt = now.add(
+        Duration(hours: 2, minutes: _random.nextInt(4 * 60)),
+      );
       o.claimId = claimId;
       tx.insert(o);
       return o;
@@ -115,13 +114,15 @@ class EmailBackend {
     final sent = <String>[];
     for (final recipientEmail in recipientEmails) {
       try {
-        await emailSender.sendMessage(EmailMessage(
-          localMessageId: entry.uuid,
-          EmailAddress(entry.fromEmail!),
-          [EmailAddress(recipientEmail)],
-          entry.subject!,
-          entry.bodyText!,
-        ));
+        await emailSender.sendMessage(
+          EmailMessage(
+            localMessageId: entry.uuid,
+            EmailAddress(entry.fromEmail!),
+            [EmailAddress(recipientEmail)],
+            entry.subject!,
+            entry.bodyText!,
+          ),
+        );
         sent.add(recipientEmail);
       } on EmailSenderException catch (e, st) {
         _logger.warning('Email sending failed (claimId="$claimId").', e, st);
@@ -134,12 +135,14 @@ class EmailBackend {
       final o = await tx.lookupOrNull<OutgoingEmail>(key);
       if (o == null) {
         _logger.shout(
-            'OutgoingEmail was removed while sending emails (claimId="$claimId").');
+          'OutgoingEmail was removed while sending emails (claimId="$claimId").',
+        );
         return;
       }
       if (o.claimId != claimId) {
         _logger.shout(
-            'OutgoingEmail `claimId` changed while sending emails (claimId="$claimId").');
+          'OutgoingEmail `claimId` changed while sending emails (claimId="$claimId").',
+        );
         return;
       }
       for (final email in sent) {
@@ -164,8 +167,10 @@ class EmailBackend {
       where: (m) => m.isNotAlive || m.hasExpiredClaim,
       beforeDelete: (list) {
         for (final m in list) {
-          _logger.warning('Removing dead outgoing email: ${m.id} to '
-              '${m.recipientEmails?.join(', ')}. (claimId="${m.claimId}")');
+          _logger.warning(
+            'Removing dead outgoing email: ${m.id} to '
+            '${m.recipientEmails?.join(', ')}. (claimId="${m.claimId}")',
+          );
         }
       },
     );

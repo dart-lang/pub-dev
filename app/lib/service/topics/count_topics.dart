@@ -17,8 +17,10 @@ Future<void> countTopics() async {
 
   final pq = dbService.query<Package>();
   await for (final p in pq.run()) {
-    final v =
-        await packageBackend.lookupPackageVersion(p.name!, p.latestVersion!);
+    final v = await packageBackend.lookupPackageVersion(
+      p.name!,
+      p.latestVersion!,
+    );
     if (v == null) {
       continue;
     }
@@ -27,8 +29,12 @@ Future<void> countTopics() async {
     }
   }
 
-  final reportsBucket =
-      storageService.bucket(activeConfiguration.reportsBucketName!);
+  final reportsBucket = storageService.bucket(
+    activeConfiguration.reportsBucketName!,
+  );
   await uploadBytesWithRetry(
-      reportsBucket, topicsJsonFileName, jsonUtf8Encoder.convert(topics));
+    reportsBucket,
+    topicsJsonFileName,
+    jsonUtf8Encoder.convert(topics),
+  );
 }

@@ -15,33 +15,34 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'flutter_blue',
-          version: '0.2.3',
-          description: compactDescription('Bluetooth plugin for Flutter.'),
-        ),
-        PackageDocument(
-          package: 'smooth_scroll',
-          version: '0.0.3',
-          description: compactDescription(
-              'A Dart library for smooth scroll effect on a web page.'),
-        ),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(
+            package: 'flutter_blue',
+            version: '0.2.3',
+            description: compactDescription('Bluetooth plugin for Flutter.'),
+          ),
+          PackageDocument(
+            package: 'smooth_scroll',
+            version: '0.0.3',
+            description: compactDescription(
+              'A Dart library for smooth scroll effect on a web page.',
+            ),
+          ),
+        ],
+      );
     });
 
     test('bluetooth', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'bluetooth', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(query: 'bluetooth', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {
-            'package': 'flutter_blue',
-            'score': 1.0,
-          },
+          {'package': 'flutter_blue', 'score': 1.0},
         ],
       });
     });

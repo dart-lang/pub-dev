@@ -21,16 +21,18 @@ void main() {
 
   group('ParsedStaticUrl', () {
     test('normal URL', () {
-      final url =
-          ParsedStaticUrl.parse(Uri.parse('/static/css/main.css?hash=123'));
+      final url = ParsedStaticUrl.parse(
+        Uri.parse('/static/css/main.css?hash=123'),
+      );
       expect(url.urlHash, '123');
       expect(url.pathHash, isNull);
       expect(url.filePath, '/static/css/main.css');
     });
 
     test('hashed URL', () {
-      final url =
-          ParsedStaticUrl.parse(Uri.parse('/static/hash-abc1234/css/main.css'));
+      final url = ParsedStaticUrl.parse(
+        Uri.parse('/static/hash-abc1234/css/main.css'),
+      );
       expect(url.urlHash, isNull);
       expect(url.pathHash, 'abc1234');
       expect(url.filePath, '/static/css/main.css');
@@ -51,16 +53,18 @@ void main() {
     test(
       'github.css',
       () => checkAsset(
-          'https://github.com/dart-lang/dartdoc/raw/main/lib/resources/github.css',
-          '/static/highlight/github.css'),
+        'https://github.com/dart-lang/dartdoc/raw/main/lib/resources/github.css',
+        '/static/highlight/github.css',
+      ),
       tags: ['sanity'],
     );
 
     test(
       'highlight.pack.js',
       () => checkAsset(
-          'https://github.com/dart-lang/dartdoc/raw/main/lib/resources/highlight.pack.js',
-          '/static/highlight/highlight.pack.js'),
+        'https://github.com/dart-lang/dartdoc/raw/main/lib/resources/highlight.pack.js',
+        '/static/highlight/highlight.pack.js',
+      ),
       tags: ['sanity'],
     );
   });
@@ -79,12 +83,26 @@ void main() {
 
     test('etag changes', () {
       final c = StaticFileCache();
-      c.addFile(StaticFile('/static/e1.txt', 'text/plain', utf8.encode('abc'),
-          clock.now(), 'etag1'));
+      c.addFile(
+        StaticFile(
+          '/static/e1.txt',
+          'text/plain',
+          utf8.encode('abc'),
+          clock.now(),
+          'etag1',
+        ),
+      );
       final e1 = c.etag;
       expect(e1, hasLength(8));
-      c.addFile(StaticFile('/static/e2.txt', 'text/plain', utf8.encode('abc2'),
-          clock.now(), 'etag2'));
+      c.addFile(
+        StaticFile(
+          '/static/e2.txt',
+          'text/plain',
+          utf8.encode('abc2'),
+          clock.now(),
+          'etag2',
+        ),
+      );
       final e2 = c.etag;
       expect(e2, hasLength(8));
       expect(e2, isNot(e1));
@@ -107,26 +125,29 @@ void main() {
       }
     });
 
-    testWithProfile('proper hash in css content', fn: () async {
-      final css = cache.getFile('/static/css/style.css')!;
-      final matches = RegExp('url\\("([^"]*?)"\\);')
-          .allMatches(css.contentAsString)
-          .toList();
-      // expect some URLs
-      expect(matches, hasLength(greaterThan(5)));
-      for (final m in matches) {
-        final matched = m.group(1)!;
-        if (matched.contains('data:image')) continue;
-        final uri = Uri.parse(matched);
-        final absPath = Uri.parse('/static/hash-xyz/css/style.css')
-            .resolve(uri.path)
-            .toString();
-        expect(absPath, startsWith('/static/hash-xyz/'));
-        final rs = await issueGet(absPath);
-        expect(rs.statusCode, 200, reason: matched);
-        expect(await rs.read().toList(), isNotEmpty);
-      }
-    });
+    testWithProfile(
+      'proper hash in css content',
+      fn: () async {
+        final css = cache.getFile('/static/css/style.css')!;
+        final matches = RegExp(
+          'url\\("([^"]*?)"\\);',
+        ).allMatches(css.contentAsString).toList();
+        // expect some URLs
+        expect(matches, hasLength(greaterThan(5)));
+        for (final m in matches) {
+          final matched = m.group(1)!;
+          if (matched.contains('data:image')) continue;
+          final uri = Uri.parse(matched);
+          final absPath = Uri.parse(
+            '/static/hash-xyz/css/style.css',
+          ).resolve(uri.path).toString();
+          expect(absPath, startsWith('/static/hash-xyz/'));
+          final rs = await issueGet(absPath);
+          expect(rs.statusCode, 200, reason: matched);
+          expect(await rs.read().toList(), isNotEmpty);
+        }
+      },
+    );
 
     test('static files are referenced', () async {
       final requestPaths = cache.keys.toSet()
@@ -189,11 +210,7 @@ void main() {
 
       expect(requestPaths, hasLength(greaterThan(50)));
 
-      final directories = [
-        'lib',
-        '../pkg/web_app/lib',
-        '../pkg/web_css/lib',
-      ];
+      final directories = ['lib', '../pkg/web_app/lib', '../pkg/web_css/lib'];
       for (final dir in directories) {
         if (requestPaths.isEmpty) break;
         final files = await Directory(dir).list(recursive: true).toList();
@@ -221,9 +238,11 @@ void main() {
       expect((file!.bytes.length / 1024).round(), closeTo(366, 20));
 
       final parts = cache.paths
-          .where((path) =>
-              path.startsWith('/static/js/script.dart.js') &&
-              path.endsWith('part.js'))
+          .where(
+            (path) =>
+                path.startsWith('/static/js/script.dart.js') &&
+                path.endsWith('part.js'),
+          )
           .toList();
       expect(parts.length, closeTo(15, 5));
       final partsSize = parts
@@ -234,23 +253,30 @@ void main() {
   });
 
   group('static files handler', () {
-    testWithProfile('bad path hash', fn: () async {
-      registerStaticFileCacheForTest(StaticFileCache.withDefaults());
-      final rs = await issueGet('/static/hash-xyz/img/email-icon.svg');
-      expect(rs.statusCode, 200);
-      expect(await rs.readAsString(), contains('<svg'));
-      final cache = rs.headers['cache-control'];
-      expect(cache, contains('no-store')); // no caching
-    });
+    testWithProfile(
+      'bad path hash',
+      fn: () async {
+        registerStaticFileCacheForTest(StaticFileCache.withDefaults());
+        final rs = await issueGet('/static/hash-xyz/img/email-icon.svg');
+        expect(rs.statusCode, 200);
+        expect(await rs.readAsString(), contains('<svg'));
+        final cache = rs.headers['cache-control'];
+        expect(cache, contains('no-store')); // no caching
+      },
+    );
 
-    testWithProfile('good path hash', fn: () async {
-      registerStaticFileCacheForTest(StaticFileCache.withDefaults());
-      final rs = await issueGet(
-          '/static/hash-${staticFileCache.etag}/img/email-icon.svg');
-      expect(rs.statusCode, 200);
-      expect(await rs.readAsString(), contains('<svg'));
-      final cache = rs.headers['cache-control']!;
-      expect(cache, 'public, max-age=604800');
-    });
+    testWithProfile(
+      'good path hash',
+      fn: () async {
+        registerStaticFileCacheForTest(StaticFileCache.withDefaults());
+        final rs = await issueGet(
+          '/static/hash-${staticFileCache.etag}/img/email-icon.svg',
+        );
+        expect(rs.statusCode, 200);
+        expect(await rs.readAsString(), contains('<svg'));
+        final cache = rs.headers['cache-control']!;
+        expect(cache, 'public, max-age=604800');
+      },
+    );
   });
 }

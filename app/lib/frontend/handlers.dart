@@ -56,14 +56,16 @@ shelf.Handler createAppHandler() {
       }
       if (_shouldRedirectToPubDev(request.requestedUri.path)) {
         return redirectResponse(
-            request.requestedUri.replace(host: primaryHost).toString());
+          request.requestedUri.replace(host: primaryHost).toString(),
+        );
       }
     }
 
     // do www.pub.dev redirect
     if (host == 'www.$primaryHost') {
       return redirectResponse(
-          request.requestedUri.replace(host: primaryHost).toString());
+        request.requestedUri.replace(host: primaryHost).toString(),
+      );
     }
 
     final rs = await pubApiHandler(request);

@@ -34,7 +34,7 @@ The active web sessions of the user will be expired.
         'The reason for user moderation. One of ${UserModeratedReason.values.join(', ')}.',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'note': 'Optional note to store (internal).'
+    'note': 'Optional note to store (internal).',
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -48,16 +48,18 @@ The active web sessions of the user will be expired.
     final moderatedReason = options['reason'];
     final note = options['note'];
 
-    final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
+    final refCase = await adminBackend
+        .loadAndVerifyModerationCaseForAdminAction(caseId);
 
     User? user;
     if (looksLikeUserId(userIdOrEmail!)) {
       user = await accountBackend.lookupUserById(userIdOrEmail);
     } else {
       final users = await accountBackend.lookupUsersByEmail(userIdOrEmail);
-      InvalidInputException.check(users.length == 1,
-          'Expected a single User, got ${users.length}: ${users.map((e) => e.userId).join(', ')}.');
+      InvalidInputException.check(
+        users.length == 1,
+        'Expected a single User, got ${users.length}: ${users.map((e) => e.userId).join(', ')}.',
+      );
       user = users.single;
     }
     InvalidInputException.check(user != null, 'Unable to locate user.');
@@ -85,8 +87,9 @@ The active web sessions of the user will be expired.
       user2 = await accountBackend.lookupUserById(user.userId);
 
       if (valueToSet) {
-        await for (final p
-            in packageBackend.streamPackagesWhereUserIsUploader(user.userId)) {
+        await for (final p in packageBackend.streamPackagesWhereUserIsUploader(
+          user.userId,
+        )) {
           await withRetryTransaction(dbService, (tx) async {
             final key = dbService.emptyKey.append(Package, id: p);
             final pkg = await tx.lookupOrNull<Package>(key);
@@ -99,8 +102,9 @@ The active web sessions of the user will be expired.
           });
         }
 
-        final publishers =
-            await publisherBackend.listPublishersForUser(user.userId);
+        final publishers = await publisherBackend.listPublishersForUser(
+          user.userId,
+        );
         for (final e in publishers.publishers!) {
           final p = await publisherBackend.lookupPublisher(e.publisherId);
           if (p == null) {
@@ -108,8 +112,9 @@ The active web sessions of the user will be expired.
           }
           // Only restrict publishers where the user was a single active admin.
           // Note: at this point the User.isModerated flag is already set.
-          final members =
-              await publisherBackend.listPublisherMembers(e.publisherId);
+          final members = await publisherBackend.listPublisherMembers(
+            e.publisherId,
+          );
           var nonBlockedCount = 0;
           for (final member in members) {
             final mu = await accountBackend.lookupUserById(member.userId);

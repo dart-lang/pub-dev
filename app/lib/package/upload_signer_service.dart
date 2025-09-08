@@ -28,10 +28,14 @@ Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
   final email = activeConfiguration.uploadSignerServiceAccount;
   if (email == null) {
     throw AssertionError(
-        'Configuration.uploadSignerServiceAccount must be set.');
+      'Configuration.uploadSignerServiceAccount must be set.',
+    );
   }
   return _IamBasedUploadSigner(
-      activeConfiguration.projectId, email, authClient);
+    activeConfiguration.projectId,
+    email,
+    authClient,
+  );
 }
 
 /// Signs Google Cloud Storage upload URLs.
@@ -104,7 +108,7 @@ class _IamBasedUploadSigner extends UploadSignerService {
   final iam.IamApi iamApi;
 
   _IamBasedUploadSigner(this.projectId, this.email, http.Client client)
-      : iamApi = iam.IamApi(client);
+    : iamApi = iam.IamApi(client);
 
   @override
   Future<SigningResult> sign(List<int> bytes) async {

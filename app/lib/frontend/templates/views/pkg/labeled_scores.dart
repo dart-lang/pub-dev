@@ -14,8 +14,9 @@ d.Node labeledScoresNode({
   required int? thirtyDaysDownloads,
 }) {
   final formattedLikes = compactFormat(likeCount);
-  final formattedDownloads =
-      thirtyDaysDownloads == null ? null : compactFormat(thirtyDaysDownloads);
+  final formattedDownloads = thirtyDaysDownloads == null
+      ? null
+      : compactFormat(thirtyDaysDownloads);
   return d.a(
     classes: ['packages-scores'],
     href: pkgScorePageUrl,
@@ -23,10 +24,11 @@ d.Node labeledScoresNode({
       d.div(
         classes: ['packages-score', 'packages-score-like'],
         child: _labeledScore(
-            'likes',
-            // keep in-sync with pkg/web_app/lib/src/likes.dart
-            '${formattedLikes.value}${formattedLikes.suffix}',
-            sign: ''),
+          'likes',
+          // keep in-sync with pkg/web_app/lib/src/likes.dart
+          '${formattedLikes.value}${formattedLikes.suffix}',
+          sign: '',
+        ),
         attributes: {'data-package': package},
       ),
       d.div(
@@ -35,7 +37,8 @@ d.Node labeledScoresNode({
       ),
       d.div(
         attributes: {
-          'title': 'Number of downloads of this package during the past 30 days'
+          'title':
+              'Number of downloads of this package during the past 30 days',
         },
         classes: ['packages-score', 'packages-score-downloads'],
         child: _labeledScore(
@@ -55,10 +58,7 @@ d.Node _labeledScore(String label, String? value, {required String sign}) {
     d.div(
       classes: ['packages-score-value', if (value != null) '-has-value'],
       children: [
-        d.span(
-          classes: ['packages-score-value-number'],
-          text: value ?? '--',
-        ),
+        d.span(classes: ['packages-score-value-number'], text: value ?? '--'),
         d.span(classes: ['packages-score-value-sign'], text: sign),
       ],
     ),

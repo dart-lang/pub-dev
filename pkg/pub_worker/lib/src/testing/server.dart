@@ -49,7 +49,7 @@ class PubWorkerTestServer {
   /// Packages not specified in [packages] are proxied from
   /// [fallbackPubHostedUrl] if specified.
   PubWorkerTestServer(this.packages, {String? fallbackPubHostedUrl})
-      : _fallbackPubHostedUrl = fallbackPubHostedUrl;
+    : _fallbackPubHostedUrl = fallbackPubHostedUrl;
 
   /// Start the server, returns when the server has started.
   Future<void> start() async {
@@ -99,47 +99,49 @@ class PubWorkerTestServer {
   }
 
   @Route.get('/api/packages/<package>')
-  Future<Response> _listPackageVersions(
-    Request request,
-    String package,
-  ) async {
+  Future<Response> _listPackageVersions(Request request, String package) async {
     final pkgs = packages.where((p) => p.name == package).toList();
     if (pkgs.isEmpty) {
       if (_fallbackPubHostedUrl != null) {
-        return await retry(() async {
-          final u = Uri.parse('$_fallbackPubHostedUrl/api/packages/$package');
-          final res = await _client.get(u);
-          if (res.statusCode == 404) {
-            return Response.notFound('no such package: "$package"');
-          }
-          if (res.statusCode == 200) {
-            // We don't rewrite the archive_url, that way we won't have to
-            // handle proxying of the archives.
-            return Response.ok(res.bodyBytes, headers: {
-              'Content-Type': 'application/json',
-            });
-          }
-          throw Exception('status: ${res.statusCode} from "$u"');
-        }, retryIf: (e) => true).catchError(
-          (_) => Response.notFound('no such package: "$package"'),
-        );
+        return await retry(
+          () async {
+            final u = Uri.parse('$_fallbackPubHostedUrl/api/packages/$package');
+            final res = await _client.get(u);
+            if (res.statusCode == 404) {
+              return Response.notFound('no such package: "$package"');
+            }
+            if (res.statusCode == 200) {
+              // We don't rewrite the archive_url, that way we won't have to
+              // handle proxying of the archives.
+              return Response.ok(
+                res.bodyBytes,
+                headers: {'Content-Type': 'application/json'},
+              );
+            }
+            throw Exception('status: ${res.statusCode} from "$u"');
+          },
+          retryIf: (e) => true,
+        ).catchError((_) => Response.notFound('no such package: "$package"'));
       }
       return Response.notFound('no such package: "$package"');
     }
     return Response.ok(
-        json.encode({
-          'name': package,
-          'latest': null,
-          'versions': pkgs
-              .map((p) => {
-                    'version': '${p.version}',
-                    'pubspec': p.pubspecJson,
-                    'archive_url':
-                        '$baseUrl/api/packages/$package/versions/${p.version}.tar.gz',
-                  })
-              .toList()
-        }),
-        headers: {'Content-Type': 'application/json'});
+      json.encode({
+        'name': package,
+        'latest': null,
+        'versions': pkgs
+            .map(
+              (p) => {
+                'version': '${p.version}',
+                'pubspec': p.pubspecJson,
+                'archive_url':
+                    '$baseUrl/api/packages/$package/versions/${p.version}.tar.gz',
+              },
+            )
+            .toList(),
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
   }
 
   @Route.get('/api/packages/<package>/versions/<version>.tar.gz')
@@ -173,17 +175,21 @@ class PubWorkerTestServer {
     if (!(request.headers['User-Agent'] ?? '').contains('pub_worker')) {
       return Response.badRequest(body: 'User-Agent must say pub_worker');
     }
-    return Response.ok(json.encode(UploadTaskResultResponse(
-      blobId: 'files.blob',
-      blob: UploadInfo(
-        url: '$baseUrl/upload-result/$package/$version/files.blob',
-        fields: {},
+    return Response.ok(
+      json.encode(
+        UploadTaskResultResponse(
+          blobId: 'files.blob',
+          blob: UploadInfo(
+            url: '$baseUrl/upload-result/$package/$version/files.blob',
+            fields: {},
+          ),
+          index: UploadInfo(
+            url: '$baseUrl/upload-result/$package/$version/index.json',
+            fields: {},
+          ),
+        ),
       ),
-      index: UploadInfo(
-        url: '$baseUrl/upload-result/$package/$version/index.json',
-        fields: {},
-      ),
-    )));
+    );
   }
 
   @Route.post('/api/tasks/<package>/<version>/finished')
@@ -257,17 +263,21 @@ class Package {
   }
 
   static Future<Package> fromFiles(Iterable<FileEntry> files) async {
-    return await fromGzippedArchive(await collectBytes(
-      Stream<TarEntry>.fromIterable(files.map(
-        (f) => TarEntry.data(
-          TarHeader(
-            name: f.name,
-            mode: 420, // 644₈
+    return await fromGzippedArchive(
+      await collectBytes(
+        Stream<TarEntry>.fromIterable(
+          files.map(
+            (f) => TarEntry.data(
+              TarHeader(
+                name: f.name,
+                mode: 420, // 644₈
+              ),
+              f.bytes,
+            ),
           ),
-          f.bytes,
-        ),
-      )).transform(tarWriter).transform(gzip.encoder),
-    ));
+        ).transform(tarWriter).transform(gzip.encoder),
+      ),
+    );
   }
 }
 
@@ -277,9 +287,9 @@ class FileEntry {
 
   FileEntry.fromBytes({required this.name, required this.bytes});
   FileEntry.fromString({required this.name, required String contents})
-      : bytes = utf8.encode(contents);
+    : bytes = utf8.encode(contents);
   FileEntry.fromJson({required this.name, required Object data})
-      : bytes = json.fuse(utf8).encode(data);
+    : bytes = json.fuse(utf8).encode(data);
 }
 
 /// Auxiliary function to read multipart requests to shelf.

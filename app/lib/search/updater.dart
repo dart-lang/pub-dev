@@ -30,28 +30,33 @@ IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 /// Loads a local search snapshot file and builds an in-memory package index from it.
 Future<InMemoryPackageIndex> loadInMemoryPackageIndexFromFile(
-    String path) async {
+  String path,
+) async {
   final file = File(path);
   final content =
       json.decode(utf8.decode(gzip.decode(await file.readAsBytes())))
           as Map<String, Object?>;
   final snapshot = SearchSnapshot.fromJson(content);
   return InMemoryPackageIndex(
-    documents:
-        snapshot.documents!.values.where((d) => !isSdkPackage(d.package)),
+    documents: snapshot.documents!.values.where(
+      (d) => !isSdkPackage(d.package),
+    ),
   );
 }
 
 /// Saves the provided [documents] into a local search snapshot file.
 Future<void> saveInMemoryPackageIndexToFile(
-    Iterable<PackageDocument> documents, String path) async {
+  Iterable<PackageDocument> documents,
+  String path,
+) async {
   final file = File(path);
   final snapshot = SearchSnapshot();
   for (final doc in documents) {
     snapshot.add(doc);
   }
-  await file
-      .writeAsBytes(gzip.encode(utf8.encode(json.encode(snapshot.toJson()))));
+  await file.writeAsBytes(
+    gzip.encode(utf8.encode(json.encode(snapshot.toJson()))),
+  );
 }
 
 class IndexUpdater {
@@ -68,7 +73,8 @@ class IndexUpdater {
       final documents = await searchBackend.loadMinimumPackageIndex().toList();
       updatePackageIndex(InMemoryPackageIndex(documents: documents));
       _logger.info(
-          'Minimum package index loaded with ${documents.length} packages.');
+        'Minimum package index loaded with ${documents.length} packages.',
+      );
     }
   }
 

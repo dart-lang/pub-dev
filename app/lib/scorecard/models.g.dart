@@ -17,16 +17,20 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) =>
       dartdocReport: json['dartdocReport'] == null
           ? null
           : DartdocReport.fromJson(
-              json['dartdocReport'] as Map<String, dynamic>),
+              json['dartdocReport'] as Map<String, dynamic>,
+            ),
       panaReport: json['panaReport'] == null
           ? null
           : PanaReport.fromJson(json['panaReport'] as Map<String, dynamic>),
       taskStatus: $enumDecodeNullable(
-          _$PackageVersionStatusEnumMap, json['taskStatus']),
+        _$PackageVersionStatusEnumMap,
+        json['taskStatus'],
+      ),
       weeklyVersionDownloads: json['weeklyVersionDownloads'] == null
           ? null
           : WeeklyVersionDownloadCounts.fromJson(
-              json['weeklyVersionDownloads'] as Map<String, dynamic>),
+              json['weeklyVersionDownloads'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
@@ -49,36 +53,37 @@ const _$PackageVersionStatusEnumMap = {
 };
 
 PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String),
-      panaRuntimeInfo: json['panaRuntimeInfo'] == null
-          ? null
-          : PanaRuntimeInfo.fromJson(
-              json['panaRuntimeInfo'] as Map<String, dynamic>),
-      reportStatus: json['reportStatus'] as String?,
-      derivedTags: (json['derivedTags'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      allDependencies: (json['allDependencies'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      licenses: (json['licenses'] as List<dynamic>?)
-          ?.map((e) => License.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      report: json['report'] == null
-          ? null
-          : Report.fromJson(json['report'] as Map<String, dynamic>),
-      result: json['result'] == null
-          ? null
-          : AnalysisResult.fromJson(json['result'] as Map<String, dynamic>),
-      urlProblems: (json['urlProblems'] as List<dynamic>?)
-          ?.map((e) => UrlProblem.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      screenshots: (json['screenshots'] as List<dynamic>?)
-          ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  timestamp: json['timestamp'] == null
+      ? null
+      : DateTime.parse(json['timestamp'] as String),
+  panaRuntimeInfo: json['panaRuntimeInfo'] == null
+      ? null
+      : PanaRuntimeInfo.fromJson(
+          json['panaRuntimeInfo'] as Map<String, dynamic>,
+        ),
+  reportStatus: json['reportStatus'] as String?,
+  derivedTags: (json['derivedTags'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  allDependencies: (json['allDependencies'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  licenses: (json['licenses'] as List<dynamic>?)
+      ?.map((e) => License.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  report: json['report'] == null
+      ? null
+      : Report.fromJson(json['report'] as Map<String, dynamic>),
+  result: json['result'] == null
+      ? null
+      : AnalysisResult.fromJson(json['result'] as Map<String, dynamic>),
+  urlProblems: (json['urlProblems'] as List<dynamic>?)
+      ?.map((e) => UrlProblem.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  screenshots: (json['screenshots'] as List<dynamic>?)
+      ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
     <String, dynamic>{
@@ -96,11 +101,7 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
     };
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) =>
-    DartdocReport(
-      reportStatus: json['reportStatus'] as String?,
-    );
+    DartdocReport(reportStatus: json['reportStatus'] as String?);
 
 Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) =>
-    <String, dynamic>{
-      'reportStatus': instance.reportStatus,
-    };
+    <String, dynamic>{'reportStatus': instance.reportStatus};

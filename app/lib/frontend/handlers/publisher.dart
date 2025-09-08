@@ -56,7 +56,9 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
 
 /// Handles requests for `GET /publishers/<publisherId>`.
 Future<shelf.Response> publisherPageHandler(
-    shelf.Request request, String publisherId) async {
+  shelf.Request request,
+  String publisherId,
+) async {
   checkPublisherIdParam(publisherId);
   return redirectResponse(urls.publisherPackagesUrl(publisherId));
 }
@@ -73,7 +75,8 @@ Future<shelf.Response> publisherPackagesPageHandler(
   }
 
   // Reply with cached page if available.
-  final isLanding = kind == PublisherPackagesPageKind.listed &&
+  final isLanding =
+      kind == PublisherPackagesPageKind.listed &&
       request.requestedUri.queryParameters.isEmpty;
   if (isLanding && requestContext.uiCacheEnabled) {
     final html = await cache.uiPublisherPackagesPage(publisherId).get();
@@ -99,17 +102,20 @@ Future<shelf.Response> publisherPackagesPageHandler(
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
   // redirect to the search page when any search or pagination is present
   if (searchForm.isNotEmpty) {
-    final redirectForm = searchForm
-        .addRequiredTagIfAbsent(PackageTags.publisherTag(publisherId));
+    final redirectForm = searchForm.addRequiredTagIfAbsent(
+      PackageTags.publisherTag(publisherId),
+    );
     return redirectResponse(
-        redirectForm.toSearchLink(page: searchForm.currentPage));
+      redirectForm.toSearchLink(page: searchForm.currentPage),
+    );
   }
 
   SearchForm appliedSearchForm;
   switch (kind) {
     case PublisherPackagesPageKind.listed:
-      appliedSearchForm =
-          SearchForm().toggleRequiredTag(PackageTags.publisherTag(publisherId));
+      appliedSearchForm = SearchForm().toggleRequiredTag(
+        PackageTags.publisherTag(publisherId),
+      );
       break;
     case PublisherPackagesPageKind.unlisted:
       appliedSearchForm = SearchForm()
@@ -134,7 +140,9 @@ Future<shelf.Response> publisherPackagesPageHandler(
     searchForm: appliedSearchForm,
     totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
-        publisher, requestContext.authenticatedUserId),
+      publisher,
+      requestContext.authenticatedUserId,
+    ),
     messageFromBackend: searchResult.errorMessage,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
@@ -145,7 +153,9 @@ Future<shelf.Response> publisherPackagesPageHandler(
 
 /// Handles requests for `GET /publishers/<publisherId>/admin`.
 Future<shelf.Response> publisherAdminPageHandler(
-    shelf.Request request, String publisherId) async {
+  shelf.Request request,
+  String publisherId,
+) async {
   final publisher = await publisherBackend.getListedPublisher(publisherId);
   if (publisher == null) {
     // We may introduce search for publishers (e.g. somebody just mistyped a
@@ -165,15 +175,19 @@ Future<shelf.Response> publisherAdminPageHandler(
     return htmlResponse(renderUnauthorizedPage());
   }
 
-  return htmlResponse(renderPublisherAdminPage(
-    publisher: publisher,
-    members: await publisherBackend.listPublisherMembers(publisherId),
-  ));
+  return htmlResponse(
+    renderPublisherAdminPage(
+      publisher: publisher,
+      members: await publisherBackend.listPublisherMembers(publisherId),
+    ),
+  );
 }
 
 /// Handles requests for `GET /publishers/<publisherId>/activity-log`.
 Future<shelf.Response> publisherActivityLogPageHandler(
-    shelf.Request request, String publisherId) async {
+  shelf.Request request,
+  String publisherId,
+) async {
   final publisher = await publisherBackend.getListedPublisher(publisherId);
   if (publisher == null) {
     // We may introduce search for publishers (e.g. somebody just mistyped a
@@ -194,13 +208,16 @@ Future<shelf.Response> publisherActivityLogPageHandler(
   }
 
   final before = auditBackend.parseBeforeQueryParameter(
-      request.requestedUri.queryParameters['before']);
+    request.requestedUri.queryParameters['before'],
+  );
   final activities = await auditBackend.listRecordsForPublisher(
     publisherId,
     before: before,
   );
-  return htmlResponse(renderPublisherActivityLogPage(
-    publisher: publisher,
-    activities: activities,
-  ));
+  return htmlResponse(
+    renderPublisherActivityLogPage(
+      publisher: publisher,
+      activities: activities,
+    ),
+  );
 }

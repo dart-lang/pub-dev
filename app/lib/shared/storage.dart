@@ -75,7 +75,8 @@ extension StorageExt on Storage {
     ObjectMetadata? metadata,
   }) async {
     return await _retry(
-        () async => await copyObject(src, dest, metadata: metadata));
+      () async => await copyObject(src, dest, metadata: metadata),
+    );
   }
 }
 
@@ -107,27 +108,34 @@ extension BucketExt on Bucket {
   /// Ignores 404 responses, as it may happen if the first request completes
   /// on the server while unsuccessful on the client.
   Future<void> deleteWithRetry(String name) async {
-    return await _retry(
-      () async {
-        try {
-          await delete(name);
-        } on DetailedApiRequestError catch (e) {
-          if (e.status == 404) {
-            return;
-          }
-          rethrow;
+    return await _retry(() async {
+      try {
+        await delete(name);
+      } on DetailedApiRequestError catch (e) {
+        if (e.status == 404) {
+          return;
         }
-      },
-    );
+        rethrow;
+      }
+    });
   }
 
-  Future uploadPublic(String objectName, int length,
-      Stream<List<int>> Function() openStream, String contentType) {
+  Future uploadPublic(
+    String objectName,
+    int length,
+    Stream<List<int>> Function() openStream,
+    String contentType,
+  ) {
     final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
     final acl = Acl([publicRead]);
     final metadata = ObjectMetadata(acl: acl, contentType: contentType);
-    return uploadWithRetry(this, objectName, length, openStream,
-        metadata: metadata);
+    return uploadWithRetry(
+      this,
+      objectName,
+      length,
+      openStream,
+      metadata: metadata,
+    );
   }
 
   /// Reads file content as bytes.
@@ -149,31 +157,31 @@ extension BucketExt on Bucket {
     if (maxSize != null && length != null && maxSize < length) {
       throw MaximumSizeExceeded(maxSize);
     }
-    return _retry(
-      () async {
-        final timeout = Duration(seconds: 30);
-        final deadline = clock.now().add(timeout);
-        final builder = BytesBuilder(copy: false);
-        final stream = read(objectName, offset: offset, length: length);
-        await for (final chunk in stream) {
-          builder.add(chunk);
-          if (maxSize != null && builder.length > maxSize) {
-            throw MaximumSizeExceeded(maxSize);
-          }
-          if (deadline.isBefore(clock.now())) {
-            throw TimeoutException('Reading $objectName timed out.', timeout);
-          }
+    return _retry(() async {
+      final timeout = Duration(seconds: 30);
+      final deadline = clock.now().add(timeout);
+      final builder = BytesBuilder(copy: false);
+      final stream = read(objectName, offset: offset, length: length);
+      await for (final chunk in stream) {
+        builder.add(chunk);
+        if (maxSize != null && builder.length > maxSize) {
+          throw MaximumSizeExceeded(maxSize);
         }
-        return builder.toBytes();
-      },
-    );
+        if (deadline.isBefore(clock.now())) {
+          throw TimeoutException('Reading $objectName timed out.', timeout);
+        }
+      }
+      return builder.toBytes();
+    });
   }
 
   /// Read object content as byte stream using the callback function to receive data chunks.
   ///
   /// When network error occurs, the entire stream is restarted and [fn] is called again.
   Future<T> readWithRetry<T>(
-      String objectName, Future<T> Function(Stream<List<int>> input) fn) async {
+    String objectName,
+    Future<T> Function(Stream<List<int>> input) fn,
+  ) async {
     return await _retry(() async => fn(read(objectName)));
   }
 
@@ -199,11 +207,7 @@ extension BucketExt on Bucket {
     String? delimiter,
   }) async {
     final entries = <BucketEntry>[];
-    await listWithRetry(
-      prefix: prefix,
-      delimiter: delimiter,
-      entries.add,
-    );
+    await listWithRetry(prefix: prefix, delimiter: delimiter, entries.add);
     return entries;
   }
 
@@ -214,19 +218,21 @@ extension BucketExt on Bucket {
 
   /// Update object metadata with default retry rules.
   Future<void> updateMetadataWithRetry(
-      String objectName, ObjectMetadata metadata) async {
+    String objectName,
+    ObjectMetadata metadata,
+  ) async {
     return await _retry(() async => await updateMetadata(objectName, metadata));
   }
 
   /// Start paging through objects in the bucket with the default retry.
-  Future<Page<BucketEntry>> pageWithRetry(
-      {String? prefix, String? delimiter, int pageSize = 50}) async {
+  Future<Page<BucketEntry>> pageWithRetry({
+    String? prefix,
+    String? delimiter,
+    int pageSize = 50,
+  }) async {
     return await _retry(
-      () async => await page(
-        prefix: prefix,
-        delimiter: delimiter,
-        pageSize: pageSize,
-      ),
+      () async =>
+          await page(prefix: prefix, delimiter: delimiter, pageSize: pageSize),
     );
   }
 
@@ -294,11 +300,15 @@ String bucketUri(Bucket bucket, String path) =>
     'gs://${bucket.bucketName}/$path';
 
 Future<void> updateContentDispositionToAttachment(
-    ObjectInfo info, Bucket bucket) async {
+  ObjectInfo info,
+  Bucket bucket,
+) async {
   if (info.metadata.contentDisposition != 'attachment') {
     try {
       await bucket.updateMetadataWithRetry(
-          info.name, info.metadata.replace(contentDisposition: 'attachment'));
+        info.name,
+        info.metadata.replace(contentDisposition: 'attachment'),
+      );
     } on Exception catch (e, st) {
       _logger.warning(
         'Failed to update content-disposition on ${info.name} in public bucket',
@@ -323,14 +333,15 @@ Future<int> deleteBucketFolderRecursively(
   var count = 0;
   Page<BucketEntry>? page;
   while (page == null || !page.isLast) {
-    page = await _retry(
-      () async {
-        return page == null
-            ? await bucket.pageWithRetry(
-                prefix: folder, delimiter: '', pageSize: 100)
-            : await page.nextWithRetry(pageSize: 100);
-      },
-    );
+    page = await _retry(() async {
+      return page == null
+          ? await bucket.pageWithRetry(
+              prefix: folder,
+              delimiter: '',
+              pageSize: 100,
+            )
+          : await page.nextWithRetry(pageSize: 100);
+    });
     final futures = <Future>[];
     final pool = Pool(concurrency ?? 1);
     for (final entry in page!.items) {
@@ -347,15 +358,21 @@ Future<int> deleteBucketFolderRecursively(
 }
 
 /// Uploads content from [openStream] to the [bucket] as [objectName].
-Future uploadWithRetry(Bucket bucket, String objectName, int length,
-    Stream<List<int>> Function() openStream,
-    {ObjectMetadata? metadata}) async {
+Future uploadWithRetry(
+  Bucket bucket,
+  String objectName,
+  int length,
+  Stream<List<int>> Function() openStream, {
+  ObjectMetadata? metadata,
+}) async {
   await _retry(
     () async {
-      final sink = bucket.write(objectName,
-          length: length,
-          contentType: metadata?.contentType ?? contentType(objectName),
-          metadata: metadata);
+      final sink = bucket.write(
+        objectName,
+        length: length,
+        contentType: metadata?.contentType ?? contentType(objectName),
+        metadata: metadata,
+      );
       await sink.addStream(openStream());
       await sink.close();
     },
@@ -367,9 +384,15 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
 
 /// Uploads content from [bytes] to the [bucket] as [objectName].
 Future uploadBytesWithRetry(
-        Bucket bucket, String objectName, List<int> bytes) =>
-    uploadWithRetry(
-        bucket, objectName, bytes.length, () => Stream.fromIterable([bytes]));
+  Bucket bucket,
+  String objectName,
+  List<int> bytes,
+) => uploadWithRetry(
+  bucket,
+  objectName,
+  bytes.length,
+  () => Stream.fromIterable([bytes]),
+);
 
 /// Utility class to access versioned JSON data that follows the name pattern:
 /// "/path-prefix/runtime-version.json.gz".
@@ -380,8 +403,8 @@ class VersionedJsonStorage {
   Timer? _oldGcTimer;
 
   VersionedJsonStorage(Bucket bucket, String prefix)
-      : _bucket = bucket,
-        _prefix = prefix {
+    : _bucket = bucket,
+      _prefix = prefix {
     if (!_prefix.endsWith('/')) {
       throw ArgumentError('Directory prefix must end with `/`.');
     }
@@ -433,8 +456,10 @@ class VersionedJsonStorage {
         .map((entry) => entry.name)
         .where((name) => name.endsWith(_extension))
         .where((name) => name.compareTo(currentPath) <= 0)
-        .map((name) =>
-            name.substring(_prefix.length, name.length - _extension.length))
+        .map(
+          (name) =>
+              name.substring(_prefix.length, name.length - _extension.length),
+        )
         .where((version) => versions.runtimeVersionPattern.hasMatch(version))
         .toList();
     if (list.isEmpty) {
@@ -463,7 +488,8 @@ class VersionedJsonStorage {
         return;
       }
       final version = name.substring(0, name.length - _extension.length);
-      final matchesPattern = version.length == 10 &&
+      final matchesPattern =
+          version.length == 10 &&
           versions.runtimeVersionPattern.hasMatch(version);
       if (!matchesPattern) {
         return;

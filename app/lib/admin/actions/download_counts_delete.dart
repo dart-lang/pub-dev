@@ -15,12 +15,14 @@ This action will delete all "DownloadCount" entities.
 The entities can be restored using the "backfill-download-counts" admin action.
 ''',
   invoke: (options) async {
-    final result = await dbService
-        .deleteWithQuery<DownloadCounts>(dbService.query<DownloadCounts>());
+    final result = await dbService.deleteWithQuery<DownloadCounts>(
+      dbService.query<DownloadCounts>(),
+    );
 
     return {
-      'message': 'Found ${result.found} "DownloadCount" entities and '
-          'deleted ${result.deleted} entities'
+      'message':
+          'Found ${result.found} "DownloadCount" entities and '
+          'deleted ${result.deleted} entities',
     };
   },
 );

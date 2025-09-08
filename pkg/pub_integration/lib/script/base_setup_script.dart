@@ -22,10 +22,8 @@ class BaseSetupScript {
   late Directory _dummyDir;
   late Directory _retryDir;
 
-  BaseSetupScript({
-    required this.pubHostedUrl,
-    this.credentialsFileContent,
-  }) : _pubHttpClient = PubHttpClient(pubHostedUrl);
+  BaseSetupScript({required this.pubHostedUrl, this.credentialsFileContent})
+    : _pubHttpClient = PubHttpClient(pubHostedUrl);
 
   Future<void> close() async {
     await _pubHttpClient.close();
@@ -37,8 +35,9 @@ class BaseSetupScript {
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
       _pubToolClient = await DartToolClient.withServer(
-          pubHostedUrl: pubHostedUrl,
-          credentialsFileContent: credentialsFileContent!);
+        pubHostedUrl: pubHostedUrl,
+        credentialsFileContent: credentialsFileContent!,
+      );
 
       // creating packages
       await _createFakeRetryPkg();

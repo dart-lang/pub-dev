@@ -71,10 +71,11 @@ class CountData {
   });
 
   factory CountData.empty() => CountData(
-      majorRangeCounts: <VersionRangeCount>[],
-      minorRangeCounts: <VersionRangeCount>[],
-      patchRangeCounts: <VersionRangeCount>[],
-      totalCounts: List.filled(maxAge, -1, growable: true));
+    majorRangeCounts: <VersionRangeCount>[],
+    minorRangeCounts: <VersionRangeCount>[],
+    patchRangeCounts: <VersionRangeCount>[],
+    totalCounts: List.filled(maxAge, -1, growable: true),
+  );
 
   /// Process and store download counts given in [dayCounts] on the form
   /// {version: #downloads} for a date given by [dateTime].
@@ -95,11 +96,23 @@ class CountData {
     _prepareDates(date, countsIndex, patchRangeCounts);
 
     _processCounts(
-        dayCounts, countsIndex, majorRangeCounts, _createNewMajorVersionRange);
+      dayCounts,
+      countsIndex,
+      majorRangeCounts,
+      _createNewMajorVersionRange,
+    );
     _processCounts(
-        dayCounts, countsIndex, minorRangeCounts, _createNewMinorVersionRange);
+      dayCounts,
+      countsIndex,
+      minorRangeCounts,
+      _createNewMinorVersionRange,
+    );
     _processCounts(
-        dayCounts, countsIndex, patchRangeCounts, _createNewPatchVersionRange);
+      dayCounts,
+      countsIndex,
+      patchRangeCounts,
+      _createNewPatchVersionRange,
+    );
 
     // Handle totalCounts
     if (date.isAfter(newestDate!)) {
@@ -110,8 +123,10 @@ class CountData {
         totalCounts.removeRange(maxAge, totalCounts.length);
       }
     }
-    totalCounts[countsIndex] =
-        dayCounts.values.fold(0, (prev, cur) => prev + cur);
+    totalCounts[countsIndex] = dayCounts.values.fold(
+      0,
+      (prev, cur) => prev + cur,
+    );
 
     newestDate = nextNewestDate;
   }
@@ -125,12 +140,13 @@ class CountData {
       final zerosList = List.filled(date.difference(newestDate!).inDays, 0);
       for (int i = 0; i < versionRangeCounts.length; i++) {
         // Fill in with 0 on days with no data.
-        final newCounts = [...zerosList, ...versionRangeCounts[i].counts]
-            .take(maxAge)
-            .toList();
+        final newCounts = [
+          ...zerosList,
+          ...versionRangeCounts[i].counts,
+        ].take(maxAge).toList();
         versionRangeCounts[i] = (
           counts: newCounts,
-          versionRange: versionRangeCounts[i].versionRange
+          versionRange: versionRangeCounts[i].versionRange,
         );
       }
     } else {
@@ -159,11 +175,12 @@ class CountData {
       } else {
         final newVersionRange = (
           counts: List.filled(maxAge, 0)..[countsIndex] = count,
-          versionRange: createVersionRange(version).toString()
+          versionRange: createVersionRange(version).toString(),
         );
         versionRangeCounts.add(newVersionRange);
-        versionRangeCounts.sortBy((vrc) =>
-            (VersionConstraint.parse(vrc.versionRange) as VersionRange));
+        versionRangeCounts.sortBy(
+          (vrc) => (VersionConstraint.parse(vrc.versionRange) as VersionRange),
+        );
 
         if (versionRangeCounts.length > maxRanges) {
           versionRangeCounts.removeAt(0);
@@ -174,23 +191,26 @@ class CountData {
 
   VersionRange _createNewMajorVersionRange(Version version) {
     return VersionRange(
-        min: Version(version.major, 0, 0, pre: '0'),
-        max: Version(version.major + 1, 0, 0),
-        includeMin: true);
+      min: Version(version.major, 0, 0, pre: '0'),
+      max: Version(version.major + 1, 0, 0),
+      includeMin: true,
+    );
   }
 
   VersionRange _createNewMinorVersionRange(Version version) {
     return VersionRange(
-        min: Version(version.major, version.minor, 0, pre: '0'),
-        max: Version(version.major, version.minor + 1, 0),
-        includeMin: true);
+      min: Version(version.major, version.minor, 0, pre: '0'),
+      max: Version(version.major, version.minor + 1, 0),
+      includeMin: true,
+    );
   }
 
   VersionRange _createNewPatchVersionRange(Version version) {
     return VersionRange(
-        min: Version(version.major, version.minor, version.patch, pre: '0'),
-        max: Version(version.major, version.minor, version.patch + 1),
-        includeMin: true);
+      min: Version(version.major, version.minor, version.patch, pre: '0'),
+      max: Version(version.major, version.minor, version.patch + 1),
+      includeMin: true,
+    );
   }
 
   factory CountData.fromJson(Map<String, dynamic> json) =>

@@ -33,23 +33,38 @@ class FakeServerCommand extends Command {
 
   FakeServerCommand() {
     argParser
-      ..addOption('port',
-          defaultsTo: '8080', help: 'The HTTP port of the fake pub server.')
-      ..addOption('storage-port',
-          defaultsTo: '8081',
-          help: 'The HTTP port for the fake storage server.')
-      ..addOption('search-port',
-          defaultsTo: '8082',
-          help: 'The HTTP port for the fake search service.')
-      ..addOption('analyzer-port',
-          defaultsTo: '8083',
-          help: 'The HTTP port for the fake analyzer service.')
-      ..addOption('data-file',
-          help: 'The file to read and also to store the local state.')
-      ..addFlag('watch',
-          help: 'Monitor changes of local files and reload them.')
-      ..addFlag('read-only',
-          help: 'Only read the data from the data-file, do not store it.');
+      ..addOption(
+        'port',
+        defaultsTo: '8080',
+        help: 'The HTTP port of the fake pub server.',
+      )
+      ..addOption(
+        'storage-port',
+        defaultsTo: '8081',
+        help: 'The HTTP port for the fake storage server.',
+      )
+      ..addOption(
+        'search-port',
+        defaultsTo: '8082',
+        help: 'The HTTP port for the fake search service.',
+      )
+      ..addOption(
+        'analyzer-port',
+        defaultsTo: '8083',
+        help: 'The HTTP port for the fake analyzer service.',
+      )
+      ..addOption(
+        'data-file',
+        help: 'The file to read and also to store the local state.',
+      )
+      ..addFlag(
+        'watch',
+        help: 'Monitor changes of local files and reload them.',
+      )
+      ..addFlag(
+        'read-only',
+        help: 'Only read the data from the data-file, do not store it.',
+      );
   }
 
   @override
@@ -96,13 +111,16 @@ class FakeServerCommand extends Command {
     );
 
     Future<shelf.Response> _updateUpstream(int port) async {
-      final rs =
-          await post(Uri.parse('http://localhost:$port/fake-update-all'));
+      final rs = await post(
+        Uri.parse('http://localhost:$port/fake-update-all'),
+      );
       if (rs.statusCode == 200) {
         return shelf.Response.ok('OK');
       } else {
-        return shelf.Response(503,
-            body: 'Upstream service ($port) returned ${rs.statusCode}.');
+        return shelf.Response(
+          503,
+          body: 'Upstream service ($port) returned ${rs.statusCode}.',
+        );
       }
     }
 
@@ -140,25 +158,16 @@ class FakeServerCommand extends Command {
       return shelf.Response.notFound('Not Found.');
     }
 
-    await Future.wait(
-      [
-        storageServer.run(port: storagePort),
-        pubServer.run(
-          port: port,
-          configuration: configuration,
-          extraHandler: forwardUpdatesHandler,
-        ),
-        searchService.run(
-          port: searchPort,
-          configuration: configuration,
-        ),
-        analyzerService.run(
-          port: analyzerPort,
-          configuration: configuration,
-        ),
-      ],
-      eagerError: true,
-    );
+    await Future.wait([
+      storageServer.run(port: storagePort),
+      pubServer.run(
+        port: port,
+        configuration: configuration,
+        extraHandler: forwardUpdatesHandler,
+      ),
+      searchService.run(port: searchPort, configuration: configuration),
+      analyzerService.run(port: analyzerPort, configuration: configuration),
+    ], eagerError: true);
 
     if (!readOnly && dataFile != null) {
       await state.save(dataFile);
@@ -169,8 +178,9 @@ class FakeServerCommand extends Command {
 
 Future<shelf.Response> _testProfile(shelf.Request rq) async {
   final map = json.decode(await rq.readAsString()) as Map<String, dynamic>;
-  final profile =
-      TestProfile.fromJson(map['testProfile'] as Map<String, dynamic>);
+  final profile = TestProfile.fromJson(
+    map['testProfile'] as Map<String, dynamic>,
+  );
   // ignore: invalid_use_of_visible_for_testing_member
   await importProfile(profile: profile);
   final analysis = (map['analysis'] as String?) ?? 'fake';

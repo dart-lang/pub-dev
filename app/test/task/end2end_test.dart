@@ -42,45 +42,55 @@ final _testProfile = TestProfile(
 );
 
 void main() {
-  testWithProfile('output of oxygen', testProfile: _testProfile, fn: () async {
-    await processTasksLocallyWithPubWorker();
-    // Make assertions about generated documentation
-    final doc =
-        await _fetchHtmlDocument('/documentation/oxygen/latest/oxygen/');
-    // Check that .self-crumb made it through
-    expect(doc.querySelector('.self-crumb')!.text, contains('oxygen'));
-    // Check that we don't have noindex on /latest/
-    expect(
-      doc.querySelectorAll('meta').where((m) =>
-          m.attributes['name'] == 'robots' &&
-          m.attributes['content'] == 'noindex'),
-      isEmpty,
-    );
-    // check old library file redirect
-    await expectRedirectResponse(
-      await issueGet('/documentation/oxygen/latest/oxygen/oxygen-library.html'),
-      '/documentation/oxygen/latest/oxygen/',
-    );
+  testWithProfile(
+    'output of oxygen',
+    testProfile: _testProfile,
+    fn: () async {
+      await processTasksLocallyWithPubWorker();
+      // Make assertions about generated documentation
+      final doc = await _fetchHtmlDocument(
+        '/documentation/oxygen/latest/oxygen/',
+      );
+      // Check that .self-crumb made it through
+      expect(doc.querySelector('.self-crumb')!.text, contains('oxygen'));
+      // Check that we don't have noindex on /latest/
+      expect(
+        doc
+            .querySelectorAll('meta')
+            .where(
+              (m) =>
+                  m.attributes['name'] == 'robots' &&
+                  m.attributes['content'] == 'noindex',
+            ),
+        isEmpty,
+      );
+      // check old library file redirect
+      await expectRedirectResponse(
+        await issueGet(
+          '/documentation/oxygen/latest/oxygen/oxygen-library.html',
+        ),
+        '/documentation/oxygen/latest/oxygen/',
+      );
 
-    // Traverse all package pages and generated documentation,
-    // create golden files and check for dead links and assets
-    await _traverseLinksUnderPath(
-      seed: [
-        '/packages/oxygen',
-        '/documentation/oxygen/latest/',
-        '/documentation/oxygen/1.0.0/'
-      ],
-      roots: {
-        '/packages/oxygen',
-        '/documentation/',
-      },
-    );
+      // Traverse all package pages and generated documentation,
+      // create golden files and check for dead links and assets
+      await _traverseLinksUnderPath(
+        seed: [
+          '/packages/oxygen',
+          '/documentation/oxygen/latest/',
+          '/documentation/oxygen/1.0.0/',
+        ],
+        roots: {'/packages/oxygen', '/documentation/'},
+      );
 
-    // Check if the documentation package.tar.gz exists.
-    final packageRs =
-        await issueGet('/documentation/oxygen/latest/package.tar.gz');
-    expect(packageRs.statusCode, 200);
-  }, timeout: Timeout(Duration(minutes: 15)));
+      // Check if the documentation package.tar.gz exists.
+      final packageRs = await issueGet(
+        '/documentation/oxygen/latest/package.tar.gz',
+      );
+      expect(packageRs.statusCode, 200);
+    },
+    timeout: Timeout(Duration(minutes: 15)),
+  );
 }
 
 // Cookie for enable experiments, remove this when not needed anymore
@@ -96,10 +106,9 @@ Future<String> _fetchHtml(String requestPath) async {
   //       redirected, so we could test redirects here too.
   //       Probably we should make a real HTTP request, rather than going
   //       through [issueGet], which is a fake request.
-  return await expectHtmlResponse(await issueGet(
-    requestPath,
-    headers: _headers,
-  ));
+  return await expectHtmlResponse(
+    await issueGet(requestPath, headers: _headers),
+  );
 }
 
 Future<dom.Document> _fetchHtmlDocument(String requestPath) async {
@@ -124,8 +133,8 @@ Future<void> _traverseLinksUnderPath({
     final r = relativeTo.resolveUri(u);
     return r.path;
   };
-  final isUnderRoots =
-      (String path) => roots.any((root) => path.startsWith(root));
+  final isUnderRoots = (String path) =>
+      roots.any((root) => path.startsWith(root));
 
   final visited = <String>{};
   // HTML pages to visit
@@ -142,11 +151,12 @@ Future<void> _traverseLinksUnderPath({
     // TODO: Consider making a real HTTP request
     final res = await issueGet(target.toString(), headers: _headers);
     if (res.statusCode == 303) {
-      htmlQueue.addAll([normalize(res.headers['location']!, target)]
-          .nonNulls
-          .whereNot(visited.contains)
-          .whereNot(htmlQueue.contains)
-          .whereNot(assetQueue.contains));
+      htmlQueue.addAll(
+        [normalize(res.headers['location']!, target)].nonNulls
+            .whereNot(visited.contains)
+            .whereNot(htmlQueue.contains)
+            .whereNot(assetQueue.contains),
+      );
       continue;
     }
 
@@ -165,7 +175,7 @@ Future<void> _traverseLinksUnderPath({
           .querySelectorAll('a')
           .map((a) => normalize(a.attributes['href'], target))
           .nonNulls
-          .where(isUnderRoots) // only look at html under root
+          .where(isUnderRoots), // only look at html under root
     ];
 
     final assets = [
@@ -180,20 +190,24 @@ Future<void> _traverseLinksUnderPath({
       ...document
           .querySelectorAll('img')
           .map((e) => normalize(e.attributes['src'], target))
-          .nonNulls
+          .nonNulls,
     ];
 
-    htmlQueue.addAll(links
-        .whereNot((l) => l.endsWith('.tar.gz'))
-        .whereNot((l) => l.endsWith('.txt'))
-        .whereNot(visited.contains)
-        .whereNot(htmlQueue.contains)
-        .whereNot(assetQueue.contains));
+    htmlQueue.addAll(
+      links
+          .whereNot((l) => l.endsWith('.tar.gz'))
+          .whereNot((l) => l.endsWith('.txt'))
+          .whereNot(visited.contains)
+          .whereNot(htmlQueue.contains)
+          .whereNot(assetQueue.contains),
+    );
 
-    assetQueue.addAll(assets
-        .whereNot(visited.contains)
-        .whereNot(htmlQueue.contains)
-        .whereNot(assetQueue.contains));
+    assetQueue.addAll(
+      assets
+          .whereNot(visited.contains)
+          .whereNot(htmlQueue.contains)
+          .whereNot(assetQueue.contains),
+    );
   }
 
   // Check that we don't link to dead assets
@@ -206,10 +220,7 @@ Future<void> _traverseLinksUnderPath({
   }
 }
 
-void expectGoldenFile(
-  String content,
-  String fileName,
-) {
+void expectGoldenFile(String content, String fileName) {
   // Making sure it is valid HTML
   final htmlParser = HtmlParser(content, strict: true);
 
@@ -263,10 +274,12 @@ final _goldenReplacements = <Pattern, String>{
   '<wbr>': '<wbr/>',
 };
 
-final _timestampPattern =
-    RegExp(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z');
-final _escapedTimestampPattern =
-    RegExp(_timestampPattern.pattern.replaceAll(':', r'\\u003a'));
+final _timestampPattern = RegExp(
+  r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z',
+);
+final _escapedTimestampPattern = RegExp(
+  _timestampPattern.pattern.replaceAll(':', r'\\u003a'),
+);
 final _timeAgoPattern = RegExp(
   r'(?:\d+ (?:years|months|days|hours|hour) ago)|(?:in the last hour)',
 );

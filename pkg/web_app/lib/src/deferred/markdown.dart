@@ -10,11 +10,10 @@ import 'package:markdown/markdown.dart' as md;
 
 /// Creates an [Element] with Markdown-formatted content.
 Future<Element> markdown(String text) async {
-  return DivElement()
-    ..setInnerHtml(
-      md.markdownToHtml(text),
-      validator: NodeValidator(uriPolicy: _UnsafeUriPolicy()),
-    );
+  return DivElement()..setInnerHtml(
+    md.markdownToHtml(text),
+    validator: NodeValidator(uriPolicy: _UnsafeUriPolicy()),
+  );
 }
 
 /// Allows any [Uri].

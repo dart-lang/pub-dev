@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2025.09.08`.
  * Upgraded stable Flutter analysis SDK to `3.35.3`.
+ * Updated SDK constraint (and language version) to `3.9`
 
 ## `20250904t074800-all`
  * Bump runtimeVersion to `2025.08.29`.

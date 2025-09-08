@@ -26,10 +26,7 @@ d.Node button({
       if (customTypeClass != null) customTypeClass,
       ...?classes,
     ],
-    attributes: {
-      'data-mdc-auto-init': 'MDCRipple',
-      ...?attributes,
-    },
+    attributes: {'data-mdc-auto-init': 'MDCRipple', ...?attributes},
     children: isSimpleLabel
         ? [d.text(label)]
         : [
@@ -67,22 +64,13 @@ d.Node floatingActionButton({
   return d.element(
     'fab',
     id: id,
-    classes: [
-      'mdc-fab',
-      if (fabMini) 'mdc-fab--mini',
-      ...?classes,
-    ],
-    attributes: {
-      'data-mdc-auto-init': 'MDCRipple',
-      ...?attributes,
-    },
+    classes: ['mdc-fab', if (fabMini) 'mdc-fab--mini', ...?classes],
+    attributes: {'data-mdc-auto-init': 'MDCRipple', ...?attributes},
     children: [
       d.div(classes: ['mdc-fab__ripple']),
       if (icon != null)
         d.img(
-          classes: [
-            'mdc-fab__icon',
-          ],
+          classes: ['mdc-fab__icon'],
           image: icon,
           attributes: {'aria-hidden': 'true'},
         ),
@@ -120,21 +108,14 @@ d.Node iconButton({
   return d.element(
     'button',
     id: id,
-    classes: [
-      'mdc-icon-button',
-      if (isOn) 'mdc-icon-button--on',
-      ...?classes,
-    ],
+    classes: ['mdc-icon-button', if (isOn) 'mdc-icon-button--on', ...?classes],
     attributes: {
       ...?attributes,
       if (disabled) 'disabled': 'disabled',
       if (title != null) 'title': title,
     },
     children: [
-      d.img(
-        classes: ['mdc-icon-button__icon'],
-        image: offIcon,
-      ),
+      d.img(classes: ['mdc-icon-button__icon'], image: offIcon),
       d.img(
         classes: ['mdc-icon-button__icon', 'mdc-icon-button__icon--on'],
         image: onIcon,
@@ -247,9 +228,7 @@ d.Node dataTable<T>({
     child: d.element(
       'table',
       classes: ['mdc-data-table__table'],
-      attributes: {
-        if (ariaLabel != null) 'aria-label': ariaLabel,
-      },
+      attributes: {if (ariaLabel != null) 'aria-label': ariaLabel},
       children: [
         d.element(
           'thead',
@@ -257,14 +236,8 @@ d.Node dataTable<T>({
             classes: ['mdc-data-table__header-row'],
             children: columns.map(
               (c) => d.th(
-                classes: [
-                  'mdc-data-table__header-cell',
-                  ...?c.headerClasses,
-                ],
-                attributes: {
-                  'role': 'columnheader',
-                  'scope': 'col',
-                },
+                classes: ['mdc-data-table__header-cell', ...?c.headerClasses],
+                attributes: {'role': 'columnheader', 'scope': 'col'},
                 child: c.headerContent,
               ),
             ),
@@ -337,10 +310,7 @@ d.Node checkbox({
           d.div(classes: ['mdc-checkbox__ripple']),
         ],
       ),
-      d.label(
-        attributes: {'for': id},
-        child: labelNodeContent(label),
-      ),
+      d.label(attributes: {'for': id}, child: labelNodeContent(label)),
     ],
   );
 }
@@ -356,11 +326,7 @@ d.Node dropdown({
 }) {
   return d.div(
     id: id,
-    classes: [
-      'mdc-select',
-      'mdc-select--filled',
-      ...?classes,
-    ],
+    classes: ['mdc-select', 'mdc-select--filled', ...?classes],
     attributes: {'data-mdc-auto-init': 'MDCSelect'},
     children: [
       d.div(
@@ -396,10 +362,7 @@ d.Node dropdown({
               ],
             ),
           ),
-          d.span(
-            classes: ['mdc-floating-label'],
-            text: label,
-          ),
+          d.span(classes: ['mdc-floating-label'], text: label),
           d.span(classes: ['mdc-line-ripple']),
         ],
       ),
@@ -410,10 +373,7 @@ d.Node dropdown({
           'mdc-menu-surface',
           'mdc-menu-surface--fullwidth',
         ],
-        child: d.ul(
-          classes: ['mdc-list'],
-          children: options,
-        ),
+        child: d.ul(classes: ['mdc-list'], children: options),
       ),
     ],
   );
@@ -427,10 +387,7 @@ d.Node option({
   bool disabled = false,
 }) {
   return d.li(
-    classes: [
-      'mdc-list-item',
-      if (selected) 'mdc-list-item--selected',
-    ],
+    classes: ['mdc-list-item', if (selected) 'mdc-list-item--selected'],
     attributes: {'data-value': value},
     children: [
       d.span(classes: ['mdc-list-item__ripple']),

@@ -26,20 +26,20 @@ class TarArchive {
   /// in both parts of the map entries.
   final Map<String, String> _symlinks;
 
-  TarArchive._(
-    this._path,
-    this._normalizedNames,
-    this._symlinks,
-  );
+  TarArchive._(this._path, this._normalizedNames, this._symlinks);
 
   TarArchive._normalize(
-      String path, List<String> names, Map<String, String> symlinks)
-      : this._(
-          path,
-          _normalizeNames(names),
-          symlinks.map((key, value) =>
-              MapEntry<String, String>(_normalize(key), _normalize(value))),
-        );
+    String path,
+    List<String> names,
+    Map<String, String> symlinks,
+  ) : this._(
+        path,
+        _normalizeNames(names),
+        symlinks.map(
+          (key, value) =>
+              MapEntry<String, String>(_normalize(key), _normalize(value)),
+        ),
+      );
 
   /// The list of normalized file names.
   late final fileNames = (_normalizedNames.keys.toList()..sort()).toSet();
@@ -53,8 +53,9 @@ class TarArchive {
     required int maxLength,
   }) async {
     if (names.isEmpty) return <String, Uint8List>{};
-    final mappedNames =
-        names.map((name) => _normalizedNames[name] ?? name).toList();
+    final mappedNames = names
+        .map((name) => _normalizedNames[name] ?? name)
+        .toList();
     final reader = TarReader(
       File(_path).openRead().transform(gzip.decoder),
       disallowTrailingData: true,
@@ -146,7 +147,8 @@ class TarArchive {
         final maskBits = entry.header.mode & _executableMask;
         if (maskBits != _executableMask) {
           throw TarException(
-              'Directory "${entry.name}" has no executable mode bit.');
+            'Directory "${entry.name}" has no executable mode bit.',
+          );
         }
       }
 
@@ -154,7 +156,8 @@ class TarArchive {
         final maskBits = entry.header.mode & _defaultMode;
         if (maskBits != _defaultMode) {
           throw TarException(
-              'Entry "${entry.name}" has no default mode bits (644).');
+            'Entry "${entry.name}" has no default mode bits (644).',
+          );
         }
       }
 
@@ -167,7 +170,8 @@ class TarArchive {
       if (maxTotalLengthBytes != null &&
           totalLengthBytes > maxTotalLengthBytes) {
         throw TarException(
-            'Maximum total length reached: $maxTotalLengthBytes.');
+          'Maximum total length reached: $maxTotalLengthBytes.',
+        );
       }
 
       if (!names.add(entry.name)) {

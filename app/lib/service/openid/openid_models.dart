@@ -17,10 +17,7 @@ class OpenIdData {
   final OpenIdProvider provider;
   final JsonWebKeyList jwks;
 
-  OpenIdData({
-    required this.provider,
-    required this.jwks,
-  });
+  OpenIdData({required this.provider, required this.jwks});
 
   factory OpenIdData.fromJson(Map<String, dynamic> json) =>
       _$OpenIdDataFromJson(json);
@@ -75,9 +72,7 @@ class OpenIdProvider {
 class JsonWebKeyList {
   final List<JsonWebKey> keys;
 
-  JsonWebKeyList({
-    required this.keys,
-  });
+  JsonWebKeyList({required this.keys});
 
   factory JsonWebKeyList.fromJson(Map<String, dynamic> json) =>
       _$JsonWebKeyListFromJson(json);
@@ -86,10 +81,7 @@ class JsonWebKeyList {
 
   /// Selects the keys that match the provided parameters and can
   /// be used for signature verification.
-  List<JsonWebKey> selectKeyForSignature({
-    String? kid,
-    String? alg,
-  }) {
+  List<JsonWebKey> selectKeyForSignature({String? kid, String? alg}) {
     return keys
         .where((k) => k.use == null || k.use == 'sig')
         .where((k) => kid == null || k.kid == kid)

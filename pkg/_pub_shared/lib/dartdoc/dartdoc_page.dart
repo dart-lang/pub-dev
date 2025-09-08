@@ -25,8 +25,9 @@ final class Breadcrumb {
 
   /// dartdoc outputs library names with `.dart` in the main breadcrumbs location,
   /// but without it for the sidebar breadcrumbs location.
-  late final titleWithoutDotDart =
-      title.endsWith('.dart') ? title.substring(0, title.length - 5) : title;
+  late final titleWithoutDotDart = title.endsWith('.dart')
+      ? title.substring(0, title.length - 5)
+      : title;
 }
 
 /// A dartdoc sidebar content.
@@ -35,9 +36,7 @@ class DartDocSidebar {
   /// Sanitized HTML content of the sidebar.
   final String content;
 
-  DartDocSidebar({
-    required this.content,
-  });
+  DartDocSidebar({required this.content});
 
   static DartDocSidebar parse(String rawHtml) {
     return DartDocSidebar(content: DartDocPage._sanitize(rawHtml));
@@ -114,21 +113,21 @@ final class DartDocPage {
   // TODO: Create a variant of sanitizeHtml that consumes nodes from
   //       package:html, so that we don't have re-parse everything :/
   static String _sanitize(String? html) => sanitizeHtml(
-        html ?? '',
-        allowClassName: (_) => true,
-        allowElementId: (_) => true,
-        addLinkRel: (href) {
-          final u = Uri.tryParse(href);
-          if (u != null && !u.shouldIndicateUgc) {
-            // TODO: Determine if there is a better way to do this.
-            //       It's probably reasonable that internal links don't
-            //       required ugc + nofollow.
-            return [];
-          }
-          // Add ugc and nofollow if the host isn't one of ours.
-          return ['ugc', 'nofollow'];
-        },
-      );
+    html ?? '',
+    allowClassName: (_) => true,
+    allowElementId: (_) => true,
+    addLinkRel: (href) {
+      final u = Uri.tryParse(href);
+      if (u != null && !u.shouldIndicateUgc) {
+        // TODO: Determine if there is a better way to do this.
+        //       It's probably reasonable that internal links don't
+        //       required ugc + nofollow.
+        return [];
+      }
+      // Add ugc and nofollow if the host isn't one of ours.
+      return ['ugc', 'nofollow'];
+    },
+  );
 
   /// Indicates that the [DartDocPage] was could not parse any displayable
   /// content from the dartdoc output. Such page is a redirect page that was
@@ -160,26 +159,25 @@ final class DartDocPage {
     }
 
     // Extract breadcrumbs, because we need to tweak these on pub.dev
-    final breadcrumbs = document
+    final breadcrumbs =
+        document
             .querySelector('header#title')
             ?.querySelector('ol.breadcrumbs')
             ?.children
             .map((crumb) {
-          var href = crumb.querySelector('a')?.attributes['href'];
-          if (href != null && !_validLink(href)) {
-            href = null;
-          }
-          if (href != null) {
-            final u = Uri.tryParse(href);
-            if (u == null || u.shouldIndicateUgc) {
-              href = null; // breadcrumbs should never link externally!
-            }
-          }
-          return Breadcrumb(
-            title: crumb.text,
-            href: href,
-          );
-        }).toList() ??
+              var href = crumb.querySelector('a')?.attributes['href'];
+              if (href != null && !_validLink(href)) {
+                href = null;
+              }
+              if (href != null) {
+                final u = Uri.tryParse(href);
+                if (u == null || u.shouldIndicateUgc) {
+                  href = null; // breadcrumbs should never link externally!
+                }
+              }
+              return Breadcrumb(title: crumb.text, href: href);
+            })
+            .toList() ??
         <Breadcrumb>[];
 
     final rawLeft = document.querySelector('#dartdoc-sidebar-left');
@@ -214,7 +212,8 @@ final class DartDocPage {
 
     return DartDocPage(
       title: document.querySelector('head > title')?.text ?? '',
-      description: document
+      description:
+          document
               .querySelector('head > meta[name=description]')
               ?.attributes['content'] ??
           '',

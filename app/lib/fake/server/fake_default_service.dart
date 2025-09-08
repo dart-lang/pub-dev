@@ -29,9 +29,12 @@ class FakePubServer {
   final bool _watch;
   final FakeCloudCompute _cloudCompute;
 
-  FakePubServer(this._datastore, this._storage, this._cloudCompute,
-      {bool? watch})
-      : _watch = watch ?? false;
+  FakePubServer(
+    this._datastore,
+    this._storage,
+    this._cloudCompute, {
+    bool? watch,
+  }) : _watch = watch ?? false;
 
   Future<void> run({
     required int port,
@@ -39,39 +42,44 @@ class FakePubServer {
     required shelf.Handler extraHandler,
   }) async {
     await withFakeServices(
-        configuration: configuration,
-        datastore: _datastore,
-        storage: _storage,
-        cloudCompute: _cloudCompute,
-        fn: () async {
-          if (_watch) {
-            await watchForResourceChanges();
-          }
+      configuration: configuration,
+      datastore: _datastore,
+      storage: _storage,
+      cloudCompute: _cloudCompute,
+      fn: () async {
+        if (_watch) {
+          await watchForResourceChanges();
+        }
 
-          await generateFakeDownloadCountsInDatastore();
-          await generateFakeTopicValues();
-          await nameTracker.startTracking();
+        await generateFakeDownloadCountsInDatastore();
+        await generateFakeTopicValues();
+        await nameTracker.startTracking();
 
-          final appHandler = createAppHandler();
-          final handler = wrapHandler(Logger('fake_server.default'), appHandler,
-              sanitize: true);
+        final appHandler = createAppHandler();
+        final handler = wrapHandler(
+          Logger('fake_server.default'),
+          appHandler,
+          sanitize: true,
+        );
 
-          final server = await IOServer.bind('localhost', port);
-          serveRequests(server.server, (request) async {
-            return (await ss.fork(() async {
-              final rs = await extraHandler(request);
-              if (rs.statusCode != 404) return rs;
-              return await handler(request);
-            }) as shelf.Response?)!;
-          });
-          print('running on port $port');
-
-          await waitForProcessSignalTermination();
-
-          _logger.info('shutting down');
-          await server.close();
-          _logger.info('closing');
+        final server = await IOServer.bind('localhost', port);
+        serveRequests(server.server, (request) async {
+          return (await ss.fork(() async {
+                final rs = await extraHandler(request);
+                if (rs.statusCode != 404) return rs;
+                return await handler(request);
+              })
+              as shelf.Response?)!;
         });
+        print('running on port $port');
+
+        await waitForProcessSignalTermination();
+
+        _logger.info('shutting down');
+        await server.close();
+        _logger.info('closing');
+      },
+    );
     _logger.info('closed');
   }
 }

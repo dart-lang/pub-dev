@@ -24,18 +24,16 @@ Future<void> generateFakeDownloadCountsInDatastore() async {
   await for (final p in query.run()) {
     final r = math.Random(p.name.hashCode.abs());
     final count = (math.min(p.likes * p.likes, 50) + r.nextInt(50));
-    await downloadCountsBackend.updateDownloadCounts(
-      p.name!,
-      {
-        p.latestVersion!: count,
-      },
-      clock.now(),
-    );
+    await downloadCountsBackend.updateDownloadCounts(p.name!, {
+      p.latestVersion!: count,
+    }, clock.now());
   }
 }
 
 Future<void> uploadFakeDownloadCountsToBucket(
-    String downloadCountsFileName, String dataFilePath) async {
+  String downloadCountsFileName,
+  String dataFilePath,
+) async {
   final file = File(dataFilePath).readAsBytesSync();
   await storageService
       .bucket(activeConfiguration.downloadCountsBucketName!)
@@ -46,7 +44,9 @@ Future<void> generateFake30DaysTotals(Map<String, int> totals) async {
   await storageService
       .bucket(activeConfiguration.reportsBucketName!)
       .writeBytesWithRetry(
-          downloadCounts30DaysTotalsFileName, jsonUtf8Encoder.convert(totals));
+        downloadCounts30DaysTotalsFileName,
+        jsonUtf8Encoder.convert(totals),
+      );
 }
 
 Future<void> generateFakeTrendScores(Map<String, double> trends) async {

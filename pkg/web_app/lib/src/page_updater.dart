@@ -30,21 +30,13 @@ void setupPageUpdater(PopStateFn popStateFn) {
   window.onPopState.listen((event) {
     final state = event.state.dartify();
     if (state case {'html': final String htmlState?}) {
-      _update(
-        htmlState,
-        pushState: false,
-        url: null,
-      );
+      _update(htmlState, pushState: false, url: null);
     }
   });
 }
 
 /// Parse input [html] and replace the current `<body>` element with its `<body>`.
-Document _update(
-  String html, {
-  required bool pushState,
-  required String? url,
-}) {
+Document _update(String html, {required bool pushState, required String? url}) {
   // The dark theme preference is encoded in the `<body>` element's `class`
   // attributes. We could re-run the initialization, but storing the current
   // values and replacing the provided ones is simpler.

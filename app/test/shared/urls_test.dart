@@ -9,42 +9,58 @@ void main() {
   group('package page', () {
     test('without host', () {
       expect(pkgPageUrl('foo_bar'), '/packages/foo_bar');
-      expect(pkgPageUrl('foo_bar', version: '1.0.0'),
-          '/packages/foo_bar/versions/1.0.0');
+      expect(
+        pkgPageUrl('foo_bar', version: '1.0.0'),
+        '/packages/foo_bar/versions/1.0.0',
+      );
     });
 
     test('with host', () {
-      expect(pkgPageUrl('foo_bar', includeHost: true),
-          'https://pub.dev/packages/foo_bar');
-      expect(pkgPageUrl('foo_bar', version: '1.0.0', includeHost: true),
-          'https://pub.dev/packages/foo_bar/versions/1.0.0');
+      expect(
+        pkgPageUrl('foo_bar', includeHost: true),
+        'https://pub.dev/packages/foo_bar',
+      );
+      expect(
+        pkgPageUrl('foo_bar', version: '1.0.0', includeHost: true),
+        'https://pub.dev/packages/foo_bar/versions/1.0.0',
+      );
     });
   });
 
   group('documentation page', () {
     test('without host', () {
       expect(pkgDocUrl('foo_bar'), '/documentation/foo_bar/latest/');
-      expect(pkgDocUrl('foo_bar', version: '1.0.0'),
-          '/documentation/foo_bar/1.0.0/');
+      expect(
+        pkgDocUrl('foo_bar', version: '1.0.0'),
+        '/documentation/foo_bar/1.0.0/',
+      );
     });
 
     test('with host', () {
-      expect(pkgDocUrl('foo_bar', includeHost: true),
-          'https://pub.dev/documentation/foo_bar/latest/');
-      expect(pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
-          'https://pub.dev/documentation/foo_bar/1.0.0/');
+      expect(
+        pkgDocUrl('foo_bar', includeHost: true),
+        'https://pub.dev/documentation/foo_bar/latest/',
+      );
+      expect(
+        pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
+        'https://pub.dev/documentation/foo_bar/1.0.0/',
+      );
     });
 
     test('escaped segments', () {
-      expect(pkgDocUrl('foo', relativePath: 'árvíztűrő.png'),
-          '/documentation/foo/latest/%C3%A1rv%C3%ADzt%C5%B1r%C5%91.png');
+      expect(
+        pkgDocUrl('foo', relativePath: 'árvíztűrő.png'),
+        '/documentation/foo/latest/%C3%A1rv%C3%ADzt%C5%B1r%C5%91.png',
+      );
     });
   });
 
   group('SDK urls', () {
     test('dev', () {
-      expect(dartSdkMainUrl('2.1.0-dev.3.1'),
-          'https://api.dart.dev/dev/2.1.0-dev.3.1/');
+      expect(
+        dartSdkMainUrl('2.1.0-dev.3.1'),
+        'https://api.dart.dev/dev/2.1.0-dev.3.1/',
+      );
     });
 
     test('stable', () {
@@ -132,14 +148,19 @@ void main() {
 
   group('archive url', () {
     test('without base uri', () {
-      expect(pkgArchiveDownloadUrl('foo', '1.0.0+1'),
-          '/api/archives/foo-1.0.0%2B1.tar.gz');
+      expect(
+        pkgArchiveDownloadUrl('foo', '1.0.0+1'),
+        '/api/archives/foo-1.0.0%2B1.tar.gz',
+      );
     });
 
     test('with base uri', () {
       expect(
-        pkgArchiveDownloadUrl('foo', '1.0.0+1',
-            baseUri: Uri.parse('https://pub.dev/')),
+        pkgArchiveDownloadUrl(
+          'foo',
+          '1.0.0+1',
+          baseUri: Uri.parse('https://pub.dev/'),
+        ),
         'https://pub.dev/api/archives/foo-1.0.0%2B1.tar.gz',
       );
     });
@@ -159,12 +180,7 @@ void main() {
     });
 
     test('rejected', () {
-      final values = [
-        'https://pub.dev/',
-        '//',
-        '/../',
-        '/packages#id',
-      ];
+      final values = ['https://pub.dev/', '//', '/../', '/packages#id'];
       for (final v in values) {
         expect(isValidLocalRedirectUrl(v), false, reason: v);
       }

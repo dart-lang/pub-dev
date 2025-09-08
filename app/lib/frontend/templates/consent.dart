@@ -27,10 +27,7 @@ String renderConsentPage({
     content,
     title: 'Consent',
     noIndex: true,
-    pageData: PageData(
-      consentId: consentId,
-      sessionAware: true,
-    ),
+    pageData: PageData(consentId: consentId, sessionAware: true),
   );
 }
 

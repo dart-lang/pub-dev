@@ -35,26 +35,27 @@ final canonicalTopics = () {
 class CanonicalTopicFileContent {
   final List<CanonicalTopic> topics;
 
-  CanonicalTopicFileContent({
-    required this.topics,
-  }) {
+  CanonicalTopicFileContent({required this.topics}) {
     // verify that content is with the correct semantics
     for (final topic in topics) {
       if (topic.topic.length > 32) {
         throw FormatException(
-            '"${topic.topic}" must be shorter than 32 characters.');
+          '"${topic.topic}" must be shorter than 32 characters.',
+        );
       }
       if (!isValidTopicFormat(topic.topic)) {
         throw FormatException('"${topic.topic}" must be valid topic.');
       }
       if (topic.description.length > 160) {
         throw FormatException(
-            '"${topic.topic}" description must be shorter than 160 characters.');
+          '"${topic.topic}" description must be shorter than 160 characters.',
+        );
       }
       for (final alias in topic.aliases) {
         if (!isValidTopicFormat(alias)) {
           throw FormatException(
-              '"${topic.topic}" must have valid aliases ("$alias").');
+            '"${topic.topic}" must have valid aliases ("$alias").',
+          );
         }
       }
     }
@@ -69,7 +70,8 @@ class CanonicalTopicFileContent {
 
   factory CanonicalTopicFileContent.fromYaml(String content) {
     return CanonicalTopicFileContent.fromJson(
-        json.decode(json.encode(loadYaml(content))) as Map<String, Object?>);
+      json.decode(json.encode(loadYaml(content))) as Map<String, Object?>,
+    );
   }
 
   Map<String, Object?> toJson() => _$CanonicalTopicFileContentToJson(this);

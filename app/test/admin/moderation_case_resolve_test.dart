@@ -19,16 +19,16 @@ void main() {
       String? appealCaseId,
       required bool? apply,
     }) async {
-      await withRetryPubApiClient(
-        (client) async {
-          await client.postReport(ReportForm(
+      await withRetryPubApiClient((client) async {
+        await client.postReport(
+          ReportForm(
             email: 'user@pub.dev',
             caseId: appealCaseId,
             subject: 'package:oxygen',
             message: 'Huston, we have a problem.',
-          ));
-        },
-      );
+          ),
+        );
+      });
       final list = await dbService.query<ModerationCase>().run().toList();
       final mc = list.reduce((a, b) => a.opened.isAfter(b.opened) ? a : b);
 
@@ -36,11 +36,13 @@ void main() {
         final api = createPubApiClient(authToken: siteAdminToken);
         await api.adminInvokeAction(
           'moderate-package',
-          AdminInvokeActionArguments(arguments: {
-            'case': mc.caseId,
-            'package': 'oxygen',
-            'state': apply.toString(),
-          }),
+          AdminInvokeActionArguments(
+            arguments: {
+              'case': mc.caseId,
+              'package': 'oxygen',
+              'state': apply.toString(),
+            },
+          ),
         );
       }
 
@@ -61,12 +63,14 @@ void main() {
       final api = createPubApiClient(authToken: siteAdminToken);
       await api.adminInvokeAction(
         'moderation-case-resolve',
-        AdminInvokeActionArguments(arguments: {
-          'case': caseId,
-          if (grounds != null) 'grounds': grounds,
-          if (violation != null) 'violation': violation,
-          if (reason != null) 'reason': reason,
-        }),
+        AdminInvokeActionArguments(
+          arguments: {
+            'case': caseId,
+            if (grounds != null) 'grounds': grounds,
+            if (violation != null) 'violation': violation,
+            if (reason != null) 'reason': reason,
+          },
+        ),
       );
       final mc = await adminBackend.lookupModerationCase(caseId);
       return mc!.status!;
@@ -81,95 +85,105 @@ void main() {
       }
     }
 
-    testWithProfile('notification: no action', fn: () async {
-      final mc = await _prepare(apply: null);
-      expect(await _close(mc.caseId), 'no-action');
-    });
+    testWithProfile(
+      'notification: no action',
+      fn: () async {
+        final mc = await _prepare(apply: null);
+        expect(await _close(mc.caseId), 'no-action');
+      },
+    );
 
-    testWithProfile('notification: apply moderation', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-    ], fn: () async {
-      final mc = await _prepare(apply: true);
+    testWithProfile(
+      'notification: apply moderation',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ],
+      fn: () async {
+        final mc = await _prepare(apply: true);
 
-      // cleanup doesn't remove case prematurely
-      await _verifyCaseExistence(mc.caseId, true);
-      await adminBackend.deleteModerationCases();
-      await _verifyCaseExistence(mc.caseId, true);
+        // cleanup doesn't remove case prematurely
+        await _verifyCaseExistence(mc.caseId, true);
+        await adminBackend.deleteModerationCases();
+        await _verifyCaseExistence(mc.caseId, true);
 
-      // close case
-      expect(
-        await _close(
-          mc.caseId,
-          reason: 'The package violated our policy.',
-        ),
-        'moderation-applied',
-      );
+        // close case
+        expect(
+          await _close(mc.caseId, reason: 'The package violated our policy.'),
+          'moderation-applied',
+        );
 
-      // cleanup does remove case after the threshold is reached
-      await _verifyCaseExistence(mc.caseId, true);
-      await withClock(Clock.fixed(clock.fromNow(days: 365 * 3)),
-          () => adminBackend.deleteModerationCases());
-      await _verifyCaseExistence(mc.caseId, false);
-    });
+        // cleanup does remove case after the threshold is reached
+        await _verifyCaseExistence(mc.caseId, true);
+        await withClock(
+          Clock.fixed(clock.fromNow(days: 365 * 3)),
+          () => adminBackend.deleteModerationCases(),
+        );
+        await _verifyCaseExistence(mc.caseId, false);
+      },
+    );
 
-    testWithProfile('appeal no action: revert', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-    ], fn: () async {
-      final mc1 = await _prepare(apply: null);
-      await _close(mc1.caseId);
+    testWithProfile(
+      'appeal no action: revert',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ],
+      fn: () async {
+        final mc1 = await _prepare(apply: null);
+        await _close(mc1.caseId);
 
-      final mc = await _prepare(apply: true, appealCaseId: mc1.caseId);
-      expect(
-          await _close(
-            mc.caseId,
-            reason: 'The package violated our policy.',
-          ),
-          'no-action-reverted');
-    });
+        final mc = await _prepare(apply: true, appealCaseId: mc1.caseId);
+        expect(
+          await _close(mc.caseId, reason: 'The package violated our policy.'),
+          'no-action-reverted',
+        );
+      },
+    );
 
-    testWithProfile('appeal no action: upheld', fn: () async {
-      final mc1 = await _prepare(apply: null);
-      await _close(mc1.caseId);
+    testWithProfile(
+      'appeal no action: upheld',
+      fn: () async {
+        final mc1 = await _prepare(apply: null);
+        await _close(mc1.caseId);
 
-      final mc = await _prepare(apply: null, appealCaseId: mc1.caseId);
-      expect(await _close(mc.caseId), 'no-action-upheld');
-    });
+        final mc = await _prepare(apply: null, appealCaseId: mc1.caseId);
+        expect(await _close(mc.caseId), 'no-action-upheld');
+      },
+    );
 
-    testWithProfile('appeal moderation: revert', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-    ], fn: () async {
-      final mc1 = await _prepare(apply: true);
-      await _close(
-        mc1.caseId,
-        reason: 'The package violated our policy.',
-      );
+    testWithProfile(
+      'appeal moderation: revert',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ],
+      fn: () async {
+        final mc1 = await _prepare(apply: true);
+        await _close(mc1.caseId, reason: 'The package violated our policy.');
 
-      final mc = await _prepare(apply: false, appealCaseId: mc1.caseId);
-      expect(await _close(mc.caseId), 'moderation-reverted');
-    });
+        final mc = await _prepare(apply: false, appealCaseId: mc1.caseId);
+        expect(await _close(mc.caseId), 'moderation-reverted');
+      },
+    );
 
-    testWithProfile('appeal moderation: upheld', expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-    ], fn: () async {
-      final mc1 = await _prepare(apply: true);
-      await _close(
-        mc1.caseId,
-        reason: 'The package violated our policy.',
-      );
+    testWithProfile(
+      'appeal moderation: upheld',
+      expectedLogMessages: [
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+      ],
+      fn: () async {
+        final mc1 = await _prepare(apply: true);
+        await _close(mc1.caseId, reason: 'The package violated our policy.');
 
-      final mc = await _prepare(apply: null, appealCaseId: mc1.caseId);
-      expect(
-        await _close(mc.caseId),
-        'moderation-upheld',
-      );
-    });
+        final mc = await _prepare(apply: null, appealCaseId: mc1.caseId);
+        expect(await _close(mc.caseId), 'moderation-upheld');
+      },
+    );
   });
 }

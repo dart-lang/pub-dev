@@ -18,10 +18,12 @@ final _startComparison = RegExp(r'^[<>]=?');
 const _compatibleWithChar = '^';
 
 /// Regex that matches a version number at the beginning of a string.
-final _startVersion = RegExp(r'^' // Start at beginning.
-    r'(\d+).(\d+).(\d+)' // Version number.
-    r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
-    r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?'); // Build.
+final _startVersion = RegExp(
+  r'^' // Start at beginning.
+  r'(\d+).(\d+).(\d+)' // Version number.
+  r'(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?' // Pre-release.
+  r'(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?',
+); // Build.
 
 /// Like [_startVersion] but matches the entire string.
 final _completeVersion = RegExp('${_startVersion.pattern}\$');
@@ -84,8 +86,10 @@ VersionConstraint parsePossiblyBrokenVersionConstraint(String text) {
 
     var version = matchVersion();
     if (version == null) {
-      throw FormatException('Expected version number after "$op" in '
-          '"$originalText", got "$text".');
+      throw FormatException(
+        'Expected version number after "$op" in '
+        '"$originalText", got "$text".',
+      );
     }
 
     switch (op) {
@@ -93,15 +97,20 @@ VersionConstraint parsePossiblyBrokenVersionConstraint(String text) {
         return VersionRange(max: version, includeMax: true);
       case '<':
         return VersionRange(
-            max: version, includeMax: false, alwaysIncludeMaxPreRelease: true);
+          max: version,
+          includeMax: false,
+          alwaysIncludeMaxPreRelease: true,
+        );
       case '>=':
         return VersionRange(min: version, includeMin: true);
       case '>':
         return VersionRange(min: version, includeMin: false);
     }
 
-    throw FormatException('Expected one of "<=", "<", ">=", or ">" '
-        'as the operator in "$originalText", got "$op".');
+    throw FormatException(
+      'Expected one of "<=", "<", ">=", or ">" '
+      'as the operator in "$originalText", got "$op".',
+    );
   }
 
   // Try to parse the "^" operator followed by a version.
@@ -113,13 +122,17 @@ VersionConstraint parsePossiblyBrokenVersionConstraint(String text) {
 
     var version = matchVersion();
     if (version == null) {
-      throw FormatException('Expected version number after '
-          '"$_compatibleWithChar" in "$originalText", got "$text".');
+      throw FormatException(
+        'Expected version number after '
+        '"$_compatibleWithChar" in "$originalText", got "$text".',
+      );
     }
 
     if (text.isNotEmpty) {
-      throw FormatException('Cannot include other constraints with '
-          '"$_compatibleWithChar" constraint in "$originalText".');
+      throw FormatException(
+        'Cannot include other constraints with '
+        '"$_compatibleWithChar" constraint in "$originalText".',
+      );
     }
 
     return VersionConstraint.compatibleWith(version);
@@ -140,8 +153,10 @@ VersionConstraint parsePossiblyBrokenVersionConstraint(String text) {
 
     var newRange = matchVersion() ?? matchComparison();
     if (newRange == null) {
-      throw FormatException('Could not parse version "$originalText". '
-          'Unknown text at "$text".');
+      throw FormatException(
+        'Could not parse version "$originalText". '
+        'Unknown text at "$text".',
+      );
     }
 
     if (newRange.min != null) {
@@ -176,5 +191,9 @@ VersionConstraint parsePossiblyBrokenVersionConstraint(String text) {
   }
 
   return VersionRange(
-      min: min, includeMin: includeMin, max: max, includeMax: includeMax);
+    min: min,
+    includeMin: includeMin,
+    max: max,
+    includeMax: includeMax,
+  );
 }

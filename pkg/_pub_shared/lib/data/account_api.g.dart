@@ -7,16 +7,12 @@ part of 'account_api.dart';
 // **************************************************************************
 
 ClientSessionRequest _$ClientSessionRequestFromJson(
-        Map<String, dynamic> json) =>
-    ClientSessionRequest(
-      accessToken: json['accessToken'] as String?,
-    );
+  Map<String, dynamic> json,
+) => ClientSessionRequest(accessToken: json['accessToken'] as String?);
 
 Map<String, dynamic> _$ClientSessionRequestToJson(
-        ClientSessionRequest instance) =>
-    <String, dynamic>{
-      'accessToken': instance.accessToken,
-    };
+  ClientSessionRequest instance,
+) => <String, dynamic>{'accessToken': instance.accessToken};
 
 ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) =>
     ClientSessionStatus(
@@ -29,25 +25,23 @@ ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ClientSessionStatusToJson(
-        ClientSessionStatus instance) =>
-    <String, dynamic>{
-      'expires': instance.expires?.toIso8601String(),
-      'authenticatedAt': instance.authenticatedAt?.toIso8601String(),
-    };
+  ClientSessionStatus instance,
+) => <String, dynamic>{
+  'expires': instance.expires?.toIso8601String(),
+  'authenticatedAt': instance.authenticatedAt?.toIso8601String(),
+};
 
 LikedPackagesResponse _$LikedPackagesResponseFromJson(
-        Map<String, dynamic> json) =>
-    LikedPackagesResponse(
-      likedPackages: (json['likedPackages'] as List<dynamic>?)
-          ?.map((e) => PackageLikeResponse.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  Map<String, dynamic> json,
+) => LikedPackagesResponse(
+  likedPackages: (json['likedPackages'] as List<dynamic>?)
+      ?.map((e) => PackageLikeResponse.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
 
 Map<String, dynamic> _$LikedPackagesResponseToJson(
-        LikedPackagesResponse instance) =>
-    <String, dynamic>{
-      'likedPackages': instance.likedPackages,
-    };
+  LikedPackagesResponse instance,
+) => <String, dynamic>{'likedPackages': instance.likedPackages};
 
 PackageLikeResponse _$PackageLikeResponseFromJson(Map<String, dynamic> json) =>
     PackageLikeResponse(
@@ -59,12 +53,12 @@ PackageLikeResponse _$PackageLikeResponseFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PackageLikeResponseToJson(
-        PackageLikeResponse instance) =>
-    <String, dynamic>{
-      'package': instance.package,
-      'liked': instance.liked,
-      'created': instance.created?.toIso8601String(),
-    };
+  PackageLikeResponse instance,
+) => <String, dynamic>{
+  'package': instance.package,
+  'liked': instance.liked,
+  'created': instance.created?.toIso8601String(),
+};
 
 PackageLikesCount _$PackageLikesCountFromJson(Map<String, dynamic> json) =>
     PackageLikesCount(
@@ -73,57 +67,42 @@ PackageLikesCount _$PackageLikesCountFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PackageLikesCountToJson(PackageLikesCount instance) =>
-    <String, dynamic>{
-      'package': instance.package,
-      'likes': instance.likes,
-    };
+    <String, dynamic>{'package': instance.package, 'likes': instance.likes};
 
 AccountPkgOptions _$AccountPkgOptionsFromJson(Map<String, dynamic> json) =>
-    AccountPkgOptions(
-      isAdmin: json['isAdmin'] as bool?,
-    );
+    AccountPkgOptions(isAdmin: json['isAdmin'] as bool?);
 
 Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
-    <String, dynamic>{
-      'isAdmin': instance.isAdmin,
-    };
+    <String, dynamic>{'isAdmin': instance.isAdmin};
 
 AccountPublisherOptions _$AccountPublisherOptionsFromJson(
-        Map<String, dynamic> json) =>
-    AccountPublisherOptions(
-      isAdmin: json['isAdmin'] as bool?,
-    );
+  Map<String, dynamic> json,
+) => AccountPublisherOptions(isAdmin: json['isAdmin'] as bool?);
 
 Map<String, dynamic> _$AccountPublisherOptionsToJson(
-        AccountPublisherOptions instance) =>
-    <String, dynamic>{
-      'isAdmin': instance.isAdmin,
-    };
+  AccountPublisherOptions instance,
+) => <String, dynamic>{'isAdmin': instance.isAdmin};
 
 Consent _$ConsentFromJson(Map<String, dynamic> json) => Consent(
-      titleText: json['titleText'] as String,
-      descriptionHtml: json['descriptionHtml'] as String,
-    );
+  titleText: json['titleText'] as String,
+  descriptionHtml: json['descriptionHtml'] as String,
+);
 
 Map<String, dynamic> _$ConsentToJson(Consent instance) => <String, dynamic>{
-      'titleText': instance.titleText,
-      'descriptionHtml': instance.descriptionHtml,
-    };
+  'titleText': instance.titleText,
+  'descriptionHtml': instance.descriptionHtml,
+};
 
 ConsentResult _$ConsentResultFromJson(Map<String, dynamic> json) =>
-    ConsentResult(
-      granted: json['granted'] as bool,
-    );
+    ConsentResult(granted: json['granted'] as bool);
 
 Map<String, dynamic> _$ConsentResultToJson(ConsentResult instance) =>
-    <String, dynamic>{
-      'granted': instance.granted,
-    };
+    <String, dynamic>{'granted': instance.granted};
 
 InviteStatus _$InviteStatusFromJson(Map<String, dynamic> json) => InviteStatus(
-      emailSent: json['emailSent'] as bool,
-      nextNotification: DateTime.parse(json['nextNotification'] as String),
-    );
+  emailSent: json['emailSent'] as bool,
+  nextNotification: DateTime.parse(json['nextNotification'] as String),
+);
 
 Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
     <String, dynamic>{
@@ -132,12 +111,12 @@ Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
     };
 
 ReportForm _$ReportFormFromJson(Map<String, dynamic> json) => ReportForm(
-      email: json['email'] as String?,
-      subject: json['subject'] as String?,
-      url: json['url'] as String?,
-      caseId: json['caseId'] as String?,
-      message: json['message'] as String,
-    );
+  email: json['email'] as String?,
+  subject: json['subject'] as String?,
+  url: json['url'] as String?,
+  caseId: json['caseId'] as String?,
+  message: json['message'] as String,
+);
 
 Map<String, dynamic> _$ReportFormToJson(ReportForm instance) =>
     <String, dynamic>{

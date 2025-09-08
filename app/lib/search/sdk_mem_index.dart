@@ -30,9 +30,7 @@ SdkIndex? get sdkIndex => ss.lookup(#_sdkIndex) as SdkIndex?;
 /// Results from these libraries are ranked with lower score and
 /// will be displayed only if the query has the library name, or
 /// there are not other results that could match the query.
-const _libraryWeights = {
-  'dart:html': 0.7,
-};
+const _libraryWeights = {'dart:html': 0.7};
 
 /// Results from these API pages are ranked with lower score and
 /// will be displayed only if the query has the library and the page
@@ -69,10 +67,12 @@ final _flutterUri = Uri.parse('https://api.flutter.dev/flutter/');
 /// was an error parsing the file or building the index.
 Future<SdkMemIndex?> createSdkMemIndex() async {
   try {
-    final dartSdkContent =
-        await loadOrFetchSdkIndexJsonAsString(SdkMemIndex.dartSdkIndexJsonUri);
+    final dartSdkContent = await loadOrFetchSdkIndexJsonAsString(
+      SdkMemIndex.dartSdkIndexJsonUri,
+    );
     final flutterSdkContent = await loadOrFetchSdkIndexJsonAsString(
-        SdkMemIndex._flutterSdkIndexJsonUri);
+      SdkMemIndex._flutterSdkIndexJsonUri,
+    );
     return SdkMemIndex(
       dartIndex: DartdocIndex.parseJsonText(dartSdkContent),
       flutterIndex: DartdocIndex.parseJsonText(flutterSdkContent),
@@ -114,15 +114,18 @@ class SdkMemIndex implements SdkIndex {
     );
   }
 
-  static final dartSdkIndexJsonUri =
-      Uri.parse('https://api.dart.dev/stable/latest/index.json');
-  static final _flutterSdkIndexJsonUri =
-      Uri.parse('https://api.flutter.dev/flutter/index.json');
+  static final dartSdkIndexJsonUri = Uri.parse(
+    'https://api.dart.dev/stable/latest/index.json',
+  );
+  static final _flutterSdkIndexJsonUri = Uri.parse(
+    'https://api.flutter.dev/flutter/index.json',
+  );
 
   void _addDartdocIndex(
     String sdk,
     Uri baseUri,
     DartdocIndex index, {
+
     /// If specified, the index building will call this function for
     /// each library, and will include only the ones that return `true`.
     bool Function(String library)? includeLibraryFn,
@@ -190,19 +193,19 @@ class SdkMemIndex implements SdkIndex {
       // scored lower than `query=html cursor`.
       final isQualifiedQuery = query.contains(library.lastNamePart);
 
-      final plainResults = library.tokenIndex
-          .withSearchWords(words, (score) => score.top(3, minValue: 0.05));
+      final plainResults = library.tokenIndex.withSearchWords(
+        words,
+        (score) => score.top(3, minValue: 0.05),
+      );
       if (plainResults.isEmpty) continue;
 
       final weightedResults = isQualifiedQuery
           ? plainResults
-          : plainResults.map(
-              (key, value) {
-                final dir = p.dirname(key);
-                final w = (_apiPageDirWeights[dir] ?? 1.0) * library.weight;
-                return MapEntry(key, w * value);
-              },
-            );
+          : plainResults.map((key, value) {
+              final dir = p.dirname(key);
+              final w = (_apiPageDirWeights[dir] ?? 1.0) * library.weight;
+              return MapEntry(key, w * value);
+            });
 
       final hit = _Hit(library, weightedResults);
       if (hit.score > 0.25) {
@@ -217,21 +220,23 @@ class SdkMemIndex implements SdkIndex {
     return hits
         .take(limit)
         .where((h) => h.score >= minScore)
-        .map((hit) => SdkLibraryHit(
-              sdk: hit.library.sdk,
-              library: hit.library.name,
-              description: hit.library.description,
-              url: hit.library.libraryUrl,
-              score: hit.score,
-              apiPages: hit.top.entries
-                  .map(
-                    (e) => ApiPageRef(
-                      path: e.key,
-                      url: hit.library.sdkBaseUri.resolve(e.key).toString(),
-                    ),
-                  )
-                  .toList(),
-            ))
+        .map(
+          (hit) => SdkLibraryHit(
+            sdk: hit.library.sdk,
+            library: hit.library.name,
+            description: hit.library.description,
+            url: hit.library.libraryUrl,
+            score: hit.score,
+            apiPages: hit.top.entries
+                .map(
+                  (e) => ApiPageRef(
+                    path: e.key,
+                    url: hit.library.sdkBaseUri.resolve(e.key).toString(),
+                  ),
+                )
+                .toList(),
+          ),
+        )
         .toList();
   }
 }

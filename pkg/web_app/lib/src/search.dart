@@ -36,10 +36,7 @@ void _setEventForKeyboardShortcut() {
         e.preventDefault();
 
         // notify analytics
-        gtmCustomEvent(
-          category: 'keyboard-shortcut',
-          action: 'focus-search',
-        );
+        gtmCustomEvent(category: 'keyboard-shortcut', action: 'focus-search');
       }
     });
   }
@@ -97,7 +94,7 @@ Future<void> _handleInputFieldUpdate(
   Event event, {
   required ParsedQueryText Function(ParsedQueryText query) newQueryFn,
   required String? Function(ParsedQueryText oldQuery, ParsedQueryText newQuery)
-      gtmActionFn,
+  gtmActionFn,
 }) async {
   event.preventDefault();
   event.stopPropagation();
@@ -134,18 +131,18 @@ Future<void> _handleInputFieldUpdate(
   // notify GTM on the click
   final action = gtmActionFn(parsedQuery, newQuery);
   if (action != null && action.isNotEmpty) {
-    gtmCustomEvent(
-      category: 'click',
-      action: action,
-    );
+    gtmCustomEvent(category: 'click', action: action);
   }
 }
 
 String _openSectionParams() {
   return document
       .querySelectorAll('.search-form-section')
-      .where((e) =>
-          e.dataset.containsKey('section-tag') && e.classes.contains('-active'))
+      .where(
+        (e) =>
+            e.dataset.containsKey('section-tag') &&
+            e.classes.contains('-active'),
+      )
       .map((e) => e.dataset['section-tag'])
       .nonNulls
       .join(' ');

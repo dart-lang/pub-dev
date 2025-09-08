@@ -93,55 +93,55 @@ final class FakeAppengineEnv {
     List<String>? runtimeVersions,
   }) async {
     return await fork(() async {
-      if (runtimeVersions != null) {
-        registerAcceptedRuntimeVersions(runtimeVersions);
-      }
-      return await withClockControl((clockControl) async {
-        _registerClockControl(clockControl);
-        return await withFakeServices(
-          datastore: _datastore,
-          storage: _storage,
-          cloudCompute: _cloudCompute,
-          fn: () async {
-            registerStaticFileCacheForTest(_staticFileCacheForTesting);
+          if (runtimeVersions != null) {
+            registerAcceptedRuntimeVersions(runtimeVersions);
+          }
+          return await withClockControl((clockControl) async {
+            _registerClockControl(clockControl);
+            return await withFakeServices(
+              datastore: _datastore,
+              storage: _storage,
+              cloudCompute: _cloudCompute,
+              fn: () async {
+                registerStaticFileCacheForTest(_staticFileCacheForTesting);
 
-            if (testProfile != null) {
-              await importProfile(
-                profile: testProfile,
-                source: importSource,
-              );
-            }
-            if (processJobsWithFakeRunners) {
-              await generateFakeDownloadCountsInDatastore();
-              await processTasksWithFakePanaAndDartdoc();
-            }
-            await nameTracker.reloadFromDatastore();
-            await indexUpdater.updateAllPackages();
-            await topPackages.start();
-            await youtubeBackend.start();
-            await asyncQueue.ongoingProcessing;
-            fakeEmailSender.sentMessages.clear();
+                if (testProfile != null) {
+                  await importProfile(
+                    profile: testProfile,
+                    source: importSource,
+                  );
+                }
+                if (processJobsWithFakeRunners) {
+                  await generateFakeDownloadCountsInDatastore();
+                  await processTasksWithFakePanaAndDartdoc();
+                }
+                await nameTracker.reloadFromDatastore();
+                await indexUpdater.updateAllPackages();
+                await topPackages.start();
+                await youtubeBackend.start();
+                await asyncQueue.ongoingProcessing;
+                fakeEmailSender.sentMessages.clear();
 
-            await fork(() async {
-              await fn();
-            });
-            await _postTestVerification(integrityProblem: integrityProblem);
-          },
-        );
-      });
-    }) as R;
+                await fork(() async {
+                  await fn();
+                });
+                await _postTestVerification(integrityProblem: integrityProblem);
+              },
+            );
+          });
+        })
+        as R;
   }
 }
 
-Future<void> _postTestVerification({
-  required Pattern? integrityProblem,
-}) async {
+Future<void> _postTestVerification({required Pattern? integrityProblem}) async {
   final problems = await findAllIntegrityProblems().toList();
   if (problems.isNotEmpty &&
       (integrityProblem == null ||
           integrityProblem.matchAsPrefix(problems.first) == null)) {
     throw Exception(
-        '${problems.length} integrity problems detected. First: ${problems.first}');
+      '${problems.length} integrity problems detected. First: ${problems.first}',
+    );
   } else if (problems.isEmpty && integrityProblem != null) {
     throw Exception('Integrity problem expected but not present.');
   }
@@ -192,74 +192,118 @@ void testWithProfile(
 }
 
 void setupTestsWithCallerAuthorizationIssues(
-    Future Function(PubApiClient client) fn) {
-  testWithProfile('No active user', fn: () async {
-    final rs = fn(createPubApiClient());
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
-  });
+  Future Function(PubApiClient client) fn,
+) {
+  testWithProfile(
+    'No active user',
+    fn: () async {
+      final rs = fn(createPubApiClient());
+      await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    },
+  );
 
-  testWithProfile('Active user is not authorized', fn: () async {
-    final rs =
-        fn(await createFakeAuthPubApiClient(email: 'unauthorized@pub.dev'));
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
-  });
+  testWithProfile(
+    'Active user is not authorized',
+    fn: () async {
+      final rs = fn(
+        await createFakeAuthPubApiClient(email: 'unauthorized@pub.dev'),
+      );
+      await expectApiException(
+        rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+      );
+    },
+  );
 
-  testWithProfile('Active user is moderated', fn: () async {
-    final users = await dbService.query<User>().run().toList();
-    final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
-    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-    await dbService.commit(inserts: [
-      user
-        ..isModerated = true
-        ..moderatedAt = clock.now()
-    ]);
-    final rs = fn(client);
-    await expectApiException(rs,
-        status: 401, code: 'MissingAuthentication', message: 'failed');
-  });
+  testWithProfile(
+    'Active user is moderated',
+    fn: () async {
+      final users = await dbService.query<User>().run().toList();
+      final user = users.firstWhere((u) => u.email == 'admin@pub.dev');
+      final client = await createFakeAuthPubApiClient(
+        email: adminAtPubDevEmail,
+      );
+      await dbService.commit(
+        inserts: [
+          user
+            ..isModerated = true
+            ..moderatedAt = clock.now(),
+        ],
+      );
+      final rs = fn(client);
+      await expectApiException(
+        rs,
+        status: 401,
+        code: 'MissingAuthentication',
+        message: 'failed',
+      );
+    },
+  );
 }
 
 /// Creates generic test cases for admin API operations with failure expectations
 /// (e.g. missing or wrong authentication).
 void setupTestsWithAdminTokenIssues(Future Function(PubApiClient client) fn) {
-  testWithProfile('No active user', fn: () async {
-    final rs = fn(createPubApiClient());
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
-  });
+  testWithProfile(
+    'No active user',
+    fn: () async {
+      final rs = fn(createPubApiClient());
+      await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    },
+  );
 
-  testWithProfile('Regular user token from the client.', fn: () async {
-    final token = createFakeAuthTokenForEmail(
-      'unauthorized@pub.dev',
-      audience: activeConfiguration.pubClientAudience,
-    );
-    final rs = fn(createPubApiClient(authToken: token));
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
-  });
+  testWithProfile(
+    'Regular user token from the client.',
+    fn: () async {
+      final token = createFakeAuthTokenForEmail(
+        'unauthorized@pub.dev',
+        audience: activeConfiguration.pubClientAudience,
+      );
+      final rs = fn(createPubApiClient(authToken: token));
+      await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    },
+  );
 
-  testWithProfile('Regular user token from the website.', fn: () async {
-    final token = createFakeAuthTokenForEmail(
-      'unauthorized@pub.dev',
-      audience: activeConfiguration.pubServerAudience,
-    );
-    final rs = fn(createPubApiClient(authToken: token));
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
-  });
+  testWithProfile(
+    'Regular user token from the website.',
+    fn: () async {
+      final token = createFakeAuthTokenForEmail(
+        'unauthorized@pub.dev',
+        audience: activeConfiguration.pubServerAudience,
+      );
+      final rs = fn(createPubApiClient(authToken: token));
+      await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    },
+  );
 
-  testWithProfile('Regular user token with external audience.', fn: () async {
-    final token = createFakeAuthTokenForEmail(
-      'unauthorized@pub.dev',
-      audience: activeConfiguration.externalServiceAudience,
-    );
-    final rs = fn(createPubApiClient(authToken: token));
-    await expectApiException(rs, status: 401, code: 'MissingAuthentication');
-  });
+  testWithProfile(
+    'Regular user token with external audience.',
+    fn: () async {
+      final token = createFakeAuthTokenForEmail(
+        'unauthorized@pub.dev',
+        audience: activeConfiguration.externalServiceAudience,
+      );
+      final rs = fn(createPubApiClient(authToken: token));
+      await expectApiException(rs, status: 401, code: 'MissingAuthentication');
+    },
+  );
 
-  testWithProfile('Non-admin service agent token', fn: () async {
-    final token = createFakeServiceAccountToken(
-        email: 'unauthorized@pub.dev', audience: 'https://pub.dev');
-    final rs = fn(createPubApiClient(authToken: token));
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
-  });
+  testWithProfile(
+    'Non-admin service agent token',
+    fn: () async {
+      final token = createFakeServiceAccountToken(
+        email: 'unauthorized@pub.dev',
+        audience: 'https://pub.dev',
+      );
+      final rs = fn(createPubApiClient(authToken: token));
+      await expectApiException(
+        rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+      );
+    },
+  );
 }
 
 class FakeGlobalLockClaim implements GlobalLockClaim {

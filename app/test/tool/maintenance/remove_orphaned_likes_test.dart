@@ -14,13 +14,20 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('Remove orphaned likes', () {
-    testWithProfile('finds the like but no need to delete it', fn: () async {
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      await client.likePackage('oxygen');
-      final counts = await removeOrphanedLikes(minAgeThreshold: Duration.zero);
-      expect(counts.found, 1);
-      expect(counts.deleted, 0);
-    });
+    testWithProfile(
+      'finds the like but no need to delete it',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        await client.likePackage('oxygen');
+        final counts = await removeOrphanedLikes(
+          minAgeThreshold: Duration.zero,
+        );
+        expect(counts.found, 1);
+        expect(counts.deleted, 0);
+      },
+    );
 
     testWithProfile(
       'finds like without package',
@@ -28,13 +35,16 @@ void main() {
         'SHOUT ### [FAILED] neat-periodic-task: "sync-public-bucket-from-canonical-bucket"',
       ],
       fn: () async {
-        final client =
-            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
         await client.likePackage('oxygen');
         await dbService.commit(
-            deletes: [dbService.emptyKey.append(Package, id: 'oxygen')]);
-        final counts =
-            await removeOrphanedLikes(minAgeThreshold: Duration.zero);
+          deletes: [dbService.emptyKey.append(Package, id: 'oxygen')],
+        );
+        final counts = await removeOrphanedLikes(
+          minAgeThreshold: Duration.zero,
+        );
         expect(counts.found, 1);
         expect(counts.deleted, 1);
       },
@@ -46,13 +56,15 @@ void main() {
     testWithProfile(
       'finds like without userid',
       fn: () async {
-        final client =
-            await createFakeAuthPubApiClient(email: userAtPubDevEmail);
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
         await client.likePackage('oxygen');
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         await dbService.commit(deletes: [user.key]);
-        final counts =
-            await removeOrphanedLikes(minAgeThreshold: Duration.zero);
+        final counts = await removeOrphanedLikes(
+          minAgeThreshold: Duration.zero,
+        );
         expect(counts.found, 1);
         expect(counts.deleted, 1);
       },
@@ -60,7 +72,8 @@ void main() {
       // The first integrity issue returned is about the mapping from the
       // matching OauthUserId entity, and we are only matching it via a pattern.
       integrityProblem: RegExp(
-          '^User ".*" is mapped from OAuthUserID "user-pub-dev", but does not have it set.'),
+        '^User ".*" is mapped from OAuthUserID "user-pub-dev", but does not have it set.',
+      ),
     );
   });
 }

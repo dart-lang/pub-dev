@@ -6,9 +6,7 @@ import '../../../../dom/dom.dart' as d;
 import '../../../detail_page.dart' show Tab;
 
 /// Renders the tab header and content of the details page.
-d.Node detailTabsNode({
-  required List<Tab> tabs,
-}) {
+d.Node detailTabsNode({required List<Tab> tabs}) {
   return d.fragment([
     d.div(
       classes: ['detail-tabs-wide-header'],
@@ -32,7 +30,9 @@ d.Node detailTabsNode({
       classes: ['detail-container', 'detail-body-main'],
       child: d.div(
         classes: ['detail-tabs-content'],
-        children: tabs.where((t) => t.hasContent).map(
+        children: tabs
+            .where((t) => t.hasContent)
+            .map(
               (t) => d.element(
                 'section',
                 classes: t.contentClasses,

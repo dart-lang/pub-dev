@@ -17,20 +17,14 @@ d.Node sortControlNode({
         attributes: {'title': selected.tooltip},
         children: [
           d.text('Sort by '),
-          d.button(
-            classes: ['sort-control-selected'],
-            text: selected.label,
-          ),
+          d.button(classes: ['sort-control-selected'], text: selected.label),
         ],
       ),
       d.div(
         classes: ['sort-control-popup'],
         children: options.map(
           (o) => d.button(
-            classes: [
-              'sort-control-option',
-              if (o == selected) 'selected',
-            ],
+            classes: ['sort-control-option', if (o == selected) 'selected'],
             attributes: {'data-value': o.id},
             text: o.label,
           ),

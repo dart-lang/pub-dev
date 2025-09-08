@@ -45,7 +45,8 @@ void validateHtml(Node root) {
       final name = attr.toString();
       if (name.toLowerCase().startsWith('on')) {
         throw AssertionError(
-            'No inline JS attribute is allowed, found: ${elem.outerHtml}.');
+          'No inline JS attribute is allowed, found: ${elem.outerHtml}.',
+        );
       }
     }
     // alt attribute should not contain the element type
@@ -53,7 +54,8 @@ void validateHtml(Node root) {
     if (alt != null) {
       if (alt.split(' ').contains('icon')) {
         throw AssertionError(
-            '"alt" attribute should not contain the type of the element: ${elem.outerHtml}');
+          '"alt" attribute should not contain the type of the element: ${elem.outerHtml}',
+        );
       }
     }
   }
@@ -64,12 +66,14 @@ void validateHtml(Node root) {
     if (elem.attributes['target'] == '_blank') {
       if (!elem.attributes.containsKey('rel')) {
         throw AssertionError(
-            '_blank links must have rel=noopener, found: ${elem.outerHtml}.');
+          '_blank links must have rel=noopener, found: ${elem.outerHtml}.',
+        );
       }
       final rel = elem.attributes['rel']!;
       if (!rel.split(' ').contains('noopener')) {
         throw AssertionError(
-            '_blank links must have rel=noopener, found: ${elem.outerHtml}.');
+          '_blank links must have rel=noopener, found: ${elem.outerHtml}.',
+        );
       }
     }
   }
@@ -93,7 +97,8 @@ void validateHtml(Node root) {
       final rel = elem.attributes['rel'] ?? '';
       if (!rel.split(' ').contains('nofollow')) {
         throw AssertionError(
-            'Package search URL must use nofollow: "${elem.outerHtml}".');
+          'Package search URL must use nofollow: "${elem.outerHtml}".',
+        );
       }
     }
   }
@@ -121,7 +126,8 @@ void validateHtml(Node root) {
     if (elem.attributes['type'] == 'application/ld+json') {
       if (elem.attributes.length != 1) {
         throw AssertionError(
-            'Only a single attribute is allowed on ld+json, found: ${elem.outerHtml}');
+          'Only a single attribute is allowed on ld+json, found: ${elem.outerHtml}',
+        );
       }
       if (elem.text.trim().isEmpty) {
         throw AssertionError('ld+json element must not be empty.');
@@ -140,11 +146,13 @@ void validateHtml(Node root) {
       final src = elem.attributes['src'];
       if (src == null || src.isEmpty) {
         throw AssertionError(
-            'script tag must have src attribute, found: ${elem.parent?.outerHtml}');
+          'script tag must have src attribute, found: ${elem.parent?.outerHtml}',
+        );
       }
       if (elem.text.trim().isNotEmpty) {
         throw AssertionError(
-            'script tag must text content must be empty, found: ${elem.outerHtml}');
+          'script tag must text content must be empty, found: ${elem.outerHtml}',
+        );
       }
     }
   }
@@ -152,7 +160,8 @@ void validateHtml(Node root) {
   // Lighthouse flags buttons that don't have text content or an `aria-label`/`title` property.
   final buttons = querySelectorAll('button');
   for (final elem in buttons) {
-    final text = elem.attributes['aria-label']?.trim() ??
+    final text =
+        elem.attributes['aria-label']?.trim() ??
         elem.attributes['title']?.trim() ??
         elem.text.trim();
     if (text.isEmpty) {
@@ -163,7 +172,8 @@ void validateHtml(Node root) {
         continue;
       }
       throw AssertionError(
-          'button tag text content or aria-label must not be empty, found: ${elem.outerHtml}');
+        'button tag text content or aria-label must not be empty, found: ${elem.outerHtml}',
+      );
     }
   }
 
@@ -173,7 +183,8 @@ void validateHtml(Node root) {
     final title = elem.attributes['title']?.trim();
     if (title != null && title == ariaLabel) {
       throw AssertionError(
-          'Element has the same `title` and `aria-label` attribute, keep the `title`: ${elem.outerHtml}');
+        'Element has the same `title` and `aria-label` attribute, keep the `title`: ${elem.outerHtml}',
+      );
     }
   }
 
@@ -190,7 +201,8 @@ void validateHtml(Node root) {
     // material components
     if (tag == 'th' && role == 'columnheader') continue;
     throw AssertionError(
-        '<$tag> tag should not have role attribute, found: ${elem.outerHtml}');
+      '<$tag> tag should not have role attribute, found: ${elem.outerHtml}',
+    );
   }
 }
 
@@ -226,7 +238,8 @@ void _validateCanonicalLink(Element head) {
         .toSet();
     if (!robotsValues.contains('noindex')) {
       throw AssertionError(
-          'When canonical URL is missing, noindex must be set.');
+        'When canonical URL is missing, noindex must be set.',
+      );
     }
   }
   if (canonicalLinks.length == 1) {
@@ -234,12 +247,14 @@ void _validateCanonicalLink(Element head) {
     final href = link.attributes['href']!;
     if (!href.startsWith('https://pub.dev/')) {
       throw AssertionError(
-          'Canonical URL must start with https://pub.dev/, found: $href.');
+        'Canonical URL must start with https://pub.dev/, found: $href.',
+      );
     }
     final uri = Uri.parse(href);
     if (uri.pathSegments.contains('.') || uri.pathSegments.contains('..')) {
       throw AssertionError(
-          'Canonical URL must not contain /./ or /../, found: $href.');
+        'Canonical URL must not contain /./ or /../, found: $href.',
+      );
     }
   }
 }

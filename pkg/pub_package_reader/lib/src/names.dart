@@ -90,13 +90,10 @@ const knownMixedCasePackages = <String>{
   'Transmission_RPC',
   'ViAuthClient',
 };
-const knownGoodLowerCasePackages = [
-  'babylon',
-];
-final blockedLowerCasePackages = knownMixedCasePackages
-    .map((s) => s.toLowerCase())
-    .toSet()
-  ..removeAll(knownGoodLowerCasePackages);
+const knownGoodLowerCasePackages = ['babylon'];
+final blockedLowerCasePackages =
+    knownMixedCasePackages.map((s) => s.toLowerCase()).toSet()
+      ..removeAll(knownGoodLowerCasePackages);
 
 final invalidHostNames = const <String>[
   '-',

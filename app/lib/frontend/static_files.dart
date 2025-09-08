@@ -16,10 +16,7 @@ import 'package:path/path.dart' as path;
 final _logger = Logger('pub.static_files');
 
 /// NOTE: also add annotation to routes.dart.
-const staticRootPaths = <String>[
-  'favicon.ico',
-  'osd.xml',
-];
+const staticRootPaths = <String>['favicon.ico', 'osd.xml'];
 
 StaticFileCache? _cache;
 StaticUrls? _staticUrls;
@@ -62,14 +59,16 @@ String resolveStaticDirPath() {
 
 /// Returns the path of pkg/web_app on the local filesystem.
 String resolveWebAppDirPath() {
-  return Directory(path.join(resolveAppDir(), '../pkg/web_app'))
-      .resolveSymbolicLinksSync();
+  return Directory(
+    path.join(resolveAppDir(), '../pkg/web_app'),
+  ).resolveSymbolicLinksSync();
 }
 
 /// Returns the path of pkg/web_css on the local filesystem.
 String resolveWebCssDirPath() {
-  return Directory(path.join(resolveAppDir(), '../pkg/web_css'))
-      .resolveSymbolicLinksSync();
+  return Directory(
+    path.join(resolveAppDir(), '../pkg/web_css'),
+  ).resolveSymbolicLinksSync();
 }
 
 /// Returns the path of /doc on the local filesystem.
@@ -94,10 +93,14 @@ class StaticFileCache {
     final thirdPartyDir = _resolveDir('third_party');
     _addDirectory(_resolveDir('third_party/highlight'), baseDir: thirdPartyDir);
     _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
-    _addDirectory(_resolveDir('third_party/dartdoc/resources'),
-        baseDir: thirdPartyDir);
-    _addDirectory(_resolveDir('third_party/material/bundle'),
-        baseDir: thirdPartyDir);
+    _addDirectory(
+      _resolveDir('third_party/dartdoc/resources'),
+      baseDir: thirdPartyDir,
+    );
+    _addDirectory(
+      _resolveDir('third_party/material/bundle'),
+      baseDir: thirdPartyDir,
+    );
     _joinFiles(
       path: '/static/highlight/highlight-with-init.js',
       from: [
@@ -123,8 +126,13 @@ class StaticFileCache {
       '/static/js/script.dart.js',
     };
     for (final path in paths) {
-      final file = StaticFile(path, 'text/mock', [], clock.now(),
-          'mocked_hash_${path.hashCode.abs()}');
+      final file = StaticFile(
+        path,
+        'text/mock',
+        [],
+        clock.now(),
+        'mocked_hash_${path.hashCode.abs()}',
+      );
       cache.addFile(file);
     }
     return cache;
@@ -139,23 +147,30 @@ class StaticFileCache {
         .listSync(recursive: true)
         .whereType<File>()
         .map((file) => file.absolute)
-        .map(
-      (File file) {
-        final relativePath = path.relative(file.path, from: baseDir!.path);
-        String contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
-        if (relativePath == 'osd.xml') {
-          contentType = 'application/opensearchdescription+xml';
-        }
-        final bytes = file.readAsBytesSync();
-        final lastModified = file.lastModifiedSync();
-        final isRoot = staticRootPaths.contains(relativePath);
-        final prefix = isRoot ? '' : '/static';
-        final requestPath = '$prefix/$relativePath';
-        final digest = crypto.sha256.convert(bytes);
-        final etag = digest.bytes.map((b) => (b & 31).toRadixString(32)).join();
-        return StaticFile(requestPath, contentType, bytes, lastModified, etag);
-      },
-    ).forEach(addFile);
+        .map((File file) {
+          final relativePath = path.relative(file.path, from: baseDir!.path);
+          String contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
+          if (relativePath == 'osd.xml') {
+            contentType = 'application/opensearchdescription+xml';
+          }
+          final bytes = file.readAsBytesSync();
+          final lastModified = file.lastModifiedSync();
+          final isRoot = staticRootPaths.contains(relativePath);
+          final prefix = isRoot ? '' : '/static';
+          final requestPath = '$prefix/$relativePath';
+          final digest = crypto.sha256.convert(bytes);
+          final etag = digest.bytes
+              .map((b) => (b & 31).toRadixString(32))
+              .join();
+          return StaticFile(
+            requestPath,
+            contentType,
+            bytes,
+            lastModified,
+            etag,
+          );
+        })
+        .forEach(addFile);
   }
 
   void _joinFiles({
@@ -227,8 +242,10 @@ class StaticFile {
   @visibleForTesting
   String get contentAsString => utf8.decode(bytes);
 
-  late final String _cacheableUrl =
-      Uri(path: requestPath, queryParameters: {'hash': etag}).toString();
+  late final String _cacheableUrl = Uri(
+    path: requestPath,
+    queryParameters: {'hash': etag},
+  ).toString();
 
   late final gzippedBytes = GZipCodec(level: 9).encode(bytes);
 }
@@ -236,30 +253,40 @@ class StaticFile {
 class StaticUrls {
   late final smallDartFavicon = getAssetUrl('/favicon.ico');
   late final dartLogoSvg = getAssetUrl('/static/img/dart-logo.svg');
-  late final flutterLogo32x32 =
-      getAssetUrl('/static/img/flutter-logo-32x32.png');
+  late final flutterLogo32x32 = getAssetUrl(
+    '/static/img/flutter-logo-32x32.png',
+  );
   late final pubDevLogoSvg = getAssetUrl('/static/img/pub-dev-logo.svg');
   late final defaultProfilePng = getAssetUrl(
-      '/static/img/material-icon-twotone-account-circle-white-24dp.png');
+    '/static/img/material-icon-twotone-account-circle-white-24dp.png',
+  );
   late final dartdocCss = getAssetUrl('/static/css/dartdoc.css');
-  late final dartdocScriptJs =
-      getAssetUrl('/static/dartdoc/resources/docs.dart.js');
-  late final dartdochighlightJs =
-      getAssetUrl('/static/dartdoc/resources/highlight.pack.js');
+  late final dartdocScriptJs = getAssetUrl(
+    '/static/dartdoc/resources/docs.dart.js',
+  );
+  late final dartdochighlightJs = getAssetUrl(
+    '/static/dartdoc/resources/highlight.pack.js',
+  );
   late final packagesSideImage = getAssetUrl('/static/img/packages-side.webp');
-  late final reportMissingIconRed =
-      getAssetUrl('/static/img/report-missing-icon-red.svg');
-  late final reportMissingIconYellow =
-      getAssetUrl('/static/img/report-missing-icon-yellow.svg');
-  late final reportOKIconGreen =
-      getAssetUrl('/static/img/report-ok-icon-green.svg');
+  late final reportMissingIconRed = getAssetUrl(
+    '/static/img/report-missing-icon-red.svg',
+  );
+  late final reportMissingIconYellow = getAssetUrl(
+    '/static/img/report-missing-icon-yellow.svg',
+  );
+  late final reportOKIconGreen = getAssetUrl(
+    '/static/img/report-ok-icon-green.svg',
+  );
   late final gtmJs = getAssetUrl('/static/js/gtm.js');
-  late final documentationIcon =
-      getAssetUrl('/static/img/description-24px.svg');
-  late final documentationFailedIcon =
-      getAssetUrl('/static/img/documentation-failed-icon.svg');
-  late final downloadIcon =
-      getAssetUrl('/static/img/vertical_align_bottom-24px.svg');
+  late final documentationIcon = getAssetUrl(
+    '/static/img/description-24px.svg',
+  );
+  late final documentationFailedIcon = getAssetUrl(
+    '/static/img/documentation-failed-icon.svg',
+  );
+  late final downloadIcon = getAssetUrl(
+    '/static/img/vertical_align_bottom-24px.svg',
+  );
 
   StaticUrls._();
 
@@ -300,7 +327,8 @@ Future _runPubGet(Directory dir) async {
     timeout: Duration(minutes: 2),
   );
   if (pr.exitCode != 0) {
-    final message = 'Unable to run `dart pub get` in ${dir.path}\n\n'
+    final message =
+        'Unable to run `dart pub get` in ${dir.path}\n\n'
         'exitCode: ${pr.exitCode}\n'
         'STDOUT:\n${pr.stdout}\n\n'
         'STDERR:\n${pr.stderr}';
@@ -318,8 +346,9 @@ Future updateLocalBuiltFilesIfNeeded() async {
   final webAppLastModified = await _detectLastModified(webAppDir);
   final scriptJs = File(path.join(staticDir.path, 'js', 'script.dart.js'));
   final scriptJsExists = await scriptJs.exists();
-  final scriptJsLastModified =
-      scriptJsExists ? await scriptJs.lastModified() : null;
+  final scriptJsLastModified = scriptJsExists
+      ? await scriptJs.lastModified()
+      : null;
   if (!scriptJsExists || (scriptJsLastModified!.isBefore(webAppLastModified))) {
     _logger.info('Building pkg/web_app');
     await scriptJs.parent.create(recursive: true);
@@ -332,13 +361,15 @@ Future updateLocalBuiltFilesIfNeeded() async {
   Future<bool> cssNeedsUpdate(String filename) async {
     final styleCss = File(path.join(staticDir.path, 'css', filename));
     final styleCssExists = await styleCss.exists();
-    final styleCssLastModified =
-        styleCssExists ? await styleCss.lastModified() : null;
+    final styleCssLastModified = styleCssExists
+        ? await styleCss.lastModified()
+        : null;
     return !styleCssExists ||
         (styleCssLastModified!.isBefore(webCssLastModified));
   }
 
-  final needsCssBuild = (await cssNeedsUpdate('style.css')) ||
+  final needsCssBuild =
+      (await cssNeedsUpdate('style.css')) ||
       (await cssNeedsUpdate('dartdoc.css'));
   if (needsCssBuild) {
     _logger.info('Building pkg/web_css');
@@ -357,7 +388,8 @@ Future<void> updateWebAppBuild() async {
     timeout: const Duration(minutes: 2),
   );
   if (pr.exitCode != 0) {
-    final message = 'Unable to compile script.dart\n\n'
+    final message =
+        'Unable to compile script.dart\n\n'
         'exitCode: ${pr.exitCode}\n'
         'STDOUT:\n${pr.stdout}\n\n'
         'STDERR:\n${pr.stderr}';
@@ -375,7 +407,8 @@ Future<void> updateWebCssBuild() async {
     timeout: const Duration(minutes: 2),
   );
   if (pr.exitCode != 0) {
-    final message = 'Unable to compile style.scss\n\n'
+    final message =
+        'Unable to compile style.scss\n\n'
         'exitCode: ${pr.exitCode}\n'
         'STDOUT:\n${pr.stdout}\n\n'
         'STDERR:\n${pr.stderr}';

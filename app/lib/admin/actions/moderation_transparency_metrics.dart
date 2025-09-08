@@ -78,10 +78,9 @@ required for the  transparency metrics report.
         violations.increment(mc.violation ?? '');
         sources.increment(mc.source);
 
-        final hasUserRestriction = mc
-            .getActionLog()
-            .entries
-            .any((e) => ModerationSubject.tryParse(e.subject)!.isUser);
+        final hasUserRestriction = mc.getActionLog().entries.any(
+          (e) => ModerationSubject.tryParse(e.subject)!.isUser,
+        );
         // If actions resulted in a user being blocked, then we count it as
         // "provision", even if packages were also removed.
         // Reasoning that it's natural that blocking a user would also
@@ -209,32 +208,23 @@ required for the  transparency metrics report.
       ['Number of actions taken, by detection method', ''],
       [
         'Automated detection',
-        sources[ModerationSource.automatedDetection] ?? 0
+        sources[ModerationSource.automatedDetection] ?? 0,
       ],
       [
         'Non-automated detection',
         sources.entries
             .where((e) => e.key != ModerationSource.automatedDetection)
             .map((e) => e.value)
-            .fold<int>(0, (a, b) => a + b)
+            .fold<int>(0, (a, b) => a + b),
       ],
       ['Number of actions taken, by type of restriction applied', ''],
-      [
-        'Restrictions of Visibility',
-        restrictions['visibility'] ?? 0,
-      ],
-      [
-        'Restrictions of Monetisation',
-        restrictions['monetisation'] ?? 0,
-      ],
+      ['Restrictions of Visibility', restrictions['visibility'] ?? 0],
+      ['Restrictions of Monetisation', restrictions['monetisation'] ?? 0],
       [
         'Restrictions of Provision of the Service',
         restrictions['provision'] ?? 0,
       ],
-      [
-        'Restrictions of an Account',
-        restrictions['account'] ?? 0,
-      ],
+      ['Restrictions of an Account', restrictions['account'] ?? 0],
 
       // ---------------------------------------
       ['Complaints received through internal complaint handling systems', ''],
@@ -243,18 +233,9 @@ required for the  transparency metrics report.
       ['CONTENT_ACCOUNT_OWNER_APPEAL', contentOwnerAppealCount],
       ['REPORTER_APPEAL', totalAppealCount - contentOwnerAppealCount],
       ['Number of complaints received, by outcome', ''],
-      [
-        'Initial decision upheld',
-        appealOutcomes['upheld'] ?? 0,
-      ],
-      [
-        'Initial decision reversed',
-        appealOutcomes['reverted'] ?? 0,
-      ],
-      [
-        'Decision omitted',
-        appealOutcomes['omitted'] ?? 0,
-      ],
+      ['Initial decision upheld', appealOutcomes['upheld'] ?? 0],
+      ['Initial decision reversed', appealOutcomes['reverted'] ?? 0],
+      ['Decision omitted', appealOutcomes['omitted'] ?? 0],
       [
         'Median time to action a complaint (days)',
         appealMedianTimeToActionDays,
@@ -290,9 +271,7 @@ required for the  transparency metrics report.
         'outcomes': appealOutcomes,
         'medianTimeToActionDays': appealMedianTimeToActionDays,
       },
-      'users': {
-        'suspensions': reasonCounts,
-      }
+      'users': {'suspensions': reasonCounts},
     };
   },
 );
@@ -310,14 +289,16 @@ String toCsV(List<List<Object>> data) {
       if (value is int) {
         sb.write(value);
       } else if (value is String) {
-        final mustEscape = value.contains(',') ||
+        final mustEscape =
+            value.contains(',') ||
             value.contains('"') ||
             value.contains('\r') ||
             value.contains('\n');
         sb.write(mustEscape ? '"${value.replaceAll('"', '""')}"' : value);
       } else {
         throw UnimplementedError(
-            'Unhandled CSV type: ${value.runtimeType}/$value');
+          'Unhandled CSV type: ${value.runtimeType}/$value',
+        );
       }
     }
     sb.write('\r\n');

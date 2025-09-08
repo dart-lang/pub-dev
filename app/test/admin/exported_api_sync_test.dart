@@ -19,18 +19,17 @@ void main() {
       List<String>? packages,
       bool forceWrite = false,
     }) async {
-      await withRetryPubApiClient(
-        authToken: siteAdminToken,
-        (api) async {
-          await api.adminInvokeAction(
-            'exported-api-sync',
-            AdminInvokeActionArguments(arguments: {
+      await withRetryPubApiClient(authToken: siteAdminToken, (api) async {
+        await api.adminInvokeAction(
+          'exported-api-sync',
+          AdminInvokeActionArguments(
+            arguments: {
               'packages': packages?.join(' ') ?? 'ALL',
               if (forceWrite) 'force-write': 'true',
-            }),
-          );
-        },
-      );
+            },
+          ),
+        );
+      });
     }
 
     /// Return map of all objects in the Exported API bucket.
@@ -49,8 +48,9 @@ void main() {
     /// ```
     Future<Map<String, dynamic>> listExportedApi() async {
       final data = <String, dynamic>{};
-      final bucket =
-          storageService.bucket(activeConfiguration.exportedApiBucketName!);
+      final bucket = storageService.bucket(
+        activeConfiguration.exportedApiBucketName!,
+      );
       await for (final entry in bucket.list(delimiter: '')) {
         if (!entry.isObject) continue;
         final info = await bucket.info(entry.name);
@@ -68,156 +68,177 @@ void main() {
       return data;
     }
 
-    testWithProfile('baseline checks', fn: () async {
-      await syncExportedApi();
-      final data = await listExportedApi();
-      expect(data.keys, hasLength(greaterThan(50)));
-      expect(data.keys, hasLength(lessThan(70)));
-
-      final oxygenFiles = data.keys.where((k) => k.contains('oxygen')).toSet();
-      expect(oxygenFiles, hasLength(greaterThan(5)));
-      expect(oxygenFiles, {
-        '$runtimeVersion/api/archives/oxygen-1.0.0.tar.gz',
-        '$runtimeVersion/api/archives/oxygen-1.2.0.tar.gz',
-        '$runtimeVersion/api/archives/oxygen-2.0.0-dev.tar.gz',
-        '$runtimeVersion/api/packages/oxygen',
-        '$runtimeVersion/api/packages/oxygen/advisories',
-        '$runtimeVersion/api/packages/oxygen/likes',
-        '$runtimeVersion/api/packages/oxygen/options',
-        '$runtimeVersion/api/packages/oxygen/publisher',
-        '$runtimeVersion/api/packages/oxygen/score',
-        '$runtimeVersion/api/packages/oxygen/feed.atom',
-        'latest/api/archives/oxygen-1.0.0.tar.gz',
-        'latest/api/archives/oxygen-1.2.0.tar.gz',
-        'latest/api/archives/oxygen-2.0.0-dev.tar.gz',
-        'latest/api/packages/oxygen',
-        'latest/api/packages/oxygen/advisories',
-        'latest/api/packages/oxygen/likes',
-        'latest/api/packages/oxygen/options',
-        'latest/api/packages/oxygen/publisher',
-        'latest/api/packages/oxygen/score',
-        'latest/api/packages/oxygen/feed.atom',
-      });
-
-      final oxygenDataJson = data['latest/api/packages/oxygen'];
-      expect(oxygenDataJson, {
-        'updated': isNotEmpty,
-        'metadata': {
-          'contentType': 'application/json; charset="utf-8"',
-          'custom': {
-            'validated': isNotEmpty,
-          },
-        },
-        'length': greaterThan(100),
-        'bytes': isNotEmpty,
-      });
-    });
-
-    testWithProfile('deleted files + full sync', fn: () async {
-      await syncExportedApi();
-      final oldRoot = await listExportedApi();
-
-      for (final e in oldRoot.entries) {
-        final path = e.key;
-        final oldData = e.value as Map;
-
-        final bucket =
-            storageService.bucket(activeConfiguration.exportedApiBucketName!);
-        await bucket.delete(path);
-
+    testWithProfile(
+      'baseline checks',
+      fn: () async {
         await syncExportedApi();
-        final newRoot = await listExportedApi();
-        expect(newRoot.containsKey(path), true);
-        final newData = newRoot[path] as Map;
-        expect(oldData['bytes'], isNotEmpty);
-        expect(oldData['bytes'], newData['bytes']);
-      }
-    });
+        final data = await listExportedApi();
+        expect(data.keys, hasLength(greaterThan(50)));
+        expect(data.keys, hasLength(lessThan(70)));
 
-    testWithProfile('delete files + selective sync', fn: () async {
-      await syncExportedApi();
-      final oldRoot = await listExportedApi();
+        final oxygenFiles = data.keys
+            .where((k) => k.contains('oxygen'))
+            .toSet();
+        expect(oxygenFiles, hasLength(greaterThan(5)));
+        expect(oxygenFiles, {
+          '$runtimeVersion/api/archives/oxygen-1.0.0.tar.gz',
+          '$runtimeVersion/api/archives/oxygen-1.2.0.tar.gz',
+          '$runtimeVersion/api/archives/oxygen-2.0.0-dev.tar.gz',
+          '$runtimeVersion/api/packages/oxygen',
+          '$runtimeVersion/api/packages/oxygen/advisories',
+          '$runtimeVersion/api/packages/oxygen/likes',
+          '$runtimeVersion/api/packages/oxygen/options',
+          '$runtimeVersion/api/packages/oxygen/publisher',
+          '$runtimeVersion/api/packages/oxygen/score',
+          '$runtimeVersion/api/packages/oxygen/feed.atom',
+          'latest/api/archives/oxygen-1.0.0.tar.gz',
+          'latest/api/archives/oxygen-1.2.0.tar.gz',
+          'latest/api/archives/oxygen-2.0.0-dev.tar.gz',
+          'latest/api/packages/oxygen',
+          'latest/api/packages/oxygen/advisories',
+          'latest/api/packages/oxygen/likes',
+          'latest/api/packages/oxygen/options',
+          'latest/api/packages/oxygen/publisher',
+          'latest/api/packages/oxygen/score',
+          'latest/api/packages/oxygen/feed.atom',
+        });
 
-      final oxygenFiles =
-          oldRoot.keys.where((k) => k.contains('oxygen')).toList();
-      expect(oxygenFiles, hasLength(greaterThan(5)));
+        final oxygenDataJson = data['latest/api/packages/oxygen'];
+        expect(oxygenDataJson, {
+          'updated': isNotEmpty,
+          'metadata': {
+            'contentType': 'application/json; charset="utf-8"',
+            'custom': {'validated': isNotEmpty},
+          },
+          'length': greaterThan(100),
+          'bytes': isNotEmpty,
+        });
+      },
+    );
 
-      for (final path in oxygenFiles) {
-        final bucket =
-            storageService.bucket(activeConfiguration.exportedApiBucketName!);
-        await bucket.delete(path);
+    testWithProfile(
+      'deleted files + full sync',
+      fn: () async {
+        await syncExportedApi();
+        final oldRoot = await listExportedApi();
 
-        await syncExportedApi(packages: ['neon']);
-        expect(await bucket.tryInfo(path), isNull);
+        for (final e in oldRoot.entries) {
+          final path = e.key;
+          final oldData = e.value as Map;
 
-        await syncExportedApi(packages: ['oxygen']);
-        expect(await bucket.tryInfo(path), isNotNull);
-      }
-    });
+          final bucket = storageService.bucket(
+            activeConfiguration.exportedApiBucketName!,
+          );
+          await bucket.delete(path);
 
-    testWithProfile('modified files + selective sync', fn: () async {
-      await syncExportedApi();
-      final oldRoot = await listExportedApi();
+          await syncExportedApi();
+          final newRoot = await listExportedApi();
+          expect(newRoot.containsKey(path), true);
+          final newData = newRoot[path] as Map;
+          expect(oldData['bytes'], isNotEmpty);
+          expect(oldData['bytes'], newData['bytes']);
+        }
+      },
+    );
 
-      final oxygenFiles =
-          oldRoot.keys.where((k) => k.contains('oxygen')).toList();
-      expect(oxygenFiles, hasLength(greaterThan(5)));
+    testWithProfile(
+      'delete files + selective sync',
+      fn: () async {
+        await syncExportedApi();
+        final oldRoot = await listExportedApi();
 
-      for (final path in oxygenFiles) {
-        final oldData = oldRoot[path] as Map;
-        final bucket =
-            storageService.bucket(activeConfiguration.exportedApiBucketName!);
-        await bucket.writeBytes(path, [1]);
+        final oxygenFiles = oldRoot.keys
+            .where((k) => k.contains('oxygen'))
+            .toList();
+        expect(oxygenFiles, hasLength(greaterThan(5)));
 
-        await syncExportedApi(packages: ['neon']);
-        expect((await bucket.info(path)).length, 1);
+        for (final path in oxygenFiles) {
+          final bucket = storageService.bucket(
+            activeConfiguration.exportedApiBucketName!,
+          );
+          await bucket.delete(path);
 
-        await syncExportedApi(packages: ['oxygen']);
-        expect((await bucket.info(path)).length, greaterThan(1));
+          await syncExportedApi(packages: ['neon']);
+          expect(await bucket.tryInfo(path), isNull);
 
-        // also check file content
-        final newRoot = await listExportedApi();
-        final newData = newRoot[path] as Map;
-        expect(newData['length'], greaterThan(1));
-        expect(oldData['bytes'], newData['bytes']);
-      }
-    });
+          await syncExportedApi(packages: ['oxygen']);
+          expect(await bucket.tryInfo(path), isNotNull);
+        }
+      },
+    );
 
-    testWithProfile('modified metadata + selective sync', fn: () async {
-      await syncExportedApi();
-      final oldRoot = await listExportedApi();
+    testWithProfile(
+      'modified files + selective sync',
+      fn: () async {
+        await syncExportedApi();
+        final oldRoot = await listExportedApi();
 
-      final oxygenFiles =
-          oldRoot.keys.where((k) => k.contains('oxygen')).toList();
-      expect(oxygenFiles, hasLength(greaterThan(5)));
+        final oxygenFiles = oldRoot.keys
+            .where((k) => k.contains('oxygen'))
+            .toList();
+        expect(oxygenFiles, hasLength(greaterThan(5)));
 
-      for (final path in oxygenFiles) {
-        final oldData = oldRoot[path] as Map;
-        final bucket =
-            storageService.bucket(activeConfiguration.exportedApiBucketName!);
-        await bucket.updateMetadataWithRetry(
-          path,
-          ObjectMetadata(
-            contentType: 'text/plain',
-            custom: {'x': 'x'},
-          ),
-        );
+        for (final path in oxygenFiles) {
+          final oldData = oldRoot[path] as Map;
+          final bucket = storageService.bucket(
+            activeConfiguration.exportedApiBucketName!,
+          );
+          await bucket.writeBytes(path, [1]);
 
-        await syncExportedApi(packages: ['neon']);
-        expect((await bucket.info(path)).metadata.custom, {'x': 'x'});
+          await syncExportedApi(packages: ['neon']);
+          expect((await bucket.info(path)).length, 1);
 
-        await syncExportedApi(packages: ['oxygen']);
-        final newInfo = await bucket.info(path);
-        expect(
-            newInfo.metadata.contentType, oldData['metadata']['contentType']);
-        expect(newInfo.metadata.custom, {'validated': isNotEmpty});
+          await syncExportedApi(packages: ['oxygen']);
+          expect((await bucket.info(path)).length, greaterThan(1));
 
-        // also check file content
-        final newRoot = await listExportedApi();
-        final newData = newRoot[path] as Map;
-        expect(newData['length'], greaterThan(1));
-        expect(oldData['bytes'], newData['bytes']);
-      }
-    });
+          // also check file content
+          final newRoot = await listExportedApi();
+          final newData = newRoot[path] as Map;
+          expect(newData['length'], greaterThan(1));
+          expect(oldData['bytes'], newData['bytes']);
+        }
+      },
+    );
+
+    testWithProfile(
+      'modified metadata + selective sync',
+      fn: () async {
+        await syncExportedApi();
+        final oldRoot = await listExportedApi();
+
+        final oxygenFiles = oldRoot.keys
+            .where((k) => k.contains('oxygen'))
+            .toList();
+        expect(oxygenFiles, hasLength(greaterThan(5)));
+
+        for (final path in oxygenFiles) {
+          final oldData = oldRoot[path] as Map;
+          final bucket = storageService.bucket(
+            activeConfiguration.exportedApiBucketName!,
+          );
+          await bucket.updateMetadataWithRetry(
+            path,
+            ObjectMetadata(contentType: 'text/plain', custom: {'x': 'x'}),
+          );
+
+          await syncExportedApi(packages: ['neon']);
+          expect((await bucket.info(path)).metadata.custom, {'x': 'x'});
+
+          await syncExportedApi(packages: ['oxygen']);
+          final newInfo = await bucket.info(path);
+          expect(
+            newInfo.metadata.contentType,
+            oldData['metadata']['contentType'],
+          );
+          expect(newInfo.metadata.custom, {'validated': isNotEmpty});
+
+          // also check file content
+          final newRoot = await listExportedApi();
+          final newData = newRoot[path] as Map;
+          expect(newData['length'], greaterThan(1));
+          expect(oldData['bytes'], newData['bytes']);
+        }
+      },
+    );
   });
 }

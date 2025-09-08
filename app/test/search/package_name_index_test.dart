@@ -17,107 +17,67 @@ void main() {
     ]);
 
     test('fluent vs fluent_ui', () {
-      expect(
-        index.search('fluent'),
-        {
-          'fluent': 1.0,
-          'fluent_ui': 1.0,
-        },
-      );
+      expect(index.search('fluent'), {'fluent': 1.0, 'fluent_ui': 1.0});
     });
 
     test('get vs get_it', () {
-      expect(
-        index.search('get'),
-        {
-          'get': 1.0,
-          'get_it': 1.0,
-        },
-      );
+      expect(index.search('get'), {'get': 1.0, 'get_it': 1.0});
     });
 
     test('get_it', () {
-      expect(index.search('get_it'), {
-        'get_it': 1.0,
-      });
+      expect(index.search('get_it'), {'get_it': 1.0});
     });
 
     test('modular vs modular_flutter', () {
-      expect(
-        index.search('modular'),
-        {
-          'modular': 1.0,
-          'modular_flutter': 1.0,
-        },
-      );
+      expect(index.search('modular'), {'modular': 1.0, 'modular_flutter': 1.0});
     });
 
     test('mixed parts: fluent it', () {
-      expect(
-        index.search('fluent it'),
-        {},
-      );
+      expect(index.search('fluent it'), {});
     });
 
     test('mixed parts: fluent flutter', () {
-      expect(
-        index.search('fluent flutter'),
-        {},
-      );
+      expect(index.search('fluent flutter'), {});
     });
 
     test('prefix: f', () {
-      expect(
-        index.search('f'),
-        {
-          'fluent': 1.0,
-          'fluent_ui': 1.0,
-          'modular_flutter': 1.0,
-        },
-      );
+      expect(index.search('f'), {
+        'fluent': 1.0,
+        'fluent_ui': 1.0,
+        'modular_flutter': 1.0,
+      });
     });
 
     test('prefix: fl', () {
-      expect(
-        index.search('fl'),
-        {
-          'fluent': 1.0,
-          'fluent_ui': 1.0,
-          'modular_flutter': 1.0,
-        },
-      );
+      expect(index.search('fl'), {
+        'fluent': 1.0,
+        'fluent_ui': 1.0,
+        'modular_flutter': 1.0,
+      });
     });
 
     test('prefix: flu', () {
-      expect(
-        index.search('flu'),
-        {
-          'fluent': 1.0,
-          'fluent_ui': 1.0,
-          'modular_flutter': 1.0,
-        },
-      );
+      expect(index.search('flu'), {
+        'fluent': 1.0,
+        'fluent_ui': 1.0,
+        'modular_flutter': 1.0,
+      });
     });
 
     test('prefix: fluf', () {
-      expect(
-        index.search('fluf'),
-        {'fluent': 0.5, 'fluent_ui': 0.5, 'modular_flutter': 0.5},
-      );
+      expect(index.search('fluf'), {
+        'fluent': 0.5,
+        'fluent_ui': 0.5,
+        'modular_flutter': 0.5,
+      });
     });
 
     test('prefix: fluff', () {
-      expect(
-        index.search('fluff'),
-        {},
-      );
+      expect(index.search('fluff'), {});
     });
 
     test('prefix: fluffy', () {
-      expect(
-        index.search('fluffy'),
-        {},
-      );
+      expect(index.search('fluffy'), {});
     });
 
     test('substring: entu', () {
