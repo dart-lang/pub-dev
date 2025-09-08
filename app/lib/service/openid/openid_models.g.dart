@@ -64,18 +64,15 @@ JsonWebKey _$JsonWebKeyFromJson(Map<String, dynamic> json) => JsonWebKey(
   ),
 );
 
-Map<String, dynamic> _$JsonWebKeyToJson(JsonWebKey instance) =>
-    <String, dynamic>{
-      'alg': instance.alg,
-      if (instance.use case final value?) 'use': value,
-      if (instance.kid case final value?) 'kid': value,
-      if (instance.kty case final value?) 'kty': value,
-      if (instance.x5c case final value?) 'x5c': value,
-      if (instance.x5t case final value?) 'x5t': value,
-      if (const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.n)
-          case final value?)
-        'n': value,
-      if (const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.e)
-          case final value?)
-        'e': value,
-    };
+Map<String, dynamic> _$JsonWebKeyToJson(
+  JsonWebKey instance,
+) => <String, dynamic>{
+  'alg': instance.alg,
+  'use': ?instance.use,
+  'kid': ?instance.kid,
+  'kty': ?instance.kty,
+  'x5c': ?instance.x5c,
+  'x5t': ?instance.x5t,
+  'n': ?const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.n),
+  'e': ?const NullableUint8ListUnpaddedBase64UrlConverter().toJson(instance.e),
+};

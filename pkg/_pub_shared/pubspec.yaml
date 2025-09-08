@@ -22,5 +22,5 @@ dev_dependencies:
   build_verify: ^3.0.0
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
-  source_gen: '^2.0.0'
+  source_gen: '^3.0.0'
   test: '^1.16.5'

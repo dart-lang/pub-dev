@@ -21,11 +21,9 @@ FlutterArchive _$FlutterArchiveFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$FlutterArchiveToJson(FlutterArchive instance) =>
     <String, dynamic>{
-      if (instance.baseUrl case final value?) 'baseUrl': value,
-      if (instance.currentRelease?.toJson() case final value?)
-        'current_release': value,
-      if (instance.releases?.map((e) => e.toJson()).toList() case final value?)
-        'releases': value,
+      'baseUrl': ?instance.baseUrl,
+      'current_release': ?instance.currentRelease?.toJson(),
+      'releases': ?instance.releases?.map((e) => e.toJson()).toList(),
     };
 
 FlutterCurrentRelease _$FlutterCurrentReleaseFromJson(
@@ -39,9 +37,9 @@ FlutterCurrentRelease _$FlutterCurrentReleaseFromJson(
 Map<String, dynamic> _$FlutterCurrentReleaseToJson(
   FlutterCurrentRelease instance,
 ) => <String, dynamic>{
-  if (instance.beta case final value?) 'beta': value,
-  if (instance.dev case final value?) 'dev': value,
-  if (instance.stable case final value?) 'stable': value,
+  'beta': ?instance.beta,
+  'dev': ?instance.dev,
+  'stable': ?instance.stable,
 };
 
 FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) =>
@@ -59,12 +57,11 @@ FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$FlutterReleaseToJson(FlutterRelease instance) =>
     <String, dynamic>{
-      if (instance.hash case final value?) 'hash': value,
-      if (instance.channel case final value?) 'channel': value,
-      if (instance.version case final value?) 'version': value,
-      if (instance.releaseDate?.toIso8601String() case final value?)
-        'release_date': value,
-      if (instance.archive case final value?) 'archive': value,
-      if (instance.sha256 case final value?) 'sha256': value,
-      if (instance.dartSdkVersion case final value?) 'dart_sdk_version': value,
+      'hash': ?instance.hash,
+      'channel': ?instance.channel,
+      'version': ?instance.version,
+      'release_date': ?instance.releaseDate?.toIso8601String(),
+      'archive': ?instance.archive,
+      'sha256': ?instance.sha256,
+      'dart_sdk_version': ?instance.dartSdkVersion,
     };

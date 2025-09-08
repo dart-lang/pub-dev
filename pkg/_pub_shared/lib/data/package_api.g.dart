@@ -43,8 +43,8 @@ AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
 Map<String, dynamic> _$AutomatedPublishingConfigToJson(
   AutomatedPublishingConfig instance,
 ) => <String, dynamic>{
-  if (instance.github?.toJson() case final value?) 'github': value,
-  if (instance.gcp?.toJson() case final value?) 'gcp': value,
+  'github': ?instance.github?.toJson(),
+  'gcp': ?instance.gcp?.toJson(),
 };
 
 GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
@@ -64,10 +64,10 @@ Map<String, dynamic> _$GitHubPublishingConfigToJson(
   GitHubPublishingConfig instance,
 ) => <String, dynamic>{
   'isEnabled': instance.isEnabled,
-  if (instance.repository case final value?) 'repository': value,
-  if (instance.tagPattern case final value?) 'tagPattern': value,
+  'repository': ?instance.repository,
+  'tagPattern': ?instance.tagPattern,
   'requireEnvironment': instance.requireEnvironment,
-  if (instance.environment case final value?) 'environment': value,
+  'environment': ?instance.environment,
   'isPushEventEnabled': instance.isPushEventEnabled,
   'isWorkflowDispatchEventEnabled': instance.isWorkflowDispatchEventEnabled,
 };
@@ -82,8 +82,7 @@ Map<String, dynamic> _$GcpPublishingConfigToJson(
   GcpPublishingConfig instance,
 ) => <String, dynamic>{
   'isEnabled': instance.isEnabled,
-  if (instance.serviceAccountEmail case final value?)
-    'serviceAccountEmail': value,
+  'serviceAccountEmail': ?instance.serviceAccountEmail,
 };
 
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
@@ -131,12 +130,11 @@ PackageData _$PackageDataFromJson(Map<String, dynamic> json) => PackageData(
 Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
     <String, dynamic>{
       'name': instance.name,
-      if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
-      if (instance.replacedBy case final value?) 'replacedBy': value,
+      'isDiscontinued': ?instance.isDiscontinued,
+      'replacedBy': ?instance.replacedBy,
       'latest': instance.latest,
       'versions': instance.versions,
-      if (instance.advisoriesUpdated?.toIso8601String() case final value?)
-        'advisoriesUpdated': value,
+      'advisoriesUpdated': ?instance.advisoriesUpdated?.toIso8601String(),
     };
 
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
@@ -153,12 +151,11 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
 Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
     <String, dynamic>{
       'version': instance.version,
-      if (instance.retracted case final value?) 'retracted': value,
+      'retracted': ?instance.retracted,
       'pubspec': instance.pubspec,
-      if (instance.archiveUrl case final value?) 'archive_url': value,
-      if (instance.archiveSha256 case final value?) 'archive_sha256': value,
-      if (instance.published?.toIso8601String() case final value?)
-        'published': value,
+      'archive_url': ?instance.archiveUrl,
+      'archive_sha256': ?instance.archiveSha256,
+      'published': ?instance.published?.toIso8601String(),
     };
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(

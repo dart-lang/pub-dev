@@ -31,7 +31,7 @@ Map<String, dynamic> _$TestProfileToJson(
       .toList(),
   'publishers': instance.publishers.map((e) => e.toJson()).toList(),
   'users': instance.users.map((e) => e.toJson()).toList(),
-  if (instance.defaultUser case final value?) 'defaultUser': value,
+  'defaultUser': ?instance.defaultUser,
 };
 
 TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
@@ -53,21 +53,19 @@ TestPackage _$TestPackageFromJson(Map<String, dynamic> json) => TestPackage(
   likeCount: (json['likeCount'] as num?)?.toInt(),
 );
 
-Map<String, dynamic> _$TestPackageToJson(
-  TestPackage instance,
-) => <String, dynamic>{
-  'name': instance.name,
-  if (instance.uploaders case final value?) 'uploaders': value,
-  if (instance.publisher case final value?) 'publisher': value,
-  if (instance.versions?.map((e) => e.toJson()).toList() case final value?)
-    'versions': value,
-  if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
-  if (instance.replacedBy case final value?) 'replacedBy': value,
-  if (instance.isUnlisted case final value?) 'isUnlisted': value,
-  if (instance.isFlutterFavorite case final value?) 'isFlutterFavorite': value,
-  if (instance.retractedVersions case final value?) 'retractedVersions': value,
-  if (instance.likeCount case final value?) 'likeCount': value,
-};
+Map<String, dynamic> _$TestPackageToJson(TestPackage instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'uploaders': ?instance.uploaders,
+      'publisher': ?instance.publisher,
+      'versions': ?instance.versions?.map((e) => e.toJson()).toList(),
+      'isDiscontinued': ?instance.isDiscontinued,
+      'replacedBy': ?instance.replacedBy,
+      'isUnlisted': ?instance.isUnlisted,
+      'isFlutterFavorite': ?instance.isFlutterFavorite,
+      'retractedVersions': ?instance.retractedVersions,
+      'likeCount': ?instance.likeCount,
+    };
 
 TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
   version: json['version'] as String,
@@ -76,12 +74,11 @@ TestVersion _$TestVersionFromJson(Map<String, dynamic> json) => TestVersion(
       : DateTime.parse(json['created'] as String),
 );
 
-Map<String, dynamic> _$TestVersionToJson(
-  TestVersion instance,
-) => <String, dynamic>{
-  'version': instance.version,
-  if (instance.created?.toIso8601String() case final value?) 'created': value,
-};
+Map<String, dynamic> _$TestVersionToJson(TestVersion instance) =>
+    <String, dynamic>{
+      'version': instance.version,
+      'created': ?instance.created?.toIso8601String(),
+    };
 
 GeneratedTestPackage _$GeneratedTestPackageFromJson(
   Map<String, dynamic> json,
@@ -111,17 +108,16 @@ Map<String, dynamic> _$GeneratedTestPackageToJson(
   GeneratedTestPackage instance,
 ) => <String, dynamic>{
   'name': instance.name,
-  if (instance.uploaders case final value?) 'uploaders': value,
-  if (instance.publisher case final value?) 'publisher': value,
-  if (instance.isDiscontinued case final value?) 'isDiscontinued': value,
-  if (instance.replacedBy case final value?) 'replacedBy': value,
-  if (instance.isUnlisted case final value?) 'isUnlisted': value,
-  if (instance.isFlutterFavorite case final value?) 'isFlutterFavorite': value,
-  if (instance.retractedVersions case final value?) 'retractedVersions': value,
-  if (instance.likeCount case final value?) 'likeCount': value,
-  if (instance.versions?.map((e) => e.toJson()).toList() case final value?)
-    'versions': value,
-  if (instance.template?.toJson() case final value?) 'template': value,
+  'uploaders': ?instance.uploaders,
+  'publisher': ?instance.publisher,
+  'isDiscontinued': ?instance.isDiscontinued,
+  'replacedBy': ?instance.replacedBy,
+  'isUnlisted': ?instance.isUnlisted,
+  'isFlutterFavorite': ?instance.isFlutterFavorite,
+  'retractedVersions': ?instance.retractedVersions,
+  'likeCount': ?instance.likeCount,
+  'versions': ?instance.versions?.map((e) => e.toJson()).toList(),
+  'template': ?instance.template?.toJson(),
 };
 
 GeneratedTestVersion _$GeneratedTestVersionFromJson(
@@ -140,8 +136,8 @@ Map<String, dynamic> _$GeneratedTestVersionToJson(
   GeneratedTestVersion instance,
 ) => <String, dynamic>{
   'version': instance.version,
-  if (instance.created?.toIso8601String() case final value?) 'created': value,
-  if (instance.template?.toJson() case final value?) 'template': value,
+  'created': ?instance.created?.toIso8601String(),
+  'template': ?instance.template?.toJson(),
 };
 
 TestArchiveTemplate _$TestArchiveTemplateFromJson(Map<String, dynamic> json) =>
@@ -155,10 +151,10 @@ TestArchiveTemplate _$TestArchiveTemplateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$TestArchiveTemplateToJson(
   TestArchiveTemplate instance,
 ) => <String, dynamic>{
-  if (instance.homepage case final value?) 'homepage': value,
-  if (instance.repository case final value?) 'repository': value,
-  if (instance.sdkConstraint case final value?) 'sdkConstraint': value,
-  if (instance.markdownSamples case final value?) 'markdownSamples': value,
+  'homepage': ?instance.homepage,
+  'repository': ?instance.repository,
+  'sdkConstraint': ?instance.sdkConstraint,
+  'markdownSamples': ?instance.markdownSamples,
 };
 
 TestPublisher _$TestPublisherFromJson(Map<String, dynamic> json) =>
@@ -200,10 +196,9 @@ ResolvedVersion _$ResolvedVersionFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['created'] as String),
     );
 
-Map<String, dynamic> _$ResolvedVersionToJson(
-  ResolvedVersion instance,
-) => <String, dynamic>{
-  'package': instance.package,
-  'version': instance.version,
-  if (instance.created?.toIso8601String() case final value?) 'created': value,
-};
+Map<String, dynamic> _$ResolvedVersionToJson(ResolvedVersion instance) =>
+    <String, dynamic>{
+      'package': instance.package,
+      'version': instance.version,
+      'created': ?instance.created?.toIso8601String(),
+    };

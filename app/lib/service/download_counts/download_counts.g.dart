@@ -56,8 +56,7 @@ CountData _$CountDataFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['newestDate'] as String);
 
 Map<String, dynamic> _$CountDataToJson(CountData instance) => <String, dynamic>{
-  if (instance.newestDate?.toIso8601String() case final value?)
-    'newestDate': value,
+  'newestDate': ?instance.newestDate?.toIso8601String(),
   'majorRangeCounts': instance.majorRangeCounts
       .map(
         (e) => <String, dynamic>{

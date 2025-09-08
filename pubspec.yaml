@@ -16,5 +16,5 @@ workspace:
   - pkg/pub_package_reader
 
 dev_dependencies:
-  lints: ^5.1.0
+  lints: ^6.0.0
   mono_repo: ^6.6.2

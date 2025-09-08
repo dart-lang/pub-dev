@@ -15,8 +15,10 @@ import 'package:source_gen/source_gen.dart' as g;
 
 import 'shared.dart' show EndPointGenerator, Handler;
 
-code.Reference _referToType(DartType type) =>
-    code.refer(type.element!.name!, type.element!.source!.uri.toString());
+code.Reference _referToType(DartType type) => code.refer(
+  type.element!.name!,
+  type.element!.firstFragment.libraryFragment!.source.uri.toString(),
+);
 
 final _responseType = g.TypeChecker.fromRuntime(shelf.Response);
 
@@ -185,7 +187,7 @@ code.Method _buildClientMethod(Handler h) {
         for (final param in h.queryParameters)
           code.Parameter(
             (b) => b
-              ..name = param.name
+              ..name = param.name!
               ..type = code.refer('String?')
               ..named = true,
           ),

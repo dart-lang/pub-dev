@@ -102,11 +102,11 @@ Map<String, dynamic> _$PackageSearchResultToJson(
 ) => <String, dynamic>{
   'timestamp': instance.timestamp.toIso8601String(),
   'totalCount': instance.totalCount,
-  if (instance.nameMatches case final value?) 'nameMatches': value,
+  'nameMatches': ?instance.nameMatches,
   'sdkLibraryHits': instance.sdkLibraryHits.map((e) => e.toJson()).toList(),
   'packageHits': instance.packageHits.map((e) => e.toJson()).toList(),
-  if (instance.errorMessage case final value?) 'errorMessage': value,
-  if (instance.statusCode case final value?) 'statusCode': value,
+  'errorMessage': ?instance.errorMessage,
+  'statusCode': ?instance.statusCode,
 };
 
 SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
@@ -123,13 +123,12 @@ SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) =>
     <String, dynamic>{
-      if (instance.sdk case final value?) 'sdk': value,
-      if (instance.library case final value?) 'library': value,
-      if (instance.description case final value?) 'description': value,
-      if (instance.url case final value?) 'url': value,
+      'sdk': ?instance.sdk,
+      'library': ?instance.library,
+      'description': ?instance.description,
+      'url': ?instance.url,
       'score': instance.score,
-      if (instance.apiPages?.map((e) => e.toJson()).toList() case final value?)
-        'apiPages': value,
+      'apiPages': ?instance.apiPages?.map((e) => e.toJson()).toList(),
     };
 
 PackageHit _$PackageHitFromJson(Map<String, dynamic> json) => PackageHit(
@@ -143,9 +142,8 @@ PackageHit _$PackageHitFromJson(Map<String, dynamic> json) => PackageHit(
 Map<String, dynamic> _$PackageHitToJson(PackageHit instance) =>
     <String, dynamic>{
       'package': instance.package,
-      if (instance.score case final value?) 'score': value,
-      if (instance.apiPages?.map((e) => e.toJson()).toList() case final value?)
-        'apiPages': value,
+      'score': ?instance.score,
+      'apiPages': ?instance.apiPages?.map((e) => e.toJson()).toList(),
     };
 
 ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(
@@ -156,7 +154,7 @@ ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(
 
 Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) =>
     <String, dynamic>{
-      if (instance.title case final value?) 'title': value,
-      if (instance.path case final value?) 'path': value,
-      if (instance.url case final value?) 'url': value,
+      'title': ?instance.title,
+      'path': ?instance.path,
+      'url': ?instance.url,
     };

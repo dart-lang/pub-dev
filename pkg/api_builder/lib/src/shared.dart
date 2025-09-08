@@ -5,7 +5,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, ExecutableElement, ParameterElement;
+    show ClassElement, ExecutableElement, FormalParameterElement;
 import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:build/build.dart' show BuildStep, log;
 import 'package:collection/collection.dart';
@@ -27,20 +27,20 @@ class Handler {
   /// If this handler has a payload
   bool get hasPayload => payloadType != null;
 
-  DartType? get payloadType => element.parameters
+  DartType? get payloadType => element.formalParameters
       .skip(1)
       .lastWhereOrNull((p) => p.isPositional && !p.type.isDartCoreString)
       ?.type;
 
   /// List of parameters from the route.
-  List<String> get routeParameters => element.parameters
+  List<String> get routeParameters => element.formalParameters
       .skip(1)
       .takeWhile((p) => p.type.isDartCoreString && p.isPositional)
       .map((p) => p.displayName)
       .toList();
 
   /// Any optional named string parameters are query string parameters.
-  List<ParameterElement> get queryParameters => element.parameters
+  List<FormalParameterElement> get queryParameters => element.formalParameters
       .where((p) => p.isNamed && p.type.isDartCoreString)
       .toList();
 }
@@ -49,10 +49,14 @@ class Handler {
 List<ExecutableElement> _getAnnotatedElementsOrderBySourceOffset(
   ClassElement cls,
 ) {
-  return <ExecutableElement>[
-    ...cls.methods.where(_endPointType.hasAnnotationOfExact),
-    ...cls.accessors.where(_endPointType.hasAnnotationOfExact),
-  ]..sort((a, b) => (a.nameOffset).compareTo(b.nameOffset));
+  return cls.children
+      .whereType<ExecutableElement>()
+      .where(_endPointType.hasAnnotationOfExact)
+      .toList()
+    ..sort(
+      (a, b) =>
+          (a.firstFragment.nameOffset!).compareTo(b.firstFragment.nameOffset!),
+    );
 }
 
 abstract class EndPointGenerator extends g.Generator {
