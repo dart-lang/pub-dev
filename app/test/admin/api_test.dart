@@ -1111,4 +1111,4 @@ void main() {
   });
 }
 
-dynamic _json(value) => json.decode(json.encode(value));
+dynamic _json(Object? value) => json.decode(json.encode(value));
